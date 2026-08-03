@@ -1,0 +1,83 @@
+import React from 'react';
+import { ShieldAlert, RefreshCw } from 'lucide-react';
+
+export default function FallbackError({ error, resetErrorBoundary }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '400px',
+        padding: '40px',
+        background: '#FEF2F2',
+        borderRadius: '32px',
+        border: '1px solid #FECACA',
+        textAlign: 'center',
+        margin: '20px',
+      }}
+    >
+      <div
+        style={{
+          width: '64px',
+          height: '64px',
+          borderRadius: '20px',
+          background: '#FFF',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 8px 24px rgba(239, 68, 68, 0.2)',
+          marginBottom: '24px',
+        }}
+      >
+        <ShieldAlert size={32} color="#EF4444" />
+      </div>
+      <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#7F1D1D', marginBottom: '12px' }}>
+        A system error occurred
+      </h2>
+      <p style={{ color: '#991B1B', maxWidth: '400px', marginBottom: '24px', lineHeight: 1.6 }}>
+        Our diagnostics engine encountered an unexpected fault in this module. The rest of the
+        application is still functioning.
+      </p>
+
+      {error && (
+        <pre
+          style={{
+            background: '#FFF',
+            padding: '16px',
+            borderRadius: '12px',
+            color: '#EF4444',
+            fontSize: '12px',
+            textAlign: 'left',
+            maxWidth: '100%',
+            overflowX: 'auto',
+            marginBottom: '32px',
+            border: '1px solid #FCA5A5',
+          }}
+        >
+          {error.message}
+        </pre>
+      )}
+
+      <button
+        onClick={resetErrorBoundary}
+        style={{
+          padding: '14px 28px',
+          background: '#EF4444',
+          color: '#FFF',
+          border: 'none',
+          borderRadius: '999px',
+          fontWeight: 800,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+        }}
+      >
+        <RefreshCw size={18} /> Recover Module
+      </button>
+    </div>
+  );
+}

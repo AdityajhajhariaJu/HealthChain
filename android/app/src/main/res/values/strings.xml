@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HealthChain</string>
+    <string name="title_activity_main">HealthChain</string>
+    <string name="package_name">com.healthchain.app</string>
+    <string name="custom_url_scheme">com.healthchain.app</string>
+</resources>
