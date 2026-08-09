@@ -58,7 +58,7 @@ body {
     BlinkMacSystemFont,
     sans-serif;
   background:
-    radial-gradient(circle at 82% -8%, rgba(20, 184, 166, 0.08), transparent 32%),
+    radial-gradient(circle at 82% -8%, rgba(5, 150, 105, 0.08), transparent 32%),
     radial-gradient(circle at 45% 0%, rgba(99, 102, 241, 0.055), transparent 28%),
     var(--bg);
   color: var(--text-main);
@@ -270,7 +270,7 @@ textarea {
 .badge-teal {
   background: var(--teal-light);
   color: var(--teal);
-  border: 1px solid rgba(20, 184, 166, 0.2);
+  border: 1px solid rgba(5, 150, 105, 0.2);
 }
 .badge-green {
   background: var(--green-light);
@@ -435,8 +435,8 @@ textarea {
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: #14b8a6;
-  box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.1);
+  background: #059669;
+  box-shadow: 0 0 0 5px rgba(5, 150, 105, 0.1);
   animation: railNode 2.6s ease-in-out infinite;
 }
 .parallel-rail__network span:nth-child(1) {
@@ -460,7 +460,7 @@ textarea {
   top: 22px;
   left: 28px;
   transform: rotate(-7deg);
-  background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+  background: linear-gradient(90deg, transparent, #059669, transparent);
   opacity: 0.7;
   animation: railLine 2.6s ease-in-out infinite;
 }
@@ -470,12 +470,12 @@ textarea {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  color: #0d9488;
-  background: rgba(20, 184, 166, 0.1);
+  color: #10B981;
+  background: rgba(5, 150, 105, 0.1);
   margin-bottom: 12px;
 }
 .parallel-rail__label {
-  color: #0d9488;
+  color: #10B981;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1px;
@@ -518,7 +518,7 @@ textarea {
 }
 .parallel-rail__dots span.active {
   width: 18px;
-  background: #14b8a6;
+  background: #059669;
 }
 @keyframes railNode {
   0%,
@@ -574,8 +574,8 @@ textarea {
   display: grid;
   place-items: center;
   border-radius: 13px;
-  color: #0d9488;
-  background: rgba(20, 184, 166, 0.12);
+  color: #10B981;
+  background: rgba(5, 150, 105, 0.12);
 }
 .brand-pulse__copy {
   overflow: hidden;
@@ -618,7 +618,7 @@ textarea {
 }
 .brand-pulse__dots i.active {
   width: 16px;
-  background: #14b8a6;
+  background: #059669;
 }
 @media (max-width: 700px) {
   .brand-pulse {
@@ -669,7 +669,7 @@ textarea {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  color: #0d9488;
+  color: #10B981;
   background: #f0fdfa;
   border-radius: 11px;
 }

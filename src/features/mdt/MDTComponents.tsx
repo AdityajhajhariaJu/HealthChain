@@ -214,7 +214,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
               marginTop: 18,
               padding: '14px 18px',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               background: 'linear-gradient(135deg, #0F9F91, #059669)',
               color: '#FFF',
               fontWeight: 800,
@@ -248,7 +248,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
               fontSize: 15,
             }}
           >
-            <FileText size={19} color="#0D9488" /> New report or test result?
+            <FileText size={19} color="#10B981" /> New report or test result?
           </div>
           <p style={{ margin: '11px 0', color: '#64748B', fontSize: 14, lineHeight: 1.55 }}>
             Add it to this same case first. HealthChain will analyse it, save the finding as
@@ -261,7 +261,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
               marginTop: 18,
               padding: '13px 18px',
               border: '1px solid #99F6E4',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               background: '#F0FDFA',
               color: '#047857',
               fontWeight: 800,
@@ -404,7 +404,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                   style={{
                     background: '#FFF',
                     border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-lg)',
                     padding: '16px 20px',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -440,7 +440,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                   style={{
                     background: '#FFF',
                     border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-lg)',
                     padding: '16px 20px',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -477,7 +477,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                 width: '100%',
                 minHeight: '120px',
                 padding: '16px',
-                borderRadius: '16px',
+                borderRadius: 'var(--radius-lg)',
                 border: '1px solid #E2E8F0',
                 fontSize: '15px',
                 resize: 'vertical',
@@ -578,7 +578,7 @@ const SymptomPills = ({ options, onSubmit, color }) => {
 const PainSlider = ({ onSubmit, color }) => {
   const [val, setVal] = useState(5);
   return (
-    <div style={{ marginTop: '12px', padding: '12px', background: '#F1F5F9', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+    <div style={{ marginTop: '12px', padding: '12px', background: '#F1F5F9', borderRadius: 'var(--radius-lg)', border: '1px solid #E2E8F0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', fontSize: '12px', marginBottom: '8px' }}>
         <span>1 (Mild)</span>
         <span style={{ color: color, fontWeight: 700, fontSize: '14px' }}>{val}</span>
@@ -944,7 +944,7 @@ export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeDa
 
         {status === 'thinking' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ alignSelf: 'flex-start' }}>
-            <div style={{ padding: '12px 16px', borderRadius: '16px 16px 16px 4px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', gap: '6px' }}>
+            <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)' 16px 16px 4px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', gap: '6px' }}>
               {[0, 0.15, 0.3].map((d, i) => (
                 <motion.span
                   key={i}
@@ -1130,7 +1130,7 @@ export function MDTConferencePanel({
           <AnimatePresence>
             {visibleMessages.map((msg) => (
               msg.sender === null ? (
-                <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', padding: '16px', color: '#64748B', fontSize: '14px', fontStyle: 'italic', background: '#F8FAFC', borderRadius: '12px', marginTop: '16px' }}>
+                <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', padding: '16px', color: '#64748B', fontSize: '14px', fontStyle: 'italic', background: '#F8FAFC', borderRadius: 'var(--radius-lg)', marginTop: '16px' }}>
                   {msg.text}
                 </motion.div>
               ) : (
@@ -1386,7 +1386,7 @@ export function MDTConferencePanel({
               style={{
                 background: '#FFF',
                 padding: '24px',
-                borderRadius: '16px',
+                borderRadius: 'var(--radius-lg)',
                 border: '1px solid #E2E8F0',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
               }}
@@ -1409,7 +1409,7 @@ export function MDTConferencePanel({
                 style={{
                   width: '100%',
                   padding: '14px 20px',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-lg)',
                   border: '2px solid #F1F5F9',
                   outline: 'none',
                   fontSize: '15px',
@@ -1729,7 +1729,7 @@ export function MDTReportPanel({
               display: 'inline-flex',
               padding: '12px',
               background: 'rgba(99,102,241,0.1)',
-              borderRadius: '16px',
+              borderRadius: 'var(--radius-lg)',
               color: '#6366F1',
               marginBottom: '20px',
             }}
@@ -1873,7 +1873,7 @@ export function MDTReportPanel({
                   style={{
                     width: '48px',
                     height: '48px',
-                    borderRadius: '16px',
+                    borderRadius: 'var(--radius-lg)',
                     background: 'rgba(15,23,42,0.05)',
                     display: 'flex',
                     alignItems: 'center',
@@ -1999,7 +1999,7 @@ export function MDTReportPanel({
                     width: '100%',
                     minHeight: '120px',
                     padding: '16px',
-                    borderRadius: '16px',
+                    borderRadius: 'var(--radius-lg)',
                     border: '1px solid #CBD5E1',
                     fontSize: '15px',
                     resize: 'vertical',

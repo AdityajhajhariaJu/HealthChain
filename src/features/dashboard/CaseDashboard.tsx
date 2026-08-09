@@ -93,7 +93,7 @@ export default function CaseDashboard() {
           borderRadius: 28,
           padding: '38px',
           color: '#fff',
-          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#0d9488)',
+          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#10B981)',
           boxShadow: '0 18px 45px rgba(15,23,42,.18)',
           marginBottom: 28,
         }}
@@ -195,7 +195,7 @@ export default function CaseDashboard() {
                           width: 22,
                           height: 22,
                           borderRadius: 99,
-                          border: '2px solid #0d9488',
+                          border: '2px solid #10B981',
                           flexShrink: 0,
                         }}
                       />
@@ -269,7 +269,7 @@ export default function CaseDashboard() {
         </div>
         <aside style={{ display: 'grid', gap: 16 }}>
           <section className="card" style={{ padding: 22 }}>
-            <div style={{ display: 'flex', gap: 10, color: '#0d9488', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 10, color: '#10B981', alignItems: 'center' }}>
               <Activity size={19} />
               <strong>Care momentum</strong>
             </div>
@@ -279,7 +279,7 @@ export default function CaseDashboard() {
             </p>
           </section>
           <section className="card" style={{ padding: 22 }}>
-            <div style={{ display: 'flex', gap: 10, color: '#0d9488', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 10, color: '#10B981', alignItems: 'center' }}>
               <FileText size={19} />
               <strong>Your health record</strong>
             </div>
@@ -437,8 +437,8 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                cursor: 'pointer', 
                fontSize: 16, 
                fontWeight: activeTab === tab ? 700 : 500,
-               color: activeTab === tab ? '#0d9488' : '#64748b',
-               borderBottom: activeTab === tab ? '2px solid #0d9488' : 'none',
+               color: activeTab === tab ? '#10B981' : '#64748b',
+               borderBottom: activeTab === tab ? '2px solid #10B981' : 'none',
                paddingBottom: 6,
                textTransform: 'capitalize'
              }}
@@ -468,7 +468,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                         padding: 16,
                         borderRadius: 14,
                         background: '#f8fafc',
-                        borderLeft: '4px solid #0d9488',
+                        borderLeft: '4px solid #10B981',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
@@ -486,7 +486,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                           <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 13, color: '#475569' }}>
                             {d.citations.map((cit: any, citIdx: number) => (
                               <li key={citIdx} style={{ marginBottom: 4 }}>
-                                <a href={cit.link} target="_blank" rel="noreferrer" style={{ color: '#0d9488', textDecoration: 'none' }}>
+                                <a href={cit.link} target="_blank" rel="noreferrer" style={{ color: '#10B981', textDecoration: 'none' }}>
                                   {cit.title}
                                 </a> — <i>{cit.journal} ({cit.year})</i>
                               </li>
@@ -820,7 +820,7 @@ function EmptyAction({ navigate }: { navigate: any }) {
 function EmptyCase({ navigate }: { navigate: any }) {
   return (
     <div className="card" style={{ padding: 36, textAlign: 'center' }}>
-      <Stethoscope size={28} color="#0d9488" />
+      <Stethoscope size={28} color="#10B981" />
       <h3 style={{ margin: '12px 0 6px' }}>Start your first health case</h3>
       <p style={{ color: 'var(--text-muted)', margin: '0 0 18px' }}>
         A case is the permanent container for your health journey. Add evidence and invite AI specialists to build a clinical picture.

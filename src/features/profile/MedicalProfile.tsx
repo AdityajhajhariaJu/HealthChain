@@ -273,7 +273,7 @@ export default function MedicalProfile() {
               width: '48px',
               height: '48px',
               borderRadius: '15px',
-              background: '#0D9488',
+              background: '#10B981',
               color: '#FFF',
               display: 'grid',
               placeItems: 'center',
@@ -307,7 +307,7 @@ export default function MedicalProfile() {
                   width: `${recordReady}%`,
                   height: '100%',
                   borderRadius: '9px',
-                  background: 'linear-gradient(90deg,#14B8A6,#0D9488)',
+                  background: 'linear-gradient(90deg,#059669,#10B981)',
                 }}
               />
             </div>
@@ -377,7 +377,7 @@ export default function MedicalProfile() {
         style={{
           padding: '20px 24px',
           marginBottom: '24px',
-          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#0d9488)',
+          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#10B981)',
           color: '#F8FAFC',
           borderRadius: '20px',
           border: 'none',
@@ -495,7 +495,7 @@ export default function MedicalProfile() {
                   color: '#FFF',
                   border: 'none',
                   padding: '10px 20px',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-lg)',
                   fontWeight: 600,
                   fontSize: '14px',
                   cursor: isGeneratingSynthesis ? 'not-allowed' : 'pointer',
@@ -595,7 +595,7 @@ export default function MedicalProfile() {
                   gap: '16px',
                   background: 'var(--surface)',
                   padding: '24px',
-                  borderRadius: '16px',
+                  borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--border)',
                 }}
               >
@@ -847,7 +847,7 @@ export default function MedicalProfile() {
                       </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', background: 'var(--surface-hover)', padding: '16px', borderRadius: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', background: 'var(--surface-hover)', padding: '16px', borderRadius: 'var(--radius-lg)' }}>
                       <div>
                         <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <HeartPulse size={14} /> Connected Treatment
@@ -977,7 +977,7 @@ export default function MedicalProfile() {
                   textAlign: 'center',
                   padding: '32px',
                   background: 'var(--surface-hover)',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-lg)',
                   border: '1px dashed var(--border-strong)',
                 }}
               >
@@ -1000,7 +1000,7 @@ export default function MedicalProfile() {
                     style={{
                       padding: '16px',
                       background: 'var(--surface-hover)',
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       borderLeft: `3px solid ${data.status === 'HIGH' || data.status === 'LOW' ? '#EF4444' : '#3B82F6'}`,
                       position: 'relative',
                       display: 'flex',
@@ -1146,7 +1146,7 @@ export default function MedicalProfile() {
                           marginBottom: idx === events.length - 1 ? 0 : '12px',
                           padding: '12px 16px',
                           background: 'var(--surface-hover)',
-                          borderRadius: '12px',
+                          borderRadius: 'var(--radius-lg)',
                           border: '1px solid var(--border)',
                         }}
                       >
@@ -1258,7 +1258,7 @@ export default function MedicalProfile() {
                 gap: '8px',
               }}
             >
-              <Users size={18} color="#0D9488" /> Active Care Team
+              <Users size={18} color="#10B981" /> Active Care Team
             </h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
@@ -1344,7 +1344,7 @@ export default function MedicalProfile() {
                     style={{
                       padding: '16px',
                       background: 'var(--surface-hover)',
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       borderLeft: '3px solid #8B5CF6',
                       position: 'relative',
                     }}
@@ -1430,7 +1430,7 @@ export default function MedicalProfile() {
                         padding: '16px',
                         background:
                           item.status === 'completed' ? 'var(--surface)' : 'var(--surface-hover)',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--radius-lg)',
                         border: '1px solid var(--border)',
                         display: 'flex',
                         gap: '12px',

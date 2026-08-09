@@ -46,7 +46,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
           style={{
             background: '#FFF',
             padding: '16px',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-lg)',
             color: '#EF4444',
             fontSize: '12px',
             textAlign: 'left',

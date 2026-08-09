@@ -97,7 +97,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             marginBottom: 28,
           }}
         >
-          <Activity size={23} color="#0D9488" /> HealthChain
+          <Activity size={23} color="#10B981" /> HealthChain
         </div>
         <main
           style={{
@@ -120,7 +120,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             <div>
               <div
                 style={{
-                  color: '#0D9488',
+                  color: '#10B981',
                   fontSize: 12,
                   fontWeight: 850,
                   letterSpacing: 1,
@@ -237,7 +237,7 @@ function StepAbout({ form, field, update, isMobile }: any) {
   return (
     <>
       <div style={titleStyle}>
-        <HeartPulse size={22} color="#0D9488" />
+        <HeartPulse size={22} color="#10B981" />
         <div>
           <h2>Start with the essentials</h2>
           <p>These details make your Medical Profile immediately useful in every case.</p>
@@ -280,7 +280,7 @@ function StepHealth({ form, update }: any) {
   return (
     <>
       <div style={titleStyle}>
-        <ClipboardList size={22} color="#0D9488" />
+        <ClipboardList size={22} color="#10B981" />
         <div>
           <h2>Build your medical snapshot</h2>
           <p>
@@ -328,7 +328,7 @@ function StepFocus({ form, update }: any) {
   return (
     <>
       <div style={titleStyle}>
-        <ShieldCheck size={22} color="#0D9488" />
+        <ShieldCheck size={22} color="#10B981" />
         <div>
           <h2>What would you like HealthChain to help you organise?</h2>
           <p>
@@ -396,7 +396,7 @@ const primaryButton = {
   border: 'none',
   borderRadius: 12,
   padding: '13px 18px',
-  background: 'linear-gradient(135deg,#0D9488,#059669)',
+  background: 'linear-gradient(135deg,#10B981,#059669)',
   color: '#FFF',
   fontWeight: 800,
   fontSize: 14,

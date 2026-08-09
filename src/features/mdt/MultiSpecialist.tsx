@@ -125,9 +125,9 @@ const ALL_SPECIALISTS = [
     label: 'ENT Specialist',
     desc: 'Ear, nose & throat',
     icon: Ear,
-    color: '#14B8A6',
-    bg: 'rgba(20,184,166,0.08)',
-    border: 'rgba(20,184,166,0.2)',
+    color: '#059669',
+    bg: 'rgba(5, 150, 105,0.08)',
+    border: 'rgba(5, 150, 105,0.2)',
   },
   {
     id: 'ophthal',
@@ -505,7 +505,7 @@ function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, a
                       marginBottom: '16px',
                       padding: '12px 18px',
                       background: `linear-gradient(90deg, ${specialist.color}15 0%, ${specialist.color}05 100%)`,
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       border: `1px solid ${specialist.color}25`,
                       fontSize: '13px',
                       color: '#334155',
@@ -538,7 +538,7 @@ function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, a
                   <div
                     style={{
                       padding: '20px 24px',
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       background: '#FFFFFF',
                       border: '1px solid rgba(226, 232, 240, 0.8)',
                       boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02)',
@@ -560,7 +560,7 @@ function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, a
                   <div
                     style={{
                       padding: '16px 20px',
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       background: 'rgba(248, 250, 252, 0.7)',
                       border: '1px solid rgba(226, 232, 240, 0.6)',
                       display: 'flex',
@@ -590,7 +590,7 @@ function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, a
             <div
               style={{
                 padding: '12px 16px',
-                borderRadius: '16px 16px 16px 4px',
+                borderRadius: 'var(--radius-lg)' 16px 16px 4px',
                 background: '#FFF',
                 border: '1px solid rgba(0,0,0,0.05)',
                 display: 'flex',
@@ -1093,7 +1093,7 @@ export default function MultiSpecialist() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
             }}
           >
-            <Sparkles size={16} color="#0D9488" />
+            <Sparkles size={16} color="#10B981" />
             <span
               style={{
                 fontSize: '12px',
@@ -1216,7 +1216,7 @@ export default function MultiSpecialist() {
                 }}
               >
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                  <div style={{ padding: '10px', background: '#FFF', borderRadius: '14px', color: '#0D9488', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                  <div style={{ padding: '10px', background: '#FFF', borderRadius: '14px', color: '#10B981', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                     <Sparkles size={24} />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -1237,7 +1237,7 @@ export default function MultiSpecialist() {
                           }}
                           style={{
                             padding: '8px 16px',
-                            background: '#0D9488',
+                            background: '#10B981',
                             color: '#FFF',
                             border: 'none',
                             borderRadius: '10px',
@@ -1321,7 +1321,7 @@ export default function MultiSpecialist() {
                     onClick={() => setActiveCategory(cat)}
                     style={{
                       padding: '8px 16px',
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       fontSize: '13px',
                       fontWeight: 700,
                       border: 'none',
@@ -1599,13 +1599,13 @@ export default function MultiSpecialist() {
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                      style={{ position: 'absolute', inset: 0, border: '1.5px dashed #0D9488', borderRadius: '50%', opacity: 0.4 }}
+                      style={{ position: 'absolute', inset: 0, border: '1.5px dashed #10B981', borderRadius: '50%', opacity: 0.4 }}
                     />
                     <motion.div
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                     >
-                      <BrainCircuit size={12} color="#0D9488" />
+                      <BrainCircuit size={12} color="#10B981" />
                     </motion.div>
                   </div>
                   Comprehensive medical assessment is underway. Deep, cross-disciplinary analysis requires precision and time.

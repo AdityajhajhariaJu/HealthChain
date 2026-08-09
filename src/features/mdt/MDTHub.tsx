@@ -475,7 +475,7 @@ export default function MDTHub() {
                 transition={{ duration: 0.5 }}
               >
                 {/* ─── Case Route Tracker ─── */}
-                <section style={{ padding: '24px', background: '#FFF', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginBottom: '32px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                <section style={{ padding: '24px', background: '#FFF', borderRadius: 'var(--radius-lg)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginBottom: '32px', border: '1px solid rgba(0,0,0,0.05)' }}>
                   <h2 style={{ fontSize: 20, margin: '0 0 8px', color: '#0F172A' }}>Your case route</h2>
                   <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.55, margin: '0 0 20px' }}>
                     Every step updates this same case file. You can add evidence at any point, then run
@@ -564,7 +564,7 @@ export default function MDTHub() {
                           setIsSessionPaused(false);
                           setDashboardTab('mdt');
                         }}
-                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', borderRadius: '8px', background: '#0D9488', color: '#FFF', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+                        style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', borderRadius: '8px', background: '#10B981', color: '#FFF', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
                       >
                         <Network size={16} /> Next: MDT consensus
                       </button>
@@ -972,7 +972,7 @@ export default function MDTHub() {
                               }}
                             >
                               <div
-                                style={{ background: s.bg, padding: '8px', borderRadius: '12px' }}
+                                style={{ background: s.bg, padding: '8px', borderRadius: 'var(--radius-lg)' }}
                               >
                                 <Icon size={20} color={s.color} />
                               </div>

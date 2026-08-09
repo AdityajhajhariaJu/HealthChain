@@ -45,7 +45,7 @@ export default function Settings() {
           style={{
             width: '48px',
             height: '48px',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-lg)',
             background: 'var(--teal-light)',
             display: 'flex',
             alignItems: 'center',
@@ -95,7 +95,7 @@ export default function Settings() {
             gap: isMobile ? 12 : 0,
             padding: '16px',
             background: 'var(--bg)',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
             marginBottom: '16px',
           }}
@@ -208,7 +208,7 @@ export default function Settings() {
             gap: isMobile ? 12 : 0,
             padding: '16px',
             background: isPremium ? 'var(--teal-light)' : '#FEF3C7',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-lg)',
             border: `1px solid ${isPremium ? 'var(--teal)' : '#F59E0B'}`,
             marginBottom: '16px',
           }}
@@ -242,7 +242,7 @@ export default function Settings() {
             gap: isMobile ? 12 : 0,
             padding: '16px',
             background: 'var(--bg)',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
             marginBottom: '32px',
           }}
@@ -277,7 +277,7 @@ export default function Settings() {
               style={{
                 width: '44px',
                 height: '24px',
-                background: document.documentElement.classList.contains('dark-theme') ? '#0D9488' : '#E2E8F0',
+                background: document.documentElement.classList.contains('dark-theme') ? '#10B981' : '#E2E8F0',
                 borderRadius: '999px',
                 position: 'relative',
                 transition: 'background 0.3s ease',
@@ -319,7 +319,7 @@ export default function Settings() {
               justifyContent: 'space-between',
               padding: '16px',
               background: 'var(--bg)',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--border)',
             }}
           >
@@ -355,7 +355,7 @@ export default function Settings() {
               textAlign: 'center',
               padding: '32px',
               background: 'var(--bg)',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--border)',
             }}
           >

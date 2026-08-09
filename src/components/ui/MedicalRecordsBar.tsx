@@ -33,7 +33,7 @@ export function MedicalRecordsBar({ records, onAddRecord, onRemoveRecord }) {
       style={{
         marginTop: '24px',
         background: '#FFFFFF',
-        borderRadius: '16px',
+        borderRadius: 'var(--radius-lg)',
         border: '1px solid #E2E8F0',
         padding: '20px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
@@ -110,7 +110,7 @@ export function MedicalRecordsBar({ records, onAddRecord, onRemoveRecord }) {
               style={{
                 padding: '16px',
                 background: '#F8FAFC',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-lg)',
                 border: '1px solid #E2E8F0',
                 marginBottom: '16px',
               }}
@@ -210,7 +210,7 @@ export function MedicalRecordsBar({ records, onAddRecord, onRemoveRecord }) {
                 padding: '12px',
                 background: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-lg)',
                 flexBasis: '200px',
                 flexGrow: 1,
               }}

@@ -250,7 +250,7 @@ export default function Dietician() {
               style={{
                 width: '56px',
                 height: '56px',
-                borderRadius: '16px',
+                borderRadius: 'var(--radius-lg)',
                 background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                 display: 'flex',
                 alignItems: 'center',
@@ -385,7 +385,7 @@ export default function Dietician() {
                     padding: '10px',
                     background: '#FFF',
                     border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-lg)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                   }}
                 >
@@ -431,7 +431,7 @@ export default function Dietician() {
                     padding: '10px',
                     background: '#FFF',
                     border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-lg)',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                   }}
                 >
@@ -446,7 +446,7 @@ export default function Dietician() {
                   color: '#FFF',
                   border: 'none',
                   padding: '12px 24px',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-lg)',
                   fontWeight: 700,
                   fontSize: '15px',
                   display: 'flex',
@@ -665,7 +665,7 @@ export default function Dietician() {
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                         <Tooltip
                           cursor={{ fill: '#F8FAFC' }}
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                          contentStyle={{ borderRadius: 'var(--radius-lg)', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                         />
                         <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 600 }} />
                         <Bar dataKey="Consumed" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={40} />
@@ -695,7 +695,7 @@ export default function Dietician() {
                       style={{
                         width: '40px',
                         height: '40px',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--radius-lg)',
                         background: '#FFF',
                         display: 'flex',
                         alignItems: 'center',
@@ -915,7 +915,7 @@ export default function Dietician() {
                                       alignItems: 'center',
                                       padding: '16px 20px',
                                       background: '#F8FAFC',
-                                      borderRadius: '16px',
+                                      borderRadius: 'var(--radius-lg)',
                                       border: '1px solid #F1F5F9',
                                       transition: 'all 0.2s',
                                       cursor: 'default',
@@ -934,7 +934,7 @@ export default function Dietician() {
                                         style={{
                                           width: '40px',
                                           height: '40px',
-                                          borderRadius: '12px',
+                                          borderRadius: 'var(--radius-lg)',
                                           background: '#FFF',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -1048,7 +1048,7 @@ export default function Dietician() {
                   color: '#FFF',
                   border: 'none',
                   padding: '12px 24px',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-lg)',
                   fontWeight: 700,
                   fontSize: '14px',
                   display: 'flex',
@@ -1127,7 +1127,7 @@ export default function Dietician() {
                     color: '#FFF',
                     border: 'none',
                     padding: '16px 32px',
-                    borderRadius: '16px',
+                    borderRadius: 'var(--radius-lg)',
                     fontWeight: 800,
                     fontSize: '16px',
                     display: 'inline-flex',
@@ -1408,7 +1408,7 @@ export default function Dietician() {
                     style={{
                       width: '40px',
                       height: '40px',
-                      borderRadius: '12px',
+                      borderRadius: 'var(--radius-lg)',
                       background: '#DCFCE7',
                       color: '#10B981',
                       display: 'flex',
@@ -1432,7 +1432,7 @@ export default function Dietician() {
                       onClick={() => setSelectedMealType(type)}
                       style={{
                         padding: '8px 16px',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--radius-lg)',
                         border: `1px solid ${selectedMealType === type ? '#10B981' : '#E2E8F0'}`,
                         background: selectedMealType === type ? '#ECFDF5' : '#FFFFFF',
                         color: selectedMealType === type ? '#059669' : '#64748B',
@@ -1487,7 +1487,7 @@ export default function Dietician() {
                     background: '#0F172A',
                     color: '#FFF',
                     border: 'none',
-                    borderRadius: '16px',
+                    borderRadius: 'var(--radius-lg)',
                     fontWeight: 800,
                     fontSize: '16px',
                     display: 'flex',

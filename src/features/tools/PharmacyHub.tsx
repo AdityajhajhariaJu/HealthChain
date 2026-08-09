@@ -158,7 +158,7 @@ export default function PharmacyHub() {
         animate={{ opacity: 1, y: 0 }}
         style={{
           background: '#FFFFFF',
-          borderRadius: '16px',
+          borderRadius: 'var(--radius-lg)',
           padding: isMobile ? '16px' : '32px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
           border: '1px solid #F1F5F9',
@@ -170,7 +170,7 @@ export default function PharmacyHub() {
             style={{
               width: '48px',
               height: '48px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               background: '#ECFDF5',
               display: 'flex',
               alignItems: 'center',
@@ -218,7 +218,7 @@ export default function PharmacyHub() {
               style={{
                 width: '100%',
                 padding: '16px 16px 16px 60px',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-lg)',
                 border: '1px solid #E2E8F0',
                 background: '#FAFAFA',
                 fontSize: '15px',
@@ -235,7 +235,7 @@ export default function PharmacyHub() {
             disabled={!query.trim() || loading}
             style={{
               padding: '0 32px',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               background: '#059669', // Match the green from the screenshot
               color: '#FFFFFF',
               border: 'none',
@@ -312,7 +312,7 @@ export default function PharmacyHub() {
                   <div
                     style={{
                       background: '#FFFFFF',
-                      borderRadius: '16px',
+                      borderRadius: 'var(--radius-lg)',
                       padding: '24px',
                       border: '1px solid #E2E8F0',
                       display: 'flex',
@@ -391,7 +391,7 @@ export default function PharmacyHub() {
                       style={{
                         background: '#FEF2F2',
                         border: '1px solid #FECACA',
-                        borderRadius: '16px',
+                        borderRadius: 'var(--radius-lg)',
                         padding: '20px',
                         display: 'flex',
                         gap: '16px',
@@ -434,7 +434,7 @@ export default function PharmacyHub() {
                     <div
                       style={{
                         background: '#FFFFFF',
-                        borderRadius: '16px',
+                        borderRadius: 'var(--radius-lg)',
                         padding: '24px',
                         border: '1px solid #E2E8F0',
                       }}
@@ -486,7 +486,7 @@ export default function PharmacyHub() {
                       <div
                         style={{
                           background: '#FFFFFF',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           border: '1px solid #E2E8F0',
                         }}
@@ -532,7 +532,7 @@ export default function PharmacyHub() {
                       <div
                         style={{
                           background: '#FEF2F2',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           border: '1px solid #FCA5A5',
                         }}

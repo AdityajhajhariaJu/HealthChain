@@ -293,9 +293,9 @@ export default function ClinicalTrialsMatcher() {
             </div>
           </div>
           
-          <div style={{ marginTop: '24px', padding: '16px', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
+          <div style={{ marginTop: '24px', padding: '16px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)', border: '1px dashed #CBD5E1' }}>
              <h4 style={{ fontSize: '13px', color: '#0F172A', display: 'flex', gap: '6px', alignItems: 'center', margin: '0 0 8px 0' }}>
-               <ShieldCheck size={14} color="#0D9488" /> Safety Notice
+               <ShieldCheck size={14} color="#10B981" /> Safety Notice
              </h4>
              <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
                Trials listed are for informational purposes. Always consult your primary care physician before enrolling.
@@ -343,7 +343,7 @@ export default function ClinicalTrialsMatcher() {
                   />
                 ))
               ) : (
-                <div style={{ padding: '20px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', color: '#64748B' }}>
+                <div style={{ padding: '20px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)', textAlign: 'center', color: '#64748B' }}>
                    No relevant research or trials found.
                 </div>
               )}
@@ -368,11 +368,11 @@ export default function ClinicalTrialsMatcher() {
                   {selectedItem.journal ? selectedItem.abstract : selectedItem.summary}
                 </p>
                 <div style={{ display: 'grid', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
                     <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Journal' : 'Phase'}</span>
                     <strong style={{ fontSize: '13px' }}>{selectedItem.journal || selectedItem.phase}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
                     <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Authors' : 'Location'}</span>
                     <strong style={{ fontSize: '13px', textAlign: 'right', maxWidth: '200px' }}>{selectedItem.authors || selectedItem.location}</strong>
                   </div>

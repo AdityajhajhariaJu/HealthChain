@@ -251,7 +251,7 @@ export default function ClinicalReportAnalyzer() {
         animate={{ opacity: 1, y: 0 }}
         style={{
           background: '#FFFFFF',
-          borderRadius: '16px',
+          borderRadius: 'var(--radius-lg)',
           padding: isMobile ? '16px' : '32px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
           border: '1px solid #F1F5F9',
@@ -266,12 +266,12 @@ export default function ClinicalReportAnalyzer() {
           style={{
             width: '56px',
             height: '56px',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             background: '#F0FDFA',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#0D9488',
+            color: '#10B981',
             flexShrink: 0,
           }}
         >
@@ -415,7 +415,7 @@ export default function ClinicalReportAnalyzer() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#0D9488',
+                color: '#10B981',
                 marginBottom: '24px',
               }}
             >
@@ -549,7 +549,7 @@ export default function ClinicalReportAnalyzer() {
                   <div
                     style={{
                       background: '#FFFFFF',
-                      borderRadius: '16px',
+                      borderRadius: 'var(--radius-lg)',
                       padding: '24px',
                       border: '1px solid #E2E8F0',
                       display: 'flex',
@@ -562,7 +562,7 @@ export default function ClinicalReportAnalyzer() {
                       style={{
                         width: '48px',
                         height: '48px',
-                        borderRadius: '12px',
+                        borderRadius: 'var(--radius-lg)',
                         background: '#EEF2FF',
                         display: 'flex',
                         alignItems: 'center',
@@ -610,7 +610,7 @@ export default function ClinicalReportAnalyzer() {
                       <div
                         style={{
                           background: '#FFFFFF',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           border: '1px solid #E2E8F0',
                         }}
@@ -643,7 +643,7 @@ export default function ClinicalReportAnalyzer() {
                       <div
                         style={{
                           background: '#FFFFFF',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           border: '1px solid #E2E8F0',
                         }}
@@ -676,7 +676,7 @@ export default function ClinicalReportAnalyzer() {
                       <div
                         style={{
                           background: '#F0FDF4',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           border: '1px solid #BBF7D0',
                         }}
@@ -709,7 +709,7 @@ export default function ClinicalReportAnalyzer() {
                       <div
                         style={{
                           background: '#FEF2F2',
-                          borderRadius: '16px',
+                          borderRadius: 'var(--radius-lg)',
                           padding: '24px',
                           border: '1px solid #FECACA',
                         }}
@@ -754,7 +754,7 @@ export default function ClinicalReportAnalyzer() {
                         <div
                           style={{
                             background: '#FFFFFF',
-                            borderRadius: '16px',
+                            borderRadius: 'var(--radius-lg)',
                             padding: '24px',
                             border: '1px solid #E2E8F0',
                           }}
@@ -770,7 +770,7 @@ export default function ClinicalReportAnalyzer() {
                               gap: '8px',
                             }}
                           >
-                            <Activity size={18} color="#0D9488" /> Biomarker Tracking
+                            <Activity size={18} color="#10B981" /> Biomarker Tracking
                           </h3>
                           <div style={{ width: '100%', height: 200 }}>
                             <ResponsiveContainer width="100%" height="100%">
@@ -823,7 +823,7 @@ export default function ClinicalReportAnalyzer() {
                         <div
                           style={{
                             background: '#FFFFFF',
-                            borderRadius: '16px',
+                            borderRadius: 'var(--radius-lg)',
                             padding: '24px',
                             border: '1px solid #E2E8F0',
                           }}

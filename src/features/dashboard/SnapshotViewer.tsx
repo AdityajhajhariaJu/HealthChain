@@ -71,7 +71,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                     borderBottom: '1px solid #e2e8f0',
                     cursor: 'pointer',
                     background: isSelected ? '#F1F5F9' : '#FFF',
-                    borderLeft: isSelected ? '3px solid #0d9488' : '3px solid transparent',
+                    borderLeft: isSelected ? '3px solid #10B981' : '3px solid transparent',
                     transition: 'background 0.2s'
                   }}
                 >
@@ -154,7 +154,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                           padding: 16,
                           borderRadius: 14,
                           background: '#f8fafc',
-                          borderLeft: '4px solid #0d9488',
+                          borderLeft: '4px solid #10B981',
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>

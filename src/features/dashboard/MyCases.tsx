@@ -35,7 +35,7 @@ export default function MyCases() {
 
       <section style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 26 }}>
         {[
-          { label: 'Active cases', value: cases.length, icon: Archive, color: '#0D9488', bg: '#F0FDFA' },
+          { label: 'Active cases', value: cases.length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },
           { label: 'Open next steps', value: openActions, icon: ClipboardList, color: '#4F46E5', bg: '#EEF2FF' },
           { label: 'Evidence saved', value: evidenceItems, icon: FileText, color: '#B45309', bg: '#FFFBEB' },
         ].map((stat) => {
@@ -86,7 +86,7 @@ export default function MyCases() {
                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#5EEAD4'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 18px 34px rgba(15,23,42,.09)'; }}
                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EEF5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(15,23,42,.04)'; }}
               >
-                 <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F0FDFA', color: '#0D9488', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                 <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F0FDFA', color: '#10B981', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     <Archive size={24} />
                  </div>
                  <div style={{ flex: 1 }}>
@@ -110,7 +110,7 @@ export default function MyCases() {
                           <GitMerge size={14} /> {caseItem.reviews.length} Snapshots
                        </span>
                        {caseItem.actions.length > 0 && (
-                          <span style={{ display: 'flex', gap: 6, alignItems: 'center', color: '#0d9488' }}>
+                          <span style={{ display: 'flex', gap: 6, alignItems: 'center', color: '#10B981' }}>
                              <CheckCircle2 size={14} /> {caseItem.actions.filter(a => a.status === 'completed').length} / {caseItem.actions.length} Actions
                           </span>
                        )}

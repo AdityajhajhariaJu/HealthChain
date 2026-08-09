@@ -446,7 +446,7 @@ export default function TalkBuddy() {
                 <div key={idx} style={{
                   background: '#F1F5F9',
                   padding: '6px 12px',
-                  borderRadius: '16px',
+                  borderRadius: 'var(--radius-lg)',
                   fontSize: '13px',
                   color: '#475569',
                   display: 'flex',

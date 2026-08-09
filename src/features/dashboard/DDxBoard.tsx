@@ -61,14 +61,14 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
       .concat(differentials.map(d => d.condition))
   ));
 
-  const colors = ['#0d9488', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
+  const colors = ['#10B981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
 
   return (
     <div className="card" style={{ padding: isMobile ? 16 : 24 }}>
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', marginBottom: 24, gap: isMobile ? 16 : 0 }}>
         <div>
           <h2 style={{ fontSize: 22, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Activity color="#0d9488" size={24} />
+            <Activity color="#10B981" size={24} />
             Differential Diagnosis (DDx)
           </h2>
           <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
@@ -79,7 +79,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
           className="btn btn-primary"
           onClick={handleRunDDx}
           disabled={isAnalyzing}
-          style={{ background: '#0d9488', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 8, cursor: isAnalyzing ? 'not-allowed' : 'pointer' }}
+          style={{ background: '#10B981', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 8, cursor: isAnalyzing ? 'not-allowed' : 'pointer' }}
         >
           {isAnalyzing ? (
             <motion.div

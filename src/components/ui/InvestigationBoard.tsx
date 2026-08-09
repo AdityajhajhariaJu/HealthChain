@@ -34,7 +34,7 @@ export default function InvestigationBoard({ analysis }) {
             marginBottom: '40px',
             padding: '16px 20px',
             background: 'var(--surface-hover)',
-            borderRadius: '12px',
+            borderRadius: 'var(--radius-lg)',
             borderLeft: '4px solid var(--teal)',
           }}
         >
@@ -137,12 +137,12 @@ export default function InvestigationBoard({ analysis }) {
                 zIndex: 1,
                 padding: '16px 24px',
                 border: '1px solid var(--teal)',
-                borderRadius: '12px',
-                background: 'rgba(20, 184, 166, 0.1)',
+                borderRadius: 'var(--radius-lg)',
+                background: 'rgba(5, 150, 105, 0.1)',
                 textAlign: 'center',
                 width: '100%',
                 maxWidth: '320px',
-                boxShadow: '0 0 20px rgba(20, 184, 166, 0.2)',
+                boxShadow: '0 0 20px rgba(5, 150, 105, 0.2)',
               }}
             >
               <div
@@ -177,7 +177,7 @@ export default function InvestigationBoard({ analysis }) {
                 zIndex: 1,
                 padding: '14px 24px',
                 border: '1px solid var(--border-strong)',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-lg)',
                 background: 'var(--surface-hover)',
                 textAlign: 'center',
                 width: '100%',
@@ -228,7 +228,7 @@ export default function InvestigationBoard({ analysis }) {
                   style={{
                     padding: '14px 16px',
                     border: '1px solid #fca5a5',
-                    borderRadius: '12px',
+                    borderRadius: 'var(--radius-lg)',
                     background: 'rgba(220, 38, 38, 0.05)',
                     textAlign: 'center',
                     minWidth: '130px',
