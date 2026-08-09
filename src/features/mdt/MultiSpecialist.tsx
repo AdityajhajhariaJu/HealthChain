@@ -590,7 +590,7 @@ function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, a
             <div
               style={{
                 padding: '12px 16px',
-                borderRadius: 'var(--radius-lg)' 16px 16px 4px',
+                borderRadius: 'var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px',
                 background: '#FFF',
                 border: '1px solid rgba(0,0,0,0.05)',
                 display: 'flex',

@@ -944,7 +944,7 @@ export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeDa
 
         {status === 'thinking' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ alignSelf: 'flex-start' }}>
-            <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)' 16px 16px 4px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', gap: '6px' }}>
+            <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', gap: '6px' }}>
               {[0, 0.15, 0.3].map((d, i) => (
                 <motion.span
                   key={i}
@@ -1040,6 +1040,7 @@ export function MDTConferencePanel({
   onComplete,
   medicalRecords = [],
 }) {
+  const isMobile = useIsMobile();
   const [conferenceData, setConferenceData] = useState<any>(null);
   const [isDebating, setIsDebating] = useState(true);
   const [answers, setAnswers] = useState({});
