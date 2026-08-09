@@ -88,12 +88,12 @@ export default function MDTHub() {
         const item = historyArray.find((h) => h.id === historyId);
         if (item && item.type === 'mdt' && item.report) {
           setHistoryReport(item.report);
-          setPhase('report');
+          setPhase('dashboard');
+          setDashboardTab('mdt');
         }
       }
     }
-  }, [location.search]);
-
+  }, [location.search, setPhase, setDashboardTab]);
 
   // Restore from active case if we have a finished MDT review
   useEffect(() => {
@@ -101,10 +101,19 @@ export default function MDTHub() {
       const latestMDT = [...activeCase.reviews].reverse().find((r: any) => r.type === 'mdt');
       if (latestMDT && latestMDT.report) {
         setHistoryReport(latestMDT.report);
-        setPhase('report');
+        setPhase('dashboard');
+        setDashboardTab('mdt');
       }
     }
-  }, [activeCase]);
+  }, [activeCase, phase, setPhase, setDashboardTab]);
+
+  // Fix corrupted state where phase was incorrectly saved as 'report'
+  useEffect(() => {
+    if (phase === 'report') {
+      setPhase('dashboard');
+      setDashboardTab('mdt');
+    }
+  }, [phase, setPhase, setDashboardTab]);
 
   useEffect(() => {
     const refresh = () => setActiveCase(getActiveCase());
