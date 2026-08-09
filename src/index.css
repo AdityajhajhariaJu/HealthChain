@@ -2,15 +2,15 @@
 
 /* ===== TOKENS ===== */
 :root {
-  --teal: #14b8a6;
-  --teal-light: rgba(20, 184, 166, 0.1);
-  --teal-mid: #0d9488;
+  --teal: #059669;
+  --teal-light: #ecfdf5;
+  --teal-mid: #10b981;
   --amber: #f59e0b;
   --amber-light: rgba(245, 158, 11, 0.1);
   --red: #ef4444;
   --red-light: rgba(239, 68, 68, 0.1);
   --green: #10b981;
-  --green-light: rgba(16, 185, 129, 0.1);
+  --green-light: #ecfdf5;
 
   --bg: #f5f7fb;
   --surface: #ffffff;
@@ -22,14 +22,14 @@
   --text-main: #0f172a;
   --text-muted: #64748b;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04);
-  --shadow-neon: 0 4px 15px rgba(20, 184, 166, 0.25);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.03);
+  --shadow-sm: 0 2px 8px rgba(5, 150, 105, 0.04);
+  --shadow-md: 0 8px 24px rgba(5, 150, 105, 0.06);
+  --shadow-neon: 0 8px 24px rgba(5, 150, 105, 0.15);
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(5, 150, 105, 0.03);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
   --radius-full: 9999px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --glass: rgba(255, 255, 255, 0.85);
