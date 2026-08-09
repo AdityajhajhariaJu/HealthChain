@@ -184,7 +184,7 @@ export default function AppShell() {
         </div>
         <ActiveCaseBar navigate={navigate} />
         <div style={{ minHeight: 'calc(100% - 104px)' }}>
-          <AnimatedOutlet />
+          <Outlet />
         </div>
       </main>
 
