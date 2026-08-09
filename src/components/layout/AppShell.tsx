@@ -171,7 +171,9 @@ export default function AppShell() {
       )}
 
       <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`}>
-        <BrandPulseBanner />
+        {!(isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports'].some(p => location.pathname.startsWith(p))) && (
+          <BrandPulseBanner />
+        )}
         <ActiveCaseBar navigate={navigate} />
         <AnimatePresence mode="wait">
           <motion.div
