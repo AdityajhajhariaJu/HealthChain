@@ -62,6 +62,14 @@ export default function AppShell() {
   const isMobile = useIsMobile();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
+  // Scroll to top on route change
+  useEffect(() => {
+    const scrollContainer = document.querySelector('.app-shell__content');
+    if (scrollContainer) {
+      scrollContainer.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     const loadHistory = () => {
       // Load recent cases, sorted by updated date
