@@ -622,7 +622,7 @@ export default function MedicalProfile() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{ marginBottom: '24px' }}
+            style={{ marginBottom: isEditingDemo ? '24px' : '0' }}
           >
             {isEditingDemo ? (
               <div
