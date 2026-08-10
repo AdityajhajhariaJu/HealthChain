@@ -606,6 +606,12 @@ export default function MedicalProfile() {
                 <span>{profile.demographics.gender || 'Other'}</span>
                 <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
                 <span>{profile.demographics.height ? `Height ${profile.demographics.height}` : 'Height not set'}</span>
+                <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
+                <span>{profile.demographics.weight ? `Weight ${profile.demographics.weight}` : 'Weight not set'}</span>
+                <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
+                <span>{profile.demographics.bloodGroup || 'Blood Group not set'}</span>
+                <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
+                <span>{profile.demographics.emergencyContact ? `Emergency: ${profile.demographics.emergencyContact}` : 'Emergency not set'}</span>
               </div>
               <div style={{ color: '#94A3B8', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
                 <Mail size={14} /> {account.email || profile.demographics.email || 'Email not set'}
@@ -688,35 +694,7 @@ export default function MedicalProfile() {
                   <button className="btn btn-primary" onClick={handleSaveDemographics}>Save Details</button>
                 </div>
               </div>
-            ) : (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: isMobile ? '12px' : '24px',
-                  paddingTop: '8px',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Blood Group</div>
-                  <div style={{ fontWeight: 700, fontSize: '16px', color: '#EF4444' }}>
-                    {profile.demographics.bloodGroup || '--'}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Height / Weight</div>
-                  <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-main)' }}>
-                    {profile.demographics.height || '--'} / {profile.demographics.weight || '--'}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Emergency Contact</div>
-                  <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {profile.demographics.emergencyContact || '--'}
-                  </div>
-                </div>
-              </div>
-            )}
+            ) : null}
           </motion.div>
 
           {/* 2. Active Conditions & Allergies (Alert Strip) */}
