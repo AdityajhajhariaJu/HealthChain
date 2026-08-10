@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -29,6 +29,8 @@ import {
   Sparkles,
   ClipboardCheck,
   Dna,
+  Camera,
+  Mail,
 } from 'lucide-react';
 import {
   getProfile,
@@ -74,6 +76,14 @@ export default function MedicalProfile() {
   });
   const [isGeneratingSynthesis, setIsGeneratingSynthesis] = useState(false);
   const profileRef = useRef<any>(null);
+
+  const account = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('hc_account') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
 
   // Compute longitudinal data from actual history
   const computedLongitudinalData = (profile.vitals.historicalLabs || []).map(entry => {
@@ -214,7 +224,7 @@ export default function MedicalProfile() {
         <div style={{ flex: '1 1 300px' }}>
           <h1
             style={{
-              fontSize: '28px',
+              fontSize: isMobile ? '24px' : '28px',
               color: 'var(--text-main)',
               margin: '0 0 8px 0',
               display: 'flex',
@@ -288,7 +298,7 @@ export default function MedicalProfile() {
               HEALTH RECORD READINESS
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', marginTop: '3px' }}>
-              <strong style={{ fontSize: '24px' }}>{recordReady}%</strong>
+              <strong style={{ fontSize: isMobile ? '20px' : '24px' }}>{recordReady}%</strong>
               <span style={{ color: '#64748B', fontSize: '13px' }}>
                 complete for more relevant case reviews
               </span>
@@ -377,7 +387,7 @@ export default function MedicalProfile() {
         style={{
           padding: '20px 24px',
           marginBottom: '24px',
-          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#10B981)',
+          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#059669)',
           color: '#F8FAFC',
           borderRadius: '20px',
           border: 'none',
@@ -421,7 +431,7 @@ export default function MedicalProfile() {
               <circle cx="48" cy="48" r="42" fill="none" stroke="#99f6e4" strokeWidth="6" strokeDasharray={`${(healthScore.score / 100) * 264} 264`} strokeDashoffset="0" transform="rotate(-90 48 48)" strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
             </svg>
             <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: '#F8FAFC' }}>{healthScore.score}</span>
+              <span style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#F8FAFC' }}>{healthScore.score}</span>
             </div>
           </div>
         </div>
@@ -444,7 +454,7 @@ export default function MedicalProfile() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
-          <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
+          <div style={{ fontSize: isMobile ? '36px' : '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Overall Health</div>
           
           {synthesisData && (
@@ -518,75 +528,96 @@ export default function MedicalProfile() {
       >
         {/* LEFT COLUMN: Hero, Vitals, Timeline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* 1. Patient Identity Card (Clean Redesign) */}
+          {/* 1. Patient Identity Header (Clean Layout) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card"
             style={{
-              background: '#FFFFFF',
-              color: 'var(--text-main)',
-              borderRadius: '24px',
-              padding: isMobile ? '20px' : '40px',
-              position: 'relative',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.03)',
-              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '16px' : '24px',
+              padding: isMobile ? '12px 0' : '24px 0',
+              marginBottom: '16px',
             }}
           >
-            <div className="flex-between mb-8" style={{ position: 'relative', zIndex: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
+            <div style={{ position: 'relative' }}>
+              <div
+                style={{
+                  width: isMobile ? '80px' : '100px',
+                  height: isMobile ? '80px' : '100px',
+                  borderRadius: '50%',
+                  background: 'url(https://images.unsplash.com/photo-1542360663-8f40200049d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80) center/cover, linear-gradient(135deg, #4F46E5, #3B82F6)',
+                  color: '#FFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: isMobile ? '32px' : '40px',
+                  fontWeight: 800,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                  border: '3px solid #FFF',
+                }}
+              >
+                {!profile.demographics.name && '👤'}
+              </div>
+              {!isEditingDemo && (
+                <button
+                  onClick={() => setIsEditingDemo(true)}
                   style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '24px',
-                    background: 'var(--surface-hover)',
-                    color: 'var(--teal)',
+                    position: 'absolute',
+                    bottom: '-4px',
+                    right: '-4px',
+                    background: '#0F172A',
+                    color: '#FFF',
+                    border: '2px solid #FFF',
+                    borderRadius: '12px',
+                    width: '32px',
+                    height: '32px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '32px',
-                    fontWeight: 800,
-                    border: '1px solid var(--border)',
+                    cursor: 'pointer',
+                    padding: 0,
+                    boxShadow: '0 4px 12px rgba(15,23,42,0.2)',
                   }}
                 >
-                  {profile.demographics.name ? profile.demographics.name.charAt(0).toUpperCase() : '👤'}
-                </motion.div>
-                <div>
-                  <h2 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
-                    {profile.demographics.name || 'Set Patient Name'}
-                  </h2>
-                  <div
-                    style={{
-                      color: 'var(--text-muted)',
-                      fontSize: '15px',
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '8px 16px',
-                      alignItems: 'center',
-                      fontWeight: 500,
-                    }}
-                  >
-                    <span>{profile.demographics.age ? `${profile.demographics.age} yrs` : 'Age N/A'}</span>
-                    <span style={{ color: '#CBD5E1' }}>•</span>
-                    <span>{profile.demographics.gender || 'Gender N/A'}</span>
-                    <span style={{ color: '#CBD5E1' }}>•</span>
-                    <span style={{ color: '#EF4444', fontWeight: 600 }}>{profile.demographics.bloodGroup || 'Blood N/A'}</span>
-                  </div>
-                </div>
-              </div>
-              {!isEditingDemo && (
-                <button 
-                  className="btn btn-ghost btn-sm" 
-                  onClick={() => setIsEditingDemo(true)}
-                  style={{ border: '1px solid var(--border)' }}
-                >
-                  <Edit2 size={16} /> Edit
+                  <Camera size={14} />
                 </button>
               )}
             </div>
+            
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.5px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                {profile.demographics.name || 'Set Patient Name'}
+              </h2>
+              <div
+                style={{
+                  color: '#64748B',
+                  fontSize: isMobile ? '14px' : '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 600,
+                  marginBottom: '8px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <span>{profile.demographics.age ? `Age ${profile.demographics.age}` : 'Age not set'}</span>
+                <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
+                <span>{profile.demographics.gender || 'Other'}</span>
+                <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
+                <span>{profile.demographics.height ? `Height ${profile.demographics.height}` : 'Height not set'}</span>
+              </div>
+              <div style={{ color: '#94A3B8', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                <Mail size={14} /> {account.email || profile.demographics.email || 'Email not set'}
+              </div>
+            </div>
+          </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ marginBottom: '24px' }}
+          >
             {isEditingDemo ? (
               <div
                 style={{
@@ -663,19 +694,24 @@ export default function MedicalProfile() {
                   display: 'grid',
                   gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
                   gap: '24px',
-                  paddingTop: '24px',
-                  borderTop: '1px solid var(--border)',
+                  paddingTop: '8px',
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Height / Weight</div>
-                  <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text-main)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Blood Group</div>
+                  <div style={{ fontWeight: 700, fontSize: '16px', color: '#EF4444' }}>
+                    {profile.demographics.bloodGroup || '--'}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Height / Weight</div>
+                  <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-main)' }}>
                     {profile.demographics.height || '--'} / {profile.demographics.weight || '--'}
                   </div>
                 </div>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Emergency Contact</div>
-                  <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Emergency Contact</div>
+                  <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {profile.demographics.emergencyContact || '--'}
                   </div>
                 </div>
@@ -1247,7 +1283,7 @@ export default function MedicalProfile() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
           {/* NEW: Care Team & Document Vault */}
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3
               style={{
                 fontSize: '16px',
@@ -1310,7 +1346,7 @@ export default function MedicalProfile() {
           </div>
 
           {/* 3. Active Medications */}
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3
               style={{
                 fontSize: '16px',
@@ -1392,7 +1428,7 @@ export default function MedicalProfile() {
           </div>
 
           {/* 5. Action Items */}
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <div className="flex-between mb-4">
               <h3
                 style={{
@@ -1544,7 +1580,7 @@ export default function MedicalProfile() {
             )}
           </div>
 
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3
               style={{
                 fontSize: '16px',

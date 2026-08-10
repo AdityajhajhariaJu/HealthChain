@@ -130,7 +130,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
               >
                 Personal health setup
               </div>
-              <h1 style={{ margin: 0, color: '#0F172A', fontSize: 30, letterSpacing: '-.7px' }}>
+              <h1 style={{ margin: 0, color: '#0F172A', fontSize: isMobile ? 24 : 30, letterSpacing: '-.7px' }}>
                 Make HealthChain yours from day one.
               </h1>
               <p style={{ color: '#64748B', margin: '9px 0 0', lineHeight: 1.55 }}>
@@ -396,7 +396,7 @@ const primaryButton = {
   border: 'none',
   borderRadius: 12,
   padding: '13px 18px',
-  background: 'linear-gradient(135deg,#10B981,#059669)',
+  background: 'linear-gradient(135deg,#059669,#047857)',
   color: '#FFF',
   fontWeight: 800,
   fontSize: 14,

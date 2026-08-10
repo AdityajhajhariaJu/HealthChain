@@ -264,7 +264,7 @@ export default function Dietician() {
             <div>
               <h1
                 style={{
-                  fontSize: '32px',
+                  fontSize: isMobile ? '24px' : '32px',
                   fontWeight: 800,
                   color: '#0F172A',
                   margin: '0 0 4px 0',
@@ -562,7 +562,7 @@ export default function Dietician() {
                     >
                       <span
                         style={{
-                          fontSize: '42px',
+                          fontSize: isMobile ? '32px' : '42px',
                           fontWeight: 800,
                           color: '#0F172A',
                           lineHeight: 1,
@@ -1028,7 +1028,7 @@ export default function Dietician() {
               <div>
                 <h2
                   style={{
-                    fontSize: '24px',
+                    fontSize: isMobile ? '20px' : '24px',
                     fontWeight: 800,
                     color: '#0F172A',
                     margin: '0 0 8px 0',
@@ -1395,7 +1395,7 @@ export default function Dietician() {
 
                 <h3
                   style={{
-                    fontSize: '24px',
+                    fontSize: isMobile ? '20px' : '24px',
                     fontWeight: 800,
                     color: '#0F172A',
                     margin: '0 0 8px 0',

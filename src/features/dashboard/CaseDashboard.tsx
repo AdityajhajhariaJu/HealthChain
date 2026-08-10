@@ -91,9 +91,9 @@ export default function CaseDashboard() {
       <section
         style={{
           borderRadius: 28,
-          padding: '38px',
+          padding: isMobile ? '26px 24px' : '38px',
           color: '#fff',
-          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#10B981)',
+          background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#059669)',
           boxShadow: '0 18px 45px rgba(15,23,42,.18)',
           marginBottom: 28,
         }}
@@ -108,7 +108,7 @@ export default function CaseDashboard() {
             fontWeight: 800,
             letterSpacing: 1,
             textTransform: 'uppercase',
-            marginBottom: 16,
+            marginBottom: isMobile ? 12 : 16,
           }}
         >
           <Sparkles size={15} /> Your health command centre
@@ -117,17 +117,17 @@ export default function CaseDashboard() {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            gap: 24,
+            gap: isMobile ? 18 : 24,
             flexWrap: 'wrap',
             alignItems: 'end',
           }}
         >
           <div>
-            <h1 style={{ margin: 0, fontSize: 38, letterSpacing: -1.2 }}>
+            <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 38, letterSpacing: -1.2, lineHeight: 1.1 }}>
               Good to see you
               {profile.demographics.name ? `, ${profile.demographics.name.split(' ')[0]}` : ''}.
             </h1>
-            <p style={{ color: '#cbd5e1', lineHeight: 1.6, maxWidth: 620, margin: '12px 0 0' }}>
+            <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
               Start with parallel AI specialist perspectives, then bring their findings into an MDT
               consensus when your case needs deeper correlation.
             </p>
@@ -135,7 +135,7 @@ export default function CaseDashboard() {
           <button
             className="btn"
             onClick={() => navigate('/app/multi')}
-            style={{ background: '#fff', color: '#0f172a', padding: '14px 20px', fontWeight: 800 }}
+            style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center' }}
           >
             <Stethoscope size={18} /> Start parallel review
           </button>
@@ -151,8 +151,8 @@ export default function CaseDashboard() {
           alignItems: 'start',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <section className="card" style={{ padding: 26 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
+          <section className="card" style={{ padding: isMobile ? 18 : 26 }}>
             <div
               style={{
                 display: 'flex',
@@ -170,7 +170,7 @@ export default function CaseDashboard() {
               <span className="badge badge-teal">{nextActions.length} to focus on</span>
             </div>
             {nextActions.length ? (
-              <div style={{ display: 'grid', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10 }}>
                 {nextActions.map((action) => (
                   <div
                     key={action.id}
@@ -184,10 +184,11 @@ export default function CaseDashboard() {
                       justifyContent: 'space-between',
                       alignItems: isMobile ? 'stretch' : 'center',
                       gap: isMobile ? 16 : 12,
+                      minWidth: 0
                     }}
                   >
                     <div 
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', flex: 1 }}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', flex: 1, minWidth: 0 }}
                       onClick={() => toggleCaseAction(action.caseId, action.id)}
                     >
                       <span
@@ -197,13 +198,14 @@ export default function CaseDashboard() {
                           borderRadius: 99,
                           border: '2px solid #10B981',
                           flexShrink: 0,
+                          marginTop: 2
                         }}
                       />
-                      <span style={{ flex: 1 }}>
-                        <strong style={{ display: 'block', color: '#0f172a', fontSize: 14 }}>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <strong style={{ display: 'block', color: '#0f172a', fontSize: 14, wordBreak: 'break-word' }}>
                           {action.step}
                         </strong>
-                        <small style={{ color: '#64748b' }}>
+                        <small style={{ color: '#64748b', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                           {action.caseTitle} · {action.timeline || 'Add a timeline'}
                         </small>
                       </span>
@@ -241,8 +243,10 @@ export default function CaseDashboard() {
             <div
               style={{
                 display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                gap: isMobile ? 12 : 0,
                 marginBottom: 14,
               }}
             >
@@ -252,12 +256,12 @@ export default function CaseDashboard() {
                   Reopen a case as reports, appointments, or symptoms evolve.
                 </p>
               </div>
-              <button className="btn btn-outline btn-sm" onClick={() => navigate('/app/multi')}>
+              <button className="btn btn-outline btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/app/multi')}>
                 <Plus size={15} /> Parallel review
               </button>
             </div>
             {cases.length ? (
-              <div style={{ display: 'grid', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 12 }}>
                 {cases.map((item) => (
                   <CaseCard key={item.id} item={item} navigate={navigate} />
                 ))}
@@ -273,7 +277,7 @@ export default function CaseDashboard() {
               <Activity size={19} />
               <strong>Care momentum</strong>
             </div>
-            <div style={{ fontSize: 38, fontWeight: 850, marginTop: 16 }}>{completed}</div>
+            <div style={{ fontSize: isMobile ? 30 : 38, fontWeight: 850, marginTop: 16 }}>{completed}</div>
             <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: 13 }}>
               case actions completed
             </p>
@@ -381,7 +385,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
             >
               Case Workspace
             </span>
-            <h1 style={{ margin: '8px 0', fontSize: 32 }}>{item.title}</h1>
+            <h1 style={{ margin: '8px 0', fontSize: isMobile ? 24 : 32 }}>{item.title}</h1>
             <p style={{ margin: 0, color: '#cbd5e1' }}>
               Created {new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(item.createdAt))}
             </p>
@@ -440,7 +444,9 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                color: activeTab === tab ? '#10B981' : '#64748b',
                borderBottom: activeTab === tab ? '2px solid #10B981' : 'none',
                paddingBottom: 6,
-               textTransform: 'capitalize'
+               textTransform: 'capitalize',
+               whiteSpace: 'nowrap',
+               flexShrink: 0
              }}
           >
             {tab}
@@ -499,7 +505,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                 </div>
               </section>
             </div>
-            <aside style={{ display: 'grid', gap: 16 }}>
+            <aside style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
               <section className="card" style={{ padding: 20 }}>
                 <h2 style={{ fontSize: 18, margin: '0 0 14px' }}>Case Status</h2>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
@@ -744,49 +750,54 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
 function CaseCard({ item, navigate }: { item: CaseItem, navigate: any }) {
   const pending = item.actions.filter((a) => a.status !== 'completed').length;
   const primary = item.currentSummary?.topDiagnoses?.[0];
+  const isMobile = useIsMobile();
   return (
     <article
       className="card"
       style={{
         padding: 20,
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr auto',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
         gap: 16,
-        alignItems: 'center',
+        alignItems: isMobile ? 'stretch' : 'center',
       }}
     >
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 13,
-          display: 'grid',
-          placeItems: 'center',
-          background: '#ecfdf5',
-          color: '#059669',
-        }}
-      >
-        <Archive size={21} />
-      </div>
-      <div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <strong>{item.title}</strong>
-          <span className="badge badge-navy">
-             {item.currentStage.replace('_', ' ').toUpperCase()}
-          </span>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 13,
+            display: 'grid',
+            placeItems: 'center',
+            background: '#ecfdf5',
+            color: '#059669',
+            flexShrink: 0,
+          }}
+        >
+          <Archive size={21} />
         </div>
-        <p style={{ margin: '5px 0', color: '#64748b', fontSize: 13 }}>
-          {primary?.condition
-            ? `Leading pathway: ${primary.condition}`
-            : 'Awaiting evidence synthesis'}
-        </p>
-        <small style={{ color: '#94a3b8' }}>
-          <CalendarClock size={12} style={{ verticalAlign: 'middle' }} /> Updated{' '}
-          {formatDate(item.updatedAt)} · {pending} actions open
-        </small>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <strong style={{ display: 'block', textOverflow: 'ellipsis', overflow: 'hidden' }}>{item.title}</strong>
+            <span className="badge badge-navy" style={{ flexShrink: 0 }}>
+               {item.currentStage.replace('_', ' ').toUpperCase()}
+            </span>
+          </div>
+          <p style={{ margin: '5px 0', color: '#64748b', fontSize: 13, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            {primary?.condition
+              ? `Leading pathway: ${primary.condition}`
+              : 'Awaiting evidence synthesis'}
+          </p>
+          <small style={{ color: '#94a3b8', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            <CalendarClock size={12} style={{ verticalAlign: 'middle' }} /> Updated{' '}
+            {formatDate(item.updatedAt)} · {pending} actions open
+          </small>
+        </div>
       </div>
       <button
         className="btn btn-primary btn-sm"
+        style={{ width: isMobile ? '100%' : 'auto', flexShrink: 0 }}
         onClick={() => {
           setActiveCase(item.id);
           navigate(`/app/cases/${item.id}`);
@@ -843,7 +854,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
       <div style={{ borderBottom: '3px solid #000', paddingBottom: 20, marginBottom: 30 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 style={{ margin: '0 0 8px', fontSize: 28, letterSpacing: '-0.5px' }}>CLINICAL DOSSIER: {item.title.toUpperCase()}</h1>
+            <h1 style={{ margin: '0 0 8px', fontSize: isMobile ? 22 : 28, letterSpacing: '-0.5px' }}>CLINICAL DOSSIER: {item.title.toUpperCase()}</h1>
             <p style={{ margin: 0, fontSize: 16, color: '#4b5563' }}>
               Generated by HealthChain Navigator on {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>

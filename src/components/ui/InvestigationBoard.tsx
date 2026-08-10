@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, GitBranch } from 'lucide-react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function InvestigationBoard({ analysis }) {
+  const isMobile = useIsMobile();
   if (!analysis) return null;
 
   return (
@@ -14,7 +16,7 @@ export default function InvestigationBoard({ analysis }) {
         </div>
         <h1
           style={{
-            fontSize: '24px',
+            fontSize: isMobile ? '20px' : '24px',
             color: 'var(--text-main)',
             margin: '0 0 8px 0',
             lineHeight: '1.3',

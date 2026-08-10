@@ -250,7 +250,7 @@ export default function ClinicalTrialsMatcher() {
           <FlaskConical size={36} color="#A5B4FC" />
         </div>
         <div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research Hub</h1>
+          <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research Hub</h1>
           <p style={{ margin: 0, color: '#C7D2FE', fontSize: '15px' }}>
             Discover live clinical trials and recent medical literature tailored to your exact medical profile and active hypotheses.
           </p>
@@ -259,7 +259,7 @@ export default function ClinicalTrialsMatcher() {
 
       <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', gap: '32px' }}>
         <div>
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <Filter size={16} /> Search Parameters
             </h3>
@@ -305,7 +305,7 @@ export default function ClinicalTrialsMatcher() {
 
         <div>
           {loading ? (
-            <div style={{ padding: '60px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+            <div style={{ padding: isMobile ? '30px 16px' : '60px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
               <div style={{ position: 'relative', width: '48px', height: '48px' }}>
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -356,13 +356,13 @@ export default function ClinicalTrialsMatcher() {
         {selectedItem && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} onClick={() => setSelectedItem(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '600px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-              <div style={{ padding: '24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ padding: isMobile ? '16px' : '24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
                 </h2>
                 <span className="badge badge-teal">Match: {selectedItem.matchScore}</span>
               </div>
-              <div style={{ padding: '24px' }}>
+              <div style={{ padding: isMobile ? '16px' : '24px' }}>
                 <h3 style={{ fontSize: '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{selectedItem.title}</h3>
                 <p style={{ color: '#475569', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
                   {selectedItem.journal ? selectedItem.abstract : selectedItem.summary}

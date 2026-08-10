@@ -64,6 +64,7 @@ body {
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 a {
@@ -194,12 +195,12 @@ textarea {
   transition: var(--transition);
 }
 .btn-primary {
-  background: var(--teal-mid);
+  background: var(--teal);
   color: #ffffff;
   box-shadow: var(--shadow-neon);
 }
 .btn-primary:hover {
-  background: var(--teal);
+  background: #047857;
   transform: translateY(-1px);
 }
 .btn-navy {
@@ -875,7 +876,7 @@ html.dark-theme body {
     right: 0;
     height: calc(var(--bottom-tab-height) + var(--safe-area-bottom));
     padding-bottom: var(--safe-area-bottom);
-    background: var(--surface);
+    background: var(--teal-light);
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: space-around;
@@ -900,7 +901,7 @@ html.dark-theme body {
   }
   
   .mobile-tab.active {
-    color: var(--teal);
+    color: #047857;
   }
   
   .mobile-more-menu {
@@ -909,7 +910,7 @@ html.dark-theme body {
     left: 0;
     right: 0;
     height: 70vh;
-    background: var(--surface);
+    background: var(--bg);
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
     z-index: 101;
@@ -953,15 +954,15 @@ html.dark-theme body {
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    color: var(--text);
+    color: var(--text-main);
     text-decoration: none;
     padding: 16px;
-    background: var(--surface-light);
+    background: #ffffff;
     border-radius: 16px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 500;
     border: 1px solid var(--border);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
   }
 }
 

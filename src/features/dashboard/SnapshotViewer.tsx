@@ -108,7 +108,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'flex-start', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid #e2e8f0', gap: isMobile ? 16 : 0 }}>
                 <div>
                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <h2 style={{ margin: 0, fontSize: 24 }}>
+                      <h2 style={{ margin: 0, fontSize: isMobile ? 20 : 24 }}>
                         {activeReview.type === 'parallel' ? 'Parallel Review Report' : 'MDT Consensus Report'}
                       </h2>
                       {activeReview.id === reviews[reviews.length - 1].id && (

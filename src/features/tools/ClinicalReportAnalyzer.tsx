@@ -280,7 +280,7 @@ export default function ClinicalReportAnalyzer() {
         <div>
           <h1
             style={{
-              fontSize: '24px',
+              fontSize: isMobile ? '20px' : '24px',
               fontWeight: 800,
               color: '#0F172A',
               margin: '0 0 4px 0',
@@ -550,7 +550,7 @@ export default function ClinicalReportAnalyzer() {
                     style={{
                       background: '#FFFFFF',
                       borderRadius: 'var(--radius-lg)',
-                      padding: '24px',
+                      padding: isMobile ? '16px' : '24px',
                       border: '1px solid #E2E8F0',
                       display: 'flex',
                       flexDirection: isMobile ? 'column' : 'row',
@@ -611,7 +611,7 @@ export default function ClinicalReportAnalyzer() {
                         style={{
                           background: '#FFFFFF',
                           borderRadius: 'var(--radius-lg)',
-                          padding: '24px',
+                          padding: isMobile ? '16px' : '24px',
                           border: '1px solid #E2E8F0',
                         }}
                       >
@@ -644,7 +644,7 @@ export default function ClinicalReportAnalyzer() {
                         style={{
                           background: '#FFFFFF',
                           borderRadius: 'var(--radius-lg)',
-                          padding: '24px',
+                          padding: isMobile ? '16px' : '24px',
                           border: '1px solid #E2E8F0',
                         }}
                       >
@@ -677,7 +677,7 @@ export default function ClinicalReportAnalyzer() {
                         style={{
                           background: '#F0FDF4',
                           borderRadius: 'var(--radius-lg)',
-                          padding: '24px',
+                          padding: isMobile ? '16px' : '24px',
                           border: '1px solid #BBF7D0',
                         }}
                       >
@@ -710,7 +710,7 @@ export default function ClinicalReportAnalyzer() {
                         style={{
                           background: '#FEF2F2',
                           borderRadius: 'var(--radius-lg)',
-                          padding: '24px',
+                          padding: isMobile ? '16px' : '24px',
                           border: '1px solid #FECACA',
                         }}
                       >
@@ -755,7 +755,7 @@ export default function ClinicalReportAnalyzer() {
                           style={{
                             background: '#FFFFFF',
                             borderRadius: 'var(--radius-lg)',
-                            padding: '24px',
+                            padding: isMobile ? '16px' : '24px',
                             border: '1px solid #E2E8F0',
                           }}
                         >
@@ -824,7 +824,7 @@ export default function ClinicalReportAnalyzer() {
                           style={{
                             background: '#FFFFFF',
                             borderRadius: 'var(--radius-lg)',
-                            padding: '24px',
+                            padding: isMobile ? '16px' : '24px',
                             border: '1px solid #E2E8F0',
                           }}
                         >

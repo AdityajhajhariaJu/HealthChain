@@ -27,7 +27,7 @@ export default function MyCases() {
     <div style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 60 }}>
       <header style={{ marginBottom: 28 }}>
         <div style={{ color: '#0f9488', fontWeight: 800, fontSize: 12, letterSpacing: '.9px', marginBottom: 10 }}>YOUR CASEWORK</div>
-        <h1 style={{ fontSize: 36, margin: '0 0 10px', letterSpacing: '-1.2px' }}>My Cases</h1>
+        <h1 style={{ fontSize: isMobile ? 26 : 36, margin: '0 0 10px', letterSpacing: '-1.2px' }}>My Cases</h1>
         <p style={{ color: '#64748b', fontSize: 16, margin: 0 }}>
           Your ongoing health records, specialist reviews, and next steps.
         </p>
@@ -74,7 +74,7 @@ export default function MyCases() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 16 }}>
         {filteredCases.map(caseItem => {
            const primary = caseItem.currentSummary?.topDiagnoses?.[0];
            return (
@@ -82,14 +82,14 @@ export default function MyCases() {
                  key={caseItem.id}
                  className="card" 
                  onClick={() => navigate(`/app/cases/${caseItem.id}`)}
-                 style={{ padding: isMobile ? 16 : 22, cursor: 'pointer', transition: 'all 0.2s ease', border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 18, borderRadius: 20, background: '#FFF', boxShadow: '0 10px 28px rgba(15,23,42,.04)' }}
+                 style={{ padding: isMobile ? 16 : 22, cursor: 'pointer', transition: 'all 0.2s ease', border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 18, borderRadius: 20, background: '#FFF', boxShadow: '0 10px 28px rgba(15,23,42,.04)', minWidth: 0 }}
                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#5EEAD4'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 18px 34px rgba(15,23,42,.09)'; }}
                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EEF5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(15,23,42,.04)'; }}
               >
                  <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F0FDFA', color: '#10B981', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     <Archive size={24} />
                  </div>
-                 <div style={{ flex: 1 }}>
+                 <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                        <div>
                           <h3 style={{ margin: '0 0 6px', fontSize: 18, color: '#0F172A' }}>{caseItem.title}</h3>

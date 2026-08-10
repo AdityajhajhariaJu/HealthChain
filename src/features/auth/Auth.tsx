@@ -36,6 +36,12 @@ export default function Auth() {
         }
         
         setItemSync('isAuthenticated', 'true');
+        setItemSync(
+          'hc_account',
+          JSON.stringify({
+            email: formData.email,
+          })
+        );
         navigate('/app');
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -132,16 +138,9 @@ export default function Auth() {
             }}
           />
 
-          <h2
-            style={{
-              fontSize: '28px',
-              fontWeight: 700,
-              marginBottom: '8px',
-              color: 'var(--text-main)',
-            }}
-          >
+          <h1 style={{ margin: '0 0 8px 0', fontSize: isMobile ? '24px' : '28px', color: 'var(--text-main)', fontWeight: 700 }}>
             {isLogin ? 'Welcome back' : 'Create an account'}
-          </h2>
+          </h1>
           <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '15px' }}>
             {isLogin
               ? 'Enter your details to access your clinical dashboard.'

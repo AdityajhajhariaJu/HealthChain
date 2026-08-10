@@ -880,7 +880,7 @@ export default function MDTHub() {
                       <div>
                         <h2
                           style={{
-                            fontSize: '24px',
+                            fontSize: isMobile ? '20px' : '24px',
                             fontWeight: 800,
                             color: '#0F172A',
                             marginBottom: '8px',
@@ -920,7 +920,7 @@ export default function MDTHub() {
                       <div>
                         <h2
                           style={{
-                            fontSize: '32px',
+                            fontSize: isMobile ? '26px' : '32px',
                             fontWeight: 900,
                             color: '#0F172A',
                             marginBottom: '12px',

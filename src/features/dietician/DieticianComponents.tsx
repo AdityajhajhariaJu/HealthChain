@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Apple, Utensils, Target, CheckCircle2, ChevronRight, ArrowRight } from 'lucide-react';
 import { GOALS, ACTIVITY_LEVELS, RESTRICTIONS, MEDICAL_CONDITIONS, CUISINES, MEAL_SCHEDULES } from './Dietician';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 
 export function OnboardingWizard({ onComplete }) {
+  const isMobile = useIsMobile();
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
     weight: '',
@@ -97,7 +99,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '8px',
@@ -299,7 +301,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '32px',
@@ -351,7 +353,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '32px',
@@ -414,7 +416,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '32px',
@@ -486,7 +488,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '32px',
@@ -558,7 +560,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '32px',
@@ -598,7 +600,7 @@ export function OnboardingWizard({ onComplete }) {
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <h2
               style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '32px',
@@ -670,7 +672,7 @@ export function OnboardingWizard({ onComplete }) {
             </div>
             <h2
               style={{
-                fontSize: '32px',
+                fontSize: isMobile ? '26px' : '32px',
                 fontWeight: 800,
                 color: '#0F172A',
                 marginBottom: '16px',

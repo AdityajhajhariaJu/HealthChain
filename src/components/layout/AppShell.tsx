@@ -179,10 +179,12 @@ export default function AppShell() {
       )}
 
       <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`}>
-        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
+        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/talkbuddy'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
           <BrandPulseBanner />
         </div>
-        <ActiveCaseBar navigate={navigate} />
+        {!['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/talkbuddy'].some(p => location.pathname.startsWith(p)) && (
+          <ActiveCaseBar navigate={navigate} />
+        )}
         <div style={{ minHeight: 'calc(100% - 104px)' }}>
           <Outlet />
         </div>

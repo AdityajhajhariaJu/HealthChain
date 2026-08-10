@@ -131,19 +131,19 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
                       <Clock size={14} /> TIMELINE
                     </div>
-                    <div style={{ fontSize: 24, fontWeight: 700, color: '#0f172a' }}>{simulation.timelineDays} <span style={{ fontSize: 14, color: '#64748b' }}>days</span></div>
+                    <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#0f172a' }}>{simulation.timelineDays} <span style={{ fontSize: 14, color: '#64748b' }}>days</span></div>
                   </div>
                   <div style={{ background: '#f0fdfa', padding: 16, borderRadius: 16, border: '1px solid #ccfbf1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#0f766e', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
                       <Activity size={14} /> SUCCESS RATE
                     </div>
-                    <div style={{ fontSize: 24, fontWeight: 700, color: '#0f766e' }}>{simulation.successRate}%</div>
+                    <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#0f766e' }}>{simulation.successRate}%</div>
                   </div>
                   <div style={{ background: '#fef2f2', padding: 16, borderRadius: 16, border: '1px solid #fee2e2' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b91c1c', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
                       <AlertTriangle size={14} /> RISKS
                     </div>
-                    <div style={{ fontSize: 24, fontWeight: 700, color: '#b91c1c' }}>{simulation.risks.length}</div>
+                    <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#b91c1c' }}>{simulation.risks.length}</div>
                   </div>
                 </div>
 

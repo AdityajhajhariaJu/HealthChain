@@ -313,7 +313,7 @@ export default function PharmacyHub() {
                     style={{
                       background: '#FFFFFF',
                       borderRadius: 'var(--radius-lg)',
-                      padding: '24px',
+                      padding: isMobile ? '16px' : '24px',
                       border: '1px solid #E2E8F0',
                       display: 'flex',
                       flexDirection: isMobile ? 'column' : 'row',
@@ -435,7 +435,7 @@ export default function PharmacyHub() {
                       style={{
                         background: '#FFFFFF',
                         borderRadius: 'var(--radius-lg)',
-                        padding: '24px',
+                        padding: isMobile ? '16px' : '24px',
                         border: '1px solid #E2E8F0',
                       }}
                     >
@@ -487,7 +487,7 @@ export default function PharmacyHub() {
                         style={{
                           background: '#FFFFFF',
                           borderRadius: 'var(--radius-lg)',
-                          padding: '24px',
+                          padding: isMobile ? '16px' : '24px',
                           border: '1px solid #E2E8F0',
                         }}
                       >
@@ -533,7 +533,7 @@ export default function PharmacyHub() {
                         style={{
                           background: '#FEF2F2',
                           borderRadius: 'var(--radius-lg)',
-                          padding: '24px',
+                          padding: isMobile ? '16px' : '24px',
                           border: '1px solid #FCA5A5',
                         }}
                       >
@@ -565,7 +565,7 @@ export default function PharmacyHub() {
 
       {/* Pill Organizer Sidebar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <div className="card" style={{ padding: '24px' }}>
+        <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Pill size={20} color="var(--teal)" /> Daily Regimen
           </h2>
@@ -598,7 +598,7 @@ export default function PharmacyHub() {
 
         {/* Interaction Warnings */}
         {activeInteractions.length > 0 && (
-          <div className="card" style={{ padding: '24px', borderLeft: '4px solid #EF4444', background: '#FEF2F2' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px', borderLeft: '4px solid #EF4444', background: '#FEF2F2' }}>
              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#991B1B', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                <AlertOctagon size={18} /> Active Interactions
              </h3>

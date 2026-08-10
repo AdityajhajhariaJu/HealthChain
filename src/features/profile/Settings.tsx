@@ -58,7 +58,7 @@ export default function Settings() {
         <div>
           <h1
             style={{
-              fontSize: '24px',
+              fontSize: isMobile ? '20px' : '24px',
               fontWeight: 700,
               color: 'var(--text-main)',
               margin: '0 0 4px 0',

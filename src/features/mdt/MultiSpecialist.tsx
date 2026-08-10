@@ -1048,9 +1048,9 @@ export default function MultiSpecialist() {
       style={{
         height: '100%',
         overflowY: 'auto',
-        padding: '32px 40px',
+        padding: isMobile ? '16px 20px' : '32px 40px',
         color: '#0F172A',
-        margin: '-32px -40px',
+        margin: isMobile ? '-16px -20px' : '-32px -40px',
         minHeight: '100vh',
         position: 'relative',
       }}
@@ -1108,7 +1108,7 @@ export default function MultiSpecialist() {
           </div>
           <h1
             style={{
-              fontSize: '42px',
+              fontSize: isMobile ? '32px' : '42px',
               fontWeight: 900,
               color: '#0F172A',
               margin: '0 0 16px 0',
@@ -1175,20 +1175,20 @@ export default function MultiSpecialist() {
                 marginBottom: '40px',
               }}
             >
-              <div style={{ padding: isMobile ? '0 12px' : '0 20px', color: '#94A3B8' }}><Search size={20} /></div>
+              <div style={{ padding: isMobile ? '0 12px' : '0 20px', color: '#94A3B8' }}><Search size={isMobile ? 18 : 20} /></div>
               <input
                 ref={searchInputRef}
                 type="text"
                 value={symptomInput}
                 onChange={(e) => setSymptomInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleStart()}
-                placeholder={isMobile ? "Search specialists..." : "Choose or Write your Custom Specialists..."}
+                placeholder={isMobile ? "Describe symptoms..." : "Describe symptoms or conditions to analyze..."}
                 style={{
                   flex: 1,
                   minWidth: 0,
                   border: 'none',
                   background: 'transparent',
-                  padding: isMobile ? '16px 12px 16px 0' : '20px 20px 20px 0',
+                  padding: isMobile ? '12px 12px 12px 0' : '20px 20px 20px 0',
                   color: '#0F172A',
                   fontSize: isMobile ? '14px' : '16px',
                   outline: 'none',
@@ -1197,7 +1197,7 @@ export default function MultiSpecialist() {
                   overflow: 'hidden',
                 }}
               />
-              <button onClick={handleStart} disabled={!symptomInput.trim() && selected.length === 0} className="btn btn-primary hover-scale glow-transition" style={{ padding: '14px 24px', borderRadius: '14px', fontSize: '14px', border: 'none', cursor: 'pointer', transition: 'all 0.2s', opacity: !symptomInput.trim() && selected.length === 0 ? 0.5 : 1 }}>
+              <button onClick={handleStart} disabled={!symptomInput.trim() && selected.length === 0} className="btn btn-primary hover-scale glow-transition" style={{ padding: isMobile ? '10px 16px' : '14px 24px', borderRadius: '14px', fontSize: '14px', border: 'none', cursor: 'pointer', transition: 'all 0.2s', opacity: !symptomInput.trim() && selected.length === 0 ? 0.5 : 1 }}>
                 Analyze Now
               </button>
             </div>

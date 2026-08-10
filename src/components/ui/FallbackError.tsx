@@ -1,7 +1,9 @@
 import React from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function FallbackError({ error, resetErrorBoundary }) {
+  const isMobile = useIsMobile();
   return (
     <div
       style={{
@@ -33,7 +35,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
       >
         <ShieldAlert size={32} color="#EF4444" />
       </div>
-      <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#7F1D1D', marginBottom: '12px' }}>
+      <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#7F1D1D', marginBottom: '12px' }}>
         A system error occurred
       </h2>
       <p style={{ color: '#991B1B', maxWidth: '400px', marginBottom: '24px', lineHeight: 1.6 }}>
@@ -48,15 +50,21 @@ export default function FallbackError({ error, resetErrorBoundary }) {
             padding: '16px',
             borderRadius: 'var(--radius-lg)',
             color: '#EF4444',
-            fontSize: '12px',
+            fontSize: '11px',
             textAlign: 'left',
             maxWidth: '100%',
             overflowX: 'auto',
+            overflowY: 'auto',
+            maxHeight: '300px',
             marginBottom: '32px',
             border: '1px solid #FCA5A5',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
           }}
         >
           {error.message}
+          {'\n\n'}
+          {error.stack}
         </pre>
       )}
 

@@ -7,7 +7,7 @@ import {
   Users,
   FileText,
   ChevronRight,
-  CheckCircle2,
+  CheckCircle,
   Stethoscope,
   ShieldCheck,
   HeartPulse,
@@ -27,7 +27,7 @@ import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { addEvent, addActionItems, addCondition } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 
-export function Step({ icon: Icon, label, active, completed }) {
+export function Step({ icon: Icon, label, active, completed, isMobile }: any) {
   const isHighlighted = active || completed;
   return (
     <div
@@ -53,13 +53,14 @@ export function Step({ icon: Icon, label, active, completed }) {
           color: completed ? '#FFF' : active ? '#FFF' : '#94A3B8',
         }}
       >
-        {completed ? <CheckCircle2 size={14} /> : <Icon size={14} />}
+        {completed ? <CheckCircle size={14} /> : (Icon && typeof Icon !== 'string' && Icon.$$typeof ? <Icon size={14} /> : <span style={{fontSize: 10}}>Icon</span>)}
       </div>
       <span
         style={{
           fontSize: '14px',
           fontWeight: isHighlighted ? 700 : 600,
           color: active ? '#FFF' : completed ? '#0F172A' : '#94A3B8',
+          display: isMobile && !active ? 'none' : 'block',
         }}
       >
         {label}
@@ -115,7 +116,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           >
             Active case handoff
           </div>
-          <h2 style={{ margin: 0, color: '#0F172A', fontSize: '30px', letterSpacing: '-0.7px' }}>
+          <h2 style={{ margin: 0, color: '#0F172A', fontSize: isMobile ? '24px' : '30px', letterSpacing: '-0.7px' }}>
             Correlate, don’t start over.
           </h2>
           <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '16px', lineHeight: 1.6 }}>
@@ -330,7 +331,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E8F7F4', color: '#0F8B7E' }}><Network size={18} /></div>
               <span style={{ color: '#0F8B7E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>CASE CONFERENCE</span>
             </div>
-            <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Bring the case together.</h2>
+            <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Bring the case together.</h2>
             <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>This is the synthesis stage: bring together an existing case, perspectives, and evidence—without starting your story from zero.</p>
           </div>
           <button
@@ -782,7 +783,7 @@ export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeDa
             justifyContent: 'center',
           }}
         >
-          <Icon size={16} color={specialist.color} />
+                  {Icon && typeof Icon !== 'string' && Icon.$$typeof ? <Icon size={16} color={specialist.color} /> : <span style={{fontSize: 10}}>Icon</span>}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
@@ -1119,7 +1120,7 @@ export function MDTConferencePanel({
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '32px', borderBottom: '1px solid #E2E8F0', paddingBottom: '24px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
             Live MDT Debate Room
           </h2>
           <p style={{ color: '#64748B', fontSize: '15px', margin: 0 }}>
@@ -1223,7 +1224,7 @@ export function MDTConferencePanel({
         >
           <ShieldCheck size={40} />
         </div>
-        <h2 style={{ fontSize: '36px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px' }}>
+        <h2 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px' }}>
           Consensus Reached
         </h2>
         <p
@@ -1607,7 +1608,7 @@ export function MDTReportPanel({
         <div>
           <h2
             style={{
-              fontSize: '32px',
+              fontSize: isMobile ? '26px' : '32px',
               fontWeight: 900,
               color: '#0F172A',
               marginBottom: '12px',
@@ -1647,7 +1648,7 @@ export function MDTReportPanel({
     >
       {/* Top Actions */}
       <div
-        style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '16px', marginBottom: '32px' }}
+        style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', justifyContent: isMobile ? 'stretch' : 'flex-end', gap: '16px', marginBottom: '32px' }}
       >
         {onCorrelateInMDT && (
           <button
@@ -1661,6 +1662,7 @@ export function MDTReportPanel({
               fontWeight: 800,
               cursor: 'pointer',
               fontSize: '14px',
+              width: isMobile ? '100%' : 'auto',
             }}
           >
             Correlate in MDT
@@ -1678,6 +1680,7 @@ export function MDTReportPanel({
             cursor: 'pointer',
             fontSize: '14px',
             transition: 'all 0.2s',
+            width: isMobile ? '100%' : 'auto',
           }}
           onMouseOver={(e) => (e.currentTarget.style.background = '#F1F5F9')}
           onMouseOut={(e) => (e.currentTarget.style.background = '#F8FAFC')}
@@ -1696,6 +1699,7 @@ export function MDTReportPanel({
             cursor: 'pointer',
             fontSize: '14px',
             transition: 'all 0.2s',
+            width: isMobile ? '100%' : 'auto',
           }}
           onMouseOver={(e) => (e.currentTarget.style.background = '#F1F5F9')}
           onMouseOut={(e) => (e.currentTarget.style.background = '#F8FAFC')}
@@ -1715,13 +1719,14 @@ export function MDTReportPanel({
             fontSize: '14px',
             transition: 'all 0.2s',
             boxShadow: '0 4px 12px rgba(15,23,42,0.2)',
+            width: isMobile ? '100%' : 'auto',
           }}
         >
           Start New Case
         </button>
       </div>
 
-      <div id="mdt-report-content" style={{ padding: '0 20px 20px 20px' }}>
+      <div id="mdt-report-content" style={{ padding: isMobile ? '0' : '0 20px 20px 20px' }}>
         <div
           style={{ borderBottom: '2px solid #F1F5F9', paddingBottom: '32px', marginBottom: '40px' }}
         >
@@ -1739,7 +1744,7 @@ export function MDTReportPanel({
           </div>
           <h2
             style={{
-              fontSize: '42px',
+              fontSize: isMobile ? '28px' : '42px',
               fontWeight: 900,
               color: '#0F172A',
               margin: 0,
@@ -1748,28 +1753,28 @@ export function MDTReportPanel({
           >
             MDT Case Brief
           </h2>
-          <p style={{ color: '#64748B', marginTop: '12px', fontSize: '16px', fontWeight: 500 }}>
+          <p style={{ color: '#64748B', marginTop: '12px', fontSize: isMobile ? '14px' : '16px', fontWeight: 500 }}>
             AI-assisted synthesis of your information and specialist perspectives
           </p>
         </div>
 
         <div style={{ marginBottom: '48px' }}>
-          <h3 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
             Executive Summary
           </h3>
-          <p style={{ color: '#334155', lineHeight: 1.7, fontSize: '17px' }}>
+          <p style={{ color: '#334155', lineHeight: 1.7, fontSize: isMobile ? '15px' : '17px' }}>
             {report.executiveSummary}
           </p>
         </div>
 
         <div style={{ marginBottom: '48px' }}>
-          <h3 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginBottom: '24px' }}>
+          <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '24px' }}>
             Possible pathways to discuss
           </h3>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
               gap: '24px',
             }}
           >
@@ -1852,7 +1857,7 @@ export function MDTReportPanel({
         </div>
 
         <div>
-          <h3 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginBottom: '24px' }}>
+          <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '24px' }}>
             Next actions to discuss or complete
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1861,43 +1866,46 @@ export function MDTReportPanel({
                 key={i}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '20px',
-                  padding: '24px',
+                  alignItems: 'flex-start',
+                  gap: isMobile ? '12px' : '20px',
+                  padding: isMobile ? '16px' : '24px',
                   background: '#FFF',
                   border: '1px solid #E2E8F0',
-                  borderRadius: '20px',
+                  borderRadius: isMobile ? '16px' : '20px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
                 }}
               >
                 <div
                   style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: 'var(--radius-lg)',
+                    width: isMobile ? '32px' : '48px',
+                    height: isMobile ? '32px' : '48px',
+                    borderRadius: isMobile ? '10px' : '12px',
                     background: 'rgba(15,23,42,0.05)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#0F172A',
                     fontWeight: 900,
-                    fontSize: '18px',
+                    fontSize: isMobile ? '14px' : '18px',
+                    flexShrink: 0,
+                    marginTop: '2px',
                   }}
                 >
                   {i + 1}
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
-                      fontWeight: 800,
-                      color: '#0F172A',
-                      marginBottom: '6px',
-                      fontSize: '17px',
+                      fontWeight: 600,
+                      color: '#1E293B',
+                      marginBottom: '8px',
+                      fontSize: isMobile ? '15px' : '16px',
+                      lineHeight: 1.5,
                     }}
                   >
                     {action.step}
                   </div>
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', gap: isMobile ? '8px' : '16px', fontSize: isMobile ? '12px' : '14px', flexWrap: 'wrap' }}>
                     <span style={{ color: '#10B981', fontWeight: 700 }}>{action.timeline}</span>
                     <span style={{ color: '#CBD5E1' }}>|</span>
                     <span style={{ color: '#64748B', fontWeight: 600 }}>{action.type}</span>
@@ -1947,21 +1955,24 @@ export function MDTReportPanel({
         <button
           onClick={() => setShowFeedback(!showFeedback)}
           style={{
-            padding: '16px 32px',
+            padding: isMobile ? '12px 16px' : '16px 32px',
             background: '#FFF',
             color: '#4F46E5',
             border: '2px solid #4F46E5',
             borderRadius: '999px',
             fontWeight: 700,
-            fontSize: '15px',
+            fontSize: isMobile ? '14px' : '15px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            justifyContent: 'center',
+            width: isMobile ? '100%' : 'auto',
+            gap: '8px',
             transition: 'all 0.2s',
           }}
         >
-          <Sparkles size={18} /> Not fully happy? Refine Diagnosis
+          <Sparkles size={18} style={{ flexShrink: 0 }} /> 
+          <span style={{ textAlign: 'center' }}>Not fully happy? Refine Diagnosis</span>
         </button>
 
         <AnimatePresence>
