@@ -50,6 +50,7 @@ const links = [
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/multi', label: 'Multi', icon: GitMerge },
+  { to: '/app/mdthub', label: 'MDT', icon: Network },
   { to: '/app/talkbuddy', label: 'Ava', icon: Heart },
   { to: '/app/profile', label: 'Profile', icon: FolderHeart },
 ];
