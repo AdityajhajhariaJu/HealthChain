@@ -985,7 +985,7 @@ html.dark-theme body {
   }
 
   .more-menu-item svg {
-    color: #2563eb;
+    color: var(--teal);
     background: #eff6ff;
     padding: 12px;
     border-radius: 16px;
