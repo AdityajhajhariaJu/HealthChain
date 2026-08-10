@@ -910,11 +910,14 @@ html.dark-theme body {
     left: 0;
     right: 0;
     height: 70vh;
-    background: var(--bg);
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
     z-index: 101;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
     padding-bottom: var(--safe-area-bottom);
@@ -924,21 +927,29 @@ html.dark-theme body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid var(--border);
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
   }
   
   .mobile-more-menu__header h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--text);
   }
   
   .mobile-more-menu__header .close-btn {
-    background: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
+    transition: background 0.2s;
   }
   
   .mobile-more-menu__grid {
@@ -953,16 +964,39 @@ html.dark-theme body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     color: var(--text-main);
     text-decoration: none;
-    padding: 16px;
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid var(--border);
+    padding: 16px 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
     text-align: center;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .more-menu-item:active {
+    transform: scale(0.95);
+    background: #ffffff;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  }
+
+  .more-menu-item svg {
+    color: var(--teal);
+    background: var(--teal-light);
+    padding: 12px;
+    border-radius: 16px;
+    width: 48px;
+    height: 48px;
+    box-sizing: border-box;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .more-menu-item:active svg {
+    transform: scale(1.1);
   }
 }
 
