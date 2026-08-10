@@ -20,7 +20,10 @@ import {
   ArrowRight,
   FlaskConical,
   Grid,
-  X
+  X,
+  Bot,
+  Trophy,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
@@ -192,6 +195,27 @@ export default function AppShell() {
 
       {isMobile && (
         <>
+          <div className="mobile-top-bar">
+            <img 
+              src="https://ui-avatars.com/api/?name=Aditya+Jhajharia&background=0F8B7E&color=fff" 
+              alt="Profile" 
+              className="mobile-top-bar__profile" 
+              onClick={() => setShowMoreMenu(true)} 
+            />
+            <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')}>
+              <Bot size={16} />
+              <span>Ask anything ab...</span>
+            </button>
+            <div className="mobile-top-bar__actions">
+              <div className="mobile-top-bar__points">
+                <Trophy size={14} color="#10B981" />
+                <span>5 PTS</span>
+              </div>
+              <button className="mobile-top-bar__bell">
+                <Bell size={18} />
+              </button>
+            </div>
+          </div>
           <nav className="mobile-tab-bar">
             {mobileTabs.map((tab) => (
               <NavLink
