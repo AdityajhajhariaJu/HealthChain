@@ -987,10 +987,10 @@ html.dark-theme body {
   .more-menu-item svg {
     color: var(--teal);
     background: #eff6ff;
-    padding: 12px;
-    border-radius: 16px;
-    width: 48px;
-    height: 48px;
+    padding: 10px;
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
     box-sizing: border-box;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
