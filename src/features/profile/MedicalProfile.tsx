@@ -693,7 +693,7 @@ export default function MedicalProfile() {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-                  gap: '24px',
+                  gap: isMobile ? '12px' : '24px',
                   paddingTop: '8px',
                 }}
               >
