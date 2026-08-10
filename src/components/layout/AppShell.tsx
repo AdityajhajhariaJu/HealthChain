@@ -269,20 +269,24 @@ export default function AppShell() {
                 </div>
                 <div className="mobile-more-menu__grid">
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map(l => (
-                    <NavLink
+                    <button
                       key={l.to}
-                      to={l.to}
+                      onClick={() => navigate(l.to)}
                       className="more-menu-item"
-                      
+                      style={{ border: 'none', background: 'none', outline: 'none' }}
                     >
                       <l.icon size={24} />
                       <span>{l.label}</span>
-                    </NavLink>
+                    </button>
                   ))}
-                  <NavLink to="/app/settings" className="more-menu-item" >
+                  <button 
+                    onClick={() => navigate('/app/settings')} 
+                    className="more-menu-item"
+                    style={{ border: 'none', background: 'none', outline: 'none' }}
+                  >
                     <Settings size={24} />
                     <span>Settings</span>
-                  </NavLink>
+                  </button>
                 </div>
               </motion.div>
               </>
