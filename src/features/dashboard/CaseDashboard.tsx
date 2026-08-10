@@ -797,7 +797,7 @@ function CaseCard({ item, navigate }: { item: CaseItem, navigate: any }) {
       </div>
       <button
         className="btn btn-primary btn-sm"
-        style={{ width: isMobile ? '100%' : 'auto', flexShrink: 0 }}
+        style={{ width: 'auto', flexShrink: 0, marginTop: isMobile ? '8px' : '0' }}
         onClick={() => {
           setActiveCase(item.id);
           navigate(`/app/cases/${item.id}`);
