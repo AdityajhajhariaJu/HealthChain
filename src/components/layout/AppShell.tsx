@@ -67,6 +67,7 @@ export default function AppShell() {
 
   // Scroll to top on route change
   useEffect(() => {
+    setShowMoreMenu(false);
     const scrollContainer = document.querySelector('.app-shell__content');
     if (scrollContainer) {
       scrollContainer.scrollTo(0, 0);
@@ -272,13 +273,13 @@ export default function AppShell() {
                       key={l.to}
                       to={l.to}
                       className="more-menu-item"
-                      onClick={() => setShowMoreMenu(false)}
+                      
                     >
                       <l.icon size={24} />
                       <span>{l.label}</span>
                     </NavLink>
                   ))}
-                  <NavLink to="/app/settings" className="more-menu-item" onClick={() => setShowMoreMenu(false)}>
+                  <NavLink to="/app/settings" className="more-menu-item" >
                     <Settings size={24} />
                     <span>Settings</span>
                   </NavLink>
