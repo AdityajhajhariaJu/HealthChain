@@ -245,13 +245,21 @@ export default function AppShell() {
 
           <AnimatePresence>
             {showMoreMenu && (
-              <motion.div 
-                className="mobile-more-menu"
-                initial={{ opacity: 0, y: '100%' }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              >
+              <>
+                <motion.div
+                  className="mobile-more-menu-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowMoreMenu(false)}
+                />
+                <motion.div 
+                  className="mobile-more-menu"
+                  initial={{ opacity: 0, y: '100%' }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: '100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                >
                 <div className="mobile-more-menu__header">
                   <h3>More Tools</h3>
                   <button onClick={() => setShowMoreMenu(false)} className="close-btn">
@@ -276,6 +284,7 @@ export default function AppShell() {
                   </NavLink>
                 </div>
               </motion.div>
+              </>
             )}
           </AnimatePresence>
         </>
