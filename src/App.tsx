@@ -5,6 +5,8 @@ import { syncCasesFromSupabase } from './services/CaseEngine';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { supabase } from './services/supabaseClient';
+import { setItemSync } from './services/storage';
 
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
@@ -66,6 +68,31 @@ export default function App() {
     setupPushListeners();
     syncProfileFromSupabase();
     syncCasesFromSupabase();
+
+    // Global Auth Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+        setItemSync('isAuthenticated', 'true');
+        
+        // Auto-redirect if on a public page
+        const path = window.location.pathname;
+        if (path === '/' || path === '/login' || path === '/signup') {
+          // If they have a profile saved locally, take them to the app. Otherwise, onboarding.
+          const hasProfile = !!localStorage.getItem('hc_profile');
+          if (hasProfile) {
+            window.location.href = '/app';
+          } else {
+            window.location.href = '/onboarding';
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('hc_account');
+        window.location.href = '/';
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
