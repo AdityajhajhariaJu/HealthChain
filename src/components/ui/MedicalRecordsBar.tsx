@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Plus, X, UploadCloud, CheckCircle2, FileUp } from 'lucide-react';
 
-export function MedicalRecordsBar({ records, onAddRecord, onRemoveRecord }) {
+export function MedicalRecordsBar({ records = [], onAddRecord, onRemoveRecord }) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [findings, setFindings] = useState('');
@@ -199,7 +199,7 @@ export function MedicalRecordsBar({ records, onAddRecord, onRemoveRecord }) {
         )}
       </AnimatePresence>
 
-      {records.length > 0 && (
+      {records?.length > 0 && (
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {records.map((record) => (
             <div
