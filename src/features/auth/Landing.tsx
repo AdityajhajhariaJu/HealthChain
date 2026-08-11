@@ -269,14 +269,14 @@ export default function Landing() {
         <div className={styles.footerBottom}>
           <div>© {new Date().getFullYear()} HealthChain. All rights reserved.</div>
           <div className={styles.footerSocials}>
-            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon}>
-              <Twitter size={20} />
+            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon} aria-label="Twitter">
+              <Twitter size={20} aria-hidden="true" />
             </a>
-            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon}>
-              <Github size={20} />
+            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon} aria-label="GitHub">
+              <Github size={20} aria-hidden="true" />
             </a>
-            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon}>
-              <Mail size={20} />
+            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon} aria-label="Email Contact">
+              <Mail size={20} aria-hidden="true" />
             </a>
           </div>
         </div>

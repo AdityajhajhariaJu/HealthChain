@@ -209,7 +209,7 @@ export default function AppShell() {
               className="mobile-top-bar__profile" 
               onClick={() => setShowMoreMenu(true)} 
             />
-            <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')}>
+            <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy">
               <Bot size={16} />
               <span>Ask anything ab...</span>
             </button>
@@ -218,8 +218,8 @@ export default function AppShell() {
                 <Trophy size={14} color="#10B981" />
                 <span>5 PTS</span>
               </div>
-              <button className="mobile-top-bar__bell">
-                <Bell size={18} />
+              <button className="mobile-top-bar__bell" aria-label="View notifications">
+                <Bell size={18} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -240,6 +240,8 @@ export default function AppShell() {
             ))}
             <button
               className={`mobile-tab ${showMoreMenu ? 'active' : ''}`}
+              aria-label="More Menu"
+              aria-expanded={showMoreMenu}
               onClick={() => {
                 Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
                 setShowMoreMenu(!showMoreMenu);
@@ -269,8 +271,8 @@ export default function AppShell() {
                 >
                 <div className="mobile-more-menu__header">
                   <h3>More Tools</h3>
-                  <button onClick={() => setShowMoreMenu(false)} className="close-btn">
-                    <X size={24} />
+                  <button onClick={() => setShowMoreMenu(false)} className="close-btn" aria-label="Close More Menu">
+                    <X size={24} aria-hidden="true" />
                   </button>
                 </div>
                 <div className="mobile-more-menu__grid">

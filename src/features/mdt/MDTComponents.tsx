@@ -1022,8 +1022,9 @@ export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeDa
                 justifyContent: 'center',
                 transition: 'all 0.2s',
               }}
+              aria-label="Send message"
             >
-              <ArrowRight size={20} />
+              <ArrowRight size={20} aria-hidden="true" />
             </button>
           </motion.form>
         )}
