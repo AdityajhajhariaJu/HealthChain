@@ -201,7 +201,7 @@ export function MedicalRecordsBar({ records = [], onAddRecord, onRemoveRecord })
 
       {records?.length > 0 && (
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {records.map((record) => (
+          {records?.map((record) => (
             <div
               key={record.id}
               style={{

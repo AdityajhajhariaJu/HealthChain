@@ -834,7 +834,7 @@ export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeDa
           </div>
           {latestParsed.currentHypotheses && latestParsed.currentHypotheses.length > 0 && (
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {latestParsed.currentHypotheses.map((hyp, i) => (
+              {latestParsed.currentHypotheses?.map((hyp, i) => (
                 <span key={i} style={{ padding: '2px 6px', background: `${specialist.color}15`, color: specialist.color, borderRadius: '4px', fontSize: '10px', fontWeight: 600, border: `1px solid ${specialist.color}30` }}>
                   {hyp}
                 </span>
@@ -1062,7 +1062,7 @@ export function MDTConferencePanel({
       Object.keys(specialistTranscripts).forEach((id) => {
         const specName = selectedSpecialists.find((s) => s.id === id)?.label || id;
         cleanTranscripts[specName] = specialistTranscripts[id]
-          .map((m) => `${m.role}: ${m.text}`)
+          ?.map((m) => `${m.role}: ${m.text}`)
           .join('\n');
       });
 
@@ -1290,7 +1290,7 @@ export function MDTConferencePanel({
               fontSize: '15px',
             }}
           >
-            {conferenceData.corroborations.map((c, i) => (
+            {conferenceData.corroborations?.map((c, i) => (
               <li key={i} style={{ lineHeight: 1.6 }}>
                 {c}
               </li>
@@ -1339,7 +1339,7 @@ export function MDTConferencePanel({
               fontSize: '15px',
             }}
           >
-            {conferenceData.contentions.map((c, i) => (
+            {conferenceData.contentions?.map((c, i) => (
               <li key={i} style={{ lineHeight: 1.6 }}>
                 {c}
               </li>
@@ -1382,7 +1382,7 @@ export function MDTConferencePanel({
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {conferenceData.followUpQuestions.map((q, i) => (
+          {conferenceData.followUpQuestions?.map((q, i) => (
             <div
               key={i}
               style={{
@@ -1778,7 +1778,7 @@ export function MDTReportPanel({
               gap: '24px',
             }}
           >
-            {report.topDiagnoses.map((d, i) => (
+            {report.topDiagnoses?.map((d, i) => (
               <div
                 key={i}
                 style={{
@@ -1861,7 +1861,7 @@ export function MDTReportPanel({
             Next actions to discuss or complete
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {report.recommendedActionPlan.map((action, i) => (
+            {report.recommendedActionPlan?.map((action, i) => (
               <div
                 key={i}
                 style={{
