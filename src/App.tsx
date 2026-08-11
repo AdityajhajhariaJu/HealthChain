@@ -2,8 +2,8 @@ import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase } from './services/ProfileEngine';
 import { syncCasesFromSupabase } from './services/CaseEngine';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabaseClient';
 import { setItemSync } from './services/storage';
@@ -76,18 +76,17 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 
 export default function App() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { info } = useToast();
 
   useEffect(() => {
     registerPushNotifications().catch(console.error);
     setupPushListeners();
-    syncProfileFromSupabase();
-    syncCasesFromSupabase();
 
     // Check for email verification / password recovery hash
     const hash = window.location.hash;
     if (hash && hash.includes('type=recovery')) {
-      window.location.href = '/update-password' + hash;
+      navigate('/update-password' + hash, { replace: true });
       return; // Stop execution to let the redirect happen
     }
 
@@ -96,29 +95,46 @@ export default function App() {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         setItemSync('isAuthenticated', 'true');
         
+        // Sync user data now that they are authenticated
+        syncProfileFromSupabase();
+        syncCasesFromSupabase();
+        
         // Auto-redirect if on a public page
         const path = window.location.pathname;
         if (path === '/' || path === '/login' || path === '/signup') {
-          // If they have a profile saved locally, take them to the app. Otherwise, onboarding.
-          const hasProfile = !!localStorage.getItem('hc_profile');
-          if (hasProfile) {
-            window.location.href = '/app';
+          const profileStr = localStorage.getItem('hc_unified_profile');
+          let hasCompletedOnboarding = false;
+          if (profileStr) {
+            try {
+              const profileData = JSON.parse(profileStr);
+              hasCompletedOnboarding = !!profileData.onboardingCompletedAt;
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          
+          if (hasCompletedOnboarding) {
+            navigate('/app', { replace: true });
           } else {
-            window.location.href = '/onboarding';
+            navigate('/onboarding', { replace: true });
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('hc_account');
+        const theme = localStorage.getItem('hc_theme');
+        const consent = localStorage.getItem('hc_consent');
+        localStorage.clear();
+        if (theme) localStorage.setItem('hc_theme', theme);
+        if (consent) localStorage.setItem('hc_consent', consent);
+        
         info('Session ended', 'You have been logged out.');
         setTimeout(() => {
-          window.location.href = '/';
+          navigate('/', { replace: true });
         }, 500);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate, info]);
 
   return (
     <SafeRoute>
@@ -153,9 +169,11 @@ export default function App() {
         <Route
           path="/onboarding"
           element={
-            <PageTransition>
-              <ProfileOnboarding />
-            </PageTransition>
+            <ProtectedRoute>
+              <PageTransition>
+                <ProfileOnboarding />
+              </PageTransition>
+            </ProtectedRoute>
           }
         />
         <Route

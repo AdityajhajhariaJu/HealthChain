@@ -249,18 +249,17 @@ export default function Landing() {
             <div>
               <h4 className={styles.footerSectionTitle}>Product</h4>
               <div className={styles.footerLinks}>
-                <a href="#" className={styles.footerLink}>Health-Chain AI</a>
-                <a href="#" className={styles.footerLink}>How it Works</a>
-                <a href="#" className={styles.footerLink}>Pricing</a>
-                <a href="#" className={styles.footerLink}>Security</a>
+                <a href="/login" className={styles.footerLink}>Health-Chain AI</a>
+                <a href="/changelog" className={styles.footerLink}>Changelog</a>
+                <a href="/pricing" className={styles.footerLink}>Pricing</a>
+                <a href="/help" className={styles.footerLink}>Help Center</a>
               </div>
             </div>
             <div>
               <h4 className={styles.footerSectionTitle}>Company</h4>
               <div className={styles.footerLinks}>
-                <a href="#" className={styles.footerLink}>About</a>
-                <a href="#" className={styles.footerLink}>Blog</a>
-                <a href="#" className={styles.footerLink}>Contact</a>
+                <a href="/terms" className={styles.footerLink}>Terms</a>
+                <a href="/privacy" className={styles.footerLink}>Privacy</a>
               </div>
             </div>
           </div>
@@ -268,17 +267,6 @@ export default function Landing() {
 
         <div className={styles.footerBottom}>
           <div>© {new Date().getFullYear()} HealthChain. All rights reserved.</div>
-          <div className={styles.footerSocials}>
-            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon} aria-label="Twitter">
-              <Twitter size={20} aria-hidden="true" />
-            </a>
-            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon} aria-label="GitHub">
-              <Github size={20} aria-hidden="true" />
-            </a>
-            <a href="#!" onClick={(e) => e.preventDefault()} className={styles.footerSocialIcon} aria-label="Email Contact">
-              <Mail size={20} aria-hidden="true" />
-            </a>
-          </div>
         </div>
       </footer>
     </div>

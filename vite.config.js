@@ -27,7 +27,7 @@ export default defineConfig({
     drop: ['console', 'debugger'],
   },
   server: {
-    port: 3009,
+    port: 3001,
     host: true,
     open: false,
     allowedHosts: true

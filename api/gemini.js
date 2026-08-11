@@ -1,16 +1,24 @@
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Fallback to GEMINI_API_KEY if VITE_ is removed in the future for safety
-  const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  // Do NOT read VITE_GEMINI_API_KEY to prevent client-side leakage.
+  const API_KEY = process.env.GEMINI_API_KEY;
   
   if (!API_KEY) {
     return res.status(500).json({ error: 'API key not configured on server' });
   }
 
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
   try {
     const response = await fetch(API_URL, {
@@ -19,7 +27,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       // Pass the body exactly as received from the client
-      body: JSON.stringify(req.body),
+      body: typeof req.body === 'string' ? req.body : JSON.stringify(req.body),
     });
 
     if (!response.ok) {

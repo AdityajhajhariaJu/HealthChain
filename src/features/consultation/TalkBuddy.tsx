@@ -43,7 +43,20 @@ export default function TalkBuddy() {
   const endRef = useRef<any>(null);
 
   useEffect(() => {
-    localStorage.setItem(AVA_VAULT_KEY, JSON.stringify(messages));
+    try {
+      localStorage.setItem(AVA_VAULT_KEY, JSON.stringify(messages));
+    } catch (e: any) {
+      if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+        // Splice oldest 20% of messages if quota exceeded, keep initial message
+        const keepCount = Math.floor(messages.length * 0.8);
+        const newMsgs = [messages[0], ...messages.slice(messages.length - keepCount)];
+        try {
+          localStorage.setItem(AVA_VAULT_KEY, JSON.stringify(newMsgs));
+        } catch (e2) {
+          console.error('Storage full, unable to save chat:', e2);
+        }
+      }
+    }
   }, [messages]);
 
   // Theme colors - Soothing Purple

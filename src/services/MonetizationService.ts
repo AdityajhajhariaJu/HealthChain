@@ -23,7 +23,7 @@ export const MonetizationService = {
         // Dispatch event for UI
         window.dispatchEvent(new Event('hc_premium_unlocked'));
         
-        alert('Payment successful! Premium features unlocked.');
+        console.log('Payment successful! Premium features unlocked.');
         resolve(true);
       }, 1500);
     });
@@ -33,7 +33,7 @@ export const MonetizationService = {
     return new Promise((resolve) => {
       setTimeout(() => {
         // Mock restore
-        alert('No previous purchases found to restore.');
+        console.log('No previous purchases found to restore.');
         resolve(false);
       }, 1000);
     });

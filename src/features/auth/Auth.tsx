@@ -556,6 +556,7 @@ export default function Auth() {
                   onClick={() => {
                     // Set a dummy local session for guest mode
                     setItemSync('isAuthenticated', 'true');
+                    setItemSync('hc_guest_mode', 'true');
                     setItemSync('hc_account', JSON.stringify({ name: 'Guest User', email: 'local-only' }));
                     navigate('/app');
                   }}

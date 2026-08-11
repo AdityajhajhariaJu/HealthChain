@@ -128,7 +128,22 @@ export default function Dietician() {
     if (profile) localStorage.setItem('hc_diet_profile', JSON.stringify(profile));
   }, [profile]);
   useEffect(() => {
-    localStorage.setItem('hc_food_logs', JSON.stringify(foodLogs));
+    try {
+      localStorage.setItem('hc_food_logs', JSON.stringify(foodLogs));
+    } catch (e: any) {
+      if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+        const dates = Object.keys(foodLogs).sort();
+        const dropCount = Math.max(1, Math.floor(dates.length * 0.2));
+        const datesToKeep = dates.slice(dropCount);
+        const newLogs: Record<string, any[]> = {};
+        datesToKeep.forEach(date => newLogs[date] = foodLogs[date]);
+        try {
+          localStorage.setItem('hc_food_logs', JSON.stringify(newLogs));
+        } catch (e2) {
+          console.error('Storage full, unable to save food logs:', e2);
+        }
+      }
+    }
   }, [foodLogs]);
   useEffect(() => {
     localStorage.setItem('hc_hydration', JSON.stringify(hydration));

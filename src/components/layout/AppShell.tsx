@@ -67,6 +67,7 @@ export default function AppShell() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [profile, setProfile] = useState(getProfile());
 
   const handleNavClick = (path: string) => {
     triggerHapticLight();
@@ -90,8 +91,13 @@ export default function AppShell() {
       setHistory(cases);
     };
     loadHistory();
+    const handleProfileUpdate = () => setProfile(getProfile());
     window.addEventListener('hc_cases_updated', loadHistory);
-    return () => window.removeEventListener('hc_cases_updated', loadHistory);
+    window.addEventListener('hc_profile_updated', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('hc_cases_updated', loadHistory);
+      window.removeEventListener('hc_profile_updated', handleProfileUpdate);
+    };
   }, []);
 
   return (
@@ -195,7 +201,7 @@ export default function AppShell() {
               <NavLink to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</NavLink>
             </div>
             <div className="sidebar__footer" style={{ padding: '12px 20px', fontSize: '10px', lineHeight: '1.4', color: 'var(--text-muted)' }}>
-              <strong>Disclaimer:</strong> HealthChain is an AI informational tool, not a doctor. It is not a substitute for professional medical advice.
+              <strong>Disclaimer:</strong> HealthChain is an AI Navigational and Researcher tool, not a doctor. It is not a substitute for professional medical advice.
             </div>
           </div>
         </aside>
@@ -231,7 +237,7 @@ export default function AppShell() {
         <>
           <div className="mobile-top-bar">
             <img 
-              src="https://ui-avatars.com/api/?name=Aditya+Jhajharia&background=0F8B7E&color=fff" 
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
               alt="Profile" 
               className="mobile-top-bar__profile" 
               onClick={() => setShowMoreMenu(true)} 

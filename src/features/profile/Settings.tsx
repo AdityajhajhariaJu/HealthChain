@@ -23,6 +23,10 @@ export default function Settings() {
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast, success, error: toastError } = useToast();
 
+  const accountStr = localStorage.getItem('hc_account');
+  const account = accountStr ? JSON.parse(accountStr) : null;
+  const userEmail = account?.email || account?.user?.email || 'user@example.com';
+
   useEffect(() => {
     MonetizationService.isPremium().then(setIsPremium);
     
@@ -46,8 +50,12 @@ export default function Settings() {
     } catch (e) {
       console.error(e);
     }
-    localStorage.removeItem('isAuthenticated');
-    navigate('/login');
+    const theme = localStorage.getItem('hc_theme');
+    const consent = localStorage.getItem('hc_consent');
+    localStorage.clear();
+    if (theme) localStorage.setItem('hc_theme', theme);
+    if (consent) localStorage.setItem('hc_consent', consent);
+    navigate('/');
   };
 
   const handleDeleteAccount = async () => {
@@ -342,39 +350,7 @@ export default function Settings() {
           Growth & Rewards
         </h2>
         
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            justifyContent: 'space-between',
-            gap: isMobile ? 12 : 0,
-            padding: '16px',
-            background: 'var(--bg)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border)',
-            marginBottom: '32px',
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Star size={18} color="var(--amber)" />
-              Invite Friends
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '300px' }}>
-              Get 1 free month of Premium for every friend who signs up using your invite link.
-            </div>
-          </div>
-          <button
-            className="btn btn-outline"
-            onClick={() => {
-              navigator.clipboard.writeText('https://healthchain.app/invite/ref-12345');
-              success('Link Copied', 'Your invite link has been copied to your clipboard!');
-            }}
-          >
-            Copy Invite Link
-          </button>
-        </div>
+
 
         <h2
           style={{
@@ -419,7 +395,7 @@ export default function Settings() {
                 <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
                   Patient User
                 </div>
-                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>user@example.com</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{userEmail}</div>
               </div>
             </div>
             <button className="btn btn-outline" onClick={handleLogout} style={{ gap: '8px' }}>

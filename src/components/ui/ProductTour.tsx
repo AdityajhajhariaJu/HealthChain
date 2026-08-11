@@ -6,7 +6,7 @@ import FocusTrap from './FocusTrap';
 const TOUR_STEPS = [
   {
     title: 'Welcome to HealthChain',
-    content: 'Let\'s take a quick tour to help you get the most out of your AI-powered diagnosis navigator.',
+    content: 'Let\'s take a quick tour to show you how we listen, understand, and help you find answers.',
   },
   {
     title: 'Your Dashboard',

@@ -49,7 +49,10 @@ export default function Breadcrumbs() {
           // Skip 'app' since Home represents it
           if (value === 'app') return null;
 
-          const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+          let to = `/${pathnames.slice(0, index + 1).join('/')}`;
+          if (to === '/app/cases') {
+            to = '/app/my-cases';
+          }
           const isLast = index === pathnames.length - 1;
           const name = routeNames[value] || value;
 

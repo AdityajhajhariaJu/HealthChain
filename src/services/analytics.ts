@@ -38,7 +38,11 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
         created_at: new Date().toISOString()
       }).then(({ error }) => {
         if (error) console.error('Failed to log event', error);
+      }, (err) => {
+        console.warn('Analytics DB unreachable:', err);
       });
+    }, (err) => {
+      console.warn('Auth session check failed during analytics:', err);
     });
   } catch (e) {
     console.error('Analytics error', e);

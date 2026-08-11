@@ -24,7 +24,7 @@ let cachedReportAnalyzerState: any = null;
 const exampleResult = {
   testName: 'MRI Cervical Dorsal Spine with Whole Spine Screening',
   date: '08-Jul-2026',
-  filename: 'CervicalDorsalSpineMriReportAditya.pdf',
+  filename: 'Patient_Spine_MRI.pdf',
   keyFindings:
     'The MRI of the spine is largely normal, with no major structural abnormalities in the dorsal or lumbar regions. The only notable finding is a diffuse disc bulge at the C5-C6 level in the neck, which gently presses against the outer protective covering of the spinal cord (thecal sac). The overall impression is reassuring, noting no other significant abnormalities.',
   interpretation:

@@ -1,0 +1,15 @@
+# Ignore native folders
+android/
+ios/
+
+# Ignore test results
+tests/
+playwright-report/
+test-results/
+
+# Ignore python scripts or build stats
+bundle-stats.html
+*.py
+*.ps1
+*.bat
+*.cjs

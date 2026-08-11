@@ -217,15 +217,19 @@ async function save(cases: CaseItem[]) {
              continue;
            }
 
-           await supabase.from('cases').upsert({
-              id: c.id,
-              user_id: session.user.id,
-              title: c.title,
-              status: c.status,
-              specialty: c.currentStage,
-              data: c,
-              updated_at: new Date().toISOString()
-           });
+           try {
+             await supabase.from('cases').upsert({
+                id: c.id,
+                user_id: session.user.id,
+                title: c.title,
+                status: c.status,
+                specialty: c.currentStage,
+                data: c,
+                updated_at: new Date().toISOString()
+             });
+           } catch (upsertErr) {
+             console.error(`Failed to sync case ${c.id} to cloud:`, upsertErr);
+           }
         }
       }
     }

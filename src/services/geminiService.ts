@@ -863,8 +863,7 @@ Rules:
 // ─── 3D BODY MAP / FABLE EXPERIMENT ──────────────────────────────────────────
 
 export async function suggestSpecialists(profileData: any, availableSpecialists: { id: string, label: string }[]) {
-  if (!import.meta.env.VITE_GEMINI_API_KEY) return null;
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+
 
   const profileSummary = {
     age: profileData?.demographics?.age,
@@ -913,8 +912,7 @@ Respond ONLY as JSON:
 }
 
 export async function runDifferentialAnalysis(intakeData: any, medicalRecords: any[], profileData: any) {
-  if (!import.meta.env.VITE_GEMINI_API_KEY) return null;
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+
 
   const prompt = `
 You are the Chief Diagnostician AI for HealthChain.
@@ -970,8 +968,7 @@ Respond ONLY with a JSON array of objects in this exact format, with no markdown
 }
 
 export async function generateProfileSynthesis(profileData: any) {
-  if (!import.meta.env.VITE_GEMINI_API_KEY) return null;
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+
 
   const prompt = `
 You are an expert Clinical AI. Analyze this patient profile and generate a holistic health synthesis.
@@ -987,7 +984,7 @@ Provide your response strictly as a JSON object with this exact format (no markd
     { "subject": "Mobility", "A": 65, "fullMark": 100 }
   ],
   "overallScore": 84,
-  "synthesisText": "A 2-4 sentence highly clinical and insightful summary of their current health status, directly referencing their actual conditions, recent weight/vital changes, and active medications. Use HTML <strong> tags to highlight key metrics."
+  "synthesisText": "A 2-4 sentence highly clinical and insightful summary of their current health status, directly referencing their actual conditions, recent weight/vital changes, and active medications. Use **markdown bold** to highlight key metrics."
 }
 `;
 
@@ -1016,8 +1013,7 @@ Provide your response strictly as a JSON object with this exact format (no markd
 }
 
 export async function checkDrugInteractions(newMedication: string, currentMedications: any[]) {
-  if (!import.meta.env.VITE_GEMINI_API_KEY) return null;
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`;
+
   
   const currentMedsList = currentMedications.map(m => m.name).join(', ');
 
