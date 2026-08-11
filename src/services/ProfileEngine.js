@@ -180,22 +180,37 @@ async function saveProfile(profile) {
     window.dispatchEvent(new Event('hc_profile_updated'));
 
     // Asynchronously sync to secure cloud backend if configured
-      if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        const email = JSON.parse(getItemSync('hc_account') || '{}')?.email || 'anonymous';
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         const { error } = await supabase
-          .from('health_profiles')
-          .upsert({ email, data: profile, updated_at: new Date().toISOString() });
+          .from('profiles')
+          .upsert({ 
+             id: session.user.id,
+             full_name: profile.profileName,
+             demographics: profile.demographics,
+             conditions: profile.conditions,
+             medications: profile.medications,
+             allergies: profile.allergies,
+             family_history: profile.familyHistory,
+             timeline: profile.timeline,
+             vitals: profile.vitals,
+             nutrition: profile.nutrition,
+             health_focus: profile.healthFocus,
+             updated_at: new Date().toISOString()
+          });
           
         if (error) {
           console.error('Supabase sync failed:', error);
           window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
         }
       }
-    } catch (e) {
-      console.error('Failed to save unified profile', e);
-      alert('Storage Full: Unable to save profile changes. Please clear browser storage or delete older data.');
-      window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: e }));
     }
+  } catch (e) {
+    console.error('Failed to save unified profile', e);
+    alert('Storage Full: Unable to save profile changes. Please clear browser storage or delete older data.');
+    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: e }));
+  }
 }
 
 export function updateDemographics(data) {
@@ -449,4 +464,34 @@ export function calculateHealthScore(profile) {
   else missing.push('Log a new event, symptom, or scan a document this week');
 
   return { score, missing };
+}
+
+export async function syncProfileFromSupabase() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    if (data) {
+       const state = getProfileEngineState();
+       state.profiles[state.activeId] = {
+          ...state.profiles[state.activeId],
+          profileName: data.full_name || 'My Profile',
+          demographics: data.demographics || {},
+          conditions: data.conditions || [],
+          medications: data.medications || [],
+          allergies: data.allergies || [],
+          familyHistory: data.family_history || [],
+          timeline: data.timeline || [],
+          vitals: data.vitals || { latestLabValues: {}, historicalLabs: [] },
+          nutrition: data.nutrition || { targetCalories: 2000, avgProtein: 0, recentLogs: [] },
+          healthFocus: data.health_focus || ''
+       };
+       setItemSync(PROFILE_KEY, JSON.stringify(state));
+       window.dispatchEvent(new Event('hc_profile_updated'));
+       console.log('Profile synced successfully from Supabase');
+    }
+  } catch (err) {
+    console.error('Failed to sync profile from Supabase:', err);
+  }
 }

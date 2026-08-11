@@ -46,6 +46,7 @@ export default defineConfig({
   },
   server: {
     port: 3009,
+    host: true,
     open: false,
     allowedHosts: true
   }

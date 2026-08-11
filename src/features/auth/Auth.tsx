@@ -14,6 +14,7 @@ export default function Auth() {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,13 +29,12 @@ export default function Auth() {
         });
 
         if (error) {
-          if (error.message.includes('Failed to fetch') || error.message.includes('placeholder')) {
-            console.warn('Supabase not configured, falling back to local auth simulation');
-          } else {
-            throw error;
-          }
+          setError(error.message);
+          setLoading(false);
+          return;
         }
         
+        // Let Supabase handle the session, but we can still set our local flags for now
         setItemSync('isAuthenticated', 'true');
         setItemSync(
           'hc_account',
@@ -53,13 +53,18 @@ export default function Auth() {
         });
 
         if (error) {
-          if (error.message.includes('Failed to fetch') || error.message.includes('placeholder')) {
-            console.warn('Supabase not configured, falling back to local auth simulation');
-          } else {
-            throw error;
-          }
+          setError(error.message);
+          setLoading(false);
+          return;
+        }
+
+        if (!data.session) {
+          setVerificationSent(true);
+          setLoading(false);
+          return;
         }
         
+        // Let Supabase handle the session, but we can still set our local flags for now
         setItemSync('isAuthenticated', 'true');
         setItemSync(
           'hc_account',
@@ -138,147 +143,170 @@ export default function Auth() {
             }}
           />
 
-          <h1 style={{ margin: '0 0 8px 0', fontSize: isMobile ? '24px' : '28px', color: 'var(--text-main)', fontWeight: 700 }}>
-            {isLogin ? 'Welcome back' : 'Create an account'}
-          </h1>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '15px' }}>
-            {isLogin
-              ? 'Enter your details to access your clinical dashboard.'
-              : 'Start your diagnostic journey today.'}
-          </p>
-
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-          >
-            {error && (
-              <div style={{ padding: '12px', background: '#FEE2E2', color: '#B91C1C', borderRadius: '8px', fontSize: '14px', border: '1px solid #FECACA' }}>
-                {error}
+          {verificationSent ? (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ width: '64px', height: '64px', background: 'rgba(20, 184, 166, 0.1)', color: 'var(--teal)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto' }}>
+                <Activity size={32} />
               </div>
-            )}
-            {!isLogin && (
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    color: 'var(--text-muted)',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>Check your email</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.5', marginBottom: '24px' }}>
+                We've sent a secure verification link to <strong>{formData.email}</strong>. Please click the link to activate your account.
+              </p>
+              <button
+                onClick={() => {
+                  setVerificationSent(false);
+                  navigate('/login');
+                }}
+                style={{ width: '100%', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-main)', padding: '12px', borderRadius: 'var(--radius-sm)', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Back to Sign In
+              </button>
+            </div>
+          ) : (
+            <>
+              <h1 style={{ margin: '0 0 8px 0', fontSize: isMobile ? '24px' : '28px', color: 'var(--text-main)', fontWeight: 700 }}>
+                {isLogin ? 'Welcome back' : 'Create an account'}
+              </h1>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '15px' }}>
+                {isLogin
+                  ? 'Enter your details to access your clinical dashboard.'
+                  : 'Start your diagnostic journey today.'}
+              </p>
+
+              <form
+                onSubmit={handleSubmit}
+                style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+              >
+                {error && (
+                  <div style={{ padding: '12px', background: '#FEE2E2', color: '#B91C1C', borderRadius: '8px', fontSize: '14px', border: '1px solid #FECACA' }}>
+                    {error}
+                  </div>
+                )}
+                {!isLogin && (
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color: 'var(--text-muted)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-hover)',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                )}
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: 'var(--text-muted)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border)',
+                      background: 'var(--surface-hover)',
+                      color: 'var(--text-main)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: 'var(--text-muted)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border)',
+                      background: 'var(--surface-hover)',
+                      color: 'var(--text-main)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border)',
-                    background: 'var(--surface-hover)',
-                    color: 'var(--text-main)',
-                    outline: 'none',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginTop: '10px',
+                    opacity: loading ? 0.7 : 1,
                   }}
-                />
+                >
+                  {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')} <ArrowRight size={18} />
+                </button>
+              </form>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  marginTop: '24px',
+                  fontSize: '14px',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                <span
+                  onClick={() => navigate(isLogin ? '/signup' : '/login')}
+                  style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  {isLogin ? 'Sign up' : 'Log in'}
+                </span>
               </div>
-            )}
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  marginBottom: '8px',
-                }}
-              >
-                Email Address
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface-hover)',
-                  color: 'var(--text-main)',
-                  outline: 'none',
-                }}
-              />
-            </div>
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  marginBottom: '8px',
-                }}
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface-hover)',
-                  color: 'var(--text-main)',
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary"
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '8px',
-                marginTop: '10px',
-                opacity: loading ? 0.7 : 1,
-              }}
-            >
-              {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')} <ArrowRight size={18} />
-            </button>
-          </form>
-
-          <div
-            style={{
-              textAlign: 'center',
-              marginTop: '24px',
-              fontSize: '14px',
-              color: 'var(--text-muted)',
-            }}
-          >
-            {isLogin ? "Don't have an account? " : 'Already have an account? '}
-            <span
-              onClick={() => navigate(isLogin ? '/signup' : '/login')}
-              style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
-            >
-              {isLogin ? 'Sign up' : 'Log in'}
-            </span>
-          </div>
+            </>
+          )}
         </motion.div>
       </div>
     </div>

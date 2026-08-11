@@ -1,5 +1,7 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
+import { syncProfileFromSupabase } from './services/ProfileEngine';
+import { syncCasesFromSupabase } from './services/CaseEngine';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -62,6 +64,8 @@ export default function App() {
   useEffect(() => {
     registerPushNotifications().catch(console.error);
     setupPushListeners();
+    syncProfileFromSupabase();
+    syncCasesFromSupabase();
   }, []);
 
   return (

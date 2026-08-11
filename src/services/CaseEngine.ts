@@ -1,3 +1,4 @@
+import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 
 export interface CaseUpdate {
@@ -81,9 +82,13 @@ const getActiveCaseKey = () => `hc_active_case_${getActiveProfileId()}`;
 
 const id = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return `case_${Date.now()}_${crypto.randomUUID().split('-')[0]}`;
+    return crypto.randomUUID();
   }
-  return `case_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  // Fallback UUID v4 generator
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 };
 
 export function getCases(): CaseItem[] {
@@ -188,11 +193,31 @@ export function getCases(): CaseItem[] {
   }
 }
 
-function save(cases: CaseItem[]) {
+async function save(cases: CaseItem[]) {
   try {
     const safeCases = JSON.parse(JSON.stringify(cases));
     setItemSync(getCasesKey(), JSON.stringify(safeCases));
     window.dispatchEvent(new Event('hc_cases_updated'));
+
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        for (const c of safeCases) {
+           const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
+           if (!isUUID) continue; // Skip legacy local IDs
+
+           await supabase.from('cases').upsert({
+              id: c.id,
+              user_id: session.user.id,
+              title: c.title,
+              status: c.status,
+              specialty: c.currentStage,
+              data: c,
+              updated_at: new Date().toISOString()
+           });
+        }
+      }
+    }
   } catch (err) {
     console.error('Failed to save cases. LocalStorage might be full.', err);
     alert('Storage Full: Unable to save case data. Please delete older cases to free up space.');
@@ -454,5 +479,34 @@ export function updateCaseDifferentials(caseId: string, differentials: Different
   save(cases);
   if (getActiveCaseId() === caseId) {
     window.dispatchEvent(new Event('hc_active_case_updated'));
+  }
+}
+
+export async function syncCasesFromSupabase() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    const { data, error } = await supabase.from('cases').select('*').eq('user_id', session.user.id);
+    if (data && data.length > 0) {
+      const localCases = getCases();
+      const localCaseMap = new Map(localCases.map(c => [c.id, c]));
+      
+      data.forEach(cloudCase => {
+         if (cloudCase.data) {
+             const localCase = localCaseMap.get(cloudCase.id);
+             if (!localCase || new Date(cloudCase.updated_at) > new Date(localCase.updatedAt)) {
+                localCaseMap.set(cloudCase.id, cloudCase.data);
+             }
+         }
+      });
+      
+      const mergedCases = Array.from(localCaseMap.values());
+      setItemSync(getCasesKey(), JSON.stringify(mergedCases));
+      window.dispatchEvent(new Event('hc_cases_updated'));
+      console.log('Cases synced successfully from Supabase');
+    }
+  } catch (err) {
+    console.error('Failed to sync cases from Supabase:', err);
   }
 }
