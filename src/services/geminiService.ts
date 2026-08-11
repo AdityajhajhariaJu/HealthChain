@@ -1,13 +1,9 @@
 import { compilePatientContext } from './MemoryService';
 import { getActiveCase } from './CaseEngine';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const isDev = import.meta.env.DEV;
-
-// In dev, call Google directly. In production, use our Vercel Serverless Function to hide the key.
-const API_URL = isDev 
-  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`
-  : '/api/gemini';
+// We strictly use the API proxy to prevent exposing the Gemini key in the frontend bundle.
+// (For local development, run `vercel dev` or configure a proxy for `/api`)
+const API_URL = '/api/gemini';
 
 const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000, retries = 2) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -26,12 +22,19 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
         await new Promise(r => setTimeout(r, 1000 * (i + 1)));
         continue;
       }
+      if (!response.ok && response.status >= 500 && i < retries) {
+        // 5xx Server Error, retry
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+        continue;
+      }
       return response;
     } catch (err: any) {
       clearTimeout(id);
       lastError = err;
-      if (err.name === 'AbortError' && i < retries) {
-        continue; // Retry on timeout
+      // Retry on network failures (TypeError) or Timeout (AbortError)
+      if ((err.name === 'AbortError' || err.name === 'TypeError') && i < retries) {
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+        continue;
       }
       if (i === retries) {
         if (err.name === 'AbortError') throw new Error('Timeout');

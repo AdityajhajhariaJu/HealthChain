@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2 } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import Skeleton from '../../components/ui/Skeleton';
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
@@ -110,10 +111,10 @@ export default function MyCases() {
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="card" style={{ padding: isMobile ? 16 : 22, border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 18, borderRadius: 20, background: '#FFF' }}>
-              <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F1F5F9', flexShrink: 0 }} className="skeleton" />
+              <Skeleton width={52} height={52} borderRadius={16} />
               <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                <div style={{ width: '60%', height: 24, background: '#F1F5F9', borderRadius: 4, marginBottom: 8 }} className="skeleton" />
-                <div style={{ width: '40%', height: 16, background: '#F1F5F9', borderRadius: 4 }} className="skeleton" />
+                <Skeleton width="60%" height={24} borderRadius={4} style={{ marginBottom: 8 }} />
+                <Skeleton width="40%" height={16} borderRadius={4} />
               </div>
             </div>
           ))

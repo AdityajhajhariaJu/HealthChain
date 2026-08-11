@@ -6,6 +6,9 @@ import App from './App';
 import './index.css';
 import { syncStorageFromPreferences } from './services/storage';
 import { ToastProvider } from './components/ui/ToastProvider';
+import { ErrorBoundary } from 'react-error-boundary';
+import FallbackError from './components/ui/FallbackError';
+import { AnalyticsProvider } from './services/AnalyticsProvider';
 
 const queryClient = new QueryClient();
 
@@ -20,9 +23,13 @@ syncStorageFromPreferences().then(() => {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
+          <ErrorBoundary FallbackComponent={FallbackError} onReset={() => window.location.reload()}>
+            <AnalyticsProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </AnalyticsProvider>
+          </ErrorBoundary>
         </BrowserRouter>
       </QueryClientProvider>
     </React.StrictMode>

@@ -20,6 +20,8 @@ import { useToast } from './components/ui/ToastProvider';
 import OfflineBanner from './components/ui/OfflineBanner';
 import ConsentManager from './components/ui/ConsentManager';
 
+import ProductTour from './components/ui/ProductTour';
+
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
 const MultiSpecialist = React.lazy(() => import('./features/mdt/MultiSpecialist'));
@@ -115,6 +117,7 @@ export default function App() {
     <SafeRoute>
       <OfflineBanner />
       <ConsentManager />
+      <ProductTour />
       <Routes>
         <Route
           path="/"

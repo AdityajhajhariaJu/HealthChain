@@ -4,7 +4,7 @@ import { LogOut, User, Settings as SettingsIcon, ChevronDown, Plus } from 'lucid
 import { getAllProfiles, switchActiveProfile, createNewProfile, getProfileEngineState } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { MonetizationService } from '../../services/MonetizationService';
-import { Star, AlertTriangle, Trash2, X } from 'lucide-react';
+import { Star, AlertTriangle, Trash2, X, ShieldCheck } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
 import FocusTrap from '../../components/ui/FocusTrap';
@@ -336,6 +336,53 @@ export default function Settings() {
             fontWeight: 600,
             color: 'var(--text-main)',
             marginBottom: '24px',
+            marginTop: '40px',
+          }}
+        >
+          Growth & Rewards
+        </h2>
+        
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: isMobile ? 12 : 0,
+            padding: '16px',
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
+            marginBottom: '32px',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Star size={18} color="var(--amber)" />
+              Invite Friends
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '300px' }}>
+              Get 1 free month of Premium for every friend who signs up using your invite link.
+            </div>
+          </div>
+          <button
+            className="btn btn-outline"
+            onClick={() => {
+              navigator.clipboard.writeText('https://healthchain.app/invite/ref-12345');
+              success('Link Copied', 'Your invite link has been copied to your clipboard!');
+            }}
+          >
+            Copy Invite Link
+          </button>
+        </div>
+
+        <h2
+          style={{
+            fontSize: '18px',
+            fontWeight: 600,
+            color: 'var(--text-main)',
+            marginBottom: '24px',
+            marginTop: '16px',
           }}
         >
           Account
@@ -425,6 +472,42 @@ export default function Settings() {
             color: 'var(--text-main)',
             marginBottom: '24px',
             marginTop: '40px',
+          }}
+        >
+          Privacy & Data Handling
+        </h2>
+        
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '16px',
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
+            marginBottom: '32px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <ShieldCheck size={18} color="var(--teal)" />
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
+              HIPAA & GDPR Compliance
+            </div>
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+            HealthChain strictly adheres to HIPAA and GDPR standards for health data handling. 
+            All your medical data, chat history, and clinical reports are stored securely using enterprise-grade encryption. 
+            Your data is never sold to third parties and is used solely to provide diagnostic navigation.
+          </div>
+        </div>
+
+        <h2
+          style={{
+            fontSize: '18px',
+            fontWeight: 600,
+            color: 'var(--text-main)',
+            marginBottom: '24px',
+            marginTop: '16px',
           }}
         >
           Data Portability
