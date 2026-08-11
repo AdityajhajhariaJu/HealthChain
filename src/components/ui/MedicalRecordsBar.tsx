@@ -2,9 +2,17 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Plus, X, UploadCloud, CheckCircle2, FileUp } from 'lucide-react';
 
-export function MedicalRecordsBar({ records = [], onAddRecord, onRemoveRecord }) {
+export function MedicalRecordsBar({ 
+  records = [], 
+  onAddRecord, 
+  onRemoveRecord 
+}: {
+  records?: any[];
+  onAddRecord: (record: any) => void;
+  onRemoveRecord: (id: string) => void;
+}) {
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [findings, setFindings] = useState('');
   const fileInputRef = useRef<any>(null);
 
