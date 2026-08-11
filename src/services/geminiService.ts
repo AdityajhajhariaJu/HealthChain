@@ -9,23 +9,37 @@ const API_URL = isDev
   ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`
   : '/api/gemini';
 
-const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000) => {
+const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000, retries = 2) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     throw new Error('Offline');
   }
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(id);
-    return response;
-  } catch (err: any) {
-    clearTimeout(id);
-    if (err.name === 'AbortError') {
-      throw new Error('Timeout');
+  
+  let lastError;
+  for (let i = 0; i <= retries; i++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(id);
+      if (response.status === 429 && i < retries) {
+        // Rate limited, wait 1s then retry
+        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        continue;
+      }
+      return response;
+    } catch (err: any) {
+      clearTimeout(id);
+      lastError = err;
+      if (err.name === 'AbortError' && i < retries) {
+        continue; // Retry on timeout
+      }
+      if (i === retries) {
+        if (err.name === 'AbortError') throw new Error('Timeout');
+        throw err;
+      }
     }
-    throw err;
   }
+  throw lastError;
 };
 
 export interface Message {

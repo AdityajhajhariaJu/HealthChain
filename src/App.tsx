@@ -17,6 +17,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
 import { useToast } from './components/ui/ToastProvider';
+import OfflineBanner from './components/ui/OfflineBanner';
+import ConsentManager from './components/ui/ConsentManager';
 
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
@@ -33,6 +35,10 @@ const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/Clinical
 const PrivacyPolicy = React.lazy(() => import('./features/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./features/legal/TermsOfService'));
 const UpdatePassword = React.lazy(() => import('./features/auth/UpdatePassword'));
+
+const Changelog = React.lazy(() => import('./features/brand/Changelog'));
+const HelpCenter = React.lazy(() => import('./features/brand/HelpCenter'));
+const Pricing = React.lazy(() => import('./features/brand/Pricing'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -107,6 +113,8 @@ export default function App() {
 
   return (
     <SafeRoute>
+      <OfflineBanner />
+      <ConsentManager />
       <Routes>
         <Route
           path="/"
@@ -166,6 +174,36 @@ export default function App() {
             <PageTransition>
               <SafeRoute>
                 <TermsOfService />
+              </SafeRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/changelog"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <Changelog />
+              </SafeRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/help"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <HelpCenter />
+              </SafeRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <Pricing />
               </SafeRoute>
             </PageTransition>
           }

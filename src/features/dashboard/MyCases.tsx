@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2 } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
@@ -10,13 +10,35 @@ const formatDate = (value: string) =>
 export default function MyCases() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [cases, setCases] = useState<CaseItem[]>(getCases());
+  const [cases, setCases] = useState<CaseItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const refresh = () => setCases(getCases());
+    const refresh = () => {
+      setCases(getCases());
+      setIsLoading(false);
+    };
+    
+    // Simulate slight network delay for skeleton loader
+    const timer = setTimeout(refresh, 500);
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('hc_cases_updated', refresh);
-    return () => window.removeEventListener('hc_cases_updated', refresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('hc_cases_updated', refresh);
+    };
   }, []);
 
   const filteredCases = cases.filter(c => c.title.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -58,8 +80,9 @@ export default function MyCases() {
         >
           <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 16 }} />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search cases by symptom or condition..."
+            placeholder="Search cases by symptom or condition... (Cmd+K)"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{
@@ -75,9 +98,20 @@ export default function MyCases() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 16 }}>
-        {filteredCases.map(caseItem => {
-           const primary = caseItem.currentSummary?.topDiagnoses?.[0];
-           return (
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="card" style={{ padding: isMobile ? 16 : 22, border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 18, borderRadius: 20, background: '#FFF' }}>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F1F5F9', flexShrink: 0 }} className="skeleton" />
+              <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                <div style={{ width: '60%', height: 24, background: '#F1F5F9', borderRadius: 4, marginBottom: 8 }} className="skeleton" />
+                <div style={{ width: '40%', height: 16, background: '#F1F5F9', borderRadius: 4 }} className="skeleton" />
+              </div>
+            </div>
+          ))
+        ) : filteredCases.length > 0 ? (
+          filteredCases.map(caseItem => {
+            const primary = caseItem.currentSummary?.topDiagnoses?.[0];
+            return (
               <div 
                  key={caseItem.id}
                  className="card" 
@@ -131,14 +165,17 @@ export default function MyCases() {
                  </button>
                  <ChevronRight size={20} color="#cbd5e1" />
               </div>
-           );
-        })}
-        {filteredCases.length === 0 && (
-           <div style={{ padding: 60, textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e2e8f0' }}>
-              <Archive size={40} color="#cbd5e1" style={{ marginBottom: 16 }} />
-              <h3 style={{ margin: '0 0 8px' }}>No cases found</h3>
-              <p style={{ margin: 0 }}>You don't have any cases matching your search.</p>
-           </div>
+            );
+          })
+        ) : (
+          <div style={{ padding: 60, textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e2e8f0' }}>
+            <Archive size={40} color="#cbd5e1" style={{ marginBottom: 16 }} />
+            <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>No cases found</h3>
+            <p style={{ margin: '0 0 24px' }}>You don't have any cases matching your search.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/app/multi')}>
+              Start a New Case
+            </button>
+          </div>
         )}
       </div>
     </div>

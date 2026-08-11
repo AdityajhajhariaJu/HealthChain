@@ -30,6 +30,8 @@ import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import Breadcrumbs from '../ui/Breadcrumbs';
+import FeedbackWidget from '../ui/FeedbackWidget';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -87,6 +89,7 @@ export default function AppShell() {
 
   return (
     <div className="app-shell">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
@@ -177,7 +180,10 @@ export default function AppShell() {
               Settings
             </NavLink>
 
-            <div style={{ display: 'flex', gap: '12px', padding: '0 20px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', gap: '12px', padding: '0 20px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+              <NavLink to="/changelog" style={{ color: 'inherit', textDecoration: 'none' }}>What's New</NavLink>
+              <NavLink to="/help" style={{ color: 'inherit', textDecoration: 'none' }}>Help</NavLink>
+              <NavLink to="/pricing" style={{ color: 'inherit', textDecoration: 'none' }}>Pricing</NavLink>
               <NavLink to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</NavLink>
               <NavLink to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</NavLink>
             </div>
@@ -188,13 +194,14 @@ export default function AppShell() {
         </aside>
       )}
 
-      <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`}>
+      <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
         <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/talkbuddy'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
           <BrandPulseBanner />
         </div>
         {!['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/talkbuddy'].some(p => location.pathname.startsWith(p)) && (
           <ActiveCaseBar navigate={navigate} />
         )}
+        <Breadcrumbs />
         <div style={{ minHeight: 'calc(100% - 104px)' }}>
           <Outlet />
         </div>
@@ -302,6 +309,8 @@ export default function AppShell() {
           </AnimatePresence>
         </>
       )}
+
+      <FeedbackWidget />
     </div>
   );
 }

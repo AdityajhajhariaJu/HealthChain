@@ -65,6 +65,8 @@ export default function MedicalProfile() {
   const [profile, setProfile] = useState(getProfile());
   const healthScore = calculateHealthScore(profile);
   const [isEditingDemo, setIsEditingDemo] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   const [demoForm, setDemoForm] = useState(profile.demographics);
   const [newAllergy, setNewAllergy] = useState('');
   const [newFamilyHist, setNewFamilyHist] = useState('');
@@ -84,6 +86,8 @@ export default function MedicalProfile() {
       return {};
     }
   }, []);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   // Compute longitudinal data from actual history
   const computedLongitudinalData = (profile.vitals.historicalLabs || []).map(entry => {
@@ -106,12 +110,19 @@ export default function MedicalProfile() {
       if (!isEditingDemo) {
         setDemoForm(updated.demographics);
       }
+      setIsLoading(false);
     };
+    
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 600);
+    
     window.addEventListener('hc_profile_updated', handleUpdate);
     const refreshCase = () => setActiveCase(getActiveCase());
     window.addEventListener('hc_active_case_updated', refreshCase);
     window.addEventListener('hc_cases_updated', refreshCase);
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('hc_profile_updated', handleUpdate);
       window.removeEventListener('hc_active_case_updated', refreshCase);
       window.removeEventListener('hc_cases_updated', refreshCase);
@@ -119,8 +130,14 @@ export default function MedicalProfile() {
   }, [isEditingDemo]);
 
   const handleSaveDemographics = () => {
-    updateDemographics(demoForm);
-    setIsEditingDemo(false);
+    setIsSaving(true);
+    setTimeout(() => {
+      updateDemographics(demoForm);
+      setIsSaving(false);
+      setIsEditingDemo(false);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
+    }, 500); // Simulate network latency for the saving indicator
   };
 
   const handleExportPDF = async () => {
@@ -526,20 +543,34 @@ export default function MedicalProfile() {
         ref={profileRef}
         style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: '32px' }}
       >
-        {/* LEFT COLUMN: Hero, Vitals, Timeline */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* 1. Patient Identity Header (Clean Layout) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: isMobile ? '16px' : '24px',
-              padding: isMobile ? '12px 0' : '24px 0',
-              marginBottom: '16px',
-            }}
-          >
+        {isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', gridColumn: '1 / -1' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '24px 0' }}>
+              <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#F1F5F9' }} className="skeleton" />
+              <div style={{ flex: 1 }}>
+                <div style={{ width: '40%', height: '32px', background: '#F1F5F9', borderRadius: '8px', marginBottom: '12px' }} className="skeleton" />
+                <div style={{ width: '60%', height: '20px', background: '#F1F5F9', borderRadius: '8px' }} className="skeleton" />
+              </div>
+            </div>
+            <div style={{ height: '300px', background: '#F1F5F9', borderRadius: '24px' }} className="skeleton" />
+            <div style={{ height: '200px', background: '#F1F5F9', borderRadius: '24px' }} className="skeleton" />
+          </div>
+        ) : (
+          <>
+            {/* LEFT COLUMN: Hero, Vitals, Timeline */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              {/* 1. Patient Identity Header (Clean Layout) */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: isMobile ? '16px' : '24px',
+                  padding: isMobile ? '12px 0' : '24px 0',
+                  marginBottom: '16px',
+                }}
+              >
             <div style={{ position: 'relative' }}>
               <div
                 style={{
@@ -690,9 +721,15 @@ export default function MedicalProfile() {
                   onChange={(e) => setDemoForm({ ...demoForm, emergencyContact: e.target.value })}
                 />
                 <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                  <button className="btn btn-ghost" onClick={() => setIsEditingDemo(false)}>Cancel</button>
-                  <button className="btn btn-primary" onClick={handleSaveDemographics}>Save Details</button>
+                  <button className="btn btn-ghost" onClick={() => setIsEditingDemo(false)} disabled={isSaving}>Cancel</button>
+                  <button className="btn btn-primary" onClick={handleSaveDemographics} disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Details'}
+                  </button>
                 </div>
+              </div>
+            ) : showSaved ? (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-12px', marginBottom: '12px' }}>
+                <span className="badge badge-teal" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}><Check size={14} /> Saved</span>
               </div>
             ) : null}
           </motion.div>
@@ -1610,7 +1647,9 @@ export default function MedicalProfile() {
               }}
             />
           </div>
-        </div>
+          </div>
+        </>
+        )}
       </div>
     </motion.div>
   );

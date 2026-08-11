@@ -402,6 +402,10 @@ export default function Settings() {
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
               Create an account to save your medical history and access premium features.
             </p>
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '12px', borderRadius: '8px', marginBottom: '24px', textAlign: 'left' }}>
+              <strong style={{ color: '#D97706', fontSize: '14px', display: 'block', marginBottom: '4px' }}>Warning: Guest Mode</strong>
+              <span style={{ color: '#B45309', fontSize: '13px' }}>Your data is currently stored locally in this browser. If you clear your browser cache or switch devices, your data will be permanently lost. Create an account to securely back up your data.</span>
+            </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button className="btn btn-navy" onClick={() => navigate('/login')}>
                 Log In
@@ -412,6 +416,106 @@ export default function Settings() {
             </div>
           </div>
         )}
+
+        <h2
+          style={{
+            fontSize: '18px',
+            fontWeight: 600,
+            color: 'var(--text-main)',
+            marginBottom: '24px',
+            marginTop: '40px',
+          }}
+        >
+          Data Portability
+        </h2>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: isMobile ? 12 : 0,
+            padding: '16px',
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
+            marginBottom: '16px',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
+              Export Data
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              Download a copy of your profiles, cases, and settings as JSON.
+            </div>
+          </div>
+          <button
+            className="btn btn-outline"
+            onClick={() => {
+              const dataStr = JSON.stringify(localStorage);
+              const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+              const exportFileDefaultName = 'healthchain_export.json';
+              const linkElement = document.createElement('a');
+              linkElement.setAttribute('href', dataUri);
+              linkElement.setAttribute('download', exportFileDefaultName);
+              linkElement.click();
+              success('Export Complete', 'Your data has been successfully downloaded.');
+            }}
+          >
+            Export JSON
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: isMobile ? 12 : 0,
+            padding: '16px',
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
+            marginBottom: '32px',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
+              Import Data
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              Restore data from a previously exported JSON file.
+            </div>
+          </div>
+          <label className="btn btn-outline" style={{ cursor: 'pointer' }}>
+            Import JSON
+            <input 
+              type="file" 
+              accept=".json" 
+              style={{ display: 'none' }} 
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  try {
+                    const result = JSON.parse(ev.target?.result as string);
+                    Object.keys(result).forEach(key => {
+                      localStorage.setItem(key, result[key]);
+                    });
+                    success('Import Complete', 'Your data has been successfully restored. Refreshing...');
+                    setTimeout(() => window.location.reload(), 1500);
+                  } catch (err) {
+                    toastError('Import Failed', 'Invalid JSON file.');
+                  }
+                };
+                reader.readAsText(file);
+              }}
+            />
+          </label>
+        </div>
 
         {/* Danger Zone */}
         {isAuthenticated && (
