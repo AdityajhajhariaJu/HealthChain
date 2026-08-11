@@ -12,7 +12,8 @@ export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
   const isLogin = location.pathname === '/login';
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [verificationSent, setVerificationSent] = useState(false);
@@ -54,6 +55,13 @@ export default function Auth() {
         }
         
         success('Welcome back!');
+        // Handle Remember Me
+        if (rememberMe) {
+          localStorage.setItem('hc_remember', 'true');
+        } else {
+          localStorage.removeItem('hc_remember');
+        }
+
         // Let Supabase handle the session, but we can still set our local flags for now
         setItemSync('isAuthenticated', 'true');
         setItemSync(
@@ -64,6 +72,12 @@ export default function Auth() {
         );
         navigate('/app');
       } else {
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match.');
+          setLoading(false);
+          return;
+        }
+        
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -85,6 +99,11 @@ export default function Auth() {
         }
         
         success('Account created successfully!');
+        if (rememberMe) {
+          localStorage.setItem('hc_remember', 'true');
+        } else {
+          localStorage.removeItem('hc_remember');
+        }
         // Let Supabase handle the session, but we can still set our local flags for now
         setItemSync('isAuthenticated', 'true');
         setItemSync(
@@ -311,7 +330,77 @@ export default function Auth() {
                         outline: 'none',
                       }}
                     />
+                    
+                    {!isLogin && formData.password.length > 0 && (
+                      <div style={{ marginTop: '8px', display: 'flex', gap: '4px' }}>
+                        {[
+                          { test: (p: string) => p.length >= 8, label: '8+ chars' },
+                          { test: (p: string) => /[A-Z]/.test(p), label: 'Uppercase' },
+                          { test: (p: string) => /[0-9]/.test(p), label: 'Number' },
+                        ].map((req, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              flex: 1,
+                              height: '4px',
+                              background: req.test(formData.password) ? '#10B981' : 'var(--border)',
+                              borderRadius: '2px',
+                              transition: 'background 0.3s ease',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
+                )}
+                
+                {!isForgotPassword && !isLogin && (
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        color: 'var(--text-muted)',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-hover)',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                )}
+
+                {!isForgotPassword && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        cursor: 'pointer',
+                        accentColor: 'var(--teal)'
+                      }}
+                    />
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Remember me for 30 days</span>
+                  </label>
                 )}
 
                 <button

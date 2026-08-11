@@ -10,7 +10,7 @@ export default function NotFound() {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: 'var(--bg-primary)',
+        backgroundColor: 'var(--bg)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -21,7 +21,7 @@ export default function NotFound() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         style={{
-          backgroundColor: 'var(--bg-secondary)',
+          backgroundColor: 'var(--surface)',
           borderRadius: '24px',
           padding: '48px',
           textAlign: 'center',
@@ -45,11 +45,11 @@ export default function NotFound() {
           <AlertCircle size={40} />
         </div>
         
-        <h1 style={{ fontSize: '32px', color: 'var(--text-primary)', marginBottom: '16px', margin: 0 }}>
+        <h1 style={{ fontSize: '32px', color: 'var(--text-main)', marginBottom: '16px', margin: 0 }}>
           Page Not Found
         </h1>
         
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', lineHeight: '1.6' }}>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '32px', lineHeight: '1.6' }}>
           We couldn't find the page you were looking for. It might have been moved, deleted, or never existed in the first place.
         </p>
 
@@ -59,7 +59,7 @@ export default function NotFound() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: 'var(--primary-color)',
+            backgroundColor: 'var(--teal)',
             color: 'white',
             border: 'none',
             borderRadius: '12px',
