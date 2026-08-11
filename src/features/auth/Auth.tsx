@@ -305,6 +305,41 @@ export default function Auth() {
                   {isLogin ? 'Sign up' : 'Log in'}
                 </span>
               </div>
+              
+              {/* Guest Login Option */}
+              <div
+                style={{
+                  textAlign: 'center',
+                  marginTop: '16px',
+                  paddingTop: '16px',
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Set a dummy local session for guest mode
+                    setItemSync('isAuthenticated', 'true');
+                    setItemSync('hc_account', JSON.stringify({ name: 'Guest User', email: 'local-only' }));
+                    navigate('/app');
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--teal)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  Continue as Guest <ArrowRight size={14} />
+                </button>
+              </div>
             </>
           )}
         </motion.div>
