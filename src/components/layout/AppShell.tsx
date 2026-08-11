@@ -344,7 +344,9 @@ export default function AppShell() {
         </>
       )}
 
-      <FeedbackWidget />
+      {(location.pathname === '/app/today' || location.pathname === '/app/profile') && (
+        <FeedbackWidget />
+      )}
     </div>
   );
 }
