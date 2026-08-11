@@ -9,6 +9,22 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     throw new Error('Offline');
   }
+
+  // Client-side token bucket (Max 20 requests / hour)
+  try {
+    const limit = 20;
+    const hour = 60 * 60 * 1000;
+    const now = Date.now();
+    let logs: number[] = JSON.parse(localStorage.getItem('hc_api_logs') || '[]');
+    logs = logs.filter(time => now - time < hour);
+    if (logs.length >= limit) {
+      throw new Error('Rate limit exceeded. Please try again later.');
+    }
+    logs.push(now);
+    localStorage.setItem('hc_api_logs', JSON.stringify(logs));
+  } catch (e: any) {
+    if (e.message.includes('Rate limit exceeded')) throw e;
+  }
   
   let lastError;
   for (let i = 0; i <= retries; i++) {

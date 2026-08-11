@@ -202,9 +202,20 @@ async function save(cases: CaseItem[]) {
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        
+        // Fetch current timestamps to prevent overwriting newer cloud data with stale local data
+        const { data: cloudData } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
+        const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
+
         for (const c of safeCases) {
            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
            if (!isUUID) continue; // Skip legacy local IDs
+
+           const cloudUpdated = cloudMap.get(c.id);
+           if (cloudUpdated && new Date(cloudUpdated).getTime() > new Date(c.updatedAt).getTime()) {
+             console.log(`Conflict: Cloud version of case ${c.id} is newer. Skipping upsert to prevent data loss.`);
+             continue;
+           }
 
            await supabase.from('cases').upsert({
               id: c.id,

@@ -538,8 +538,18 @@ export async function syncProfileFromSupabase() {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
     if (data) {
        const state = getProfileEngineState();
+       const localProfile = state.profiles[state.activeId];
+       
+       // Conflict resolution: Don't overwrite local if local is newer (e.g., offline edits)
+       if (localProfile?.demographics?.updatedAt && data.updated_at) {
+         if (new Date(localProfile.demographics.updatedAt).getTime() > new Date(data.updated_at).getTime()) {
+           console.log('Local profile is newer than remote. Skipping remote overwrite.');
+           return;
+         }
+       }
+       
        state.profiles[state.activeId] = {
-          ...state.profiles[state.activeId],
+          ...localProfile,
           profileName: data.full_name || 'My Profile',
           demographics: data.demographics || {},
           conditions: data.conditions || [],

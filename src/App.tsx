@@ -84,6 +84,13 @@ export default function App() {
     syncProfileFromSupabase();
     syncCasesFromSupabase();
 
+    // Check for email verification / password recovery hash
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      window.location.href = '/update-password' + hash;
+      return; // Stop execution to let the redirect happen
+    }
+
     // Global Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
