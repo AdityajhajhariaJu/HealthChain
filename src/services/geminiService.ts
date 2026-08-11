@@ -2,7 +2,12 @@ import { compilePatientContext } from './MemoryService';
 import { getActiveCase } from './CaseEngine';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
+const isDev = import.meta.env.DEV;
+
+// In dev, call Google directly. In production, use our Vercel Serverless Function to hide the key.
+const API_URL = isDev 
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`
+  : '/api/gemini';
 
 const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {

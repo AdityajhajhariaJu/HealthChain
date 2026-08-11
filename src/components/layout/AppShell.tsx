@@ -177,7 +177,13 @@ export default function AppShell() {
               Settings
             </NavLink>
 
-            <div className="sidebar__footer">HealthChain AI · Not medical advice</div>
+            <div style={{ display: 'flex', gap: '12px', padding: '0 20px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <NavLink to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</NavLink>
+              <NavLink to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</NavLink>
+            </div>
+            <div className="sidebar__footer" style={{ padding: '12px 20px', fontSize: '10px', lineHeight: '1.4', color: 'var(--text-muted)' }}>
+              <strong>Disclaimer:</strong> HealthChain is an AI informational tool, not a doctor. It is not a substitute for professional medical advice.
+            </div>
           </div>
         </aside>
       )}

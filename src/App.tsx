@@ -11,9 +11,11 @@ import { setItemSync } from './services/storage';
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
 import AppShell from './components/layout/AppShell';
+import ProtectedRoute from './components/layout/ProtectedRoute';
 import ProfileOnboarding from './features/profile/ProfileOnboarding';
 import { ErrorBoundary } from 'react-error-boundary';
 import FallbackError from './components/ui/FallbackError';
+import NotFound from './components/ui/NotFound';
 
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
@@ -27,6 +29,8 @@ const Settings = React.lazy(() => import('./features/profile/Settings'));
 const Dietician = React.lazy(() => import('./features/dietician/Dietician'));
 const CaseDashboard = React.lazy(() => import('./features/dashboard/CaseDashboard'));
 const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/ClinicalTrialsMatcher'));
+const PrivacyPolicy = React.lazy(() => import('./features/legal/PrivacyPolicy'));
+const TermsOfService = React.lazy(() => import('./features/legal/TermsOfService'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -130,12 +134,34 @@ export default function App() {
             </PageTransition>
           }
         />
+        <Route
+          path="/privacy"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <PrivacyPolicy />
+              </SafeRoute>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <TermsOfService />
+              </SafeRoute>
+            </PageTransition>
+          }
+        />
 
         <Route
           element={
-            <PageTransition>
-              <AppShell />
-            </PageTransition>
+            <ProtectedRoute>
+              <PageTransition>
+                <AppShell />
+              </PageTransition>
+            </ProtectedRoute>
           }
         >
           <Route path="/app" element={<Navigate to="/app/today" replace />} />
@@ -238,7 +264,7 @@ export default function App() {
           />
 
         </Route>
-        <Route path="*" element={<Navigate to="/app/today" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </SafeRoute>
   );
