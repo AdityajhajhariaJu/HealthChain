@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
 import { syncStorageFromPreferences } from './services/storage';
+import { ToastProvider } from './components/ui/ToastProvider';
 
 const queryClient = new QueryClient();
 
@@ -19,7 +20,9 @@ syncStorageFromPreferences().then(() => {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </React.StrictMode>

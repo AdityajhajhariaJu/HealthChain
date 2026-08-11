@@ -5,6 +5,7 @@ import { Activity, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
 import { setItemSync } from '../../services/storage';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export default function Auth() {
   const isMobile = useIsMobile();
@@ -15,6 +16,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [verificationSent, setVerificationSent] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const { toast, success, error: toastError } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,6 +25,22 @@ export default function Auth() {
     setError('');
     
     try {
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+          redirectTo: `${window.location.origin}/update-password`,
+        });
+
+        if (error) {
+          setError(error.message);
+          toastError('Failed to send reset link', error.message);
+        } else {
+          success('Reset link sent!', 'Check your email for instructions to reset your password.');
+          setIsForgotPassword(false);
+        }
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
@@ -34,6 +53,7 @@ export default function Auth() {
           return;
         }
         
+        success('Welcome back!');
         // Let Supabase handle the session, but we can still set our local flags for now
         setItemSync('isAuthenticated', 'true');
         setItemSync(
@@ -64,6 +84,7 @@ export default function Auth() {
           return;
         }
         
+        success('Account created successfully!');
         // Let Supabase handle the session, but we can still set our local flags for now
         setItemSync('isAuthenticated', 'true');
         setItemSync(
@@ -78,6 +99,7 @@ export default function Auth() {
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication.');
+      toastError('Authentication Error', err.message);
     } finally {
       setLoading(false);
     }
@@ -165,10 +187,12 @@ export default function Auth() {
           ) : (
             <>
               <h1 style={{ margin: '0 0 8px 0', fontSize: isMobile ? '24px' : '28px', color: 'var(--text-main)', fontWeight: 700 }}>
-                {isLogin ? 'Welcome back' : 'Create an account'}
+                {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome back' : 'Create an account'}
               </h1>
               <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '15px' }}>
-                {isLogin
+                {isForgotPassword 
+                  ? 'Enter your email to receive a password reset link.'
+                  : isLogin
                   ? 'Enter your details to access your clinical dashboard.'
                   : 'Start your diagnostic journey today.'}
               </p>
@@ -242,35 +266,53 @@ export default function Auth() {
                     }}
                   />
                 </div>
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: 'var(--text-muted)',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border)',
-                      background: 'var(--surface-hover)',
-                      color: 'var(--text-main)',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
+                {!isForgotPassword && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: 'var(--text-muted)',
+                        }}
+                      >
+                        Password
+                      </label>
+                      {isLogin && (
+                        <button
+                          type="button"
+                          onClick={() => setIsForgotPassword(true)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--teal)',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border)',
+                        background: 'var(--surface-hover)',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -280,12 +322,22 @@ export default function Auth() {
                     width: '100%',
                     display: 'flex',
                     justifyContent: 'center',
+                    alignItems: 'center',
                     gap: '8px',
                     marginTop: '10px',
                     opacity: loading ? 0.7 : 1,
                   }}
                 >
-                  {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')} <ArrowRight size={18} />
+                  {loading ? (
+                    <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                  ) : isForgotPassword ? (
+                    'Send Reset Link'
+                  ) : isLogin ? (
+                    'Sign In'
+                  ) : (
+                    'Create Account'
+                  )}
+                  {!loading && <ArrowRight size={18} />}
                 </button>
               </form>
 
@@ -297,13 +349,27 @@ export default function Auth() {
                   color: 'var(--text-muted)',
                 }}
               >
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <span
-                  onClick={() => navigate(isLogin ? '/signup' : '/login')}
-                  style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  {isLogin ? 'Sign up' : 'Log in'}
-                </span>
+                {isForgotPassword ? (
+                  <>
+                    Remember your password?{' '}
+                    <span
+                      onClick={() => setIsForgotPassword(false)}
+                      style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Back to login
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                    <span
+                      onClick={() => navigate(isLogin ? '/signup' : '/login')}
+                      style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      {isLogin ? 'Sign up' : 'Log in'}
+                    </span>
+                  </>
+                )}
               </div>
               
               {/* Guest Login Option */}

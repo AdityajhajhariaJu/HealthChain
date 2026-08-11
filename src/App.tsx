@@ -16,6 +16,7 @@ import ProfileOnboarding from './features/profile/ProfileOnboarding';
 import { ErrorBoundary } from 'react-error-boundary';
 import FallbackError from './components/ui/FallbackError';
 import NotFound from './components/ui/NotFound';
+import { useToast } from './components/ui/ToastProvider';
 
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
@@ -31,6 +32,7 @@ const CaseDashboard = React.lazy(() => import('./features/dashboard/CaseDashboar
 const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/ClinicalTrialsMatcher'));
 const PrivacyPolicy = React.lazy(() => import('./features/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./features/legal/TermsOfService'));
+const UpdatePassword = React.lazy(() => import('./features/auth/UpdatePassword'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -66,6 +68,7 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 
 export default function App() {
   const location = useLocation();
+  const { info } = useToast();
 
   useEffect(() => {
     registerPushNotifications().catch(console.error);
@@ -92,7 +95,10 @@ export default function App() {
       } else if (event === 'SIGNED_OUT') {
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('hc_account');
-        window.location.href = '/';
+        info('Session ended', 'You have been logged out.');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
       }
     });
 
@@ -131,6 +137,16 @@ export default function App() {
           element={
             <PageTransition>
               <ProfileOnboarding />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/update-password"
+          element={
+            <PageTransition>
+              <SafeRoute>
+                <UpdatePassword />
+              </SafeRoute>
             </PageTransition>
           }
         />

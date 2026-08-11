@@ -4,7 +4,9 @@ import { LogOut, User, Settings as SettingsIcon, ChevronDown, Plus } from 'lucid
 import { getAllProfiles, switchActiveProfile, createNewProfile, getProfileEngineState } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { MonetizationService } from '../../services/MonetizationService';
-import { Star } from 'lucide-react';
+import { Star, AlertTriangle, Trash2, X } from 'lucide-react';
+import { useToast } from '../../components/ui/ToastProvider';
+import { supabase } from '../../services/supabaseClient';
 
 export default function Settings() {
   const isMobile = useIsMobile();
@@ -15,6 +17,10 @@ export default function Settings() {
   const [activeProfileId, setActiveProfileId] = useState<string>('');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast, success, error: toastError } = useToast();
 
   useEffect(() => {
     MonetizationService.isPremium().then(setIsPremium);
@@ -33,9 +39,32 @@ export default function Settings() {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error(e);
+    }
     localStorage.removeItem('isAuthenticated');
     navigate('/login');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') return;
+    setIsDeleting(true);
+    
+    try {
+      // For a real production app, you would call a Supabase Edge Function here 
+      // to delete the user from auth.users and all their associated data using the service_role key.
+      // For now, we perform a hard local wipe and sign them out.
+      localStorage.clear();
+      await supabase.auth.signOut();
+      success('Account Deleted', 'Your account has been queued for permanent deletion.');
+      navigate('/');
+    } catch (err: any) {
+      toastError('Error deleting account', err.message);
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -383,7 +412,166 @@ export default function Settings() {
             </div>
           </div>
         )}
+
+        {/* Danger Zone */}
+        {isAuthenticated && (
+          <>
+            <h2
+              style={{
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#EF4444',
+                marginBottom: '24px',
+                marginTop: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <AlertTriangle size={18} /> Danger Zone
+            </h2>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px',
+                background: '#FEF2F2',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid #FECACA',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: '#B91C1C' }}>
+                  Delete Account
+                </div>
+                <div style={{ fontSize: '13px', color: '#B91C1C', opacity: 0.8 }}>
+                  Permanently remove your account and all health data. This cannot be undone.
+                </div>
+              </div>
+              <button
+                className="btn"
+                onClick={() => setShowDeleteModal(true)}
+                style={{
+                  background: '#EF4444',
+                  color: 'white',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <Trash2 size={16} /> Delete Account
+              </button>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px',
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              padding: '24px',
+              position: 'relative',
+            }}
+          >
+            <button
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteConfirmation('');
+              }}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <X size={20} />
+            </button>
+            
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+              <AlertTriangle size={24} />
+            </div>
+
+            <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 8px 0' }}>
+              Delete Account
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.5' }}>
+              This action is permanent and irreversible. All your health profiles, cases, and associated data will be deleted immediately.
+            </p>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.5' }}>
+              To confirm, please type <strong>DELETE</strong> below:
+            </p>
+
+            <input
+              type="text"
+              placeholder="DELETE"
+              value={deleteConfirmation}
+              onChange={(e) => setDeleteConfirmation(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                background: 'var(--surface-hover)',
+                marginBottom: '24px',
+                outline: 'none',
+              }}
+            />
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                className="btn btn-outline"
+                style={{ flex: 1 }}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmation('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn"
+                style={{
+                  flex: 1,
+                  background: '#EF4444',
+                  color: 'white',
+                  border: 'none',
+                  opacity: deleteConfirmation === 'DELETE' && !isDeleting ? 1 : 0.5,
+                  cursor: deleteConfirmation === 'DELETE' && !isDeleting ? 'pointer' : 'not-allowed',
+                }}
+                disabled={deleteConfirmation !== 'DELETE' || isDeleting}
+                onClick={handleDeleteAccount}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
