@@ -7,6 +7,7 @@ import { MonetizationService } from '../../services/MonetizationService';
 import { Star, AlertTriangle, Trash2, X } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
+import FocusTrap from '../../components/ui/FocusTrap';
 
 export default function Settings() {
   const isMobile = useIsMobile();
@@ -589,8 +590,9 @@ export default function Settings() {
             padding: '20px',
           }}
         >
-          <div
-            className="card"
+          <FocusTrap isActive={showDeleteModal}>
+            <div
+              className="card"
             style={{
               width: '100%',
               maxWidth: '400px',
@@ -674,6 +676,7 @@ export default function Settings() {
               </button>
             </div>
           </div>
+          </FocusTrap>
         </div>
       )}
     </div>

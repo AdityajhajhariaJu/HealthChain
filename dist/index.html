@@ -22,13 +22,50 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script type="module" crossorigin src="/assets/index-CyCW7Evk.js"></script>
+    <style>
+      #hc-splash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #0F172A;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      .hc-splash-logo {
+        width: 80px;
+        height: 80px;
+        animation: pulse 2s infinite ease-in-out;
+      }
+      .hc-splash-text {
+        color: #FFFFFF;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        margin-top: 24px;
+        letter-spacing: -0.5px;
+      }
+      @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.8; }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-BBk0uAwc.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-vendor-ikJrUrLd.js">
     <link rel="modulepreload" crossorigin href="/assets/framer-motion-DWOSTlfN.js">
     <link rel="stylesheet" crossorigin href="/assets/index-KSgsnxOH.css">
   </head>
   <body>
+    <div id="hc-splash">
+      <img src="/logo.svg" alt="HealthChain Logo" class="hc-splash-logo" />
+      <div class="hc-splash-text">HealthChain</div>
+    </div>
     <div id="root"></div>
   </body>
 </html>

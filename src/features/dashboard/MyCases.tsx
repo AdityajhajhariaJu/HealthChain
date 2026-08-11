@@ -13,6 +13,8 @@ export default function MyCases() {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,6 +44,13 @@ export default function MyCases() {
   }, []);
 
   const filteredCases = cases.filter(c => c.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  const totalPages = Math.ceil(filteredCases.length / itemsPerPage);
+  const paginatedCases = filteredCases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when searching
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
   const openActions = cases.reduce((total, item) => total + item.actions.filter(action => action.status !== 'completed').length, 0);
   const evidenceItems = cases.reduce((total, item) => total + (item.medicalRecords?.length || 0), 0);
 
@@ -108,8 +117,8 @@ export default function MyCases() {
               </div>
             </div>
           ))
-        ) : filteredCases.length > 0 ? (
-          filteredCases.map(caseItem => {
+        ) : paginatedCases.length > 0 ? (
+          paginatedCases.map(caseItem => {
             const primary = caseItem.currentSummary?.topDiagnoses?.[0];
             return (
               <div 
@@ -178,6 +187,26 @@ export default function MyCases() {
           </div>
         )}
       </div>
+
+      {!isLoading && totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 32 }}>
+          <button 
+            className="btn btn-outline btn-sm" 
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          >
+            Previous
+          </button>
+          <span style={{ fontSize: 14, color: '#64748b' }}>Page {currentPage} of {totalPages}</span>
+          <button 
+            className="btn btn-outline btn-sm" 
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

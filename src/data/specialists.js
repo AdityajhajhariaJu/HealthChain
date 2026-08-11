@@ -194,4 +194,14 @@ export const ALL_SPECIALISTS = [
     bg: 'rgba(225,29,72,0.08)',
     border: 'rgba(225,29,72,0.2)',
   },
+  {
+    id: 'gynae',
+    category: 'Other',
+    label: 'Gynecologist',
+    desc: "Women's health",
+    icon: Stethoscope,
+    color: '#D946EF',
+    bg: 'rgba(217,70,239,0.08)',
+    border: 'rgba(217,70,239,0.2)',
+  },
 ];

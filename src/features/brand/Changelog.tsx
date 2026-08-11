@@ -17,7 +17,7 @@ const log = [
     version: 'v2.0.0',
     date: 'August 1, 2026',
     changes: [
-      { type: 'feature', text: 'Launch of HealthChain 2.0 with Gemini Pro integration' },
+      { type: 'feature', text: 'Launch of HealthChain 2.0 with advanced AI reasoning capabilities' },
       { type: 'feature', text: 'Talkbuddy voice-first consultation interface' },
       { type: 'feature', text: 'Comprehensive Dietician integration' }
     ]

@@ -3,9 +3,58 @@ import { setItemSync, getItemSync } from './storage';
 
 const PROFILE_KEY = 'hc_unified_profile';
 
+let historyStack = [];
+let historyIndex = -1;
+
+const initialState = getItemSync(PROFILE_KEY);
+if (initialState) {
+  historyStack.push(initialState);
+  historyIndex = 0;
+}
+
+function pushToHistory(stateStr) {
+  if (historyIndex < historyStack.length - 1) {
+    historyStack = historyStack.slice(0, historyIndex + 1);
+  }
+  historyStack.push(stateStr);
+  if (historyStack.length > 20) {
+    historyStack.shift();
+  } else {
+    historyIndex++;
+  }
+}
+
+export function undoProfileEdit() {
+  if (historyIndex > 0) {
+    historyIndex--;
+    const prevState = historyStack[historyIndex];
+    setItemSync(PROFILE_KEY, prevState);
+    window.dispatchEvent(new Event('hc_profile_updated'));
+  }
+}
+
+export function redoProfileEdit() {
+  if (historyIndex < historyStack.length - 1) {
+    historyIndex++;
+    const nextState = historyStack[historyIndex];
+    setItemSync(PROFILE_KEY, nextState);
+    window.dispatchEvent(new Event('hc_profile_updated'));
+  }
+}
+
+export function canUndo() {
+  return historyIndex > 0;
+}
+
+export function canRedo() {
+  return historyIndex < historyStack.length - 1;
+}
+
+
 const DEFAULT_PROFILE = {
   id: 'profile_1',
   profileName: 'My Profile',
+
   demographics: {
     name: '',
     age: '',
@@ -174,8 +223,23 @@ export function getProfile() {
 async function saveProfile(profile) {
   try {
     const state = getProfileEngineState();
+    
+    // Simple Conflict Resolution: Check if the state in localStorage has a newer updatedAt
+    const currentState = getProfileEngineState();
+    const currentProfile = currentState.profiles[currentState.activeId];
+    if (currentProfile && currentProfile.demographics?.updatedAt && profile.demographics?.updatedAt) {
+      if (new Date(currentProfile.demographics.updatedAt).getTime() > new Date(profile.demographics.updatedAt).getTime()) {
+        const proceed = window.confirm("Conflict detected: This profile was modified in another tab or device. Overwrite?");
+        if (!proceed) return;
+      }
+    }
+
     state.profiles[state.activeId] = profile;
-    setItemSync(PROFILE_KEY, JSON.stringify(state));
+    const stateStr = JSON.stringify(state);
+    
+    pushToHistory(stateStr);
+    setItemSync(PROFILE_KEY, stateStr);
+    
     // Dispatch event so UI can react globally
     window.dispatchEvent(new Event('hc_profile_updated'));
 

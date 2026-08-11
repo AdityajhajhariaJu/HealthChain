@@ -25,6 +25,7 @@ import { addEvent, addNutritionLog } from '../../services/ProfileEngine';
 import { OnboardingWizard } from './DieticianComponents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import FocusTrap from '../../components/ui/FocusTrap';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Gain muscle'];
@@ -1341,6 +1342,7 @@ export default function Dietician() {
                 padding: '20px',
               }}
             >
+              <FocusTrap isActive={isLoggingFood}>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1509,6 +1511,7 @@ export default function Dietician() {
                   )}
                 </button>
               </motion.div>
+              </FocusTrap>
             </div>
           )}
         </AnimatePresence>

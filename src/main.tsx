@@ -27,4 +27,11 @@ syncStorageFromPreferences().then(() => {
       </QueryClientProvider>
     </React.StrictMode>
   );
+  
+  // Remove splash screen once app is mounted
+  const splash = document.getElementById('hc-splash');
+  if (splash) {
+    splash.style.opacity = '0';
+    setTimeout(() => splash.remove(), 500);
+  }
 });

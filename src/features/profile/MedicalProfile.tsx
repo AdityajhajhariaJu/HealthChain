@@ -31,6 +31,8 @@ import {
   Dna,
   Camera,
   Mail,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import {
   getProfile,
@@ -45,6 +47,10 @@ import {
   removeActionItem,
   clearProfile,
   calculateHealthScore,
+  undoProfileEdit,
+  redoProfileEdit,
+  canUndo,
+  canRedo,
 } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 import { generateProfileSynthesis } from '../../services/geminiService';
@@ -64,6 +70,8 @@ export default function MedicalProfile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(getProfile());
   const healthScore = calculateHealthScore(profile);
+  const [_trigger, setTrigger] = useState(0); // Force re-render for undo/redo state
+
   const [isEditingDemo, setIsEditingDemo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
@@ -107,6 +115,7 @@ export default function MedicalProfile() {
     const handleUpdate = () => {
       const updated = getProfile();
       setProfile(updated);
+      setTrigger(t => t + 1);
       if (!isEditingDemo) {
         setDemoForm(updated.demographics);
       }
@@ -258,6 +267,26 @@ export default function MedicalProfile() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', borderRight: '1px solid var(--border)', paddingRight: '12px', marginRight: '4px' }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              disabled={!canUndo()}
+              onClick={() => undoProfileEdit()}
+              style={{ padding: '6px' }}
+              title="Undo Edit"
+            >
+              <Undo2 size={16} />
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              disabled={!canRedo()}
+              onClick={() => redoProfileEdit()}
+              style={{ padding: '6px' }}
+              title="Redo Edit"
+            >
+              <Redo2 size={16} />
+            </button>
+          </div>
           <button
             className="btn btn-ghost btn-sm"
             onClick={handleClearData}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Info } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import FocusTrap from './FocusTrap';
 
 export default function ConsentManager() {
   const isMobile = useIsMobile();
@@ -116,6 +117,7 @@ export default function ConsentManager() {
               padding: isMobile ? '0' : '24px'
             }}
           >
+          <FocusTrap isActive={showMedical}>
             <motion.div
               initial={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0 }}
               animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1 }}
@@ -170,6 +172,7 @@ export default function ConsentManager() {
                 I Understand and Agree
               </button>
             </motion.div>
+          </FocusTrap>
           </motion.div>
         )}
       </AnimatePresence>

@@ -275,6 +275,14 @@ export default function AppShell() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: '100%' }}
                   transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  drag="y"
+                  dragConstraints={{ top: 0, bottom: 0 }}
+                  dragElastic={{ top: 0, bottom: 0.8 }}
+                  onDragEnd={(e, { offset, velocity }) => {
+                    if (offset.y > 100 || velocity.y > 500) {
+                      setShowMoreMenu(false);
+                    }
+                  }}
                 >
                 <div className="mobile-more-menu__header">
                   <h3>More Tools</h3>
