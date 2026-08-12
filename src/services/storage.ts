@@ -19,6 +19,24 @@ export async function syncStorageFromPreferences() {
   } catch (e) {
     console.warn('Failed to sync from preferences', e);
   }
+
+  // Globally patch localStorage to ensure ALL direct calls across the app are synced natively
+  // and protected against QuotaExceeded errors (e.g. TalkBuddy, Dietician, Settings)
+  const originalSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(key, value) {
+    try {
+      originalSetItem(key, value);
+    } catch (e) {
+      console.warn(`localStorage quota exceeded for ${key}, but syncing to native Preferences anyway.`);
+    }
+    Preferences.set({ key, value }).catch(e => console.warn('Native storage error:', e));
+  };
+
+  const originalRemoveItem = localStorage.removeItem.bind(localStorage);
+  localStorage.removeItem = function(key) {
+    originalRemoveItem(key);
+    Preferences.remove({ key }).catch(e => console.warn('Native remove error:', e));
+  };
 }
 
 export function setItemSync(key: string, value: string) {
