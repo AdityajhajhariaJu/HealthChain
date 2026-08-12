@@ -321,7 +321,7 @@ export default function MDTHub() {
         minHeight: '100vh',
         background: getPhaseBackground(),
         transition: 'background 1.5s ease',
-        padding: '40px 20px',
+        padding: isMobile ? '16px 16px' : '40px 20px',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -356,14 +356,14 @@ export default function MDTHub() {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              marginBottom: '16px',
-              padding: '8px 16px',
+              marginBottom: '12px',
+              padding: '6px 12px',
               background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(10px)',
               borderRadius: '999px',
@@ -371,10 +371,10 @@ export default function MDTHub() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
             }}
           >
-            <Network size={16} color="#10B981" />
+            <Network size={14} color="#10B981" />
             <span
               style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 800,
                 color: '#334155',
                 textTransform: 'uppercase',
@@ -386,10 +386,10 @@ export default function MDTHub() {
           </div>
           <h1
             style={{
-              fontSize: '42px',
+              fontSize: isMobile ? '28px' : '36px',
               fontWeight: 900,
               color: '#0F172A',
-              margin: '0 0 16px 0',
+              margin: '0 0 12px 0',
               letterSpacing: '-1px',
             }}
           >
@@ -398,11 +398,11 @@ export default function MDTHub() {
           <p
             style={{
               color: '#64748B',
-              fontSize: '16px',
+              fontSize: '14px',
               margin: '0 auto',
               maxWidth: '600px',
               fontWeight: 500,
-              lineHeight: 1.6,
+              lineHeight: 1.5,
             }}
           >
             {activeCase

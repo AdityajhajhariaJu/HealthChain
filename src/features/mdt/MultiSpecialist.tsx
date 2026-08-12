@@ -379,9 +379,9 @@ export default function MultiSpecialist() {
       style={{
         height: '100%',
         overflowY: 'auto',
-        padding: isMobile ? '16px 20px' : '32px 40px',
+        padding: isMobile ? '8px 16px' : '24px 40px',
         color: '#0F172A',
-        margin: isMobile ? '-16px -20px' : '-32px -40px',
+        margin: isMobile ? '-8px -16px' : '-24px -40px',
         minHeight: '100vh',
         position: 'relative',
       }}
@@ -409,14 +409,14 @@ export default function MultiSpecialist() {
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* ── Page Header ── */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              marginBottom: '16px',
-              padding: '8px 16px',
+              marginBottom: '12px',
+              padding: '6px 12px',
               background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(10px)',
               borderRadius: '999px',
@@ -424,10 +424,10 @@ export default function MultiSpecialist() {
               boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
             }}
           >
-            <Sparkles size={16} color="#10B981" />
+            <Sparkles size={14} color="#10B981" />
             <span
               style={{
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 800,
                 color: '#334155',
                 textTransform: 'uppercase',
