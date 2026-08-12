@@ -239,7 +239,7 @@ export default function AppShell() {
               src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
               alt="Profile" 
               className="mobile-top-bar__profile" 
-              onClick={() => setShowMoreMenu(true)} 
+              onClick={() => navigate('/app/profile')} 
             />
               <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #e2e8f0', color: '#475569' }}>
