@@ -39,7 +39,10 @@ export default function Landing() {
           transition={{ duration: 0.5 }}
           className={styles.logoContainer}
         >
-          <img src="/logo.jpg" alt="HealthChain 360" style={{ height: '32px', borderRadius: '4px' }} />
+          <Activity size={24} color="var(--teal)" />
+          <span className={styles.logoText}>
+            HealthChain
+          </span>
         </motion.div>
 
         <motion.div
@@ -225,7 +228,10 @@ export default function Landing() {
         <div className={styles.footerContainer}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogoContainer}>
-              <img src="/logo.jpg" alt="HealthChain 360" style={{ height: '28px', borderRadius: '4px' }} />
+              <Activity size={24} color="var(--teal)" />
+              <span className={styles.footerLogoText}>
+                HealthChain
+              </span>
             </div>
             <p className={styles.footerBrandDesc}>
               The world's most advanced AI diagnostic navigator. Built for transparency, speed, and

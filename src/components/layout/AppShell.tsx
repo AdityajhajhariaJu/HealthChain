@@ -105,7 +105,13 @@ export default function AppShell() {
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
-            <img src="/logo.jpg" alt="HealthChain 360" style={{ height: '24px', borderRadius: '4px' }} />
+            <div className="sidebar__logo-icon">
+              <Activity size={20} color="var(--teal)" />
+            </div>
+            <div>
+              <span className="sidebar__logo-text">HealthChain</span>
+              <span className="sidebar__logo-sub">Diagnosis Navigator</span>
+            </div>
           </div>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
