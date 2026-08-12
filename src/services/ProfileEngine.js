@@ -551,6 +551,8 @@ export async function syncProfileFromSupabase() {
        state.profiles[state.activeId] = {
           ...localProfile,
           profileName: data.full_name || 'My Profile',
+          isPro: data.is_pro || false,
+          proExpiresAt: data.pro_expires_at || null,
           demographics: data.demographics || {},
           conditions: data.conditions || [],
           medications: data.medications || [],
@@ -569,3 +571,6 @@ export async function syncProfileFromSupabase() {
     console.error('Failed to sync profile from Supabase:', err);
   }
 }
+
+export function isProUser() { const state = getProfileEngineState(); const profile = state.profiles[state.activeId]; if (!profile || !profile.isPro) return false; if (!profile.proExpiresAt) return true; return new Date(profile.proExpiresAt) > new Date(); }
+

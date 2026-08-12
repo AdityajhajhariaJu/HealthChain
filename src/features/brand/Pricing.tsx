@@ -1,12 +1,107 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Sparkles, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { supabase } from '../../services/supabaseClient';
 
 export default function Pricing() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleCheckout = async () => {
+    try {
+      setIsProcessing(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
+      const res = await loadRazorpayScript();
+      if (!res) {
+        alert('Razorpay SDK failed to load. Please check your connection.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Create order via Vercel Backend
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 49900, currency: 'INR' }) // ₹499.00
+      });
+      const orderData = await orderRes.json();
+
+      if (orderData.error) {
+        alert(orderData.error);
+        setIsProcessing(false);
+        return;
+      }
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder', // Requires VITE_RAZORPAY_KEY_ID in .env
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'HealthChain 360',
+        description: 'Pro Access (30 Days)',
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          // Verify payment
+          const verifyRes = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              user_id: session.user.id,
+              amount: 49900
+            })
+          });
+          
+          const verifyData = await verifyRes.json();
+          
+          if (verifyData.success) {
+            alert('Welcome to HealthChain Pro! Your features are now unlocked.');
+            window.location.reload(); // Refresh to re-fetch profile status
+          } else {
+            alert('Payment verification failed: ' + verifyData.error);
+          }
+        },
+        prefill: {
+          email: session.user.email,
+        },
+        theme: {
+          color: '#14b8a6'
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.on('payment.failed', function (response: any) {
+        alert(response.error.description);
+      });
+      paymentObject.open();
+
+    } catch (err) {
+      console.error(err);
+      alert('Checkout failed unexpectedly.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: isMobile ? '24px 16px' : '40px 24px', paddingBottom: '80px' }}>
@@ -24,44 +119,6 @@ export default function Pricing() {
         <p style={{ fontSize: '18px', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
           Start for free, then upgrade to unlock unlimited AI specialist consultations and premium features.
         </p>
-
-        <div style={{ display: 'inline-flex', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '99px', padding: '4px', marginTop: '32px' }}>
-          <button
-            onClick={() => setBillingCycle('monthly')}
-            style={{
-              padding: '8px 24px',
-              borderRadius: '99px',
-              border: 'none',
-              background: billingCycle === 'monthly' ? 'var(--teal)' : 'transparent',
-              color: billingCycle === 'monthly' ? 'white' : 'var(--text-muted)',
-              fontWeight: 600,
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBillingCycle('annual')}
-            style={{
-              padding: '8px 24px',
-              borderRadius: '99px',
-              border: 'none',
-              background: billingCycle === 'annual' ? 'var(--teal)' : 'transparent',
-              color: billingCycle === 'annual' ? 'white' : 'var(--text-muted)',
-              fontWeight: 600,
-              fontSize: '14px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            Annually <span style={{ background: '#ECFDF5', color: '#059669', padding: '2px 8px', borderRadius: '12px', fontSize: '11px' }}>Save 20%</span>
-          </button>
-        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', maxWidth: '800px', margin: '0 auto' }}>
@@ -71,7 +128,7 @@ export default function Pricing() {
           <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px' }}>Basic</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px' }}>Essential tools for personal health tracking.</p>
           <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
-            $0 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ forever</span>
+            ₹0 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ forever</span>
           </div>
           <button className="btn btn-outline" style={{ width: '100%', marginBottom: '20px', padding: '12px' }}>Current Plan</button>
           
@@ -92,9 +149,17 @@ export default function Pricing() {
           <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: 'var(--teal)' }}>Pro</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px' }}>Advanced AI synthesis for complex medical cases.</p>
           <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
-            ${billingCycle === 'monthly' ? '29' : '24'} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ month</span>
+            ₹499 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ 30 Days</span>
           </div>
-          <button className="btn btn-primary" style={{ width: '100%', marginBottom: '20px', padding: '12px' }}>Upgrade to Pro</button>
+          <button 
+            onClick={handleCheckout}
+            disabled={isProcessing}
+            className="btn btn-primary" 
+            style={{ width: '100%', marginBottom: '20px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+          >
+            {isProcessing ? <Loader2 size={18} className="spin" /> : null}
+            {isProcessing ? 'Processing...' : 'Upgrade to Pro'}
+          </button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             {['Everything in Basic', 'MDT Consensus Hub (Unlimited)', 'Advanced Clinical Synthesis', 'Priority Support', 'Cloud Sync & Portability'].map(feature => (

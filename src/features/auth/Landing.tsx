@@ -39,10 +39,7 @@ export default function Landing() {
           transition={{ duration: 0.5 }}
           className={styles.logoContainer}
         >
-          <Activity size={24} color="var(--teal)" />
-          <span className={styles.logoText}>
-            HealthChain
-          </span>
+          <img src="/logo.jpg" alt="HealthChain 360" style={{ height: '32px', borderRadius: '4px' }} />
         </motion.div>
 
         <motion.div
@@ -91,12 +88,6 @@ export default function Landing() {
             >
               Apply for Case Review <ArrowRight size={18} />
             </button>
-            <div className={styles.pricingInfo}>
-              <span className={styles.pricingBold}>
-                ₹4,999 One-Time
-              </span>
-              Comprehensive Dossier
-            </div>
           </motion.div>
         </motion.div>
 
@@ -234,10 +225,7 @@ export default function Landing() {
         <div className={styles.footerContainer}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogoContainer}>
-              <Activity size={24} color="var(--teal)" />
-              <span className={styles.footerLogoText}>
-                HealthChain
-              </span>
+              <img src="/logo.jpg" alt="HealthChain 360" style={{ height: '28px', borderRadius: '4px' }} />
             </div>
             <p className={styles.footerBrandDesc}>
               The world's most advanced AI diagnostic navigator. Built for transparency, speed, and
