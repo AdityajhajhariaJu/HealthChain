@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background: var(--bg);
+  background: #eff8f3 !important;
   position: relative;
   overflow: hidden;
   display: flex;
