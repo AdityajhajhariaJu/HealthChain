@@ -1,4 +1,5 @@
 import { Preferences } from '@capacitor/preferences';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * A hybrid storage solution for React + Capacitor.
@@ -6,7 +7,13 @@ import { Preferences } from '@capacitor/preferences';
  * and asynchronously syncs to Capacitor Preferences (which is safer on native).
  */
 
+let _syncing = false;
+
 export async function syncStorageFromPreferences() {
+  if (Capacitor.getPlatform() === 'web') {
+    return; // Web just uses localStorage under the hood, so no need to sync or patch
+  }
+
   try {
     const keys = await Preferences.keys();
     for (const key of keys.keys) {
@@ -29,19 +36,34 @@ export async function syncStorageFromPreferences() {
     } catch (e) {
       console.warn(`localStorage quota exceeded for ${key}, but syncing to native Preferences anyway.`);
     }
-    Preferences.set({ key, value }).catch(e => console.warn('Native storage error:', e));
+    
+    if (_syncing) return;
+    _syncing = true;
+    Preferences.set({ key, value })
+      .catch(e => console.warn('Native storage error:', e))
+      .finally(() => { _syncing = false; });
   };
 
   const originalRemoveItem = localStorage.removeItem.bind(localStorage);
   localStorage.removeItem = function(key) {
     originalRemoveItem(key);
-    Preferences.remove({ key }).catch(e => console.warn('Native remove error:', e));
+    
+    if (_syncing) return;
+    _syncing = true;
+    Preferences.remove({ key })
+      .catch(e => console.warn('Native remove error:', e))
+      .finally(() => { _syncing = false; });
   };
 
   const originalClear = localStorage.clear.bind(localStorage);
   localStorage.clear = function() {
     originalClear();
-    Preferences.clear().catch(e => console.warn('Native clear error:', e));
+    
+    if (_syncing) return;
+    _syncing = true;
+    Preferences.clear()
+      .catch(e => console.warn('Native clear error:', e))
+      .finally(() => { _syncing = false; });
   };
 }
 
@@ -51,7 +73,10 @@ export function setItemSync(key: string, value: string) {
   } catch (e) {
     console.warn('localStorage setItem failed (possibly quota exceeded):', e);
   }
-  Preferences.set({ key, value }).catch(e => console.warn('Failed to save to preferences', e));
+  
+  if (Capacitor.getPlatform() !== 'web') {
+    Preferences.set({ key, value }).catch(e => console.warn('Failed to save to preferences', e));
+  }
 }
 
 export function getItemSync(key: string): string | null {
@@ -60,5 +85,7 @@ export function getItemSync(key: string): string | null {
 
 export function removeItemSync(key: string) {
   localStorage.removeItem(key);
-  Preferences.remove({ key }).catch(e => console.warn('Failed to remove from preferences', e));
+  if (Capacitor.getPlatform() !== 'web') {
+    Preferences.remove({ key }).catch(e => console.warn('Failed to remove from preferences', e));
+  }
 }
