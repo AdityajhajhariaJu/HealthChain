@@ -235,10 +235,10 @@ export default function ClinicalTrialsMatcher() {
           borderRadius: '24px',
           padding: isMobile ? '20px' : '40px',
           color: 'white',
-          marginBottom: '32px',
+          marginBottom: '20px',
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
-          gap: '24px',
+          gap: '16px',
           alignItems: isMobile ? 'flex-start' : 'center'
         }}
       >
@@ -257,7 +257,7 @@ export default function ClinicalTrialsMatcher() {
         </div>
       </motion.div>
 
-      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', gap: '32px' }}>
+      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', gap: '20px' }}>
         <div>
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>

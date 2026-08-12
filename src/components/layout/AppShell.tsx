@@ -57,7 +57,7 @@ const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/multi', label: 'Multi', icon: GitMerge },
   { to: '/app/mdthub', label: 'MDT', icon: Network },
-  { to: '/app/profile', label: 'Profile', icon: FolderHeart },
+  { to: '/app/trials', label: 'Trials', icon: FlaskConical },
 ];
 
 export default function AppShell() {

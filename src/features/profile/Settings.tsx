@@ -78,7 +78,7 @@ export default function Settings() {
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <div
           style={{
             width: '48px',
@@ -112,7 +112,7 @@ export default function Settings() {
 
 
 
-      <div className="card" style={{ padding: '32px' }}>
+      <div className="card" style={{ padding: '20px' }}>
         <h2
           style={{
             fontSize: '18px',
@@ -282,7 +282,7 @@ export default function Settings() {
             background: 'var(--bg)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
-            marginBottom: '32px',
+            marginBottom: '20px',
           }}
         >
           <div>
@@ -406,7 +406,7 @@ export default function Settings() {
           <div
             style={{
               textAlign: 'center',
-              padding: '32px',
+              padding: '20px',
               background: 'var(--bg)',
               borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--border)',
@@ -461,7 +461,7 @@ export default function Settings() {
             background: 'var(--bg)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
-            marginBottom: '32px',
+            marginBottom: '20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -538,7 +538,7 @@ export default function Settings() {
             background: 'var(--bg)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
-            marginBottom: '32px',
+            marginBottom: '20px',
           }}
         >
           <div>

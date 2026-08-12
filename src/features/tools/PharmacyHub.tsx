@@ -121,7 +121,7 @@ export default function PharmacyHub() {
   ].filter(group => group.meds.length > 0);
 
   return (
-    <div style={{ padding: '0 0 40px 0', maxWidth: '1000px', margin: '0 auto', display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1fr 350px', gap: '32px', position: 'relative' }}>
+    <div style={{ padding: '0 0 40px 0', maxWidth: '1000px', margin: '0 auto', display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1fr 350px', gap: '20px', position: 'relative' }}>
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -162,7 +162,7 @@ export default function PharmacyHub() {
           padding: isMobile ? '16px' : '32px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
           border: '1px solid #F1F5F9',
-          marginBottom: '32px',
+          marginBottom: '20px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
@@ -278,7 +278,7 @@ export default function PharmacyHub() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             {(() => {
               const displayData = result || exampleResult;
@@ -429,7 +429,7 @@ export default function PharmacyHub() {
                     </div>
                   )}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                     {/* Uses & Side Effects */}
                     <div
                       style={{
@@ -482,7 +482,7 @@ export default function PharmacyHub() {
                     </div>
 
                     {/* Alternatives & Warnings */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div
                         style={{
                           background: '#FFFFFF',
@@ -564,7 +564,7 @@ export default function PharmacyHub() {
       </div>
 
       {/* Pill Organizer Sidebar */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Pill size={20} color="var(--teal)" /> Daily Regimen

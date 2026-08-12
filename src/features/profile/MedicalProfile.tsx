@@ -245,7 +245,7 @@ export default function MedicalProfile() {
     >
       {/* Header */}
       <div
-        style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '24px', marginBottom: '32px' }}
+        style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '24px', marginBottom: '20px' }}
       >
         <div style={{ flex: '1 1 300px' }}>
           <h1
@@ -440,7 +440,7 @@ export default function MedicalProfile() {
           boxShadow: '0 12px 32px rgba(15,23,42,0.15)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '24px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#99f6e4' }}>
               <ShieldCheck size={18} />
@@ -492,9 +492,9 @@ export default function MedicalProfile() {
           display: isMobile ? 'flex' : 'grid', 
           flexDirection: isMobile ? 'column' : 'unset',
           gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', 
-          gap: '32px', 
+          gap: '20px', 
           padding: isMobile ? '24px 16px' : '32px',
-          marginBottom: '32px',
+          marginBottom: '20px',
           background: 'linear-gradient(145deg, #ffffff 0%, #f8fffd 100%)',
           border: '1px solid var(--teal-light)'
         }}
@@ -570,11 +570,11 @@ export default function MedicalProfile() {
 
       <div
         ref={profileRef}
-        style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: '32px' }}
+        style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: '20px' }}
       >
         {isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', gridColumn: '1 / -1' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '24px 0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', gridColumn: '1 / -1' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px 0' }}>
               <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#F1F5F9' }} className="skeleton" />
               <div style={{ flex: 1 }}>
                 <div style={{ width: '40%', height: '32px', background: '#F1F5F9', borderRadius: '8px', marginBottom: '12px' }} className="skeleton" />
@@ -587,7 +587,7 @@ export default function MedicalProfile() {
         ) : (
           <>
             {/* LEFT COLUMN: Hero, Vitals, Timeline */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* 1. Patient Identity Header (Clean Layout) */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -996,7 +996,7 @@ export default function MedicalProfile() {
           </div>
 
           {/* 4. Vitals & Biomarkers Dashboard */}
-          <div className="card" style={{ padding: '32px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3
               style={{
                 fontSize: '18px',
@@ -1011,7 +1011,7 @@ export default function MedicalProfile() {
             </h3>
 
             {/* NEW: Interactive Health Graph */}
-            <div style={{ marginBottom: '32px', height: '240px', borderBottom: '1px solid var(--border)', paddingBottom: '32px' }}>
+            <div style={{ marginBottom: '20px', height: '240px', borderBottom: '1px solid var(--border)', paddingBottom: '32px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <h4 style={{ fontSize: '14px', margin: 0, color: 'var(--text-main)', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>Longitudinal Trends</h4>
                 <select 
@@ -1055,7 +1055,7 @@ export default function MedicalProfile() {
               <div
                 style={{
                   textAlign: 'center',
-                  padding: '32px',
+                  padding: '20px',
                   background: 'var(--surface-hover)',
                   borderRadius: 'var(--radius-lg)',
                   border: '1px dashed var(--border-strong)',
@@ -1324,7 +1324,7 @@ export default function MedicalProfile() {
         </div>
 
         {/* RIGHT COLUMN: Meds, Actions, Family History */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           {/* NEW: Care Team & Document Vault */}
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>

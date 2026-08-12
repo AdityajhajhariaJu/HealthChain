@@ -412,20 +412,16 @@ export default function MDTHub() {
         </div>
 
         {/* Progress Stepper (Pill Style) */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '48px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               background: 'rgba(255,255,255,0.7)',
-              backdropFilter: 'blur(20px)',
-              padding: '8px',
+              padding: '6px',
               borderRadius: '999px',
               boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-              border: '1px solid rgba(255,255,255,0.5)',
-              maxWidth: '100%',
-              overflowX: 'auto',
-              whiteSpace: 'nowrap',
+              border: '1px solid rgba(255,255,255,0.6)',
             }}
           >
               <Step
@@ -508,13 +504,13 @@ export default function MDTHub() {
               >
                 <div
                   style={{
-                    padding: '60px 40px',
+                    padding: isMobile ? '32px 20px' : '40px 24px',
                     background: 'rgba(255,255,255,0.8)',
                     backdropFilter: 'blur(24px)',
-                    borderRadius: '32px',
+                    borderRadius: '24px',
                     textAlign: 'center',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
-                    border: '1px solid rgba(255,255,255,0.5)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+                    border: '1px solid rgba(255,255,255,0.6)',
                   }}
                 >
                   {isSelecting ? (
@@ -523,7 +519,7 @@ export default function MDTHub() {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '24px',
+                        gap: '16px',
                       }}
                     >
                       <div style={{ position: 'relative', width: '80px', height: '80px' }}>
@@ -583,7 +579,7 @@ export default function MDTHub() {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '32px',
+                        gap: '20px',
                       }}
                     >
                       <div
@@ -706,7 +702,7 @@ export default function MDTHub() {
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-                    gap: '24px',
+                    gap: '16px',
                   }}
                 >
                   {selectedSpecialists.map((s, i) => (

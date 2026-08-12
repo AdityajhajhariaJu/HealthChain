@@ -91,7 +91,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
         border: '1px solid rgba(16,185,129,0.2)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '20px' }}>
         <div
           style={{
             padding: '16px',
@@ -325,7 +325,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
           border: '1px solid rgba(255,255,255,0.5)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E8F7F4', color: '#0F8B7E' }}><Network size={18} /></div>
@@ -365,7 +365,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               background: 'linear-gradient(135deg, #102A43, #163B57)',
               borderRadius: '20px',
               padding: '26px',
-              marginBottom: '32px',
+              marginBottom: '20px',
               cursor: 'pointer',
               border: '1px solid rgba(255,255,255,.12)',
               display: 'flex',
@@ -393,7 +393,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
 
         {/* Elevate Parallel Case */}
         {parallelCases.length > 0 && (
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
               Continue a Parallel Specialists case
             </h3>
@@ -429,7 +429,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
 
         {/* Review Past MDT */}
         {mdtCases.length > 0 && (
-          <div style={{ marginBottom: '32px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
               Review Past MDT Cases
             </h3>
@@ -1120,7 +1120,7 @@ export function MDTConferencePanel({
           minHeight: '500px'
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '32px', borderBottom: '1px solid #E2E8F0', paddingBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '24px' }}>
           <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
             Live MDT Debate Room
           </h2>
@@ -1211,7 +1211,7 @@ export function MDTConferencePanel({
         border: '1px solid rgba(255,255,255,0.5)',
       }}
     >
-      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <div
           style={{
             display: 'inline-flex',
@@ -1246,15 +1246,15 @@ export function MDTConferencePanel({
         style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-          gap: '32px',
-          marginBottom: '48px',
+          gap: '20px',
+          marginBottom: '24px',
         }}
       >
         {/* Corroborations */}
         <div
           style={{
             background: 'rgba(16,185,129,0.03)',
-            padding: '32px',
+            padding: '20px',
             borderRadius: '24px',
             border: '1px solid rgba(16,185,129,0.2)',
           }}
@@ -1303,7 +1303,7 @@ export function MDTConferencePanel({
         <div
           style={{
             background: 'rgba(244,63,94,0.03)',
-            padding: '32px',
+            padding: '20px',
             borderRadius: '24px',
             border: '1px solid rgba(244,63,94,0.2)',
           }}
@@ -1353,10 +1353,10 @@ export function MDTConferencePanel({
       <div
         style={{
           background: '#F8FAFC',
-          padding: '32px',
+          padding: '20px',
           borderRadius: '24px',
           border: '1px solid #E2E8F0',
-          marginBottom: '40px',
+          marginBottom: '24px',
         }}
       >
         <h3
@@ -1588,7 +1588,7 @@ export function MDTReportPanel({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '32px',
+          gap: '20px',
         }}
       >
         <motion.div
@@ -1649,7 +1649,7 @@ export function MDTReportPanel({
     >
       {/* Top Actions */}
       <div
-        style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', justifyContent: isMobile ? 'stretch' : 'flex-end', gap: '16px', marginBottom: '32px' }}
+        style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', justifyContent: isMobile ? 'stretch' : 'flex-end', gap: '16px', marginBottom: '20px' }}
       >
         {onCorrelateInMDT && (
           <button
@@ -1729,7 +1729,7 @@ export function MDTReportPanel({
 
       <div id="mdt-report-content" style={{ padding: isMobile ? '0' : '0 20px 20px 20px' }}>
         <div
-          style={{ borderBottom: '2px solid #F1F5F9', paddingBottom: '32px', marginBottom: '40px' }}
+          style={{ borderBottom: '2px solid #F1F5F9', paddingBottom: '32px', marginBottom: '24px' }}
         >
           <div
             style={{
@@ -1759,7 +1759,7 @@ export function MDTReportPanel({
           </p>
         </div>
 
-        <div style={{ marginBottom: '48px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
             Executive Summary
           </h3>
@@ -1768,7 +1768,7 @@ export function MDTReportPanel({
           </p>
         </div>
 
-        <div style={{ marginBottom: '48px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '24px' }}>
             Possible pathways to discuss
           </h3>
@@ -1776,7 +1776,7 @@ export function MDTReportPanel({
             style={{
               display: 'grid',
               gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '24px',
+              gap: '16px',
             }}
           >
             {report.topDiagnoses?.map((d, i) => (
@@ -1987,7 +1987,7 @@ export function MDTReportPanel({
               <div
                 style={{
                   marginTop: '24px',
-                  padding: '32px',
+                  padding: '20px',
                   background: '#F8FAFC',
                   borderRadius: '24px',
                   border: '1px solid #E2E8F0',

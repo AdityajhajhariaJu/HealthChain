@@ -39,7 +39,7 @@ export default function HelpCenter() {
         <ArrowLeft size={16} /> Back
       </button>
 
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-1px' }}>
           Help Center
         </h1>
@@ -67,7 +67,7 @@ export default function HelpCenter() {
         </div>
       </div>
 
-      <div style={{ marginBottom: '48px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '20px' }}>
           Frequently Asked Questions
         </h2>
@@ -111,7 +111,7 @@ export default function HelpCenter() {
             </div>
           ))}
           {filteredFaqs.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
               No results found for "{search}".
             </div>
           )}

@@ -73,7 +73,7 @@ export function OnboardingWizard({ onComplete }) {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            marginBottom: '40px',
+            marginBottom: '24px',
             color: '#10B981',
             fontWeight: 800,
             fontSize: '18px',
@@ -108,7 +108,7 @@ export function OnboardingWizard({ onComplete }) {
             >
               Let's set your baseline.
             </h2>
-            <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '32px' }}>
+            <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '20px' }}>
               We need a few details to calculate your metabolic targets accurately.
             </p>
 
@@ -230,7 +230,7 @@ export function OnboardingWizard({ onComplete }) {
               </div>
             </div>
 
-            <div style={{ marginBottom: '40px' }}>
+            <div style={{ marginBottom: '24px' }}>
               <label
                 style={{
                   display: 'block',
@@ -304,7 +304,7 @@ export function OnboardingWizard({ onComplete }) {
                 fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '32px',
+                marginBottom: '20px',
                 letterSpacing: '-0.5px',
               }}
             >
@@ -315,7 +315,7 @@ export function OnboardingWizard({ onComplete }) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',
-                marginBottom: '40px',
+                marginBottom: '24px',
               }}
             >
               {GOALS.map((goal) => (
@@ -356,7 +356,7 @@ export function OnboardingWizard({ onComplete }) {
                 fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '32px',
+                marginBottom: '20px',
                 letterSpacing: '-0.5px',
               }}
             >
@@ -367,7 +367,7 @@ export function OnboardingWizard({ onComplete }) {
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '16px',
-                marginBottom: '40px',
+                marginBottom: '24px',
               }}
             >
               {ACTIVITY_LEVELS.map((level) => (
@@ -419,13 +419,13 @@ export function OnboardingWizard({ onComplete }) {
                 fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '32px',
+                marginBottom: '20px',
                 letterSpacing: '-0.5px',
               }}
             >
               Any dietary restrictions?
             </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               {RESTRICTIONS.map((r) => {
                 const isSelected = data.restrictions.includes(r);
                 return (
@@ -491,13 +491,13 @@ export function OnboardingWizard({ onComplete }) {
                 fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '32px',
+                marginBottom: '20px',
                 letterSpacing: '-0.5px',
               }}
             >
               Any medical conditions?
             </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               {MEDICAL_CONDITIONS.map((c) => {
                 const isSelected = data.medicalConditions.includes(c);
                 return (
@@ -563,13 +563,13 @@ export function OnboardingWizard({ onComplete }) {
                 fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '32px',
+                marginBottom: '20px',
                 letterSpacing: '-0.5px',
               }}
             >
               Preferred Cuisine?
             </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
               {CUISINES.map((c) => (
                 <button
                   key={c}
@@ -603,7 +603,7 @@ export function OnboardingWizard({ onComplete }) {
                 fontSize: isMobile ? '24px' : '28px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '32px',
+                marginBottom: '20px',
                 letterSpacing: '-0.5px',
               }}
             >
@@ -614,7 +614,7 @@ export function OnboardingWizard({ onComplete }) {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',
-                marginBottom: '40px',
+                marginBottom: '24px',
               }}
             >
               {MEAL_SCHEDULES.map((m) => (
@@ -682,7 +682,7 @@ export function OnboardingWizard({ onComplete }) {
               Profile Complete!
             </h2>
             <p
-              style={{ fontSize: '16px', color: '#64748B', marginBottom: '40px', lineHeight: 1.6 }}
+              style={{ fontSize: '16px', color: '#64748B', marginBottom: '24px', lineHeight: 1.6 }}
             >
               We've computed your clinical targets based on the Mifflin-St Jeor equation. Your
               personalized AI dashboard is ready.

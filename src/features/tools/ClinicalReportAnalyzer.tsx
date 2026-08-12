@@ -255,7 +255,7 @@ export default function ClinicalReportAnalyzer() {
           padding: isMobile ? '16px' : '32px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
           border: '1px solid #F1F5F9',
-          marginBottom: '32px',
+          marginBottom: '20px',
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: isMobile ? 'flex-start' : 'center',
@@ -319,7 +319,7 @@ export default function ClinicalReportAnalyzer() {
           borderRadius: '24px',
           padding: isMobile ? '32px 16px' : '60px 40px',
           border: '2px dashed #CBD5E1',
-          marginBottom: '32px',
+          marginBottom: '20px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -347,7 +347,7 @@ export default function ClinicalReportAnalyzer() {
 
         {loading ? (
           <div
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', width: '100%', maxWidth: '300px' }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '300px' }}
           >
             <div style={{ position: 'relative', width: '80px', height: '100px', margin: '0 auto' }}>
               {/* Document Icon Background */}
@@ -472,7 +472,7 @@ export default function ClinicalReportAnalyzer() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '40px' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '40px' }}
           >
             {(() => {
               const displayData = result || exampleResult;
@@ -604,9 +604,9 @@ export default function ClinicalReportAnalyzer() {
                     )}
                   </div>
 
-                  <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 0.8fr', gap: '24px' }}>
+                  <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 0.8fr', gap: '16px' }}>
                     {/* Primary Analysis */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div
                         style={{
                           background: '#FFFFFF',
@@ -705,7 +705,7 @@ export default function ClinicalReportAnalyzer() {
                     </div>
 
                     {/* Side Panel (Abnormalities & Terms) */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div
                         style={{
                           background: '#FEF2F2',

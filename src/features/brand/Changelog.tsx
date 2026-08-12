@@ -27,10 +27,10 @@ const log = [
 export default function Changelog() {
   const navigate = useNavigate();
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px' }}>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}>
       <button 
         onClick={() => navigate(-1)} 
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '32px' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginBottom: '20px' }}
       >
         <ArrowLeft size={16} /> Back
       </button>
@@ -38,13 +38,13 @@ export default function Changelog() {
       <h1 style={{ fontSize: '36px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px', letterSpacing: '-1px' }}>
         What's New
       </h1>
-      <p style={{ fontSize: '18px', color: 'var(--text-muted)', marginBottom: '40px' }}>
+      <p style={{ fontSize: '18px', color: 'var(--text-muted)', marginBottom: '24px' }}>
         The latest updates, improvements, and fixes to HealthChain.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
         {log.map((release) => (
-          <div key={release.version} style={{ display: 'flex', gap: '24px', position: 'relative' }}>
+          <div key={release.version} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
             <div style={{ width: '120px', flexShrink: 0, textAlign: 'right' }}>
               <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>{release.version}</div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{release.date}</div>

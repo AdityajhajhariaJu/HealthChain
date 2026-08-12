@@ -55,31 +55,33 @@ export default function MyCases() {
   const openActions = cases.reduce((total, item) => total + item.actions.filter(action => action.status !== 'completed').length, 0);
   const evidenceItems = cases.reduce((total, item) => total + (item.medicalRecords?.length || 0), 0);
 
+  const stats = [
+    { label: 'Active cases', value: cases.length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },
+    { label: 'Open next steps', value: openActions, icon: ClipboardList, color: '#4F46E5', bg: '#EEF2FF' },
+    { label: 'Evidence saved', value: evidenceItems, icon: FileText, color: '#B45309', bg: '#FFFBEB' },
+  ];
+
   return (
-    <div style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 60 }}>
-      <header style={{ marginBottom: 28 }}>
-        <div style={{ color: '#0f9488', fontWeight: 800, fontSize: 12, letterSpacing: '.9px', marginBottom: 10 }}>YOUR CASEWORK</div>
-        <h1 style={{ fontSize: isMobile ? 26 : 36, margin: '0 0 10px', letterSpacing: '-1.2px' }}>My Cases</h1>
-        <p style={{ color: '#64748b', fontSize: 16, margin: 0 }}>
-          Your ongoing health records, specialist reviews, and next steps.
+    <div style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 24 }}>
+      <header style={{ marginBottom: 16 }}>
+        <div style={{ color: '#0f9488', fontWeight: 800, fontSize: 12, letterSpacing: '.9px', marginBottom: 6 }}>YOUR CASEWORK</div>
+        <h1 style={{ fontSize: isMobile ? 26 : 32, margin: '0 0 4px', letterSpacing: '-1.2px' }}>My Cases</h1>
+        <p style={{ color: '#64748b', fontSize: 15, margin: 0 }}>
+          Manage your ongoing medical cases and multi-specialist discussions.
         </p>
       </header>
 
-      <section style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 26 }}>
-        {[
-          { label: 'Active cases', value: cases.length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },
-          { label: 'Open next steps', value: openActions, icon: ClipboardList, color: '#4F46E5', bg: '#EEF2FF' },
-          { label: 'Evidence saved', value: evidenceItems, icon: FileText, color: '#B45309', bg: '#FFFBEB' },
-        ].map((stat) => {
+      <section style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 16 }}>
+        {stats.map((stat) => {
           const Icon = stat.icon;
-          return <div key={stat.label} style={{ padding: '16px', borderRadius: 16, background: '#FFF', border: '1px solid #E8EEF5', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 8px 24px rgba(15,23,42,.035)' }}>
+          return <div key={stat.label} style={{ padding: '12px', borderRadius: 16, background: '#FFF', border: '1px solid #E8EEF5', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 4px 12px rgba(15,23,42,.02)' }}>
             <div style={{ width: 38, height: 38, display: 'grid', placeItems: 'center', borderRadius: 12, background: stat.bg, color: stat.color }}><Icon size={18} /></div>
             <div><strong style={{ display: 'block', color: '#0F172A', fontSize: 18, lineHeight: 1 }}>{stat.value}</strong><span style={{ color: '#64748B', fontSize: 12, fontWeight: 650 }}>{stat.label}</span></div>
           </div>;
         })}
       </section>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
         <div
           style={{
             flex: 1,
@@ -88,16 +90,16 @@ export default function MyCases() {
             alignItems: 'center'
           }}
         >
-          <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: 16 }} />
+          <Search size={20} color="#94a3b8" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Search cases by symptom or condition... (Cmd+K)"
+            placeholder="Search by diagnosis, title..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{
               width: '100%',
-              padding: '14px 16px 14px 44px',
+              padding: '12px 14px 12px 40px',
               borderRadius: 12,
               border: '1px solid #e2e8f0',
               fontSize: 15,
@@ -107,10 +109,10 @@ export default function MyCases() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 12 }}>
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card" style={{ padding: isMobile ? 16 : 22, border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 18, borderRadius: 20, background: '#FFF' }}>
+            <div key={i} className="card" style={{ padding: isMobile ? 12 : 16, border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, borderRadius: 20, background: '#FFF' }}>
               <Skeleton width={52} height={52} borderRadius={16} />
               <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                 <Skeleton width="60%" height={24} borderRadius={4} style={{ marginBottom: 8 }} />
@@ -125,10 +127,13 @@ export default function MyCases() {
               <div 
                  key={caseItem.id}
                  className="card" 
-                 onClick={() => navigate(`/app/cases/${caseItem.id}`)}
-                 style={{ padding: isMobile ? 16 : 22, cursor: 'pointer', transition: 'all 0.2s ease', border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 18, borderRadius: 20, background: '#FFF', boxShadow: '0 10px 28px rgba(15,23,42,.04)', minWidth: 0 }}
-                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#5EEAD4'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 18px 34px rgba(15,23,42,.09)'; }}
-                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EEF5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(15,23,42,.04)'; }}
+                 onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('button')) return;
+                    navigate(`/app/cases/${caseItem.id}`);
+                 }}
+                 style={{ padding: isMobile ? 12 : 16, cursor: 'pointer', transition: 'all 0.2s ease', border: '1px solid #E8EEF5', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, borderRadius: 20, background: '#FFF', boxShadow: '0 4px 12px rgba(15,23,42,.02)', minWidth: 0 }}
+                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#5EEAD4'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(15,23,42,.05)'; }}
+                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EEF5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,.02)'; }}
               >
                  <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F0FDFA', color: '#10B981', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     <Archive size={24} />
@@ -190,7 +195,7 @@ export default function MyCases() {
       </div>
 
       {!isLoading && totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 24 }}>
           <button 
             className="btn btn-outline btn-sm" 
             disabled={currentPage === 1}

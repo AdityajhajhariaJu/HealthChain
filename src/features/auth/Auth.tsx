@@ -224,7 +224,7 @@ export default function Auth() {
               <h1 style={{ margin: '0 0 8px 0', fontSize: isMobile ? '24px' : '28px', color: 'var(--text-main)', fontWeight: 700 }}>
                 {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome back' : 'Create an account'}
               </h1>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '15px' }}>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '15px' }}>
                 {isForgotPassword 
                   ? 'Enter your email to receive a password reset link.'
                   : isLogin

@@ -33,20 +33,20 @@ export default function PrivacyPolicy() {
           style={{
             backgroundColor: 'var(--bg-secondary)',
             borderRadius: '24px',
-            padding: '40px',
+            padding: '24px',
             boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
             color: 'var(--text-primary)',
             lineHeight: '1.6'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
             <div style={{ padding: '12px', backgroundColor: 'rgba(20, 184, 166, 0.1)', borderRadius: '16px', color: 'var(--primary-color)' }}>
               <Shield size={32} />
             </div>
             <h1 style={{ fontSize: '32px', margin: 0 }}>Privacy Policy</h1>
           </div>
           
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Last Updated: August 2026</p>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Last Updated: August 2026</p>
 
           <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>1. Introduction</h2>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>

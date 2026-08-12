@@ -91,7 +91,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
           </button>
         </div>
 
-        <div style={{ padding: '32px', flex: 1 }}>
+        <div style={{ padding: '20px', flex: 1 }}>
           {!simulation && !isSimulating && (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ width: 80, height: 80, background: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
@@ -126,7 +126,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
             {simulation && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 {/* Stats Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 32 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, marginBottom: 20 }}>
                   <div style={{ background: '#f8fafc', padding: 16, borderRadius: 16, border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
                       <Clock size={14} /> TIMELINE
@@ -149,7 +149,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
 
                 {/* Timeline Tree */}
                 <h4 style={{ margin: '0 0 16px', fontSize: 15, color: '#334155' }}>Expected Milestones</h4>
-                <div style={{ position: 'relative', paddingLeft: 24, marginBottom: 32 }}>
+                <div style={{ position: 'relative', paddingLeft: 24, marginBottom: 20 }}>
                   <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: 2, background: '#e2e8f0', borderRadius: 2 }} />
                   {simulation.milestones.map((ms: any, i: number) => (
                     <div key={i} style={{ position: 'relative', marginBottom: i === simulation.milestones.length - 1 ? 0 : 24 }}>

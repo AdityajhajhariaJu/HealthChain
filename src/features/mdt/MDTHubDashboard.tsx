@@ -41,7 +41,7 @@ export function MDTHubDashboard({
   return (
     <>
       {/* ─── Case Route Tracker ─── */}
-      <section style={{ padding: '24px', background: '#FFF', borderRadius: 'var(--radius-lg)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginBottom: '32px', border: '1px solid rgba(0,0,0,0.05)' }}>
+      <section style={{ padding: '24px', background: '#FFF', borderRadius: 'var(--radius-lg)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', marginBottom: '20px', border: '1px solid rgba(0,0,0,0.05)' }}>
         <h2 style={{ fontSize: 20, margin: '0 0 8px', color: '#0F172A' }}>Your case route</h2>
         <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.55, margin: '0 0 20px' }}>
           Every step updates this same case file. You can add evidence at any point, then run
@@ -139,7 +139,7 @@ export function MDTHubDashboard({
       </section>
 
       {/* Dashboard Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.8)', padding: '6px', borderRadius: '99px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
           <button
             onClick={() => setDashboardTab('specialists')}
@@ -269,7 +269,7 @@ export function MDTHubDashboard({
               display: isMobile ? 'flex' : 'grid',
               flexDirection: isMobile ? 'column' : 'unset',
               gridTemplateColumns: isMobile ? 'unset' : 'repeat(auto-fit, minmax(340px, 1fr))',
-              gap: '24px',
+              gap: '16px',
               opacity: isSessionPaused ? 0.6 : 1,
               pointerEvents: isSessionPaused ? 'none' : 'auto',
               transition: 'all 0.3s'

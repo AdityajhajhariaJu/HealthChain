@@ -275,7 +275,7 @@ export default function TalkBuddy() {
               maxWidth: '720px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '24px',
+              gap: '16px',
             }}
           >
             <AnimatePresence initial={false}>

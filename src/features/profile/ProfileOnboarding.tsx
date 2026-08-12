@@ -188,7 +188,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             {step === 2 && <StepFocus form={form} update={update} />}
             <div
               style={{
-                marginTop: 32,
+                marginTop: 20,
                 display: 'flex',
                 justifyContent: 'space-between',
                 gap: 12,

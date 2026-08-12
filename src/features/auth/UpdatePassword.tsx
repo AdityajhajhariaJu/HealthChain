@@ -76,7 +76,7 @@ export default function UpdatePassword() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="card"
-          style={{ width: '100%', maxWidth: '440px', padding: '40px', position: 'relative', overflow: 'hidden' }}
+          style={{ width: '100%', maxWidth: '440px', padding: '24px', position: 'relative', overflow: 'hidden' }}
         >
           {/* Subtle Glow */}
           <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'var(--teal-light)', filter: 'blur(60px)', borderRadius: '50%', pointerEvents: 'none' }} />
@@ -99,7 +99,7 @@ export default function UpdatePassword() {
               <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', color: 'var(--text-main)', fontWeight: 700 }}>
                 Set New Password
               </h1>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '15px' }}>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '15px' }}>
                 Please enter your new password below.
               </p>
 

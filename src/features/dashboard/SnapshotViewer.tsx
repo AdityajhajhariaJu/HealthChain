@@ -45,7 +45,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
   }
 
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '320px 1fr', gap: 24, alignItems: 'start' }}>
+    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '320px 1fr', gap: 16, alignItems: 'start' }}>
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
          <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>Review History</h3>
@@ -134,7 +134,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                 </div>
              </div>
 
-             <div ref={reportRef} style={{ display: 'grid', gap: 24, padding: '10px 0' }}>
+             <div ref={reportRef} style={{ display: 'grid', gap: 16, padding: '10px 0' }}>
                <section>
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Executive Summary</h3>
                   <p style={{ margin: 0, lineHeight: 1.6, color: '#334155' }}>

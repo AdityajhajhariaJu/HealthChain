@@ -17,7 +17,7 @@ export default function Pricing() {
         <ArrowLeft size={16} /> Back
       </button>
 
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: isMobile ? '32px' : '48px', fontWeight: 900, color: 'var(--text-main)', marginBottom: '16px', letterSpacing: '-1.5px' }}>
           Simple, transparent pricing
         </h1>
@@ -64,16 +64,16 @@ export default function Pricing() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '24px', maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', maxWidth: '800px', margin: '0 auto' }}>
         
         {/* Free Tier */}
-        <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px' }}>Basic</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px' }}>Essential tools for personal health tracking.</p>
-          <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '32px' }}>
+          <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
             $0 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ forever</span>
           </div>
-          <button className="btn btn-outline" style={{ width: '100%', marginBottom: '32px', padding: '12px' }}>Current Plan</button>
+          <button className="btn btn-outline" style={{ width: '100%', marginBottom: '20px', padding: '12px' }}>Current Plan</button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             {['Basic Medical Profile', '3 Active Cases', 'Standard Lab Report Analyzer', 'Local Data Storage'].map(feature => (
@@ -85,16 +85,16 @@ export default function Pricing() {
         </div>
 
         {/* Pro Tier */}
-        <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', border: '2px solid var(--teal)', position: 'relative' }}>
+        <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', border: '2px solid var(--teal)', position: 'relative' }}>
           <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: 'var(--teal)', color: 'white', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Sparkles size={14} /> MOST POPULAR
           </div>
           <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: 'var(--teal)' }}>Pro</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px' }}>Advanced AI synthesis for complex medical cases.</p>
-          <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '32px' }}>
+          <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
             ${billingCycle === 'monthly' ? '29' : '24'} <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ month</span>
           </div>
-          <button className="btn btn-primary" style={{ width: '100%', marginBottom: '32px', padding: '12px' }}>Upgrade to Pro</button>
+          <button className="btn btn-primary" style={{ width: '100%', marginBottom: '20px', padding: '12px' }}>Upgrade to Pro</button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             {['Everything in Basic', 'MDT Consensus Hub (Unlimited)', 'Advanced Clinical Synthesis', 'Priority Support', 'Cloud Sync & Portability'].map(feature => (

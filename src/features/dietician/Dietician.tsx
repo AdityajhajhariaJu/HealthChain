@@ -256,7 +256,7 @@ export default function Dietician() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '32px',
+            marginBottom: '20px',
             flexWrap: 'wrap',
             gap: '16px',
           }}
@@ -385,7 +385,7 @@ export default function Dietician() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
           >
             {/* Date Selector */}
             <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '16px' }}>
@@ -479,15 +479,15 @@ export default function Dietician() {
               </button>
             </div>
 
-            <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 2fr', gap: '32px' }}>
+            <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 2fr', gap: '20px' }}>
               {/* Left Col: Macros & Summary */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Beautiful Calorie Ring Card */}
                 <div
                   style={{
                     background: 'linear-gradient(145deg, #FFFFFF, #F8FAFC)',
                     borderRadius: '32px',
-                    padding: isMobile ? '24px 16px' : '40px 32px',
+                    padding: isMobile ? '16px 12px' : '24px 20px',
                     border: '1px solid #F1F5F9',
                     textAlign: 'center',
                     boxShadow: '0 12px 40px rgba(0,0,0,0.04)',
@@ -648,7 +648,7 @@ export default function Dietician() {
                   style={{
                     background: '#FFFFFF',
                     borderRadius: '32px',
-                    padding: '32px',
+                    padding: '20px',
                     border: '1px solid #F1F5F9',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.03)',
                   }}
@@ -693,7 +693,7 @@ export default function Dietician() {
               </div>
 
               {/* Right Col: Timeline & Advice */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* AI Advice Banner */}
                 {advice && (
                   <div
@@ -754,7 +754,7 @@ export default function Dietician() {
                   style={{
                     background: '#FFFFFF',
                     borderRadius: '32px',
-                    padding: '32px',
+                    padding: '20px',
                     border: '1px solid #F1F5F9',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.03)',
                   }}
@@ -827,7 +827,7 @@ export default function Dietician() {
                   style={{
                     background: '#FFFFFF',
                     borderRadius: '32px',
-                    padding: '32px',
+                    padding: '20px',
                     border: '1px solid #F1F5F9',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.03)',
                     flex: 1,
@@ -1038,7 +1038,7 @@ export default function Dietician() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start',
-                marginBottom: '32px',
+                marginBottom: '20px',
               }}
             >
               <div>
@@ -1163,7 +1163,7 @@ export default function Dietician() {
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {mealPlan.days.map((day, idx) => (
                   <div
                     key={idx}
@@ -1180,7 +1180,7 @@ export default function Dietician() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        marginBottom: '32px',
+                        marginBottom: '20px',
                         borderBottom: '1px solid #F1F5F9',
                         paddingBottom: '24px',
                       }}
@@ -1242,7 +1242,7 @@ export default function Dietician() {
                       style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                        gap: '24px',
+                        gap: '16px',
                       }}
                     >
                       {day.meals.map((meal, i) => (
@@ -1381,7 +1381,7 @@ export default function Dietician() {
                 style={{
                   background: '#FFFFFF',
                   borderRadius: '32px',
-                  padding: '40px',
+                  padding: '24px',
                   width: '100%',
                   maxWidth: '600px',
                   position: 'relative',
@@ -1437,7 +1437,7 @@ export default function Dietician() {
                   </div>
                   Log Food
                 </h3>
-                <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '32px' }}>
+                <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '20px' }}>
                   Type what you ate in natural language. Our AI will analyze the portions and
                   macros.
                 </p>
@@ -1464,7 +1464,7 @@ export default function Dietician() {
                   ))}
                 </div>
 
-                <div style={{ position: 'relative', marginBottom: '32px' }}>
+                <div style={{ position: 'relative', marginBottom: '20px' }}>
                   <textarea
                     value={foodInput}
                     onChange={(e) => setFoodInput(e.target.value)}

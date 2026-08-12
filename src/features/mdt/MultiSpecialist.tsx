@@ -477,18 +477,15 @@ export default function MultiSpecialist() {
                   padding: '12px 16px',
                   background: '#F0FDFA',
                   border: '1px solid #CCFBF1',
-                  borderRadius: '14px',
+                  borderRadius: '16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
-                  color: '#0F766E',
-                  fontSize: '13px',
+                  gap: '12px'
                 }}
               >
-                <GitMerge size={16} />
-                <span>
-                  <strong>Continuing your active case:</strong> {activeCase.title}. Your saved
-                  evidence will be included in this review.
+                <GitMerge size={16} color="#0D9488" />
+                <span style={{ fontSize: '14px', color: '#0F766E', fontWeight: 500 }}>
+                  Linked to case: <strong>{activeCase.title}</strong>
                 </span>
               </div>
             )}
@@ -497,16 +494,15 @@ export default function MultiSpecialist() {
               style={{
                 background: 'rgba(255,255,255,0.9)',
                 backdropFilter: 'blur(20px)',
-                padding: '8px',
-                borderRadius: '24px',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+                borderRadius: '16px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
                 border: '1px solid rgba(255,255,255,0.5)',
                 display: 'flex',
                 alignItems: 'center',
-                marginBottom: '40px',
+                marginBottom: '24px',
               }}
             >
-              <div style={{ padding: isMobile ? '0 12px' : '0 20px', color: '#94A3B8' }}><Search size={isMobile ? 18 : 20} /></div>
+              <div style={{ padding: isMobile ? '0 12px' : '0 16px', color: '#94A3B8' }}><Search size={isMobile ? 18 : 20} /></div>
               <input
                 ref={searchInputRef}
                 type="text"
@@ -519,16 +515,16 @@ export default function MultiSpecialist() {
                   minWidth: 0,
                   border: 'none',
                   background: 'transparent',
-                  padding: isMobile ? '12px 12px 12px 0' : '20px 20px 20px 0',
+                  padding: isMobile ? '8px 12px 8px 0' : '12px 16px 12px 0',
                   color: '#0F172A',
-                  fontSize: isMobile ? '14px' : '16px',
+                  fontSize: isMobile ? '14px' : '15px',
                   outline: 'none',
                   fontWeight: 500,
                   textOverflow: 'ellipsis',
                   overflow: 'hidden',
                 }}
               />
-              <button onClick={handleStart} disabled={!symptomInput.trim() && selected.length === 0} className="btn btn-primary hover-scale glow-transition" style={{ padding: isMobile ? '10px 16px' : '14px 24px', borderRadius: '14px', fontSize: '14px', border: 'none', cursor: 'pointer', transition: 'all 0.2s', opacity: !symptomInput.trim() && selected.length === 0 ? 0.5 : 1 }}>
+              <button onClick={handleStart} disabled={!symptomInput.trim() && selected.length === 0} className="btn btn-primary hover-scale glow-transition" style={{ padding: isMobile ? '8px 16px' : '10px 20px', borderRadius: '12px', fontSize: '14px', border: 'none', cursor: 'pointer', transition: 'all 0.2s', opacity: !symptomInput.trim() && selected.length === 0 ? 0.5 : 1 }}>
                 Analyze Now
               </button>
             </div>
@@ -591,7 +587,7 @@ export default function MultiSpecialist() {
 
             <div
               style={{
-                marginBottom: '20px',
+                marginBottom: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -599,7 +595,7 @@ export default function MultiSpecialist() {
             >
               <h3
                 style={{
-                  fontSize: '15px',
+                  fontSize: '14px',
                   fontWeight: 800,
                   color: '#334155',
                   textTransform: 'uppercase',
@@ -611,11 +607,11 @@ export default function MultiSpecialist() {
               </h3>
               <div
                 style={{
-                  fontSize: '13px',
+                  fontSize: '12px',
                   color: '#6366F1',
                   fontWeight: 700,
                   background: '#EEF2FF',
-                  padding: '4px 12px',
+                  padding: '4px 10px',
                   borderRadius: '99px',
                 }}
               >
@@ -627,10 +623,10 @@ export default function MultiSpecialist() {
               style={{
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(20px)',
-                padding: isMobile ? '24px 16px' : '32px',
-                borderRadius: isMobile ? '24px' : '32px',
+                padding: isMobile ? '16px 12px' : '20px',
+                borderRadius: isMobile ? '16px' : '20px',
                 border: '1px solid rgba(255,255,255,0.5)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
               }}
             >
               <div
@@ -638,12 +634,12 @@ export default function MultiSpecialist() {
                 style={{
                   display: 'flex',
                   gap: '8px',
-                  marginBottom: '24px',
+                  marginBottom: '16px',
                   flexWrap: isMobile ? 'nowrap' : 'wrap',
                   overflowX: isMobile ? 'auto' : 'visible',
                   WebkitOverflowScrolling: 'touch',
                   borderBottom: '1px solid rgba(0,0,0,0.05)',
-                  paddingBottom: '20px',
+                  paddingBottom: '12px',
                 }}
               >
                 {['All', ...CATEGORIES].map((cat) => (
@@ -741,7 +737,7 @@ export default function MultiSpecialist() {
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.5)',
                 borderRadius: '20px',
-                marginBottom: '40px',
+                marginBottom: '24px',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
               }}
             >
@@ -950,7 +946,7 @@ export default function MultiSpecialist() {
                 display: isMobile ? 'flex' : 'grid',
                 flexDirection: isMobile ? 'column' : 'unset',
                 gridTemplateColumns: isMobile ? 'unset' : 'repeat(auto-fit, minmax(340px, 1fr))',
-                gap: '24px',
+                gap: '16px',
                 alignItems: 'flex-start',
                 opacity: isSessionPaused ? 0.6 : 1,
                 pointerEvents: isSessionPaused ? 'none' : 'auto',

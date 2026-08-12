@@ -147,11 +147,11 @@ export default function CaseDashboard() {
           display: isMobile ? 'flex' : 'grid',
           flexDirection: isMobile ? 'column' : 'unset',
           gridTemplateColumns: isMobile ? 'unset' : '1.35fr .65fr',
-          gap: 24,
+          gap: 16,
           alignItems: 'start',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
           <section className="card" style={{ padding: isMobile ? 18 : 26 }}>
             <div
               style={{
@@ -545,7 +545,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
               {/* Vertical connecting line */}
               <div style={{ position: 'absolute', top: 12, bottom: 12, left: 2, width: 2, background: 'linear-gradient(to bottom, #10B981 0%, #3B82F6 100%)', opacity: 0.2, borderRadius: 2 }} />
               
-              <div style={{ display: 'grid', gap: 24 }}>
+              <div style={{ display: 'grid', gap: 16 }}>
                 <AnimatePresence>
                   {([...(item.events || []), ...(item.reviews || [])].sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())).map((timelineItem: any, index: number) => {
                      const isReview = !!timelineItem.type && !timelineItem.label;
@@ -872,7 +872,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
       </div>
 
       {/* Overview Section */}
-      <div style={{ marginBottom: 40 }} className="print-avoid-break">
+      <div style={{ marginBottom: 24 }} className="print-avoid-break">
         <h2 style={{ fontSize: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 8, marginBottom: 16 }}>1. CASE OVERVIEW & PATHWAYS</h2>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 30 }}>
           <div>
@@ -897,7 +897,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
       </div>
 
       {/* Action Plan Section */}
-      <div style={{ marginBottom: 40 }} className="print-avoid-break">
+      <div style={{ marginBottom: 24 }} className="print-avoid-break">
         <h2 style={{ fontSize: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 8, marginBottom: 16 }}>2. CLINICAL ACTION PLAN</h2>
         <div style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
           <h3 style={{ fontSize: 16, color: '#0f172a', margin: '0 0 12px' }}>Outstanding Items</h3>
@@ -917,7 +917,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
       </div>
 
       {/* Timeline Section */}
-      <div style={{ marginBottom: 40 }}>
+      <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 8, marginBottom: 16 }}>3. CLINICAL TIMELINE & CONSENSUS SNAPSHOTS</h2>
         <div style={{ paddingLeft: 10 }}>
           {([...(item.events || []), ...(item.reviews || [])].sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())).map((timelineItem: any, i) => {

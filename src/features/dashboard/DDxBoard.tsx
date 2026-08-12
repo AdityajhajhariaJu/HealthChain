@@ -96,7 +96,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
       </div>
 
       {historyData.length > 0 && (
-        <div style={{ marginBottom: 32, background: '#f8fafc', padding: isMobile ? 16 : 24, borderRadius: 16, border: '1px solid #e2e8f0' }}>
+        <div style={{ marginBottom: 20, background: '#f8fafc', padding: isMobile ? 16 : 24, borderRadius: 16, border: '1px solid #e2e8f0' }}>
           <h3 style={{ margin: '0 0 16px', fontSize: 16, color: '#334155', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Clock size={18} />
             Differential Evolution
@@ -160,7 +160,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                   display: isMobile ? 'flex' : 'grid',
                   flexDirection: isMobile ? 'column' : 'unset',
                   gridTemplateColumns: isMobile ? 'unset' : '300px 1fr',
-                  gap: 24,
+                  gap: 16,
                 }}
               >
                 {/* Left Column: Probability & Core Info */}
