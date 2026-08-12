@@ -44,13 +44,13 @@ const links = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/multi', label: 'Multiple-Specialists', icon: GitMerge },
   { to: '/app/mdthub', label: 'MDT Consensus', icon: Network },
+  { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
-  { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
+  { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Dietician', icon: Apple },
   { to: '/app/talkbuddy', label: 'Ava Health Buddy', icon: Heart },
+  { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
   { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
-  { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
-  { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
 ];
 
 const mobileTabs = [
