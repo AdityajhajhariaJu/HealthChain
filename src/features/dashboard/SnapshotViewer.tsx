@@ -3,8 +3,15 @@ import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download,
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+const formatDate = (value: string) => {
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return 'N/A';
+    return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d);
+  } catch {
+    return 'N/A';
+  }
+};
 
 export default function SnapshotViewer({ item }: { item: CaseItem }) {
   const isMobile = useIsMobile();

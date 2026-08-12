@@ -10,7 +10,7 @@ export default function ActionPlan({ analysis }) {
     if (analysis) {
       const storedTasks = localStorage.getItem('hc_plan');
       if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
+        try { setTasks(JSON.parse(storedTasks)); } catch { /* ignore */ }
       } else if (analysis.what_to_do || analysis.this_week_tasks) {
         const rawTasks =
           analysis.what_to_do || analysis.this_week_tasks.map((t) => ({ step: t, cost: '' }));

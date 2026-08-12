@@ -52,7 +52,10 @@ export default function Settings() {
     }
     const theme = localStorage.getItem('hc_theme');
     const consent = localStorage.getItem('hc_consent');
-    localStorage.clear();
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('hc_account');
+    localStorage.removeItem('hc_guest_mode');
+    localStorage.removeItem('hc_remember');
     if (theme) localStorage.setItem('hc_theme', theme);
     if (consent) localStorage.setItem('hc_consent', consent);
     navigate('/');
@@ -563,7 +566,8 @@ export default function Settings() {
                   try {
                     const result = JSON.parse(ev.target?.result as string);
                     Object.keys(result).forEach(key => {
-                      localStorage.setItem(key, result[key]);
+                      const val = typeof result[key] === 'string' ? result[key] : JSON.stringify(result[key]);
+                      localStorage.setItem(key, val);
                     });
                     success('Import Complete', 'Your data has been successfully restored. Refreshing...');
                     setTimeout(() => window.location.reload(), 1500);
@@ -571,6 +575,7 @@ export default function Settings() {
                     toastError('Import Failed', 'Invalid JSON file.');
                   }
                 };
+                reader.onerror = () => toastError('Import Failed', 'Failed to read file.');
                 reader.readAsText(file);
               }}
             />

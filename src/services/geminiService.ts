@@ -15,7 +15,8 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     const limit = 20;
     const hour = 60 * 60 * 1000;
     const now = Date.now();
-    let logs: number[] = JSON.parse(localStorage.getItem('hc_api_logs') || '[]');
+    let logs: number[] = [];
+    try { logs = JSON.parse(localStorage.getItem('hc_api_logs') || '[]'); } catch { logs = []; }
     logs = logs.filter(time => now - time < hour);
     if (logs.length >= limit) {
       throw new Error('Rate limit exceeded. Please try again later.');

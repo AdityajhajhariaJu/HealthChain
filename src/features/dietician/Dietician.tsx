@@ -61,7 +61,7 @@ function calculateTargets(p) {
   if (p.targetDays && parseInt(p.targetDays) > 0 && p.goal !== 'Maintain') {
     const weightDiff = Math.abs(parseFloat(p.weight) - parseFloat(p.targetWeight));
     const totalCalorieChange = weightDiff * 7700; // ~7700 kcal per kg of body weight
-    const dailyChange = totalCalorieChange / parseInt(p.targetDays);
+    const dailyChange = totalCalorieChange / (parseInt(p.targetDays) || 1);
     const safeDailyChange = Math.min(dailyChange, 1000);
 
     if (p.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
@@ -345,9 +345,13 @@ export default function Dietician() {
                   localStorage.removeItem('hc_diet_profile');
                   localStorage.removeItem('hc_meal_plan');
                   localStorage.removeItem('hc_diet_advice');
+                  localStorage.removeItem('hc_food_logs');
+                  localStorage.removeItem('hc_hydration');
                   setProfile(null);
                   setAdvice(null);
                   setMealPlan(null);
+                  setFoodLogs({});
+                  setHydration({ glasses: 0, goal: 8 });
                 }
               }}
               style={{

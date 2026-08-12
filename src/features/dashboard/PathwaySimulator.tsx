@@ -20,7 +20,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
     const cacheKey = `pathway_sim_${actionItem.step}`;
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
-      setSimulation(JSON.parse(cached));
+      try { setSimulation(JSON.parse(cached)); } catch { /* ignore */ }
       return;
     }
     // Also check if actionItem already has pre-computed simulation data from the Orchestrator

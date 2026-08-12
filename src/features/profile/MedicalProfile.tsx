@@ -51,6 +51,7 @@ import {
   redoProfileEdit,
   canUndo,
   canRedo,
+  getProfileEngineState,
 } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 import { generateProfileSynthesis } from '../../services/geminiService';
@@ -187,6 +188,14 @@ export default function MedicalProfile() {
       clearProfile();
       localStorage.removeItem('hc_diet_profile');
       localStorage.removeItem('hc_history');
+      
+      const state = getProfileEngineState();
+      localStorage.removeItem(`hc_cases_${state.activeId}`);
+      localStorage.removeItem(`hc_active_case_${state.activeId}`);
+      localStorage.removeItem('hc_ava_vault');
+      localStorage.removeItem('hc_food_logs');
+      localStorage.removeItem('hc_hydration');
+      
       window.location.reload();
     }
   };

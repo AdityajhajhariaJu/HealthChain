@@ -33,9 +33,17 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
   
   // Transform differentialHistory into a format recharts can use
   const historyData = (item.differentialHistory || []).slice().reverse().map((hist, index) => {
+    let dateStr = 'N/A';
+    try {
+      const d = new Date(hist.date);
+      if (!isNaN(d.getTime())) {
+        dateStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+    } catch { /* ignore */ }
+
     const dataPoint: any = { 
       name: `Run ${index + 1}`,
-      date: new Date(hist.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      date: dateStr
     };
     hist.differentials.forEach(d => {
       dataPoint[d.condition] = d.probability;

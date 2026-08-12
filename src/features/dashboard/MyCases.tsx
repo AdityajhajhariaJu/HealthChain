@@ -5,8 +5,15 @@ import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import Skeleton from '../../components/ui/Skeleton';
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
+const formatDate = (value: string) => {
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return 'N/A';
+    return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(d);
+  } catch {
+    return 'N/A';
+  }
+};
 
 export default function MyCases() {
   const isMobile = useIsMobile();

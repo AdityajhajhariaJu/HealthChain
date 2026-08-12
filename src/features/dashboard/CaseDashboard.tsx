@@ -24,8 +24,15 @@ import DDxBoard from './DDxBoard';
 import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+const formatDate = (value: string) => {
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return 'N/A';
+    return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d);
+  } catch {
+    return 'N/A';
+  }
+};
 
 export default function CaseDashboard() {
   const isMobile = useIsMobile();
@@ -125,7 +132,7 @@ export default function CaseDashboard() {
           <div>
             <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 38, letterSpacing: -1.2, lineHeight: 1.1 }}>
               Good to see you
-              {profile.demographics.name ? `, ${profile.demographics.name.split(' ')[0]}` : ''}.
+              {profile.demographics.name ? `, ${(profile?.demographics?.name || '').split(' ')[0] || 'User'}` : ''}.
             </h1>
             <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
               Start with parallel AI specialist perspectives, then bring their findings into an MDT

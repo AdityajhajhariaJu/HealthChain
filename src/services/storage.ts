@@ -37,6 +37,12 @@ export async function syncStorageFromPreferences() {
     originalRemoveItem(key);
     Preferences.remove({ key }).catch(e => console.warn('Native remove error:', e));
   };
+
+  const originalClear = localStorage.clear.bind(localStorage);
+  localStorage.clear = function() {
+    originalClear();
+    Preferences.clear().catch(e => console.warn('Native clear error:', e));
+  };
 }
 
 export function setItemSync(key: string, value: string) {

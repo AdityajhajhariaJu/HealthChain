@@ -378,7 +378,7 @@ function ActiveCaseBar({ navigate }: any) {
           <span>YOUR CASE CONTEXT</span>
           <strong>
             {profile.demographics.name
-              ? `${profile.demographics.name.split(' ')[0]}, start where your story is most complex.`
+              ? `${(profile?.demographics?.name || '').split(' ')[0] || 'User'}, start where your story is most complex.`
               : 'Start a case so HealthChain can keep your story connected.'}
           </strong>
         </div>
