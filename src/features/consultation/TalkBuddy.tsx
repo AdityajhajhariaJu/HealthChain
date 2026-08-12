@@ -40,7 +40,7 @@ export default function TalkBuddy() {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const endRef = useRef<any>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -75,7 +75,12 @@ export default function TalkBuddy() {
   }, []);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   }, [messages, isTyping]);
 
   const chatMutation = useMutation({
@@ -254,6 +259,7 @@ export default function TalkBuddy() {
 
         {/* Chat Area */}
         <div
+          ref={chatContainerRef}
           style={{
             flex: 1,
             overflowY: 'auto',
@@ -436,8 +442,6 @@ export default function TalkBuddy() {
                 ))}
               </motion.div>
             )}
-
-            <div ref={endRef} />
           </div>
         </div>
 
