@@ -241,13 +241,13 @@ export default function AppShell() {
               className="mobile-top-bar__profile" 
               onClick={() => setShowMoreMenu(true)} 
             />
-              <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', paddingRight: '6px', borderRight: '1px solid #e2e8f0', color: 'var(--teal)' }}>
-                  <Heart size={14} />
-                  <span style={{ fontWeight: 600, fontSize: '13px' }}>Ava</span>
+              <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #e2e8f0', color: '#475569' }}>
+                  <Heart size={12} />
+                  <span style={{ fontWeight: 600, fontSize: '11px' }}>Ava</span>
                 </div>
-                <Bot size={16} style={{ marginLeft: '2px' }} />
-                <span>Ask anything ab...</span>
+                <Bot size={14} style={{ color: 'var(--teal)', flexShrink: 0 }} />
+                <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
               </button>
             <div className="mobile-top-bar__actions">
               <div className="mobile-top-bar__points">
