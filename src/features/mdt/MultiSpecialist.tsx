@@ -382,7 +382,7 @@ export default function MultiSpecialist() {
         padding: isMobile ? '8px 16px' : '24px 40px',
         color: '#0F172A',
         margin: isMobile ? '-8px -16px' : '-24px -40px',
-        minHeight: '100vh',
+        minHeight: '100%',
         position: 'relative',
       }}
     >

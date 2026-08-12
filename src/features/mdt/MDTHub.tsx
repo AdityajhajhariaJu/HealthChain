@@ -318,7 +318,7 @@ export default function MDTHub() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100%',
         background: getPhaseBackground(),
         transition: 'background 1.5s ease',
         padding: isMobile ? '16px 16px' : '40px 20px',
