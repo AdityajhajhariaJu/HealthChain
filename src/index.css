@@ -93,6 +93,7 @@ textarea {
   flex: 1;
   background: var(--bg);
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
