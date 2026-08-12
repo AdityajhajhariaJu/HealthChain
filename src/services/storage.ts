@@ -22,7 +22,11 @@ export async function syncStorageFromPreferences() {
 }
 
 export function setItemSync(key: string, value: string) {
-  localStorage.setItem(key, value);
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn('localStorage setItem failed (possibly quota exceeded):', e);
+  }
   Preferences.set({ key, value }).catch(e => console.warn('Failed to save to preferences', e));
 }
 

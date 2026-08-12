@@ -493,7 +493,7 @@ export function clearProfile() {
   const state = getProfileEngineState();
   if (state.profiles[state.activeId]) {
     state.profiles[state.activeId] = { ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)), id: state.activeId, profileName: state.profiles[state.activeId].profileName };
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(state));
+    setItemSync(PROFILE_KEY, JSON.stringify(state));
     window.dispatchEvent(new Event('hc_profile_updated'));
   }
 }
