@@ -57,7 +57,6 @@ const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/multi', label: 'Multi', icon: GitMerge },
   { to: '/app/mdthub', label: 'MDT', icon: Network },
-  { to: '/app/talkbuddy', label: 'Ava', icon: Heart },
   { to: '/app/profile', label: 'Profile', icon: FolderHeart },
 ];
 
@@ -242,10 +241,14 @@ export default function AppShell() {
               className="mobile-top-bar__profile" 
               onClick={() => setShowMoreMenu(true)} 
             />
-            <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy">
-              <Bot size={16} />
-              <span>Ask anything ab...</span>
-            </button>
+              <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', paddingRight: '6px', borderRight: '1px solid #e2e8f0', color: 'var(--teal)' }}>
+                  <Heart size={14} />
+                  <span style={{ fontWeight: 600, fontSize: '13px' }}>Ava</span>
+                </div>
+                <Bot size={16} style={{ marginLeft: '2px' }} />
+                <span>Ask anything ab...</span>
+              </button>
             <div className="mobile-top-bar__actions">
               <div className="mobile-top-bar__points">
                 <Trophy size={14} color="#10B981" />
