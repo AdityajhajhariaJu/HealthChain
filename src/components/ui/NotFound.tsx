@@ -23,7 +23,7 @@ export default function NotFound() {
         style={{
           backgroundColor: 'var(--surface)',
           borderRadius: '24px',
-          padding: '48px',
+          padding: '24px',
           textAlign: 'center',
           maxWidth: '500px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
