@@ -43,7 +43,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
         application is still functioning.
       </p>
 
-      {error && import.meta.env.DEV && (
+      {error && (
         <pre
           style={{
             background: '#FFF',
