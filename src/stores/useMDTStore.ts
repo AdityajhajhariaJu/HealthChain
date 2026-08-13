@@ -1,5 +1,19 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
+import { get, set, del } from 'idb-keyval';
+
+// Custom IndexedDB storage adapter for Zustand
+const idbStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    return (await get(name)) || null;
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    await set(name, value);
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await del(name);
+  },
+};
 
 export type MDTPhase = 'intake' | 'dashboard' | 'select' | 'assessment' | 'conference' | 'report' | 'action_plan';
 
@@ -53,6 +67,14 @@ export const useMDTStore = create<MDTState>()(
     }),
     {
       name: 'hc_mdt_session',
+      storage: createJSONStorage(() => idbStorage),
+      partialize: (state) => ({ 
+        phase: state.phase,
+        dashboardTab: state.dashboardTab,
+        intakeData: state.intakeData,
+        selectedSpecialists: state.selectedSpecialists,
+        specialistTranscripts: state.specialistTranscripts
+      }) // Omit transient UI states like isSelecting
     }
   )
 );

@@ -91,7 +91,10 @@ const id = () => {
   });
 };
 
+let cachedCases: CaseItem[] | null = null;
+
 export function getCases(): CaseItem[] {
+  if (cachedCases) return cachedCases;
   try {
     const key = getCasesKey();
     let casesData = getItemSync(key);
@@ -184,7 +187,7 @@ export function getCases(): CaseItem[] {
        }
        return c;
     });
-
+    cachedCases = cases;
     return cases;
   } catch (err) {
     console.error('Failed to parse or migrate cases', err);
@@ -193,45 +196,51 @@ export function getCases(): CaseItem[] {
   }
 }
 
+let syncTimeout: any = null;
+
 async function save(cases: CaseItem[]) {
   try {
     const safeCases = JSON.parse(JSON.stringify(cases));
+    cachedCases = safeCases;
     setItemSync(getCasesKey(), JSON.stringify(safeCases));
     window.dispatchEvent(new Event('hc_cases_updated'));
 
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        
-        // Fetch current timestamps to prevent overwriting newer cloud data with stale local data
-        const { data: cloudData } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
-        const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
+      clearTimeout(syncTimeout);
+      syncTimeout = setTimeout(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          
+          // Fetch current timestamps to prevent overwriting newer cloud data with stale local data
+          const { data: cloudData } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
+          const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
 
-        for (const c of safeCases) {
-           const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
-           if (!isUUID) continue; // Skip legacy local IDs
+          for (const c of safeCases) {
+             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
+             if (!isUUID) continue; // Skip legacy local IDs
 
-           const cloudUpdated = cloudMap.get(c.id);
-           if (cloudUpdated && new Date(cloudUpdated).getTime() > new Date(c.updatedAt).getTime()) {
-             console.log(`Conflict: Cloud version of case ${c.id} is newer. Skipping upsert to prevent data loss.`);
-             continue;
-           }
+             const cloudUpdated = cloudMap.get(c.id);
+             if (cloudUpdated && new Date(cloudUpdated).getTime() > new Date(c.updatedAt).getTime()) {
+               console.log(`Conflict: Cloud version of case ${c.id} is newer. Skipping upsert to prevent data loss.`);
+               continue;
+             }
 
-           try {
-             await supabase.from('cases').upsert({
-                id: c.id,
-                user_id: session.user.id,
-                title: c.title,
-                status: c.status,
-                specialty: c.currentStage,
-                data: c,
-                updated_at: new Date().toISOString()
-             });
-           } catch (upsertErr) {
-             console.error(`Failed to sync case ${c.id} to cloud:`, upsertErr);
-           }
+             try {
+               await supabase.from('cases').upsert({
+                  id: c.id,
+                  user_id: session.user.id,
+                  title: c.title,
+                  status: c.status,
+                  specialty: c.currentStage,
+                  data: c,
+                  updated_at: new Date().toISOString()
+               });
+             } catch (upsertErr) {
+               console.error(`Failed to sync case ${c.id} to cloud:`, upsertErr);
+             }
+          }
         }
-      }
+      }, 2000);
     }
   } catch (err) {
     console.error('Failed to save cases. LocalStorage might be full.', err);

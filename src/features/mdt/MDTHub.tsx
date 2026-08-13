@@ -57,15 +57,19 @@ export default function MDTHub() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { 
-    phase, setPhase, 
-    dashboardTab, setDashboardTab, 
-    intakeData, setIntakeData, 
-    selectedSpecialists, setSelectedSpecialists, 
-    specialistTranscripts, setSpecialistTranscripts, 
-    isSelecting, setIsSelecting, 
-    reset: resetMDTStore 
-  } = useMDTStore();
+  const phase = useMDTStore(s => s.phase);
+  const setPhase = useMDTStore(s => s.setPhase);
+  const dashboardTab = useMDTStore(s => s.dashboardTab);
+  const setDashboardTab = useMDTStore(s => s.setDashboardTab);
+  const intakeData = useMDTStore(s => s.intakeData);
+  const setIntakeData = useMDTStore(s => s.setIntakeData);
+  const selectedSpecialists = useMDTStore(s => s.selectedSpecialists);
+  const setSelectedSpecialists = useMDTStore(s => s.setSelectedSpecialists);
+  const specialistTranscripts = useMDTStore(s => s.specialistTranscripts);
+  const setSpecialistTranscripts = useMDTStore(s => s.setSpecialistTranscripts);
+  const isSelecting = useMDTStore(s => s.isSelecting);
+  const setIsSelecting = useMDTStore(s => s.setIsSelecting);
+  const resetMDTStore = useMDTStore(s => s.reset);
 
   const [historyReport, setHistoryReport] = useState(null);
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
@@ -314,6 +318,20 @@ export default function MDTHub() {
         return '#F8FAFC';
     }
   };
+
+  const handleSpecialistUpdate = useCallback((id: string, transcript: any[]) => {
+    setSpecialistTranscripts((prev) => ({ ...prev, [id]: transcript }));
+  }, [setSpecialistTranscripts]);
+
+  const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
+    setSpecialistTranscripts((prev) => {
+      const updated = { ...prev, [id]: transcript };
+      if (Object.keys(updated).length === selectedSpecialists.length) {
+        setTimeout(() => setPhase('conference'), 2000);
+      }
+      return updated;
+    });
+  }, [setSpecialistTranscripts, selectedSpecialists.length, setPhase]);
 
   return (
     <div
@@ -714,18 +732,8 @@ export default function MDTHub() {
                       intakeData={intakeData}
                       initialMessages={specialistTranscripts[s.id] || []}
                       activeDifferentials={activeCase?.differentials || []}
-                      onUpdate={(id, transcript) => {
-                        setSpecialistTranscripts((prev) => ({ ...prev, [id]: transcript }));
-                      }}
-                      onComplete={(id, transcript) => {
-                        setSpecialistTranscripts((prev) => {
-                          const updated = { ...prev, [id]: transcript };
-                          if (Object.keys(updated).length === selectedSpecialists.length) {
-                            setTimeout(() => setPhase('conference'), 2000);
-                          }
-                          return updated;
-                        });
-                      }}
+                      onUpdate={handleSpecialistUpdate}
+                      onComplete={handleSpecialistComplete}
                     />
                   ))}
                 </div>

@@ -1,10 +1,18 @@
 import { getProfile } from './ProfileEngine';
 import { getActiveCase } from './CaseEngine';
 
+let cachedContext = null;
+let lastProfileHash = null;
+
 export function compilePatientContext() {
   let contextParts = [];
   const profile = getProfile();
   const activeCase = getActiveCase();
+
+  const currentHash = `${profile?.id}-${profile?.updatedAt}-${activeCase?.id}-${activeCase?.updatedAt}`;
+  if (cachedContext && lastProfileHash === currentHash) {
+    return cachedContext;
+  }
 
   // 1. Profile Context (compact)
   let profileStr = `PATIENT PROFILE:\n`;
@@ -61,12 +69,19 @@ export function compilePatientContext() {
     contextParts.push(historyStr);
   }
 
-  if (contextParts.length === 0) return '';
+  if (contextParts.length === 0) {
+    cachedContext = '';
+    lastProfileHash = currentHash;
+    return '';
+  }
   
   // Hard cap to prevent runaway context growth
   let result = `\n\n=== PATIENT CONTEXT ===\n${contextParts.join('\n')}========================\n`;
   if (result.length > 1500) {
     result = result.substring(0, 1497) + '...\n';
   }
+  
+  cachedContext = result;
+  lastProfileHash = currentHash;
   return result;
 }

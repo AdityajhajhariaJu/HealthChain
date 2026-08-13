@@ -614,7 +614,7 @@ const PainSlider = ({ onSubmit, color }) => {
 };
 // ─── MDT Specialist Panel (10-question AI Chat) ─────────────────────────────
 
-export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeData, onComplete, initialMessages = [] as any[], onUpdate, isPaused = false, activeDifferentials = [] as any[] }: any) {
+export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeData, onComplete, initialMessages = [] as any[], onUpdate, isPaused = false, activeDifferentials = [] as any[] }: any) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const [status, setStatus] = useState(() => {
@@ -1031,7 +1031,7 @@ export function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeDa
       </AnimatePresence>
     </motion.div>
   );
-}
+});
 
 // ─── MDT Conference Panel (Cross-Specialty Debate) ─────────────────────────
 

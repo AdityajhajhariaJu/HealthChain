@@ -604,7 +604,19 @@ export async function generateParallelMultiReport(
   let formattedTranscripts = '';
   for (const [specialistId, messages] of Object.entries(transcriptsObject)) {
     formattedTranscripts += `\n\n--- Specialist (${specialistId}) Transcript ---\n`;
-    messages.forEach((m) => {
+    
+    // Truncation: Keep first 2 and last 6 messages if transcript is too long
+    const totalMsgs = messages.length;
+    let msgsToFormat = messages;
+    if (totalMsgs > 10) {
+      msgsToFormat = [
+        ...messages.slice(0, 2),
+        { role: 'system', text: `... [${totalMsgs - 8} messages omitted for brevity] ...` },
+        ...messages.slice(totalMsgs - 6)
+      ];
+    }
+    
+    msgsToFormat.forEach((m) => {
       formattedTranscripts += `${m.role.toUpperCase()}: ${m.text}\n`;
       if (m.internalThoughts) formattedTranscripts += `[Internal Thoughts: ${m.internalThoughts}]\n`;
       if (m.currentHypotheses && m.currentHypotheses.length > 0) {
