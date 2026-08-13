@@ -216,10 +216,6 @@ export default function Landing() {
             <h3 className={styles.statValue}>&lt;<AnimatedCounter from={0} to={3} suffix="m" /></h3>
             <p className={styles.statLabel}>Avg Analysis Time</p>
           </div>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}><AnimatedCounter from={0} to={4.9} duration={1} />★</h3>
-            <p className={styles.statLabel}>User Rating</p>
-          </div>
         </div>
       </section>
 
