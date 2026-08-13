@@ -148,6 +148,10 @@ export default function AvaHealthBuddy() {
   };
 
   const handleSend = async (text: string) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     if ((!text.trim() && attachments.length === 0) || isTyping || isStreaming) return;
 
     let finalContent = text.trim();

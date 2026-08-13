@@ -143,6 +143,10 @@ export default function MDTHub() {
   ], [activeCase?.medicalRecords, medicalRecords]);
 
   const handleIntakeComplete = async (data) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     setIntakeData(data);
     setIsSelecting(true);
     try {

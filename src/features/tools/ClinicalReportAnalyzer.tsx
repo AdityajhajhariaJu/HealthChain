@@ -76,6 +76,10 @@ export default function ClinicalReportAnalyzer() {
   }, [file, loading, result]);
 
   const handleFileChange = async (e) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
@@ -233,6 +237,10 @@ export default function ClinicalReportAnalyzer() {
   };
 
   const handleDrop = (e: any) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       if (fileInputRef.current) {

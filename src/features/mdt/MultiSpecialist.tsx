@@ -230,6 +230,10 @@ export default function MultiSpecialist() {
       : allAvailableSpecialists.filter((s) => s.category === activeCategory);
 
   const handleStart = () => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     if (!symptomInput.trim() && selected.length === 0) return;
     let activeSelected = [...selected];
     const intakeText = symptomInput.trim() || activeCase?.intakeData?.chiefComplaint || activeCase?.title || 'Custom multi-specialist review';

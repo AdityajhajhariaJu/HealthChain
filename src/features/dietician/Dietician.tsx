@@ -232,6 +232,10 @@ export default function Dietician() {
   };
 
   const handleGeneratePlan = async () => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     setIsGeneratingPlan(true);
     try {
       const plan = await generateMealPlan(profile, 7);

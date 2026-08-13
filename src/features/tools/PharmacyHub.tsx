@@ -57,6 +57,10 @@ export default function PharmacyHub() {
   }, [query, loading, result, searched]);
 
   const handleSearch = async (e) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.location.href = '/signup';
+      return;
+    }
     e.preventDefault();
     if (!query.trim()) return;
 
