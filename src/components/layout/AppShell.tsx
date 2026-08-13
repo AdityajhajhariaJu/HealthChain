@@ -207,7 +207,7 @@ export default function AppShell() {
       )}
 
       <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
-        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
+        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
           <BrandPulseBanner />
         </div>
         {!['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p)) && (
