@@ -11,6 +11,8 @@ import {
   Pill,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   Star,
   CheckCircle2
 } from 'lucide-react';
@@ -40,12 +42,32 @@ const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number
   return <span ref={ref}>{from}{suffix}</span>;
 };
 
+const landingFaqs = [
+  {
+    question: "Is HealthChain a replacement for my doctor?",
+    answer: "No. HealthChain is an AI-powered diagnostic navigator. It is designed to help you organize your medical history, explore potential diagnostic pathways, and prepare for specialist visits. It does not provide definitive medical diagnoses or treatments."
+  },
+  {
+    question: "How is my medical data secured?",
+    answer: "Your privacy is our top priority. HealthChain uses enterprise-grade encryption for all data at rest and in transit. By default, your data is stored locally in your browser unless you explicitly create an account for cloud sync."
+  },
+  {
+    question: "How does the MDT Consensus Hub work?",
+    answer: "The Multidisciplinary Team (MDT) Consensus Hub simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
+  },
+  {
+    question: "Are the AI agents trained on real medical literature?",
+    answer: "Yes, our reasoning engines are deeply integrated with PubMed, ClinicalTrials.gov, and OMIM, ensuring that every insight is backed by peer-reviewed research and cited accordingly."
+  }
+];
+
 // --- Main Landing Component ---
 
 export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Scroll listener for navbar glass effect
   useEffect(() => {
@@ -147,33 +169,59 @@ export default function Landing() {
             </motion.p>
             
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
-              <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={() => navigate('/signup')}>
-                Start Your Investigation <ArrowRight size={18} />
-              </button>
-            </motion.div>
+                <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={() => navigate('/signup')}>
+                  Start Your Investigation <ArrowRight size={18} />
+                </button>
+                <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
+                  View Pricing
+                </button>
+              </motion.div>
           </motion.div>
         </div>
       </div>
 
       {/* 3. Trusted By / Logos */}
       <div className={styles.logoMarqueeSection}>
-        <p className={styles.logoMarqueeTitle}>POWERING THE NEXT GENERATION OF CLINICAL DISCOVERY</p>
+        <p className={styles.logoMarqueeTitle}>BUILT ON THE WORLD'S LEADING CLINICAL DATABASES</p>
         <div className={styles.marqueeContainer}>
           <div className={styles.marqueeTrack}>
-            <span className={styles.textLogo}>Google Gemini</span>
-            <span className={styles.textLogo}>Supabase</span>
             <span className={styles.textLogo}>PubMed</span>
+            <span className={styles.textLogo}>NIH</span>
+            <span className={styles.textLogo}>Google Gemini</span>
             <span className={styles.textLogo}>ClinicalTrials.gov</span>
-            <span className={styles.textLogo}>Vercel</span>
+            <span className={styles.textLogo}>OMIM</span>
+            <span className={styles.textLogo}>Cochrane Library</span>
             {/* Duplicate for infinite scroll */}
-            <span className={styles.textLogo} aria-hidden="true">Google Gemini</span>
-            <span className={styles.textLogo} aria-hidden="true">Supabase</span>
             <span className={styles.textLogo} aria-hidden="true">PubMed</span>
+            <span className={styles.textLogo} aria-hidden="true">NIH</span>
+            <span className={styles.textLogo} aria-hidden="true">Google Gemini</span>
             <span className={styles.textLogo} aria-hidden="true">ClinicalTrials.gov</span>
-            <span className={styles.textLogo} aria-hidden="true">Vercel</span>
+            <span className={styles.textLogo} aria-hidden="true">OMIM</span>
+            <span className={styles.textLogo} aria-hidden="true">Cochrane Library</span>
           </div>
         </div>
       </div>
+
+      <section className={styles.statsSection}>
+        <div className={styles.statsGrid}>
+          <div className={styles.statItem}>
+            <h3 className={styles.statValue}><AnimatedCounter from={0} to={50} suffix="M+" /></h3>
+            <p className={styles.statLabel}>Papers Indexed</p>
+          </div>
+          <div className={styles.statItem}>
+            <h3 className={styles.statValue}><AnimatedCounter from={0} to={12} /></h3>
+            <p className={styles.statLabel}>Specialist Agents</p>
+          </div>
+          <div className={styles.statItem}>
+            <h3 className={styles.statValue}>&lt;<AnimatedCounter from={0} to={3} suffix="m" /></h3>
+            <p className={styles.statLabel}>Avg Analysis Time</p>
+          </div>
+          <div className={styles.statItem}>
+            <h3 className={styles.statValue}><AnimatedCounter from={0} to={4.9} duration={1} />★</h3>
+            <p className={styles.statLabel}>User Rating</p>
+          </div>
+        </div>
+      </section>
 
       {/* 4. The Problem (Emotional Hook) */}
       <section className={styles.problemSection}>
@@ -344,6 +392,36 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+        {/* FAQ Section */}
+        <section className={styles.faqSection}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
+            <p className={styles.sectionSubtitle}>Everything you need to know about the platform and your privacy.</p>
+          </div>
+          <div className={styles.faqList}>
+            {landingFaqs.map((faq, i) => (
+              <div 
+                key={i} 
+                className={`${styles.faqItem} ${openFaq === i ? styles.faqItemOpen : ''}`}
+              >
+                <button
+                  aria-expanded={openFaq === i}
+                  className={styles.faqButton}
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span className={styles.faqQuestion}>{faq.question}</span>
+                  {openFaq === i ? <ChevronUp size={20} className={styles.faqIcon} /> : <ChevronDown size={20} className={styles.faqIcon} />}
+                </button>
+                {openFaq === i && (
+                  <div className={styles.faqAnswer}>
+                    {faq.answer}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* 9. Final CTA */}
         <section className={styles.finalCtaSection}>
