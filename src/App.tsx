@@ -28,7 +28,7 @@ const MultiSpecialist = React.lazy(() => import('./features/mdt/MultiSpecialist'
 const MDTHub = React.lazy(() => import('./features/mdt/MDTHub'));
 const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
 const PharmacyHub = React.lazy(() => import('./features/tools/PharmacyHub'));
-const TalkBuddy = React.lazy(() => import('./features/consultation/TalkBuddy'));
+const AvaHealthBuddy = React.lazy(() => import('./features/consultation/AvaHealthBuddy'));
 const ClinicalReportAnalyzer = React.lazy(() => import('./features/tools/ClinicalReportAnalyzer'));
 const Settings = React.lazy(() => import('./features/profile/Settings'));
 const Dietician = React.lazy(() => import('./features/dietician/Dietician'));
@@ -313,10 +313,10 @@ export default function App() {
             }
           />
           <Route
-            path="/app/talkbuddy"
+            path="/app/ava"
             element={
               <SafeRoute>
-                <TalkBuddy />
+                <AvaHealthBuddy />
               </SafeRoute>
             }
           />

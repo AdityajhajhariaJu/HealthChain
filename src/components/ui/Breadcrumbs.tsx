@@ -10,7 +10,7 @@ const routeNames: Record<string, string> = {
   'my-cases': 'My Cases',
   pharmacy: 'Pharmacy Hub',
   dietician: 'Dietician',
-  talkbuddy: 'Ava Health Buddy',
+  ava: 'Ava Health Buddy',
   reports: 'Lab Report Analyzer',
   trials: 'Clinical Trials',
   profile: 'Medical Profile',

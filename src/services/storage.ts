@@ -28,7 +28,7 @@ export async function syncStorageFromPreferences() {
   }
 
   // Globally patch localStorage to ensure ALL direct calls across the app are synced natively
-  // and protected against QuotaExceeded errors (e.g. TalkBuddy, Dietician, Settings)
+  // and protected against QuotaExceeded errors (e.g. Ava Health Buddy, Dietician, Settings)
   const originalSetItem = localStorage.setItem.bind(localStorage);
   localStorage.setItem = function(key, value) {
     try {

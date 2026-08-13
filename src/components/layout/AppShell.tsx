@@ -48,7 +48,7 @@ const links = [
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Dietician', icon: Apple },
-  { to: '/app/talkbuddy', label: 'Ava Health Buddy', icon: Heart },
+  { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
   { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
 ];
@@ -207,10 +207,10 @@ export default function AppShell() {
       )}
 
       <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
-        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/talkbuddy'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
+        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
           <BrandPulseBanner />
         </div>
-        {!['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/talkbuddy'].some(p => location.pathname.startsWith(p)) && (
+        {!['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava'].some(p => location.pathname.startsWith(p)) && (
           <ActiveCaseBar navigate={navigate} />
         )}
         <Breadcrumbs />
@@ -241,7 +241,7 @@ export default function AppShell() {
               className="mobile-top-bar__profile" 
               onClick={() => navigate('/app/profile')} 
             />
-              <button className="mobile-top-bar__search" onClick={() => navigate('/app/talkbuddy')} aria-label="Search or Ask Talkbuddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
+              <button className="mobile-top-bar__search" onClick={() => navigate('/app/ava')} aria-label="Search or Ask Ava Health Buddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #e2e8f0', color: '#475569' }}>
                   <Heart size={12} />
                   <span style={{ fontWeight: 600, fontSize: '11px' }}>Ava</span>

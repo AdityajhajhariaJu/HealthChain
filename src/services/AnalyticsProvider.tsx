@@ -20,8 +20,8 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 
   const getFeatureFlag = (flagName: string) => {
     // Mock A/B testing infrastructure
-    // Example: TalkBuddy variations
-    if (flagName === 'talkbuddy-v2') {
+    // Example: Ava Health Buddy variations
+    if (flagName === 'ava-v2') {
       return true;
     }
     return false;

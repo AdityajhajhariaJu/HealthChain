@@ -240,7 +240,7 @@ export default function Landing() {
             <div className={styles.bentoIconBg} style={{background: 'var(--gradient-orange)'}}>
               <MessageSquare size={24} color="#fff" />
             </div>
-            <h3 className={styles.bentoTitle}>TalkBuddy AI Companion</h3>
+            <h3 className={styles.bentoTitle}>Ava Health Buddy</h3>
             <p className={styles.bentoDesc}>A 24/7 intelligent companion that remembers your entire medical history. Ask any question about your case, explore treatment alternatives, or simply get empathetic support when you're feeling overwhelmed.</p>
           </motion.div>
         </div>
