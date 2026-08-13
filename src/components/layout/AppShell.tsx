@@ -370,7 +370,7 @@ function ActiveCaseBar({ navigate }: any) {
           </strong>
         </div>
         <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/multi')}>
-          Start Multiple-Specialists <ArrowRight size={15} />
+          Start your assessment <ArrowRight size={15} />
         </button>
       </div>
     );
