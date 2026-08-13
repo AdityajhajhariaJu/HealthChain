@@ -214,19 +214,6 @@ export default function AppShell() {
           <ActiveCaseBar navigate={navigate} />
         )}
         <Breadcrumbs />
-        {localStorage.getItem('isAuthenticated') !== 'true' && (
-          <div style={{ background: '#FFFBEB', borderBottom: '1px solid #FDE68A', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-            <span style={{ fontSize: '13px', color: '#B45309' }}>
-              <strong>Guest Mode:</strong> Your data is stored locally and will be lost if you clear your browser cache.
-            </span>
-            <button 
-              onClick={() => navigate('/signup')}
-              style={{ background: '#F59E0B', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-            >
-              Save Data
-            </button>
-          </div>
-        )}
         <div style={{ minHeight: 'calc(100% - 104px)' }}>
           <Outlet />
         </div>
