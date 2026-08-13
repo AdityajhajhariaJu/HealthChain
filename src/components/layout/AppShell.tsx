@@ -250,10 +250,14 @@ export default function AppShell() {
                 <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
               </button>
               <div className="mobile-top-bar__actions">
+                <div className="mobile-top-bar__points">
+                  <Trophy size={14} color="var(--teal)" />
+                  <span>5 PTS</span>
+                </div>
                 <button className="mobile-top-bar__bell" aria-label="View notifications">
                   <Bell size={18} aria-hidden="true" />
-              </button>
-            </div>
+                </button>
+              </div>
           </div>
           <nav className="mobile-tab-bar">
             {mobileTabs.map((tab) => (
