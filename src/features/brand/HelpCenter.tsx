@@ -129,7 +129,7 @@ export default function HelpCenter() {
             </div>
             <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px' }}>Live Chat</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>Available 9 AM - 5 PM EST</p>
-            <button className="btn btn-outline" style={{ width: '100%' }}>Start Chat</button>
+            <button className="btn btn-outline" style={{ width: '100%' }} onClick={() => alert('Live chat is currently offline. Please email us.')}>Start Chat</button>
           </div>
           <div className="card" style={{ padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#F0FDFA', color: '#10B981', display: 'grid', placeItems: 'center', marginBottom: '16px' }}>
@@ -137,7 +137,7 @@ export default function HelpCenter() {
             </div>
             <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px' }}>Email Us</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>Typically replies in 2 hours</p>
-            <button className="btn btn-outline" style={{ width: '100%' }}>Send Email</button>
+            <button className="btn btn-outline" style={{ width: '100%' }} onClick={() => window.location.href = 'mailto:support@healthchain360.com'}>Send Email</button>
           </div>
           <div className="card" style={{ padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FFFBEB', color: '#D97706', display: 'grid', placeItems: 'center', marginBottom: '16px' }}>
@@ -145,7 +145,7 @@ export default function HelpCenter() {
             </div>
             <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px' }}>Call Us</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>For urgent clinical issues</p>
-            <button className="btn btn-outline" style={{ width: '100%' }}>1-800-HLTH</button>
+            <button className="btn btn-outline" style={{ width: '100%' }} onClick={() => window.location.href = 'tel:18004584'}>1-800-HLTH</button>
           </div>
         </div>
       </div>

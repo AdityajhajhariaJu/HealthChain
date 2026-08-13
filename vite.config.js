@@ -18,7 +18,10 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'framer-motion': ['framer-motion']
+          'framer-motion': ['framer-motion'],
+          'recharts': ['recharts'],
+          'supabase': ['@supabase/supabase-js'],
+          'pdf-tools': ['jspdf', 'html2pdf.js']
         }
       }
     }

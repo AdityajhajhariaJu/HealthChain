@@ -249,13 +249,9 @@ export default function AppShell() {
                 <Bot size={14} style={{ color: 'var(--teal)', flexShrink: 0 }} />
                 <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
               </button>
-            <div className="mobile-top-bar__actions">
-              <div className="mobile-top-bar__points">
-                <Trophy size={14} color="#10B981" />
-                <span>5 PTS</span>
-              </div>
-              <button className="mobile-top-bar__bell" aria-label="View notifications">
-                <Bell size={18} aria-hidden="true" />
+              <div className="mobile-top-bar__actions">
+                <button className="mobile-top-bar__bell" aria-label="View notifications">
+                  <Bell size={18} aria-hidden="true" />
               </button>
             </div>
           </div>

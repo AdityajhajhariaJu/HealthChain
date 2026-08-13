@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Activity,
   ArrowRight,
@@ -108,6 +108,7 @@ export default function Landing() {
           </button>
         </div>
       </nav>
+      <main>
 
       {/* 2. Vibrant Hero Section */}
       <div className={styles.heroWrapper}>
@@ -333,35 +334,36 @@ export default function Landing() {
           </motion.div>
           
           <div className={styles.testimonialControls}>
-            <button onClick={() => setActiveTestimonial(p => (p === 0 ? testimonials.length - 1 : p - 1))} className={styles.controlBtn}><ChevronLeft size={24}/></button>
-            <div className={styles.testimonialDots}>
+            <button aria-label="Previous testimonial" onClick={() => setActiveTestimonial(p => (p === 0 ? testimonials.length - 1 : p - 1))} className={styles.controlBtn}><ChevronLeft size={24}/></button>
+            <div className={styles.testimonialDots} role="tablist">
               {testimonials.map((_, i) => (
-                <div key={i} className={`${styles.dot} ${i === activeTestimonial ? styles.activeDot : ''}`} onClick={() => setActiveTestimonial(i)} />
+                <button key={i} aria-label={`Go to testimonial ${i + 1}`} role="tab" aria-selected={i === activeTestimonial} className={`${styles.dot} ${i === activeTestimonial ? styles.activeDot : ''}`} onClick={() => setActiveTestimonial(i)} />
               ))}
             </div>
-            <button onClick={() => setActiveTestimonial(p => (p === testimonials.length - 1 ? 0 : p + 1))} className={styles.controlBtn}><ChevronRight size={24}/></button>
+            <button aria-label="Next testimonial" onClick={() => setActiveTestimonial(p => (p === testimonials.length - 1 ? 0 : p + 1))} className={styles.controlBtn}><ChevronRight size={24}/></button>
           </div>
         </div>
       </section>
 
-      {/* 9. Final CTA */}
-      <section className={styles.finalCtaSection}>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className={styles.finalCtaBox}
-        >
-          <div className={styles.finalCtaMesh}></div>
-          <div className={styles.finalCtaContent}>
-            <h2 className={styles.finalCtaTitle}>Ready to find your root cause?</h2>
-            <p className={styles.finalCtaDesc}>Join thousands of patients who took back control of their health.</p>
-            <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={() => navigate('/signup')}>
-              Create Free Account <ArrowRight size={18} />
-            </button>
-          </div>
-        </motion.div>
-      </section>
+        {/* 9. Final CTA */}
+        <section className={styles.finalCtaSection}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className={styles.finalCtaBox}
+          >
+            <div className={styles.finalCtaMesh}></div>
+            <div className={styles.finalCtaContent}>
+              <h2 className={styles.finalCtaTitle}>Ready to find your root cause?</h2>
+              <p className={styles.finalCtaDesc}>Join thousands of patients who took back control of their health.</p>
+              <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={() => navigate('/signup')}>
+                Create Free Account <ArrowRight size={18} />
+              </button>
+            </div>
+          </motion.div>
+        </section>
+      </main>
 
       {/* 10. Footer */}
       <footer className={styles.footer}>
@@ -374,14 +376,14 @@ export default function Landing() {
           </div>
           <div className={styles.footerLinks}>
             <h4>Product</h4>
-            <a href="/login">AI Engine</a>
-            <a href="/pricing">Pricing</a>
-            <a href="/changelog">Changelog</a>
+            <Link to="/login">AI Engine</Link>
+            <Link to="/pricing">Pricing</Link>
+            <Link to="/changelog">Changelog</Link>
           </div>
           <div className={styles.footerLinks}>
             <h4>Company</h4>
-            <a href="/terms">Terms of Service</a>
-            <a href="/privacy">Privacy Policy</a>
+            <Link to="/terms">Terms of Service</Link>
+            <Link to="/privacy">Privacy Policy</Link>
             <a href="mailto:support@healthchain360.com">Contact Us</a>
           </div>
         </div>
