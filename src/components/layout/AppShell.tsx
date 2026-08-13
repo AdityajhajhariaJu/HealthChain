@@ -68,7 +68,17 @@ export default function AppShell() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [profile, setProfile] = useState(getProfile());
 
+  const checkGuestAccess = (path: string, e?: React.MouseEvent) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true' && path !== '/app/today' && path !== '/app/profile') {
+      if (e) e.preventDefault();
+      navigate('/signup');
+      return false;
+    }
+    return true;
+  };
+
   const handleNavClick = (path: string) => {
+    if (!checkGuestAccess(path)) return;
     triggerHapticLight();
     navigate(path);
     setShowMoreMenu(false);
@@ -120,6 +130,7 @@ export default function AppShell() {
                 key={l.to}
                 to={l.to}
                 end={l.to === '/app'}
+                onClick={(e) => checkGuestAccess(l.to, e)}
                 className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
               >
                 <l.icon size={18} aria-hidden="true" />
@@ -155,6 +166,7 @@ export default function AppShell() {
                   <NavLink
                     key={h.id}
                     to={`/app/cases/${h.id}`}
+                    onClick={(e) => checkGuestAccess(`/app/cases/${h.id}`, e)}
                     className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
                     style={{
                       fontSize: '13px',
@@ -186,6 +198,7 @@ export default function AppShell() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
             <NavLink
               to="/app/settings"
+              onClick={(e) => checkGuestAccess('/app/settings', e)}
               className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
             >
               <Settings size={18} />
@@ -265,7 +278,8 @@ export default function AppShell() {
                 key={tab.to}
                 to={tab.to}
                 className={({ isActive }) => `mobile-tab ${isActive ? 'active' : ''}`}
-                onClick={() => {
+                onClick={(e) => {
+                  if (!checkGuestAccess(tab.to, e)) return;
                   Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
                   setShowMoreMenu(false);
                 }}
@@ -323,7 +337,7 @@ export default function AppShell() {
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map(l => (
                     <button
                       key={l.to}
-                      onClick={() => navigate(l.to)}
+                      onClick={() => handleNavClick(l.to)}
                       className="more-menu-item"
                       style={{ border: 'none', background: 'none', outline: 'none' }}
                     >
@@ -332,7 +346,7 @@ export default function AppShell() {
                     </button>
                   ))}
                   <button 
-                    onClick={() => navigate('/app/settings')} 
+                    onClick={() => handleNavClick('/app/settings')} 
                     className="more-menu-item"
                     style={{ border: 'none', background: 'none', outline: 'none' }}
                   >

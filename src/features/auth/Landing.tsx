@@ -67,6 +67,11 @@ export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+
+  const handleStartInvestigation = () => {
+    localStorage.setItem('hc_guest_mode', 'true');
+    navigate('/app/today');
+  };
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Scroll listener for navbar glass effect
@@ -125,7 +130,7 @@ export default function Landing() {
           <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/login')}>
             Log In
           </button>
-          <button className={`btn btn-primary ${styles.navButton}`} onClick={() => navigate('/signup')}>
+          <button className={`btn btn-primary ${styles.navButton}`} onClick={handleStartInvestigation}>
             Start Investigation
           </button>
         </div>
@@ -169,7 +174,7 @@ export default function Landing() {
             </motion.p>
             
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
-                <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={() => navigate('/signup')}>
+                <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={handleStartInvestigation}>
                   Start Your Investigation <ArrowRight size={18} />
                 </button>
                 <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
