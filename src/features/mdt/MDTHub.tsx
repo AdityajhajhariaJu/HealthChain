@@ -450,13 +450,27 @@ export default function MDTHub() {
                 icon={Activity}
                 label="Case context"
                 active={phase === 'intake'}
-                completed={phase === 'dashboard'}
+                completed={phase !== 'intake'}
               />
               <StepDivider />
               <Step
                 icon={Users}
                 label="Collaboration Board"
                 active={phase === 'dashboard'}
+                completed={phase === 'conference' || phase === 'assessment' || phase === 'report'}
+              />
+              <StepDivider />
+              <Step
+                icon={BrainCircuit}
+                label="Expert Correlation"
+                active={phase === 'conference' || phase === 'assessment'}
+                completed={phase === 'report'}
+              />
+              <StepDivider />
+              <Step
+                icon={FileText}
+                label="Consensus Report"
+                active={phase === 'report'}
                 completed={false}
               />
           </div>
