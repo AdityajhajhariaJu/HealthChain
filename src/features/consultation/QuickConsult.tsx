@@ -32,12 +32,12 @@ export default function QuickConsult() {
   );
 
   const handleStartConsult = async () => {
-    if (!selectedSpecialist || !symptomInput.trim()) return;
+    if (!selectedSpecialist) return;
     
-    const caseTitle = symptomInput.split(' ').slice(0, 5).join(' ') + '...';
+    const caseTitle = `Quick Consult: ${selectedSpecialist.label}`;
     const newCase = createCaseDraft({
       title: caseTitle,
-      intakeData: { chiefComplaint: symptomInput },
+      intakeData: { chiefComplaint: "User initiated quick consult." },
       specialists: [selectedSpecialist.label]
     });
     
@@ -117,37 +117,12 @@ export default function QuickConsult() {
                   <span style={{ color: '#2563EB', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>QUICK CONSULT</span>
                 </div>
                 <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
-                  What brings you here today?
+                  Who would you like to consult?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>
-                  One-on-one specialist assessment.
+                  Select a specialist for a one-on-one assessment.
                 </p>
               </div>
-            </div>
-
-            <div style={{ marginBottom: '32px' }}>
-              <textarea
-                value={symptomInput}
-                onChange={(e) => setSymptomInput(e.target.value)}
-                placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
-                style={{
-                  width: '100%',
-                  minHeight: '160px',
-                  padding: '20px',
-                  borderRadius: 'var(--radius-lg, 12px)',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '16px',
-                  resize: 'vertical',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  background: '#FFF',
-                  color: '#0F172A',
-                  transition: 'border-color 0.2s',
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-                }}
-                onFocus={(e) => (e.target.style.borderColor = '#2563EB')}
-                onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
-              />
             </div>
 
             <div>
@@ -235,16 +210,16 @@ export default function QuickConsult() {
               <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
                 <button
                   onClick={handleStartConsult}
-                  disabled={!selectedSpecialist || !symptomInput.trim()}
+                  disabled={!selectedSpecialist}
                   style={{
                     padding: '16px 32px',
-                    background: selectedSpecialist && symptomInput.trim() ? '#0F172A' : '#E2E8F0',
+                    background: selectedSpecialist ? '#0F172A' : '#E2E8F0',
                     color: '#FFF',
                     border: 'none',
                     borderRadius: '999px',
                     fontWeight: 700,
                     fontSize: '16px',
-                    cursor: selectedSpecialist && symptomInput.trim() ? 'pointer' : 'not-allowed',
+                    cursor: selectedSpecialist ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
