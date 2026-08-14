@@ -434,18 +434,31 @@ export default function MDTHub() {
         </div>
 
         {/* Progress Stepper (Pill Style) */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              background: 'rgba(255,255,255,0.7)',
-              padding: '6px',
-              borderRadius: '999px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-              border: '1px solid rgba(255,255,255,0.6)',
-            }}
-          >
+        <div 
+          className="hide-scrollbar"
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-start', 
+            marginBottom: '24px',
+            width: '100%',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: '4px', // avoid scrollbar clipping on some browsers
+            paddingLeft: '1px' // ensure shadow isn't clipped
+          }}
+        >
+          <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'rgba(255,255,255,0.7)',
+                padding: '6px',
+                borderRadius: '999px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                border: '1px solid rgba(255,255,255,0.6)',
+              }}
+            >
               <Step
                 icon={Activity}
                 label="Case context"
@@ -473,6 +486,7 @@ export default function MDTHub() {
                 active={phase === 'report'}
                 completed={false}
               />
+          </div>
           </div>
         </div>
 
