@@ -42,6 +42,16 @@ export const ALL_SPECIALISTS = [
     border: 'rgba(99,102,241,0.2)',
   },
   {
+    id: 'gynae',
+    category: 'Other',
+    label: 'Gynecologist',
+    desc: "Women's health",
+    icon: Stethoscope,
+    color: '#D946EF',
+    bg: 'rgba(217,70,239,0.08)',
+    border: 'rgba(217,70,239,0.2)',
+  },
+  {
     id: 'ortho',
     category: 'Structural',
     label: 'Orthopaedic Surgeon',
@@ -204,15 +214,5 @@ export const ALL_SPECIALISTS = [
     color: '#E11D48',
     bg: 'rgba(225,29,72,0.08)',
     border: 'rgba(225,29,72,0.2)',
-  },
-  {
-    id: 'gynae',
-    category: 'Other',
-    label: 'Gynecologist',
-    desc: "Women's health",
-    icon: Stethoscope,
-    color: '#D946EF',
-    bg: 'rgba(217,70,239,0.08)',
-    border: 'rgba(217,70,239,0.2)',
   },
 ];
