@@ -234,22 +234,6 @@ export default function QuickConsult() {
                         >
                           <Icon size={20} />
                         </div>
-                        {/* Live/Ready Badge */}
-                        <div style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '4px', 
-                          background: isSelected ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.6)', 
-                          padding: '3px 6px', 
-                          borderRadius: '999px', 
-                          border: `1px solid ${isSelected ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.8)'}`,
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                        }}>
-                           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: isSelected ? '#2563EB' : '#10B981', boxShadow: isSelected ? '0 0 4px rgba(37,99,235,0.4)' : '0 0 4px rgba(16,185,129,0.4)' }} />
-                           <span style={{ fontSize: '9px', fontWeight: 800, color: isSelected ? '#2563EB' : '#10B981', letterSpacing: '0.3px' }}>
-                             {isSelected ? 'READY' : 'LIVE'}
-                           </span>
-                        </div>
                       </div>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
                       <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
