@@ -245,20 +245,22 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #0F172A;
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    color: #0F172A;
+    border: 1px solid rgba(15, 23, 42, 0.1);
     border-radius: 12px;
     padding: 10px 20px;
     cursor: pointer;
     transition: all 0.25s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
   .storeBadge:hover {
-    background: #1E293B;
+    background: #f8fafc;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: rgba(15, 23, 42, 0.2);
   }
 
   .storeBadgeText {
