@@ -27,13 +27,15 @@ export default function Breadcrumbs() {
     return null;
   }
 
+  const isZeroMargin = ['/app/consult', '/app/collab', '/app/ava'].some(p => location.pathname.startsWith(p));
+
   return (
     <nav aria-label="breadcrumb" style={{ 
       padding: '10px 16px', 
       backgroundColor: 'var(--surface)', 
       border: '1px solid var(--border)', 
       borderRadius: '12px',
-      marginBottom: '20px',
+      marginBottom: isZeroMargin ? 0 : '20px',
       boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
     }}>
       <ol style={{ 
