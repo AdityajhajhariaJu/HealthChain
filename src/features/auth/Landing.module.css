@@ -231,6 +231,59 @@
     transform: translateY(-4px);
     box-shadow: 0 20px 35px -5px rgba(15, 23, 42, 0.4);
   }
+
+  .storeBadges {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 20px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .storeBadge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0F172A;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .storeBadge:hover {
+    background: #1E293B;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3);
+  }
+
+  .storeBadgeText {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.1;
+  }
+  .storeBadgeSmall {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+  .storeBadgeName {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  @media (max-width: 480px) {
+    .storeBadges { flex-direction: column; align-items: center; }
+    .storeBadge { width: 200px; justify-content: center; }
+  }
   
   /* Floating elements */
   .floatingCard1, .floatingCard2 {

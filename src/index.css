@@ -1115,3 +1115,30 @@ html.dark-theme body {
   }
 }
 
+/* Coming Soon Flash for Store Badges */
+.coming-soon-flash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #00B894;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-radius: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+.coming-soon-flash.flash {
+  animation: comingSoonFlash 1.6s ease-out forwards;
+}
+@keyframes comingSoonFlash {
+  0% { opacity: 0; transform: scale(0.9); }
+  10% { opacity: 1; transform: scale(1); }
+  70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.02); }
+}
