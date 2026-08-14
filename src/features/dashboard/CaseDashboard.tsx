@@ -142,10 +142,10 @@ export default function CaseDashboard() {
           </div>
           <button
             className="btn"
-            onClick={() => navigate('/app/multi')}
+            onClick={() => navigate('/app/consult')}
             style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center' }}
           >
-            <Stethoscope size={18} /> Start parallel review
+            <Stethoscope size={18} /> Start Quick Consult
           </button>
         </div>
       </section>
@@ -176,7 +176,7 @@ export default function CaseDashboard() {
               <div>
                 <h2 style={{ margin: 0, fontSize: 21 }}>Your next actions</h2>
                 <p style={{ margin: '5px 0 0', color: 'var(--text-muted)', fontSize: 14 }}>
-                  Actions from your active multidisciplinary cases.
+                  Actions from your active collaborative cases.
                 </p>
               </div>
               <span className="badge badge-teal">{nextActions.length} to focus on</span>
@@ -268,8 +268,8 @@ export default function CaseDashboard() {
                   Reopen a case as reports, appointments, or symptoms evolve.
                 </p>
               </div>
-              <button className="btn btn-outline btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/app/multi')}>
-                <Plus size={15} /> Parallel review
+              <button className="btn btn-outline btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/app/consult')}>
+                <Plus size={15} /> Quick Consult
               </button>
             </div>
             {cases.length ? (
@@ -412,14 +412,14 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
             </button>
             <button
               className="btn btn-primary"
-              onClick={() => navigate('/app/multi')}
+              onClick={() => navigate('/app/consult')}
               style={{ background: '#fff', color: '#0f172a' }}
             >
-              <GitMerge size={17} /> Run Parallel Review
+              <GitMerge size={17} /> Run Quick Consult
             </button>
             <button
               className="btn btn-outline"
-              onClick={() => navigate(`/app/mdthub?caseId=${item.id}`)}
+              onClick={() => navigate(`/app/collab?caseId=${item.id}`)}
               style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}
             >
               <Network size={17} /> Request MDT Consensus
@@ -473,7 +473,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
               <section className="card" style={{ padding: 24 }}>
                  <h2 style={{ fontSize: 20, margin: '0 0 10px' }}>Current Case Synthesis</h2>
                  <p style={{ margin: 0, lineHeight: 1.7, color: '#334155' }}>
-                   {report.executiveSummary || 'This case is waiting for its first evidence synthesis. Start a parallel review to build the initial clinical picture.'}
+                   {report.executiveSummary || 'This case is waiting for its first evidence synthesis. Start a Quick Consult to build the initial clinical picture.'}
                  </p>
               </section>
               <section className="card" style={{ padding: 24 }}>
@@ -605,7 +605,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                                 <div>
                                    <strong style={{ fontSize: 15, color: isReview ? (isMDT ? '#065F46' : '#3730A3') : '#334155', display: 'block', marginBottom: 2 }}>
-                                      {isReview ? `${isMDT ? 'MDT Consensus' : 'Parallel Review'} Snapshot` : timelineItem.label}
+                                      {isReview ? `${isMDT ? 'MDT Consensus' : 'Quick Consult'} Snapshot` : timelineItem.label}
                                    </strong>
                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
                                       <Clock size={12} /> {formatDate(date)}
@@ -832,8 +832,8 @@ function EmptyAction({ navigate }: { navigate: any }) {
         textAlign: 'center',
       }}
     >
-      Your next action will appear after a parallel specialist review.{' '}
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/multi')}>
+      Your next action will appear after a Quick Consult assessment.{' '}
+      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/consult')}>
         Start one now
       </button>
     </div>
@@ -848,8 +848,8 @@ function EmptyCase({ navigate }: { navigate: any }) {
       <p style={{ color: 'var(--text-muted)', margin: '0 0 18px' }}>
         A case is the permanent container for your health journey. Add evidence and invite AI specialists to build a clinical picture.
       </p>
-      <button className="btn btn-primary" onClick={() => navigate('/app/multi')}>
-        Start parallel review <ArrowRight size={16} />
+      <button className="btn btn-primary" onClick={() => navigate('/app/consult')}>
+        Start Quick Consult <ArrowRight size={16} />
       </button>
     </div>
   );
@@ -940,7 +940,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
                 <div style={{ position: 'absolute', left: -9, top: 0, width: 14, height: 14, borderRadius: '50%', background: isReview ? '#000' : '#94a3b8', border: '2px solid #fff' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                   <strong style={{ fontSize: 15, color: '#111827' }}>
-                    {isReview ? (timelineItem.type === 'mdt' ? 'MDT Consensus Snapshot' : 'Parallel Review Snapshot') : timelineItem.label}
+                    {isReview ? (timelineItem.type === 'mdt' ? 'MDT Consensus Snapshot' : 'Quick Consult Snapshot') : timelineItem.label}
                   </strong>
                   <span style={{ fontSize: 13, color: '#6b7280' }}>{formatDate(date)}</span>
                 </div>

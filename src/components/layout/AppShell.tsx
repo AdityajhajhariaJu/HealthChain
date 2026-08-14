@@ -23,7 +23,8 @@ import {
   X,
   Bot,
   Trophy,
-  Bell
+  Bell,
+  Stethoscope
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
@@ -42,8 +43,8 @@ function AnimatedOutlet() {
 
 const links = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
-  { to: '/app/multi', label: 'Multiple-Specialists', icon: GitMerge },
-  { to: '/app/mdthub', label: 'MDT Consensus', icon: Network },
+  { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
+  { to: '/app/collab', label: 'Collaborative Specialists', icon: Network },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
@@ -55,8 +56,8 @@ const links = [
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
-  { to: '/app/multi', label: 'Multi', icon: GitMerge },
-  { to: '/app/mdthub', label: 'MDT', icon: Network },
+  { to: '/app/consult', label: 'Consult', icon: Stethoscope },
+  { to: '/app/collab', label: 'Collab', icon: Network },
   { to: '/app/trials', label: 'Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
@@ -207,13 +208,13 @@ export default function AppShell() {
         </aside>
       )}
 
-      <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
-        <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
-          <BrandPulseBanner />
-        </div>
-        {!['/app/today', '/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p)) && (
-          <ActiveCaseBar navigate={navigate} />
-        )}
+        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
+          <div style={{ display: (isMobile && ['/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/settings', '/app/ava', '/app/trials'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
+            <BrandPulseBanner />
+          </div>
+          {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p)) && (
+            <ActiveCaseBar navigate={navigate} />
+          )}
         <Breadcrumbs />
         <div style={{ minHeight: 'calc(100% - 104px)' }}>
           <Outlet />
@@ -370,8 +371,8 @@ export function ActiveCaseBar({ navigate }: any) {
               : 'Start a case so HealthChain can keep your story connected.'}
           </strong>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/multi')}>
-          Start your assessment <ArrowRight size={15} />
+        <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/consult')}>
+          Start a Quick Consult <ArrowRight size={15} />
         </button>
       </div>
     );

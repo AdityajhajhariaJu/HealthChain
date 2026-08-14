@@ -325,14 +325,14 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
           border: '1px solid rgba(255,255,255,0.5)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E8F7F4', color: '#0F8B7E' }}><Network size={18} /></div>
-              <span style={{ color: '#0F8B7E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>CASE CONFERENCE</span>
+              <span style={{ color: '#0F8B7E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>COLLABORATIVE SPECIALISTS</span>
             </div>
-            <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Bring the case together.</h2>
-            <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>This is the synthesis stage: bring together an existing case, perspectives, and evidence—without starting your story from zero.</p>
+            <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>Describe your symptoms and our AI will automatically select a team of specialists to investigate your case.</p>
           </div>
           <button
             onClick={onUploadClick}
@@ -357,6 +357,57 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
           </button>
         </div>
 
+        {/* Start Fresh Case (Now Primary) */}
+        <div style={{ marginBottom: '40px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <textarea
+              value={complaint}
+              onChange={(e) => setComplaint(e.target.value)}
+              placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
+              style={{
+                width: '100%',
+                minHeight: '160px',
+                padding: '20px',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid #E2E8F0',
+                fontSize: '16px',
+                resize: 'vertical',
+                fontFamily: 'inherit',
+                outline: 'none',
+                background: '#FFF',
+                color: '#0F172A',
+                transition: 'border-color 0.2s',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#10B981')}
+              onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
+            />
+            <button
+              onClick={() => onComplete({ chiefComplaint: complaint })}
+              disabled={!complaint.trim() || isPreparing}
+              style={{
+                alignSelf: 'flex-end',
+                padding: '16px 32px',
+                background: complaint.trim() && !isPreparing ? '#0F172A' : '#E2E8F0',
+                color: '#FFF',
+                border: 'none',
+                borderRadius: '999px',
+                fontWeight: 700,
+                fontSize: '16px',
+                cursor: complaint.trim() && !isPreparing ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s',
+              }}
+            >
+              {isPreparing ? 'Preparing...' : 'Select Specialists'} <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ height: '1px', background: '#E2E8F0', margin: '30px 0' }}></div>
+
         {/* Resume Active Case */}
         {activeCase && (
           <div 
@@ -364,8 +415,8 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
             style={{
               background: 'linear-gradient(135deg, #102A43, #163B57)',
               borderRadius: '20px',
-              padding: '26px',
-              marginBottom: '20px',
+              padding: '20px',
+              marginBottom: '16px',
               cursor: 'pointer',
               border: '1px solid rgba(255,255,255,.12)',
               display: 'flex',
@@ -377,25 +428,21 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
             onMouseOut={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #102A43, #163B57)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                <span style={{ background: 'rgba(94,234,212,.16)', color: '#99F6E4', padding: '5px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '.6px', fontWeight: 800 }}>ACTIVE CASE</span>
-                <h2 style={{ fontSize: '19px', fontWeight: 800, color: '#FFF', margin: 0 }}>{activeCase.title}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <span style={{ background: 'rgba(94,234,212,.16)', color: '#99F6E4', padding: '4px 8px', borderRadius: '20px', fontSize: '10px', letterSpacing: '.6px', fontWeight: 800 }}>ACTIVE CASE</span>
+                <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#FFF', margin: 0 }}>{activeCase.title}</h2>
               </div>
-              <p style={{ color: '#C7DCEB', margin: 0, fontSize: '14px' }}>Review what agrees, what is missing, and what to take to your next appointment.</p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-                <span style={{ padding: '6px 9px', borderRadius: 8, background: 'rgba(255,255,255,.1)', color: '#E6FFFA', fontWeight: 700, fontSize: 12 }}>{activeReviewCount} review{activeReviewCount === 1 ? '' : 's'}</span>
-                <span style={{ padding: '6px 9px', borderRadius: 8, background: 'rgba(255,255,255,.1)', color: '#E6FFFA', fontWeight: 700, fontSize: 12 }}>{activeEvidenceCount} evidence item{activeEvidenceCount === 1 ? '' : 's'}</span>
-              </div>
+              <p style={{ color: '#C7DCEB', margin: 0, fontSize: '13px' }}>Continue your existing investigation.</p>
             </div>
-            <div style={{ width: 42, height: 42, display: 'grid', placeItems: 'center', borderRadius: 14, background: '#5EEAD4', color: '#102A43' }}><ArrowRight size={21} /></div>
+            <div style={{ width: 32, height: 32, display: 'grid', placeItems: 'center', borderRadius: 10, background: '#5EEAD4', color: '#102A43' }}><ArrowRight size={16} /></div>
           </div>
         )}
 
         {/* Elevate Parallel Case */}
         {parallelCases.length > 0 && (
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
-              Continue a Parallel Specialists case
+          <div style={{ marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>
+              Resume a Quick Consult case
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {parallelCases.map(pc => (
@@ -406,7 +453,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                     background: '#FFF',
                     border: '1px solid #E2E8F0',
                     borderRadius: 'var(--radius-lg)',
-                    padding: '16px 20px',
+                    padding: '12px 16px',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     display: 'flex',
@@ -417,10 +464,10 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                   onMouseOut={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; }}
                 >
                   <div>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '15px', color: '#0F172A', fontWeight: 600 }}>{pc.title}</h4>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{new Date(pc.updatedAt || pc.createdAt).toLocaleDateString()}</p>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', color: '#0F172A', fontWeight: 600 }}>{pc.title}</h4>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>{new Date(pc.updatedAt || pc.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <ArrowRight size={18} color="#94A3B8" />
+                  <ArrowRight size={16} color="#94A3B8" />
                 </div>
               ))}
             </div>
@@ -429,9 +476,9 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
 
         {/* Review Past MDT */}
         {mdtCases.length > 0 && (
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
-              Review Past MDT Cases
+          <div>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#64748B', marginBottom: '12px' }}>
+              Review past Collaborative cases
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {mdtCases.map(mc => (
@@ -442,7 +489,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                     background: '#FFF',
                     border: '1px solid #E2E8F0',
                     borderRadius: 'var(--radius-lg)',
-                    padding: '16px 20px',
+                    padding: '12px 16px',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     display: 'flex',
@@ -453,67 +500,15 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                   onMouseOut={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; }}
                 >
                   <div>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '15px', color: '#0F172A', fontWeight: 600 }}>{mc.title}</h4>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{new Date(mc.updatedAt || mc.createdAt).toLocaleDateString()}</p>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', color: '#0F172A', fontWeight: 600 }}>{mc.title}</h4>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>{new Date(mc.updatedAt || mc.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <ArrowRight size={18} color="#94A3B8" />
+                  <ArrowRight size={16} color="#94A3B8" />
                 </div>
               ))}
             </div>
           </div>
         )}
-
-        {/* Start Fresh Case */}
-        <div>
-          <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
-            Or start a fresh case
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <p style={{ margin: '0', color: '#64748B', fontSize: 13, lineHeight: 1.5 }}>Use this only when this concern is separate from the active case. We will create a clean case file for it.</p>
-            <textarea
-              value={complaint}
-              onChange={(e) => setComplaint(e.target.value)}
-              placeholder="Describe the new concern, key symptoms, when they started, and what has already been checked..."
-              style={{
-                width: '100%',
-                minHeight: '120px',
-                padding: '16px',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid #E2E8F0',
-                fontSize: '15px',
-                resize: 'vertical',
-                fontFamily: 'inherit',
-                outline: 'none',
-                background: '#FFF',
-                color: '#0F172A',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = '#10B981')}
-              onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
-            />
-            <button
-              onClick={() => onComplete({ chiefComplaint: complaint })}
-              disabled={!complaint.trim() || isPreparing}
-              style={{
-                alignSelf: 'flex-end',
-                padding: '12px 24px',
-                background: complaint.trim() && !isPreparing ? '#0F172A' : '#E2E8F0',
-                color: '#FFF',
-                border: 'none',
-                borderRadius: '999px',
-                fontWeight: 700,
-                fontSize: '15px',
-                cursor: complaint.trim() && !isPreparing ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.2s',
-              }}
-            >
-              {isPreparing ? 'Preparing...' : 'Start fresh MDT case'} <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

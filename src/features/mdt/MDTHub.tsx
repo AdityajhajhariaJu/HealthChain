@@ -189,7 +189,7 @@ export default function MDTHub() {
       const ids = await selectMDTSpecialists(data.chiefComplaint);
       const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
       const finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
-      const firstPassMaterial = `This case was elevated from a Parallel Specialist review. The patient's initial concern was: ${data.chiefComplaint}\n\nPlease cross-correlate their existing evidence and prior specialist opinions to build an MDT consensus. Identify overlaps, conflicts, missing evidence, and the most useful next questions.`;
+      const firstPassMaterial = `This case was elevated from a Parallel Specialist review. The patient's initial concern was: ${data.chiefComplaint}\n\nPlease cross-correlate their existing evidence and prior specialist opinions to build a Collaborative Specialists report. Identify overlaps, conflicts, missing evidence, and the most useful next questions.`;
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [
           specialist.id,
@@ -415,7 +415,7 @@ export default function MDTHub() {
               letterSpacing: '-1px',
             }}
           >
-            MDT Consensus
+            Collaborative Specialists
           </h1>
           <p
             style={{

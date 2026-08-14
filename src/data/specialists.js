@@ -19,6 +19,17 @@ import {
 } from 'lucide-react';
 
 export const ALL_SPECIALISTS = [
+  // General
+  {
+    id: 'gp',
+    category: 'General',
+    label: 'General Physician',
+    desc: 'Primary care & general health',
+    icon: Stethoscope,
+    color: '#3B82F6',
+    bg: 'rgba(59,130,246,0.08)',
+    border: 'rgba(59,130,246,0.2)',
+  },
   // Structural
   {
     id: 'physio',

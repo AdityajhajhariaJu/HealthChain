@@ -24,7 +24,7 @@ import ProductTour from './components/ui/ProductTour';
 
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
-const MultiSpecialist = React.lazy(() => import('./features/mdt/MultiSpecialist'));
+const QuickConsult = React.lazy(() => import('./features/consultation/QuickConsult'));
 const MDTHub = React.lazy(() => import('./features/mdt/MDTHub'));
 const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
 const PharmacyHub = React.lazy(() => import('./features/tools/PharmacyHub'));
@@ -280,16 +280,21 @@ export default function App() {
               </SafeRoute>
             }
           />
+          
+          {/* Redirects for old routes */}
+          <Route path="/app/multi" element={<Navigate to="/app/consult" replace />} />
+          <Route path="/app/mdthub" element={<Navigate to="/app/collab" replace />} />
+
           <Route
-            path="/app/multi"
+            path="/app/consult"
             element={
               <SafeRoute>
-                <MultiSpecialist />
+                <QuickConsult />
               </SafeRoute>
             }
           />
           <Route
-            path="/app/mdthub"
+            path="/app/collab"
             element={
               <SafeRoute>
                 <MDTHub />
