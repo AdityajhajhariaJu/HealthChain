@@ -232,7 +232,7 @@ export default function Landing() {
           className={styles.problemContent}
         >
           <h2 className={styles.problemTitle}>
-            Traditional healthcare is fundamentally broken.
+            When standard medicine hits a wall, you need a new approach.
           </h2>
           <p className={styles.problemText}>
             Doctors have 8 minutes per patient. They don't have the time to connect the complex dots of chronic, multi-systemic illness.
