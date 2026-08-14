@@ -114,7 +114,7 @@ export default function QuickConsult() {
               background: 'linear-gradient(120deg, rgba(240,253,244,0.95) 0%, rgba(239,246,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
               backgroundSize: '200% 200%',
               backdropFilter: 'blur(24px)',
-              padding: isMobile ? '20px' : '48px',
+              padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
               border: '1px solid rgba(255,255,255,0.5)',
@@ -285,7 +285,7 @@ export default function QuickConsult() {
             style={{
               background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(24px)',
-              padding: isMobile ? '20px' : '48px',
+              padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
               border: '1px solid rgba(255,255,255,0.5)',
@@ -346,7 +346,7 @@ export default function QuickConsult() {
             style={{
               background: 'rgba(255,255,255,0.8)',
               backdropFilter: 'blur(24px)',
-              padding: isMobile ? '32px' : '64px',
+              padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
               border: '1px solid rgba(255,255,255,0.5)',
