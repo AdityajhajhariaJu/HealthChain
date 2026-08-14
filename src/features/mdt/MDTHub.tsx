@@ -343,7 +343,7 @@ export default function MDTHub() {
         minHeight: '100%',
         background: getPhaseBackground(),
         transition: 'background 1.5s ease',
-        padding: isMobile ? '16px 16px' : '40px 20px',
+        padding: isMobile ? '16px 16px' : '0px 20px 40px 20px',
         position: 'relative',
         overflow: 'hidden',
       }}
