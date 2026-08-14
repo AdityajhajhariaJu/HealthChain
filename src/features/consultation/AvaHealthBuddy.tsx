@@ -149,8 +149,13 @@ export default function AvaHealthBuddy() {
 
   const handleSend = async (text: string) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      window.location.href = '/signup';
-      return;
+      const userMessageCount = messages.filter((m: any) => m.role === 'user').length;
+      if (userMessageCount >= 3) {
+        if (window.confirm("You have reached the guest limit of 3 messages. Please log in or sign up to continue chatting with Ava.")) {
+          window.location.href = '/signup';
+        }
+        return;
+      }
     }
     if ((!text.trim() && attachments.length === 0) || isTyping || isStreaming) return;
 
