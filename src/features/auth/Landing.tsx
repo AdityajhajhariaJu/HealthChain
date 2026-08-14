@@ -235,7 +235,10 @@ export default function Landing() {
             Traditional healthcare is fundamentally broken.
           </h2>
           <p className={styles.problemText}>
-            Doctors have 8 minutes per patient. They don't have the time to connect the complex dots of chronic, multi-systemic illness. You've seen 5 doctors. Your labs are "normal." But you still feel terrible. You are not crazy. You just need a better detective.
+            Doctors have 8 minutes per patient. They don't have the time to connect the complex dots of chronic, multi-systemic illness.
+          </p>
+          <p className={styles.problemText} style={{ marginTop: '24px', color: '#0F172A', fontWeight: 600 }}>
+            You've seen 5 doctors. Your labs are "normal." But you still feel terrible. You are not crazy. You just need a better detective.
           </p>
         </motion.div>
       </section>
