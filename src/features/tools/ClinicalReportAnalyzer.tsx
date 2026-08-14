@@ -78,8 +78,8 @@ export default function ClinicalReportAnalyzer() {
   const handleFileChange = async (e) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10);
-      if (currentCount >= 5) {
-        if (window.confirm("You have reached the guest limit of 5 lab reports. Please log in or sign up to analyze more reports.")) {
+      if (currentCount >= 3) {
+        if (window.confirm("You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.")) {
           window.location.href = '/signup';
         }
         return;
@@ -246,8 +246,8 @@ export default function ClinicalReportAnalyzer() {
   const handleDrop = (e: any) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10);
-      if (currentCount >= 5) {
-        if (window.confirm("You have reached the guest limit of 5 lab reports. Please log in or sign up to analyze more reports.")) {
+      if (currentCount >= 3) {
+        if (window.confirm("You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.")) {
           window.location.href = '/signup';
         }
         return;
