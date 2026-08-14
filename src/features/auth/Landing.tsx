@@ -193,6 +193,7 @@ export default function Landing() {
                     <span className={styles.storeBadgeSmall}>GET IT ON</span>
                     <span className={styles.storeBadgeName}>Google Play</span>
                   </div>
+                  <span className={styles.comingSoonTag}>Coming Soon</span>
                   <span className="coming-soon-flash">Coming Soon</span>
                 </button>
                 <button className={styles.storeBadge} onClick={(e) => {
@@ -205,6 +206,7 @@ export default function Landing() {
                     <span className={styles.storeBadgeSmall}>Download on the</span>
                     <span className={styles.storeBadgeName}>App Store</span>
                   </div>
+                  <span className={styles.comingSoonTag}>Coming Soon</span>
                   <span className="coming-soon-flash">Coming Soon</span>
                 </button>
               </motion.div>
