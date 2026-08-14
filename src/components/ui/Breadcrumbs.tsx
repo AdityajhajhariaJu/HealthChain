@@ -27,6 +27,12 @@ export default function Breadcrumbs() {
     return null;
   }
 
+  // Hide breadcrumbs on specific routes as requested
+  const hiddenRoutes = ['/app/trials', '/app/dietician', '/app/ava', '/app/my-cases', '/app/cases'];
+  if (hiddenRoutes.some(route => location.pathname.startsWith(route))) {
+    return null;
+  }
+
   const isZeroMargin = ['/app/consult', '/app/collab', '/app/ava'].some(p => location.pathname.startsWith(p));
 
   return (
