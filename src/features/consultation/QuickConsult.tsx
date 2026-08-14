@@ -185,34 +185,71 @@ export default function QuickConsult() {
                         flexShrink: 0,
                         width: '140px',
                         padding: '16px',
-                        borderRadius: '12px',
-                        border: `2px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
-                        background: isSelected ? 'linear-gradient(145deg, #EFF6FF 0%, #E0F2FE 100%)' : 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
+                        borderRadius: '16px',
+                        border: `1px solid ${isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.6)'}`,
+                        background: isSelected 
+                          ? 'rgba(239, 246, 255, 0.85)' 
+                          : 'rgba(255, 255, 255, 0.4)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'flex-start',
-                        boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.15)' : '0 2px 4px rgba(0,0,0,0.01)'
+                        boxShadow: isSelected 
+                          ? '0 12px 24px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,1)' 
+                          : '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.8)'
                       }}
-                      onMouseOver={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = 'linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%)'; } }}
-                      onMouseOut={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)'; } }}
+                      onMouseOver={(e) => { 
+                        if (!isSelected) { 
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)'; 
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; 
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1)';
+                        } 
+                      }}
+                      onMouseOut={(e) => { 
+                        if (!isSelected) { 
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.6)'; 
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)'; 
+                          e.currentTarget.style.transform = 'none';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.8)';
+                        } 
+                      }}
                     >
-                      <div 
-                        style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '10px', 
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: '12px' }}>
+                        <div 
+                          style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            borderRadius: '12px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            background: `linear-gradient(135deg, ${s.bg} 0%, ${s.bg}80 100%)`, 
+                            color: s.color,
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8), 0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                        >
+                          <Icon size={20} />
+                        </div>
+                        {/* Live/Ready Badge */}
+                        <div style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          justifyContent: 'center', 
-                          marginBottom: '12px',
-                          background: `linear-gradient(135deg, ${s.bg} 0%, ${s.bg}80 100%)`, 
-                          color: s.color,
-                          boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5)'
-                        }}
-                      >
-                        <Icon size={20} />
+                          gap: '4px', 
+                          background: isSelected ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.6)', 
+                          padding: '3px 6px', 
+                          borderRadius: '999px', 
+                          border: `1px solid ${isSelected ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.8)'}`,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                        }}>
+                           <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: isSelected ? '#2563EB' : '#10B981', boxShadow: isSelected ? '0 0 4px rgba(37,99,235,0.4)' : '0 0 4px rgba(16,185,129,0.4)' }} />
+                           <span style={{ fontSize: '9px', fontWeight: 800, color: isSelected ? '#2563EB' : '#10B981', letterSpacing: '0.3px' }}>
+                             {isSelected ? 'READY' : 'LIVE'}
+                           </span>
+                        </div>
                       </div>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
                       <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
