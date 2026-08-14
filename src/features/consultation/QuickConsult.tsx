@@ -96,11 +96,23 @@ export default function QuickConsult() {
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20, backgroundPosition: '0% 50%' }}
+            animate={{ 
+              opacity: 1, 
+              y: 0,
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+            }}
             exit={{ opacity: 0, y: -20 }}
+            transition={{
+              backgroundPosition: {
+                duration: 10,
+                ease: "linear",
+                repeat: Infinity
+              }
+            }}
             style={{
-              background: 'linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.85) 100%)',
+              background: 'linear-gradient(120deg, rgba(240,253,244,0.95) 0%, rgba(239,246,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
+              backgroundSize: '200% 200%',
               backdropFilter: 'blur(24px)',
               padding: isMobile ? '20px' : '48px',
               borderRadius: '32px',
