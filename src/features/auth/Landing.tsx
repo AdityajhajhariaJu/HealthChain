@@ -192,14 +192,12 @@ export default function Landing() {
           <div className={styles.marqueeTrack}>
             <span className={styles.textLogo}>PubMed</span>
             <span className={styles.textLogo}>NIH</span>
-            <span className={styles.textLogo}>Google Gemini</span>
             <span className={styles.textLogo}>ClinicalTrials.gov</span>
             <span className={styles.textLogo}>OMIM</span>
             <span className={styles.textLogo}>Cochrane Library</span>
             {/* Duplicate for infinite scroll */}
             <span className={styles.textLogo} aria-hidden="true">PubMed</span>
             <span className={styles.textLogo} aria-hidden="true">NIH</span>
-            <span className={styles.textLogo} aria-hidden="true">Google Gemini</span>
             <span className={styles.textLogo} aria-hidden="true">ClinicalTrials.gov</span>
             <span className={styles.textLogo} aria-hidden="true">OMIM</span>
             <span className={styles.textLogo} aria-hidden="true">Cochrane Library</span>
