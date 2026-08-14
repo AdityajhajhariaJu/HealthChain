@@ -147,7 +147,7 @@ export default function Landing() {
           animate={{ y: [0, -15, 0] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
         >
-          <CheckCircle2 size={16} color="#00D4B2" /> Analyzing 50M+ Papers...
+          <CheckCircle2 size={16} color="#00D4B2" /> Analyzing 1M+ Papers...
         </motion.div>
         
         <motion.div 
@@ -208,7 +208,7 @@ export default function Landing() {
       <section className={styles.statsSection}>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}><AnimatedCounter from={0} to={50} suffix="M+" /></h3>
+            <h3 className={styles.statValue}><AnimatedCounter from={0} to={1} suffix="M+" /></h3>
             <p className={styles.statLabel}>Papers Indexed</p>
           </div>
           <div className={styles.statItem}>
@@ -216,7 +216,7 @@ export default function Landing() {
             <p className={styles.statLabel}>Specialist Agents</p>
           </div>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>&lt;<AnimatedCounter from={0} to={3} suffix="m" /></h3>
+            <h3 className={styles.statValue}>&lt;<AnimatedCounter from={0} to={8} suffix="m" /></h3>
             <p className={styles.statLabel}>Avg Analysis Time</p>
           </div>
         </div>
