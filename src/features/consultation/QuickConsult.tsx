@@ -92,7 +92,7 @@ export default function QuickConsult() {
   }, [phase, selectedSpecialist, searchQuery]);
 
   return (
-    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', paddingTop: '20px' }}>
+    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', marginTop: isMobile ? '0' : '-8px' }}>
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <motion.div
@@ -233,6 +233,15 @@ export default function QuickConsult() {
                           }}
                         >
                           <Icon size={20} />
+                        </div>
+                        {/* Sparkle Indicator */}
+                        <div style={{ 
+                          opacity: isSelected ? 1 : 0.5, 
+                          transition: 'opacity 0.2s, transform 0.2s', 
+                          filter: isSelected ? 'drop-shadow(0 2px 4px rgba(59,130,246,0.3))' : 'grayscale(100%) opacity(50%)',
+                          transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                        }}>
+                           <span style={{ fontSize: '13px' }}>✨</span>
                         </div>
                       </div>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
