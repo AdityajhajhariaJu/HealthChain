@@ -1110,45 +1110,37 @@ function ParallelSideStory({ side }) {
             stat: 'EVIDENCE-FIRST REVIEW',
           },
         ];
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => setActive((current) => (current + 1) % frames.length), 10000);
-    return () => clearInterval(timer);
-  }, [frames.length]);
-  const frame = frames[active];
-  const Icon = frame.icon;
   return (
     <aside
       className={`parallel-rail parallel-rail--${side}`}
       aria-label="Parallel Specialists overview"
     >
-      <div className="parallel-rail__network" aria-hidden="true">
+      <div className="parallel-rail__network" aria-hidden="true" style={{ marginBottom: '24px' }}>
         <span />
         <span />
         <span />
         <i />
       </div>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={active}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.35 }}
-        >
-          <div className="parallel-rail__icon">
-            <Icon size={19} />
-          </div>
-          <div className="parallel-rail__label">{frame.label}</div>
-          <h3>{frame.title}</h3>
-          <p>{frame.text}</p>
-          <div className="parallel-rail__stat">{frame.stat}</div>
-        </motion.div>
-      </AnimatePresence>
-      <div className="parallel-rail__dots">
-        {frames.map((_, index) => (
-          <span key={index} className={index === active ? 'active' : ''} />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        {frames.map((frame, index) => {
+          const Icon = frame.icon;
+          return (
+            <motion.div 
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: index * 0.15 }}
+            >
+              <div className="parallel-rail__icon">
+                <Icon size={19} />
+              </div>
+              <div className="parallel-rail__label">{frame.label}</div>
+              <h3 style={{ fontSize: '14px', margin: '6px 0', lineHeight: 1.3 }}>{frame.title}</h3>
+              <p style={{ fontSize: '11px', minHeight: 'auto', lineHeight: 1.4 }}>{frame.text}</p>
+              <div className="parallel-rail__stat">{frame.stat}</div>
+            </motion.div>
+          );
+        })}
       </div>
     </aside>
   );
