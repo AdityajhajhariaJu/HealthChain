@@ -427,8 +427,8 @@ export default function MDTHub() {
               lineHeight: 1.5,
             }}
           >
-            {activeCase
-              ? 'Collaborative Specialists compare the perspectives and evidence already in your case to find agreement, conflict, and the next evidence to collect.'
+            {activeCase 
+                ? 'Collaborative Specialists decode your unique chain of symptoms like clinical DNA—cross-referencing perspectives to find agreement, resolve conflict, and map your next steps.'
               : 'Our AI will automatically select a team of specialists to deeply investigate your case from multiple angles.'}
           </p>
         </div>
