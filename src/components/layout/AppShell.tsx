@@ -211,7 +211,7 @@ export default function AppShell() {
         <div style={{ display: (isMobile && ['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
           <BrandPulseBanner />
         </div>
-        {!['/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p)) && (
+        {!['/app/today', '/app/multi', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/mdthub', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p)) && (
           <ActiveCaseBar navigate={navigate} />
         )}
         <Breadcrumbs />
@@ -342,7 +342,7 @@ export default function AppShell() {
   );
 }
 
-function ActiveCaseBar({ navigate }: any) {
+export function ActiveCaseBar({ navigate }: any) {
   const [activeCase, setActiveCase] = useState(getActiveCase());
   const [profile, setProfile] = useState(getProfile());
   useEffect(() => {

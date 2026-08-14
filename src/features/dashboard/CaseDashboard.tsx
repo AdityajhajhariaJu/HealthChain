@@ -23,6 +23,7 @@ import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { ActiveCaseBar } from '../../components/layout/AppShell';
 
 const formatDate = (value: string) => {
   try {
@@ -148,6 +149,10 @@ export default function CaseDashboard() {
           </button>
         </div>
       </section>
+
+      <div style={{ marginBottom: 28 }}>
+        <ActiveCaseBar navigate={navigate} />
+      </div>
 
       <div
         style={{
