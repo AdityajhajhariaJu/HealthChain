@@ -260,7 +260,7 @@ export default function Settings() {
               {isPremium ? 'HealthChain Premium Active' : 'Upgrade to Premium'}
             </div>
             <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : '#B45309', opacity: 0.8 }}>
-              {isPremium ? 'You have access to all advanced diagnostic tools.' : 'Unlock unlimited parallel MDT consultations and detailed PDF analysis.'}
+              {isPremium ? 'You have access to all advanced diagnostic tools.' : 'Unlock unlimited parallel board consultations and detailed PDF analysis.'}
             </div>
           </div>
           {!isPremium && (

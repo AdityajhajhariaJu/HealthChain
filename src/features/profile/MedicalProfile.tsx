@@ -1316,7 +1316,7 @@ export default function MedicalProfile() {
                               marginBottom: '4px',
                             }}
                           >
-                            <strong style={{ color: 'var(--text-muted)' }}>MDT Consensus:</strong>{' '}
+                            <strong style={{ color: 'var(--text-muted)' }}>Board Consensus:</strong>{' '}
                             <span style={{ fontWeight: 500 }}>
                               {event.data.topDiagnoses[0]?.condition} (
                               {event.data.topDiagnoses[0]?.confidence}%)

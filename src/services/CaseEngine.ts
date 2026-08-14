@@ -370,7 +370,7 @@ export function saveReviewSnapshot({
       {
         id: id(),
         date: now,
-        label: type === 'parallel' ? 'Parallel review complete' : 'MDT consensus reached',
+        label: type === 'parallel' ? 'Parallel review complete' : 'Board consensus reached',
         note: 'New specialist findings were added to this active case.',
       },
       ...(existing.events || []),

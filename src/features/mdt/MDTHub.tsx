@@ -153,7 +153,7 @@ export default function MDTHub() {
       const ids = (await selectMDTSpecialists(data.chiefComplaint)) || [];
       const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
       const finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
-      const firstPassMaterial = `This is a new MDT case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${data.chiefComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
+      const firstPassMaterial = `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${data.chiefComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [specialist.id, []])
       );
@@ -297,7 +297,7 @@ export default function MDTHub() {
           setHistoryReport(data.report);
           setPhase('report');
         } else {
-          alert('Invalid report format. Please upload a valid MDT JSON export.');
+          alert('Invalid report format. Please upload a valid Collaborative Board JSON export.');
         }
       } catch (err) {
         alert('Failed to parse the file.');

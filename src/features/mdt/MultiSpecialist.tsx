@@ -1097,9 +1097,9 @@ function ParallelSideStory({ side }) {
           },
           {
             icon: Layers,
-            label: 'THEN MDT',
-            title: 'Use MDT for deeper correlation.',
-            text: 'When evidence grows, take your parallel findings into an MDT consensus review.',
+            label: 'THEN COLLABORATE',
+            title: 'Use the Board for deeper correlation.',
+            text: 'When evidence grows, take your parallel findings into a board consensus review.',
             stat: 'YOUR NEXT PREMIUM STEP',
           },
           {

@@ -466,7 +466,7 @@ export default function ClinicalReportAnalyzer() {
               }}
             >
               {activeCase
-                ? 'WE WILL ANALYSE IT, SAVE THE FINDING, THEN YOU CAN CONTINUE MDT'
+                ? 'WE WILL ANALYSE IT, SAVE THE FINDING, THEN YOU CAN CONTINUE COLLABORATION'
                 : 'BLOOD WORK, X-RAY, MRI, PDF OR PRESCRIPTION'}
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>
@@ -546,7 +546,7 @@ export default function ClinicalReportAnalyzer() {
                           Evidence added to {activeCase.title}
                         </strong>
                         <span style={{ color: '#047857', fontSize: 13 }}>
-                          Your MDT correlation can now use this report with the existing Parallel
+                          Your board correlation can now use this report with the existing Parallel
                           findings.
                         </span>
                       </div>
@@ -562,7 +562,7 @@ export default function ClinicalReportAnalyzer() {
                           cursor: 'pointer',
                         }}
                       >
-                        Continue MDT correlation
+                        Continue board correlation
                       </button>
                     </div>
                   )}

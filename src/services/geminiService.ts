@@ -189,7 +189,7 @@ Your goal is to act as an incredibly intelligent, proactive, and empathetic clin
 APP KNOWLEDGE:
 1. Health Today: Dashboard with status, plans, and activity.
 2. Parallel Specialists: Multiple AI experts review file simultaneously, asking independent questions.
-3. MDT Consensus: Correlates specialist findings into a single hospital board report.
+3. Board Consensus: Correlates specialist findings into a single hospital board report.
 4. Pharmacy Hub: Tracks meds and interactions.
 5. Dietician: AI nutritional plans and tracking.
 6. Lab Report Analyzer: Extracts text/vitals from PDFs.
@@ -297,7 +297,7 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
 // ─── MDT Hub Specialized Prompts ────────────────────────────────────────────
 
 export async function selectMDTSpecialists(intakeText: string): Promise<string[]> {
-  const prompt = `You are a medical triage AI. Based on the patient's chief complaint, select the 3 to 5 most appropriate medical specialists to form a Multi-Disciplinary Team (MDT) board.
+  const prompt = `You are a medical triage AI. Based on the patient's chief complaint, select the 3 to 5 most appropriate medical specialists to form a Collaborative Board.
 Chief Complaint: "${intakeText}"
 
 Return ONLY a JSON array of specialist IDs (strings) from this list:
@@ -346,7 +346,7 @@ export async function chatWithMDTSpecialist(messages: Message[], specialist: any
     : `You may ask up to 10 questions in total to be extremely thorough. \nIf you have enough information to form a strong hypothesis, or if you reach 10 questions, output exactly "ANALYSIS_COMPLETE" in the "response" field immediately.`;
 
   const MDT_SPECIALIST_PROMPT = `You are a highly skilled ${specialist.label}. 
-You are part of a Multi-Disciplinary Team (MDT) board alongside: ${otherNames}.
+You are part of a Collaborative Board alongside: ${otherNames}.
 The patient's initial intake is:
 Chief Complaint: ${intakeData.chiefComplaint}
 History: ${intakeData.history || 'None provided'}
@@ -406,7 +406,7 @@ Return your response STRICTLY as JSON matching this format:
     if (data.candidates?.[0]) return data.candidates[0].content.parts[0].text.trim();
     return '{"response": "Could you tell me more?", "internalThoughts": "Awaiting more info", "currentHypotheses": []}';
   } catch (err) {
-    console.error('Gemini MDT specialist error:', err);
+    console.error('Gemini board specialist error:', err);
     return '{"response": "I am experiencing network issues.", "internalThoughts": "Network error", "currentHypotheses": []}';
   }
 }
@@ -425,7 +425,7 @@ export async function runMDTConference(intakeData: any, specialistData: any, med
     ])
   );
 
-  const orchestratorPrompt = `You are the Chief Clinical Orchestrator for an MDT board.
+  const orchestratorPrompt = `You are the Chief Clinical Orchestrator for a collaborative medical board.
 The patient's intake:
 Chief Complaint: ${intakeData.chiefComplaint}${recordsText}
 
@@ -443,7 +443,7 @@ Return your analysis strictly in this JSON format:
   "corroborations": ["point 1", "point 2"],
   "contentions": ["point 1", "point 2"],
   "followUpQuestions": ["question 1", "question 2"],
-  "debateSummary": "A 3-4 sentence summary of the MDT's deliberation."
+  "debateSummary": "A 3-4 sentence summary of the board's deliberation."
 }`;
 
   const payload = {
@@ -451,7 +451,7 @@ Return your analysis strictly in this JSON format:
     contents: [
       {
         role: 'user',
-        parts: [{ text: 'Run the MDT Conference based on the provided specialist data.' }],
+        parts: [{ text: 'Run the Board Conference based on the provided specialist data.' }],
       },
     ],
     generationConfig: { responseMimeType: 'application/json' },
@@ -479,7 +479,7 @@ Return your analysis strictly in this JSON format:
       corroborations: [],
       contentions: [],
       followUpQuestions: [],
-      debateSummary: "MDT consensus failed due to an error."
+      debateSummary: "Board consensus failed due to an error."
     };
   }
   return null;
@@ -496,12 +496,12 @@ export async function generateMDTReport(
       ? `\nPatient Medical Records:\n${medicalRecords.map((r) => `- ${r.testName || r.filename}: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n')}`
       : '';
 
-  const reportPrompt = `You are the Chief Clinical Orchestrator compiling the final MDT report.
+  const reportPrompt = `You are the Chief Clinical Orchestrator compiling the final board report.
 Patient Intake: ${intakeData.chiefComplaint}${recordsText}
 Conference Summary: ${conferenceData.debateSummary}
 Patient's Final Answers: ${JSON.stringify(finalAnswers)}
 
-Compile a structured, patient-safe MDT case brief. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, and make clear that a qualified clinician makes diagnoses. Return strictly as JSON:
+Compile a structured, patient-safe Collaborative Board case brief. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, and make clear that a qualified clinician makes diagnoses. Return strictly as JSON:
 {
   "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
   "urgency": "Routine | Soon | Urgent",
@@ -601,7 +601,7 @@ export async function runDebateRound(
   // Optimization: Debate logic moved to Orchestrator to save tokens and latency.
   return {
     critique: "Awaiting Orchestrator consensus.",
-    revisedHypothesis: "Deferred to MDT Orchestrator.",
+    revisedHypothesis: "Deferred to Board Orchestrator.",
     confidenceUpdate: 50
   };
 }

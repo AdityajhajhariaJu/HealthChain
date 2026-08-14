@@ -1073,7 +1073,7 @@ export function MDTConferencePanel({
           'Which relevant reports, scans, or test results can be added to this case?',
         ],
         debateSummary:
-          'The MDT case has been organised, but the current information is still evidence-light. Add clinical records and use the follow-up questions to make the next clinician conversation more focused.',
+          'The collaborative board case has been organised, but the current information is still evidence-light. Add clinical records and use the follow-up questions to make the next clinician conversation more focused.',
       };
 
       setTimeout(() => {
@@ -1485,7 +1485,7 @@ export function MDTReportPanel({
       let historyArray = stored ? JSON.parse(stored) : [];
       const newHistoryItem = {
         id: 'mdt-' + Date.now(),
-        title: intakeData?.chiefComplaint || 'Advanced MDT Consultation',
+        title: intakeData?.chiefComplaint || 'Advanced Collaborative Consultation',
         date: new Date().toLocaleDateString(),
         type: 'mdt',
         report: data,
@@ -1497,7 +1497,7 @@ export function MDTReportPanel({
       if (data.topDiagnoses && data.topDiagnoses.length > 0) {
         addCondition(data.topDiagnoses[0].condition, 'mdt_hub');
       }
-      addEvent('mdt_report', 'mdt_hub', 'MDT Conference Complete', data, true);
+      addEvent('mdt_report', 'mdt_hub', 'Board Conference Complete', data, true);
       if (data.recommendedActionPlan) {
         addActionItems(data.recommendedActionPlan, 'mdt_hub');
       }
