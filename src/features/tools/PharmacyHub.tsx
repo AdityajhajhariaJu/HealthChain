@@ -57,6 +57,17 @@ export default function PharmacyHub() {
   }, [query, loading, result, searched]);
 
   const handleSearch = async (e) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10);
+      if (currentCount >= 5) {
+        if (window.confirm("You have reached the guest limit of 5 medication searches. Please log in or sign up to access more.")) {
+          window.location.href = '/signup';
+        }
+        return;
+      }
+      localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString());
+    }
+
     e.preventDefault();
     if (!query.trim()) return;
 
