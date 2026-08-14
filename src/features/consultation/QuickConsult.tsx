@@ -12,11 +12,13 @@ import {
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, saveReviewSnapshot } from '../../services/CaseEngine';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const cachedQuickConsultStreams: any = {};
 
 export default function QuickConsult() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [phase, setPhase] = useState<'select' | 'chat' | 'done'>('select');
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
   const [symptomInput, setSymptomInput] = useState('');
@@ -90,173 +92,317 @@ export default function QuickConsult() {
   }, [phase, selectedSpecialist, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Stethoscope className="w-5 h-5 text-blue-600" />
-              Quick Consult
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">One-on-one specialist assessment</p>
-          </div>
-          {phase !== 'select' && (
-            <button 
-              onClick={() => {
-                setPhase('select');
-                setSymptomInput('');
-                setSelectedSpecialist(null);
-                setFinalTranscripts({});
-              }}
-              className="text-sm text-blue-600 font-medium hover:text-blue-700"
-            >
-              Start New
-            </button>
-          )}
-        </div>
-      </div>
+    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', paddingTop: '20px' }}>
+      <AnimatePresence mode="wait">
+        {phase === 'select' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(24px)',
+              padding: isMobile ? '20px' : '48px',
+              borderRadius: '32px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+              border: '1px solid rgba(255,255,255,0.5)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#EFF6FF', color: '#2563EB' }}>
+                    <Stethoscope size={18} />
+                  </div>
+                  <span style={{ color: '#2563EB', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>QUICK CONSULT</span>
+                </div>
+                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
+                  What brings you here today?
+                </h2>
+                <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>
+                  One-on-one specialist assessment.
+                </p>
+              </div>
+            </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <AnimatePresence mode="wait">
-          {phase === 'select' && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-8"
-            >
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">What brings you here today?</h2>
-                <textarea
-                  value={symptomInput}
-                  onChange={(e) => setSymptomInput(e.target.value)}
-                  placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
-                  className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                />
+            <div style={{ marginBottom: '32px' }}>
+              <textarea
+                value={symptomInput}
+                onChange={(e) => setSymptomInput(e.target.value)}
+                placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
+                style={{
+                  width: '100%',
+                  minHeight: '160px',
+                  padding: '20px',
+                  borderRadius: 'var(--radius-lg, 12px)',
+                  border: '1px solid #E2E8F0',
+                  fontSize: '16px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  background: '#FFF',
+                  color: '#0F172A',
+                  transition: 'border-color 0.2s',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#2563EB')}
+                onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
+              />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Select a Specialist
+                </h3>
+                <div style={{ position: 'relative' }}>
+                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      padding: '8px 12px 8px 36px',
+                      borderRadius: '8px',
+                      border: '1px solid #E2E8F0',
+                      fontSize: '14px',
+                      width: '180px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = '#2563EB')}
+                    onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
+                  />
+                </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Select a Specialist</h2>
-                  <div className="relative">
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-48"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex overflow-x-auto gap-4 pb-4 snap-x">
-                  {filteredSpecialists.map((s) => {
-                    const Icon = s.icon;
-                    const isSelected = selectedSpecialist?.id === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelectedSpecialist(s)}
-                        className={`flex-shrink-0 w-40 p-4 rounded-xl text-left border transition-all snap-start ${
-                          isSelected 
-                            ? 'border-blue-500 ring-2 ring-blue-100 bg-blue-50/50' 
-                            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
-                        }`}
+              <div style={{ 
+                display: 'flex', 
+                overflowX: 'auto', 
+                gap: '12px', 
+                paddingBottom: '16px',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}>
+                {filteredSpecialists.map((s) => {
+                  const Icon = s.icon;
+                  const isSelected = selectedSpecialist?.id === s.id;
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => setSelectedSpecialist(s)}
+                      style={{
+                        flexShrink: 0,
+                        width: '140px',
+                        padding: '16px',
+                        borderRadius: '12px',
+                        border: `2px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
+                        background: isSelected ? '#EFF6FF' : '#FFF',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.1)' : 'none'
+                      }}
+                      onMouseOver={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = '#F8FAFC'; } }}
+                      onMouseOut={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; } }}
+                    >
+                      <div 
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          borderRadius: '10px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          marginBottom: '12px',
+                          backgroundColor: s.bg, 
+                          color: s.color 
+                        }}
                       >
-                        <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
-                          style={{ backgroundColor: s.bg, color: s.color }}
-                        >
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <h3 className="font-medium text-gray-900 text-sm">{s.label}</h3>
-                        <p className="text-xs text-gray-500 mt-1">{s.desc}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={handleStartConsult}
-                    disabled={!selectedSpecialist || !symptomInput.trim()}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Start Consult
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+                        <Icon size={20} />
+                      </div>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
+                      <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
+                    </div>
+                  );
+                })}
               </div>
-            </motion.div>
-          )}
 
-          {phase === 'chat' && selectedSpecialist && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-h-[80vh] overflow-hidden flex flex-col"
-            >
-              <div className="flex-1 overflow-y-auto mb-4 -mx-6 px-6">
-                 <SpecialistPanel
-                  specialist={selectedSpecialist}
-                  isRunning={true}
-                  isPaused={false}
-                  index={0}
-                  onComplete={handleComplete}
-                  allSpecialists={[selectedSpecialist]}
-                  intakeData={{ chiefComplaint: symptomInput }}
-                  activeDifferentials={[]}
-                  cachedSpecialistStreams={cachedQuickConsultStreams}
-                />
-              </div>
-            </motion.div>
-          )}
-
-          {phase === 'done' && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center max-w-2xl mx-auto"
-            >
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShieldCheck className="w-8 h-8" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Assessment Complete</h2>
-              <p className="text-gray-600 mb-8">
-                Your consultation with the {selectedSpecialist?.label} has concluded and your case has been saved.
-              </p>
-
-              <div className="space-y-4">
-                <button 
-                  onClick={() => navigate(`/app/cases/${activeCase?.id}`)}
-                  className="w-full px-6 py-4 border-2 border-gray-200 rounded-xl font-medium text-gray-700 hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 transition-all"
+              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={handleStartConsult}
+                  disabled={!selectedSpecialist || !symptomInput.trim()}
+                  style={{
+                    padding: '16px 32px',
+                    background: selectedSpecialist && symptomInput.trim() ? '#0F172A' : '#E2E8F0',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    fontSize: '16px',
+                    cursor: selectedSpecialist && symptomInput.trim() ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                  }}
                 >
-                  <FileText className="w-5 h-5" />
-                  View Case Summary
+                  Start Consult <ArrowRight size={18} />
                 </button>
-                
-                <button 
-                  onClick={() => navigate('/app/collab')}
-                  className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg flex items-center justify-between group transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                      <Stethoscope className="w-4 h-4" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium">Escalate to Collaborative Specialists</div>
-                      <div className="text-sm text-indigo-100 font-normal">Get a second opinion from multiple doctors</div>
-                    </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {phase === 'chat' && selectedSpecialist && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(24px)',
+              padding: isMobile ? '20px' : '48px',
+              borderRadius: '32px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              minHeight: '600px'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: 40, height: 40, borderRadius: '12px', background: selectedSpecialist.bg, color: selectedSpecialist.color, display: 'grid', placeItems: 'center' }}>
+                  <selectedSpecialist.icon size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>{selectedSpecialist.label}</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>Quick Consult Assessment</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setPhase('select');
+                  setSymptomInput('');
+                  setSelectedSpecialist(null);
+                  setFinalTranscripts({});
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748B',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+            
+            <div style={{ margin: '-20px', marginTop: 0 }}>
+               <SpecialistPanel
+                specialist={selectedSpecialist}
+                isRunning={true}
+                isPaused={false}
+                index={0}
+                onComplete={handleComplete}
+                allSpecialists={[selectedSpecialist]}
+                intakeData={{ chiefComplaint: symptomInput }}
+                activeDifferentials={[]}
+                cachedSpecialistStreams={cachedQuickConsultStreams}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {phase === 'done' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{
+              background: 'rgba(255,255,255,0.8)',
+              backdropFilter: 'blur(24px)',
+              padding: isMobile ? '32px' : '64px',
+              borderRadius: '32px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{ width: 64, height: 64, background: '#DCFCE7', color: '#16A34A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto' }}>
+              <ShieldCheck size={32} />
+            </div>
+            <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
+            <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px auto' }}>
+              Your consultation with the {selectedSpecialist?.label} has concluded and your case has been saved.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>
+              <button 
+                onClick={() => navigate(`/app/cases/${activeCase?.id}`)}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  background: '#FFF',
+                  border: '2px solid #E2E8F0',
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = '#F8FAFC'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; }}
+              >
+                <FileText size={18} />
+                View Case Summary
+              </button>
+              
+              <button 
+                onClick={() => navigate('/app/collab')}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  background: 'linear-gradient(135deg, #4F46E5, #9333EA)',
+                  border: 'none',
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                  color: '#FFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  boxShadow: '0 10px 25px rgba(147, 51, 234, 0.2)'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(147, 51, 234, 0.3)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(147, 51, 234, 0.2)'; }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Stethoscope size={16} />
                   </div>
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontSize: '15px' }}>Escalate to Collaborative Specialists</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Get a second opinion from multiple doctors</div>
+                  </div>
+                </div>
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
