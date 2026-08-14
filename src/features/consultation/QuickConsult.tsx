@@ -7,7 +7,8 @@ import {
   Search, 
   ArrowRight,
   ShieldCheck,
-  FileText
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
@@ -259,10 +260,10 @@ export default function QuickConsult() {
                         <div style={{ 
                           opacity: isSelected ? 1 : 0.5, 
                           transition: 'opacity 0.2s, transform 0.2s', 
-                          filter: isSelected ? 'drop-shadow(0 2px 4px rgba(59,130,246,0.3))' : 'grayscale(100%) opacity(50%)',
+                          filter: isSelected ? 'drop-shadow(0 2px 4px rgba(168,85,247,0.4))' : 'grayscale(100%) opacity(50%)',
                           transform: isSelected ? 'scale(1.1)' : 'scale(1)',
                         }}>
-                           <span style={{ fontSize: '13px' }}>✨</span>
+                           <Sparkles size={14} color="#A855F7" />
                         </div>
                       </div>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>

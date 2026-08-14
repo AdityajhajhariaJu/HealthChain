@@ -884,7 +884,7 @@ html.dark-theme body {
   }
 
   .app-shell__content.mobile {
-    padding-top: 72px;
+    padding-top: 64px;
     padding-bottom: calc(var(--bottom-tab-height) + var(--safe-area-bottom));
   }
 
