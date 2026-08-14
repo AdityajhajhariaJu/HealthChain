@@ -188,7 +188,12 @@ export default function Landing() {
                   const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
                   if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
                 }}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-1.38l2.545 1.477c.68.394.68 1.002 0 1.396l-2.546 1.477-2.534-2.534 2.535-2.535zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+                  <svg viewBox="0 0 24 24" width="22" height="22">
+                    <path fill="#4caf50" d="M3.5,2.1C3.2,2.4,3,2.9,3,3.6v16.8c0,0.7,0.2,1.2,0.5,1.5l0.1,0.1l8.4-8.4v-0.2L3.6,2L3.5,2.1z"/>
+                    <path fill="#ffeb3b" d="M15.4,14.6l-3.3-3.3l-0.2-0.2l3.5-3.5l0.1,0.1l3.9,2.2c1.1,0.6,1.1,1.7,0,2.3L15.4,14.6z"/>
+                    <path fill="#f44336" d="M15.5,14.5l-3.4-3.4L3.6,22.1c0.4,0.4,1,0.5,1.6,0.1l10.3-5.9L15.5,14.5z"/>
+                    <path fill="#2196f3" d="M15.5,9.5L5.2,3.6C4.6,3.3,4,3.4,3.6,3.8L12.1,13L15.5,9.5z"/>
+                  </svg>
                   <div className={styles.storeBadgeText}>
                     <span className={styles.storeBadgeSmall}>GET IT ON</span>
                     <span className={styles.storeBadgeName}>Google Play</span>
