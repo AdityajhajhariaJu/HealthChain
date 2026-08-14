@@ -92,7 +92,7 @@ export default function QuickConsult() {
   }, [phase, selectedSpecialist, searchQuery]);
 
   return (
-    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', paddingTop: '20px' }}>
+    <div style={{ maxWidth: isMobile ? '100%' : '900px', margin: '0 auto', paddingBottom: '40px', paddingTop: '20px' }}>
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <motion.div
@@ -100,66 +100,63 @@ export default function QuickConsult() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             style={{
-              background: 'rgba(255,255,255,0.8)',
+              background: 'rgba(255,255,255,0.95)',
               backdropFilter: 'blur(24px)',
-              padding: isMobile ? '20px' : '48px',
+              padding: isMobile ? '24px' : '56px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              boxShadow: '0 20px 40px -10px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.02)',
+              border: '1px solid rgba(255,255,255,0.8)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#EFF6FF', color: '#2563EB' }}>
-                    <Stethoscope size={18} />
-                  </div>
-                  <span style={{ color: '#2563EB', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>QUICK CONSULT</span>
-                </div>
-                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
-                  Who would you like to consult?
-                </h2>
-                <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>
-                  Select a specialist for a one-on-one assessment.
-                </p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '40px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', padding: '8px 16px', borderRadius: '999px', background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.15)' }}>
+                <Stethoscope size={16} color="#2563EB" />
+                <span style={{ color: '#2563EB', fontWeight: 800, fontSize: '11px', letterSpacing: '1.2px', textTransform: 'uppercase' }}>Quick Consult</span>
               </div>
+              <h2 style={{ fontSize: isMobile ? '32px' : '44px', fontWeight: 900, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1.5px', lineHeight: 1.1 }}>
+                Who would you like<br/>to consult?
+              </h2>
+              <p style={{ color: '#64748B', fontSize: '18px', margin: 0, fontWeight: 500, lineHeight: 1.5, maxWidth: '500px' }}>
+                Select a specialist below for a focused, one-on-one medical assessment.
+              </p>
             </div>
 
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#1E293B', margin: 0, letterSpacing: '-0.5px' }}>
                   Select a Specialist
                 </h3>
-                <div style={{ position: 'relative' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                <div style={{ position: 'relative', flex: isMobile ? '1 1 100%' : '0 1 280px' }}>
+                  <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                   <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Search specialties..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
-                      padding: '8px 12px 8px 36px',
-                      borderRadius: '8px',
+                      padding: '14px 16px 14px 44px',
+                      borderRadius: '999px',
                       border: '1px solid #E2E8F0',
-                      fontSize: '14px',
-                      width: '180px',
+                      background: '#F8FAFC',
+                      fontSize: '15px',
+                      fontWeight: 500,
+                      width: '100%',
+                      boxSizing: 'border-box',
                       outline: 'none',
-                      transition: 'border-color 0.2s',
+                      transition: 'all 0.2s ease',
+                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
                     }}
-                    onFocus={(e) => (e.target.style.borderColor = '#2563EB')}
-                    onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
+                    onFocus={(e) => { e.target.style.borderColor = '#2563EB'; e.target.style.background = '#FFF'; e.target.style.boxShadow = '0 0 0 4px rgba(37,99,235,0.1)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#F8FAFC'; e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)'; }}
                   />
                 </div>
               </div>
 
               <div style={{ 
-                display: 'flex', 
-                overflowX: 'auto', 
-                gap: '12px', 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(150px, 1fr))' : 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: '16px', 
                 paddingBottom: '16px',
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
               }}>
                 {filteredSpecialists.map((s) => {
                   const Icon = s.icon;
@@ -169,64 +166,101 @@ export default function QuickConsult() {
                       key={s.id}
                       onClick={() => setSelectedSpecialist(s)}
                       style={{
-                        flexShrink: 0,
-                        width: '140px',
-                        padding: '16px',
-                        borderRadius: '12px',
-                        border: `2px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
-                        background: isSelected ? '#EFF6FF' : '#FFF',
+                        padding: '24px 20px',
+                        borderRadius: '24px',
+                        border: `2px solid ${isSelected ? s.color : '#F1F5F9'}`,
+                        background: isSelected ? '#FFF' : '#F8FAFC',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.1)' : 'none'
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        boxShadow: isSelected ? `0 12px 24px -10px ${s.color}50` : '0 2px 4px rgba(0,0,0,0.02)'
                       }}
-                      onMouseOver={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = '#F8FAFC'; } }}
-                      onMouseOut={(e) => { if (!isSelected) { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; } }}
+                      onMouseOver={(e) => { 
+                        if (!isSelected) { 
+                          e.currentTarget.style.borderColor = '#E2E8F0'; 
+                          e.currentTarget.style.transform = 'translateY(-4px)';
+                          e.currentTarget.style.boxShadow = '0 12px 20px -8px rgba(0,0,0,0.08)';
+                          e.currentTarget.style.background = '#FFF';
+                        } 
+                      }}
+                      onMouseOut={(e) => { 
+                        if (!isSelected) { 
+                          e.currentTarget.style.borderColor = '#F1F5F9'; 
+                          e.currentTarget.style.transform = 'none';
+                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
+                          e.currentTarget.style.background = '#F8FAFC';
+                        } 
+                      }}
                     >
+                      {isSelected && (
+                        <div style={{ position: 'absolute', top: 0, right: 0, padding: '14px', color: s.color }}>
+                          <ShieldCheck size={20} />
+                        </div>
+                      )}
                       <div 
                         style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '10px', 
+                          width: '56px', 
+                          height: '56px', 
+                          borderRadius: '16px', 
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center', 
-                          marginBottom: '12px',
-                          backgroundColor: s.bg, 
-                          color: s.color 
+                          marginBottom: '16px',
+                          background: `linear-gradient(135deg, ${s.color}15, ${s.color}05)`,
+                          color: s.color,
+                          boxShadow: `inset 0 0 0 1px ${s.color}20`
                         }}
                       >
-                        <Icon size={20} />
+                        <Icon size={28} />
                       </div>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
+                      <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
+                      <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.4, fontWeight: 500 }}>{s.desc}</p>
                     </div>
                   );
                 })}
               </div>
 
-              <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
                 <button
                   onClick={handleStartConsult}
                   disabled={!selectedSpecialist}
                   style={{
-                    padding: '16px 32px',
-                    background: selectedSpecialist ? '#0F172A' : '#E2E8F0',
-                    color: '#FFF',
+                    padding: '18px 48px',
+                    background: selectedSpecialist ? `linear-gradient(135deg, ${selectedSpecialist.color}, ${selectedSpecialist.color}E6)` : '#E2E8F0',
+                    color: selectedSpecialist ? '#FFF' : '#94A3B8',
                     border: 'none',
                     borderRadius: '999px',
-                    fontWeight: 700,
-                    fontSize: '16px',
+                    fontWeight: 800,
+                    fontSize: '18px',
+                    letterSpacing: '0.5px',
                     cursor: selectedSpecialist ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s',
+                    gap: '12px',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: selectedSpecialist ? `0 15px 30px -10px ${selectedSpecialist.color}80` : 'none',
+                    width: isMobile ? '100%' : 'auto',
+                    justifyContent: 'center'
+                  }}
+                  onMouseOver={(e) => {
+                    if (selectedSpecialist) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = `0 20px 40px -10px ${selectedSpecialist.color}90`;
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (selectedSpecialist) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = `0 15px 30px -10px ${selectedSpecialist.color}80`;
+                    }
                   }}
                 >
-                  Start Consult <ArrowRight size={18} />
+                  Start Consult <ArrowRight size={22} />
                 </button>
               </div>
             </div>
