@@ -28,7 +28,14 @@ export default function Breadcrumbs() {
   }
 
   return (
-    <nav aria-label="breadcrumb" style={{ padding: '8px 24px', backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
+    <nav aria-label="breadcrumb" style={{ 
+      padding: '10px 16px', 
+      backgroundColor: 'var(--surface)', 
+      border: '1px solid var(--border)', 
+      borderRadius: '12px',
+      marginBottom: '20px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+    }}>
       <ol style={{ 
         display: 'flex', 
         alignItems: 'center', 
