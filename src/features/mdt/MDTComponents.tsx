@@ -120,7 +120,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             Correlate, don’t start over.
           </h2>
           <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '16px', lineHeight: 1.6 }}>
-            MDT will use your Parallel Specialists findings and saved evidence as one case file. It
+            The collaborative board will use your Parallel Specialists findings and saved evidence as one case file. It
             will focus on agreements, disagreements, evidence gaps, and the clearest next clinical
             questions.
           </p>
@@ -197,7 +197,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
               fontSize: 15,
             }}
           >
-            <Network size={19} /> Recommended: create MDT consensus
+            <Network size={19} /> Recommended: create board consensus
           </div>
           <p style={{ margin: '11px 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}>
             Uses this same case. It compares your specialist views and evidence to show what agrees,
@@ -228,7 +228,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
               boxShadow: '0 9px 18px rgba(5,150,105,0.18)',
             }}
           >
-            Create MDT consensus <ArrowRight size={17} />
+            Create board consensus <ArrowRight size={17} />
           </button>
         </div>
         <div
@@ -253,7 +253,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           </div>
           <p style={{ margin: '11px 0', color: '#64748B', fontSize: 14, lineHeight: 1.55 }}>
             Add it to this same case first. HealthChain will analyse it, save the finding as
-            evidence, and bring you back here for a stronger MDT correlation.
+            evidence, and bring you back here for a stronger board correlation.
           </p>
           <button
             onClick={onAddEvidence}
@@ -1093,7 +1093,7 @@ export function MDTConferencePanel({
       { id: 2, sender: s2, text: `Agreed. However, we must correlate this with the biochemical markers to rule out systemic issues.`, time: 2300 },
       { id: 3, sender: s1, text: `That's a valid point. I'll integrate those variables into my differential model.`, time: 4100 },
       { id: 4, sender: s2, text: `Perfect. I'm finalizing the joint action plan now.`, time: 5900 },
-      { id: 5, sender: null, text: `Generating MDT Consensus...`, time: 7700 }
+      { id: 5, sender: null, text: `Generating Board Consensus...`, time: 7700 }
     ];
     
     // We only show messages where the index <= debateStep
@@ -1117,7 +1117,7 @@ export function MDTConferencePanel({
       >
         <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '24px' }}>
           <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
-            Live MDT Debate Room
+            Live Board Debate Room
           </h2>
           <p style={{ color: '#64748B', fontSize: '15px', margin: 0 }}>
             Specialists are actively correlating findings...
@@ -1221,7 +1221,7 @@ export function MDTConferencePanel({
           <ShieldCheck size={40} />
         </div>
         <h2 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px' }}>
-          Consensus Reached
+          Board Consensus Reached
         </h2>
         <p
           style={{
@@ -1543,7 +1543,7 @@ export function MDTReportPanel({
     }
     const opt = {
       margin: [15, 15, 15, 15] as [number, number, number, number],
-      filename: 'MDT_Diagnostic_Report.pdf',
+      filename: 'Collaborative_Diagnostic_Report.pdf',
       image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
@@ -1563,7 +1563,7 @@ export function MDTReportPanel({
       'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute('href', dataStr);
-    downloadAnchorNode.setAttribute('download', 'MDT_Report_Data.json');
+    downloadAnchorNode.setAttribute('download', 'Collaborative_Report_Data.json');
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -1661,7 +1661,7 @@ export function MDTReportPanel({
               width: isMobile ? '100%' : 'auto',
             }}
           >
-            Correlate in MDT
+            Correlate with Board
           </button>
         )}
         <button
@@ -1747,7 +1747,7 @@ export function MDTReportPanel({
               letterSpacing: '-1px',
             }}
           >
-            MDT Case Brief
+            Collaboration Case Brief
           </h2>
           <p style={{ color: '#64748B', marginTop: '12px', fontSize: isMobile ? '14px' : '16px', fontWeight: 500 }}>
             AI-assisted synthesis of your information and specialist perspectives

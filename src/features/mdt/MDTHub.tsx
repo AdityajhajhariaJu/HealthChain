@@ -403,7 +403,7 @@ export default function MDTHub() {
                 letterSpacing: '1px',
               }}
             >
-              Advanced MDT Board
+              Collaborative Board
             </span>
           </div>
           <h1
@@ -428,8 +428,8 @@ export default function MDTHub() {
             }}
           >
             {activeCase
-              ? 'The second stage: MDT compares the perspectives and evidence already in your case. It finds agreement, conflict, and the next evidence to collect.'
-              : 'MDT is for reconciling a case, not repeating every specialist interview. Start a new case only for an unrelated concern.'}
+              ? 'Collaborative Specialists compare the perspectives and evidence already in your case to find agreement, conflict, and the next evidence to collect.'
+              : 'Our AI will automatically select a team of specialists to deeply investigate your case from multiple angles.'}
           </p>
         </div>
 
@@ -455,7 +455,7 @@ export default function MDTHub() {
               <StepDivider />
               <Step
                 icon={Users}
-                label="MDT Dashboard"
+                label="Collaboration Board"
                 active={phase === 'dashboard'}
                 completed={false}
               />

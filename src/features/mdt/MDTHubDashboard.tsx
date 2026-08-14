@@ -45,7 +45,7 @@ export function MDTHubDashboard({
         <h2 style={{ fontSize: 20, margin: '0 0 8px', color: '#0F172A' }}>Your case route</h2>
         <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.55, margin: '0 0 20px' }}>
           Every step updates this same case file. You can add evidence at any point, then run
-          MDT again when the picture changes.
+          board correlation again when the picture changes.
         </p>
         <div
           style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))', gap: 12 }}
@@ -65,7 +65,7 @@ export function MDTHubDashboard({
             },
             {
               id: 'consensus',
-              label: 'MDT consensus',
+              label: 'Board consensus',
               detail: 'Evidence cross-correlated',
               icon: Network,
             },
@@ -132,7 +132,7 @@ export function MDTHubDashboard({
               }}
               style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', borderRadius: '8px', background: '#10B981', color: '#FFF', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
             >
-              <Network size={16} /> Next: MDT consensus
+              <Network size={16} /> Next: Board consensus
             </button>
           )}
         </div>
@@ -177,7 +177,7 @@ export function MDTHubDashboard({
               gap: '8px'
             }}
           >
-            <Network size={18} /> MDT Synthesis
+            <Network size={18} /> Board Synthesis
           </button>
         </div>
       </div>
