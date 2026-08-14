@@ -28,11 +28,22 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
   }
   
   let lastError;
+  
+  // Inject our custom security header
+  const routeSecret = import.meta.env.VITE_API_ROUTE_SECRET;
+  const secureOptions = {
+    ...options,
+    headers: {
+      ...options.headers,
+      ...(routeSecret ? { 'x-api-route-secret': routeSecret } : {})
+    }
+  };
+
   for (let i = 0; i <= retries; i++) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetch(url, { ...options, signal: controller.signal });
+      const response = await fetch(url, { ...secureOptions, signal: controller.signal });
       clearTimeout(id);
       if (response.status === 429 && i < retries) {
         // Rate limited, wait 1s then retry

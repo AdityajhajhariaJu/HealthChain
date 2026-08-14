@@ -1,7 +1,8 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-route-secret');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -9,6 +10,13 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Basic security to prevent arbitrary internet bots from hitting this endpoint.
+  // We check for a custom header matched against the environment variable.
+  const routeSecret = process.env.VITE_API_ROUTE_SECRET;
+  if (routeSecret && req.headers['x-api-route-secret'] !== routeSecret) {
+    return res.status(401).json({ error: 'Unauthorized request' });
   }
 
   // Do NOT read VITE_GEMINI_API_KEY to prevent client-side leakage.
