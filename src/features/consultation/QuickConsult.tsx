@@ -122,11 +122,32 @@ export default function QuickConsult() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#2563EB', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8)' }}>
-                    <Stethoscope size={18} />
-                  </div>
-                  <span style={{ color: '#2563EB', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>QUICK CONSULT</span>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '12px',
+                    padding: '6px 12px',
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '999px',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <Stethoscope size={14} color="#3B82F6" />
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#334155',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                    }}
+                  >
+                    Quick Consult
+                  </span>
                 </div>
                 <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
                   Who would you like to consult?
