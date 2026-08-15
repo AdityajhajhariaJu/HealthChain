@@ -22,7 +22,7 @@ import {
   RotateCcw,
   ChevronLeft
 } from 'lucide-react';
-import { LiveOrbitIcon } from '../../components/ui/LiveOrbitIcon';
+import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   selectMDTSpecialists,
@@ -381,21 +381,20 @@ export default function MDTHub() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '24px', position: 'relative' }}>
           
-          {/* Decorative Background Orbit */}
-          {!isMobile && (
-            <div 
-              style={{ 
-                position: 'absolute', 
-                top: '-20px', 
-                right: '20px', 
-                zIndex: 0,
-                opacity: 0.9,
-                animation: 'fade-in 1s ease-out'
-              }}
-            >
-              <LiveOrbitIcon size={140} />
-            </div>
-          )}
+          {/* Subtle orbital watermark — centered behind header text */}
+          <div 
+            style={{ 
+              position: 'absolute', 
+              top: '50%', 
+              left: '50%', 
+              transform: 'translate(-50%, -50%)',
+              zIndex: 0,
+              opacity: 0.55,
+              pointerEvents: 'none',
+            }}
+          >
+            <AgentOrbit size={isMobile ? 180 : 260} />
+          </div>
 
           <div
             style={{
