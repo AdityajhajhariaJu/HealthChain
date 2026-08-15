@@ -75,10 +75,17 @@ export default function Landing() {
 
   const handleStartInvestigation = () => {
     setIsNavigating(true);
-    setActiveCase(null);
-    useMDTStore.getState().reset();
-    setTimeout(() => {
+    
+    const isAuthenticated = localStorage.getItem('hc_auth_token') !== null;
+    
+    if (!isAuthenticated) {
+      // Only clear state and force guest mode for new/logged-out users
+      setActiveCase(null);
+      useMDTStore.getState().reset();
       localStorage.setItem('hc_guest_mode', 'true');
+    }
+
+    setTimeout(() => {
       navigate('/app/collab');
     }, 2500);
   };
