@@ -14,9 +14,10 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
-import { motion, useInView, animate } from 'framer-motion';
+import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import styles from './Landing.module.css';
 
 // --- Sub-components for dynamic elements ---
@@ -68,9 +69,14 @@ export default function Landing() {
   const [scrolled, setScrolled] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const handleStartInvestigation = () => {
-    localStorage.setItem('hc_guest_mode', 'true');
-    navigate('/app/collab');
+    setIsNavigating(true);
+    setTimeout(() => {
+      localStorage.setItem('hc_guest_mode', 'true');
+      navigate('/app/collab');
+    }, 2500);
   };
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -119,6 +125,42 @@ export default function Landing() {
 
   return (
     <div className={styles.container}>
+      
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isNavigating && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(12px)',
+              zIndex: 9999,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '24px'
+            }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+            >
+              <Loader2 size={48} color="#0F8B7E" />
+            </motion.div>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+              Preparing your secure investigation...
+            </h2>
+            <p style={{ color: '#64748B', fontSize: '16px', margin: 0 }}>
+              Connecting to Deep Collaborative Specialists
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* 1. Floating Glass Navbar */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
