@@ -66,9 +66,11 @@ export interface CaseItem {
   differentialHistory?: { date: string; differentials: Differential[] }[];
 }
 
+import { getProfileKey } from './ProfileEngine';
+
 const getActiveProfileId = () => {
   try {
-    const profileData = getItemSync('hc_unified_profile');
+    const profileData = getItemSync(getProfileKey());
     if (profileData) {
       const parsed = JSON.parse(profileData);
       if (parsed.activeId) return parsed.activeId;
@@ -77,8 +79,20 @@ const getActiveProfileId = () => {
   return 'profile_1';
 };
 
-const getCasesKey = () => `hc_cases_${getActiveProfileId()}`;
-const getActiveCaseKey = () => `hc_active_case_${getActiveProfileId()}`;
+const getCasesKey = () => {
+  const base = getProfileKey().replace('hc_unified_profile', 'hc_cases');
+  return `${base}_${getActiveProfileId()}`;
+};
+
+const getActiveCaseKey = () => {
+  const base = getProfileKey().replace('hc_unified_profile', 'hc_active_case');
+  return `${base}_${getActiveProfileId()}`;
+};
+
+// Listen for logout to clear in-memory caches
+window.addEventListener('hc_logout', () => {
+  cachedCases = null;
+});
 
 const id = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {

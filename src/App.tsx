@@ -103,6 +103,7 @@ export default function App() {
           'hc_account',
           JSON.stringify({
             ...parsedAccount,
+            id: session.user.id,
             email: session.user.email,
             name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || parsedAccount.name || '',
           })
@@ -135,6 +136,7 @@ export default function App() {
       } else if (event === 'SIGNED_OUT') {
         const theme = localStorage.getItem('hc_theme');
         const consent = localStorage.getItem('hc_consent');
+        window.dispatchEvent(new Event('hc_logout'));
         localStorage.clear();
         if (theme) localStorage.setItem('hc_theme', theme);
         if (consent) localStorage.setItem('hc_consent', consent);

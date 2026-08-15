@@ -63,7 +63,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
       healthFocus: form.healthFocus,
     });
     if (onComplete) onComplete();
-    else navigate('/app/today');
+    else navigate('/app/today', { replace: true });
   };
   const field = (label: string, key: string, options: { placeholder?: string, type?: string } = {}) => (
     <label style={{ display: 'grid', gap: 7, fontSize: 13, fontWeight: 750, color: '#334155' }}>
@@ -196,7 +196,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
               }}
             >
               <button
-                onClick={() => (step ? setStep(step - 1) : navigate('/signup'))}
+                onClick={() => (step ? setStep(step - 1) : navigate('/', { replace: true }))}
                 style={{ ...secondaryButton, visibility: step || true ? 'visible' : 'hidden' }}
               >
                 <ArrowLeft size={16} />

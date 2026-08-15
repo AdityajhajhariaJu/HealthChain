@@ -52,13 +52,10 @@ export default function Settings() {
     }
     const theme = localStorage.getItem('hc_theme');
     const consent = localStorage.getItem('hc_consent');
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('hc_account');
-    localStorage.removeItem('hc_guest_mode');
-    localStorage.removeItem('hc_remember');
+    localStorage.clear();
     if (theme) localStorage.setItem('hc_theme', theme);
     if (consent) localStorage.setItem('hc_consent', consent);
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   const handleDeleteAccount = async () => {

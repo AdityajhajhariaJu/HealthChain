@@ -26,7 +26,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/app`,
+          redirectTo: `${window.location.origin}/`,
         }
       });
       if (error) throw error;
@@ -58,6 +58,15 @@ export default function Auth() {
         return;
       }
 
+      if (!isLogin) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          setError('Please enter a valid email address.');
+          setLoading(false);
+          return;
+        }
+      }
+
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
@@ -71,21 +80,12 @@ export default function Auth() {
         }
         
         success('Welcome back!');
-        // Handle Remember Me
         if (rememberMe) {
           localStorage.setItem('hc_remember', 'true');
         } else {
           localStorage.removeItem('hc_remember');
         }
 
-        // Let Supabase handle the session, but we can still set our local flags for now
-        setItemSync('isAuthenticated', 'true');
-        setItemSync(
-          'hc_account',
-          JSON.stringify({
-            email: formData.email,
-          })
-        );
         // Navigation is handled by App.tsx onAuthStateChange listener
       } else {
         const passwordVal = formData.password;
@@ -147,17 +147,7 @@ export default function Auth() {
         } else {
           localStorage.removeItem('hc_remember');
         }
-        // Let Supabase handle the session, but we can still set our local flags for now
-        setItemSync('isAuthenticated', 'true');
-        setItemSync(
-          'hc_account',
-          JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            createdAt: new Date().toISOString(),
-          })
-        );
-        navigate('/onboarding');
+        navigate('/onboarding', { replace: true });
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication.');
@@ -557,7 +547,6 @@ export default function Auth() {
                   type="button"
                   onClick={() => {
                     // Set a dummy local session for guest mode
-                    setItemSync('isAuthenticated', 'true');
                     setItemSync('hc_guest_mode', 'true');
                     setItemSync('hc_account', JSON.stringify({ name: 'Guest User', email: 'local-only' }));
                     navigate('/app');

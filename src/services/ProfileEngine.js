@@ -1,12 +1,22 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 
-const PROFILE_KEY = 'hc_unified_profile';
+export function getProfileKey() {
+  try {
+    const accountStr = localStorage.getItem('hc_account');
+    if (accountStr) {
+      const account = JSON.parse(accountStr);
+      if (account.id) return `hc_unified_profile_${account.id}`;
+      if (localStorage.getItem('hc_guest_mode') === 'true') return 'hc_unified_profile_guest';
+    }
+  } catch(e) {}
+  return 'hc_unified_profile';
+}
 
 let historyStack = [];
 let historyIndex = -1;
 
-const initialState = getItemSync(PROFILE_KEY);
+const initialState = getItemSync(getProfileKey());
 if (initialState) {
   historyStack.push(initialState);
   historyIndex = 0;
@@ -28,7 +38,7 @@ export function undoProfileEdit() {
   if (historyIndex > 0) {
     historyIndex--;
     const prevState = historyStack[historyIndex];
-    setItemSync(PROFILE_KEY, prevState);
+    setItemSync(getProfileKey(), prevState);
     window.dispatchEvent(new Event('hc_profile_updated'));
   }
 }
@@ -37,7 +47,7 @@ export function redoProfileEdit() {
   if (historyIndex < historyStack.length - 1) {
     historyIndex++;
     const nextState = historyStack[historyIndex];
-    setItemSync(PROFILE_KEY, nextState);
+    setItemSync(getProfileKey(), nextState);
     window.dispatchEvent(new Event('hc_profile_updated'));
   }
 }
@@ -94,7 +104,7 @@ const generateId = () => {
 
 export function getProfileEngineState() {
   try {
-    const data = getItemSync(PROFILE_KEY);
+    const data = getItemSync(getProfileKey());
     const parsed = data ? JSON.parse(data) : null;
     
     // Legacy migration: If existing format is a flat profile
@@ -148,7 +158,7 @@ export function switchActiveProfile(id) {
   const state = getProfileEngineState();
   if (state.profiles[id]) {
     state.activeId = id;
-    setItemSync(PROFILE_KEY, JSON.stringify(state));
+    setItemSync(getProfileKey(), JSON.stringify(state));
     window.dispatchEvent(new Event('hc_profile_updated'));
     window.dispatchEvent(new Event('hc_cases_updated'));
     window.dispatchEvent(new Event('hc_active_case_updated'));
@@ -164,7 +174,7 @@ export function createNewProfile(name) {
   const newId = generateId();
   state.profiles[newId] = { ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)), id: newId, profileName: name };
   state.activeId = newId;
-  setItemSync(PROFILE_KEY, JSON.stringify(state));
+  setItemSync(getProfileKey(), JSON.stringify(state));
   window.dispatchEvent(new Event('hc_profile_updated'));
   window.dispatchEvent(new Event('hc_cases_updated'));
   window.dispatchEvent(new Event('hc_active_case_updated'));
@@ -238,7 +248,7 @@ async function saveProfile(profile) {
     const stateStr = JSON.stringify(state);
     
     pushToHistory(stateStr);
-    setItemSync(PROFILE_KEY, stateStr);
+    setItemSync(getProfileKey(), stateStr);
     
     // Dispatch event so UI can react globally
     window.dispatchEvent(new Event('hc_profile_updated'));
@@ -496,7 +506,7 @@ export function clearProfile() {
   const state = getProfileEngineState();
   if (state.profiles[state.activeId]) {
     state.profiles[state.activeId] = { ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)), id: state.activeId, profileName: state.profiles[state.activeId].profileName };
-    setItemSync(PROFILE_KEY, JSON.stringify(state));
+    setItemSync(getProfileKey(), JSON.stringify(state));
     window.dispatchEvent(new Event('hc_profile_updated'));
   }
 }
@@ -567,7 +577,7 @@ export async function syncProfileFromSupabase() {
           nutrition: data.nutrition || { targetCalories: 2000, avgProtein: 0, recentLogs: [] },
           healthFocus: data.health_focus || ''
        };
-       setItemSync(PROFILE_KEY, JSON.stringify(state));
+       setItemSync(getProfileKey(), JSON.stringify(state));
        window.dispatchEvent(new Event('hc_profile_updated'));
        console.log('Profile synced successfully from Supabase');
     }
