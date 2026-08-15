@@ -353,7 +353,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
             onMouseOver={(e) => (e.currentTarget.style.background = '#F1F5F9')}
             onMouseOut={(e) => (e.currentTarget.style.background = '#F8FAFC')}
           >
-            <Upload size={14} /> Open JSON Export
+            <Upload size={14} /> Upload Medical File
           </button>
         </div>
 
