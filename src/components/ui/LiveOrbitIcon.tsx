@@ -104,8 +104,15 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
 
         {/* Outer orbiting dots group */}
         <g className={`orbit-outer-${id}`}>
+          {/* Network mesh: connecting all outer dots */}
+          <polygon 
+            points={outerDots.map(d => `${d.cx},${d.cy}`).join(' ')} 
+            fill="none" stroke="#0F172A" strokeWidth="1" opacity="0.15" 
+          />
           {outerDots.map((dot, i) => (
             <g key={`outer-${i}`}>
+              {/* Spoke to center */}
+              <line x1={center} y1={center} x2={dot.cx} y2={dot.cy} stroke="#0F172A" strokeWidth="1" opacity="0.15" />
               {/* Soft glow behind dot */}
               <circle cx={dot.cx} cy={dot.cy} r={dotR * 2.5} fill="#10B981" opacity="0.12" />
               {/* The dot with dark border */}
@@ -116,22 +123,20 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
 
         {/* Inner orbiting dots group */}
         <g className={`orbit-inner-${id}`}>
+          {/* Network mesh: connecting all inner dots */}
+          <polygon 
+            points={innerDots.map(d => `${d.cx},${d.cy}`).join(' ')} 
+            fill="none" stroke="#0F172A" strokeWidth="1" opacity="0.15" 
+          />
           {innerDots.map((dot, i) => (
             <g key={`inner-${i}`}>
+              {/* Spoke to center */}
+              <line x1={center} y1={center} x2={dot.cx} y2={dot.cy} stroke="#0F172A" strokeWidth="1" opacity="0.15" />
               <circle cx={dot.cx} cy={dot.cy} r={dotR * 2.5} fill="#0EA5E9" opacity="0.12" />
               <circle cx={dot.cx} cy={dot.cy} r={dotR} fill="#0EA5E9" stroke="#0F172A" strokeWidth="1.5" opacity="0.85" />
             </g>
           ))}
         </g>
-
-        {/* Thin connecting lines from center to a few dots (static, decorative) */}
-        {outerDots.filter((_, i) => i % 2 === 0).map((dot, i) => (
-          <line
-            key={`line-${i}`}
-            x1={center} y1={center} x2={dot.cx} y2={dot.cy}
-            stroke="#0F172A" strokeWidth="1" opacity="0.2"
-          />
-        ))}
 
         {/* Central core */}
         <circle
