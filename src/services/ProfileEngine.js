@@ -252,7 +252,10 @@ async function saveProfile(profile) {
           .upsert({ 
              id: session.user.id,
              full_name: profile.profileName,
-             demographics: profile.demographics,
+             demographics: {
+               ...profile.demographics,
+               onboardingCompletedAt: profile.onboardingCompletedAt || null
+             },
              conditions: profile.conditions,
              medications: profile.medications,
              allergies: profile.allergies,
@@ -554,6 +557,7 @@ export async function syncProfileFromSupabase() {
           isPro: data.is_pro || false,
           proExpiresAt: data.pro_expires_at || null,
           demographics: data.demographics || {},
+          onboardingCompletedAt: data.demographics?.onboardingCompletedAt || null,
           conditions: data.conditions || [],
           medications: data.medications || [],
           allergies: data.allergies || [],

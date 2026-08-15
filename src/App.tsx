@@ -91,12 +91,12 @@ export default function App() {
     }
 
     // Global Auth Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         setItemSync('isAuthenticated', 'true');
         
         // Sync user data now that they are authenticated
-        syncProfileFromSupabase();
+        await syncProfileFromSupabase();
         syncCasesFromSupabase();
         
         // Auto-redirect if on a public page

@@ -86,7 +86,7 @@ export default function Auth() {
             email: formData.email,
           })
         );
-        navigate('/app');
+        // Navigation is handled by App.tsx onAuthStateChange listener
       } else {
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match.');
