@@ -35,6 +35,13 @@ export default function QuickConsult() {
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
     
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      if (window.confirm('You need to log in to start a consultation. Go to login page?')) {
+        window.location.href = '/login';
+      }
+      return;
+    }
+
     const caseTitle = `Quick Consult: ${selectedSpecialist.label}`;
     const newCase = createCaseDraft({
       title: caseTitle,

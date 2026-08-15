@@ -145,7 +145,9 @@ export default function MDTHub() {
 
   const handleIntakeComplete = async (data) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      window.location.href = '/signup';
+      if (window.confirm('You need to log in to start an investigation. Go to login page?')) {
+        window.location.href = '/login';
+      }
       return;
     }
     setIntakeData(data);
@@ -173,6 +175,12 @@ export default function MDTHub() {
   };
 
   const handleElevateParallel = async (caseItem: any) => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      if (window.confirm('You need to log in to elevate this case. Go to login page?')) {
+        window.location.href = '/login';
+      }
+      return;
+    }
     if (caseItem?.reviews?.length === 0) {
       setGlobalActiveCase(caseItem.id);
       navigate('/app/multi');

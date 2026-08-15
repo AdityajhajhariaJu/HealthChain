@@ -233,7 +233,9 @@ export default function Dietician() {
 
   const handleGeneratePlan = async () => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      window.location.href = '/signup';
+      if (window.confirm('You need to log in to generate a meal plan. Go to login page?')) {
+        window.location.href = '/login';
+      }
       return;
     }
     setIsGeneratingPlan(true);
