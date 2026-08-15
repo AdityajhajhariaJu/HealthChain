@@ -22,6 +22,7 @@ import {
   RotateCcw,
   ChevronLeft
 } from 'lucide-react';
+import { LiveOrbitIcon } from '../../components/ui/LiveOrbitIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   selectMDTSpecialists,
@@ -413,8 +414,13 @@ export default function MDTHub() {
               color: '#0F172A',
               margin: '0 0 12px 0',
               letterSpacing: '-1px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px'
             }}
           >
+            <LiveOrbitIcon size={32} />
             Collaborative Specialists
           </h1>
           <p
