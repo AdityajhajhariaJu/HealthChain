@@ -467,7 +467,7 @@ export default function ClinicalReportAnalyzer() {
             >
               {activeCase
                 ? 'WE WILL ANALYSE IT, SAVE THE FINDING, THEN YOU CAN CONTINUE COLLABORATION'
-                : 'BLOOD WORK, X-RAY, MRI, PDF OR PRESCRIPTION'}
+                : 'PHOTO OR PDF (CAMERA SUPPORTED)'}
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>
               <button
@@ -475,11 +475,11 @@ export default function ClinicalReportAnalyzer() {
                 className="btn btn-outline"
                 onClick={(e) => {
                   e.stopPropagation();
-                  captureLabReport();
+                  fileInputRef.current?.click();
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 10 }}
               >
-                <Scan size={18} /> Use Camera
+                <UploadCloud size={18} /> Select File or Camera
               </button>
             </div>
           </>

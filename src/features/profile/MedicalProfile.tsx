@@ -57,14 +57,6 @@ import { getActiveCase } from '../../services/CaseEngine';
 import { generateProfileSynthesis } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-const mockLongitudinalData = [
-  { month: 'Jan', eGFR: 88, weight: 82.5, bpSystolic: 125 },
-  { month: 'Feb', eGFR: 85, weight: 83.0, bpSystolic: 128 },
-  { month: 'Mar', eGFR: 82, weight: 83.9, bpSystolic: 130 },
-  { month: 'Apr', eGFR: 85, weight: 82.1, bpSystolic: 124 },
-  { month: 'May', eGFR: 88, weight: 81.6, bpSystolic: 122 },
-  { month: 'Jun', eGFR: 90, weight: 80.7, bpSystolic: 118 },
-];
 
 export default function MedicalProfile() {
   const isMobile = useIsMobile();
@@ -110,7 +102,7 @@ export default function MedicalProfile() {
     return { month, eGFR, weight, bpSystolic };
   }).filter(d => d.eGFR !== null || d.weight !== null || d.bpSystolic !== null);
   
-  const displayData = computedLongitudinalData.length > 0 ? computedLongitudinalData : mockLongitudinalData;
+  const displayData = computedLongitudinalData;
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -1020,7 +1012,7 @@ export default function MedicalProfile() {
             </h3>
 
             {/* NEW: Interactive Health Graph */}
-            <div style={{ marginBottom: '20px', height: '240px', borderBottom: '1px solid var(--border)', paddingBottom: '32px' }}>
+            <div style={{ position: 'relative', marginBottom: '20px', height: '240px', borderBottom: '1px solid var(--border)', paddingBottom: '32px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <h4 style={{ fontSize: '14px', margin: 0, color: 'var(--text-main)', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>Longitudinal Trends</h4>
                 <select 
@@ -1048,16 +1040,23 @@ export default function MedicalProfile() {
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)', background: 'var(--surface)' }} 
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey={chartMetric} 
-                    stroke={chartMetric === 'eGFR' ? '#3B82F6' : chartMetric === 'weight' ? '#10B981' : '#EF4444'} 
-                    strokeWidth={3} 
-                    fillOpacity={1} 
-                    fill="url(#colorMetric)" 
-                  />
+                  {displayData.length > 0 ? (
+                    <Area 
+                      type="monotone" 
+                      dataKey={chartMetric} 
+                      stroke={chartMetric === 'eGFR' ? '#3B82F6' : chartMetric === 'weight' ? '#10B981' : '#EF4444'} 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#colorMetric)" 
+                    />
+                  ) : null}
                 </AreaChart>
               </ResponsiveContainer>
+              {displayData.length === 0 && (
+                <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, textAlign: 'center', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  No historical data available. Upload lab reports to track your metrics.
+                </div>
+              )}
             </div>
 
             {Object.keys(profile.vitals.latestLabValues).length === 0 ? (
@@ -1350,30 +1349,25 @@ export default function MedicalProfile() {
               <Users size={18} color="#10B981" /> Active Care Team
             </h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                onClick={() => navigate('/app/multi')} 
-                style={{ padding: '12px', background: 'var(--surface-hover)', borderRadius: '10px', cursor: 'pointer', border: '1px solid var(--border)' }}
-              >
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#ECFDF5', color: '#10B981', display: 'grid', placeItems: 'center' }}><User size={12}/></div>
-                  <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>Cardiology AI</strong>
-                </div>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Assigned to active case</span>
-              </motion.div>
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                onClick={() => navigate('/app/diet')} 
-                style={{ padding: '12px', background: 'var(--surface-hover)', borderRadius: '10px', cursor: 'pointer', border: '1px solid var(--border)' }}
-              >
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#FEF3C7', color: '#D97706', display: 'grid', placeItems: 'center' }}><User size={12}/></div>
-                  <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>Dietician AI</strong>
-                </div>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Nutrition plan active</span>
-              </motion.div>
-            </div>
+            {activeCase ? (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => navigate('/app/collab')} 
+                  style={{ padding: '12px', background: 'var(--surface-hover)', borderRadius: '10px', cursor: 'pointer', border: '1px solid var(--border)' }}
+                >
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#ECFDF5', color: '#10B981', display: 'grid', placeItems: 'center' }}><User size={12}/></div>
+                    <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>Diagnostic AI Board</strong>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Assigned to active case</span>
+                </motion.div>
+              </div>
+            ) : (
+              <div style={{ padding: '24px', background: 'var(--surface-hover)', borderRadius: '10px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', marginBottom: '24px', border: '1px dashed var(--border)' }}>
+                Start an investigation to assemble your active AI Care Team.
+              </div>
+            )}
 
             <h3
               style={{
