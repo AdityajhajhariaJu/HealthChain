@@ -94,6 +94,7 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
         setItemSync('isAuthenticated', 'true');
+        localStorage.removeItem('hc_guest_mode');
         
         // Sync user data now that they are authenticated
         await syncProfileFromSupabase();

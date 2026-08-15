@@ -222,9 +222,15 @@ export default function Landing() {
           <span className={styles.logoText}>HealthChain</span>
         </div>
         <div className={styles.navActions}>
-          <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/login')}>
-            Log In
-          </button>
+          {isLoggedOut ? (
+            <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/login')}>
+              Log In
+            </button>
+          ) : (
+            <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/app')}>
+              Dashboard
+            </button>
+          )}
           <button className={`btn btn-primary ${styles.navButton}`} onClick={handleStartInvestigation}>
             Start Investigation
           </button>
