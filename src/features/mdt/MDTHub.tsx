@@ -80,10 +80,25 @@ export default function MDTHub() {
   const fileInputRef = React.useRef<any>(null);
 
   useEffect(() => {
-    if (new URLSearchParams(location.search).has('caseId') && phase === 'intake') {
+    const searchParams = new URLSearchParams(location.search);
+    
+    if (searchParams.has('new')) {
+      // Force bulletproof reset
+      setGlobalActiveCase(null);
+      setActiveCase(null);
+      resetMDTStore();
+      setHistoryReport(null);
+      setMedicalRecords([]);
+      
+      // Clean up the URL to prevent re-triggering
+      window.history.replaceState({}, '', location.pathname);
+      return;
+    }
+    
+    if (searchParams.has('caseId') && phase === 'intake') {
       setPhase('dashboard');
     }
-  }, [location.search, phase, setPhase]);
+  }, [location.search, phase, setPhase, resetMDTStore]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
