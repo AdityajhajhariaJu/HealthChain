@@ -343,7 +343,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               <textarea
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
-                placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
+                placeholder="Write down your entire history — every symptom and how long you've been facing it."
                 style={{
                   width: '100%',
                   minHeight: '160px',
