@@ -70,7 +70,7 @@ export default function Landing() {
 
   const handleStartInvestigation = () => {
     localStorage.setItem('hc_guest_mode', 'true');
-    navigate('/app/today');
+    navigate('/app/collab');
   };
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
