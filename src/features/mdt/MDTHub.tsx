@@ -379,22 +379,7 @@ export default function MDTHub() {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '24px', position: 'relative' }}>
-          
-          {/* Subtle orbital watermark — centered behind header text */}
-          <div 
-            style={{ 
-              position: 'absolute', 
-              top: '50%', 
-              left: '50%', 
-              transform: 'translate(-50%, -50%)',
-              zIndex: 0,
-              opacity: 0.55,
-              pointerEvents: 'none',
-            }}
-          >
-            <AgentOrbit size={isMobile ? 180 : 260} />
-          </div>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
 
           <div
             style={{

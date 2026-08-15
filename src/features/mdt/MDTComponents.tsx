@@ -24,6 +24,7 @@ import {
   generateMDTReport,
 } from '../../services/geminiService';
 import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
+import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { addEvent, addActionItems, addCondition } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 
@@ -325,14 +326,28 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
           border: '1px solid rgba(255,255,255,0.5)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
-          <div>
+        <div style={{ position: 'relative', marginBottom: '32px' }}>
+          {/* Orbital watermark behind header */}
+          <div 
+            style={{ 
+              position: 'absolute', 
+              top: '50%', 
+              right: isMobile ? '-20px' : '0px', 
+              transform: 'translateY(-50%)',
+              zIndex: 0,
+              opacity: 0.45,
+              pointerEvents: 'none',
+            }}
+          >
+            <AgentOrbit size={isMobile ? 140 : 180} />
+          </div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E8F7F4', color: '#0F8B7E' }}><Network size={18} /></div>
               <span style={{ color: '#0F8B7E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>COLLABORATIVE SPECIALISTS</span>
             </div>
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
-            <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>Describe your symptoms and our AI will automatically select a team of specialists to investigate your case.</p>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500, maxWidth: '70%' }}>Describe your symptoms and our AI will automatically select a team of specialists to investigate your case.</p>
           </div>
         </div>
 
