@@ -576,7 +576,7 @@ textarea {
   align-items: center;
   gap: 16px;
   padding: 15px 18px;
-  margin-bottom: 22px;
+  margin-bottom: 8px;
   border: 1px solid rgba(13, 148, 136, 0.18);
   border-radius: 18px;
   background: linear-gradient(
@@ -646,7 +646,7 @@ textarea {
     align-items: flex-start;
     gap: 8px;
     padding: 12px 14px;
-    margin-bottom: 14px;
+    margin-bottom: 6px;
     min-height: auto;
   }
   .brand-pulse__mark {
