@@ -91,15 +91,15 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
         {/* Outer ring track */}
         <circle
           cx={center} cy={center} r={outerR}
-          stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 6"
-          fill="none" opacity="0.5"
+          stroke="#0F172A" strokeWidth="1" strokeDasharray="4 6"
+          fill="none" opacity="0.3"
         />
 
         {/* Inner ring track */}
         <circle
           cx={center} cy={center} r={innerR}
-          stroke="#CBD5E1" strokeWidth="1" strokeDasharray="3 5"
-          fill="none" opacity="0.4"
+          stroke="#0F172A" strokeWidth="1" strokeDasharray="3 5"
+          fill="none" opacity="0.25"
         />
 
         {/* Outer orbiting dots group */}
@@ -108,8 +108,8 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
             <g key={`outer-${i}`}>
               {/* Soft glow behind dot */}
               <circle cx={dot.cx} cy={dot.cy} r={dotR * 2.5} fill="#10B981" opacity="0.12" />
-              {/* The dot */}
-              <circle cx={dot.cx} cy={dot.cy} r={dotR} fill="#10B981" opacity="0.7" />
+              {/* The dot with dark border */}
+              <circle cx={dot.cx} cy={dot.cy} r={dotR} fill="#10B981" stroke="#0F172A" strokeWidth="1.5" opacity="0.85" />
             </g>
           ))}
         </g>
@@ -119,7 +119,7 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
           {innerDots.map((dot, i) => (
             <g key={`inner-${i}`}>
               <circle cx={dot.cx} cy={dot.cy} r={dotR * 2.5} fill="#0EA5E9" opacity="0.12" />
-              <circle cx={dot.cx} cy={dot.cy} r={dotR} fill="#0EA5E9" opacity="0.6" />
+              <circle cx={dot.cx} cy={dot.cy} r={dotR} fill="#0EA5E9" stroke="#0F172A" strokeWidth="1.5" opacity="0.85" />
             </g>
           ))}
         </g>
@@ -129,7 +129,7 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
           <line
             key={`line-${i}`}
             x1={center} y1={center} x2={dot.cx} y2={dot.cy}
-            stroke="#CBD5E1" strokeWidth="0.5" opacity="0.2"
+            stroke="#0F172A" strokeWidth="1" opacity="0.2"
           />
         ))}
 
@@ -137,7 +137,7 @@ export const AgentOrbit: React.FC<AgentOrbitProps> = ({ size = 200 }) => {
         <circle
           className={`core-dot-${id}`}
           cx={center} cy={center} r={coreR}
-          fill="#10B981" opacity="0.9"
+          fill="#10B981" stroke="#0F172A" strokeWidth="2" opacity="0.95"
         />
         {/* Core inner highlight */}
         <circle

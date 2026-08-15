@@ -335,7 +335,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               right: isMobile ? '-20px' : '0px', 
               transform: 'translateY(-50%)',
               zIndex: 0,
-              opacity: 0.45,
+              opacity: 0.7,
               pointerEvents: 'none',
             }}
           >
