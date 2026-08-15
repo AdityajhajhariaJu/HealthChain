@@ -18,6 +18,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
+import { setActiveCase } from '../../services/CaseEngine';
+import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
 
 // --- Sub-components for dynamic elements ---
@@ -73,6 +75,8 @@ export default function Landing() {
 
   const handleStartInvestigation = () => {
     setIsNavigating(true);
+    setActiveCase(null);
+    useMDTStore.getState().reset();
     setTimeout(() => {
       localStorage.setItem('hc_guest_mode', 'true');
       navigate('/app/collab');
