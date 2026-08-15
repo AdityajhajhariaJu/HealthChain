@@ -379,7 +379,24 @@ export default function MDTHub() {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px', position: 'relative' }}>
+          
+          {/* Decorative Background Orbit */}
+          {!isMobile && (
+            <div 
+              style={{ 
+                position: 'absolute', 
+                top: '-20px', 
+                right: '20px', 
+                zIndex: 0,
+                opacity: 0.9,
+                animation: 'fade-in 1s ease-out'
+              }}
+            >
+              <LiveOrbitIcon size={140} />
+            </div>
+          )}
+
           <div
             style={{
               display: 'inline-flex',
@@ -392,6 +409,8 @@ export default function MDTHub() {
               borderRadius: '999px',
               border: '1px solid rgba(0,0,0,0.05)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              position: 'relative',
+              zIndex: 1
             }}
           >
             <Network size={14} color="#10B981" />
@@ -414,13 +433,10 @@ export default function MDTHub() {
               color: '#0F172A',
               margin: '0 0 12px 0',
               letterSpacing: '-1px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px'
+              position: 'relative',
+              zIndex: 1
             }}
           >
-            <LiveOrbitIcon size={32} />
             Collaborative Specialists
           </h1>
           <p
