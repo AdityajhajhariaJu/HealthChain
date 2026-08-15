@@ -162,7 +162,7 @@ export default function Pricing() {
           </button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
-            {['Everything in Basic', 'MDT Consensus Hub (Unlimited)', 'Advanced Clinical Synthesis', 'Priority Support', 'Cloud Sync & Portability'].map(feature => (
+            {['Everything in Basic', 'Deep Collaborative Specialists (Unlimited)', 'Advanced Clinical Synthesis', 'Priority Support', 'Cloud Sync & Portability'].map(feature => (
               <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px', fontWeight: feature.includes('Everything') ? 600 : 400 }}>
                 <Check size={18} color="var(--teal)" /> {feature}
               </div>

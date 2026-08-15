@@ -13,8 +13,8 @@ const faqs = [
     answer: "Your privacy is our top priority. HealthChain uses enterprise-grade encryption for all data at rest and in transit. By default, your data is stored locally in your browser unless you explicitly create an account for cloud sync."
   },
   {
-    question: "How does the MDT Consensus Hub work?",
-    answer: "The Multidisciplinary Team (MDT) Consensus Hub simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
+    question: "How do the Deep Collaborative Specialists work?",
+    answer: "The Deep Collaborative Specialists feature simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
   },
   {
     question: "Can I export my profile and case data?",

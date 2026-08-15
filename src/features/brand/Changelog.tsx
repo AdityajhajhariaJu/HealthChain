@@ -7,7 +7,7 @@ const log = [
     version: 'v2.1.0',
     date: 'August 15, 2026',
     changes: [
-      { type: 'feature', text: 'Added MDT Consensus Hub for cross-specialty reviews' },
+      { type: 'feature', text: 'Added Deep Collaborative Specialists for cross-specialty reviews' },
       { type: 'feature', text: 'New Data Portability (Export/Import JSON) in Settings' },
       { type: 'improvement', text: 'Added Skeleton Loaders across the app for better perceived performance' },
       { type: 'fix', text: 'Fixed mobile view for Medical Profile timeline' }

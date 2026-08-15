@@ -17,7 +17,7 @@ const TOUR_STEPS = [
     content: 'Get a parallel evaluation from different AI medical experts at the same time to see the whole picture.',
   },
   {
-    title: 'MDT Consensus',
+    title: 'Deep Collaborative Specialists',
     content: 'Our Orchestrator synthesizes findings from all specialists into one unified clinical report.',
   },
   {

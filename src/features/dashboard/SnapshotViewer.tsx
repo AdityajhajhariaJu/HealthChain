@@ -61,7 +61,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
            {[...reviews].reverse().map((review, index) => {
               const isParallel = review.type === 'parallel';
               const Icon = isParallel ? GitMerge : Network;
-              const label = isParallel ? 'Parallel Specialists' : 'MDT Correlation';
+              const label = isParallel ? 'Parallel Specialists' : 'Deep Collab Correlation';
               const summary = review.report?.executiveSummary || 'Review saved to case.';
               const isSelected = activeReviewId === review.id;
 
@@ -116,7 +116,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                 <div>
                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <h2 style={{ margin: 0, fontSize: isMobile ? 20 : 24 }}>
-                        {activeReview.type === 'parallel' ? 'Parallel Review Report' : 'MDT Consensus Report'}
+                        {activeReview.type === 'parallel' ? 'Parallel Review Report' : 'Deep Collab Consensus Report'}
                       </h2>
                       {activeReview.id === reviews[reviews.length - 1].id && (
                          <span className="badge badge-teal">Latest</span>

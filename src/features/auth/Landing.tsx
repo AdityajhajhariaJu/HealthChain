@@ -52,8 +52,8 @@ const landingFaqs = [
     answer: "Your privacy is our top priority. HealthChain uses enterprise-grade encryption for all data at rest and in transit. By default, your data is stored locally in your browser unless you explicitly create an account for cloud sync."
   },
   {
-    question: "How does the MDT Consensus Hub work?",
-    answer: "The Multidisciplinary Team (MDT) Consensus Hub simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
+    question: "How do the Deep Collaborative Specialists work?",
+    answer: "The Deep Collaborative Specialists feature simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
   },
   {
     question: "Are the AI agents trained on real medical literature?",
@@ -337,7 +337,7 @@ export default function Landing() {
         <div className={styles.aiBrainContent}>
           <div className={styles.aiBrainText}>
             <h2>12 Specialist Agents. <br/>Working Synchronously.</h2>
-            <p>The moment you upload your data, HealthChain activates an entire Multi-Disciplinary Team (MDT). Rheumatology, Neurology, Endocrinology, and 9 other specialized AI agents cross-examine your case simultaneously.</p>
+            <p>The moment you upload your data, HealthChain activates a network of Deep Collaborative Specialists. Rheumatology, Neurology, Endocrinology, and 9 other specialized AI agents cross-examine your case simultaneously.</p>
           </div>
           <div className={styles.aiBrainVisual}>
              {/* Abstract Node Network */}

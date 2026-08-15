@@ -136,7 +136,7 @@ export default function CaseDashboard() {
               {profile.demographics.name ? `, ${(profile?.demographics?.name || '').split(' ')[0] || 'User'}` : ''}.
             </h1>
             <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
-              Start with parallel AI specialist perspectives, then bring their findings into an MDT
+              Start with parallel AI specialist perspectives, then bring their findings into a Deep Collaborative Specialist review.
               consensus when your case needs deeper correlation.
             </p>
           </div>
@@ -422,7 +422,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
               onClick={() => navigate(`/app/collab?caseId=${item.id}`)}
               style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}
             >
-              <Network size={17} /> Request MDT Consensus
+              <Network size={17} /> Request Deep Collab Consensus
             </button>
             <button
               className="btn btn-outline"
@@ -605,7 +605,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                                 <div>
                                    <strong style={{ fontSize: 15, color: isReview ? (isMDT ? '#065F46' : '#3730A3') : '#334155', display: 'block', marginBottom: 2 }}>
-                                      {isReview ? `${isMDT ? 'MDT Consensus' : 'Quick Consult'} Snapshot` : timelineItem.label}
+                                      {isReview ? `${isMDT ? 'Deep Collab' : 'Quick Consult'} Snapshot` : timelineItem.label}
                                    </strong>
                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
                                       <Clock size={12} /> {formatDate(date)}
@@ -918,7 +918,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
               {pendingActions.map(a => (
                 <li key={a.id} style={{ marginBottom: 6 }}>
                   <strong>{a.step}</strong> {a.timeline ? `- ${a.timeline}` : ''}
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Recommended by {a.type || 'MDT Consensus'}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Recommended by {a.type || 'Deep Collab'}</div>
                 </li>
               ))}
             </ul>
@@ -940,7 +940,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
                 <div style={{ position: 'absolute', left: -9, top: 0, width: 14, height: 14, borderRadius: '50%', background: isReview ? '#000' : '#94a3b8', border: '2px solid #fff' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                   <strong style={{ fontSize: 15, color: '#111827' }}>
-                    {isReview ? (timelineItem.type === 'mdt' ? 'MDT Consensus Snapshot' : 'Quick Consult Snapshot') : timelineItem.label}
+                    {isReview ? (timelineItem.type === 'mdt' ? 'Deep Collab Snapshot' : 'Quick Consult Snapshot') : timelineItem.label}
                   </strong>
                   <span style={{ fontSize: 13, color: '#6b7280' }}>{formatDate(date)}</span>
                 </div>

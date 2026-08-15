@@ -6,7 +6,7 @@ const routeNames: Record<string, string> = {
   app: 'Dashboard',
   today: 'Health Today',
   multi: 'Multiple-Specialists',
-  mdthub: 'MDT Consensus',
+  mdthub: 'Deep Collab',
   'my-cases': 'My Cases',
   pharmacy: 'Pharmacy Hub',
   dietician: 'Dietician',
