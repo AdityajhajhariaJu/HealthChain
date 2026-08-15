@@ -415,14 +415,25 @@ export default function MDTHub() {
               fontSize: isMobile ? '28px' : '36px',
               fontWeight: 900,
               color: '#0F172A',
-              margin: '0 0 12px 0',
+              margin: '0 0 4px 0',
               letterSpacing: '-1px',
               position: 'relative',
               zIndex: 1
             }}
           >
-            Collaborative Specialists
+            Deep Collaborative Specialists
           </h1>
+          <div style={{ 
+            fontStyle: 'italic', 
+            color: '#10B981', 
+            fontWeight: 700, 
+            fontSize: '15px', 
+            marginBottom: '16px',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            "For Complex Cases"
+          </div>
           <p
             style={{
               color: '#64748B',
