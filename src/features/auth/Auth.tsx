@@ -88,6 +88,33 @@ export default function Auth() {
         );
         // Navigation is handled by App.tsx onAuthStateChange listener
       } else {
+        const passwordVal = formData.password;
+        if (passwordVal.length < 8) {
+          setError('Password must be at least 8 characters long.');
+          setLoading(false);
+          return;
+        }
+        if (!/[A-Z]/.test(passwordVal)) {
+          setError('Password must contain at least one uppercase letter.');
+          setLoading(false);
+          return;
+        }
+        if (!/[a-z]/.test(passwordVal)) {
+          setError('Password must contain at least one lowercase letter.');
+          setLoading(false);
+          return;
+        }
+        if (!/[0-9]/.test(passwordVal)) {
+          setError('Password must contain at least one number.');
+          setLoading(false);
+          return;
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(passwordVal)) {
+          setError('Password must contain at least one special character.');
+          setLoading(false);
+          return;
+        }
+
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match.');
           setLoading(false);
