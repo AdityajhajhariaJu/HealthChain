@@ -347,7 +347,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               <span style={{ color: '#0F8B7E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>COLLABORATIVE SPECIALISTS</span>
             </div>
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
-            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our AI specialists will connect everything.</p>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
             <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
           </div>
         </div>
@@ -359,7 +359,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               <textarea
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
-                placeholder={"Write down your entire history — every symptom and how long you've been facing it.\n\nAttach all reports, lab results, or documents so our specialists can connect everything."}
+                placeholder={"Write down your entire history — every symptom and how long you've been facing it.\n\nAttach all reports, lab results, or documents so our multiple AI agents can connect everything."}
                 style={{
                   width: '100%',
                   minHeight: '160px',
