@@ -96,6 +96,18 @@ export default function App() {
         setItemSync('isAuthenticated', 'true');
         localStorage.removeItem('hc_guest_mode');
         
+        // Sync account info from session to capture OAuth logins (like Google)
+        const currentAccount = localStorage.getItem('hc_account');
+        const parsedAccount = currentAccount ? JSON.parse(currentAccount) : {};
+        setItemSync(
+          'hc_account',
+          JSON.stringify({
+            ...parsedAccount,
+            email: session.user.email,
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || parsedAccount.name || '',
+          })
+        );
+        
         // Sync user data now that they are authenticated
         await syncProfileFromSupabase();
         syncCasesFromSupabase();

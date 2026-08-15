@@ -396,7 +396,7 @@ export default function Settings() {
               </div>
               <div>
                 <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-                  Patient User
+                  {account?.name || profiles.find(p => p.id === activeProfileId)?.demographics?.name || profiles.find(p => p.id === activeProfileId)?.profileName || 'Patient User'}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{userEmail}</div>
               </div>
