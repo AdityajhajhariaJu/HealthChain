@@ -56,8 +56,8 @@ const links = [
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
-  { to: '/app/consult', label: 'Consult', icon: Stethoscope },
-  { to: '/app/collab', label: 'Collab', icon: Network },
+  { to: '/app/consult', label: 'Quick', icon: Stethoscope },
+  { to: '/app/collab', label: 'Deep', icon: Network },
   { to: '/app/trials', label: 'Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
