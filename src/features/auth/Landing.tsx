@@ -136,8 +136,7 @@ export default function Landing() {
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(255,255,255,0.9)',
-              backdropFilter: 'blur(12px)',
+              background: '#0B1120',
               zIndex: 9999,
               display: 'flex',
               flexDirection: 'column',
@@ -147,17 +146,58 @@ export default function Landing() {
             }}
           >
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 40px rgba(16, 185, 129, 0.15)'
+              }}
             >
-              <Loader2 size={48} color="#0F8B7E" />
+              <Activity size={32} color="#10B981" />
             </motion.div>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-              Preparing your secure investigation...
-            </h2>
-            <p style={{ color: '#64748B', fontSize: '16px', margin: 0 }}>
-              Connecting to Deep Collaborative Specialists
-            </p>
+            
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ fontSize: '32px', fontWeight: 900, color: '#F1F5F9', margin: 0, letterSpacing: '-0.5px' }}
+            >
+              HealthChain
+            </motion.h2>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              style={{
+                width: '120px',
+                height: '2px',
+                background: 'rgba(255,255,255,0.1)',
+                marginTop: '16px',
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '2px'
+              }}
+            >
+              <motion.div
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                style={{
+                  position: 'absolute',
+                  top: 0, bottom: 0, left: 0,
+                  width: '50%',
+                  background: '#10B981',
+                  borderRadius: '2px'
+                }}
+              />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
