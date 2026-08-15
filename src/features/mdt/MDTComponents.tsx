@@ -334,54 +334,60 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
             <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>Describe your symptoms and our AI will automatically select a team of specialists to investigate your case.</p>
           </div>
-          <button
-            onClick={onUploadClick}
-            style={{
-              padding: '8px 16px',
-              background: '#F8FAFC',
-              color: '#0F172A',
-              border: '1px solid #E2E8F0',
-              borderRadius: '999px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#F1F5F9')}
-            onMouseOut={(e) => (e.currentTarget.style.background = '#F8FAFC')}
-          >
-            <Upload size={14} /> Upload Medical File
-          </button>
         </div>
 
         {/* Start Fresh Case (Now Primary) */}
         <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <textarea
-              value={complaint}
-              onChange={(e) => setComplaint(e.target.value)}
-              placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
-              style={{
-                width: '100%',
-                minHeight: '160px',
-                padding: '20px',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid #E2E8F0',
-                fontSize: '16px',
-                resize: 'vertical',
-                fontFamily: 'inherit',
-                outline: 'none',
-                background: '#FFF',
-                color: '#0F172A',
-                transition: 'border-color 0.2s',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-              }}
-              onFocus={(e) => (e.target.style.borderColor = '#10B981')}
-              onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
-            />
+            <div style={{ position: 'relative' }}>
+              <textarea
+                value={complaint}
+                onChange={(e) => setComplaint(e.target.value)}
+                placeholder="Describe your symptoms, how long you've had them, and anything else relevant..."
+                style={{
+                  width: '100%',
+                  minHeight: '160px',
+                  padding: '20px',
+                  paddingBottom: '50px',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid #E2E8F0',
+                  fontSize: '16px',
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  background: '#FFF',
+                  color: '#0F172A',
+                  transition: 'border-color 0.2s',
+                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#10B981')}
+                onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
+              />
+              <button
+                onClick={onUploadClick}
+                style={{
+                  position: 'absolute',
+                  bottom: '12px',
+                  left: '12px',
+                  padding: '6px 14px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
+              >
+                <Upload size={12} /> Upload file instead
+              </button>
+            </div>
             <button
               onClick={() => onComplete({ chiefComplaint: complaint })}
               disabled={!complaint.trim() || isPreparing}
