@@ -423,7 +423,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                 transition: 'all 0.2s',
               }}
             >
-              {isPreparing ? 'Preparing...' : 'Select Specialists'} <ArrowRight size={18} />
+              {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={18} />
             </button>
           </div>
         </div>
