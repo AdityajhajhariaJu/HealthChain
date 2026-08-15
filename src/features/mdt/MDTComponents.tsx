@@ -401,7 +401,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                 onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
                 onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
               >
-                <Upload size={12} /> Attach reports & documents
+                <Upload size={12} /> Upload lab reports also
               </button>
             </div>
             <button
