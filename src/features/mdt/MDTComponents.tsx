@@ -316,13 +316,23 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
 
   return (
     <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px' }}>
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 20, backgroundPosition: '0% 50%' }}
+        animate={{ 
+          opacity: 1, 
+          y: 0,
+          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+        }}
+        transition={{
+          backgroundPosition: { duration: 10, ease: "linear", repeat: Infinity }
+        }}
         style={{
-          background: 'rgba(255,255,255,0.8)',
+          background: 'linear-gradient(120deg, rgba(240,253,244,0.95) 0%, rgba(239,246,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
+          backgroundSize: '200% 200%',
           backdropFilter: 'blur(24px)',
           padding: isMobile ? '20px' : '48px',
           borderRadius: '32px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
           border: '1px solid rgba(255,255,255,0.5)',
         }}
       >
@@ -531,7 +541,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
