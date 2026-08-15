@@ -16,7 +16,8 @@ import {
   ArrowRight,
   Sparkles,
   Upload,
-  GitMerge
+  GitMerge,
+  X
 } from 'lucide-react';
 import {
   chatWithMDTSpecialist,
@@ -300,11 +301,13 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
 
 // ─── Intake Phase UI ────────────────────────────────────────────────────────
 
-export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing, onElevateParallel, onReviewPastMDT, onResumeActiveCase }) {
+export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing, onElevateParallel, onReviewPastMDT, onResumeActiveCase }: any) {
   const isMobile = useIsMobile();
   const [complaint, setComplaint] = useState('');
   const [parallelCases, setParallelCases] = useState<any[]>([]);
   const [mdtCases, setMdtCases] = useState<any[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const activeEvidenceCount = activeCase?.medicalRecords?.length || 0;
   const activeReviewCount = activeCase?.reviews?.length || 0;
 
@@ -313,6 +316,26 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
     setParallelCases(cases.filter((c: any) => c.mode === 'multi' && c.stage !== 'mdt_complete'));
     setMdtCases(cases.filter((c: any) => c.mode === 'mdt'));
   }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (selectedFiles.length + files.length > 7) {
+      alert('You can only upload up to 7 documents.');
+      return;
+    }
+    for (let f of files) {
+      if (f.size > 10 * 1024 * 1024) {
+        alert(`${f.name} is too large (max 10MB).`);
+        return;
+      }
+    }
+    setSelectedFiles(prev => [...prev, ...files]);
+    if (e.target) e.target.value = ''; // reset input
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px' }}>
@@ -390,7 +413,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
                 onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
               />
               <button
-                onClick={onUploadClick}
+                onClick={() => fileInputRef.current?.click()}
                 style={{
                   position: 'absolute',
                   bottom: '12px',
@@ -413,9 +436,31 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
               >
                 <Upload size={12} /> Upload lab reports also
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                multiple
+                accept="image/*,application/pdf"
+                capture="environment"
+                onChange={handleFileChange}
+              />
             </div>
+
+            {selectedFiles.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 4px' }}>
+                {selectedFiles.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', padding: '4px 10px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#334155' }}>
+                    <FileText size={14} color="#64748B" />
+                    <span style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
+                    <button onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#94A3B8' }}><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <button
-              onClick={() => onComplete({ chiefComplaint: complaint })}
+              onClick={() => onComplete({ chiefComplaint: complaint, files: selectedFiles })}
               disabled={!complaint.trim() || isPreparing}
               style={{
                 alignSelf: 'flex-end',

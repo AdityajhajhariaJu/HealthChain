@@ -29,10 +29,11 @@ import {
   chatWithMDTSpecialist,
   runMDTConference,
   generateMDTReport,
+  analyzeLabReport,
 } from '../../services/geminiService';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
-import { addEvent, addActionItems, addCondition } from '../../services/ProfileEngine';
+import { addEvent, addActionItems, addCondition, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, saveReviewSnapshot, setActiveCase as setGlobalActiveCase } from '../../services/CaseEngine';
 import {
   Step,
@@ -150,22 +151,45 @@ export default function MDTHub() {
       }
       return;
     }
-    setIntakeData(data);
+    
     setIsSelecting(true);
+    let enhancedComplaint = data.chiefComplaint || '';
+    
     try {
-      const ids = (await selectMDTSpecialists(data.chiefComplaint)) || [];
+      if (data.files && data.files.length > 0) {
+        const profile = getProfile() || {};
+        for (const file of data.files) {
+          const reader = new FileReader();
+          const base64Data = await new Promise<string>((resolve) => {
+            reader.onload = (e) => resolve((e.target?.result as string).split(',')[1]);
+            reader.readAsDataURL(file);
+          });
+          
+          const result = await analyzeLabReport(base64Data, file.type, profile);
+          if (result) {
+            enhancedComplaint += `\n\n--- Document: ${file.name} ---\n`;
+            enhancedComplaint += `Test/Report Type: ${result.testName}\n`;
+            enhancedComplaint += `Key Findings: ${result.keyFindings}\n`;
+            if (result.interpretation) enhancedComplaint += `Interpretation: ${result.interpretation}\n`;
+          }
+        }
+      }
+      
+      setIntakeData({ ...data, chiefComplaint: enhancedComplaint });
+      
+      const ids = (await selectMDTSpecialists(enhancedComplaint)) || [];
       const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
       const finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
-      const firstPassMaterial = `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${data.chiefComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
+      const firstPassMaterial = `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${enhancedComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [specialist.id, []])
       );
       
       const { createCaseDraft, setActiveCase: dynSetActiveCase } = await import('../../services/CaseEngine');
-      const newCase = createCaseDraft({ title: (data.chiefComplaint || '').slice(0, 40) + '...', intakeData: data });
+      const newCase = createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
       dynSetActiveCase(newCase.id);
       
-      setIntakeData({ ...data, chiefComplaint: data.chiefComplaint + `\n\nShared Case Material:\n${firstPassMaterial}` });
+      setIntakeData({ ...data, chiefComplaint: enhancedComplaint + `\n\nShared Case Material:\n${firstPassMaterial}` });
       setSelectedSpecialists(finalSelection);
       setSpecialistTranscripts(transcripts);
       setPhase('dashboard');
