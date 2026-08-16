@@ -207,7 +207,7 @@ export function getProfile() {
 
     // Auto-sync from Diet profile if available
     try {
-      const dietData = getItemSync('hc_diet_profile');
+      const dietData = getItemSync(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
       if (dietData) {
         const parsedDiet = JSON.parse(dietData);
         if (parsedDiet.metrics) {
@@ -255,31 +255,34 @@ async function saveProfile(profile) {
 
     // Asynchronously sync to secure cloud backend if configured
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({ 
-             id: session.user.id,
-             full_name: profile.profileName,
-             demographics: {
-               ...profile.demographics,
-               onboardingCompletedAt: profile.onboardingCompletedAt || null
-             },
-             conditions: profile.conditions,
-             medications: profile.medications,
-             allergies: profile.allergies,
-             family_history: profile.familyHistory,
-             timeline: profile.timeline,
-             vitals: profile.vitals,
-             nutrition: profile.nutrition,
-             health_focus: profile.healthFocus,
-             updated_at: new Date().toISOString()
-          });
-          
-        if (error) {
-          console.error('Supabase sync failed:', error);
-          window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+      // ONLY sync the primary profile to the cloud to prevent caregiver profiles from overwriting the main account
+      if (state.activeId === 'profile_1') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { error } = await supabase
+            .from('profiles')
+            .upsert({ 
+               id: session.user.id,
+               full_name: profile.profileName,
+               demographics: {
+                 ...profile.demographics,
+                 onboardingCompletedAt: profile.onboardingCompletedAt || null
+               },
+               conditions: profile.conditions,
+               medications: profile.medications,
+               allergies: profile.allergies,
+               family_history: profile.familyHistory,
+               timeline: profile.timeline,
+               vitals: profile.vitals,
+               nutrition: profile.nutrition,
+               health_focus: profile.healthFocus,
+               updated_at: new Date().toISOString()
+            });
+            
+          if (error) {
+            console.error('Supabase sync failed:', error);
+            window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+          }
         }
       }
     }
@@ -343,7 +346,7 @@ export function addCondition(condition, source = 'manual') {
   const profile = getProfile();
   if (!profile.conditions.includes(condition)) {
     profile.conditions.push(condition);
-    addEvent('system', source, `Condition Added: ${condition}`, { condition }, false);
+    addEvent('system', source, `Condition Added: ${condition}`, { condition }, false, profile);
     saveProfile(profile);
   }
 }
@@ -365,8 +368,8 @@ export function addMedication(med, source = 'manual') {
       supplyDays: med.supplyDays || 30,
       lastFilledAt: med.lastFilledAt || new Date().toISOString(),
     });
-    addEvent('system', source, `Medication Added: ${med.name}`, { med }, false);
-    saveProfile(profile);
+      addEvent('system', source, `Medication Added: ${med.name}`, { med }, false, profile);
+      saveProfile(profile);
   }
 }
 
@@ -404,8 +407,8 @@ export function removeFamilyHistory(history) {
   saveProfile(profile);
 }
 
-export function addEvent(type, source, title, data = {}, significant = true) {
-  const profile = getProfile();
+export function addEvent(type, source, title, data = {}, significant = true, existingProfile = null) {
+  const profile = existingProfile || getProfile();
 
   let safeData = data;
   if (data) {
@@ -435,7 +438,9 @@ export function addEvent(type, source, title, data = {}, significant = true) {
     profile.timeline = profile.timeline.slice(0, 1000);
   }
 
-  saveProfile(profile);
+  if (!existingProfile) {
+    saveProfile(profile);
+  }
   return event;
 }
 
@@ -453,7 +458,7 @@ export function updateVitals(labData, source = 'manual') {
     biomarkers: labData
   });
 
-  addEvent('lab_report', source, 'Lab Vitals Updated', { labData }, true);
+  addEvent('lab_report', source, 'Lab Vitals Updated', { labData }, true, profile);
   saveProfile(profile);
 }
 
@@ -556,7 +561,8 @@ export async function syncProfileFromSupabase() {
        // Conflict resolution: Don't overwrite local if local is newer (e.g., offline edits)
        if (localProfile?.demographics?.updatedAt && data.updated_at) {
          if (new Date(localProfile.demographics.updatedAt).getTime() > new Date(data.updated_at).getTime()) {
-           console.log('Local profile is newer than remote. Skipping remote overwrite.');
+           console.log('Local profile is newer than remote. Pushing local changes to cloud.');
+           saveProfile(localProfile);
            return;
          }
        }

@@ -14,7 +14,12 @@ const SUGGESTIONS = [
   "Can we review my health plan?",
 ];
 
-const AVA_VAULT_KEY = 'hc_ava_vault';
+import { getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
+
+const getAvaVaultKey = () => {
+  const state = getProfileEngineState();
+  return getProfileKey().replace('hc_unified_profile', 'hc_ava_vault') + '_' + (state?.activeId || 'profile_1');
+};
 
 const INITIAL_MSG = {
   role: 'model',
@@ -24,7 +29,7 @@ const INITIAL_MSG = {
 
 function getSavedMessages() {
   try {
-    const saved = localStorage.getItem(AVA_VAULT_KEY);
+    const saved = localStorage.getItem(getAvaVaultKey());
     return saved ? JSON.parse(saved) : [INITIAL_MSG];
   } catch {
     return [INITIAL_MSG];
@@ -44,14 +49,14 @@ export default function AvaHealthBuddy() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(AVA_VAULT_KEY, JSON.stringify(messages));
+      localStorage.setItem(getAvaVaultKey(), JSON.stringify(messages));
     } catch (e: any) {
       if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
         // Splice oldest 20% of messages if quota exceeded, keep initial message
         const keepCount = Math.floor(messages.length * 0.8);
         const newMsgs = [messages[0], ...messages.slice(messages.length - keepCount)];
         try {
-          localStorage.setItem(AVA_VAULT_KEY, JSON.stringify(newMsgs));
+          localStorage.setItem(getAvaVaultKey(), JSON.stringify(newMsgs));
         } catch (e2) {
           console.error('Storage full, unable to save chat:', e2);
         }

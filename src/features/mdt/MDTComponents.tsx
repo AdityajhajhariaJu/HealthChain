@@ -27,7 +27,7 @@ import {
 import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { addEvent, addActionItems, addCondition } from '../../services/ProfileEngine';
-import { getActiveCase } from '../../services/CaseEngine';
+import { getActiveCase, getCases } from '../../services/CaseEngine';
 
 export function Step({ icon: Icon, label, active, completed, isMobile }: any) {
   const isHighlighted = active || completed;
@@ -312,7 +312,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
   const activeReviewCount = activeCase?.reviews?.length || 0;
 
   useEffect(() => {
-    const cases = JSON.parse(localStorage.getItem('hc_cases') || '[]');
+    const cases = getCases();
     setParallelCases(cases.filter((c: any) => c.mode === 'multi' && c.stage !== 'mdt_complete'));
     setMdtCases(cases.filter((c: any) => c.mode === 'mdt'));
   }, []);

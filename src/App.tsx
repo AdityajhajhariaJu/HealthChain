@@ -95,9 +95,39 @@ export default function App() {
 
     // Global Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-        setItemSync('isAuthenticated', 'true');
-        localStorage.removeItem('hc_guest_mode');
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+          setItemSync('isAuthenticated', 'true');
+          
+          if (localStorage.getItem('hc_guest_mode') === 'true') {
+            const guestPrefix = 'hc_unified_profile_guest';
+            const authPrefix = `hc_unified_profile_${session.user.id}`;
+            
+            const guestProfile = localStorage.getItem(guestPrefix);
+            if (guestProfile) {
+              localStorage.setItem(authPrefix, guestProfile);
+              localStorage.removeItem(guestPrefix);
+            }
+            
+            const featurePrefixes = [
+              'hc_cases', 'hc_active_case', 'hc_ava_vault', 
+              'hc_diet_profile', 'hc_food_logs', 'hc_hydration', 
+              'hc_meal_plan', 'hc_diet_advice'
+            ];
+            
+            featurePrefixes.forEach(feature => {
+              for (let i = 1; i <= 5; i++) {
+                const guestFeatureKey = `${feature}_guest_profile_${i}`;
+                const authFeatureKey = `${feature}_${session.user.id}_profile_${i}`;
+                const data = localStorage.getItem(guestFeatureKey);
+                if (data) {
+                  localStorage.setItem(authFeatureKey, data);
+                  localStorage.removeItem(guestFeatureKey);
+                }
+              }
+            });
+          }
+          
+          localStorage.removeItem('hc_guest_mode');
         
         // Sync account info from session to capture OAuth logins (like Google)
         const currentAccount = localStorage.getItem('hc_account');

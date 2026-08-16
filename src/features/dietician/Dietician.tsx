@@ -21,7 +21,7 @@ import {
   generateMealPlan,
   generateDieticianAdvice,
 } from '../../services/geminiService';
-import { addEvent, addNutritionLog } from '../../services/ProfileEngine';
+import { addEvent, addNutritionLog, getProfileKey } from '../../services/ProfileEngine';
 import { OnboardingWizard } from './DieticianComponents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -100,23 +100,23 @@ export default function Dietician() {
   // Load state from local storage on mount
   useEffect(() => {
     try {
-      const savedProfile = localStorage.getItem('hc_diet_profile');
+      const savedProfile = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
       if (savedProfile) {
         let p = JSON.parse(savedProfile);
         p = { ...p, ...calculateTargets(p) }; // Force recalculation to apply new algorithms
         setProfile(p);
       }
 
-      const savedLogs = localStorage.getItem('hc_food_logs');
+      const savedLogs = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'));
       if (savedLogs) setFoodLogs(JSON.parse(savedLogs));
 
-      const savedHydration = localStorage.getItem('hc_hydration');
+      const savedHydration = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'));
       if (savedHydration) setHydration(JSON.parse(savedHydration));
 
-      const savedPlan = localStorage.getItem('hc_meal_plan');
+      const savedPlan = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'));
       if (savedPlan) setMealPlan(JSON.parse(savedPlan));
 
-      const savedAdvice = localStorage.getItem('hc_diet_advice');
+      const savedAdvice = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'));
       if (savedAdvice) setAdvice(savedAdvice);
     } catch (e) {
       console.error(e);
@@ -125,11 +125,11 @@ export default function Dietician() {
 
   // Save state to local storage when it changes
   useEffect(() => {
-    if (profile) localStorage.setItem('hc_diet_profile', JSON.stringify(profile));
+    if (profile) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'), JSON.stringify(profile));
   }, [profile]);
   useEffect(() => {
     try {
-      localStorage.setItem('hc_food_logs', JSON.stringify(foodLogs));
+      localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'), JSON.stringify(foodLogs));
     } catch (e: any) {
       if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
         const dates = Object.keys(foodLogs).sort();
@@ -138,7 +138,7 @@ export default function Dietician() {
         const newLogs: Record<string, any[]> = {};
         datesToKeep.forEach(date => newLogs[date] = foodLogs[date]);
         try {
-          localStorage.setItem('hc_food_logs', JSON.stringify(newLogs));
+          localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'), JSON.stringify(newLogs));
         } catch (e2) {
           console.error('Storage full, unable to save food logs:', e2);
         }
@@ -146,13 +146,13 @@ export default function Dietician() {
     }
   }, [foodLogs]);
   useEffect(() => {
-    localStorage.setItem('hc_hydration', JSON.stringify(hydration));
+    localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'), JSON.stringify(hydration));
   }, [hydration]);
   useEffect(() => {
-    if (mealPlan) localStorage.setItem('hc_meal_plan', JSON.stringify(mealPlan));
+    if (mealPlan) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'), JSON.stringify(mealPlan));
   }, [mealPlan]);
   useEffect(() => {
-    if (advice) localStorage.setItem('hc_diet_advice', advice);
+    if (advice) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'), advice);
   }, [advice]);
 
   const adviceFetched = useRef(false);
@@ -348,11 +348,11 @@ export default function Dietician() {
             <button
               onClick={() => {
                 if (window.confirm('Are you sure you want to reset your diet profile?')) {
-                  localStorage.removeItem('hc_diet_profile');
-                  localStorage.removeItem('hc_meal_plan');
-                  localStorage.removeItem('hc_diet_advice');
-                  localStorage.removeItem('hc_food_logs');
-                  localStorage.removeItem('hc_hydration');
+                  localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
+                  localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'));
+                  localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'));
+                  localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'));
+                  localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'));
                   setProfile(null);
                   setAdvice(null);
                   setMealPlan(null);

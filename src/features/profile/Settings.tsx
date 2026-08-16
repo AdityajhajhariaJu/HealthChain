@@ -67,9 +67,10 @@ export default function Settings() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
-        // Delete user's cases and profile in Supabase
+        // Delete user's cases, profile, and push notification devices in Supabase
         await supabase.from('cases').delete().eq('user_id', session.user.id);
         await supabase.from('profiles').delete().eq('id', session.user.id);
+        await supabase.from('user_devices').delete().eq('user_id', session.user.id);
       }
       localStorage.clear();
       await supabase.auth.signOut();

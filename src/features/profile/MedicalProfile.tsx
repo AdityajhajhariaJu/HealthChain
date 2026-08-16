@@ -178,15 +178,18 @@ export default function MedicalProfile() {
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all profile data? This cannot be undone.')) {
       clearProfile();
-      localStorage.removeItem('hc_diet_profile');
+      localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
       localStorage.removeItem('hc_history');
       
       const state = getProfileEngineState();
-      localStorage.removeItem(`hc_cases_${state.activeId}`);
-      localStorage.removeItem(`hc_active_case_${state.activeId}`);
-      localStorage.removeItem('hc_ava_vault');
-      localStorage.removeItem('hc_food_logs');
-      localStorage.removeItem('hc_hydration');
+      const profileKey = getProfileKey();
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_cases') + '_' + state.activeId);
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_active_case') + '_' + state.activeId);
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_ava_vault'));
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
       
       window.location.reload();
     }

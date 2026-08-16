@@ -229,6 +229,8 @@ async function save(cases: CaseItem[]) {
           const { data: cloudData } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
           const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
 
+          const currentProfileId = getActiveProfileId();
+
           for (const c of safeCases) {
              const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
              if (!isUUID) continue; // Skip legacy local IDs
@@ -239,6 +241,9 @@ async function save(cases: CaseItem[]) {
                continue;
              }
 
+             // Inject __profileId to isolate cases in the cloud for Caregiver mode
+             const cloudPayload = { ...c, __profileId: currentProfileId };
+
              try {
                await supabase.from('cases').upsert({
                   id: c.id,
@@ -246,7 +251,7 @@ async function save(cases: CaseItem[]) {
                   title: c.title,
                   status: c.status,
                   specialty: c.currentStage,
-                  data: c,
+                  data: cloudPayload,
                   updated_at: new Date().toISOString()
                });
              } catch (upsertErr) {
@@ -529,20 +534,33 @@ export async function syncCasesFromSupabase() {
     if (data && data.length > 0) {
       const localCases = getCases();
       const localCaseMap = new Map(localCases.map(c => [c.id, c]));
+      const activeProfileId = getActiveProfileId();
+      let needsUpload = false;
       
       data.forEach(cloudCase => {
          if (cloudCase.data) {
+             const caseProfileId = cloudCase.data.__profileId || 'profile_1';
+             if (caseProfileId !== activeProfileId) return;
+
              const localCase = localCaseMap.get(cloudCase.id);
              if (!localCase || new Date(cloudCase.updated_at) > new Date(localCase.updatedAt)) {
                 localCaseMap.set(cloudCase.id, cloudCase.data);
+             } else if (new Date(localCase.updatedAt) > new Date(cloudCase.updated_at)) {
+                needsUpload = true;
              }
          }
       });
       
       const mergedCases = Array.from(localCaseMap.values());
+      cachedCases = mergedCases;
       setItemSync(getCasesKey(), JSON.stringify(mergedCases));
       window.dispatchEvent(new Event('hc_cases_updated'));
-      console.log('Cases synced successfully from Supabase');
+      console.log('Cases synced successfully from Supabase for ' + activeProfileId);
+      
+      if (needsUpload) {
+        console.log('Local cases are newer than remote. Pushing to cloud.');
+        save(mergedCases);
+      }
     }
   } catch (err) {
     console.error('Failed to sync cases from Supabase:', err);

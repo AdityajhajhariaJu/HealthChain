@@ -34,7 +34,7 @@ import {
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { addEvent, addActionItems, addCondition, getProfile } from '../../services/ProfileEngine';
-import { getActiveCase, saveReviewSnapshot, setActiveCase as setGlobalActiveCase } from '../../services/CaseEngine';
+import { getActiveCase, saveReviewSnapshot, setActiveCase as setGlobalActiveCase, getCases } from '../../services/CaseEngine';
 import {
   Step,
   StepDivider,
@@ -102,19 +102,33 @@ export default function MDTHub() {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const historyId = searchParams.get('historyId');
-    if (historyId) {
-      const stored = localStorage.getItem('hc_history');
-      if (stored) {
-        const historyArray = JSON.parse(stored);
-        const item = historyArray.find((h) => h.id === historyId);
-        if (item && item.type === 'mdt' && item.report) {
-          setHistoryReport(item.report);
+      const historyId = searchParams.get('historyId');
+      if (historyId) {
+        let foundReport = null;
+        const stored = localStorage.getItem('hc_history');
+        if (stored) {
+          const historyArray = JSON.parse(stored);
+          const item = historyArray.find((h: any) => h.id === historyId);
+          if (item && item.type === 'mdt' && item.report) {
+            foundReport = item.report;
+          }
+        }
+        
+        if (!foundReport) {
+          const cases = getCases();
+          const caseItem = cases.find((c: any) => c.id === historyId);
+          if (caseItem && caseItem.reviews) {
+            const mdtReview = caseItem.reviews.find((r: any) => r.type === 'mdt' || r.id === historyId + '-review');
+            if (mdtReview && mdtReview.report) foundReport = mdtReview.report;
+          }
+        }
+
+        if (foundReport) {
+          setHistoryReport(foundReport);
           setPhase('dashboard');
           setDashboardTab('mdt');
         }
       }
-    }
   }, [location.search, setPhase, setDashboardTab]);
 
   // Restore from active case if we have a finished MDT review
