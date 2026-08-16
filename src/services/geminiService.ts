@@ -1,40 +1,37 @@
 import { compilePatientContext } from './MemoryService';
 import { getActiveCase } from './CaseEngine';
+import { supabase } from './supabaseClient';
 
 // We strictly use the API proxy to prevent exposing the Gemini key in the frontend bundle.
-// (For local development, run `vercel dev` or configure a proxy for `/api`)
-const API_URL = '/api/gemini';
+// (For local development, we can use a direct connection if VITE_GEMINI_API_KEY is defined in .env.local)
+const LOCAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const API_URL = (import.meta.env.DEV && LOCAL_API_KEY)
+  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${LOCAL_API_KEY}`
+  : '/api/gemini';
 
 const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000, retries = 2) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     throw new Error('Offline');
   }
 
-  // Client-side token bucket (Max 20 requests / hour)
+  // Get current user session token if available
+  let sessionToken = '';
   try {
-    const limit = 20;
-    const hour = 60 * 60 * 1000;
-    const now = Date.now();
-    let logs: number[] = [];
-    try { logs = JSON.parse(localStorage.getItem('hc_api_logs') || '[]'); } catch { logs = []; }
-    logs = logs.filter(time => now - time < hour);
-    if (logs.length >= limit) {
-      throw new Error('Rate limit exceeded. Please try again later.');
+    const { data } = await supabase.auth.getSession();
+    if (data?.session?.access_token) {
+      sessionToken = data.session.access_token;
     }
-    logs.push(now);
-    localStorage.setItem('hc_api_logs', JSON.stringify(logs));
-  } catch (e: any) {
-    if (e.message.includes('Rate limit exceeded')) throw e;
-  }
-  
+  } catch {}
+
   let lastError;
   
-  // Inject our custom security header
+  // Inject security headers
   const routeSecret = import.meta.env.VITE_API_ROUTE_SECRET;
   const secureOptions = {
     ...options,
     headers: {
       ...options.headers,
+      ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
       ...(routeSecret ? { 'x-api-route-secret': routeSecret } : {})
     }
   };

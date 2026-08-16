@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon, ChevronDown, Plus } from 'lucide-react';
-import { getAllProfiles, switchActiveProfile, createNewProfile, getProfileEngineState } from '../../services/ProfileEngine';
+import { getAllProfiles, switchActiveProfile, createNewProfile, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { MonetizationService } from '../../services/MonetizationService';
 import { Star, AlertTriangle, Trash2, X, ShieldCheck } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
@@ -28,19 +27,22 @@ export default function Settings() {
   const userEmail = account?.email || account?.user?.email || 'user@example.com';
 
   useEffect(() => {
-    MonetizationService.isPremium().then(setIsPremium);
+    verifyProStatus().then(setIsPremium);
     
-    const handlePremiumUnlock = () => setIsPremium(true);
-    window.addEventListener('hc_premium_unlocked', handlePremiumUnlock);
+    const handleProfileUpdate = () => {
+      setIsPremium(isProUser());
+      setProfiles(getAllProfiles());
+      setActiveProfileId(getProfileEngineState().activeId);
+    };
+
     const loadProfiles = () => {
       setProfiles(getAllProfiles());
       setActiveProfileId(getProfileEngineState().activeId);
     };
     loadProfiles();
-    window.addEventListener('hc_profile_updated', loadProfiles);
+    window.addEventListener('hc_profile_updated', handleProfileUpdate);
     return () => {
-      window.removeEventListener('hc_profile_updated', loadProfiles);
-      window.removeEventListener('hc_premium_unlocked', handlePremiumUnlock);
+      window.removeEventListener('hc_profile_updated', handleProfileUpdate);
     };
   }, []);
 
@@ -63,12 +65,15 @@ export default function Settings() {
     setIsDeleting(true);
     
     try {
-      // For a real production app, you would call a Supabase Edge Function here 
-      // to delete the user from auth.users and all their associated data using the service_role key.
-      // For now, we perform a hard local wipe and sign them out.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        // Delete user's cases and profile in Supabase
+        await supabase.from('cases').delete().eq('user_id', session.user.id);
+        await supabase.from('profiles').delete().eq('id', session.user.id);
+      }
       localStorage.clear();
       await supabase.auth.signOut();
-      success('Account Deleted', 'Your account has been queued for permanent deletion.');
+      success('Account Deleted', 'Your account and data have been permanently deleted.');
       navigate('/');
     } catch (err: any) {
       toastError('Error deleting account', err.message);
@@ -263,8 +268,8 @@ export default function Settings() {
           {!isPremium && (
             <button
               className="btn btn-primary"
-              onClick={() => MonetizationService.purchaseSubscription('yearly')}
-              style={{ padding: '8px 16px', fontSize: '14px', background: '#F59E0B', color: '#fff', border: 'none' }}
+              onClick={() => navigate('/pricing')}
+              style={{ padding: '8px 16px', fontSize: '14px', background: 'var(--teal)', color: '#fff', border: 'none', cursor: 'pointer' }}
             >
               Upgrade Now
             </button>
@@ -562,14 +567,26 @@ export default function Settings() {
                 reader.onload = (ev) => {
                   try {
                     const result = JSON.parse(ev.target?.result as string);
+                    if (!result || typeof result !== 'object') {
+                      throw new Error('Invalid JSON format');
+                    }
+                    const FORBIDDEN_KEYS = ['isAuthenticated', 'hc_account', 'hc_remember', 'hc_guest_mode', 'hc_premium_status'];
+                    const ALLOWED_PREFIXES = ['hc_unified_profile', 'hc_cases', 'hc_diet_profile', 'hc_active_case', 'hc_theme'];
+
+                    let importedCount = 0;
                     Object.keys(result).forEach(key => {
-                      const val = typeof result[key] === 'string' ? result[key] : JSON.stringify(result[key]);
-                      localStorage.setItem(key, val);
+                      if (FORBIDDEN_KEYS.includes(key)) return;
+                      const isAllowed = ALLOWED_PREFIXES.some(prefix => key.startsWith(prefix));
+                      if (isAllowed) {
+                        const val = typeof result[key] === 'string' ? result[key] : JSON.stringify(result[key]);
+                        localStorage.setItem(key, val);
+                        importedCount++;
+                      }
                     });
-                    success('Import Complete', 'Your data has been successfully restored. Refreshing...');
+                    success('Import Complete', `Successfully restored ${importedCount} data entries. Refreshing...`);
                     setTimeout(() => window.location.reload(), 1500);
                   } catch (err) {
-                    toastError('Import Failed', 'Invalid JSON file.');
+                    toastError('Import Failed', 'Invalid or unverified JSON file.');
                   }
                 };
                 reader.onerror = () => toastError('Import Failed', 'Failed to read file.');

@@ -26,7 +26,7 @@ export default function Pricing() {
       
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate('/auth');
+        navigate('/login');
         return;
       }
 
@@ -37,11 +37,16 @@ export default function Pricing() {
         return;
       }
 
-      // Create order via Vercel Backend
+      const authHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      };
+
+      // Create order via Vercel Backend with server-enforced pricing
       const orderRes = await fetch('/api/create-order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 49900, currency: 'INR' }) // ₹499.00
+        headers: authHeaders,
+        body: JSON.stringify({ plan_id: 'pro_30_days' })
       });
       const orderData = await orderRes.json();
 
@@ -52,23 +57,22 @@ export default function Pricing() {
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder', // Requires VITE_RAZORPAY_KEY_ID in .env
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'HealthChain 360',
         description: 'Pro Access (30 Days)',
         order_id: orderData.id,
         handler: async function (response: any) {
-          // Verify payment
+          // Verify payment on server
           const verifyRes = await fetch('/api/verify-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
-              user_id: session.user.id,
-              amount: 49900
+              plan_id: 'pro_30_days'
             })
           });
           
@@ -76,9 +80,9 @@ export default function Pricing() {
           
           if (verifyData.success) {
             alert('Welcome to HealthChain Pro! Your features are now unlocked.');
-            window.location.reload(); // Refresh to re-fetch profile status
+            window.location.href = '/app';
           } else {
-            alert('Payment verification failed: ' + verifyData.error);
+            alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
           }
         },
         prefill: {

@@ -87,7 +87,10 @@ export default function App() {
     const hash = window.location.hash;
     if (hash && hash.includes('type=recovery')) {
       navigate('/update-password' + hash, { replace: true });
-      return; // Stop execution to let the redirect happen
+      try {
+        window.history.replaceState(null, '', '/update-password');
+      } catch {}
+      return;
     }
 
     // Global Auth Listener

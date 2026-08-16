@@ -1,8 +1,24 @@
+import { createClient } from '@supabase/supabase-js';
+
+const ALLOWED_ORIGINS = [
+  'https://www.healthchain360.com',
+  'https://healthchain-live.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'capacitor://localhost',
+  'http://localhost'
+];
+
 export default async function handler(req, res) {
-  const origin = req.headers.origin || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-route-secret');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-route-secret');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -12,30 +28,59 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Basic security to prevent arbitrary internet bots from hitting this endpoint.
-  // We check for a custom header matched against the environment variable.
-  const routeSecret = process.env.VITE_API_ROUTE_SECRET;
-  if (routeSecret && req.headers['x-api-route-secret'] !== routeSecret) {
-    return res.status(401).json({ error: 'Unauthorized request' });
+  // Verify auth: check either Supabase Bearer token or server route secret
+  const authHeader = req.headers.authorization;
+  const routeSecretHeader = req.headers['x-api-route-secret'];
+  const serverRouteSecret = process.env.API_ROUTE_SECRET || process.env.VITE_API_ROUTE_SECRET;
+
+  let isAuthorized = false;
+
+  if (serverRouteSecret && routeSecretHeader === serverRouteSecret) {
+    isAuthorized = true;
+  } else if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseAnonKey) {
+      try {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (!error && user) {
+          isAuthorized = true;
+        }
+      } catch (e) {
+        console.warn('Token validation error:', e);
+      }
+    }
   }
 
-  // Do NOT read VITE_GEMINI_API_KEY to prevent client-side leakage.
+  // Also allow requests in local dev if no auth configured
+  if (!isAuthorized && process.env.NODE_ENV === 'development') {
+    isAuthorized = true;
+  }
+
+  // If in production and neither valid token nor secret, reject
+  if (!isAuthorized && process.env.NODE_ENV === 'production' && serverRouteSecret) {
+    return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
+  }
+
   const API_KEY = process.env.GEMINI_API_KEY;
-  
   if (!API_KEY) {
     return res.status(500).json({ error: 'API key not configured on server' });
   }
 
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  // Use the verified gemini-2.5-flash endpoint
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
   try {
+    const bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Pass the body exactly as received from the client
-      body: typeof req.body === 'string' ? req.body : JSON.stringify(req.body),
+      body: JSON.stringify(bodyPayload),
     });
 
     if (!response.ok) {

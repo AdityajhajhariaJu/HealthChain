@@ -586,5 +586,28 @@ export async function syncProfileFromSupabase() {
   }
 }
 
-export function isProUser() { const state = getProfileEngineState(); const profile = state.profiles[state.activeId]; if (!profile || !profile.isPro) return false; if (!profile.proExpiresAt) return true; return new Date(profile.proExpiresAt) > new Date(); }
+export function isProUser() { 
+  const state = getProfileEngineState(); 
+  const profile = state.profiles[state.activeId]; 
+  if (!profile || !profile.isPro) return false; 
+  if (!profile.proExpiresAt) return true; 
+  return new Date(profile.proExpiresAt) > new Date(); 
+}
+
+export async function verifyProStatus() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return false;
+    const { data } = await supabase.from('profiles').select('is_pro, pro_expires_at').eq('id', session.user.id).single();
+    if (data?.is_pro) {
+      if (!data.pro_expires_at || new Date(data.pro_expires_at) > new Date()) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return isProUser();
+  }
+}
+
 

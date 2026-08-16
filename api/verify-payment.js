@@ -1,19 +1,39 @@
 import crypto from 'crypto';
+import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
 
+const ALLOWED_PLANS = {
+  pro_30_days: {
+    amount: 49900,
+    days: 30
+  }
+};
+
+const ALLOWED_ORIGINS = [
+  'https://www.healthchain360.com',
+  'https://healthchain-live.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'capacitor://localhost',
+  'http://localhost'
+];
+
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY; 
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY; 
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -25,51 +45,105 @@ export default async function handler(req, res) {
       razorpay_order_id, 
       razorpay_payment_id, 
       razorpay_signature, 
-      user_id,
-      amount 
-    } = req.body;
+      plan_id = 'pro_30_days',
+      user_id: clientUserId
+    } = req.body || {};
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ error: 'Missing payment signature verification parameters.' });
+    }
 
     if (!supabaseUrl || !supabaseServiceRoleKey) {
-        return res.status(500).json({ error: 'Supabase keys are missing on the server' });
+      return res.status(500).json({ error: 'Database configuration missing on server.' });
     }
 
-    if (!process.env.RAZORPAY_KEY_SECRET) {
-        return res.status(500).json({ error: 'Razorpay keys are missing on the server' });
+    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!razorpaySecret) {
+      return res.status(500).json({ error: 'Payment gateway configuration missing on server.' });
     }
 
-    // Verify signature
-    const secret = process.env.RAZORPAY_KEY_SECRET;
-    const generated_signature = crypto
-      .createHmac('sha256', secret)
+    // 1. Authenticate user from Supabase JWT if present
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    let authenticatedUserId = null;
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (!authError && user?.id) {
+        authenticatedUserId = user.id;
+      }
+    }
+
+    // Fallback to clientUserId only if JWT not provided (for local testing/guest upgrade)
+    const effectiveUserId = authenticatedUserId || clientUserId;
+    if (!effectiveUserId) {
+      return res.status(401).json({ error: 'Authentication required to activate Pro subscription.' });
+    }
+
+    // 2. Timing-safe signature check
+    const expectedSignature = crypto
+      .createHmac('sha256', razorpaySecret)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest('hex');
 
-    if (generated_signature !== razorpay_signature) {
-      return res.status(400).json({ error: 'Invalid Payment Signature' });
+    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+    const receivedBuffer = Buffer.from(razorpay_signature, 'utf8');
+
+    if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
+      return res.status(400).json({ error: 'Invalid Payment Signature.' });
     }
 
-    // Signature is valid. Payment is authentic!
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    // 3. Replay Protection: Ensure razorpay_payment_id was not previously used
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('razorpay_payment_id', razorpay_payment_id)
+      .maybeSingle();
 
-    // 1. Insert into payments table
+    if (existingPayment) {
+      return res.status(400).json({ error: 'This payment has already been processed and credited.' });
+    }
+
+    // 4. Server-Side Amount & Status Verification with Razorpay API
+    const targetPlan = ALLOWED_PLANS[plan_id] || ALLOWED_PLANS.pro_30_days;
+    let verifiedAmount = targetPlan.amount;
+
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+      try {
+        const instance = new Razorpay({
+          key_id: process.env.RAZORPAY_KEY_ID,
+          key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+        const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
+        
+        if (paymentDetails.amount < targetPlan.amount) {
+          return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
+        }
+        verifiedAmount = paymentDetails.amount;
+      } catch (rzpErr) {
+        console.warn('Razorpay fetch check warning (proceeding if signature matches):', rzpErr.message);
+      }
+    }
+
+    // 5. Log payment record
     const { error: insertError } = await supabase
       .from('payments')
       .insert({
-        user_id,
+        user_id: effectiveUserId,
         razorpay_order_id,
         razorpay_payment_id,
-        amount,
+        amount: verifiedAmount,
         status: 'paid'
       });
 
     if (insertError) {
-      console.error("DB Insert Error:", insertError);
-      return res.status(500).json({ error: 'Payment verified, but failed to log in database', details: insertError });
+      console.warn("DB payment log warning:", insertError);
     }
 
-    // 2. Update user's profile to PRO (add 30 days)
+    // 6. Calculate expiration date and update profile
     const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from now
+    expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
 
     const { error: updateError } = await supabase
       .from('profiles')
@@ -77,16 +151,20 @@ export default async function handler(req, res) {
         is_pro: true,
         pro_expires_at: expiryDate.toISOString()
       })
-      .eq('id', user_id);
+      .eq('id', effectiveUserId);
 
     if (updateError) {
       console.error("Profile Update Error:", updateError);
       return res.status(500).json({ error: 'Payment verified, but failed to update profile', details: updateError });
     }
 
-    res.status(200).json({ success: true, message: 'Payment verified and Pro status activated' });
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Payment verified and Pro status activated',
+      expires_at: expiryDate.toISOString()
+    });
   } catch (error) {
     console.error("Error verifying payment:", error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 }

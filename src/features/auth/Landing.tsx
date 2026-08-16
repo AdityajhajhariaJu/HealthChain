@@ -72,24 +72,23 @@ export default function Landing() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
   const [isNavigating, setIsNavigating] = useState(false);
-
   const isLoggedOut = localStorage.getItem('isAuthenticated') !== 'true';
 
   const handleStartInvestigation = () => {
     setIsNavigating(true);
-    
-    // Whether logged in or guest, clicking "Start Investigation" from the landing page
-    // should always start a fresh case. (Old cases are preserved in History).
     setActiveCase(null);
     useMDTStore.getState().reset();
     
     if (isLoggedOut) {
-      localStorage.setItem('hc_guest_mode', 'true');
+      setTimeout(() => {
+        navigate('/signup');
+      }, 500);
+      return;
     }
 
     setTimeout(() => {
       navigate('/app/collab?new=true');
-    }, 2500);
+    }, 1200);
   };
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 

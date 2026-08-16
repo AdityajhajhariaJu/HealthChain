@@ -6,23 +6,20 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    // Check initial session
+    // Check real Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      const isGuest = localStorage.getItem('hc_guest_mode') === 'true';
-      setIsAuthenticated(!!session || isGuest);
+      setIsAuthenticated(!!session);
     });
 
-    // Listen for session changes (e.g., token expires, user logged out in another tab)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const isGuest = localStorage.getItem('hc_guest_mode') === 'true';
-      setIsAuthenticated(!!session || isGuest);
+    // Listen for session changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
     });
 
-    // Re-check when window regains focus (handles session expiry while tab was inactive)
+    // Re-check when window regains focus
     const onFocus = () => {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        const isGuest = localStorage.getItem('hc_guest_mode') === 'true';
-        setIsAuthenticated(!!session || isGuest);
+        setIsAuthenticated(!!session);
       });
     };
     window.addEventListener('focus', onFocus);
