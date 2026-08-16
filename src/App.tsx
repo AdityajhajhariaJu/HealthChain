@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
-import { syncProfileFromSupabase } from './services/ProfileEngine';
+import { syncProfileFromSupabase, getProfileKey } from './services/ProfileEngine';
 import { syncCasesFromSupabase } from './services/CaseEngine';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -119,7 +119,7 @@ export default function App() {
         // Auto-redirect if on a public page
         const path = window.location.pathname;
         if (path === '/' || path === '/login' || path === '/signup') {
-          const profileStr = localStorage.getItem('hc_unified_profile');
+          const profileStr = localStorage.getItem(getProfileKey());
           let hasCompletedOnboarding = false;
           if (profileStr) {
             try {
