@@ -149,7 +149,8 @@ export default function AvaHealthBuddy() {
 
   const handleSend = async (text: string) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      const userMessageCount = messages.filter((m: any) => m.role === 'user').length;
+      const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
+      const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
       if (userMessageCount >= 3) {
         if (window.confirm("You have reached the guest limit of 3 messages. Please log in or sign up to continue chatting with Ava.")) {
           window.location.href = '/signup';
