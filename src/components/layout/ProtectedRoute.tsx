@@ -6,6 +6,12 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
+    const isGuest = localStorage.getItem('hc_guest_mode') === 'true';
+    if (isGuest) {
+      setIsAuthenticated(true);
+      return;
+    }
+
     // Check real Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
