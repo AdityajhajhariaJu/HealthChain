@@ -204,7 +204,7 @@ RULES:
 
 
 export async function chatWithTherapyGemini(messages: Message[]): Promise<string> {
-  const contents = messages.slice(-12).map((msg) => ({
+  const contents = messages.slice(-50).map((msg) => ({
     role: msg.role === 'user' ? 'user' : 'model',
     parts: [{ text: msg.content }],
   }));

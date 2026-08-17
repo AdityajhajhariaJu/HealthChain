@@ -199,7 +199,7 @@ export default function AvaHealthBuddy() {
         style={{
           flex: 1,
           minHeight: 0,
-          maxHeight: isMobile ? 'none' : '900px',
+          height: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 150px)',
           background: '#F8F5FF',
           borderRadius: isMobile ? '0' : '32px',
           boxShadow: isMobile ? 'none' : '0 8px 32px rgba(0,0,0,0.04)',

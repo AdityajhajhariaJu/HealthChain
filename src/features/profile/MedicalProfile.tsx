@@ -66,10 +66,24 @@ export default function MedicalProfile() {
   const healthScore = calculateHealthScore(profile);
   const [_trigger, setTrigger] = useState(0); // Force re-render for undo/redo state
 
-  const [isEditingDemo, setIsEditingDemo] = useState(false);
+  const [isEditingDemo, setIsEditingDemo] = useState(() => {
+    return sessionStorage.getItem('hc_profile_demo_editing') === 'true';
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
-  const [demoForm, setDemoForm] = useState(profile.demographics);
+  const [demoForm, setDemoForm] = useState(() => {
+    const saved = sessionStorage.getItem('hc_profile_demo_form');
+    return saved ? JSON.parse(saved) : profile.demographics;
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('hc_profile_demo_editing', String(isEditingDemo));
+    if (isEditingDemo) {
+      sessionStorage.setItem('hc_profile_demo_form', JSON.stringify(demoForm));
+    } else {
+      sessionStorage.removeItem('hc_profile_demo_form');
+    }
+  }, [isEditingDemo, demoForm]);
   const [newAllergy, setNewAllergy] = useState('');
   const [newFamilyHist, setNewFamilyHist] = useState('');
   const [activeCase, setActiveCase] = useState(getActiveCase());

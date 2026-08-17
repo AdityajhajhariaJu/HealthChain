@@ -55,6 +55,11 @@ import { SpecialistPanel, SpecialistPill } from './MultiSpecialistComponents';
 
 // Global cache
 let cachedMultiSpecialistState: any = null;
+try {
+  const saved = sessionStorage.getItem('hc_mdt_state');
+  if (saved) cachedMultiSpecialistState = JSON.parse(saved);
+} catch (e) {}
+
 const cachedSpecialistStreams: any = {};
 
 
@@ -92,6 +97,16 @@ export default function MultiSpecialist() {
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<any>(cachedMultiSpecialistState?.aiSuggestion || null);
   const [isSuggesting, setIsSuggesting] = useState(false);
+
+  useEffect(() => {
+    const stateObj = {
+      phase, selected, activeSpecialistId, symptomInput, activeCategory, customSpecialists, completedSpecialists, aiSuggestion, workingCaseId
+    };
+    cachedMultiSpecialistState = stateObj;
+    try {
+      sessionStorage.setItem('hc_mdt_state', JSON.stringify(stateObj));
+    } catch(e) {}
+  }, [phase, selected, activeSpecialistId, symptomInput, activeCategory, customSpecialists, completedSpecialists, aiSuggestion, workingCaseId]);
 
   useEffect(() => {
     const profile = getProfile();
@@ -381,13 +396,14 @@ export default function MultiSpecialist() {
   return (
     <div
       style={{
-        height: '100%',
+        height: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 150px)',
         overflowY: 'auto',
         padding: isMobile ? '8px 16px' : '24px 40px',
         color: '#0F172A',
         margin: isMobile ? '-8px -16px' : '-24px -40px',
-        minHeight: '100%',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
       {/* Ambient Mesh Background for Running Phase */}
