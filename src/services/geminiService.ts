@@ -338,9 +338,15 @@ export async function chatWithMDTSpecialist(messages: Message[], specialist: any
   const isElevated = !!intakeData.sharedCaseMaterial;
   const sharedContext = isElevated ? `\nShared Case Context (Existing Investigation Data):\n${intakeData.sharedCaseMaterial}` : '';
 
+  const questionCount = Math.floor(messages.length / 2);
+
   const questionRule = isElevated 
     ? `This patient has already been extensively interviewed by a Parallel Board. Do NOT ask basic questions. You may ask 1 or 2 highly targeted questions to resolve conflicts in the evidence. If the provided case context is sufficient to form a hypothesis, output exactly "ANALYSIS_COMPLETE" in the "response" field immediately.`
-    : `You may ask up to 10 questions in total to be extremely thorough. \nIf you have enough information to form a strong hypothesis, or if you reach 10 questions, output exactly "ANALYSIS_COMPLETE" in the "response" field immediately.`;
+    : `You have currently asked ${questionCount} questions. You may ask up to 10 questions in total to be extremely thorough. \nIf you have enough information to form a strong hypothesis, or if you reach 10 questions, output exactly "ANALYSIS_COMPLETE" in the "response" field immediately.`;
+
+  const enforcementRule = questionCount >= 10 && !isElevated 
+    ? `\n\n[SYSTEM DIRECTIVE]: You have reached the maximum limit of 10 questions. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now. Do not ask any more questions.`
+    : '';
 
   const MDT_SPECIALIST_PROMPT = `You are a highly skilled ${specialist.label}. 
 You are part of a Collaborative Board alongside: ${otherNames}.
@@ -360,7 +366,7 @@ Return your response STRICTLY as JSON matching this format:
   "response": "Your conversational question to the patient. (Or 'ANALYSIS_COMPLETE').",
   "widgetType": "none | pain_slider | symptom_pills (CRITICAL: Use 'pain_slider' if asking about pain severity 1-10. Use 'symptom_pills' if asking the user to select from a list of descriptors/symptoms).",
   "widgetOptions": ["Array", "Of", "Tags", "If using symptom_pills"]
-}`;
+}${enforcementRule}`;
 
   const ddxContext = activeDifferentials && activeDifferentials.length > 0
     ? `\nACTIVE HYPOTHESES TO TEST (from Differential Diagnosis Board):\n${activeDifferentials.map(d => `- ${d.condition} (${d.probability}%): Try to prove/disprove this. Next best tests suggest looking for: ${d.nextBestTests.join(', ')}`).join('\n')}\nAsk targeted questions to confirm or rule out these active hypotheses.`
