@@ -346,7 +346,9 @@ export async function chatWithMDTSpecialist(messages: Message[], specialist: any
 
   const enforcementRule = questionCount >= 10 && !isElevated 
     ? `\n\n[SYSTEM DIRECTIVE]: You have reached the maximum limit of 10 questions. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now. Do not ask any more questions.`
-    : '';
+    : (questionCount === 9 && !isElevated 
+        ? `\n\n[SYSTEM DIRECTIVE]: This is your final question (10 of 10). You MUST end your response by saying something similar to: "This is my last question. Please provide any remaining details, and I will conclude my analysis."`
+        : '');
 
   const MDT_SPECIALIST_PROMPT = `You are a highly skilled ${specialist.label}. 
 You are part of a Collaborative Board alongside: ${otherNames}.
