@@ -80,10 +80,7 @@ export default function Landing() {
     useMDTStore.getState().reset();
     
     if (isLoggedOut) {
-      setTimeout(() => {
-        navigate('/signup');
-      }, 500);
-      return;
+      localStorage.setItem('hc_guest_mode', 'true');
     }
 
     setTimeout(() => {
