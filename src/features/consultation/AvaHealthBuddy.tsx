@@ -156,12 +156,15 @@ export default function AvaHealthBuddy() {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
-      if (userMessageCount >= 3) {
-        if (window.confirm("You have reached the guest limit of 3 messages. Please log in or sign up to continue chatting with Ava.")) {
-          window.location.href = '/signup';
+        if (userMessageCount >= 3) {
+          window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+            detail: { 
+              title: 'Guest Limit Reached', 
+              message: 'You have reached the guest limit of 3 messages. Please log in or sign up to continue chatting with Ava.' 
+            } 
+          }));
+          return;
         }
-        return;
-      }
     }
     if ((!text.trim() && attachments.length === 0) || isTyping || isStreaming) return;
 

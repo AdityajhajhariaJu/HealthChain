@@ -60,9 +60,12 @@ export default function PharmacyHub() {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10);
       if (currentCount >= 5) {
-        if (window.confirm("You have reached the guest limit of 5 medication searches. Please log in or sign up to access more.")) {
-          window.location.href = '/signup';
-        }
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
+            title: 'Guest Limit Reached', 
+            message: 'You have reached the guest limit of 5 medication searches. Please log in or sign up to access more.' 
+          } 
+        }));
         return;
       }
       localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString());

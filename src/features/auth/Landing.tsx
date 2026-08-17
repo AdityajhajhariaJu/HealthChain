@@ -72,7 +72,7 @@ export default function Landing() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
   const [isNavigating, setIsNavigating] = useState(false);
-  const isLoggedOut = localStorage.getItem('isAuthenticated') !== 'true';
+  const isLoggedOut = localStorage.getItem('isAuthenticated') !== 'true' && localStorage.getItem('hc_guest_mode') !== 'true';
 
   const handleStartInvestigation = () => {
     setIsNavigating(true);

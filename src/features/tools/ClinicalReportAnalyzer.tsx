@@ -79,9 +79,12 @@ export default function ClinicalReportAnalyzer() {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10);
       if (currentCount >= 3) {
-        if (window.confirm("You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.")) {
-          window.location.href = '/signup';
-        }
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
+            title: 'Guest Limit Reached', 
+            message: 'You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.' 
+          } 
+        }));
         return;
       }
       localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString());
@@ -247,9 +250,12 @@ export default function ClinicalReportAnalyzer() {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10);
       if (currentCount >= 3) {
-        if (window.confirm("You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.")) {
-          window.location.href = '/signup';
-        }
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
+            title: 'Guest Limit Reached', 
+            message: 'You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.' 
+          } 
+        }));
         return;
       }
       localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString());

@@ -34,13 +34,15 @@ export default function QuickConsult() {
 
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
-    
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
-      if (window.confirm('You need to log in to start a consultation. Go to login page?')) {
-        window.location.href = '/login';
+        if (localStorage.getItem('isAuthenticated') !== 'true') {
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
+            title: 'Authentication Required', 
+            message: 'You need to log in or sign up to start a specialized consultation.' 
+          } 
+        }));
+        return;
       }
-      return;
-    }
 
     const caseTitle = `Quick Consult: ${selectedSpecialist.label}`;
     const newCase = createCaseDraft({

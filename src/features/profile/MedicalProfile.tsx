@@ -52,6 +52,7 @@ import {
   canUndo,
   canRedo,
   getProfileEngineState,
+  getProfileKey,
 } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 import { generateProfileSynthesis } from '../../services/geminiService';

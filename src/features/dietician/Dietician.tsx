@@ -232,12 +232,15 @@ export default function Dietician() {
   };
 
   const handleGeneratePlan = async () => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
-      if (window.confirm('You need to log in to generate a meal plan. Go to login page?')) {
-        window.location.href = '/login';
+      if (localStorage.getItem('isAuthenticated') !== 'true') {
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
+            title: 'Authentication Required', 
+            message: 'You need to log in or sign up to generate a personalized meal plan.' 
+          } 
+        }));
+        return;
       }
-      return;
-    }
     setIsGeneratingPlan(true);
     try {
       const plan = await generateMealPlan(profile, 7);

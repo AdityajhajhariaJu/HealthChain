@@ -34,6 +34,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { triggerHapticLight } from '../../services/haptics';
 import Breadcrumbs from '../ui/Breadcrumbs';
 import FeedbackWidget from '../ui/FeedbackWidget';
+import { AuthModal } from '../ui/AuthModal';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -339,6 +340,7 @@ export default function AppShell() {
       {(location.pathname === '/app/today' || location.pathname === '/app/profile') && (
         <FeedbackWidget />
       )}
+      <AuthModal />
     </div>
   );
 }

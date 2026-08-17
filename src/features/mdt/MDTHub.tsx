@@ -175,9 +175,12 @@ export default function MDTHub() {
 
   const handleIntakeComplete = async (data) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      if (window.confirm('You need to log in to start an investigation. Go to login page?')) {
-        window.location.href = '/login';
-      }
+      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+        detail: { 
+          title: 'Authentication Required', 
+          message: 'You need to log in or sign up to start an investigation.' 
+        } 
+      }));
       return;
     }
     
@@ -229,9 +232,12 @@ export default function MDTHub() {
 
   const handleElevateParallel = async (caseItem: any) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      if (window.confirm('You need to log in to elevate this case. Go to login page?')) {
-        window.location.href = '/login';
-      }
+      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+        detail: { 
+          title: 'Authentication Required', 
+          message: 'You need to log in or sign up to elevate this case.' 
+        } 
+      }));
       return;
     }
     if (caseItem?.reviews?.length === 0) {
