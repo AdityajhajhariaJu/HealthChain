@@ -20,12 +20,30 @@ const cachedQuickConsultStreams: any = {};
 export default function QuickConsult() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [phase, setPhase] = useState<'select' | 'chat' | 'done'>('select');
-  const [selectedSpecialist, setSelectedSpecialist] = useState<any>(null);
+  const [phase, setPhase] = useState<'select' | 'chat' | 'done'>(() => {
+    return (sessionStorage.getItem('hc_qc_phase') as any) || 'select';
+  });
+  const [selectedSpecialist, setSelectedSpecialist] = useState<any>(() => {
+    const savedId = sessionStorage.getItem('hc_qc_specialist');
+    return savedId ? ALL_SPECIALISTS.find(s => s.id === savedId) || null : null;
+  });
   const [symptomInput, setSymptomInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [finalTranscripts, setFinalTranscripts] = useState<any>({});
-  const [activeCase, setActiveCase] = useState<any>(null);
+  const [activeCase, setActiveCase] = useState<any>(() => {
+    const saved = sessionStorage.getItem('hc_qc_case');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => { sessionStorage.setItem('hc_qc_phase', phase); }, [phase]);
+  useEffect(() => {
+    if (selectedSpecialist) sessionStorage.setItem('hc_qc_specialist', selectedSpecialist.id);
+    else sessionStorage.removeItem('hc_qc_specialist');
+  }, [selectedSpecialist]);
+  useEffect(() => {
+    if (activeCase) sessionStorage.setItem('hc_qc_case', JSON.stringify(activeCase));
+    else sessionStorage.removeItem('hc_qc_case');
+  }, [activeCase]);
 
   const filteredSpecialists = ALL_SPECIALISTS.filter((s) =>
     s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -340,7 +358,14 @@ export default function QuickConsult() {
                   setPhase('select');
                   setSymptomInput('');
                   setSelectedSpecialist(null);
+                  setActiveCase(null);
                   setFinalTranscripts({});
+                  sessionStorage.removeItem('hc_qc_phase');
+                  sessionStorage.removeItem('hc_qc_specialist');
+                  sessionStorage.removeItem('hc_qc_case');
+                  if (selectedSpecialist) {
+                    sessionStorage.removeItem(`hc_stream_${selectedSpecialist.id}`);
+                  }
                 }}
                 style={{
                   background: 'none',

@@ -5,15 +5,21 @@ import { BrainCircuit, User, Sparkles, ArrowRight } from 'lucide-react';
 import { chatWithMDTSpecialist } from '../../services/geminiService';
 
 export function useSpecialistStream(specialist: any, isRunning: boolean, isPaused: boolean, startDelay: number, onComplete: (id: string, messages: any[]) => void, allSpecialists: any[] = [], intakeData: any, activeDifferentials: any[], cachedSpecialistStreams: any) {
-  const cache = cachedSpecialistStreams[specialist.id];
+  const cache = cachedSpecialistStreams[specialist.id] || (() => {
+    try {
+      const saved = sessionStorage.getItem(`hc_stream_${specialist.id}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch(e) { return null; }
+  })();
   const [messages, setMessages] = useState<any[]>(cache?.messages || []);
   const [status, setStatus] = useState(cache?.status || 'idle'); // idle | thinking | questioning | done
   const [step, setStep] = useState(cache?.step || 0);
 
   useEffect(() => {
-    return () => {
-      cachedSpecialistStreams[specialist.id] = { messages, status, step };
-    };
+    cachedSpecialistStreams[specialist.id] = { messages, status, step };
+    try {
+      sessionStorage.setItem(`hc_stream_${specialist.id}`, JSON.stringify({ messages, status, step }));
+    } catch(e) {}
   }, [messages, status, step, specialist.id, cachedSpecialistStreams]);
 
   const otherSpecialists = allSpecialists
