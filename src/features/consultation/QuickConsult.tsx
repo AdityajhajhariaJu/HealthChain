@@ -320,7 +320,9 @@ export default function QuickConsult() {
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
               border: '1px solid rgba(255,255,255,0.5)',
-              minHeight: '600px'
+              height: isMobile ? 'calc(100vh - 120px)' : '700px',
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -354,7 +356,7 @@ export default function QuickConsult() {
               </button>
             </div>
             
-            <div style={{ margin: '-20px', marginTop: 0 }}>
+            <div style={{ margin: isMobile ? '0 -20px -20px -20px' : '0 -48px -48px -48px', flex: 1, display: 'flex', minHeight: 0 }}>
                <SpecialistPanel
                 specialist={selectedSpecialist}
                 isRunning={true}
