@@ -70,9 +70,10 @@ export function compilePatientContext() {
   }
 
   if (contextParts.length === 0) {
-    cachedContext = '';
+    const emptyContext = `\n\n=== PATIENT CONTEXT ===\nNo medical history, conditions, or vitals have been logged yet. Do not assume any pre-existing conditions.\n========================\n`;
+    cachedContext = emptyContext;
     lastProfileHash = currentHash;
-    return '';
+    return emptyContext;
   }
   
   // Hard cap to prevent runaway context growth

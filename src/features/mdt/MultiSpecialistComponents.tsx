@@ -34,18 +34,22 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
     widgetType: "none"
   });
 
+  const introStarted = useRef(false);
+
   useEffect(() => {
     if (!isRunning) {
       setMessages([]);
       setStatus('idle');
       setStep(0);
+      introStarted.current = false;
       return;
     }
-    if (status === 'idle' && step === 0 && !isPaused) {
-      let innerTimer;
-      const timer = setTimeout(() => {
+    
+    if (status === 'idle' && step === 0 && !isPaused && !introStarted.current) {
+      introStarted.current = true;
+      setTimeout(() => {
         setStatus('thinking');
-        innerTimer = setTimeout(
+        setTimeout(
           () => {
             setMessages([{ role: 'ai', text: introQuestion }]);
             setStatus('questioning');
@@ -53,10 +57,6 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
           1000 + Math.random() * 800
         );
       }, startDelay);
-      return () => {
-        clearTimeout(timer);
-        if (innerTimer) clearTimeout(innerTimer);
-      };
     }
   }, [isRunning, isPaused, status, step, startDelay, introQuestion]);
 
