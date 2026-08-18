@@ -148,7 +148,7 @@ export default function App() {
         
         // Auto-redirect if on a public page
         const path = window.location.pathname;
-        if (path === '/' || path === '/login' || path === '/signup') {
+        if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
           const profileStr = localStorage.getItem(getProfileKey());
           let hasCompletedOnboarding = false;
           if (profileStr) {
