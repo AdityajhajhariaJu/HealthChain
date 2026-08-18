@@ -24,7 +24,8 @@ import {
   Bot,
   Trophy,
   Bell,
-  Stethoscope
+  Stethoscope,
+  ClipboardList
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
@@ -46,6 +47,8 @@ const links = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
   { to: '/app/collab', label: 'Collaborative Specialists', icon: Network },
+  { to: '/app/case-prep', label: 'Case Prep (Beta)', icon: ClipboardList },
+  { to: '/app/deep-collab-beta', label: 'Deep Collab (Beta)', icon: GitMerge },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
