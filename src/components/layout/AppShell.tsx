@@ -114,7 +114,7 @@ export default function AppShell() {
             </div>
             <div>
               <span className="sidebar__logo-text">HealthChain</span>
-              <span className="sidebar__logo-sub">Diagnosis Navigator</span>
+              <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>
             </div>
           </div>
 
