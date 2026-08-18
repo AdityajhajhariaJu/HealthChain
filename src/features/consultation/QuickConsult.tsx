@@ -93,8 +93,8 @@ export default function QuickConsult() {
              if (jsonMatch) {
                  const parsed = JSON.parse(jsonMatch[0]);
                  if (parsed.currentHypotheses) {
-                     reportData.executiveSummary = parsed.internalThoughts || reportData.executiveSummary;
-                     reportData.topDiagnoses = parsed.currentHypotheses.map(h => ({ condition: h, confidence: 50 }));
+                     reportData.executiveSummary = parsed.patientFriendlySummary || parsed.internalThoughts || reportData.executiveSummary;
+                     reportData.topDiagnoses = parsed.currentHypotheses.map((h: any) => ({ condition: h, confidence: 50 }));
                  }
              }
          }
@@ -475,6 +475,31 @@ export default function QuickConsult() {
                   </div>
                 </div>
                 <ChevronRight size={20} />
+              </button>
+
+              <button 
+                onClick={() => {
+                  setPhase('select');
+                  sessionStorage.setItem('hc_qc_phase', 'select');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  background: 'transparent',
+                  border: 'none',
+                  fontWeight: 700,
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'color 0.2s',
+                  marginTop: '8px'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.color = '#0F172A'; }}
+                onMouseOut={(e) => { e.currentTarget.style.color = '#64748B'; }}
+              >
+                Start another consult
               </button>
             </div>
           </motion.div>
