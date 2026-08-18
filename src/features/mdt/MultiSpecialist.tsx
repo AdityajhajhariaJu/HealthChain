@@ -530,6 +530,7 @@ export default function MultiSpecialist() {
                 onChange={(e) => setSymptomInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleStart()}
                 placeholder={isMobile ? "Describe symptoms..." : "Describe symptoms or conditions to analyze..."}
+                maxLength={2000}
                 style={{
                   flex: 1,
                   minWidth: 0,
@@ -1161,3 +1162,4 @@ function ParallelSideStory({ side }) {
     </aside>
   );
 }
+

@@ -5,7 +5,6 @@ import {
   Target,
   FolderHeart,
   MessageCircle,
-  GitMerge,
   Pill,
   Archive,
   Heart,
@@ -24,7 +23,8 @@ import {
   Bot,
   Trophy,
   Bell,
-  Stethoscope
+  Stethoscope,
+  ClipboardList
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
@@ -46,6 +46,7 @@ const links = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
   { to: '/app/collab', label: 'Collaborative Specialists', icon: Network },
+  { to: '/app/case-prep', label: 'Case Prep (Beta)', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
@@ -113,7 +114,7 @@ export default function AppShell() {
             </div>
             <div>
               <span className="sidebar__logo-text">HealthChain</span>
-              <span className="sidebar__logo-sub">Diagnosis Navigator</span>
+              <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>
             </div>
           </div>
 

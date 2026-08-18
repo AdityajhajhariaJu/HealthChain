@@ -77,10 +77,10 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
         <div>
           <h2 style={{ fontSize: 22, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Activity color="#10B981" size={24} />
-            Differential Diagnosis (DDx)
+            Discussion Pathways
           </h2>
           <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
-            AI-driven hypothesis tracker based on active symptoms and lab findings.
+            AI-organized possibilities from the information in your case. They are not diagnoses, probabilities, or instructions to act without a clinician.
           </p>
         </div>
         <button
@@ -99,7 +99,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
           ) : (
             <Sparkles size={16} />
           )}
-          {isAnalyzing ? 'Analyzing Data...' : 'Run DDx Analysis'}
+          {isAnalyzing ? 'Organizing case information...' : 'Generate discussion pathways'}
         </button>
       </div>
 
@@ -107,7 +107,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
         <div style={{ marginBottom: 20, background: '#f8fafc', padding: isMobile ? 16 : 24, borderRadius: 16, border: '1px solid #e2e8f0' }}>
           <h3 style={{ margin: '0 0 16px', fontSize: 16, color: '#334155', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Clock size={18} />
-            Differential Evolution
+            AI relevance signals over time
           </h3>
           <div style={{ height: 250, width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -145,7 +145,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
               animate={{ opacity: 1 }}
               style={{ textAlign: 'center', padding: 40, border: '2px dashed #e2e8f0', borderRadius: 16, color: '#94a3b8' }}
             >
-              No active differential hypotheses. Run the DDx analysis to generate hypotheses.
+              No discussion pathways yet. Generate a structured set of questions to review with a clinician.
             </motion.div>
           )}
 
@@ -188,8 +188,8 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                   </div>
 
                   <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 600, color: progressColor }}>
-                    <span>Probability</span>
-                    <span>{ddx.probability}%</span>
+                    <span>AI relevance signal</span>
+                    <span>{ddx.probability}% · not likelihood</span>
                   </div>
                   
                   {/* Progress Bar */}
@@ -203,7 +203,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                   </div>
 
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: 13, textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5 }}>Next Best Tests</h4>
+                    <h4 style={{ margin: '0 0 8px', fontSize: 13, textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5 }}>Questions or tests to discuss</h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {ddx.nextBestTests.map((test, i) => (
                         <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '4px 8px', background: '#e0f2fe', color: '#0369a1', borderRadius: 8, fontWeight: 500 }}>
@@ -217,7 +217,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                 {/* Right Column: Evidence */}
                 <div>
                   <div style={{ marginBottom: 16 }}>
-                    <h4 style={{ margin: '0 0 8px', fontSize: 13, textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5 }}>Supporting Evidence</h4>
+                    <h4 style={{ margin: '0 0 8px', fontSize: 13, textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5 }}>Information that may be relevant</h4>
                     <ul style={{ margin: 0, paddingLeft: 16, color: '#334155', fontSize: 14 }}>
                       {ddx.supportingEvidence.map((ev, i) => (
                         <li key={i} style={{ marginBottom: 4 }}>{ev}</li>
@@ -225,7 +225,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                     </ul>
                   </div>
                   <div>
-                    <h4 style={{ margin: '0 0 8px', fontSize: 13, textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5 }}>Refuting Evidence</h4>
+                    <h4 style={{ margin: '0 0 8px', fontSize: 13, textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5 }}>Information that may not fit</h4>
                     {ddx.refutingEvidence.length > 0 ? (
                       <ul style={{ margin: 0, paddingLeft: 16, color: '#334155', fontSize: 14 }}>
                         {ddx.refutingEvidence.map((ev, i) => (

@@ -66,6 +66,17 @@ export interface CaseItem {
   differentialHistory?: { date: string; differentials: Differential[] }[];
 }
 
+export interface CasePrepDraft {
+  concern: string;
+  timeline: string;
+  records: string;
+  appointment: string;
+  goal?: string;
+  careSoFar?: string;
+  caseId?: string;
+  savedAt: string;
+}
+
 import { getProfileKey } from './ProfileEngine';
 
 const getActiveProfileId = () => {
@@ -88,6 +99,25 @@ const getActiveCaseKey = () => {
   const base = getProfileKey().replace('hc_unified_profile', 'hc_active_case');
   return `${base}_${getActiveProfileId()}`;
 };
+
+const getCasePrepDraftKey = () => `${getProfileKey().replace('hc_unified_profile', 'hc_case_prep_draft')}_${getActiveProfileId()}`;
+
+export function getCasePrepDraft(): CasePrepDraft | null {
+  try {
+    const saved = getItemSync(getCasePrepDraftKey());
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCasePrepDraft(draft: CasePrepDraft) {
+  setItemSync(getCasePrepDraftKey(), JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+}
+
+export function clearCasePrepDraft() {
+  removeItemSync(getCasePrepDraftKey());
+}
 
 // Listen for logout to clear in-memory caches
 window.addEventListener('hc_logout', () => {
@@ -330,6 +360,39 @@ export function createCaseDraft({ title, intakeData = {}, specialists = [] }: { 
   save([item, ...getCases()]);
   setActiveCase(item.id);
   return item;
+}
+
+export function saveCasePrepCase({ caseId, concern, timeline, records, appointment, goal, careSoFar }: Omit<CasePrepDraft, 'savedAt'>): CaseItem {
+  const now = new Date().toISOString();
+  const intakeData = {
+    chiefComplaint: concern.trim(),
+    history: timeline.trim(),
+    appointmentDate: appointment || null,
+    appointmentGoal: goal?.trim() || '',
+    careSoFar: careSoFar?.trim() || '',
+  };
+  const notes = records.split('\n').map((note) => note.trim()).filter(Boolean).map((findings, index) => ({
+    id: id(), filename: `Case note ${index + 1}`, findings, source: 'case_prep', type: 'patient_note', addedAt: now,
+  }));
+  const existing = caseId ? getCase(caseId) : undefined;
+  if (!existing) {
+    const created = createCaseDraft({ title: concern.trim().slice(0, 58), intakeData });
+    const updated = { ...created, medicalRecords: notes, updatedAt: now, currentStage: 'case_prep_ready', events: [{ id: id(), date: now, label: 'Case brief prepared', note: 'Your appointment-prep brief was saved.' }, ...created.events] } as CaseItem;
+    save(getCases().map((item) => item.id === created.id ? updated : item));
+    return updated;
+  }
+  const updated: CaseItem = {
+    ...existing,
+    title: concern.trim().slice(0, 58) || existing.title,
+    intakeData,
+    medicalRecords: [...(existing.medicalRecords || []).filter((record) => record.source !== 'case_prep'), ...notes],
+    updatedAt: now,
+    currentStage: 'case_prep_ready',
+    events: [{ id: id(), date: now, label: 'Case brief updated', note: 'Your appointment-prep brief was updated.' }, ...(existing.events || [])].slice(0, 100),
+  };
+  save(getCases().map((item) => item.id === existing.id ? updated : item));
+  setActiveCase(existing.id);
+  return updated;
 }
 
 export function saveReviewSnapshot({

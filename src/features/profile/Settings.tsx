@@ -8,6 +8,19 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
 import FocusTrap from '../../components/ui/FocusTrap';
 
+const EXPORTABLE_STORAGE_PREFIXES = [
+  'hc_unified_profile',
+  'hc_cases',
+  'hc_diet_profile',
+  'hc_active_case',
+  'hc_ava_vault',
+  'hc_food_logs',
+  'hc_hydration',
+  'hc_meal_plan',
+  'hc_diet_advice',
+  'hc_plan',
+];
+
 export default function Settings() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -66,12 +79,21 @@ export default function Settings() {
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        // Delete user's cases, profile, and push notification devices in Supabase
-        await supabase.from('cases').delete().eq('user_id', session.user.id);
-        await supabase.from('profiles').delete().eq('id', session.user.id);
-        await supabase.from('user_devices').delete().eq('user_id', session.user.id);
+      if (!session?.access_token) throw new Error('Authentication required');
+
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete account');
       }
+
       localStorage.clear();
       await supabase.auth.signOut();
       success('Account Deleted', 'Your account and data have been permanently deleted.');
@@ -473,13 +495,11 @@ export default function Settings() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <ShieldCheck size={18} color="var(--teal)" />
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-              HIPAA & GDPR Compliance
+              Your Data, Your Control
             </div>
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-            HealthChain strictly adheres to HIPAA and GDPR standards for health data handling. 
-            All your medical data, chat history, and clinical reports are stored securely using enterprise-grade encryption. 
-            Your data is never sold to third parties and is used solely to provide diagnostic navigation.
+            Your health information is used to provide the features you choose, such as case organization and AI-assisted assessment. Guest-mode information remains in this browser; signed-in information may sync with our service providers. We do not sell personal health information. HealthChain is not a covered healthcare provider, and this product is not presented as HIPAA-certified or GDPR-certified.
           </div>
         </div>
 
@@ -519,7 +539,18 @@ export default function Settings() {
           <button
             className="btn btn-outline"
             onClick={() => {
-              const dataStr = JSON.stringify(localStorage);
+              const exportedData = Object.keys(localStorage).reduce<Record<string, string>>((data, key) => {
+                if (EXPORTABLE_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+                  const value = localStorage.getItem(key);
+                  if (value !== null) data[key] = value;
+                }
+                return data;
+              }, {});
+              const dataStr = JSON.stringify({
+                exportedAt: new Date().toISOString(),
+                format: 'healthchain-user-data-v1',
+                data: exportedData,
+              }, null, 2);
               const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
               const exportFileDefaultName = 'healthchain_export.json';
               const linkElement = document.createElement('a');
@@ -567,7 +598,8 @@ export default function Settings() {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                   try {
-                    const result = JSON.parse(ev.target?.result as string);
+                    const parsed = JSON.parse(ev.target?.result as string);
+                    const result = parsed?.data && typeof parsed.data === 'object' ? parsed.data : parsed;
                     if (!result || typeof result !== 'object') {
                       throw new Error('Invalid JSON format');
                     }
