@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
+import { recordHealthMemory } from './HealthMemory';
 
 export interface CaseUpdate {
   id: string;
@@ -379,6 +380,7 @@ export function saveCasePrepCase({ caseId, concern, timeline, records, appointme
     const created = createCaseDraft({ title: concern.trim().slice(0, 58), intakeData });
     const updated = { ...created, medicalRecords: notes, updatedAt: now, currentStage: 'case_prep_ready', events: [{ id: id(), date: now, label: 'Case brief prepared', note: 'Your appointment-prep brief was saved.' }, ...created.events] } as CaseItem;
     save(getCases().map((item) => item.id === created.id ? updated : item));
+    recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${updated.title}`, occurredAt: now, caseId: updated.id, payload: intakeData, dedupeKey: `case-prep:${updated.id}` });
     return updated;
   }
   const updated: CaseItem = {
@@ -392,6 +394,7 @@ export function saveCasePrepCase({ caseId, concern, timeline, records, appointme
   };
   save(getCases().map((item) => item.id === existing.id ? updated : item));
   setActiveCase(existing.id);
+  recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${updated.title}`, occurredAt: now, caseId: updated.id, payload: intakeData, dedupeKey: `case-prep:${updated.id}` });
   return updated;
 }
 
@@ -462,7 +465,35 @@ export function saveReviewSnapshot({
 
   save(cases.map((item) => (item.id === caseId ? updated : item)));
   setActiveCase(caseId);
+  recordHealthMemory({
+    kind: type === 'mdt' ? 'deep_collab' : 'quick_consult',
+    source: type === 'mdt' ? 'deep_collab' : 'quick_consult',
+    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : `Quick Consult: ${updated.title}`,
+    occurredAt: now,
+    caseId,
+    // The complete transcript remains in the case. Health Memory keeps the concise result users need over years.
+    payload: { report, readiness, specialists, basedOnEvidenceIds, basedOnReviewIds, reviewId: snapshot.id },
+    dedupeKey: `review:${snapshot.id}`,
+  });
   return updated;
+}
+
+export function backfillCaseHealthMemory() {
+  getCases().forEach((caseItem) => {
+    if (caseItem.currentStage === 'case_prep_ready') {
+      recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${caseItem.title}`, occurredAt: caseItem.updatedAt, caseId: caseItem.id, payload: caseItem.intakeData || {}, dedupeKey: `case-prep:${caseItem.id}` });
+    }
+    (caseItem.reviews || []).forEach((review) => recordHealthMemory({
+      id: review.id,
+      kind: review.type === 'mdt' ? 'deep_collab' : 'quick_consult',
+      source: review.type === 'mdt' ? 'deep_collab' : 'quick_consult',
+      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
+      occurredAt: review.createdAt,
+      caseId: caseItem.id,
+      payload: { report: review.report, readiness: review.readiness, specialists: review.specialists, reviewId: review.id },
+      dedupeKey: `review:${review.id}`,
+    }));
+  });
 }
 
 export function addCaseEvent(caseId: string, note: string, label: string = 'Evidence update', currentSummary?: any) {

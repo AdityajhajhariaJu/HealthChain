@@ -19,6 +19,7 @@ const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_meal_plan',
   'hc_diet_advice',
   'hc_plan',
+  'hc_health_memory',
 ];
 
 export default function Settings() {
@@ -84,10 +85,11 @@ export default function Settings() {
         await supabase.from('cases').delete().eq('user_id', session.user.id);
         await supabase.from('profiles').delete().eq('id', session.user.id);
         await supabase.from('user_devices').delete().eq('user_id', session.user.id);
+        await supabase.from('health_memory').delete().eq('user_id', session.user.id);
       }
       localStorage.clear();
       await supabase.auth.signOut();
-      success('Account Deleted', 'Your account and data have been permanently deleted.');
+      success('Health data removed', 'Your HealthChain data has been removed. Your login identity is signed out; full identity deletion requires the secure account-deletion service.');
       navigate('/');
     } catch (err: any) {
       toastError('Error deleting account', err.message);
@@ -595,7 +597,7 @@ export default function Settings() {
                       throw new Error('Invalid JSON format');
                     }
                     const FORBIDDEN_KEYS = ['isAuthenticated', 'hc_account', 'hc_remember', 'hc_guest_mode', 'hc_premium_status'];
-                    const ALLOWED_PREFIXES = ['hc_unified_profile', 'hc_cases', 'hc_diet_profile', 'hc_active_case', 'hc_theme'];
+                    const ALLOWED_PREFIXES = [...EXPORTABLE_STORAGE_PREFIXES, 'hc_theme'];
 
                     let importedCount = 0;
                     Object.keys(result).forEach(key => {

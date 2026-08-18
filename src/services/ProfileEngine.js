@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
+import { recordHealthMemory } from './HealthMemory';
 
 export function getProfileKey() {
   if (localStorage.getItem('hc_guest_mode') === 'true') return 'hc_unified_profile_guest';
@@ -440,8 +441,39 @@ export function addEvent(type, source, title, data = {}, significant = true, exi
 
   if (!existingProfile) {
     saveProfile(profile);
+    const kindBySource = {
+      report_analyzer: 'lab_report',
+      dietician: 'diet',
+      health_buddy: 'health_buddy',
+      case_prep: 'case_prep',
+      quick_consult: 'quick_consult',
+      mdt_hub: 'deep_collab',
+    };
+    recordHealthMemory({
+      id: event.id,
+      kind: kindBySource[source] || 'profile_event',
+      source,
+      title,
+      occurredAt: event.date,
+      payload: safeData || {},
+      dedupeKey: `timeline:${event.id}`,
+    });
   }
   return event;
+}
+
+export function backfillHealthMemoryFromProfile() {
+  const profile = getProfile();
+  const kinds = { report_analyzer: 'lab_report', dietician: 'diet', health_buddy: 'health_buddy', case_prep: 'case_prep', quick_consult: 'quick_consult', mdt_hub: 'deep_collab' };
+  (profile.timeline || []).forEach((event) => recordHealthMemory({
+    id: event.id,
+    kind: kinds[event.source] || 'profile_event',
+    source: event.source || 'profile',
+    title: event.title || event.type || 'Health profile update',
+    occurredAt: event.date || new Date().toISOString(),
+    payload: event.data || {},
+    dedupeKey: `timeline:${event.id}`,
+  }));
 }
 
 export function updateVitals(labData, source = 'manual') {

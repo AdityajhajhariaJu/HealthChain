@@ -22,6 +22,7 @@ import {
   generateDieticianAdvice,
 } from '../../services/geminiService';
 import { addEvent, addNutritionLog, getProfileKey } from '../../services/ProfileEngine';
+import { recordHealthMemory } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -154,6 +155,15 @@ export default function Dietician() {
   useEffect(() => {
     if (advice) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'), advice);
   }, [advice]);
+  useEffect(() => {
+    if (!profile) return;
+    const dailyFood = foodLogs[currentDate] || [];
+    recordHealthMemory({
+      kind: 'diet', source: 'dietician', title: `Diet log: ${currentDate}`, occurredAt: new Date(`${currentDate}T12:00:00`).toISOString(),
+      payload: { profile: { goal: profile.goal, targetCalories: profile.targetCalories, targetProtein: profile.targetProtein }, food: dailyFood, hydration: hydration || {}, mealPlan: mealPlan || null },
+      dedupeKey: `diet-day:${currentDate}`,
+    });
+  }, [profile, foodLogs, hydration, mealPlan, currentDate]);
 
   const adviceFetched = useRef(false);
   const isMounted = useRef(true);

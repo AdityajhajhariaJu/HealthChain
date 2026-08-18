@@ -25,14 +25,12 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
 
   let lastError;
   
-  // Inject security headers
-  const routeSecret = import.meta.env.VITE_API_ROUTE_SECRET;
+  // A browser bundle cannot keep a route secret. The server verifies the Supabase access token.
   const secureOptions = {
     ...options,
     headers: {
       ...options.headers,
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
-      ...(routeSecret ? { 'x-api-route-secret': routeSecret } : {})
     }
   };
 

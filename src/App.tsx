@@ -1,7 +1,8 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
-import { syncProfileFromSupabase, getProfileKey } from './services/ProfileEngine';
-import { syncCasesFromSupabase } from './services/CaseEngine';
+import { syncProfileFromSupabase, getProfileKey, backfillHealthMemoryFromProfile } from './services/ProfileEngine';
+import { syncCasesFromSupabase, backfillCaseHealthMemory } from './services/CaseEngine';
+import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -42,6 +43,7 @@ const Changelog = React.lazy(() => import('./features/brand/Changelog'));
 const HelpCenter = React.lazy(() => import('./features/brand/HelpCenter'));
 const Pricing = React.lazy(() => import('./features/brand/Pricing'));
 const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
+const HealthMemory = React.lazy(() => import('./features/experience/HealthMemory'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -146,6 +148,10 @@ export default function App() {
         // Sync user data now that they are authenticated
         await syncProfileFromSupabase();
         syncCasesFromSupabase();
+        syncHealthMemoryFromSupabase().catch(console.error);
+        // Existing timeline and case summaries become durable Health Memory automatically on sign-in.
+        backfillHealthMemoryFromProfile();
+        backfillCaseHealthMemory();
         
         // Auto-redirect if on a public page
         const path = window.location.pathname;
@@ -351,6 +357,7 @@ export default function App() {
             }
           />
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
+          <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
           <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
           <Route
             path="/app/pharmacy"
