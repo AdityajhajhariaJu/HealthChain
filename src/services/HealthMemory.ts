@@ -8,7 +8,10 @@ export type HealthMemoryKind =
   | 'lab_report'
   | 'diet'
   | 'health_buddy'
-  | 'profile_event';
+  | 'profile_event'
+  | 'pharmacy'
+  | 'research'
+  | 'discussion_guide';
 
 export interface HealthMemoryItem {
   id: string;
@@ -45,6 +48,9 @@ const profileId = () => {
 };
 
 const storageKey = () => `hc_health_memory_${accountId()}_${profileId()}`;
+let remoteSchemaUnavailable = false;
+
+const isSchemaUnavailable = (error: any) => error?.code === '42P01' || error?.code === 'PGRST205';
 
 function safePayload(payload: any) {
   // Health Memory contains structured knowledge, not original files, data URLs, or unlimited transcripts.
@@ -67,6 +73,7 @@ function writeLocal(items: HealthMemoryItem[]) {
 }
 
 async function syncItem(item: HealthMemoryItem) {
+  if (remoteSchemaUnavailable) return;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return;
   const { error } = await supabase.from('health_memory').upsert({
@@ -83,6 +90,11 @@ async function syncItem(item: HealthMemoryItem) {
     updated_at: item.updatedAt,
   }, { onConflict: 'id' });
   if (error) {
+    if (isSchemaUnavailable(error)) {
+      // The feature can ship before its migration. Keep local data intact and retry after a reload once SQL is applied.
+      remoteSchemaUnavailable = true;
+      return;
+    }
     window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
     throw error;
   }
@@ -113,11 +125,18 @@ export function recordHealthMemory(input: Omit<HealthMemoryItem, 'id' | 'profile
 }
 
 export async function syncHealthMemoryFromSupabase() {
+  if (remoteSchemaUnavailable) return;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return;
   const { data, error } = await supabase.from('health_memory')
     .select('*').eq('user_id', session.user.id).eq('profile_id', profileId()).order('occurred_at', { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (isSchemaUnavailable(error)) {
+      remoteSchemaUnavailable = true;
+      return;
+    }
+    throw error;
+  }
   const remote = (data || []).map((row: any): HealthMemoryItem => ({
     id: row.id, profileId: row.profile_id, kind: row.kind, source: row.source, title: row.title,
     occurredAt: row.occurred_at, payload: row.payload || {}, caseId: row.case_id || undefined,

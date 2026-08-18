@@ -111,22 +111,15 @@ export default function App() {
               localStorage.removeItem(guestPrefix);
             }
             
-            const featurePrefixes = [
-              'hc_cases', 'hc_active_case', 'hc_ava_vault', 
-              'hc_diet_profile', 'hc_food_logs', 'hc_hydration', 
-              'hc_meal_plan', 'hc_diet_advice'
-            ];
-            
-            featurePrefixes.forEach(feature => {
-              for (let i = 1; i <= 5; i++) {
-                const guestFeatureKey = `${feature}_guest_profile_${i}`;
-                const authFeatureKey = `${feature}_${session.user.id}_profile_${i}`;
-                const data = localStorage.getItem(guestFeatureKey);
-                if (data) {
-                  localStorage.setItem(authFeatureKey, data);
-                  localStorage.removeItem(guestFeatureKey);
-                }
-              }
+            // Older features used both *_guest and *_guest_profile_1 key shapes.
+            // Migrate every guest-scoped health key without guessing a suffix, so no guest work is stranded on sign-in.
+            Object.keys(localStorage).forEach((key) => {
+              if (!key.startsWith('hc_') || !key.includes('_guest')) return;
+              const value = localStorage.getItem(key);
+              if (!value) return;
+              const targetKey = key.replace('_guest', `_${session.user.id}`);
+              localStorage.setItem(targetKey, value);
+              localStorage.removeItem(key);
             });
           }
           

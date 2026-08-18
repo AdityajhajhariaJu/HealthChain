@@ -254,6 +254,27 @@ async function saveProfile(profile) {
     // Dispatch event so UI can react globally
     window.dispatchEvent(new Event('hc_profile_updated'));
 
+    // A compact, current snapshot makes every caregiver profile recoverable through Health Memory.
+    // Timeline entries remain separate ledger records, avoiding duplication of every historical event.
+    recordHealthMemory({
+      kind: 'profile_event',
+      source: 'profile',
+      title: `Profile updated: ${profile.profileName || 'Health profile'}`,
+      occurredAt: profile.demographics?.updatedAt || new Date().toISOString(),
+      payload: {
+        profileName: profile.profileName,
+        demographics: profile.demographics,
+        conditions: profile.conditions,
+        medications: profile.medications,
+        allergies: profile.allergies,
+        familyHistory: profile.familyHistory,
+        vitals: profile.vitals,
+        nutrition: profile.nutrition,
+        healthFocus: profile.healthFocus,
+      },
+      dedupeKey: `profile-snapshot:${profile.id || state.activeId}`,
+    });
+
     // Asynchronously sync to secure cloud backend if configured
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
       // ONLY sync the primary profile to the cloud to prevent caregiver profiles from overwriting the main account

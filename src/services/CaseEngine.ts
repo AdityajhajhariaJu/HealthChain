@@ -257,7 +257,12 @@ async function save(cases: CaseItem[]) {
         if (session?.user) {
           
           // Fetch current timestamps to prevent overwriting newer cloud data with stale local data
-          const { data: cloudData } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
+          if (safeCases.length === 0) return;
+          const { data: cloudData, error: timestampError } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
+          if (timestampError) {
+            window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: timestampError }));
+            return;
+          }
           const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
 
           const currentProfileId = getActiveProfileId();
@@ -276,7 +281,7 @@ async function save(cases: CaseItem[]) {
              const cloudPayload = { ...c, __profileId: currentProfileId };
 
              try {
-               await supabase.from('cases').upsert({
+               const { error: upsertError } = await supabase.from('cases').upsert({
                   id: c.id,
                   user_id: session.user.id,
                   title: c.title,
@@ -285,6 +290,7 @@ async function save(cases: CaseItem[]) {
                   data: cloudPayload,
                   updated_at: new Date().toISOString()
                });
+               if (upsertError) throw upsertError;
              } catch (upsertErr) {
                console.error(`Failed to sync case ${c.id} to cloud:`, upsertErr);
              }
@@ -317,6 +323,13 @@ export function deleteCase(caseId: string) {
   const cases = getCases();
   const updatedCases = cases.filter((c) => c.id !== caseId);
   save(updatedCases);
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session?.user) return;
+    return supabase.from('cases').delete().eq('id', caseId).eq('user_id', session.user.id)
+      .then(({ error }) => {
+        if (error) window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+      });
+  }).catch((error) => window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
   if (getActiveCaseId() === caseId) {
     setActiveCase(null);
   }
@@ -625,6 +638,7 @@ export async function syncCasesFromSupabase() {
     if (!session?.user) return;
 
     const { data, error } = await supabase.from('cases').select('*').eq('user_id', session.user.id);
+    if (error) throw error;
     if (data && data.length > 0) {
       const localCases = getCases();
       const localCaseMap = new Map(localCases.map(c => [c.id, c]));
@@ -655,6 +669,10 @@ export async function syncCasesFromSupabase() {
         console.log('Local cases are newer than remote. Pushing to cloud.');
         save(mergedCases);
       }
+    } else if (data && data.length === 0) {
+      // A first sign-in must upload existing local cases; waiting for a later edit risks data loss.
+      const localCases = getCases();
+      if (localCases.length > 0) save(localCases);
     }
   } catch (err) {
     console.error('Failed to sync cases from Supabase:', err);

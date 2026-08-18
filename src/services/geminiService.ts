@@ -23,6 +23,10 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     }
   } catch {}
 
+  if (!import.meta.env.DEV && !sessionToken) {
+    throw new Error('Please sign in to use secure AI health processing.');
+  }
+
   let lastError;
   
   // A browser bundle cannot keep a route secret. The server verifies the Supabase access token.

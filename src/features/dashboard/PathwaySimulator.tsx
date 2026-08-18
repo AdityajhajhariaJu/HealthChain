@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GitMerge, Sparkles, Clock, AlertTriangle, CheckCircle, Activity, Info, X } from 'lucide-react';
 import { simulatePathway } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
+import { recordHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function PathwaySimulator({ actionItem, onClose }: { actionItem: any, onClose: () => void }) {
@@ -31,6 +32,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
         if (result) {
           setSimulation(result);
           sessionStorage.setItem(cacheKey, JSON.stringify(result));
+          recordHealthMemory({ kind: 'discussion_guide', source: 'pathway_guide', title: `Discussion guide: ${actionItem.step || 'Appointment topic'}`, occurredAt: new Date().toISOString(), payload: { actionItem, result }, dedupeKey: `discussion-guide:${actionItem.id || actionItem.step}` });
         }
       }
     } catch (err) {

@@ -1,4 +1,5 @@
 import Razorpay from 'razorpay';
+import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_PLANS = {
   pro_30_days: {
@@ -37,6 +38,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    const authHeader = req.headers.authorization;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    if (!authHeader?.startsWith('Bearer ') || !supabaseUrl || !supabaseKey) {
+      return res.status(401).json({ error: 'Authentication required to create an order.' });
+    }
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7));
+    if (!user) return res.status(401).json({ error: 'Invalid authentication session.' });
     const { plan_id = 'pro_30_days' } = req.body || {};
     const plan = ALLOWED_PLANS[plan_id];
 
@@ -58,7 +68,8 @@ export default async function handler(req, res) {
       currency: plan.currency,
       receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       notes: {
-        plan_id
+        plan_id,
+        user_id: user.id
       }
     };
 

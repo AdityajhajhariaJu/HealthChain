@@ -19,8 +19,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY; 
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       razorpay_payment_id, 
       razorpay_signature, 
       plan_id = 'pro_30_days',
-      user_id: clientUserId
+      user_id: _clientUserId
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -75,8 +75,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fallback to clientUserId only if JWT not provided (for local testing/guest upgrade)
-    const effectiveUserId = authenticatedUserId || clientUserId;
+    // Subscription credit must always belong to the authenticated purchaser, never a client-supplied ID.
+    const effectiveUserId = authenticatedUserId;
     if (!effectiveUserId) {
       return res.status(401).json({ error: 'Authentication required to activate Pro subscription.' });
     }
@@ -106,7 +106,8 @@ export default async function handler(req, res) {
     }
 
     // 4. Server-Side Amount & Status Verification with Razorpay API
-    const targetPlan = ALLOWED_PLANS[plan_id] || ALLOWED_PLANS.pro_30_days;
+    const targetPlan = ALLOWED_PLANS[plan_id];
+    if (!targetPlan) return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
     let verifiedAmount = targetPlan.amount;
 
     if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
@@ -117,7 +118,7 @@ export default async function handler(req, res) {
         });
         const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
         
-        if (paymentDetails.amount < targetPlan.amount) {
+        if (paymentDetails.order_id !== razorpay_order_id || paymentDetails.amount !== targetPlan.amount || paymentDetails.currency !== 'INR') {
           return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
         }
         verifiedAmount = paymentDetails.amount;
