@@ -305,7 +305,15 @@ async function save(cases: CaseItem[]) {
 }
 
 export function getActiveCaseId(): string | null {
-  return getItemSync(getActiveCaseKey());
+  const explicitId = getItemSync(getActiveCaseKey());
+  const cases = getCases();
+  if (explicitId && cases.some(c => c.id === explicitId)) {
+    return explicitId;
+  }
+  if (cases.length > 0) {
+    return [...cases].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0].id;
+  }
+  return null;
 }
 
 export function getActiveCase(): CaseItem | null {
