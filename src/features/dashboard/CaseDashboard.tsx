@@ -136,8 +136,8 @@ export default function CaseDashboard() {
               {profile.demographics.name ? `, ${(profile?.demographics?.name || '').split(' ')[0] || 'User'}` : ''}.
             </h1>
             <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
-              Start with parallel AI specialist perspectives, then bring their findings into a Deep Collaborative Specialist review.
-              consensus when your case needs deeper correlation.
+              Start with parallel AI specialist perspectives, then bring their findings into a Deep
+              Collaborative Specialist review for consensus when your case needs deeper correlation.
             </p>
           </div>
           <button
