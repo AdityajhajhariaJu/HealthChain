@@ -154,7 +154,12 @@ export default function App() {
           if (profileStr) {
             try {
               const profileData = JSON.parse(profileStr);
-              hasCompletedOnboarding = !!profileData.onboardingCompletedAt;
+              if (profileData.profiles && profileData.activeId) {
+                const activeProfile = profileData.profiles[profileData.activeId];
+                hasCompletedOnboarding = !!(activeProfile?.onboardingCompletedAt || activeProfile?.demographics?.onboardingCompletedAt);
+              } else {
+                hasCompletedOnboarding = !!(profileData.onboardingCompletedAt || profileData.demographics?.onboardingCompletedAt);
+              }
             } catch (e) {
               console.error(e);
             }
