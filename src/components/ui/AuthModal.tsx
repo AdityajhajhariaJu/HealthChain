@@ -61,14 +61,13 @@ export function AuthModal() {
             }}
           />
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: '-40%', x: '-50%', scale: 0.95 }}
+            animate={{ opacity: 1, y: '-50%', x: '-50%', scale: 1 }}
+            exit={{ opacity: 0, y: '-45%', x: '-50%', scale: 0.95 }}
             style={{
               position: 'fixed',
               top: '50%',
               left: '50%',
-              transform: 'translate(-50%, -50%)',
               backgroundColor: '#FFFFFF',
               borderRadius: '20px',
               padding: isMobile ? '24px' : '32px',

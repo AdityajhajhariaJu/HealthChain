@@ -47,24 +47,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return res.status(500).json({ error: 'Database configuration missing.' });
-    }
-
-    // Authenticate user securely via JWT
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required. Missing Bearer token.' });
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    if (!authHeader?.startsWith('Bearer ') || !supabaseUrl || !supabaseKey) {
+      return res.status(401).json({ error: 'Authentication required to create an order.' });
     }
-
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user?.id) {
-      return res.status(401).json({ error: 'Invalid or expired authentication token.' });
-    }
-
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7));
+    if (!user) return res.status(401).json({ error: 'Invalid authentication session.' });
     const { plan_id = 'pro_30_days' } = req.body || {};
     const plan = ALLOWED_PLANS[plan_id];
 
@@ -87,7 +78,7 @@ export default async function handler(req, res) {
       receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       notes: {
         plan_id,
-        user_id: user.id // Cryptographically bind the user identity to the order
+        user_id: user.id
       }
     };
 

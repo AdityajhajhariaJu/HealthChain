@@ -7,6 +7,7 @@ import { fetchLiveTrials } from '../../services/clinicalTrialsService';
 import { fetchRecentLiterature } from '../../services/pubMedService';
 import { analyzeTrialRelevance, analyzeLiteratureRelevance } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { recordHealthMemory } from '../../services/HealthMemory';
 
 const loadingSteps = [
   "Analyzing biomarkers...",
@@ -210,6 +211,7 @@ export default function ClinicalTrialsMatcher() {
         const sortedItems = filteredItems.sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
         
         setResearchItems(sortedItems);
+        recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${activeCase.title || 'Active case'}`, occurredAt: new Date().toISOString(), caseId: activeCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${activeCase.id}:${searchTerms.join(',')}` });
         
         // Only cache if we actually found something, so temporary API failures don't permanently break the UI
         if (sortedItems.length > 0) {

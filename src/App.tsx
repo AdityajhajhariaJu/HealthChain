@@ -1,7 +1,8 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
-import { syncProfileFromSupabase, getProfileKey } from './services/ProfileEngine';
-import { syncCasesFromSupabase } from './services/CaseEngine';
+import { syncProfileFromSupabase, getProfileKey, backfillHealthMemoryFromProfile } from './services/ProfileEngine';
+import { syncCasesFromSupabase, backfillCaseHealthMemory } from './services/CaseEngine';
+import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -41,6 +42,8 @@ const UpdatePassword = React.lazy(() => import('./features/auth/UpdatePassword')
 const Changelog = React.lazy(() => import('./features/brand/Changelog'));
 const HelpCenter = React.lazy(() => import('./features/brand/HelpCenter'));
 const Pricing = React.lazy(() => import('./features/brand/Pricing'));
+const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
+const HealthMemory = React.lazy(() => import('./features/experience/HealthMemory'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -108,22 +111,15 @@ export default function App() {
               localStorage.removeItem(guestPrefix);
             }
             
-            const featurePrefixes = [
-              'hc_cases', 'hc_active_case', 'hc_ava_vault', 
-              'hc_diet_profile', 'hc_food_logs', 'hc_hydration', 
-              'hc_meal_plan', 'hc_diet_advice'
-            ];
-            
-            featurePrefixes.forEach(feature => {
-              for (let i = 1; i <= 5; i++) {
-                const guestFeatureKey = `${feature}_guest_profile_${i}`;
-                const authFeatureKey = `${feature}_${session.user.id}_profile_${i}`;
-                const data = localStorage.getItem(guestFeatureKey);
-                if (data) {
-                  localStorage.setItem(authFeatureKey, data);
-                  localStorage.removeItem(guestFeatureKey);
-                }
-              }
+            // Older features used both *_guest and *_guest_profile_1 key shapes.
+            // Migrate every guest-scoped health key without guessing a suffix, so no guest work is stranded on sign-in.
+            Object.keys(localStorage).forEach((key) => {
+              if (!key.startsWith('hc_') || !key.includes('_guest')) return;
+              const value = localStorage.getItem(key);
+              if (!value) return;
+              const targetKey = key.replace('_guest', `_${session.user.id}`);
+              localStorage.setItem(targetKey, value);
+              localStorage.removeItem(key);
             });
           }
           
@@ -145,6 +141,10 @@ export default function App() {
         // Sync user data now that they are authenticated
         await syncProfileFromSupabase();
         syncCasesFromSupabase();
+        syncHealthMemoryFromSupabase().catch(console.error);
+        // Existing timeline and case summaries become durable Health Memory automatically on sign-in.
+        backfillHealthMemoryFromProfile();
+        backfillCaseHealthMemory();
         
         // Auto-redirect if on a public page
         const path = window.location.pathname;
@@ -154,7 +154,12 @@ export default function App() {
           if (profileStr) {
             try {
               const profileData = JSON.parse(profileStr);
-              hasCompletedOnboarding = !!profileData.onboardingCompletedAt;
+              if (profileData.profiles && profileData.activeId) {
+                const activeProfile = profileData.profiles[profileData.activeId];
+                hasCompletedOnboarding = !!(activeProfile?.onboardingCompletedAt || activeProfile?.demographics?.onboardingCompletedAt);
+              } else {
+                hasCompletedOnboarding = !!(profileData.onboardingCompletedAt || profileData.demographics?.onboardingCompletedAt);
+              }
             } catch (e) {
               console.error(e);
             }
@@ -349,6 +354,9 @@ export default function App() {
               </SafeRoute>
             }
           />
+          <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
+          <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
+          <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
           <Route
             path="/app/pharmacy"
             element={

@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
+import { recordHealthMemory } from './HealthMemory';
 
 export interface CaseUpdate {
   id: string;
@@ -66,6 +67,17 @@ export interface CaseItem {
   differentialHistory?: { date: string; differentials: Differential[] }[];
 }
 
+export interface CasePrepDraft {
+  concern: string;
+  timeline: string;
+  records: string;
+  appointment: string;
+  goal?: string;
+  careSoFar?: string;
+  caseId?: string;
+  savedAt: string;
+}
+
 import { getProfileKey } from './ProfileEngine';
 
 const getActiveProfileId = () => {
@@ -88,6 +100,25 @@ const getActiveCaseKey = () => {
   const base = getProfileKey().replace('hc_unified_profile', 'hc_active_case');
   return `${base}_${getActiveProfileId()}`;
 };
+
+const getCasePrepDraftKey = () => `${getProfileKey().replace('hc_unified_profile', 'hc_case_prep_draft')}_${getActiveProfileId()}`;
+
+export function getCasePrepDraft(): CasePrepDraft | null {
+  try {
+    const saved = getItemSync(getCasePrepDraftKey());
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCasePrepDraft(draft: CasePrepDraft) {
+  setItemSync(getCasePrepDraftKey(), JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+}
+
+export function clearCasePrepDraft() {
+  removeItemSync(getCasePrepDraftKey());
+}
 
 // Listen for logout to clear in-memory caches
 window.addEventListener('hc_logout', () => {
@@ -226,7 +257,12 @@ async function save(cases: CaseItem[]) {
         if (session?.user) {
           
           // Fetch current timestamps to prevent overwriting newer cloud data with stale local data
-          const { data: cloudData } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
+          if (safeCases.length === 0) return;
+          const { data: cloudData, error: timestampError } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
+          if (timestampError) {
+            window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: timestampError }));
+            return;
+          }
           const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
 
           const currentProfileId = getActiveProfileId();
@@ -245,7 +281,7 @@ async function save(cases: CaseItem[]) {
              const cloudPayload = { ...c, __profileId: currentProfileId };
 
              try {
-               await supabase.from('cases').upsert({
+               const { error: upsertError } = await supabase.from('cases').upsert({
                   id: c.id,
                   user_id: session.user.id,
                   title: c.title,
@@ -254,6 +290,7 @@ async function save(cases: CaseItem[]) {
                   data: cloudPayload,
                   updated_at: new Date().toISOString()
                });
+               if (upsertError) throw upsertError;
              } catch (upsertErr) {
                console.error(`Failed to sync case ${c.id} to cloud:`, upsertErr);
              }
@@ -286,6 +323,13 @@ export function deleteCase(caseId: string) {
   const cases = getCases();
   const updatedCases = cases.filter((c) => c.id !== caseId);
   save(updatedCases);
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session?.user) return;
+    return supabase.from('cases').delete().eq('id', caseId).eq('user_id', session.user.id)
+      .then(({ error }) => {
+        if (error) window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+      });
+  }).catch((error) => window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
   if (getActiveCaseId() === caseId) {
     setActiveCase(null);
   }
@@ -330,6 +374,41 @@ export function createCaseDraft({ title, intakeData = {}, specialists = [] }: { 
   save([item, ...getCases()]);
   setActiveCase(item.id);
   return item;
+}
+
+export function saveCasePrepCase({ caseId, concern, timeline, records, appointment, goal, careSoFar }: Omit<CasePrepDraft, 'savedAt'>): CaseItem {
+  const now = new Date().toISOString();
+  const intakeData = {
+    chiefComplaint: concern.trim(),
+    history: timeline.trim(),
+    appointmentDate: appointment || null,
+    appointmentGoal: goal?.trim() || '',
+    careSoFar: careSoFar?.trim() || '',
+  };
+  const notes = records.split('\n').map((note) => note.trim()).filter(Boolean).map((findings, index) => ({
+    id: id(), filename: `Case note ${index + 1}`, findings, source: 'case_prep', type: 'patient_note', addedAt: now,
+  }));
+  const existing = caseId ? getCase(caseId) : undefined;
+  if (!existing) {
+    const created = createCaseDraft({ title: concern.trim().slice(0, 58), intakeData });
+    const updated = { ...created, medicalRecords: notes, updatedAt: now, currentStage: 'case_prep_ready', events: [{ id: id(), date: now, label: 'Case brief prepared', note: 'Your appointment-prep brief was saved.' }, ...created.events] } as CaseItem;
+    save(getCases().map((item) => item.id === created.id ? updated : item));
+    recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${updated.title}`, occurredAt: now, caseId: updated.id, payload: intakeData, dedupeKey: `case-prep:${updated.id}` });
+    return updated;
+  }
+  const updated: CaseItem = {
+    ...existing,
+    title: concern.trim().slice(0, 58) || existing.title,
+    intakeData,
+    medicalRecords: [...(existing.medicalRecords || []).filter((record) => record.source !== 'case_prep'), ...notes],
+    updatedAt: now,
+    currentStage: 'case_prep_ready',
+    events: [{ id: id(), date: now, label: 'Case brief updated', note: 'Your appointment-prep brief was updated.' }, ...(existing.events || [])].slice(0, 100),
+  };
+  save(getCases().map((item) => item.id === existing.id ? updated : item));
+  setActiveCase(existing.id);
+  recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${updated.title}`, occurredAt: now, caseId: updated.id, payload: intakeData, dedupeKey: `case-prep:${updated.id}` });
+  return updated;
 }
 
 export function saveReviewSnapshot({
@@ -399,7 +478,35 @@ export function saveReviewSnapshot({
 
   save(cases.map((item) => (item.id === caseId ? updated : item)));
   setActiveCase(caseId);
+  recordHealthMemory({
+    kind: type === 'mdt' ? 'deep_collab' : 'quick_consult',
+    source: type === 'mdt' ? 'deep_collab' : 'quick_consult',
+    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : `Quick Consult: ${updated.title}`,
+    occurredAt: now,
+    caseId,
+    // The complete transcript remains in the case. Health Memory keeps the concise result users need over years.
+    payload: { report, readiness, specialists, basedOnEvidenceIds, basedOnReviewIds, reviewId: snapshot.id },
+    dedupeKey: `review:${snapshot.id}`,
+  });
   return updated;
+}
+
+export function backfillCaseHealthMemory() {
+  getCases().forEach((caseItem) => {
+    if (caseItem.currentStage === 'case_prep_ready') {
+      recordHealthMemory({ kind: 'case_prep', source: 'case_prep', title: `Case Prep: ${caseItem.title}`, occurredAt: caseItem.updatedAt, caseId: caseItem.id, payload: caseItem.intakeData || {}, dedupeKey: `case-prep:${caseItem.id}` });
+    }
+    (caseItem.reviews || []).forEach((review) => recordHealthMemory({
+      id: review.id,
+      kind: review.type === 'mdt' ? 'deep_collab' : 'quick_consult',
+      source: review.type === 'mdt' ? 'deep_collab' : 'quick_consult',
+      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
+      occurredAt: review.createdAt,
+      caseId: caseItem.id,
+      payload: { report: review.report, readiness: review.readiness, specialists: review.specialists, reviewId: review.id },
+      dedupeKey: `review:${review.id}`,
+    }));
+  });
 }
 
 export function addCaseEvent(caseId: string, note: string, label: string = 'Evidence update', currentSummary?: any) {
@@ -531,6 +638,7 @@ export async function syncCasesFromSupabase() {
     if (!session?.user) return;
 
     const { data, error } = await supabase.from('cases').select('*').eq('user_id', session.user.id);
+    if (error) throw error;
     if (data && data.length > 0) {
       const localCases = getCases();
       const localCaseMap = new Map(localCases.map(c => [c.id, c]));
@@ -561,6 +669,10 @@ export async function syncCasesFromSupabase() {
         console.log('Local cases are newer than remote. Pushing to cloud.');
         save(mergedCases);
       }
+    } else if (data && data.length === 0) {
+      // A first sign-in must upload existing local cases; waiting for a later edit risks data loss.
+      const localCases = getCases();
+      if (localCases.length > 0) save(localCases);
     }
   } catch (err) {
     console.error('Failed to sync cases from Supabase:', err);

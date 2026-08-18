@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
+import { recordHealthMemory } from './HealthMemory';
 
 export function getProfileKey() {
   if (localStorage.getItem('hc_guest_mode') === 'true') return 'hc_unified_profile_guest';
@@ -253,6 +254,27 @@ async function saveProfile(profile) {
     // Dispatch event so UI can react globally
     window.dispatchEvent(new Event('hc_profile_updated'));
 
+    // A compact, current snapshot makes every caregiver profile recoverable through Health Memory.
+    // Timeline entries remain separate ledger records, avoiding duplication of every historical event.
+    recordHealthMemory({
+      kind: 'profile_event',
+      source: 'profile',
+      title: `Profile updated: ${profile.profileName || 'Health profile'}`,
+      occurredAt: profile.demographics?.updatedAt || new Date().toISOString(),
+      payload: {
+        profileName: profile.profileName,
+        demographics: profile.demographics,
+        conditions: profile.conditions,
+        medications: profile.medications,
+        allergies: profile.allergies,
+        familyHistory: profile.familyHistory,
+        vitals: profile.vitals,
+        nutrition: profile.nutrition,
+        healthFocus: profile.healthFocus,
+      },
+      dedupeKey: `profile-snapshot:${profile.id || state.activeId}`,
+    });
+
     // Asynchronously sync to secure cloud backend if configured
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
       // ONLY sync the primary profile to the cloud to prevent caregiver profiles from overwriting the main account
@@ -440,8 +462,39 @@ export function addEvent(type, source, title, data = {}, significant = true, exi
 
   if (!existingProfile) {
     saveProfile(profile);
+    const kindBySource = {
+      report_analyzer: 'lab_report',
+      dietician: 'diet',
+      health_buddy: 'health_buddy',
+      case_prep: 'case_prep',
+      quick_consult: 'quick_consult',
+      mdt_hub: 'deep_collab',
+    };
+    recordHealthMemory({
+      id: event.id,
+      kind: kindBySource[source] || 'profile_event',
+      source,
+      title,
+      occurredAt: event.date,
+      payload: safeData || {},
+      dedupeKey: `timeline:${event.id}`,
+    });
   }
   return event;
+}
+
+export function backfillHealthMemoryFromProfile() {
+  const profile = getProfile();
+  const kinds = { report_analyzer: 'lab_report', dietician: 'diet', health_buddy: 'health_buddy', case_prep: 'case_prep', quick_consult: 'quick_consult', mdt_hub: 'deep_collab' };
+  (profile.timeline || []).forEach((event) => recordHealthMemory({
+    id: event.id,
+    kind: kinds[event.source] || 'profile_event',
+    source: event.source || 'profile',
+    title: event.title || event.type || 'Health profile update',
+    occurredAt: event.date || new Date().toISOString(),
+    payload: event.data || {},
+    dedupeKey: `timeline:${event.id}`,
+  }));
 }
 
 export function updateVitals(labData, source = 'manual') {

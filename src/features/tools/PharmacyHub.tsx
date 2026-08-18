@@ -14,6 +14,7 @@ import { useLocation } from 'react-router-dom';
 import { fetchMedicineData, checkDrugInteractions } from '../../services/geminiService';
 import { addMedication, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
+import { recordHealthMemory } from '../../services/HealthMemory';
 import { Sunrise, Sun, Moon, CheckCircle } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -83,6 +84,7 @@ export default function PharmacyHub() {
 
     if (data) {
       setResult(data);
+      recordHealthMemory({ kind: 'pharmacy', source: 'pharmacy_hub', title: `Medication information: ${data.name || query.trim()}`, occurredAt: new Date().toISOString(), payload: data, dedupeKey: `pharmacy:${query.trim().toLowerCase()}` });
     } else {
       setResult({
         name: query.toUpperCase(),
@@ -424,7 +426,7 @@ export default function PharmacyHub() {
                             margin: '0 0 8px 0',
                           }}
                         >
-                          Clinical Interaction Warning
+                          Medication question to verify
                         </h3>
                         <ul
                           style={{
@@ -439,6 +441,7 @@ export default function PharmacyHub() {
                             <li key={i}>{warn}</li>
                           ))}
                         </ul>
+                        <p style={{ margin: '10px 0 0', color: '#991B1B', fontSize: '12px', lineHeight: 1.5 }}>Do not start, stop, or change a medicine based on this screen. Confirm it with a pharmacist or prescriber.</p>
                       </div>
                     </div>
                   )}

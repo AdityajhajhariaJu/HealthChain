@@ -20,8 +20,8 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY; 
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       razorpay_payment_id, 
       razorpay_signature, 
       plan_id = 'pro_30_days',
-      user_id: clientUserId
+      user_id: _clientUserId
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -77,11 +77,10 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Authentication required. Missing Bearer token.' });
     }
 
-    const token = authHeader.substring(7);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user?.id) {
-      return res.status(401).json({ error: 'Invalid or expired authentication token.' });
+    // Subscription credit must always belong to the authenticated purchaser, never a client-supplied ID.
+    const effectiveUserId = authenticatedUserId;
+    if (!effectiveUserId) {
+      return res.status(401).json({ error: 'Authentication required to activate Pro subscription.' });
     }
     effectiveUserId = user.id;
 
@@ -109,23 +108,25 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'This payment has already been processed and credited.' });
     }
 
-    // 4. Server-Side Amount, Status & Identity Verification with Razorpay API
-    const targetPlan = ALLOWED_PLANS[plan_id] || ALLOWED_PLANS.pro_30_days;
+    // 4. Server-Side Amount & Status Verification with Razorpay API
+    const targetPlan = ALLOWED_PLANS[plan_id];
+    if (!targetPlan) return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
     let verifiedAmount = targetPlan.amount;
 
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({ error: 'Server payment configuration missing.' });
-    }
-
-    try {
-      const instance = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET,
-      });
-      
-      const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
-      if (paymentDetails.amount < targetPlan.amount) {
-        return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+      try {
+        const instance = new Razorpay({
+          key_id: process.env.RAZORPAY_KEY_ID,
+          key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+        const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
+        
+        if (paymentDetails.order_id !== razorpay_order_id || paymentDetails.amount !== targetPlan.amount || paymentDetails.currency !== 'INR') {
+          return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
+        }
+        verifiedAmount = paymentDetails.amount;
+      } catch (rzpErr) {
+        console.warn('Razorpay fetch check warning (proceeding if signature matches):', rzpErr.message);
       }
 
       const orderDetails = await instance.orders.fetch(razorpay_order_id);

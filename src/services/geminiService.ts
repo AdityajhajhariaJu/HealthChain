@@ -23,16 +23,18 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     }
   } catch {}
 
+  if (!import.meta.env.DEV && !sessionToken) {
+    throw new Error('Please sign in to use secure AI health processing.');
+  }
+
   let lastError;
   
-  // Inject security headers
-  const routeSecret = import.meta.env.VITE_API_ROUTE_SECRET;
+  // A browser bundle cannot keep a route secret. The server verifies the Supabase access token.
   const secureOptions = {
     ...options,
     headers: {
       ...options.headers,
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
-      ...(routeSecret ? { 'x-api-route-secret': routeSecret } : {})
     }
   };
 
@@ -86,8 +88,17 @@ export interface Message {
   text?: string;
 }
 
-const SYSTEM_PROMPT = `You are HealthChain's clinical investigation AI.
-Your goal is to gather facts to build a "causal chain" connecting root causes to symptoms, but you must do it with a warm, professional, and empathetic bedside manner.
+const CLINICAL_SAFETY_RULES = `
+
+SAFETY AND CLINICAL BOUNDARIES:
+- You are an AI assessment assistant, not a clinician. Do not diagnose, prescribe, give dosing instructions, or present a conclusion as certain.
+- Separate patient-reported information, record-supported facts, and possibilities that need clinician review.
+- State material uncertainty plainly. Do not invent citations, source links, statistics, success rates, or clinical validation. If no source is provided in the case, say that a source citation is not available.
+- Encourage review with a qualified clinician. For severe, sudden, rapidly worsening, or emergency symptoms, advise urgent local medical care or emergency services.
+- Use neutral language such as "may be worth discussing" or "a clinician can help assess" rather than "you have" or "this proves."`;
+
+const SYSTEM_PROMPT = `You are HealthChain's clinical assessment AI.
+Your goal is to gather facts and organize possible connections worth discussing with a clinician, with a warm, professional, and empathetic bedside manner.
 
 RULES:
 1. Be conversational and empathetic. Briefly acknowledge what the user is experiencing before moving forward.
@@ -99,7 +110,7 @@ RULES:
 {"chain_name":"Root Cause -> Symptom","normal_terms_explanation":"Plain English mechanism","match_percentage":"83%","specialists_validated":"3 endocrinologists","resolved_cases":"27","cost_to_confirm":"₹1,400","time_to_relief":"6-8 wks","specialist":"Endocrine","this_week_tasks":["Task 1"],"flowchart":{"root":"","root_sub":"","mechanism":"","mechanism_sub":"","symptoms":[{"name":"","sub":""}]},"what_it_is":"2-3 sentences.","whats_driving_it":"2-3 sentences.","chain_reaction":["Step 1"],"where_it_shows_up":[{"location":"","effect":""}],"if_untreated":[{"time":"","effect":""}],"what_to_do":[{"step":"","cost":""}],"cost_to_diagnose":"₹1,300","cost_unexplained":"₹15,000+","recovery_timeline":[{"time":"","effect":""}],"if_symptoms_persist":"Next check","do":"Do this","dont":"Don't do this","quote":"Insight."}
 \`\`\`
 
-Do NOT include ANALYSIS_COMPLETE until you are ready to conclude.`;
+Do NOT include ANALYSIS_COMPLETE until you are ready to conclude.${CLINICAL_SAFETY_RULES}`;
 
 export async function chatWithGemini(messages: Message[]): Promise<string> {
   const validMessages = messages[0]?.role === 'model' ? messages.slice(1) : messages;
@@ -152,7 +163,7 @@ Return ONLY a valid JSON object (no markdown, no extra text) with the following 
   "warnings": "Important clinical warnings or contraindications",
   "interactions": ["Warning 1", "Warning 2"] // ONLY populate this if the requested drug interacts with their profile medications/allergies. Otherwise empty array.
 }
-If the medicine is completely unrecognized, return a JSON object with "name": "Unknown", and explain that data is unavailable in the "uses" field.`;
+If the medicine is completely unrecognized, return a JSON object with "name": "Unknown", and explain that data is unavailable in the "uses" field.${CLINICAL_SAFETY_RULES}`;
 
 export async function fetchMedicineData(medicineName: string, profile: any = null): Promise<any> {
   let promptText = medicineName;
@@ -209,8 +220,8 @@ RULES:
 3. Maintain a warm, highly professional "concierge doctor" tone.
 4. Keep responses concise (2-4 sentences) for chat flow.
 5. No markdown. Plain conversational text.
-6. Suggest strong hypotheses, but never offer definitive clinical conclusions.
-`;
+6. Suggest questions and possibilities, but never offer definitive clinical conclusions.
+${CLINICAL_SAFETY_RULES}`;
 
 
 export async function chatWithTherapyGemini(messages: Message[]): Promise<string> {
@@ -259,7 +270,7 @@ Analyze the report thoroughly and return ONLY a valid JSON object (no markdown, 
   "extraTerms": [{"term": "Medical term used", "definition": "Simple explanation of the term"}]
 }
 IMPORTANT: For the 'biomarkers' object, populate it if there are quantitative lab values (like CBC, Lipid panel). If the report is structural (MRI, X-ray, Ultrasound) and has no numeric vitals, create a single summary entry for it (e.g., "MRI Scan": { "value": "Analyzed", "unit": "Scan", "status": "INFO", "date": "Date of report" }).
-If no document is provided or it is unreadable, return a JSON object with "testName": "Unrecognized / No Document", and explain the issue in "interpretation".`;
+If no document is provided or it is unreadable, return a JSON object with "testName": "Unrecognized / No Document", and explain the issue in "interpretation".${CLINICAL_SAFETY_RULES}`;
 
 export async function analyzeLabReport(base64Data: string, mimeType: string, profile: any): Promise<any> {
   const dynamicPrompt = `${LAB_SYSTEM_PROMPT}\n\nPatient Context:\nAge: ${profile?.demographics?.age || 'Unknown'}\nGender: ${profile?.demographics?.gender || 'Unknown'}\n(Use this patient context strictly for determining the correct normal reference ranges for lab vitals like testosterone, eGFR, hemoglobin, etc.)`;
@@ -310,7 +321,7 @@ Chief Complaint: "${intakeText}"
 Return ONLY a JSON array of specialist IDs (strings) from this list:
 ["neuro", "ent", "cardio", "gastro", "derma", "ortho", "psych", "obgyn", "pulmo", "endo", "uro", "rheuma", "onco", "opthal", "physio", "gp"]
 
-Example: ["neuro", "physio", "ortho"]`;
+Example: ["neuro", "physio", "ortho"]${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: prompt }] },
@@ -360,13 +371,13 @@ export async function chatWithMDTSpecialist(messages: Message[], specialist: any
         ? `\n\n[SYSTEM DIRECTIVE]: This is your final question (10 of 10). You MUST end your response by saying something similar to: "This is my last question. Please provide any remaining details, and I will conclude my analysis."`
         : '');
 
-  const MDT_SPECIALIST_PROMPT = `You are a highly skilled ${specialist.label}. 
-You are part of a Collaborative Board alongside: ${otherNames}.
+  const MDT_SPECIALIST_PROMPT = `You provide an AI-generated ${specialist.label} perspective for appointment preparation. You are not a licensed clinician, do not represent a real specialist, and must not say or imply that you examined the patient.
+You are part of a collaborative AI perspective board alongside: ${otherNames}.
 The patient's initial intake is:
 Chief Complaint: ${intakeData.chiefComplaint}
 History: ${intakeData.history || 'None provided'}
 
-Your goal is to conduct a Deep Specialist Assessment.
+Your goal is to organize focused questions, possible evidence gaps, and clinician-discussion topics.
 DO NOT REPEAT questions. Dig deeper or pivot to a new relevant area.
 Ask exactly ONE short, conversational follow-up question at a time.
 ${questionRule}
@@ -384,7 +395,7 @@ Return your response STRICTLY as JSON matching this format:
     ? `\nACTIVE HYPOTHESES TO TEST (from Differential Diagnosis Board):\n${activeDifferentials.map(d => `- ${d.condition} (${d.probability}%): Try to prove/disprove this. Next best tests suggest looking for: ${d.nextBestTests.join(', ')}`).join('\n')}\nAsk targeted questions to confirm or rule out these active hypotheses.`
     : '';
   
-  const finalSystemPrompt = MDT_SPECIALIST_PROMPT + sharedContext + ddxContext;
+  const finalSystemPrompt = MDT_SPECIALIST_PROMPT + sharedContext + ddxContext + CLINICAL_SAFETY_RULES;
 
   const contents = messages.slice(-12).map((msg) => ({
     role: msg.role === 'user' ? 'user' : 'model',
@@ -459,7 +470,7 @@ Return your analysis strictly in this JSON format:
   "contentions": ["point 1", "point 2"],
   "followUpQuestions": ["question 1", "question 2"],
   "debateSummary": "A 3-4 sentence summary of the board's deliberation."
-}`;
+}${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: orchestratorPrompt }] },
@@ -516,7 +527,7 @@ Patient Intake: ${intakeData.chiefComplaint}${recordsText}
 Conference Summary: ${conferenceData.debateSummary}
 Patient's Final Answers: ${JSON.stringify(finalAnswers)}
 
-Compile a structured, patient-safe Collaborative Board case brief. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, and make clear that a qualified clinician makes diagnoses. Return strictly as JSON:
+Compile a structured, patient-safe Collaborative Board case brief. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list. Return strictly as JSON:
 {
   "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
   "urgency": "Routine | Soon | Urgent",
@@ -547,7 +558,7 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
     }
   ],
   "questionsForClinician": ["Specific question the patient can take to a clinician"]
-}`;
+}${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: reportPrompt }] },
@@ -656,7 +667,7 @@ export async function generateParallelMultiReport(
       ? `\n\n--- Patient Medical Records ---\n${medicalRecords.map((r) => `File: ${r.testName || r.filename}\nFindings: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n\n')}`
       : '';
 
-  const reportPrompt = `You are an elite Medical AI orchestrating parallel diagnostic assessments.
+const reportPrompt = `You are an AI assistant orchestrating parallel health-assessment perspectives.
 The patient presented with: "${symptomInput}"
 
 Below are the independent interview transcripts from several specialists who questioned the patient simultaneously, along with any uploaded medical records:
@@ -667,6 +678,7 @@ CRITICAL INSTRUCTIONS:
 1. MERGE overlapping diagnoses: Do not list the same condition multiple times (e.g. do not list "Cervical Radiculopathy" 3 times just because 3 specialists mentioned it). Merge them into a single entry with combined evidence.
 2. CONDENSE the Action Plan: Limit the action plan to a maximum of 5 distinct, high-yield steps. Do not repeat instructions. Merge overlapping recommendations (e.g. if 3 specialists recommend an MRI, only list "Obtain MRI" once).
 3. Do not claim certainty; distinguish evidence from gaps and direct clinical decisions to qualified professionals.
+4. Include citations only when a real source is supplied in the case; otherwise return an empty citations list.
 
 Return strictly as JSON matching this exact structure:
 {
@@ -700,7 +712,7 @@ Return strictly as JSON matching this exact structure:
     }
   ],
   "questionsForClinician": ["Specific question the patient can take to a clinician"]
-}`;
+}${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: reportPrompt }] },
@@ -922,9 +934,9 @@ Specialists: ${JSON.stringify(specialistIds)}
 Respond ONLY as JSON:
 {
   "suggestedSpecialistIds": ["id1", "id2"],
-  "professionalAdvice": "Based on your medical profile, we recommend a [Specialist 1] and [Specialist 2] to investigate your [condition/symptom]."
+  "professionalAdvice": "These may be useful specialist perspectives to discuss with your primary clinician based on the information provided."
 }
-`;
+${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -954,8 +966,8 @@ export async function runDifferentialAnalysis(intakeData: any, medicalRecords: a
 
 
   const prompt = `
-You are the Chief Diagnostician AI for HealthChain.
-Analyze the patient's symptoms, active clinical cases, and medical records to generate a Differential Diagnosis (DDx).
+You are HealthChain's health assessment AI.
+Analyze the patient's symptoms, active clinical cases, and medical records to generate a short list of possibilities for clinician discussion (DDx).
 
 Patient Profile:
 ${JSON.stringify({ age: profileData?.demographics?.age, gender: profileData?.demographics?.gender, conditions: profileData?.health?.conditions || profileData?.medicalConditions })}
@@ -966,7 +978,7 @@ ${JSON.stringify(intakeData)}
 Uploaded Medical Records:
 ${JSON.stringify(medicalRecords.map(r => ({ test: r.testName || r.filename, findings: r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available'), abnormal: r.abnormalities })))}
 
-Identify the top 2 to 4 potential diagnoses. Assign a probability (0-100) and specify the next best tests to rule in/out the hypothesis.
+Identify the top 2 to 4 possible discussion pathways. The probability is an AI confidence estimate, not a medical probability or diagnosis. Specify questions or tests a qualified clinician may consider to rule in/out the possibility.
 
 Respond ONLY with a JSON array of objects in this exact format, with no markdown formatting or backticks:
 [
@@ -980,7 +992,7 @@ Respond ONLY with a JSON array of objects in this exact format, with no markdown
     "nextBestTests": ["Repeat TSH", "Free T4", "TPO Antibodies"]
   }
 ]
-`;
+${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -1010,7 +1022,7 @@ export async function generateProfileSynthesis(profileData: any) {
 
 
   const prompt = `
-You are an expert Clinical AI. Analyze this patient profile and generate a holistic health synthesis.
+You are an AI health-assessment assistant. Organize this patient profile into a holistic health summary for clinician discussion.
 Patient Profile: ${JSON.stringify(profileData)}
 
 Provide your response strictly as a JSON object with this exact format (no markdown, no backticks):
@@ -1025,7 +1037,7 @@ Provide your response strictly as a JSON object with this exact format (no markd
   "overallScore": 84,
   "synthesisText": "A 2-4 sentence highly clinical and insightful summary of their current health status, directly referencing their actual conditions, recent weight/vital changes, and active medications. Use **markdown bold** to highlight key metrics."
 }
-`;
+${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -1057,7 +1069,7 @@ export async function checkDrugInteractions(newMedication: string, currentMedica
   const currentMedsList = currentMedications.map(m => m.name).join(', ');
 
   const prompt = `
-You are a Clinical Pharmacist AI. Check for drug interactions between a newly added medication and the patient's current regimen.
+You are an AI medication-information assistant. Flag potential interaction questions between a newly added medication and the patient's current regimen for pharmacist or clinician review.
 New Medication: ${newMedication}
 Current Regimen: ${currentMedsList || 'None'}
 
@@ -1065,9 +1077,9 @@ Provide your response strictly as a JSON object with this exact format (no markd
 {
   "hasInteraction": true/false,
   "severity": "High" | "Moderate" | "Low" | "None",
-  "description": "A 1-2 sentence clinical explanation of the interaction risk. If None, explain that it is safe."
+  "description": "A 1-2 sentence explanation of the potential interaction question. If None, say no potential interaction was identified from the available information, not that it is safe."
 }
-`;
+${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
@@ -1101,24 +1113,22 @@ export async function simulatePathway(
     ? `Patient Context: Age ${profile.personal?.age || 'unknown'}, Gender: ${profile.personal?.gender || 'unknown'}. Existing conditions: ${(profile.health?.conditions || []).join(', ') || 'None'}.`
     : '';
 
-  const prompt = `You are an elite Clinical Pathway Simulator AI. 
-The patient is considering this treatment action: "${actionItem.step}"
+  const prompt = `You are an AI appointment-preparation assistant.
+The patient is considering this clinician-discussion item: "${actionItem.step}"
 ${profileContext}
 
-Simulate this specific treatment pathway. Return your findings strictly as JSON matching this exact structure:
+Describe questions, risks, and possible follow-up topics to discuss with a qualified clinician. Do not predict outcomes, cost, recovery, or success rates. Return your findings strictly as JSON matching this exact structure:
 {
-  "timelineDays": 42,
-  "timelineDescription": "Brief description of the timeline",
-  "successRate": 85,
-  "costEstimate": "$500 - $1,500",
+  "timelineDays": null,
+  "timelineDescription": "A clinician can advise on the appropriate timing",
+  "successRate": null,
+  "costEstimate": "Varies by clinician, location, and coverage",
   "risks": ["Risk 1", "Risk 2"],
   "milestones": [
-    { "day": 7, "description": "Initial recovery phase begins" },
-    { "day": 21, "description": "Mid-point evaluation" },
-    { "day": 42, "description": "Expected full resolution" }
+    { "day": 0, "description": "Discuss the item with a qualified clinician" }
   ],
-  "alternative": "A brief alternative if this fails"
-}`;
+  "alternative": "A question to ask if this option is not appropriate"
+}${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],

@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-route-secret');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -28,16 +28,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify auth: check either Supabase Bearer token or server route secret
+  // Verify the authenticated Supabase user. Browser-visible route secrets are not security controls.
   const authHeader = req.headers.authorization;
-  const routeSecretHeader = req.headers['x-api-route-secret'];
-  const serverRouteSecret = process.env.API_ROUTE_SECRET || process.env.VITE_API_ROUTE_SECRET;
 
   let isAuthorized = false;
 
-  if (serverRouteSecret && routeSecretHeader === serverRouteSecret) {
-    isAuthorized = true;
-  } else if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
@@ -59,8 +55,8 @@ export default async function handler(req, res) {
     isAuthorized = true;
   }
 
-  // If in production and neither valid token nor secret, reject
-  if (!isAuthorized && process.env.NODE_ENV === 'production' && serverRouteSecret) {
+  // Production AI processing is always tied to an authenticated HealthChain account.
+  if (!isAuthorized && process.env.NODE_ENV === 'production') {
     return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
   }
 
