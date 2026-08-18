@@ -59,10 +59,10 @@ export default function ActionPlan({ analysis }) {
             gap: '8px',
           }}
         >
-          <Target color="var(--teal)" /> Recommended Action Plan
+          <Target color="var(--teal)" /> Discussion Checklist
         </h2>
         <p className="text-gray text-sm" style={{ margin: 0 }}>
-          Your step-by-step roadmap to confirming the diagnosis.
+          Questions and practical follow-ups to review with a qualified clinician. This is not a diagnosis or treatment plan.
         </p>
       </div>
 
@@ -77,7 +77,7 @@ export default function ActionPlan({ analysis }) {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-              Match Probability
+              AI relevance signal
             </div>
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--teal)' }}>
               {analysis.match_percentage}
@@ -85,7 +85,7 @@ export default function ActionPlan({ analysis }) {
           </div>
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-              Specialist Needed
+              Perspective to discuss
             </div>
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>
               {analysis.specialist}
@@ -93,7 +93,7 @@ export default function ActionPlan({ analysis }) {
           </div>
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-              Est. Cost to Confirm
+              Context noted in case
             </div>
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>
               {analysis.cost_to_confirm || analysis.cost_to_diagnose}
