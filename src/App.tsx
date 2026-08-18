@@ -42,7 +42,6 @@ const Changelog = React.lazy(() => import('./features/brand/Changelog'));
 const HelpCenter = React.lazy(() => import('./features/brand/HelpCenter'));
 const Pricing = React.lazy(() => import('./features/brand/Pricing'));
 const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
-const DeepCollabBeta = React.lazy(() => import('./features/experience/DeepCollabBeta'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -352,7 +351,7 @@ export default function App() {
             }
           />
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
-          <Route path="/app/deep-collab-beta" element={<SafeRoute><DeepCollabBeta /></SafeRoute>} />
+          <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
           <Route
             path="/app/pharmacy"
             element={

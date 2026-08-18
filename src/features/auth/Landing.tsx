@@ -48,11 +48,11 @@ const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number
 const landingFaqs = [
   {
     question: "Is HealthChain a replacement for my doctor?",
-    answer: "No. HealthChain is an AI-powered diagnostic navigator. It is designed to help you organize your medical history, explore potential diagnostic pathways, and prepare for specialist visits. It does not provide definitive medical diagnoses or treatments."
+    answer: "No. HealthChain is an AI-assisted health assessment and appointment-preparation tool. It helps you organize your history, spot questions and evidence gaps to discuss, and prepare for clinician visits. It does not diagnose, prescribe, or replace professional medical care."
   },
   {
     question: "How is my medical data secured?",
-    answer: "Your privacy is our top priority. HealthChain uses enterprise-grade encryption for all data at rest and in transit. By default, your data is stored locally in your browser unless you explicitly create an account for cloud sync."
+    answer: "You control your case information. Guest-mode information stays in your browser on that device; signed-in features may sync the information needed to provide the service. Use a personal device, protect it with a passcode, and review our Privacy Policy for the current storage and processing details."
   },
   {
     question: "How do the Deep Collaborative Specialists work?",
@@ -60,7 +60,7 @@ const landingFaqs = [
   },
   {
     question: "Are the AI agents trained on real medical literature?",
-    answer: "Yes, our reasoning engines are deeply integrated with PubMed, ClinicalTrials.gov, and OMIM, ensuring that every insight is backed by peer-reviewed research and cited accordingly."
+    answer: "HealthChain is designed to help organize medical information and discussion points. AI output can be incomplete or wrong, so it should be checked against the original record and discussed with a qualified clinician. We do not present AI output as a diagnosis."
   }
 ];
 
@@ -113,19 +113,19 @@ export default function Landing() {
 
   const testimonials = [
     {
-      quote: "After 4 years and 7 different specialists telling me everything was 'normal', HealthChain's AI traced my symptoms to a rare autoimmune marker in seconds. I finally have my life back.",
+      quote: "HealthChain helped me put years of symptoms and test results into one clear timeline for my next appointment.",
       name: "Sarah M.",
       location: "New York",
       rating: 5
     },
     {
-      quote: "The clinical dossier it produced was so comprehensive that my primary care doctor actually asked what platform I used. It completely changed the direction of my treatment.",
+      quote: "The case brief made it much easier to explain what had changed and ask focused questions during my clinician visit.",
       name: "Rajesh K.",
       location: "Mumbai",
       rating: 5
     },
     {
-      quote: "I was overwhelmed by all the conflicting medical advice online. HealthChain cut through the noise and gave me a heavily-cited, evidence-based path forward.",
+      quote: "I felt more prepared to have a constructive conversation with my clinician instead of trying to piece everything together alone.",
       name: "Elena V.",
       location: "London",
       rating: 5
@@ -252,13 +252,13 @@ export default function Landing() {
           animate={{ y: [0, 20, 0] }}
           transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 }}
         >
-          <div className={styles.pulseDot}></div> Root Cause Identified
+          <div className={styles.pulseDot}></div> Discussion Pathway Ready
         </motion.div>
 
         <div className={styles.heroContent}>
           <motion.div variants={containerVariants} initial="hidden" animate="show" className={styles.heroTextCenter}>
             <motion.div variants={itemVariants} className={styles.premiumBadge}>
-              <Zap size={14} fill="currentColor" /> The Medical AI Standard
+              <Zap size={14} fill="currentColor" /> CLINICIAN-READY HEALTH ASSESSMENT
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
@@ -267,12 +267,12 @@ export default function Landing() {
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              HealthChain is an elite medical investigation engine. We cross-reference your case against the entirety of published medical literature to find the root cause your doctors missed.
+              HealthChain is an AI-assisted health assessment engine that helps turn symptoms, records, and unanswered questions into a clearer case you can discuss with your clinician.
             </motion.p>
             
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
                 <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={handleStartInvestigation}>
-                  Start Your Investigation <ArrowRight size={18} />
+                  Start Your Assessment <ArrowRight size={18} />
                 </button>
                 <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
                   View Pricing
@@ -390,8 +390,8 @@ export default function Landing() {
             <div className={styles.bentoIconBg} style={{background: 'var(--gradient-teal)'}}>
               <GitBranch size={24} color="#fff" />
             </div>
-            <h3 className={styles.bentoTitle}>Chain Investigation Engine</h3>
-            <p className={styles.bentoDesc}>Trace complex, multi-systemic symptoms back to a single root cause using our proprietary cross-referencing algorithm that scans millions of biomedical papers instantly.</p>
+            <h3 className={styles.bentoTitle}>Health Assessment Engine</h3>
+            <p className={styles.bentoDesc}>Organize complex, multi-system symptoms into possible connections, evidence gaps, and questions you can take to your clinician.</p>
           </motion.div>
 
           <motion.div 
@@ -402,7 +402,7 @@ export default function Landing() {
               <Shield size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Doctor-Ready Dossier</h3>
-            <p className={styles.bentoDesc}>Export a robust, fully-cited PDF report to hand directly to your doctor to command immediate respect and action.</p>
+            <p className={styles.bentoDesc}>Export a focused case brief with your timeline, record highlights, uncertainty, and questions for a more productive clinician conversation.</p>
           </motion.div>
 
           <motion.div 
@@ -413,7 +413,7 @@ export default function Landing() {
               <Search size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Deep Research Hub</h3>
-            <p className={styles.bentoDesc}>Direct integration with global medical literature, active clinical trials, and genome databases.</p>
+            <p className={styles.bentoDesc}>Keep your records, questions, and relevant research notes together so you can review them with a qualified clinician.</p>
           </motion.div>
 
           <motion.div 
@@ -424,7 +424,7 @@ export default function Landing() {
               <MessageSquare size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Ava Health Buddy</h3>
-            <p className={styles.bentoDesc}>A 24/7 intelligent companion that remembers your entire medical history. Ask any question about your case, explore treatment alternatives, or simply get empathetic support when you're feeling overwhelmed.</p>
+            <p className={styles.bentoDesc}>A supportive companion for organizing questions, tracking your case, and preparing for next stepsâ€”not a replacement for urgent or professional care.</p>
           </motion.div>
         </div>
       </section>
@@ -434,7 +434,7 @@ export default function Landing() {
         <div className={styles.aiBrainContent}>
           <div className={styles.aiBrainText}>
             <h2>12 Specialist Agents. <br/>Working Synchronously.</h2>
-            <p>The moment you upload your data, HealthChain activates a network of Deep Collaborative Specialists. Rheumatology, Neurology, Endocrinology, and 9 other specialized AI agents cross-examine your case simultaneously.</p>
+            <p>HealthChain organizes your case through multiple AI perspectives to surface questions, evidence gaps, and topics that may be useful to discuss with your clinician.</p>
           </div>
           <div className={styles.aiBrainVisual}>
              {/* Abstract Node Network */}
@@ -463,17 +463,17 @@ export default function Landing() {
             {
               step: '01',
               title: 'Upload Your Records',
-              desc: 'Securely upload your blood panels, MRI reports, or simply describe your symptoms in plain English.'
+              desc: 'Add your blood panels, MRI reports, and symptoms in plain English. Review your information before sharing it with a clinician.'
             },
             {
               step: '02',
-              title: 'AI Cross-Examination',
-              desc: 'Our engine queries millions of peer-reviewed papers for rare correlations matching your unique profile.'
+              title: 'AI-Assisted Case Review',
+              desc: 'Our engine organizes what you shared into possible discussion points, missing context, and questions for your next appointment.'
             },
             {
               step: '03',
               title: 'Take Action',
-              desc: 'Receive your personalized, heavily-cited clinical dossier. Book the right specialist, demand the right tests.'
+              desc: 'Take a structured case brief to your clinician and agree together on the most appropriate next step.'
             }
           ].map((item, index) => (
             <motion.div 
@@ -584,7 +584,7 @@ export default function Landing() {
             <div className={styles.footerLogo}>
               <div className={styles.logoIconBg}><Activity size={20} className={styles.logoIcon} /></div> HealthChain
             </div>
-            <p className={styles.footerBrandText}>The world's most advanced AI diagnostic navigator. Built for transparency, speed, and accuracy.</p>
+            <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clarity and transparency.</p>
           </div>
           <div className={styles.footerLinks}>
             <h4>Product</h4>

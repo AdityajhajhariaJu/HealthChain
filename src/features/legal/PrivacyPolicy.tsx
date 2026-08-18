@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
 
           <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>1. Introduction</h2>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            Welcome to HealthChain. We respect your privacy and are committed to protecting your personal health data. This Privacy Policy outlines how we collect, use, and safeguard your information.
+            HealthChain helps you organize health information and prepare questions for a qualified clinician. We respect the sensitivity of that information and explain below what the app stores, where it may be processed, and the choices available to you. This policy describes the product as it works today; it is not a claim of certification or a substitute for local legal notices.
           </p>
 
           <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>2. Data Collection</h2>
@@ -66,23 +66,24 @@ export default function PrivacyPolicy() {
 
           <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>3. How We Use Your Data</h2>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            Your data is used strictly for providing our clinical AI services. We do not sell your personal health information to third parties. Our AI models process your data to generate differential diagnoses, treatment plans, and medical insights.
+            We use your information to provide the features you choose: account access, case organization, record summaries, AI-assisted health assessment, support, payments, and product security. We do not sell personal health information. HealthChain does not provide diagnoses, prescriptions, or treatment plans; AI output is intended to support preparation and discussion with a qualified clinician.
           </p>
 
           <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>4. Data Security & Storage</h2>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            All medical data is encrypted in transit and at rest using industry-standard protocols. Your data is securely stored in our cloud infrastructure powered by Supabase. If you use Guest Mode, your data remains locally on your device unless you choose to create an account.
+            <strong>Guest mode:</strong> case information is stored in your browser on the device you use. Anyone who can access that browser profile may be able to access it, and clearing browser data can remove it.<br /><br />
+            <strong>Signed-in use:</strong> the application may sync account and case information with Supabase to provide account features. Requests to our web application are served through Vercel. When you choose an AI feature, the information required for that request is sent through our server-side AI proxy to Google Gemini. These providers may process data in locations outside your country, subject to their applicable terms and safeguards.
           </p>
           
           <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>5. Your Rights & Data Deletion</h2>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            You have the right to access, export, or permanently delete your medical data at any time. You can request complete account deletion from the Settings menu.
+            You can export the HealthChain case and profile information stored in this browser from Settings. You can request deletion of a signed-in account from Settings. Browser-stored guest data can also be removed by clearing HealthChain site data or using the app's deletion controls. Do not use a shared device if you want to keep health information private.
           </p>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Account Deletion Policy:</strong> When you delete your account, we perform a "Hard Deletion." Your clinical cases, profiles, and associated medical data are permanently wiped from our databases. Your authentication identity (email and password) is instantly scrambled and anonymized, freeing up your original email address for reuse.
+            <strong>Deletion and retention:</strong> after a successful account-deletion request, HealthChain instructs its application database to delete the account-associated profiles and cases. A limited record may remain where required for payment, fraud prevention, security, or legal obligations. Copies held in service-provider backups may persist for their normal backup cycle. We will update this policy as retention periods and service configuration are finalized.
           </p>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Payment Records:</strong> To comply with tax laws and financial accounting standards, your historical payment transactions are not deleted. However, because your personal profile and email are permanently anonymized during deletion, these orphaned payment receipts can no longer be tied back to your true identity.
+            <strong>Important:</strong> HealthChain is a consumer health-information product, not an emergency service. If you have severe, sudden, or worsening symptoms, contact local emergency services or a qualified clinician immediately. AI outputs can be incomplete or incorrect and should be reviewed with a clinician before acting on them.
           </p>
         </motion.div>
       </div>
