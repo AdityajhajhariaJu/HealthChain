@@ -178,10 +178,10 @@ export default function QuickConsult() {
                   </span>
                 </div>
                 <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
-                  Who would you like to consult?
+                  Which AI clinical perspective would you like to explore?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>
-                  Select a specialist for a one-on-one assessment.
+                  Choose an AI perspective to help organize questions for your clinicianâ€”not a consultation with a licensed professional.
                 </p>
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function QuickConsult() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                  Select a Specialist
+                  Choose an AI Perspective
                 </h3>
                 <div style={{ position: 'relative' }}>
                   <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
@@ -350,7 +350,7 @@ export default function QuickConsult() {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>{selectedSpecialist.label}</h3>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>Quick Consult Assessment</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>AI-guided question preparation</p>
                 </div>
               </div>
               <button 
@@ -416,7 +416,7 @@ export default function QuickConsult() {
             </div>
             <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
             <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px auto' }}>
-              Your consultation with the {selectedSpecialist?.label} has concluded and your case has been saved.
+              Your AI-guided {selectedSpecialist?.label} perspective has been saved to your case for clinician discussion.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>
@@ -471,7 +471,7 @@ export default function QuickConsult() {
                   </div>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontSize: '15px' }}>Escalate to Collaborative Specialists</div>
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Get a second opinion from multiple doctors</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Organize multiple AI perspectives for your next clinician visit</div>
                   </div>
                 </div>
                 <ChevronRight size={20} />
