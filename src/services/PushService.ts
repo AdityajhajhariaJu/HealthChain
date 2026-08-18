@@ -29,7 +29,10 @@ export const setupPushListeners = () => {
     if (session?.user) {
       await supabase
         .from('user_devices')
-        .upsert({ user_id: session.user.id, push_token: token.value, platform: Capacitor.getPlatform() });
+        .upsert(
+          { user_id: session.user.id, push_token: token.value, platform: Capacitor.getPlatform(), updated_at: new Date().toISOString() },
+          { onConflict: 'user_id,push_token' }
+        );
     }
   });
 

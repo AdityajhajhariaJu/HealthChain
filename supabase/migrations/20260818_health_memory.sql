@@ -48,6 +48,18 @@ drop policy if exists "Users manage own cases" on public.cases;
 create policy "Users manage own cases" on public.cases
   for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- Push notifications are optional on web, but native clients need this table.
+-- Creating it here makes the setup safe for projects that do not yet have it.
+create table if not exists public.user_devices (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  push_token text not null,
+  platform text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, push_token)
+);
+
 alter table public.user_devices enable row level security;
 drop policy if exists "Users manage own devices" on public.user_devices;
 create policy "Users manage own devices" on public.user_devices
