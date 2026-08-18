@@ -14,7 +14,50 @@ const iconFor = (kind: HealthMemoryItem['kind']) => {
 const labelFor = (kind: HealthMemoryItem['kind']) => ({
   case_prep: 'Case preparation', quick_consult: 'Quick Consult', deep_collab: 'Collaborative brief',
   lab_report: 'Lab report', diet: 'Diet', health_buddy: 'Ava Health Buddy', profile_event: 'Health profile',
-}[kind]);
+}[kind] || kind);
+
+function PayloadFormatter({ payload }: { payload: any }) {
+  if (!payload || typeof payload !== 'object') return null;
+  const keys = Object.keys(payload);
+  if (keys.length === 0) return <div style={{ padding: 12, fontSize: 13, color: '#64748b' }}>No additional details saved.</div>;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 10, padding: '14px 16px', borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: 13, color: '#334155' }}>
+      {keys.map((key) => {
+        const value = payload[key];
+        if (value === null || value === undefined || value === '') return null;
+        
+        let displayValue: React.ReactNode = String(value);
+        if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+          displayValue = (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+              {value.map((d: any, i) => {
+                const label = d.condition || d.name || d.title || d.label || JSON.stringify(d);
+                return (
+                  <span key={i} style={{ background: '#e0e7ff', color: '#3730a3', padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          );
+        } else if (typeof value === 'object') {
+           displayValue = <pre style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12, background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}>{JSON.stringify(value, null, 2)}</pre>;
+        } else {
+           displayValue = <div style={{ marginTop: 2 }}>{String(value)}</div>;
+        }
+
+        const formattedKey = key.replace(/([A-Z])/g, ' $1').trim();
+        return (
+          <div key={key}>
+            <div style={{ fontWeight: 700, color: '#475569', textTransform: 'capitalize' }}>{formattedKey}</div>
+            {displayValue}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function HealthMemory() {
   const [items, setItems] = useState<HealthMemoryItem[]>(getHealthMemory());
@@ -65,7 +108,7 @@ export default function HealthMemory() {
             const Icon = iconFor(item.kind);
             return <article key={item.id} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', padding: 18, borderRadius: 18, background: '#fff', border: '1px solid #e2e8f0' }}>
               <div style={{ padding: 10, borderRadius: 12, background: '#ecfeff', color: '#0f766e' }}><Icon size={20}/></div>
-              <div style={{ minWidth: 0, flex: 1 }}><div style={{ color: '#0f766e', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em' }}>{labelFor(item.kind)}</div><h3 style={{ margin: '4px 0 5px', fontSize: 16 }}>{item.title}</h3><div style={{ color: '#64748b', fontSize: 13 }}><CalendarDays size={14} style={{ verticalAlign: -2, marginRight: 5 }}/>{new Date(item.occurredAt).toLocaleString()}</div><details style={{ marginTop: 12 }}><summary style={{ cursor: 'pointer', color: '#0f766e', fontSize: 13, fontWeight: 700 }}>View saved detail</summary><pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '10px 0 0', padding: 12, borderRadius: 10, overflow: 'auto', maxHeight: 280, background: '#f8fafc', color: '#334155', fontSize: 12 }}>{JSON.stringify(item.payload, null, 2)}</pre></details></div>
+              <div style={{ minWidth: 0, flex: 1 }}><div style={{ color: '#0f766e', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em' }}>{labelFor(item.kind)}</div><h3 style={{ margin: '4px 0 5px', fontSize: 16 }}>{item.title}</h3><div style={{ color: '#64748b', fontSize: 13 }}><CalendarDays size={14} style={{ verticalAlign: -2, marginRight: 5 }}/>{new Date(item.occurredAt).toLocaleString()}</div><details style={{ marginTop: 12 }}><summary style={{ cursor: 'pointer', color: '#0f766e', fontSize: 13, fontWeight: 700 }}>View saved detail</summary><PayloadFormatter payload={item.payload} /></details></div>
             </article>;
           })}
           {!visible.length && <div style={{ padding: 32, textAlign: 'center', background: '#fff', border: '1px dashed #cbd5e1', borderRadius: 18, color: '#64748b' }}>Use HealthChain tools and their meaningful results will appear here automatically.</div>}
