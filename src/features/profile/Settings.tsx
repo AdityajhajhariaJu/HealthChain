@@ -66,12 +66,21 @@ export default function Settings() {
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        // Delete user's cases, profile, and push notification devices in Supabase
-        await supabase.from('cases').delete().eq('user_id', session.user.id);
-        await supabase.from('profiles').delete().eq('id', session.user.id);
-        await supabase.from('user_devices').delete().eq('user_id', session.user.id);
+      if (!session?.access_token) throw new Error('Authentication required');
+
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete account');
       }
+
       localStorage.clear();
       await supabase.auth.signOut();
       success('Account Deleted', 'Your account and data have been permanently deleted.');

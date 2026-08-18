@@ -47,6 +47,16 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
         await new Promise(r => setTimeout(r, 1000 * (i + 1)));
         continue;
       }
+      if (!response.ok && response.status === 403) {
+        try {
+          const errData = await response.json();
+          if (errData.error === 'MONTHLY_QUOTA_EXCEEDED') {
+            alert("You have reached your Monthly AI Token Limit (500,000 tokens). Your limit will reset at the start of your next 30-day billing cycle.");
+            throw new Error("Monthly AI Quota Exceeded");
+          }
+        } catch (e) {}
+      }
+
       if (!response.ok && response.status >= 500 && i < retries) {
         // 5xx Server Error, retry
         await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
@@ -1262,3 +1272,4 @@ Return ONLY a valid JSON array of objects with the exact following schema:
   }
   return papers;
 }
+

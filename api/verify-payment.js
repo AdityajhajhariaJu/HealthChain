@@ -1,3 +1,4 @@
+import { checkRateLimit } from './utils/rate-limit.js';
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
@@ -36,6 +37,11 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Rate Limiting: Max 10 requests per minute per IP
+  if (!checkRateLimit(req, 10, 60000)) {
+    return res.status(429).json({ error: 'Too many requests. Please wait 60 seconds before trying again.' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -62,24 +68,22 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Payment gateway configuration missing on server.' });
     }
 
-    // 1. Authenticate user from Supabase JWT if present
+    // 1. Authenticate user from Supabase JWT STRICTLY
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    let authenticatedUserId = null;
+    let effectiveUserId = null;
 
     const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-      if (!authError && user?.id) {
-        authenticatedUserId = user.id;
-      }
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required. Missing Bearer token.' });
     }
 
-    // Fallback to clientUserId only if JWT not provided (for local testing/guest upgrade)
-    const effectiveUserId = authenticatedUserId || clientUserId;
-    if (!effectiveUserId) {
-      return res.status(401).json({ error: 'Authentication required to activate Pro subscription.' });
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user?.id) {
+      return res.status(401).json({ error: 'Invalid or expired authentication token.' });
     }
+    effectiveUserId = user.id;
 
     // 2. Timing-safe signature check
     const expectedSignature = crypto
@@ -105,25 +109,34 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'This payment has already been processed and credited.' });
     }
 
-    // 4. Server-Side Amount & Status Verification with Razorpay API
+    // 4. Server-Side Amount, Status & Identity Verification with Razorpay API
     const targetPlan = ALLOWED_PLANS[plan_id] || ALLOWED_PLANS.pro_30_days;
     let verifiedAmount = targetPlan.amount;
 
-    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-      try {
-        const instance = new Razorpay({
-          key_id: process.env.RAZORPAY_KEY_ID,
-          key_secret: process.env.RAZORPAY_KEY_SECRET,
-        });
-        const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
-        
-        if (paymentDetails.amount < targetPlan.amount) {
-          return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
-        }
-        verifiedAmount = paymentDetails.amount;
-      } catch (rzpErr) {
-        console.warn('Razorpay fetch check warning (proceeding if signature matches):', rzpErr.message);
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ error: 'Server payment configuration missing.' });
+    }
+
+    try {
+      const instance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+      
+      const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
+      if (paymentDetails.amount < targetPlan.amount) {
+        return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
       }
+
+      const orderDetails = await instance.orders.fetch(razorpay_order_id);
+      if (orderDetails.notes?.user_id !== effectiveUserId) {
+         return res.status(403).json({ error: 'Payment identity mismatch. This order does not belong to your account.' });
+      }
+
+      verifiedAmount = paymentDetails.amount;
+    } catch (rzpErr) {
+      console.error('Razorpay verification failed:', rzpErr);
+      return res.status(502).json({ error: 'Failed to verify transaction with payment gateway.', details: rzpErr.message });
     }
 
     // 5. Log payment record

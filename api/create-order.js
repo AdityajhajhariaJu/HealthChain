@@ -1,4 +1,6 @@
+import { checkRateLimit } from './utils/rate-limit.js';
 import Razorpay from 'razorpay';
+import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_PLANS = {
   pro_30_days: {
@@ -18,6 +20,9 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
@@ -32,11 +37,34 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // 1. Rate Limiting: Max 10 requests per minute per IP
+  if (!checkRateLimit(req, 10, 60000)) {
+    return res.status(429).json({ error: 'Too many requests. Please wait 60 seconds before trying again.' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json({ error: 'Database configuration missing.' });
+    }
+
+    // Authenticate user securely via JWT
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required. Missing Bearer token.' });
+    }
+
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user?.id) {
+      return res.status(401).json({ error: 'Invalid or expired authentication token.' });
+    }
+
     const { plan_id = 'pro_30_days' } = req.body || {};
     const plan = ALLOWED_PLANS[plan_id];
 
@@ -58,7 +86,8 @@ export default async function handler(req, res) {
       currency: plan.currency,
       receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       notes: {
-        plan_id
+        plan_id,
+        user_id: user.id // Cryptographically bind the user identity to the order
       }
     };
 

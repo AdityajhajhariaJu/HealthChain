@@ -74,9 +74,15 @@ export default function PrivacyPolicy() {
             All medical data is encrypted in transit and at rest using industry-standard protocols. Your data is securely stored in our cloud infrastructure powered by Supabase. If you use Guest Mode, your data remains locally on your device unless you choose to create an account.
           </p>
           
-          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>5. Your Rights</h2>
+          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>5. Your Rights & Data Deletion</h2>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
             You have the right to access, export, or permanently delete your medical data at any time. You can request complete account deletion from the Settings menu.
+          </p>
+          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
+            <strong>Account Deletion Policy:</strong> When you delete your account, we perform a "Hard Deletion." Your clinical cases, profiles, and associated medical data are permanently wiped from our databases. Your authentication identity (email and password) is instantly scrambled and anonymized, freeing up your original email address for reuse.
+          </p>
+          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
+            <strong>Payment Records:</strong> To comply with tax laws and financial accounting standards, your historical payment transactions are not deleted. However, because your personal profile and email are permanently anonymized during deletion, these orphaned payment receipts can no longer be tied back to your true identity.
           </p>
         </motion.div>
       </div>
