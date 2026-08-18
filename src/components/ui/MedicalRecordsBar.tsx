@@ -73,7 +73,7 @@ export function MedicalRecordsBar({
               Medical Records & Diagnostics
             </h3>
             <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-              Upload blood tests, MRIs, etc. These act as an "extra doctor" during correlation.
+              Add blood tests, MRIs, and clinician notes to keep the facts together for your next discussion.
             </p>
           </div>
         </div>
@@ -138,8 +138,7 @@ export function MedicalRecordsBar({
                 {selectedFile?.name} uploaded successfully.
               </div>
               <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '8px', marginTop: 0 }}>
-                To assist the AI, please summarize the key findings or abnormal results from this
-                document:
+                Add only the key findings you want included in your case. AI can help organize them, but a clinician should interpret results in context:
               </p>
               <textarea
                 value={findings}
