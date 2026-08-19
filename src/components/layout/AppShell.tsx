@@ -61,7 +61,7 @@ const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick', icon: Stethoscope },
   { to: '/app/collab', label: 'Deep', icon: Brain },
-  { to: '/app/trials', label: 'Trials', icon: FlaskConical },
+  { to: '/app/case-prep', label: 'Prep', icon: ClipboardList },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 
