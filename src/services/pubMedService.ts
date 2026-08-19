@@ -35,9 +35,10 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
 export async function fetchRecentLiterature(conditions: string[]): Promise<LiteraturePaper[]> {
   if (!conditions || conditions.length === 0) return [];
 
-  // Create a query for the top condition, restricting to recent papers with abstracts
-  const primaryCondition = conditions[0];
-  const query = `"${primaryCondition}" AND (SRC:MED) AND HAS_ABSTRACT:y AND PUB_YEAR:[2023 TO 2026]`;
+  const rawCondition = conditions[0] || '';
+  const sanitizedCondition = rawCondition.replace(/["\\]/g, '').replace(/[+\-&|!(){}[\]^~*?:/]/g, ' ').trim();
+  if (!sanitizedCondition) return [];
+  const query = `"${sanitizedCondition}" AND (SRC:MED) AND HAS_ABSTRACT:y AND PUB_YEAR:[2023 TO 2026]`;
   const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(
     query
   )}&format=json&resultType=core&pageSize=5`;

@@ -1,17 +1,22 @@
 import { create } from 'zustand';
 import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
 import { get, set, del } from 'idb-keyval';
+import { getItemSync, setItemSync, removeItemSync } from '../services/storage';
 
-// Custom IndexedDB storage adapter for Zustand
 const idbStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
-    return (await get(name)) || null;
+    try {
+      const val = await get(name);
+      if (val !== undefined && val !== null) return typeof val === 'string' ? val : JSON.stringify(val);
+      return getItemSync(name);
+    } catch (e) { return getItemSync(name); }
   },
   setItem: async (name: string, value: string): Promise<void> => {
-    await set(name, value);
+    try { await set(name, value); } catch (e) { try { setItemSync(name, value); } catch (e2) {} }
   },
   removeItem: async (name: string): Promise<void> => {
-    await del(name);
+    try { await del(name); } catch (e) {}
+    try { removeItemSync(name); } catch (e2) {}
   },
 };
 

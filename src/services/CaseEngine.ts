@@ -718,19 +718,8 @@ export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
   if (idx !== -1) {
     cases[idx].connectionMap = connectionMap;
     cases[idx].updatedAt = new Date().toISOString();
-    localStorage.setItem(getCasesKey(), JSON.stringify(cases));
+    save(cases);
     window.dispatchEvent(new Event('hc_cases_updated'));
-    
-    if (getActiveCaseKey()) {
-      const active = localStorage.getItem(getActiveCaseKey());
-      if (active) {
-        let activeObj;
-        try { activeObj = JSON.parse(active); } catch (e) { activeObj = null; }
-        if (activeObj && typeof activeObj === 'object' && activeObj.id === caseId) {
-          localStorage.setItem(getActiveCaseKey(), JSON.stringify(cases[idx]));
-        }
-      }
-    }
   }
 }
 
