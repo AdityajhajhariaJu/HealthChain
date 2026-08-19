@@ -149,7 +149,7 @@ export default function CasePrep() {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', color: '#0f766e' }}>
           <Sparkles size={22} /><strong>FREE APPOINTMENT PREP</strong>
         </div>
-        <h1 style={{ margin: '12px 0 8px', fontSize: 'clamp(30px, 5vw, 48px)', color: '#0f172a' }}>Build the case you want your clinician to see.</h1>
+        <h1 style={{ margin: '12px 0 8px', fontSize: 'clamp(24px, 3.5vw, 34px)', color: '#0f172a' }}>Build the case you want your clinician to see.</h1>
         <p style={{ maxWidth: 760, lineHeight: 1.7, color: '#475569', margin: 0 }}>Turn scattered symptoms, records, and unanswered questions into a clean SBAR handoff. Prepare the conversation; let your clinician make the decisions.</p>
       </section>
 
@@ -207,7 +207,7 @@ export default function CasePrep() {
           
           <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
               <button className="btn btn-primary" onClick={createCase} disabled={!concern.trim()} style={{ flex: 1, padding: 14, display: 'flex', justifyContent: 'center', gap: 8, minWidth: 200 }}>
-                <ClipboardList size={18} /> {caseItem ? 'Update my case brief' : 'Generate SBAR Handoff'} <ArrowRight size={18} />
+                <ClipboardList size={18} /> {caseItem ? 'Update my case brief' : 'Generate Doctor Discussion Guide'} <ArrowRight size={18} />
               </button>
               <button className="btn btn-outline" onClick={() => { clearCasePrepDraft(); setConcern(''); setTimeline(''); setRecords(''); setAppointment(''); setGoal(''); setCareSoFar(''); setCaseItem(null); setShowBrief(false); setSmartQuestions([]); }} title="Clear saved draft" style={{ padding: '0 14px' }}><Trash2 size={18} /></button>
           </div>
@@ -254,7 +254,7 @@ export default function CasePrep() {
       {showBrief && (
         <section className="case-prep-printable-dossier" style={{ marginTop: 40, background: '#FFF' }}>
           <div className="print-hide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-             <h2 style={{ margin: 0 }}>SBAR Clinical Handoff</h2>
+             <h2 style={{ margin: 0 }}>Doctor Discussion Guide</h2>
              <button className="btn btn-primary" onClick={() => window.print()} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                <Printer size={16} /> Print Handoff
              </button>
@@ -298,12 +298,12 @@ export default function CasePrep() {
              {/* SBAR Content */}
              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div>
-                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>S: Situation</h2>
+                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>Main Concern</h2>
                   <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: '#1E293B', fontWeight: 600 }}>{concern || 'Not provided'}</p>
                 </div>
 
                 <div>
-                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>B: Background (Timeline & Care So Far)</h2>
+                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>History & Context (Timeline)</h2>
                   <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.6 }}>
                      <strong style={{ display: 'block', marginBottom: 4 }}>Key Events:</strong>
                      {timelineItems.length > 0 ? (
@@ -318,14 +318,14 @@ export default function CasePrep() {
                 </div>
 
                 <div>
-                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>A: Assessment (Records to Review)</h2>
+                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>Records & Facts to Review</h2>
                   <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                     {recordItems.length > 0 ? records : 'No patient-provided records attached to this brief.'}
                   </div>
                 </div>
 
                 <div>
-                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>R: Request (Goal & Questions)</h2>
+                  <h2 style={{ fontSize: 18, color: '#0F172A', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, margin: '0 0 12px 0' }}>Questions for the Doctor</h2>
                   <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.6 }}>
                     <strong style={{ display: 'block', marginBottom: 4 }}>Appointment Goal:</strong>
                     <p style={{ margin: '0 0 16px 0', fontWeight: 600 }}>{goal || 'Discuss next steps.'}</p>
