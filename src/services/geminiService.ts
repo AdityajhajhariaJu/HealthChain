@@ -171,7 +171,7 @@ If the medicine is completely unrecognized, return a JSON object with "name": "U
 export async function fetchMedicineData(medicineName: string, profile: any = null): Promise<any> {
   let promptText = medicineName;
   if (profile) {
-    promptText += `\n\nPATIENT PROFILE:\nAllergies: ${profile.allergies.join(', ') || 'None'}\nCurrent Medications: ${profile.medications.map((m: any) => m.name).join(', ') || 'None'}\n\nPlease strictly evaluate for interactions.`;
+    promptText += `\n\nPATIENT PROFILE:\nAllergies: ${(profile.allergies || []).join(', ') || 'None'}\nCurrent Medications: ${(profile.medications || []).map((m: any) => m.name).join(', ') || 'None'}\n\nPlease strictly evaluate for interactions.`;
   }
 
   const payload = {
@@ -1374,7 +1374,7 @@ Return strictly as JSON matching this structure:
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return JSON.parse(data.candidates[0].content.parts[0].text);
+    return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
   } catch (err) {
     console.error('Case prep analysis error:', err);
     return null;
@@ -1478,7 +1478,7 @@ Return strictly as a JSON array of strings.`;
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return JSON.parse(data.candidates[0].content.parts[0].text);
+    return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
   } catch (err) {
     console.error('generateAppointmentQuestions error:', err);
     return [];
@@ -1510,7 +1510,7 @@ Answer them empathetically, concisely, and directly. Help them rehearse how to a
     });
     if (!res.ok) return "I'm having trouble connecting right now. Please try asking again.";
     const data = await res.json();
-    return data.candidates[0].content.parts[0].text;
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   } catch (err) {
     console.error('askAppointmentCoach error:', err);
     return "I'm having trouble connecting right now. Please try asking again.";
@@ -1537,7 +1537,7 @@ ${JSON.stringify(brief, null, 2)}
     });
     if (!res.ok) throw new Error('API Error');
     const data = await res.json();
-    const rawText = data.candidates[0].content.parts[0].text;
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const jsonStr = rawText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '');
     const refined = JSON.parse(jsonStr);
     refined.isRefinedByAI = true;
