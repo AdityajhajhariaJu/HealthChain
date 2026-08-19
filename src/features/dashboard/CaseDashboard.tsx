@@ -143,7 +143,7 @@ export default function CaseDashboard() {
           </div>
           <button
             className="btn"
-            onClick={() => navigate('/app/consult')}
+            onClick={() => navigate('/app/consult?new=true')}
             style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center' }}
           >
             <Stethoscope size={18} /> Start Quick Consult
@@ -269,7 +269,7 @@ export default function CaseDashboard() {
                   Reopen a case as reports, appointments, or symptoms evolve.
                 </p>
               </div>
-              <button className="btn btn-outline btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/app/consult')}>
+              <button className="btn btn-outline btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/app/consult?new=true')}>
                 <Plus size={15} /> Quick Consult
               </button>
             </div>
@@ -769,7 +769,7 @@ function EmptyAction({ navigate }: { navigate: any }) {
       }}
     >
       Your next action will appear after a Quick Consult assessment.{' '}
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/consult')}>
+      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/consult?new=true')}>
         Start one now
       </button>
     </div>
@@ -784,7 +784,7 @@ function EmptyCase({ navigate }: { navigate: any }) {
       <p style={{ color: 'var(--text-muted)', margin: '0 0 18px' }}>
         A case is the permanent container for your health journey. Add evidence and invite AI specialists to build a clinical picture.
       </p>
-      <button className="btn btn-primary" onClick={() => navigate('/app/consult')}>
+      <button className="btn btn-primary" onClick={() => navigate('/app/consult?new=true')}>
         Start Quick Consult <ArrowRight size={16} />
       </button>
     </div>

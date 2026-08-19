@@ -376,7 +376,7 @@ export function ActiveCaseBar({ navigate }: any) {
               : 'Start a case so HealthChain can keep your story connected.'}
           </strong>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/consult')}>
+        <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/consult?new=true')}>
           Start a Quick Consult <ArrowRight size={15} />
         </button>
       </div>
