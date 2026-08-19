@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',
+  'https://healthchain360.com',
   'https://healthchain-live.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
@@ -11,12 +12,8 @@ const ALLOWED_ORIGINS = [
 ];
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (!origin) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
