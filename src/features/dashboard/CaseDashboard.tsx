@@ -376,70 +376,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
         <ArrowLeft size={16} /> Back to My Cases
       </button>
 
-      <section
-        style={{
-          marginTop: 14,
-          padding: '30px 32px',
-          borderRadius: 24,
-          background: 'linear-gradient(135deg,#0f172a,#164e63)',
-          color: '#fff',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
-          <div>
-            <span
-              style={{
-                color: '#99f6e4',
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                fontSize: 11,
-                fontWeight: 800,
-              }}
-            >
-              Case Workspace
-            </span>
-            <h1 style={{ margin: '8px 0', fontSize: isMobile ? 24 : 32 }}>{item.title}</h1>
-            <p style={{ margin: 0, color: '#cbd5e1' }}>
-              Created {new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(item.createdAt))}
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignSelf: 'start' }}>
-            <button
-              className="btn btn-outline"
-              onClick={() => window.print()}
-              style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}
-            >
-              <Printer size={17} /> Download PDF Dossier
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={() => navigate('/app/consult')}
-              style={{ background: '#fff', color: '#0f172a' }}
-            >
-              <GitMerge size={17} /> Run Quick Consult
-            </button>
-            <button
-              className="btn btn-outline"
-              onClick={() => navigate(`/app/collab?caseId=${item.id}`)}
-              style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}
-            >
-              <Network size={17} /> Request Deep Collab Consensus
-            </button>
-            <button
-              className="btn btn-outline"
-              onClick={() => {
-                if(window.confirm('Are you sure you want to resolve and archive this case?')) {
-                  resolveCase(item.id);
-                  navigate('/app/my-cases');
-                }
-              }}
-              style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#FCA5A5', marginLeft: 8 }}
-            >
-              <Archive size={17} /> Resolve Case
-            </button>
-          </div>
-        </div>
-      </section>
+
       
       <PrintableDossier item={item} profile={profile} />
 
