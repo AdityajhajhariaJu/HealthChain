@@ -96,6 +96,11 @@ export default function QuickConsult() {
                      reportData.executiveSummary = parsed.patientFriendlySummary || parsed.internalThoughts || reportData.executiveSummary;
                      reportData.topDiagnoses = parsed.currentHypotheses.map((h: any) => ({ condition: h, confidence: 50 }));
                  }
+                 if (parsed.keyFindings) reportData.keyFindings = parsed.keyFindings;
+                 if (parsed.interpretation) reportData.interpretation = parsed.interpretation;
+                 if (parsed.nextSteps) reportData.nextSteps = parsed.nextSteps;
+                 if (parsed.abnormalitiesNoted) reportData.abnormalitiesNoted = parsed.abnormalitiesNoted;
+                 if (parsed.medicalTerms) reportData.medicalTerms = parsed.medicalTerms;
              }
          }
       } catch(e) {}

@@ -717,6 +717,11 @@ CRITICAL INSTRUCTIONS:
 Return strictly as JSON matching this exact structure:
 {
   "executiveSummary": "1-2 paragraphs identifying connections, uncertainty and overlapping symptoms between the specialist perspectives.",
+  "keyFindings": "Summarize the core clinical findings in a clear paragraph.",
+  "interpretation": "Explain what these findings mean in plain English.",
+  "nextSteps": "Outline the actionable next steps for the patient.",
+  "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
+  "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
   "debateSummary": "Explicitly state how you resolved conflicts between specialists. Example: 'Neurology suspected MS, but Rheumatology's focus on joint pain prevailed due to elevated ESR in records.'",
   "urgency": "Routine | Soon | Urgent",
   "topDiagnoses": [
