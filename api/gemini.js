@@ -1,3 +1,4 @@
+import { checkRateLimit } from './utils/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_ORIGINS = [
@@ -12,6 +13,10 @@ const ALLOWED_ORIGINS = [
 ];
 
 export default async function handler(req, res) {
+  if (!checkRateLimit(req, 15, 60000)) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
   const origin = req.headers.origin || '*';
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

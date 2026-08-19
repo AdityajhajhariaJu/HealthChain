@@ -48,8 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const error = useCallback((title: string, message?: string) => addToast(title, message, 'error'), [addToast]);
   const info = useCallback((title: string, message?: string) => addToast(title, message, 'info'), [addToast]);
 
-  return (
-    const contextValue = React.useMemo(() => ({ toast: addToast, success, error, info }), [addToast, success, error, info]);
+  const contextValue = React.useMemo(() => ({ toast: addToast, success, error, info }), [addToast, success, error, info]);
   return (
     <ToastContext.Provider value={contextValue}>
       {children}

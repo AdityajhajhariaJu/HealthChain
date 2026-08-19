@@ -442,9 +442,14 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                           <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 13, color: '#475569' }}>
                             {d.citations.map((cit: any, citIdx: number) => (
                               <li key={citIdx} style={{ marginBottom: 4 }}>
-                                <a href={cit.link} target="_blank" rel="noreferrer" style={{ color: '#10B981', textDecoration: 'none' }}>
+                                {(() => {
+  const isSafeUrl = /^https?:\/\//i.test(cit.link);
+  return (
+    <a href={isSafeUrl ? cit.link : '#'} target="_blank" rel="noreferrer" style={{ color: '#10B981', textDecoration: 'none' }}>
                                   {cit.title}
-                                </a> — <i>{cit.journal} ({cit.year})</i>
+    </a>
+  );
+})()} — <i>{cit.journal} ({cit.year})</i>
                               </li>
                             ))}
                           </ul>
