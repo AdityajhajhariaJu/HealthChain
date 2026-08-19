@@ -12,7 +12,9 @@ import {
 } from 'lucide-react';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
-import { createCaseDraft, saveReviewSnapshot } from '../../services/CaseEngine';
+import { createCaseDraft, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
+import { generateCaseConnectionMap } from '../../services/geminiService';
+import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 
@@ -74,7 +76,7 @@ export default function QuickConsult() {
     setPhase('chat');
   };
 
-  const handleComplete = (id: string, messages: any[]) => {
+  const handleComplete = async (id: string, messages: any[]) => {
     setFinalTranscripts({ [id]: messages });
     setPhase('compiling');
     setTimeout(() => setPhase('done'), 8000);

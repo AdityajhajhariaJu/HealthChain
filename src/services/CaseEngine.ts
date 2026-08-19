@@ -64,6 +64,7 @@ export interface CaseItem {
   currentStage: string;
   actions: CaseAction[];
   differentials?: Differential[];
+  connectionMap?: any;
   differentialHistory?: { date: string; differentials: Differential[] }[];
 }
 
@@ -684,5 +685,27 @@ export async function syncCasesFromSupabase() {
     }
   } catch (err) {
     console.error('Failed to sync cases from Supabase:', err);
+  }
+}
+
+
+export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
+  const cases = getCases();
+  const idx = cases.findIndex(c => c.id === caseId);
+  if (idx !== -1) {
+    cases[idx].connectionMap = connectionMap;
+    cases[idx].updatedAt = new Date().toISOString();
+    localStorage.setItem(getCasesKey(), JSON.stringify(cases));
+    window.dispatchEvent(new Event('hc_cases_updated'));
+    
+    if (getActiveCaseKey()) {
+      const active = localStorage.getItem(getActiveCaseKey());
+      if (active) {
+        const activeObj = JSON.parse(active);
+        if (activeObj.id === caseId) {
+          localStorage.setItem(getActiveCaseKey(), JSON.stringify(cases[idx]));
+        }
+      }
+    }
   }
 }

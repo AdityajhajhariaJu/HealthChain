@@ -24,6 +24,8 @@ import DDxBoard from './DDxBoard';
 import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ActiveCaseBar } from '../../components/layout/AppShell';
+import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
+import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle } from 'lucide-react';
 import { RichReportTemplate } from '../../components/ui/RichReportTemplate';
 
 const formatDate = (value: string) => {
@@ -364,7 +366,7 @@ export default function CaseDashboard() {
 
 function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: any, refresh: any }) {
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'reviews' | 'actions' | 'ddx'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'reviews' | 'actions' | 'connections'>('overview');
   const [simulatorAction, setSimulatorAction] = useState<any>(null);
   const report = item.currentSummary || {};
   const records = item.medicalRecords || [];
@@ -381,7 +383,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
       <PrintableDossier item={item} profile={profile} />
 
       <div style={{ display: 'flex', gap: 20, marginTop: 24, borderBottom: '1px solid #e2e8f0', paddingBottom: 10, overflowX: 'auto' }}>
-        {['overview', 'ddx', 'timeline', 'evidence', 'reviews', 'actions'].map(tab => (
+        {['overview', 'connections', 'timeline', 'evidence', 'reviews', 'actions'].map(tab => (
           <button 
              key={tab} 
              onClick={() => setActiveTab(tab as any)}
@@ -469,7 +471,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
           </div>
         )}
 
-        {activeTab === 'ddx' && (
+        {activeTab === 'connections' && (
           <DDxBoard item={item} profile={profile} />
         )}
 

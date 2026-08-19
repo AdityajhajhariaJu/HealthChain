@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
+import { generateCaseConnectionMap } from '../../services/geminiService';
 import {
   Network,
   Activity,

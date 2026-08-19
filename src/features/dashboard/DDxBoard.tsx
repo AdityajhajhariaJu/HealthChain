@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowUp, ArrowDown, Minus, Activity, TestTube, Clock } from 'lucide-react';
-import { CaseItem, updateCaseDifferentials } from '../../services/CaseEngine';
-import { runDifferentialAnalysis } from '../../services/geminiService';
+import { CaseItem, updateCaseDifferentials, updateCaseConnectionMap } from '../../services/CaseEngine';
+import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
+import { runDifferentialAnalysis, generateCaseConnectionMap } from '../../services/geminiService';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -77,7 +78,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
         <div>
           <h2 style={{ fontSize: 22, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Activity color="#10B981" size={24} />
-            Discussion Pathways
+            Case Component Connections
           </h2>
           <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
             AI-organized possibilities from the information in your case. They are not diagnoses, probabilities, or instructions to act without a clinician.
@@ -145,7 +146,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
               animate={{ opacity: 1 }}
               style={{ textAlign: 'center', padding: 40, border: '2px dashed #e2e8f0', borderRadius: 16, color: '#94a3b8' }}
             >
-              No discussion pathways yet. Generate a structured set of questions to review with a clinician.
+              No connections mapped yet. Generate a mental map of how your possible pathways connect.
             </motion.div>
           )}
 
