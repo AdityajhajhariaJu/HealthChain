@@ -18,7 +18,7 @@ function computeFingerprint(caseItem: CaseItem, profile: any): string {
     (caseItem.medicalRecords?.length || 0) + 
     (caseItem.intakeData?.chiefComplaint || '') +
     (profile?.updatedAt || '');
-  return hashString(dataString);
+  return hashString(dataString + '_v2');
 }
 
 export function generateDeterministicBrief(caseItem: CaseItem, profile: any): AppointmentBrief {
@@ -26,15 +26,36 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
   const sourceFingerprint = computeFingerprint(caseItem, profile);
   
   // 1. Main concern
-  const intakeConcern = caseItem.intakeData?.chiefComplaint || 'No concern explicitly reported.';
+  let intakeConcern = caseItem.intakeData?.chiefComplaint || 'No concern explicitly reported.';
+  
+  // If the concern is a system-generated placeholder, try to find the patient's actual first message.
+  if (intakeConcern.toLowerCase().includes('user initiated quick consult') || intakeConcern.toLowerCase().includes('user initiated')) {
+    intakeConcern = 'No concern explicitly reported.';
+    if (caseItem.reviews && caseItem.reviews.length > 0) {
+      // Find the first user message in any transcript
+      for (const review of caseItem.reviews) {
+        if (review.transcripts && Array.isArray(review.transcripts)) {
+          const firstUserMsg = review.transcripts.find(t => t.role === 'user' && t.content);
+          if (firstUserMsg && firstUserMsg.content) {
+            intakeConcern = firstUserMsg.content;
+            break;
+          }
+        }
+      }
+    }
+  }
   
   // 2. Timeline
   const timeline: BriefTimelineItem[] = [];
-  if (caseItem.createdAt) {
-    timeline.push({ date: new Date(caseItem.createdAt).toLocaleDateString(), event: 'Case opened', sourceIds: ['system'] });
-  }
+  const systemKeywords = ['ddx updated', 'parallel review complete', 'case created', 'appointment brief prepared', 'review complete', 'case opened', 'system'];
+  
   if (caseItem.events && caseItem.events.length > 0) {
-    caseItem.events.slice(0, 5).forEach(e => {
+    const userEvents = caseItem.events.filter(e => {
+      const lower = (e.label || '').toLowerCase();
+      return !systemKeywords.some(kw => lower.includes(kw));
+    });
+    
+    userEvents.slice(0, 5).forEach(e => {
       timeline.push({ date: new Date(e.date).toLocaleDateString(), event: e.label, sourceIds: [e.id || 'event'] });
     });
   }
@@ -43,7 +64,7 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
   const knownFacts: BriefFact[] = [];
   if (profile) {
     if (profile.medications && profile.medications.length > 0) {
-      knownFacts.push({ text: `Current medications: ${profile.medications.map(m => m.name).join(', ')}`, sourceIds: ['profile-meds'] });
+      knownFacts.push({ text: `Current medications: ${profile.medications.map((m: any) => m.name).join(', ')}`, sourceIds: ['profile-meds'] });
     }
     if (profile.conditions && profile.conditions.length > 0) {
       knownFacts.push({ text: `Pre-existing conditions: ${profile.conditions.join(', ')}`, sourceIds: ['profile-conditions'] });
@@ -51,7 +72,7 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
   }
   if (caseItem.medicalRecords) {
     caseItem.medicalRecords.forEach(r => {
-      knownFacts.push({ text: `Record attached: ${r.type.toUpperCase()} (${new Date(r.addedAt).toLocaleDateString()})`, sourceIds: [r.id] });
+      knownFacts.push({ text: `Record attached: ${r.type.toUpperCase()} (${new Date(r.addedAt || r.addedAt || new Date()).toLocaleDateString()})`, sourceIds: [r.id] });
     });
   }
   
@@ -70,8 +91,8 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
 
   // 6. Perspectives
   const priorPerspectives: BriefPerspective[] = [];
-  if (caseItem.intakeData?.chiefComplaint) {
-    priorPerspectives.push({ title: 'What you reported', summary: caseItem.intakeData.chiefComplaint, sourceId: 'intake' });
+  if (intakeConcern !== 'No concern explicitly reported.') {
+    priorPerspectives.push({ title: 'What you reported', summary: intakeConcern, sourceId: 'intake' });
   }
   if (caseItem.reviews) {
     caseItem.reviews.forEach((r, i) => {
