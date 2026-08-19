@@ -1,22 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Network, Activity, FileText, CheckCircle2, Sparkles } from 'lucide-react';
+import { Brain, Network, Activity, FileText, CheckCircle2, Sparkles, Database, GitMerge, Fingerprint } from 'lucide-react';
 
 const STEPS = [
   { id: 'sync', icon: Network, label: 'Synchronizing clinical perspectives', desc: 'Aggregating AI specialist inputs' },
-  { id: 'correlate', icon: Brain, label: 'Correlating symptom data', desc: 'Finding hidden multi-system patterns' },
-  { id: 'evidence', icon: Activity, label: 'Reviewing clinical evidence', desc: 'Cross-referencing medical literature' },
+  { id: 'correlate', icon: GitMerge, label: 'Correlating symptom clusters', desc: 'Mapping interactions across body systems' },
+  { id: 'evidence', icon: Database, label: 'Querying medical literature', desc: 'Cross-referencing global clinical trials' },
+  { id: 'analyze', icon: Brain, label: 'Synthesizing diagnostic hypotheses', desc: 'Running probabilistic differential analysis' },
+  { id: 'map', icon: Fingerprint, label: 'Generating case connection map', desc: 'Plotting causal relationships & evidence gaps' },
   { id: 'compile', icon: FileText, label: 'Compiling final medical brief', desc: 'Structuring data for clinician review' }
+];
+
+const COMPUTATION_STRINGS = [
+  "Analyzing biomarker correlations...",
+  "Running differential diagnostic algorithms...",
+  "Checking for drug-symptom interactions...",
+  "Mapping systemic inflammatory pathways...",
+  "Evaluating epidemiological risk factors...",
+  "Cross-referencing patient history...",
+  "Synthesizing multidisciplinary perspectives...",
+  "Formatting output for clinical interoperability..."
 ];
 
 export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [compText, setCompText] = useState(COMPUTATION_STRINGS[0]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // 6 steps over ~15 seconds = 2500ms per step
+    const stepInterval = setInterval(() => {
       setActiveStep(prev => Math.min(prev + 1, STEPS.length - 1));
-    }, 2000);
-    return () => clearInterval(interval);
+    }, 2500);
+
+    // Smooth progress bar over 15 seconds
+    const startTime = Date.now();
+    const duration = 15000;
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min((elapsed / duration) * 100, 100);
+      setProgress(pct);
+      if (pct >= 100) clearInterval(progressInterval);
+    }, 50);
+
+    // Random terminal text
+    const textInterval = setInterval(() => {
+      setCompText(COMPUTATION_STRINGS[Math.floor(Math.random() * COMPUTATION_STRINGS.length)]);
+    }, 1200);
+
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(progressInterval);
+      clearInterval(textInterval);
+    };
   }, []);
 
   const textColor = isDark ? '#FFFFFF' : '#0F172A';
@@ -36,41 +72,85 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '40px 20px',
-        maxWidth: '500px',
+        maxWidth: '540px',
         margin: '0 auto',
         width: '100%',
-        minHeight: '400px'
+        minHeight: '500px',
+        position: 'relative',
+        zIndex: 10
       }}
     >
+      {/* Background ambient pulse */}
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute',
+          top: '10%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '200px',
+          height: '200px',
+          background: 'radial-gradient(circle, rgba(99,102,241,0.4) 0%, rgba(168,85,247,0) 70%)',
+          borderRadius: '50%',
+          zIndex: -1,
+          pointerEvents: 'none'
+        }}
+      />
+
       <motion.div
         animate={{ 
           scale: [1, 1.1, 1],
-          rotate: [0, 5, -5, 0]
+          rotate: [0, 90, 180, 270, 360]
         }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
         style={{
           width: '80px',
           height: '80px',
           borderRadius: '24px',
-          background: 'linear-gradient(135deg, #6366F1, #A855F7)',
+          background: 'linear-gradient(135deg, #6366F1, #A855F7, #EC4899)',
+          backgroundSize: '200% 200%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '32px',
-          boxShadow: '0 20px 40px rgba(99, 102, 241, 0.3)'
+          marginBottom: '24px',
+          boxShadow: '0 20px 40px rgba(99, 102, 241, 0.4)'
         }}
       >
-        <Sparkles size={40} color="#FFF" />
+        <motion.div animate={{ rotate: [-360, 0] }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}>
+          <Brain size={40} color="#FFF" />
+        </motion.div>
       </motion.div>
 
-      <h2 style={{ fontSize: '24px', fontWeight: 800, color: textColor, marginBottom: '8px', textAlign: 'center' }}>
+      <h2 style={{ fontSize: '24px', fontWeight: 900, color: textColor, marginBottom: '8px', textAlign: 'center' }}>
         Synthesizing Case Data
       </h2>
-      <p style={{ fontSize: '15px', color: mutedColor, marginBottom: '40px', textAlign: 'center' }}>
-        Our AI engines are processing your inputs.
-      </p>
+      <div style={{ height: '24px', overflow: 'hidden', marginBottom: '32px' }}>
+        <AnimatePresence mode="wait">
+          <motion.p 
+            key={compText}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            style={{ fontSize: '14px', color: activeColor, margin: 0, textAlign: 'center', fontFamily: 'monospace', fontWeight: 600 }}
+          >
+            &gt; {compText}
+          </motion.p>
+        </AnimatePresence>
+      </div>
 
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Progress Bar */}
+      <div style={{ width: '100%', height: '6px', background: isDark ? '#334155' : '#E2E8F0', borderRadius: '3px', marginBottom: '32px', overflow: 'hidden' }}>
+        <motion.div 
+          style={{ height: '100%', background: 'linear-gradient(90deg, #6366F1, #A855F7)', borderRadius: '3px' }}
+          initial={{ width: '0%' }}
+          animate={{ width: `${progress}%` }}
+          transition={{ ease: 'linear' }}
+        />
+      </div>
+
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {STEPS.map((step, index) => {
           const isActive = index === activeStep;
           const isPast = index < activeStep;
@@ -81,7 +161,7 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
               key={step.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ 
-                opacity: isPast || isActive ? 1 : 0.4,
+                opacity: isPast || isActive ? 1 : 0.3,
                 x: 0,
                 scale: isActive ? 1.02 : 1
               }}
@@ -89,13 +169,14 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
-                padding: '16px',
-                background: bgColor,
+                padding: '12px 16px',
+                background: isActive ? (isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.05)') : bgColor,
                 borderRadius: '16px',
                 border: `1px solid ${isActive ? activeColor : borderColor}`,
                 boxShadow: isActive ? `0 8px 24px ${isDark ? 'rgba(0,0,0,0.4)' : 'rgba(99, 102, 241, 0.15)'}` : 'none',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                transition: 'background 0.3s'
               }}
             >
               {isActive && (
@@ -113,17 +194,18 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
               )}
               
               <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: isPast ? '#10B981' : (isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent'),
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: isPast ? '#10B981' : (isActive ? activeColor : 'transparent'),
                 border: `1px solid ${isPast ? '#10B981' : (isActive ? activeColor : mutedColor)}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: isPast ? '#FFF' : (isActive ? activeColor : mutedColor)
+                color: (isPast || isActive) ? '#FFF' : mutedColor,
+                transition: 'all 0.3s'
               }}>
-                {isPast ? <CheckCircle2 size={20} /> : <Icon size={20} />}
+                {isPast ? <CheckCircle2 size={18} /> : <Icon size={18} />}
               </div>
               
               <div style={{ flex: 1 }}>
@@ -137,13 +219,14 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
 
               {isActive && (
                 <motion.div
-                  animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                  animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
+                  transition={{ duration: 1, repeat: Infinity }}
                   style={{
-                    width: '6px',
-                    height: '6px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
-                    background: activeColor
+                    background: activeColor,
+                    boxShadow: `0 0 10px ${activeColor}`
                   }}
                 />
               )}

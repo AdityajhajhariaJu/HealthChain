@@ -401,7 +401,7 @@ export default function MDTHub() {
       const updated = { ...prev, [id]: transcript };
       if (Object.keys(updated).length === selectedSpecialists.length) {
         setPhase('compiling');
-        setTimeout(() => setPhase('conference'), 8000);
+        setTimeout(() => setPhase('conference'), 15000);
       }
       return updated;
     });

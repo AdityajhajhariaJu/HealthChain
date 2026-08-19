@@ -103,7 +103,7 @@ export default function QuickConsult() {
   const handleComplete = async (id: string, messages: any[]) => {
     setFinalTranscripts({ [id]: messages });
     setPhase('compiling');
-    setTimeout(() => setPhase('done'), 8000);
+    setTimeout(() => setPhase('done'), 15000);
     
     if (activeCase) {
       const aiMessages = messages.filter(m => m.role === 'ai' && !m.text.includes('ANALYSIS_COMPLETE'));
