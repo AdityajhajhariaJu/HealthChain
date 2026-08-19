@@ -1481,3 +1481,35 @@ Return strictly as a JSON array of strings.`;
     return [];
   }
 }
+
+export async function askAppointmentCoach(casePrepData: any, userQuestion: string): Promise<string> {
+  const prompt = `You are an expert patient-advocacy AI acting as an "Appointment Coach".
+A patient is preparing for an upcoming doctor's appointment.
+Here is their prep sheet:
+Concern: ${casePrepData.concern || 'None'}
+Timeline: ${casePrepData.timeline || 'None'}
+Care so far: ${casePrepData.careSoFar || 'None'}
+Goal: ${casePrepData.goal || 'None'}
+
+The patient is anxious or curious and asks you this question about their upcoming appointment:
+"${userQuestion}"
+
+Answer them empathetically, concisely, and directly. Help them rehearse how to advocate for themselves, what specific medical terminology they might hear, or how to handle pushback from the doctor. Keep it under 4 sentences. Do NOT give a new medical diagnosis; focus entirely on *how to navigate the appointment*.`;
+
+  try {
+    const res = await fetchWithTimeout(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4 }
+      })
+    });
+    if (!res.ok) return "I'm having trouble connecting right now. Please try asking again.";
+    const data = await res.json();
+    return data.candidates[0].content.parts[0].text;
+  } catch (err) {
+    console.error('askAppointmentCoach error:', err);
+    return "I'm having trouble connecting right now. Please try asking again.";
+  }
+}

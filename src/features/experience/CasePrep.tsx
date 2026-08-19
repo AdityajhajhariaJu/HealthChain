@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle2, ClipboardList, FileSearch, GitCompareArrows, ListChecks, Network, ShieldAlert, Sparkles, Stethoscope, Trash2, Download, Printer, Loader2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, FileSearch, GitCompareArrows, ListChecks, Network, ShieldAlert, Sparkles, Stethoscope, Trash2, Download, Printer, Loader2, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CaseItem, clearCasePrepDraft, getCase, getCases, getCasePrepDraft, saveCasePrepCase, saveCasePrepDraft } from '../../services/CaseEngine';
-import { generateAppointmentQuestions } from '../../services/geminiService';
+import { generateAppointmentQuestions, askAppointmentCoach } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,6 +38,11 @@ export default function CasePrep() {
   // Smart Questions State
   const [smartQuestions, setSmartQuestions] = useState<string[]>([]);
   const [isGeneratingQs, setIsGeneratingQs] = useState(false);
+  
+  // Appointment Coach State
+  const [coachChat, setCoachChat] = useState<{role: 'user'|'ai', text: string}[]>([]);
+  const [coachInput, setCoachInput] = useState('');
+  const [isCoaching, setIsCoaching] = useState(false);
 
   useEffect(() => {
     const draft = getCasePrepDraft();
@@ -138,6 +143,17 @@ export default function CasePrep() {
     setIsGeneratingQs(false);
   };
 
+  const handleAskCoach = async () => {
+    if (!coachInput.trim() || isCoaching) return;
+    const q = coachInput.trim();
+    setCoachInput('');
+    setCoachChat(prev => [...prev, {role: 'user', text: q}]);
+    setIsCoaching(true);
+    const response = await askAppointmentCoach({ concern, timeline, careSoFar, goal }, q);
+    setCoachChat(prev => [...prev, {role: 'ai', text: response}]);
+    setIsCoaching(false);
+  };
+
   return (
     <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 20px 80px' }}>
       <div className="print-hide" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
@@ -209,7 +225,7 @@ export default function CasePrep() {
               <button className="btn btn-primary" onClick={createCase} disabled={!concern.trim()} style={{ flex: 1, padding: 14, display: 'flex', justifyContent: 'center', gap: 8, minWidth: 200 }}>
                 <ClipboardList size={18} /> {caseItem ? 'Update my case brief' : 'Generate Doctor Discussion Guide'} <ArrowRight size={18} />
               </button>
-              <button className="btn btn-outline" onClick={() => { clearCasePrepDraft(); setConcern(''); setTimeline(''); setRecords(''); setAppointment(''); setGoal(''); setCareSoFar(''); setCaseItem(null); setShowBrief(false); setSmartQuestions([]); }} title="Clear saved draft" style={{ padding: '0 14px' }}><Trash2 size={18} /></button>
+              <button className="btn btn-outline" onClick={() => { clearCasePrepDraft(); setConcern(''); setTimeline(''); setRecords(''); setAppointment(''); setGoal(''); setCareSoFar(''); setCaseItem(null); setShowBrief(false); setSmartQuestions([]); setCoachChat([]); }}  title="Clear saved draft" style={{ padding: '0 14px' }}><Trash2 size={18} /></button>
           </div>
         </section>
 
@@ -244,8 +260,48 @@ export default function CasePrep() {
               </ol>
             )}
           </section>
+
+          <section className="card" style={{ padding: 20, marginTop: 24, border: '1px solid #E0E7FF' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                <Stethoscope size={19} color="#4F46E5" />
+                <strong style={{ color: '#312E81' }}>Appointment Rehearsal</strong>
+            </div>
+            <p style={{ color: '#4F46E5', fontSize: 13, margin: '0 0 16px 0' }}>Anxious about the visit? Ask our coach how to handle pushback, what terms to use, or what tests to request.</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: coachChat.length ? 16 : 0, maxHeight: 250, overflowY: 'auto' }}>
+              {coachChat.map((msg, i) => (
+                <div key={i} style={{ 
+                  alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                  background: msg.role === 'user' ? '#4F46E5' : '#F1F5F9',
+                  color: msg.role === 'user' ? '#FFF' : '#334155',
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  fontSize: 13,
+                  maxWidth: '85%',
+                  lineHeight: 1.5
+                }}>
+                  {msg.text}
+                </div>
+              ))}
+              {isCoaching && <div style={{ alignSelf: 'flex-start', background: '#F1F5F9', padding: '10px 14px', borderRadius: 12, fontSize: 13 }}><Loader2 size={14} className="spin" color="#64748B" /></div>}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input 
+                type="text" 
+                value={coachInput} 
+                onChange={(e) => setCoachInput(e.target.value)} 
+                onKeyDown={(e) => e.key === 'Enter' && handleAskCoach()}
+                placeholder="e.g. What if they say it's just stress?" 
+                style={{ flex: 1, padding: '10px 14px', borderRadius: 20, border: '1px solid #CBD5E1', fontSize: 13, outline: 'none' }} 
+              />
+              <button onClick={handleAskCoach} disabled={isCoaching || !coachInput.trim()} style={{ background: '#4F46E5', color: '#FFF', border: 'none', borderRadius: 20, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: coachInput.trim() ? 'pointer' : 'default', opacity: coachInput.trim() ? 1 : 0.5 }}>
+                <Send size={16} />
+              </button>
+            </div>
+          </section>
           
-          <section style={{ padding: 18, borderRadius: 16, background: '#fff7ed', border: '1px solid #fed7aa', display: 'flex', gap: 10, color: '#9a3412', fontSize: 13, lineHeight: 1.5 }}>
+          <section style={{ padding: 18, borderRadius: 16, background: '#fff7ed', border: '1px solid #fed7aa', display: 'flex', gap: 10, color: '#9a3412', fontSize: 13, lineHeight: 1.5, marginTop: 24 }}>
              <ShieldAlert size={20} style={{ flexShrink: 0 }} />If you have severe, sudden, or rapidly worsening symptoms (like chest pain, sudden weakness, or trouble breathing), seek emergency medical care immediately instead of waiting for an appointment.
           </section>
         </aside>
