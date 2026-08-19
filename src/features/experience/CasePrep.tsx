@@ -66,38 +66,57 @@ export default function CasePrep() {
   ];
 
   const handleImportCase = (selectedCase: CaseItem) => {
-    // Intelligently import data into the fields, not just string dumping
     const intake = selectedCase.intakeData || {};
+    const snapshot = selectedCase.reviews?.[selectedCase.reviews.length - 1];
     
-    if (intake.chiefComplaint && !concern) setConcern(intake.chiefComplaint);
-    if (intake.history && !timeline) setTimeline(intake.history);
+    // 1. Extract Real Concern: First user message in transcript
+    let realConcern = intake.chiefComplaint || '';
+    if (realConcern.includes('User initiated quick consult') || realConcern.includes('Quick consult completed')) {
+      realConcern = '';
+    }
     
-    // Convert events to timeline if intake history is empty
-    if (!intake.history && selectedCase.events?.length > 0) {
-       setTimeline(selectedCase.events.map(e => `${e.date.split('T')[0]}: ${e.label}`).join('\n'));
+    let allUserTexts: string[] = [];
+    if (snapshot?.transcripts) {
+      const firstKey = Object.keys(snapshot.transcripts)[0];
+      if (firstKey) {
+        const msgs = snapshot.transcripts[firstKey] || [];
+        const userMsgs = msgs.filter((m: any) => m.role === 'user');
+        if (userMsgs.length > 0 && !realConcern) {
+           realConcern = userMsgs[0].text;
+        }
+        allUserTexts = userMsgs.map((m:any) => m.text);
+      }
     }
 
-    // Convert reviews into careSoFar
+    if (!concern && realConcern) setConcern(realConcern);
+    
+    // 2. Extract Timeline from User Messages rather than System Events
+    if (!timeline) {
+      if (intake.history) {
+        setTimeline(intake.history);
+      } else if (allUserTexts.length > 1) {
+        setTimeline(allUserTexts.map((t, i) => `Message ${i+1}: ${t}`).join('\n\n'));
+      }
+    }
+
+    // 3. Extract AI Summary intelligently
     let AI_Context = '';
-    const snapshot = selectedCase.reviews?.[selectedCase.reviews.length - 1];
     if (snapshot) {
       if (snapshot.report?.executiveSummary) {
-         AI_Context += `Previous AI Summary: ${snapshot.report.executiveSummary}\n`;
+         AI_Context += snapshot.report.executiveSummary.replace('Assessment completed by General Physician', '').trim();
       }
       if (snapshot.report?.topDiagnoses?.length) {
-         AI_Context += `Top AI Possibilities: ${snapshot.report.topDiagnoses.map((d: any) => typeof d === 'string' ? d : d.condition).join(', ')}\n`;
+         AI_Context += `\n\nKey possibilities discussed: ${snapshot.report.topDiagnoses.slice(0,3).map((d: any) => typeof d === 'string' ? d : d.condition).join(', ')}`;
       }
     }
+    
     if (AI_Context && !careSoFar) {
       setCareSoFar(AI_Context);
-    } else if (AI_Context) {
-      setCareSoFar(prev => prev + '\n\n' + AI_Context);
     }
-    
-    // Convert medical records to records field
+
     if (selectedCase.medicalRecords?.length > 0) {
       const recs = selectedCase.medicalRecords.map(r => `${r.filename}: ${r.findings}`).join('\n');
-      setRecords(prev => prev ? prev + '\n' + recs : recs);
+      if (!records) setRecords(recs);
     }
 
     setShowImportDropdown(false);
@@ -135,41 +154,53 @@ export default function CasePrep() {
       </section>
 
       <div className="print-hide" style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' }}>
-        <section className="card" style={{ padding: 24, flex: '1 1 500px', minWidth: 0 }}>
+        <section className="card" style={{ padding: '32px', flex: '1 1 500px', minWidth: 0 }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: '10px' }}>
-            <label style={{ fontWeight: 800, margin: 0 }}>What are you trying to understand?</label>
+          <div style={{ background: 'linear-gradient(to right, #EEF2FF, #F0FDF4)', padding: '24px', borderRadius: '16px', marginBottom: '32px', border: '1px solid #E2E8F0', position: 'relative' }}>
+            <h3 style={{ margin: '0 0 8px', color: '#1E293B', fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18} color="#4F46E5" /> Save time by importing a recent consultation</h3>
+            <p style={{ margin: '0 0 16px', color: '#475569', fontSize: '14px', maxWidth: '90%' }}>We can automatically extract your symptoms, timeline, and AI insights from a previous Quick Consult so you don't have to type it all out again.</p>
+            
             <div style={{position: 'relative'}}>
-              <button className="btn btn-outline" style={{ padding: '4px 10px', fontSize: 12, height: 'auto', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowImportDropdown(!showImportDropdown)}>
-                <Download size={14} /> Import past case data
+              <button className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '14px', borderRadius: '8px' }} onClick={() => setShowImportDropdown(!showImportDropdown)}>
+                <Download size={16} /> Import from Past Cases
               </button>
               {showImportDropdown && (
-                <div style={{position: 'absolute', right: 0, top: '100%', marginTop: 4, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: 250, maxHeight: 300, overflowY: 'auto'}}>
+                <div style={{position: 'absolute', left: 0, top: '100%', marginTop: 8, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 10, minWidth: 350, maxHeight: 300, overflowY: 'auto'}}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', fontWeight: 700, fontSize: '12px', color: '#64748B', textTransform: 'uppercase' }}>Select a case to extract data</div>
                   {getCases().filter((c: any) => c.reviews?.length > 0 || c.events?.length > 0).map((c: any) => (
-                    <div key={c.id} style={{padding: '10px 14px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: 13}} onClick={() => handleImportCase(c)}>
-                      <strong>{c.title}</strong>
-                      <div style={{color: '#64748b', fontSize: 11, marginTop: 4}}>{new Date(c.createdAt).toLocaleDateString()}</div>
+                    <div key={c.id} style={{padding: '12px 16px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background 0.2s'}} onMouseOver={e=>e.currentTarget.style.background='#F8FAFC'} onMouseOut={e=>e.currentTarget.style.background='transparent'} onClick={() => handleImportCase(c)}>
+                      <strong style={{ display: 'block', color: '#0F172A', fontSize: '14px', marginBottom: '2px' }}>{c.title}</strong>
+                      <div style={{color: '#64748b', fontSize: 12}}>{new Date(c.createdAt).toLocaleDateString()} &middot; {c.reviews?.length || 0} AI Reviews</div>
                     </div>
                   ))}
-                  {getCases().length === 0 && <div style={{padding: 14, color: '#64748b', fontSize: 12}}>No past cases found.</div>}
+                  {getCases().length === 0 && <div style={{padding: 16, color: '#64748b', fontSize: 14, textAlign: 'center'}}>No past cases found. Go to Quick Consult to start one!</div>}
                 </div>
               )}
             </div>
           </div>
+
+          <label style={{ fontWeight: 700, margin: '0 0 8px', color: '#0F172A', fontSize: '16px', display: 'block' }}>What is your main concern or symptom today?</label>
+          <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 12px' }}>Describe it simply in your own words.</p>
+          <textarea value={concern} onChange={(e) => setConcern(e.target.value)} placeholder="Example: fatigue, dizziness, and stomach symptoms that have continued for six months" rows={3} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid #CBD5E1', font: 'inherit', boxSizing: 'border-box', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }} onFocus={e=>e.currentTarget.style.borderColor='#3B82F6'} onBlur={e=>e.currentTarget.style.borderColor='#CBD5E1'} />
           
-          <textarea value={concern} onChange={(e) => setConcern(e.target.value)} placeholder="Example: fatigue, dizziness, and stomach symptoms that have continued for six months" rows={3} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
+          <label style={{ fontWeight: 700, margin: '32px 0 8px', color: '#0F172A', fontSize: '16px', display: 'block' }}>How has this progressed over time?</label>
+          <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 12px' }}>When did it start? Has it gotten worse? (Timeline)</p>
+          <textarea value={timeline} onChange={(e) => setTimeline(e.target.value)} placeholder={'Jan: fatigue began\nMar: dizziness became more frequent'} rows={4} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid #CBD5E1', font: 'inherit', boxSizing: 'border-box', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }} onFocus={e=>e.currentTarget.style.borderColor='#3B82F6'} onBlur={e=>e.currentTarget.style.borderColor='#CBD5E1'} />
           
-          <label style={{ fontWeight: 800, display: 'block', margin: '20px 0 8px' }}>Symptom timeline</label>
-          <textarea value={timeline} onChange={(e) => setTimeline(e.target.value)} placeholder={'One event per line\nJan: fatigue began\nMar: dizziness became more frequent'} rows={5} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
-          
-          <label style={{ fontWeight: 800, display: 'block', margin: '20px 0 8px' }}>Records or facts to bring</label>
-          <textarea value={records} onChange={(e) => setRecords(e.target.value)} placeholder={'One item per line\nCBC on 12 June: ...'} rows={4} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
-          
-          <label style={{ fontWeight: 800, display: 'block', margin: '20px 0 8px' }}>What has already been tried or ruled out?</label>
-          <textarea value={careSoFar} onChange={(e) => setCareSoFar(e.target.value)} placeholder="Example: normal blood tests in June; tried hydration and sleep changes; no improvement" rows={3} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
-          
-          <label style={{ fontWeight: 800, display: 'block', margin: '20px 0 8px' }}>Best outcome for this appointment</label>
-          <textarea value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Example: decide whether I need follow-up testing, a referral, or a review of current medication" rows={2} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
+          <label style={{ fontWeight: 700, margin: '32px 0 8px', color: '#0F172A', fontSize: '16px', display: 'block' }}>What AI insights or prior treatments do you want to mention?</label>
+          <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 12px' }}>Things already tried, ruled out, or AI suggestions you found helpful.</p>
+          <textarea value={careSoFar} onChange={(e) => setCareSoFar(e.target.value)} placeholder="Example: AI suggested checking for X; tried hydration and sleep changes with no improvement" rows={3} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid #CBD5E1', font: 'inherit', boxSizing: 'border-box', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }} onFocus={e=>e.currentTarget.style.borderColor='#3B82F6'} onBlur={e=>e.currentTarget.style.borderColor='#CBD5E1'} />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '32px' }}>
+            <div>
+              <label style={{ fontWeight: 700, margin: '0 0 8px', color: '#0F172A', fontSize: '16px', display: 'block' }}>Records or facts to bring</label>
+              <textarea value={records} onChange={(e) => setRecords(e.target.value)} placeholder="CBC on 12 June: ..." rows={3} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid #CBD5E1', font: 'inherit', boxSizing: 'border-box', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }} onFocus={e=>e.currentTarget.style.borderColor='#3B82F6'} onBlur={e=>e.currentTarget.style.borderColor='#CBD5E1'} />
+            </div>
+            <div>
+              <label style={{ fontWeight: 700, margin: '0 0 8px', color: '#0F172A', fontSize: '16px', display: 'block' }}>Best outcome for today</label>
+              <textarea value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Decide if I need follow-up testing..." rows={3} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid #CBD5E1', font: 'inherit', boxSizing: 'border-box', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }} onFocus={e=>e.currentTarget.style.borderColor='#3B82F6'} onBlur={e=>e.currentTarget.style.borderColor='#CBD5E1'} />
+            </div>
+          </div>
           
           <label style={{ fontWeight: 800, display: 'block', margin: '20px 0 8px' }}>Appointment date (optional)</label>
           <input type="date" value={appointment} onChange={(e) => setAppointment(e.target.value)} style={{ padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit' }} />
