@@ -82,25 +82,18 @@ export default function QuickConsult() {
 
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
-        if (localStorage.getItem('isAuthenticated') !== 'true') {
-        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-          detail: { 
-            title: 'Authentication Required', 
-            message: 'You need to log in or sign up to start a specialized consultation.' 
-          } 
-        }));
-        return;
-      }
-
-    const caseTitle = `Quick Consult: ${selectedSpecialist.label}`;
-    const newCase = createCaseDraft({
-      title: caseTitle,
-      intakeData: { chiefComplaint: "User initiated quick consult." },
-      specialists: [selectedSpecialist.label]
-    });
     
-    setActiveCase(newCase);
-    setPhase('chat');
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+        detail: { 
+          title: 'Authentication Required', 
+          message: 'You need to log in or sign up to start a specialized consultation.' 
+        } 
+      }));
+      return;
+    }
+
+    setPhase('upload'); // Modified to correctly go to upload phase!
   };
 
   
@@ -132,11 +125,20 @@ export default function QuickConsult() {
     setPhase('compiling');
     setTimeout(() => setPhase('done'), 15000);
     
-    if (activeCase) {
+    const caseTitle = `Quick Consult: ${selectedSpecialist?.label || 'Specialist'}`;
+    const newCase = createCaseDraft({
+      title: caseTitle,
+      intakeData: { chiefComplaint: symptomInput || "Quick consult completed" },
+      specialists: [selectedSpecialist?.label || 'General']
+    });
+    setActiveCase(newCase);
+    
+    // We must use newCase directly because activeCase hasn't updated in this closure yet
+    if (newCase) {
       const aiMessages = messages.filter(m => m.role === 'ai' && !m.text.includes('ANALYSIS_COMPLETE'));
       const summaryMessage = aiMessages[aiMessages.length - 1];
       let reportData: any = {
-        executiveSummary: "Assessment completed by " + selectedSpecialist.label,
+        executiveSummary: "Assessment completed by " + (selectedSpecialist?.label || 'Specialist'),
         topDiagnoses: [],
         recommendedActionPlan: [],
         fullTranscript: messages
@@ -163,7 +165,7 @@ export default function QuickConsult() {
       } catch(e) {}
       
       saveReviewSnapshot({
-        caseId: activeCase.id,
+        caseId: newCase.id,
         type: 'parallel',
         report: reportData,
         transcripts: { [id]: messages },
