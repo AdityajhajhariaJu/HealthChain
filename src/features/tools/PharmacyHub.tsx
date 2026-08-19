@@ -53,13 +53,13 @@ export default function PharmacyHub() {
 
   useEffect(() => {
     return () => {
-      cachedPharmacyState = { query, loading, result, searched };
+      cachedPharmacyState = { query, loading: false, result, searched };
     };
   }, [query, loading, result, searched]);
 
   const handleSearch = async (e) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10);
+      const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10) || 0;
       if (currentCount >= 5) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
           detail: { 

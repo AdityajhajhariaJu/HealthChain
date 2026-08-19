@@ -71,13 +71,13 @@ export default function ClinicalReportAnalyzer() {
 
   useEffect(() => {
     return () => {
-      cachedReportAnalyzerState = { file, loading, result };
+      cachedReportAnalyzerState = { file, loading: false, result };
     };
   }, [file, loading, result]);
 
   const handleFileChange = async (e) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10);
+      const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10) || 0;
       if (currentCount >= 3) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
           detail: { 
@@ -253,7 +253,7 @@ export default function ClinicalReportAnalyzer() {
 
   const handleDrop = (e: any) => {
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10);
+      const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10) || 0;
       if (currentCount >= 3) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
           detail: { 
