@@ -1,5 +1,5 @@
 import { compilePatientContext } from './MemoryService';
-import { getActiveCase } from './CaseEngine';
+import { getActiveCase, AppointmentBrief } from './CaseEngine';
 import { supabase } from './supabaseClient';
 
 // We strictly use the API proxy to prevent exposing the Gemini key in the frontend bundle.
@@ -1511,5 +1511,36 @@ Answer them empathetically, concisely, and directly. Help them rehearse how to a
   } catch (err) {
     console.error('askAppointmentCoach error:', err);
     return "I'm having trouble connecting right now. Please try asking again.";
+  }
+}
+
+export async function refineAppointmentBrief(brief: AppointmentBrief): Promise<AppointmentBrief> {
+  const prompt = `You are a clinical preparation AI.
+Take the following structured appointment brief and refine it to be "easier to discuss".
+Do NOT invent facts. Do NOT provide new medical diagnoses. Do NOT provide treatment directives.
+Return ONLY valid JSON matching the exact schema of the input, but with refined text.
+Input brief:
+${JSON.stringify(brief, null, 2)}
+`;
+
+  try {
+    const res = await fetchWithTimeout(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2 } // low temp for deterministic rewriting
+      })
+    });
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    const rawText = data.candidates[0].content.parts[0].text;
+    const jsonStr = rawText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '');
+    const refined = JSON.parse(jsonStr);
+    refined.isRefinedByAI = true;
+    return refined;
+  } catch (err) {
+    console.error('refineAppointmentBrief error:', err);
+    return brief; // Return original on failure
   }
 }

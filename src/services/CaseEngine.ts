@@ -66,6 +66,7 @@ export interface CaseItem {
   differentials?: Differential[];
   connectionMap?: any;
   differentialHistory?: { date: string; differentials: Differential[] }[];
+  appointmentBriefs?: { current?: AppointmentBrief; history?: AppointmentBrief[] };
 }
 
 export interface CasePrepDraft {
@@ -80,6 +81,28 @@ export interface CasePrepDraft {
 }
 
 import { getProfileKey } from './ProfileEngine';
+
+export interface BriefTimelineItem { date: string; event: string; sourceIds: string[]; }
+export interface BriefFact { text: string; sourceIds: string[]; }
+export interface BriefGap { missingText: string; reason: string; }
+export interface BriefQuestion { question: string; sourceIds: string[]; isAI: boolean; }
+export interface BriefPerspective { title: string; summary: string; sourceId: string; }
+export interface AppointmentBrief {
+  schemaVersion: number;
+  caseId: string;
+  sourceFingerprint: string;
+  generatedAt: string;
+  purpose: string;
+  mainConcern: { text: string; sourceIds: string[] };
+  timeline: BriefTimelineItem[];
+  knownFacts: BriefFact[];
+  missingInformation: BriefGap[];
+  questionsForClinician: BriefQuestion[];
+  priorPerspectives: BriefPerspective[];
+  safetyNotice: string;
+  isRefinedByAI: boolean;
+}
+
 
 const getActiveProfileId = () => {
   try {
@@ -708,4 +731,30 @@ export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
       }
     }
   }
+}
+
+export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
+  const cases = getCases();
+  const c = cases.find(item => item.id === caseId);
+  if (!c) return;
+  
+  if (!c.appointmentBriefs) c.appointmentBriefs = { history: [] };
+  if (!c.appointmentBriefs.history) c.appointmentBriefs.history = [];
+  
+  if (c.appointmentBriefs.current) {
+    c.appointmentBriefs.history.push(c.appointmentBriefs.current);
+  }
+  c.appointmentBriefs.current = brief;
+  
+  if (!c.events) c.events = [];
+  c.events.push({
+    id: 'evt_' + Math.random().toString(36).substr(2, 9),
+    date: new Date().toISOString(),
+    label: 'Appointment brief prepared',
+    note: 'Patient generated a structured appointment brief.'
+  });
+  
+  c.updatedAt = new Date().toISOString();
+  save(cases);
+  return c;
 }
