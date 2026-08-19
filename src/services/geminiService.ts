@@ -1322,3 +1322,58 @@ Return ONLY a valid JSON array of objects with the exact following schema:
   return papers;
 }
 
+
+export async function generateCasePrepAnalysis(casePrepData: any): Promise<any> {
+  const prompt = `You are an expert clinical triage assistant. The user is preparing for an upcoming doctor's appointment and has provided the following notes:
+Concern: ${casePrepData.concern}
+Timeline: ${casePrepData.timeline}
+Records/Facts: ${casePrepData.records}
+Care So Far: ${casePrepData.careSoFar}
+Goal: ${casePrepData.goal}
+
+Your goal is to synthesize this into a "Pharma Hub" style summary that categorizes the information perfectly for them.
+Return strictly as JSON matching this structure:
+{
+  "name": "Case Prep Synthesis",
+  "class": "Appointment Preparation",
+  "uses": "A 2-3 sentence summary of the core clinical issue and timeline.",
+  "sideEffects": "A 2-3 sentence summary of any red flag symptoms or significant warnings noted in their records/timeline.",
+  "alternatives": ["Avenue 1: Discuss X with the doctor", "Avenue 2: Request test Y"],
+  "warnings": "Important disclaimer about what they should prioritize discussing or any immediate care needed.",
+  "interactions": ["Question 1 to ask the doctor", "Question 2 to ask the doctor"]
+}`;
+
+  const payload = {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          class: { type: "string" },
+          uses: { type: "string" },
+          sideEffects: { type: "string" },
+          alternatives: { type: "array", items: { type: "string" } },
+          warnings: { type: "string" },
+          interactions: { type: "array", items: { type: "string" } }
+        },
+        required: ["name", "class", "uses", "sideEffects", "alternatives", "warnings", "interactions"]
+      }
+    }
+  };
+
+  try {
+    const res = await fetchWithTimeout(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return JSON.parse(data.candidates[0].content.parts[0].text);
+  } catch (err) {
+    console.error('Case prep analysis error:', err);
+    return null;
+  }
+}
