@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Stethoscope, 
   ChevronRight, 
@@ -37,6 +37,30 @@ export default function QuickConsult() {
     const saved = sessionStorage.getItem('hc_qc_case');
     return saved ? JSON.parse(saved) : null;
   });
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const resetConsult = () => {
+    for (let key in cachedQuickConsultStreams) {
+      delete cachedQuickConsultStreams[key];
+    }
+    setPhase('select');
+    setSelectedSpecialist(null);
+    setSymptomInput('');
+    setFinalTranscripts({});
+    setActiveCase(null);
+    sessionStorage.removeItem('hc_qc_phase');
+    sessionStorage.removeItem('hc_qc_specialist');
+    sessionStorage.removeItem('hc_qc_case');
+  };
+
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      resetConsult();
+      searchParams.delete('new');
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => { sessionStorage.setItem('hc_qc_phase', phase); }, [phase]);
   useEffect(() => {
