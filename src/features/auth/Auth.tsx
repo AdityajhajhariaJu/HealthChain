@@ -38,6 +38,7 @@ export default function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError('');
     

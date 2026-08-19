@@ -12,6 +12,10 @@ export default function Pricing() {
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
+      if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+        resolve(true);
+        return;
+      }
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => resolve(true);
@@ -21,12 +25,14 @@ export default function Pricing() {
   };
 
   const handleCheckout = async () => {
+    if (isProcessing) return;
     try {
       setIsProcessing(true);
       
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login');
+        setIsProcessing(false);
         return;
       }
 
@@ -43,37 +49,36 @@ export default function Pricing() {
       };
 
       // Create order via Vercel Backend with server-enforced pricing
-      const orderRes = await fetch('/api/create-order', {
+      const orderRes = await fetch('https://healthchain-backend-pi.vercel.app/api/create-razorpay-order', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ plan_id: 'pro_30_days' })
+        body: JSON.stringify({ billingCycle })
       });
-      const orderData = await orderRes.json();
 
-      if (orderData.error) {
-        alert(orderData.error);
-        setIsProcessing(false);
-        return;
+      if (!orderRes.ok) {
+        throw new Error('Failed to create order');
       }
+
+      const orderData = await orderRes.json();
 
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'HealthChain 360',
-        description: 'Pro Access (30 Days)',
+        name: 'HealthChain Pro',
+        description: `Upgrade to Pro (${billingCycle})`,
         order_id: orderData.id,
         handler: async function (response: any) {
           try {
             // Verify payment on server
-            const verifyRes = await fetch('/api/verify-payment', {
+            const verifyRes = await fetch('https://healthchain-backend-pi.vercel.app/api/verify-razorpay-payment', {
               method: 'POST',
               headers: authHeaders,
               body: JSON.stringify({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
-                plan_id: 'pro_30_days'
+                billingCycle
               })
             });
             
@@ -96,19 +101,24 @@ export default function Pricing() {
         },
         theme: {
           color: '#14b8a6'
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+          }
         }
       };
 
       const paymentObject = new (window as any).Razorpay(options);
       paymentObject.on('payment.failed', function (response: any) {
         alert(response.error.description);
+        setIsProcessing(false);
       });
       paymentObject.open();
 
     } catch (err) {
       console.error(err);
       alert('Checkout failed unexpectedly.');
-    } finally {
       setIsProcessing(false);
     }
   };
