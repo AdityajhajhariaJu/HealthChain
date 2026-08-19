@@ -353,6 +353,11 @@ export function setActiveCase(caseId: string | null) {
 }
 
 export function deleteCase(caseId: string) {
+  try {
+    const queue = JSON.parse(localStorage.getItem('hc_deleted_cases') || '[]');
+    if (!queue.includes(caseId)) queue.push(caseId);
+    localStorage.setItem('hc_deleted_cases', JSON.stringify(queue));
+  } catch(e) {}
   const cases = getCases();
   const updatedCases = cases.filter((c) => c.id !== caseId);
   save(updatedCases);
@@ -666,8 +671,17 @@ export function updateCaseDifferentials(caseId: string, differentials: Different
 }
 
 export async function syncCasesFromSupabase() {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        try {
+          const queue = JSON.parse(localStorage.getItem('hc_deleted_cases') || '[]');
+          if (queue.length > 0) {
+            await supabase.from('cases').delete().in('id', queue).eq('user_id', session.user.id);
+            localStorage.setItem('hc_deleted_cases', '[]');
+          }
+        } catch(e) {}
+      }
     if (!session?.user) return;
 
     const { data, error } = await supabase.from('cases').select('*').eq('user_id', session.user.id);

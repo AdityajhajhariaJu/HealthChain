@@ -117,9 +117,9 @@ export default function AvaHealthBuddy() {
       if (isMounted.current) setIsStreaming(false);
 
       addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
-        lastMessage: response,
-        messageCount: newMessages.length + 1,
-      });
+          lastMessage: response,
+          messageCount: newMessages.length + 1,
+        }, false, null, sessionId);
     },
     onError: () => {
       setIsTyping(false);

@@ -111,7 +111,19 @@ export default function App() {
       navigate('/', { replace: true });
     };
     window.addEventListener('hc_logout', handleLogout);
-    return () => window.removeEventListener('hc_logout', handleLogout);
+
+    const handleProfileSwitch = () => {
+      if (localStorage.getItem('isAuthenticated') === 'true') {
+        syncCasesFromSupabase();
+        syncHealthMemoryFromSupabase().catch(console.error);
+      }
+    };
+    window.addEventListener('hc_profile_updated', handleProfileSwitch);
+
+    return () => {
+      window.removeEventListener('hc_logout', handleLogout);
+      window.removeEventListener('hc_profile_updated', handleProfileSwitch);
+    };
   }, []);
 
   useEffect(() => {

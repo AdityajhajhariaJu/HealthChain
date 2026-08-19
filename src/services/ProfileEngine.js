@@ -435,7 +435,7 @@ export function removeFamilyHistory(history) {
   saveProfile(profile);
 }
 
-export function addEvent(type, source, title, data = {}, significant = true, existingProfile = null) {
+export function addEvent(type, source, title, data = {}, significant = true, existingProfile = null, eventId = null) {
   const profile = existingProfile || getProfile();
 
   let safeData = data;
@@ -449,8 +449,10 @@ export function addEvent(type, source, title, data = {}, significant = true, exi
     }
   }
 
+  const existingIdx = eventId ? profile.timeline.findIndex(e => e.id === eventId) : -1;
+
   const event = {
-    id: generateId(),
+    id: eventId || generateId(),
     date: new Date().toISOString(),
     type,
     source,
