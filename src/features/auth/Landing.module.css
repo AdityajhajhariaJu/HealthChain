@@ -2,7 +2,7 @@
    Base & Variables (Vibrant Stripe-style Light Mode with Light Green Base)
    ========================================================================== */
    .container {
-    min-height: 100vh;
+    min-height: 100vh; min-height: 100dvh;
     background: #F0FDF4; /* Light Green background as requested */
     position: relative;
     overflow-x: hidden;
@@ -128,7 +128,7 @@
      2. Vibrant Hero Section
      ========================================================================== */
   .heroWrapper {
-    min-height: 90vh;
+    min-height: 90vh; min-height: 90dvh;
     display: flex;
     align-items: center;
     justify-content: center;

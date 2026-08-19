@@ -224,6 +224,7 @@ export default function Dietician() {
   const waterGlasses = hydration[currentDate] || 0;
 
   const handleAddFood = async () => {
+    if (isAnalyzingFood) return;
     if (!foodInput.trim()) return;
     setIsAnalyzingFood(true);
     try {
@@ -259,6 +260,7 @@ export default function Dietician() {
   };
 
   const handleGeneratePlan = async () => {
+    if (isGeneratingPlan) return;
       if (localStorage.getItem('isAuthenticated') !== 'true') {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
           detail: { 

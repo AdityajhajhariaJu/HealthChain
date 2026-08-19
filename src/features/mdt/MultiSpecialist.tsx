@@ -399,7 +399,7 @@ export default function MultiSpecialist() {
   return (
     <div
       style={{
-        height: isMobile ? 'calc(100vh - 120px)' : 'calc(100vh - 150px)',
+        height: isMobile ? 'calc(100dvh - 120px)' : 'calc(100dvh - 150px)',
         overflowY: 'auto',
         padding: isMobile ? '8px 16px' : '24px 40px',
         color: '#0F172A',

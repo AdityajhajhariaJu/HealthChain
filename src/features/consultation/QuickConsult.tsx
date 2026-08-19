@@ -560,7 +560,7 @@ export default function QuickConsult() {
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
               border: '1px solid rgba(255,255,255,0.5)',
-              height: isMobile ? 'calc(100vh - 120px)' : '700px',
+              height: isMobile ? 'calc(100dvh - 120px)' : '700px',
               display: 'flex',
               flexDirection: 'column'
             }}

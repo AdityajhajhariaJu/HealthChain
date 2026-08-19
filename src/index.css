@@ -85,7 +85,7 @@ textarea {
 .app-shell {
   display: grid;
   grid-template-columns: 260px 1fr;
-  height: 100vh;
+  height: 100vh; height: 100dvh;
   overflow: hidden;
 }
 .app-shell__content {
@@ -123,7 +123,7 @@ textarea {
   gap: 12px;
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100vh; height: 100dvh;
   overflow-y: auto;
   border-right: 1px solid var(--border);
 }
@@ -876,7 +876,7 @@ html.dark-theme body {
   .app-shell {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100vh; height: 100dvh;
   }
 
   .app-shell__content {

@@ -81,7 +81,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: 'radial-gradient(circle at top right, #CCFBF1 0, #F8FAFC 36%, #EEF2FF 100%)',
         padding: isMobile ? '20px 15px' : '32px 20px',
       }}

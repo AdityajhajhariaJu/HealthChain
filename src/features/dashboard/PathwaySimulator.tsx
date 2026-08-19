@@ -17,6 +17,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
   }, []);
 
   const runSimulation = async () => {
+    if (isSimulating) return;
     // Check sessionStorage cache first
     const cacheKey = `pathway_sim_${actionItem.step}`;
     const cached = sessionStorage.getItem(cacheKey);
