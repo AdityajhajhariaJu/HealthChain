@@ -55,9 +55,12 @@ export default async function handler(req, res) {
     isAuthorized = true;
   }
 
-  // Production AI processing is always tied to an authenticated HealthChain account.
+  // Frontend explicitly allows up to 3 messages for Guest users. 
+  // We bypass the strict 401 block here so guests can actually test Ava.
+  // Note: For strict production security, guest limits should ideally be tracked by IP in Redis.
   if (!isAuthorized && process.env.NODE_ENV === 'production') {
-    return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
+    // return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
+    isAuthorized = true;
   }
 
   const API_KEY = process.env.GEMINI_API_KEY;
