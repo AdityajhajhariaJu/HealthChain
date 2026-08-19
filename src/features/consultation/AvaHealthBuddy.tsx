@@ -40,7 +40,8 @@ export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [messages, setMessages] = useState(getSavedMessages());
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(() => { try { return sessionStorage.getItem('hc_ava_draft') || ''; } catch { return ''; } });
+  useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);

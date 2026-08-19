@@ -305,7 +305,8 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
 
 export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing, onElevateParallel, onReviewPastMDT, onResumeActiveCase }: any) {
   const isMobile = useIsMobile();
-  const [complaint, setComplaint] = useState('');
+  const [complaint, setComplaint] = useState(() => { try { return sessionStorage.getItem('hc_mdt_intake_draft') || ''; } catch { return ''; } });
+  useEffect(() => { try { if (complaint.trim()) sessionStorage.setItem('hc_mdt_intake_draft', complaint); else sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} }, [complaint]);
   const [parallelCases, setParallelCases] = useState<any[]>([]);
   const [mdtCases, setMdtCases] = useState<any[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -468,7 +469,10 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
             )}
 
             <button
-              onClick={() => onComplete({ chiefComplaint: complaint, files: selectedFiles })}
+              onClick={() => {
+                try { sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} 
+                onComplete({ chiefComplaint: complaint, files: selectedFiles });
+              }}
               disabled={!complaint.trim() || isPreparing}
               style={{
                 alignSelf: 'flex-end',
