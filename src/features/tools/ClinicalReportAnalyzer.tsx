@@ -94,6 +94,11 @@ export default function ClinicalReportAnalyzer() {
     if (!selectedFile) return;
 
     // Check size limit (e.g. 3MB)
+    const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!ALLOWED.includes(selectedFile.type)) {
+      alert('Unsupported file format. Please upload PDF or images.');
+      return;
+    }
     if (selectedFile.size > 3 * 1024 * 1024) {
       alert('File size must be less than 3MB.');
       return;

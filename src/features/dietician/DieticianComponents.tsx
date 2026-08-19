@@ -126,7 +126,7 @@ export function OnboardingWizard({ onComplete }) {
                   Weight (kg)
                 </label>
                 <input
-                  type="number"
+                  type="number" min="20" max="300"
                   value={data.weight}
                   onChange={(e) => setData({ ...data, weight: e.target.value })}
                   placeholder="e.g. 75"
@@ -154,7 +154,7 @@ export function OnboardingWizard({ onComplete }) {
                   Target (kg)
                 </label>
                 <input
-                  type="number"
+                  type="number" min="20" max="300"
                   value={data.targetWeight}
                   onChange={(e) => setData({ ...data, targetWeight: e.target.value })}
                   placeholder="e.g. 70"
@@ -185,7 +185,7 @@ export function OnboardingWizard({ onComplete }) {
                   Height (cm)
                 </label>
                 <input
-                  type="number"
+                  type="number" min="50" max="260"
                   value={data.height}
                   onChange={(e) => setData({ ...data, height: e.target.value })}
                   placeholder="e.g. 175"
@@ -213,7 +213,7 @@ export function OnboardingWizard({ onComplete }) {
                   Age
                 </label>
                 <input
-                  type="number"
+                  type="number" min="1" max="120"
                   value={data.age}
                   onChange={(e) => setData({ ...data, age: e.target.value })}
                   placeholder="e.g. 30"
@@ -243,7 +243,7 @@ export function OnboardingWizard({ onComplete }) {
                 Timeframe to reach target (Days)
               </label>
               <input
-                type="number"
+                type="number" min="7" max="730"
                 value={data.targetDays}
                 onChange={(e) => setData({ ...data, targetDays: e.target.value })}
                 placeholder="e.g. 90"

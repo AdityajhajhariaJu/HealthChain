@@ -326,6 +326,11 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
       return;
     }
     for (let f of files) {
+      const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+      if (!ALLOWED.includes(f.type)) {
+        alert('Unsupported file format. Please upload PDF or images.');
+        return;
+      }
       if (f.size > 3 * 1024 * 1024) {
         alert(`${f.name} is too large (Max 3MB per file).`);
         return;
@@ -391,7 +396,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
         <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ position: 'relative' }}>
-              <textarea
+              <textarea maxLength={3000}
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
                 placeholder={"Write down your entire history — every symptom and how long you've been facing it.\n\nAttach all reports, lab results, or documents so our multiple AI agents can connect everything."}
@@ -2091,7 +2096,7 @@ export function MDTReportPanel({
                 >
                   What should the board know before re-evaluating?
                 </label>
-                <textarea
+                <textarea maxLength={3000}
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="e.g., I forgot to mention my shoulder also hurts, or I disagree with the primary specialty..."

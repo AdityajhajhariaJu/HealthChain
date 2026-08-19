@@ -48,7 +48,7 @@ export const MEAL_SCHEDULES = [
 
 function calculateTargets(p) {
   // Mifflin-St Jeor Equation
-  let bmr = 10 * parseFloat(p.weight) + 6.25 * parseFloat(p.height) - 5 * parseInt(p.age);
+  let bmr = 10 * Math.max(20, parseFloat(p.weight || '70')) + 6.25 * Math.max(50, parseFloat(p.height || '170')) - 5 * Math.max(1, parseInt(p.age || '30'));
   bmr = p.gender === 'male' ? bmr + 5 : bmr - 161;
 
   let multiplier = 1.2;
@@ -60,7 +60,7 @@ function calculateTargets(p) {
   let targetCalories = Math.round(tdee);
 
   if (p.targetDays && parseInt(p.targetDays) > 0 && p.goal !== 'Maintain') {
-    const weightDiff = Math.abs(parseFloat(p.weight) - parseFloat(p.targetWeight));
+    const weightDiff = Math.abs(Math.max(20, parseFloat(p.weight || '70')) - parseFloat(p.targetWeight));
     const totalCalorieChange = weightDiff * 7700; // ~7700 kcal per kg of body weight
     const dailyChange = totalCalorieChange / (parseInt(p.targetDays) || 1);
     const safeDailyChange = Math.min(dailyChange, 1000);

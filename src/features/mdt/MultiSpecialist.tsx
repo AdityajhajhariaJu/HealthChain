@@ -249,7 +249,10 @@ export default function MultiSpecialist() {
       window.location.href = '/signup';
       return;
     }
-    if (!symptomInput.trim() && selected.length === 0) return;
+    if (symptomInput.trim().length < 5) {
+      alert('Please enter at least 5 characters for your symptoms.');
+      return;
+    }
     let activeSelected = [...selected];
     const intakeText = symptomInput.trim() || activeCase?.intakeData?.chiefComplaint || activeCase?.title || 'Custom multi-specialist review';
     setCaseTitle(intakeText);

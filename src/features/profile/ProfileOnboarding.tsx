@@ -368,7 +368,7 @@ function TextAreaField({ label, fieldKey, form, update, placeholder }: any) {
   return (
     <label style={{ display: 'grid', gap: 7, fontSize: 13, fontWeight: 750, color: '#334155' }}>
       {label}
-      <textarea
+      <textarea maxLength={500}
         value={form[fieldKey] || ''}
         onChange={(event) => update(fieldKey, event.target.value)}
         placeholder={placeholder}
