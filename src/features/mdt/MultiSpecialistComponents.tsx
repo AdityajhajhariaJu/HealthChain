@@ -4,6 +4,34 @@ import ReactMarkdown from 'react-markdown';
 import { BrainCircuit, User, Sparkles, ArrowRight } from 'lucide-react';
 import { chatWithMDTSpecialist } from '../../services/geminiService';
 
+export function StreamingMarkdown({ text, isNew, inline = false }: { text: string, isNew: boolean, inline?: boolean }) {
+  const [displayed, setDisplayed] = useState(isNew ? '' : text);
+  
+  useEffect(() => {
+    if (!isNew) {
+      setDisplayed(text);
+      return;
+    }
+    
+    let isMounted = true;
+    const stream = async () => {
+      let current = '';
+      for (let i = 0; i < text.length; i++) {
+        if (!isMounted) break;
+        current += text[i];
+        const delay = Math.floor(Math.random() * 20) + 10;
+        await new Promise((r) => setTimeout(r, delay));
+        if (isMounted) setDisplayed(current);
+      }
+    };
+    stream();
+    
+    return () => { isMounted = false; };
+  }, [text, isNew]);
+
+  return <ReactMarkdown components={inline ? { p: ({node, ...props}) => <span {...props} /> } : {}}>{displayed}</ReactMarkdown>;
+}
+
 export function useSpecialistStream(specialist: any, isRunning: boolean, isPaused: boolean, startDelay: number, onComplete: (id: string, messages: any[]) => void, allSpecialists: any[] = [], intakeData: any, activeDifferentials: any[], cachedSpecialistStreams: any) {
   const cache = cachedSpecialistStreams[specialist.id] || (() => {
     try {
@@ -294,7 +322,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
                     />
                     <div style={{ lineHeight: 1.5, letterSpacing: '0.2px', fontStyle: 'italic' }}>
                       <span style={{ fontWeight: 600, color: specialist.color, marginRight: '6px' }}>Clinical Analysis:</span>
-                      {internalThoughts}
+                      <StreamingMarkdown text={internalThoughts} isNew={i === messages.length - 1} inline />
                     </div>
                   </motion.div>
                 )}
@@ -316,7 +344,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
                       <BrainCircuit size={14} /> ACTIVE INQUIRY
                     </div>
                     <div style={{ fontSize: '14px', lineHeight: 1.6, color: '#1E293B', fontWeight: 400 }}>
-                      <ReactMarkdown>{displayText}</ReactMarkdown>
+                      <StreamingMarkdown text={displayText} isNew={i === messages.length - 1} />
                     </div>
                   </div>
                 ) : (
