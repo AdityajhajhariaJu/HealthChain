@@ -41,7 +41,7 @@ export async function fetchLiveTrials(conditions: string[]): Promise<ClinicalTri
   const primaryCondition = conditions[0];
   const url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(
     primaryCondition
-  )}&filter.overallStatus=RECRUITING&pageSize=5&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule`;
+  )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=5&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule`;
 
   try {
     const response = await fetchWithTimeout(url);
