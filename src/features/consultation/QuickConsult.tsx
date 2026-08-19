@@ -8,7 +8,11 @@ import {
   ArrowRight,
   ShieldCheck,
   FileText,
-  Sparkles
+  Sparkles,
+  Upload,
+  Image,
+  X,
+  FileUp
 } from 'lucide-react';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
