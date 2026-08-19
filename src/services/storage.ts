@@ -37,33 +37,21 @@ export async function syncStorageFromPreferences() {
       console.warn(`localStorage quota exceeded for ${key}, but syncing to native Preferences anyway.`);
     }
     
-    if (_syncing) return;
-    _syncing = true;
-    Preferences.set({ key, value })
-      .catch(e => console.warn('Native storage error:', e))
-      .finally(() => { _syncing = false; });
+    Preferences.set({ key, value }).catch(e => console.warn('Native storage error:', e));
   };
 
   const originalRemoveItem = localStorage.removeItem.bind(localStorage);
   localStorage.removeItem = function(key) {
     originalRemoveItem(key);
     
-    if (_syncing) return;
-    _syncing = true;
-    Preferences.remove({ key })
-      .catch(e => console.warn('Native remove error:', e))
-      .finally(() => { _syncing = false; });
+    Preferences.remove({ key }).catch(e => console.warn('Native remove error:', e));
   };
 
   const originalClear = localStorage.clear.bind(localStorage);
   localStorage.clear = function() {
     originalClear();
     
-    if (_syncing) return;
-    _syncing = true;
-    Preferences.clear()
-      .catch(e => console.warn('Native clear error:', e))
-      .finally(() => { _syncing = false; });
+    Preferences.clear().catch(e => console.warn('Native clear error:', e));
   };
 }
 
