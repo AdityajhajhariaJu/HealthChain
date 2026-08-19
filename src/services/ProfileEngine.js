@@ -237,6 +237,8 @@ export function getProfile() {
 
 async function saveProfile(profile) {
   try {
+    cachedProfile = profile;
+    currentProfileKey = getProfileKey();
     const state = getProfileEngineState();
     
     // Simple Conflict Resolution: Check if the state in localStorage has a newer updatedAt
