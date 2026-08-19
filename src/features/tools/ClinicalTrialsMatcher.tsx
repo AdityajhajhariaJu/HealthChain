@@ -169,11 +169,14 @@ export default function ClinicalTrialsMatcher() {
   }
 
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     async function loadResearch() {
       setLoading(true);
       
       if (!activeCase) {
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
       
@@ -184,11 +187,11 @@ export default function ClinicalTrialsMatcher() {
       if (cached) {
         try {
           const parsedCache = JSON.parse(cached);
-          // Only use cache if it actually has items. If it's empty, try fetching again
-          // in case the previous 0 was due to a temporary API failure or rate limit.
           if (parsedCache && parsedCache.length > 0) {
-            setResearchItems(parsedCache);
-            setLoading(false);
+            if (isMounted) {
+              setResearchItems(parsedCache);
+              setLoading(false);
+            }
             return;
           }
         } catch (e) {
@@ -201,30 +204,40 @@ export default function ClinicalTrialsMatcher() {
            fetchRecentLiterature(searchTerms).catch(() => [])
         ]);
         
+        if (!isMounted) return;
+
         const [enrichedTrials, enrichedPapers] = await Promise.all([
            analyzeTrialRelevance(rawTrials, activeCase, profile).catch(() => []),
            analyzeLiteratureRelevance(rawPapers, activeCase, profile).catch(() => [])
         ]);
         
+        if (!isMounted) return;
+
         const allItems = [...enrichedTrials, ...enrichedPapers];
         const filteredItems = allItems.filter((t: any) => (t.matchScore || 0) > 25);
         const sortedItems = filteredItems.sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
         
-        setResearchItems(sortedItems);
-        recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${activeCase.title || 'Active case'}`, occurredAt: new Date().toISOString(), caseId: activeCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${activeCase.id}:${searchTerms.join(',')}` });
-        
-        // Only cache if we actually found something, so temporary API failures don't permanently break the UI
-        if (sortedItems.length > 0) {
-          sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems));
+        if (isMounted) {
+          setResearchItems(sortedItems);
+          recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${activeCase.title || 'Active case'}`, occurredAt: new Date().toISOString(), caseId: activeCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${activeCase.id}:${searchTerms.join(',')}` });
+          
+          if (sortedItems.length > 0) {
+            try { sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems)); } catch {}
+          }
         }
       } catch (err) {
         console.error('Failed to load research items', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
     
     loadResearch();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [activeCase?.id, diagnoses.join(',')]);
 
   return (
