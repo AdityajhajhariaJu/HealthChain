@@ -862,12 +862,24 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
             {specialist.label}
           </div>
-          <div style={{ fontSize: '11px', color: specialist.color, fontWeight: 700, marginTop: '2px' }}>
-            {status === 'idle' && <span style={{ color: '#64748B' }}>Preparing case review</span>}
-            {status === 'thinking' && 'Reviewing your answer'}
-            {status === 'questioning' && `Question ${questionCount} of 10`}
-            {status === 'done' && 'Assessment complete'}
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <div style={{ fontSize: '11px', color: specialist.color, fontWeight: 700 }}>
+                {status === 'idle' && <span style={{ color: '#64748B' }}>Preparing case review</span>}
+                {status === 'thinking' && 'Reviewing your answer'}
+                {status === 'questioning' && `Question ${Math.min(questionCount, 8)} of 8`}
+                {status === 'done' && 'Assessment complete'}
+              </div>
+              {(status === 'questioning' || status === 'thinking' || status === 'done') && (
+                <div style={{ flex: 1, maxWidth: '100px', height: '4px', background: 'rgba(0,0,0,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    height: '100%', 
+                    background: specialist.color, 
+                    width: status === 'done' ? '100%' : `${Math.min((questionCount / 8) * 100, 100)}%`,
+                    transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }} />
+                </div>
+              )}
+            </div>
         </div>
       </div>
 
