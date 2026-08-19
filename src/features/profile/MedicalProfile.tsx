@@ -220,6 +220,34 @@ export default function MedicalProfile() {
     setIsGeneratingSynthesis(false);
   };
 
+  const significantHash = JSON.stringify([
+    profile.medicalConditions,
+    profile.medications,
+    profile.allergies,
+    profile.familyHistory,
+    profile.demographics
+  ]);
+  const prevHashRef = useRef(significantHash);
+
+  useEffect(() => {
+    const hasSignificantData = profile.medicalConditions?.length > 0 || profile.medications?.length > 0 || profile.allergies?.length > 0;
+    const isNewLoadWithoutSynthesis = hasSignificantData && !synthesisData && !isGeneratingSynthesis && !sessionStorage.getItem('hc_profile_synthesis');
+    
+    if (significantHash !== prevHashRef.current || isNewLoadWithoutSynthesis) {
+      prevHashRef.current = significantHash;
+      if (hasSignificantData) {
+        // Debounce to prevent multiple rapid triggers during load
+        const timeoutId = setTimeout(() => {
+          handleGenerateSynthesis();
+        }, 1000);
+        return () => clearTimeout(timeoutId);
+      } else {
+        setSynthesisData(null);
+        sessionStorage.removeItem('hc_profile_synthesis');
+      }
+    }
+  }, [significantHash]);
+
   // Always render the dashboard structure so the user can see it empty
 
   // Helper to group timeline events by date
@@ -536,52 +564,32 @@ export default function MedicalProfile() {
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
               <Sparkles size={20} />
               <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
             </div>
-            {synthesisData && (
-              <button 
-                onClick={handleGenerateSynthesis}
-                disabled={isGeneratingSynthesis}
-                className="btn btn-outline btn-sm"
-              >
-                {isGeneratingSynthesis ? 'Regenerating...' : 'Refresh Synthesis'}
-              </button>
+            {isGeneratingSynthesis && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />
+                Analyzing Profile...
+              </div>
             )}
           </div>
           
           {synthesisData ? (
-             <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}>
+             <motion.div 
+               animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
+               style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
+             >
               <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
-            </div>
+            </motion.div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
               <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-                Generate a holistic health synthesis based on your latest medical data, vitals, and case history.
+                {isGeneratingSynthesis ? 'Your AI Clinical Synthesis is being automatically generated based on your profile...' : 'Add medical conditions, medications, or allergies to unlock your automated AI Clinical Synthesis.'}
               </p>
-              <button 
-                onClick={handleGenerateSynthesis}
-                disabled={isGeneratingSynthesis}
-                style={{
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
-                  color: '#FFF',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: 'var(--radius-lg)',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: isGeneratingSynthesis ? 'not-allowed' : 'pointer',
-                  opacity: isGeneratingSynthesis ? 0.7 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                <Sparkles size={16} /> {isGeneratingSynthesis ? 'Analyzing Profile...' : 'Generate Synthesis'}
-              </button>
             </div>
           )}
         </div>
