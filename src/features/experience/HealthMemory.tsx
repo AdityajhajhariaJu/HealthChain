@@ -16,6 +16,54 @@ const labelFor = (kind: HealthMemoryItem['kind']) => ({
   lab_report: 'Lab report', diet: 'Diet', health_buddy: 'Ava Health Buddy', profile_event: 'Health profile',
 }[kind] || kind);
 
+function formatTranscript(value: any[]) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', maxHeight: '300px', overflowY: 'auto' }}>
+      {value.map((msg: any, i: number) => (
+        <div key={i} style={{ 
+          alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+          background: msg.role === 'user' ? '#0F766E' : '#F1F5F9',
+          color: msg.role === 'user' ? '#FFF' : '#334155',
+          padding: '8px 12px',
+          borderRadius: '12px',
+          borderBottomRightRadius: msg.role === 'user' ? '4px' : '12px',
+          borderBottomLeftRadius: msg.role === 'ai' || msg.role === 'system' ? '4px' : '12px',
+          maxWidth: '85%',
+          fontSize: '13px'
+        }}>
+          {msg.text || msg.content || JSON.stringify(msg)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatGenericObject(obj: any): React.ReactNode {
+  if (obj === null || obj === undefined) return null;
+  if (typeof obj !== 'object') return String(obj);
+  
+  if (Array.isArray(obj)) {
+    return (
+      <ul style={{ margin: '4px 0 0', paddingLeft: '20px', color: '#475569' }}>
+        {obj.map((item, i) => (
+          <li key={i}>{formatGenericObject(item)}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <div style={{ background: '#fff', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {Object.entries(obj).map(([k, v]) => (
+        <div key={k} style={{ fontSize: '13px' }}>
+          <strong style={{ color: '#475569', textTransform: 'capitalize' }}>{k.replace(/([A-Z])/g, ' $1').trim()}: </strong>
+          <span style={{ color: '#334155' }}>{typeof v === 'object' ? formatGenericObject(v) : String(v)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PayloadFormatter({ payload }: { payload: any }) {
   if (!payload || typeof payload !== 'object') return null;
   const keys = Object.keys(payload);
@@ -28,11 +76,21 @@ function PayloadFormatter({ payload }: { payload: any }) {
         if (value === null || value === undefined || value === '') return null;
         
         let displayValue: React.ReactNode = String(value);
-        if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+        
+        if (key.toLowerCase().includes('transcript') || key === 'messages') {
+           displayValue = Array.isArray(value) ? formatTranscript(value) : formatGenericObject(value);
+        } else if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
           displayValue = (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {value.map((d: any, i) => {
-                const label = d.condition || d.name || d.title || d.label || JSON.stringify(d);
+                if (d.condition && d.confidence) {
+                  return (
+                    <span key={i} style={{ background: '#e0e7ff', color: '#3730a3', padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {d.condition} <span style={{ opacity: 0.7, fontSize: '11px' }}>{d.confidence}%</span>
+                    </span>
+                  );
+                }
+                const label = d.condition || d.name || d.title || d.label || d.action || d.step || (typeof d === 'string' ? d : 'Item');
                 return (
                   <span key={i} style={{ background: '#e0e7ff', color: '#3730a3', padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
                     {label}
@@ -42,7 +100,7 @@ function PayloadFormatter({ payload }: { payload: any }) {
             </div>
           );
         } else if (typeof value === 'object') {
-           displayValue = <pre style={{ margin: '6px 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 12, background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}>{JSON.stringify(value, null, 2)}</pre>;
+           displayValue = formatGenericObject(value);
         } else {
            displayValue = <div style={{ marginTop: 2 }}>{String(value)}</div>;
         }
