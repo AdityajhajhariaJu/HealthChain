@@ -18,7 +18,7 @@ function computeFingerprint(caseItem: CaseItem, profile: any): string {
     (caseItem.medicalRecords?.length || 0) + 
     (caseItem.intakeData?.chiefComplaint || '') +
     (profile?.updatedAt || '');
-  return hashString(dataString + '_v2');
+  return hashString(dataString + '_v3');
 }
 
 export function generateDeterministicBrief(caseItem: CaseItem, profile: any): AppointmentBrief {
@@ -83,25 +83,59 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
   }
 
   // 5. Questions for Clinician
-  const questionsForClinician: BriefQuestion[] = [
-    { question: 'Which findings do you consider confirmed, and which still need assessment?', sourceIds: ['standard'], isAI: false },
-    { question: 'What information would help decide the appropriate next step?', sourceIds: ['standard'], isAI: false },
-    { question: 'What changes would mean I should seek urgent care?', sourceIds: ['standard'], isAI: false }
-  ];
+  const questionsForClinician: BriefQuestion[] = [];
+  const addedQuestions = new Set<string>();
+  
+  const addQuestion = (q: string, source: string) => {
+    if (!addedQuestions.has(q)) {
+      addedQuestions.add(q);
+      questionsForClinician.push({ question: q, sourceIds: [source], isAI: true });
+    }
+  };
 
   // 6. Perspectives
   const priorPerspectives: BriefPerspective[] = [];
   if (intakeConcern !== 'No concern explicitly reported.') {
     priorPerspectives.push({ title: 'What you reported', summary: intakeConcern, sourceId: 'intake' });
   }
+  
   if (caseItem.reviews) {
     caseItem.reviews.forEach((r, i) => {
+      const report = r.report || {};
+      
+      let summary = 'Review completed.';
+      if (report.executiveSummary) summary = report.executiveSummary;
+      else if (report.patientFriendlySummary) summary = report.patientFriendlySummary;
+      
       if (r.type === 'parallel') {
-        priorPerspectives.push({ title: 'Questions previously prepared', summary: 'Quick Consult completed.', sourceId: `qc-${i}` });
+        priorPerspectives.push({ title: 'Quick Consult Overview', summary, sourceId: `qc-${i}` });
       } else if (r.type === 'mdt') {
-        priorPerspectives.push({ title: 'Areas previously flagged for clinician discussion', summary: 'Deep Collab completed.', sourceId: `mdt-${i}` });
+        priorPerspectives.push({ title: 'Collaborative Review', summary, sourceId: `mdt-${i}` });
+      }
+      
+      // Extract specific questions from the report
+      if (report.topDiagnoses && Array.isArray(report.topDiagnoses)) {
+        report.topDiagnoses.slice(0, 2).forEach((d: any) => {
+          const condition = typeof d === 'string' ? d : d.condition;
+          if (condition) addQuestion(`Could my symptoms be related to ${condition}?`, `review-${i}`);
+        });
+      }
+      if (report.recommendedActionPlan && Array.isArray(report.recommendedActionPlan)) {
+        report.recommendedActionPlan.slice(0, 2).forEach((a: any) => {
+          const action = typeof a === 'string' ? a : a.action || a.step || a;
+          if (typeof action === 'string' && action.length > 5) {
+            addQuestion(`Should we consider: ${action}?`, `review-${i}`);
+          }
+        });
       }
     });
+  }
+
+  // Fallback generic questions if we don't have enough specific ones
+  if (questionsForClinician.length < 3) {
+    addQuestion('Which findings do you consider confirmed, and which still need assessment?', 'standard');
+    addQuestion('What information would help decide the appropriate next step?', 'standard');
+    addQuestion('What changes would mean I should seek urgent care?', 'standard');
   }
 
   return {
