@@ -16,7 +16,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com; connect-src 'self' https://cikikocfvfshloqwnyfe.supabase.co wss://cikikocfvfshloqwnyfe.supabase.co https://generativelanguage.googleapis.com https://api.razorpay.com https://lumberjack.razorpay.com https://*.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; media-src 'self' https:; frame-src https://api.razorpay.com https://checkout.razorpay.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com; connect-src 'self' https://cikikocfvfshloqwnyfe.supabase.co wss://cikikocfvfshloqwnyfe.supabase.co https://generativelanguage.googleapis.com https://clinicaltrials.gov https://www.ebi.ac.uk https://api.razorpay.com https://lumberjack.razorpay.com https://*.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; media-src 'self' https:; frame-src https://api.razorpay.com https://checkout.razorpay.com;"
         },
         {
           "key": "X-Frame-Options",
@@ -36,7 +36,7 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
+          "value": "camera=(self), microphone=(), geolocation=()"
         }
       ]
     }

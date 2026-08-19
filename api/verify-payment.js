@@ -10,16 +10,6 @@ const ALLOWED_PLANS = {
   }
 };
 
-const ALLOWED_ORIGINS = [
-  'https://www.healthchain360.com',
-  'https://healthchain-live.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173',
-  'capacitor://localhost',
-  'http://localhost'
-];
-
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -33,7 +23,6 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Rate Limiting: Max 10 requests per minute per IP
   if (!checkRateLimit(req, 10, 60000)) {
     return res.status(429).json({ error: 'Too many requests. Please wait 60 seconds before trying again.' });
   }
@@ -47,8 +36,7 @@ export default async function handler(req, res) {
       razorpay_order_id, 
       razorpay_payment_id, 
       razorpay_signature, 
-      plan_id = 'pro_30_days',
-      user_id: _clientUserId
+      plan_id = 'pro_30_days'
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -64,21 +52,22 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Payment gateway configuration missing on server.' });
     }
 
-    // 1. Authenticate user from Supabase JWT STRICTLY
+    // 1. Authenticate user from Supabase JWT
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-    let effectiveUserId = null;
 
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Authentication required. Missing Bearer token.' });
     }
 
-    // Subscription credit must always belong to the authenticated purchaser, never a client-supplied ID.
-    const effectiveUserId = authenticatedUserId;
-    if (!effectiveUserId) {
+    const token = authHeader.substring(7);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user?.id) {
       return res.status(401).json({ error: 'Authentication required to activate Pro subscription.' });
     }
-    effectiveUserId = user.id;
+
+    const effectiveUserId = user.id;
 
     // 2. Timing-safe signature check
     const expectedSignature = crypto
@@ -93,7 +82,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid Payment Signature.' });
     }
 
-    // 3. Replay Protection: Ensure razorpay_payment_id was not previously used
+    // 3. Replay Protection
     const { data: existingPayment } = await supabase
       .from('payments')
       .select('id')
@@ -104,7 +93,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'This payment has already been processed and credited.' });
     }
 
-    // 4. Server-Side Amount & Status Verification with Razorpay API
+    // 4. Server-Side Amount Verification
     const targetPlan = ALLOWED_PLANS[plan_id];
     if (!targetPlan) return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
     let verifiedAmount = targetPlan.amount;
@@ -115,25 +104,22 @@ export default async function handler(req, res) {
           key_id: process.env.RAZORPAY_KEY_ID,
           key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
+
         const paymentDetails = await instance.payments.fetch(razorpay_payment_id);
         
         if (paymentDetails.order_id !== razorpay_order_id || paymentDetails.amount !== targetPlan.amount || paymentDetails.currency !== 'INR') {
-          return res.status(400).json({ error: `Payment amount ₹${paymentDetails.amount / 100} does not match required plan amount ₹${targetPlan.amount / 100}.` });
+          return res.status(400).json({ error: 'Payment amount does not match required plan amount.' });
         }
         verifiedAmount = paymentDetails.amount;
+
+        const orderDetails = await instance.orders.fetch(razorpay_order_id);
+        if (orderDetails.notes?.user_id && orderDetails.notes.user_id !== effectiveUserId) {
+          return res.status(403).json({ error: 'Payment identity mismatch. This order does not belong to your account.' });
+        }
       } catch (rzpErr) {
-        console.warn('Razorpay fetch check warning (proceeding if signature matches):', rzpErr.message);
+        console.error('Razorpay verification failed:', rzpErr);
+        return res.status(502).json({ error: 'Failed to verify transaction with payment gateway.', details: rzpErr.message });
       }
-
-      const orderDetails = await instance.orders.fetch(razorpay_order_id);
-      if (orderDetails.notes?.user_id !== effectiveUserId) {
-         return res.status(403).json({ error: 'Payment identity mismatch. This order does not belong to your account.' });
-      }
-
-      verifiedAmount = paymentDetails.amount;
-    } catch (rzpErr) {
-      console.error('Razorpay verification failed:', rzpErr);
-      return res.status(502).json({ error: 'Failed to verify transaction with payment gateway.', details: rzpErr.message });
     }
 
     // 5. Log payment record
@@ -148,10 +134,10 @@ export default async function handler(req, res) {
       });
 
     if (insertError) {
-      console.warn("DB payment log warning:", insertError);
+      console.warn('DB payment log warning:', insertError);
     }
 
-    // 6. Calculate expiration date and update profile
+    // 6. Activate Pro
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
 
@@ -164,7 +150,7 @@ export default async function handler(req, res) {
       .eq('id', effectiveUserId);
 
     if (updateError) {
-      console.error("Profile Update Error:", updateError);
+      console.error('Profile Update Error:', updateError);
       return res.status(500).json({ error: 'Payment verified, but failed to update profile', details: updateError });
     }
 
@@ -174,7 +160,7 @@ export default async function handler(req, res) {
       expires_at: expiryDate.toISOString()
     });
   } catch (error) {
-    console.error("Error verifying payment:", error);
+    console.error('Error verifying payment:', error);
     return res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 }

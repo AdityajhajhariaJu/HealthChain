@@ -3,15 +3,19 @@ import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 
 export function getProfileKey() {
-  if (localStorage.getItem('hc_guest_mode') === 'true') return 'hc_unified_profile_guest';
   try {
-    const accountStr = localStorage.getItem('hc_account');
-    if (accountStr) {
-      const account = JSON.parse(accountStr);
-      if (account.id) return `hc_unified_profile_${account.id}`;
-    }
-  } catch(e) {}
-  return 'hc_unified_profile';
+    if (localStorage.getItem('hc_guest_mode') === 'true') return 'hc_unified_profile_guest';
+    try {
+      const accountStr = localStorage.getItem('hc_account');
+      if (accountStr) {
+        const account = JSON.parse(accountStr);
+        if (account.id) return `hc_unified_profile_${account.id}`;
+      }
+    } catch(e) {}
+    return 'hc_unified_profile';
+  } catch (e) {
+    return 'hc_unified_profile_guest';
+  }
 }
 
 let historyStack = [];

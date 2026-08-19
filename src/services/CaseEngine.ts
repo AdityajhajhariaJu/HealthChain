@@ -724,8 +724,9 @@ export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
     if (getActiveCaseKey()) {
       const active = localStorage.getItem(getActiveCaseKey());
       if (active) {
-        const activeObj = JSON.parse(active);
-        if (activeObj.id === caseId) {
+        let activeObj;
+        try { activeObj = JSON.parse(active); } catch (e) { activeObj = null; }
+        if (activeObj && typeof activeObj === 'object' && activeObj.id === caseId) {
           localStorage.setItem(getActiveCaseKey(), JSON.stringify(cases[idx]));
         }
       }

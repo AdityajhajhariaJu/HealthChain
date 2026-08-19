@@ -80,11 +80,20 @@ export function setItemSync(key: string, value: string) {
 }
 
 export function getItemSync(key: string): string | null {
-  return localStorage.getItem(key);
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.warn('localStorage getItem blocked:', e);
+    return null;
+  }
 }
 
 export function removeItemSync(key: string) {
-  localStorage.removeItem(key);
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.warn('localStorage removeItem blocked:', e);
+  }
   if (Capacitor.getPlatform() !== 'web') {
     Preferences.remove({ key }).catch(e => console.warn('Failed to remove from preferences', e));
   }

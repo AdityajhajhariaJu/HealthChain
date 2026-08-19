@@ -87,7 +87,7 @@ export default function QuickConsult() {
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
     
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (localStorage.getItem('isAuthenticated') !== 'true' && localStorage.getItem('hc_guest_mode') !== 'true') {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
           title: 'Authentication Required', 

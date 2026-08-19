@@ -1,5 +1,6 @@
 import { checkRateLimit } from './utils/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',

@@ -127,7 +127,8 @@ export default function App() {
         
         // Sync account info from session to capture OAuth logins (like Google)
         const currentAccount = localStorage.getItem('hc_account');
-        const parsedAccount = currentAccount ? JSON.parse(currentAccount) : {};
+        let parsedAccount: any = {};
+        try { parsedAccount = currentAccount ? JSON.parse(currentAccount) : {}; } catch (e) { parsedAccount = {}; }
         setItemSync(
           'hc_account',
           JSON.stringify({

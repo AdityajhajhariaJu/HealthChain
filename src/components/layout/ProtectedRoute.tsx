@@ -6,7 +6,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    const isGuest = localStorage.getItem('hc_guest_mode') === 'true';
+    let isGuest = false;
+    try { isGuest = localStorage.getItem('hc_guest_mode') === 'true'; } catch (e) {}
     if (isGuest) {
       setIsAuthenticated(true);
       return;
@@ -15,6 +16,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     // Check real Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+    }).catch(() => {
+      setIsAuthenticated(false);
     });
 
     // Listen for session changes
@@ -24,9 +27,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     // Re-check when window regains focus
     const onFocus = () => {
+      if (isGuest) return;
       supabase.auth.getSession().then(({ data: { session } }) => {
         setIsAuthenticated(!!session);
-      });
+      }).catch(() => {});
     };
     window.addEventListener('focus', onFocus);
 

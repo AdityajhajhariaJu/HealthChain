@@ -108,7 +108,8 @@ export default function MDTHub() {
         let foundReport = null;
         const stored = localStorage.getItem('hc_history');
         if (stored) {
-          const historyArray = JSON.parse(stored);
+          let historyArray;
+          try { historyArray = JSON.parse(stored); } catch (e) { historyArray = []; }
           const item = historyArray.find((h: any) => h.id === historyId);
           if (item && item.type === 'mdt' && item.report) {
             foundReport = item.report;
@@ -175,7 +176,7 @@ export default function MDTHub() {
   ], [activeCase?.medicalRecords, medicalRecords]);
 
   const handleIntakeComplete = async (data) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (localStorage.getItem('isAuthenticated') !== 'true' && localStorage.getItem('hc_guest_mode') !== 'true') {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
           title: 'Authentication Required', 

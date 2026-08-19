@@ -23,7 +23,8 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     }
   } catch {}
 
-  const isGuest = localStorage.getItem('hc_guest_mode') === 'true';
+  let isGuest = false;
+  try { isGuest = localStorage.getItem('hc_guest_mode') === 'true'; } catch (e) {}
 
   if (!import.meta.env.DEV && !sessionToken && !isGuest) {
     throw new Error('Please sign in to use secure AI health processing.');
