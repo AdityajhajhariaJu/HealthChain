@@ -18,7 +18,7 @@ function computeFingerprint(caseItem: CaseItem, profile: any): string {
     (caseItem.medicalRecords?.length || 0) + 
     (caseItem.intakeData?.chiefComplaint || '') +
     (profile?.updatedAt || '');
-  return hashString(dataString + '_v4');
+  return hashString(dataString + '_v5');
 }
 
 export function generateDeterministicBrief(caseItem: CaseItem, profile: any): AppointmentBrief {
@@ -122,12 +122,26 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
         });
       }
       if (report.recommendedActionPlan && Array.isArray(report.recommendedActionPlan)) {
-        report.recommendedActionPlan.slice(0, 2).forEach((a: any) => {
+        report.recommendedActionPlan.slice(0, 3).forEach((a: any) => {
           const action = typeof a === 'string' ? a : a.action || a.step || a;
           if (typeof action === 'string' && action.length > 5) {
-            addQuestion(`Should we consider: ${action}?`, `review-${i}`);
+            const lowerAction = action.toLowerCase();
+            if (lowerAction.includes('refer') || lowerAction.includes('specialist')) {
+               addQuestion(`Would a specialist referral be appropriate? (${action})`, `review-${i}`);
+            } else if (lowerAction.includes('test') || lowerAction.includes('scan') || lowerAction.includes('mri') || lowerAction.includes('blood') || lowerAction.includes('lab')) {
+               addQuestion(`Should we consider any specific tests or reports? (${action})`, `review-${i}`);
+            } else if (lowerAction.includes('medication') || lowerAction.includes('treat')) {
+               addQuestion(`Are there specific medications or treatments we should discuss? (${action})`, `review-${i}`);
+            } else {
+               addQuestion(`Should we consider: ${action}?`, `review-${i}`);
+            }
           }
         });
+      }
+      
+      if (r.specialists && Array.isArray(r.specialists) && r.specialists.length > 0) {
+        const specs = r.specialists.join(', ');
+        addQuestion(`Would a referral to ${specs} be appropriate for my case?`, `review-${i}`);
       }
     });
   }
