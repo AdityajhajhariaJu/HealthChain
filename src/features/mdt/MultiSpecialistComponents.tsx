@@ -144,12 +144,20 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
   const Icon = specialist.icon;
 
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTo({
-        top: containerRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+    const el = containerRef.current;
+    if (!el) return;
+
+    // Scroll on message change
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+
+    // Scroll continuously as streaming text expands
+    const observer = new MutationObserver(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'auto' });
+    });
+    
+    observer.observe(el, { childList: true, subtree: true, characterData: true });
+    
+    return () => observer.disconnect();
   }, [messages.length]);
 
   useEffect(() => {
