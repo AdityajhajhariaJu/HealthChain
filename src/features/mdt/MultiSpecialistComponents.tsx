@@ -99,7 +99,7 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
     const newMessages = [...messages, { role: 'user', text }];
     setMessages(newMessages);
     setStatus('thinking');
-    setStep(step + 1);
+    setStep(prev => prev + 1);
 
     try {
       const response = await chatWithMDTSpecialist(newMessages, specialist, allSpecialists, intakeData, activeDifferentials);

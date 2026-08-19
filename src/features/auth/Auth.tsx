@@ -81,7 +81,7 @@ export default function Auth() {
         
         success('Welcome back!');
         if (rememberMe) {
-          localStorage.setItem('hc_remember', 'true');
+          try { localStorage.setItem('hc_remember', 'true'); } catch(e) {}
         } else {
           localStorage.removeItem('hc_remember');
         }
@@ -143,7 +143,7 @@ export default function Auth() {
         
         success('Account created successfully!');
         if (rememberMe) {
-          localStorage.setItem('hc_remember', 'true');
+          try { localStorage.setItem('hc_remember', 'true'); } catch(e) {}
         } else {
           localStorage.removeItem('hc_remember');
         }
@@ -501,7 +501,7 @@ export default function Auth() {
                     <button
                       type="button"
                       onClick={() => {
-                        localStorage.setItem('hc_guest_mode', 'true');
+                        try { localStorage.setItem('hc_guest_mode', 'true'); } catch(e) {}
                         navigate('/app');
                       }}
                       disabled={loading}

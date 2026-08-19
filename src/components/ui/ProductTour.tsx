@@ -41,7 +41,7 @@ export default function ProductTour() {
 
   const dismiss = () => {
     setIsVisible(false);
-    localStorage.setItem('hc_product_tour_seen', 'true');
+    try { localStorage.setItem('hc_product_tour_seen', 'true'); } catch(e) {}
   };
 
   const nextStep = () => {

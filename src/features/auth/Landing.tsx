@@ -85,7 +85,7 @@ export default function Landing() {
     useMDTStore.getState().reset();
     
     if (isLoggedOut) {
-      localStorage.setItem('hc_guest_mode', 'true');
+      try { localStorage.setItem('hc_guest_mode', 'true'); } catch(e) {}
     }
 
     setTimeout(() => {

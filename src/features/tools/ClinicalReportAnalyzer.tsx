@@ -87,7 +87,7 @@ export default function ClinicalReportAnalyzer() {
         }));
         return;
       }
-      localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString());
+      try { localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString()); } catch(e) {}
     }
 
     const selectedFile = e.target.files?.[0];
@@ -263,7 +263,7 @@ export default function ClinicalReportAnalyzer() {
         }));
         return;
       }
-      localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString());
+      try { localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString()); } catch(e) {}
     }
 
     e.preventDefault();

@@ -164,7 +164,7 @@ export default function Dietician() {
     }
   }, [foodLogs]);
   useEffect(() => {
-    localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'), JSON.stringify(hydration));
+    try { localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'), JSON.stringify(hydration)); } catch(e) {}
   }, [hydration]);
   useEffect(() => {
     if (mealPlan) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'), JSON.stringify(mealPlan));

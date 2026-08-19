@@ -339,10 +339,10 @@ export default function Settings() {
                 const isDark = e.target.checked;
                 if (isDark) {
                   document.documentElement.classList.add('dark-theme');
-                  localStorage.setItem('hc_theme', 'dark');
+                  try { localStorage.setItem('hc_theme', 'dark'); } catch(e) {}
                 } else {
                   document.documentElement.classList.remove('dark-theme');
-                  localStorage.setItem('hc_theme', 'light');
+                  try { localStorage.setItem('hc_theme', 'light'); } catch(e) {}
                 }
                 // Force re-render to update the checkbox visually
                 navigate('.', { replace: true });
@@ -621,7 +621,7 @@ export default function Settings() {
                       const isAllowed = ALLOWED_PREFIXES.some(prefix => key.startsWith(prefix));
                       if (isAllowed) {
                         const val = typeof result[key] === 'string' ? result[key] : JSON.stringify(result[key]);
-                        localStorage.setItem(key, val);
+                        try { localStorage.setItem(key, val); } catch(e) {}
                         importedCount++;
                       }
                     });

@@ -16,7 +16,7 @@ export default function ConsentManager() {
 
   const acceptCookies = () => {
     if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
-    localStorage.setItem('hc_cookies_accepted', 'true');
+    try { localStorage.setItem('hc_cookies_accepted', 'true'); } catch(e) {}
     setShowCookies(false);
   };
 

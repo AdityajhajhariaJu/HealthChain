@@ -21,7 +21,7 @@ export default function ActionPlan({ analysis }) {
           completed: false,
         }));
         setTasks(initialTasks);
-        localStorage.setItem('hc_plan', JSON.stringify(initialTasks));
+        try { localStorage.setItem('hc_plan', JSON.stringify(initialTasks)); } catch(e) {}
       }
     }
   }, [analysis]);
@@ -29,7 +29,7 @@ export default function ActionPlan({ analysis }) {
   const toggleTask = (id) => {
     const updated = tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
     setTasks(updated);
-    localStorage.setItem('hc_plan', JSON.stringify(updated));
+    try { localStorage.setItem('hc_plan', JSON.stringify(updated)); } catch(e) {}
   };
 
   if (!analysis) return null;

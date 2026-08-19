@@ -69,7 +69,7 @@ export default function PharmacyHub() {
         }));
         return;
       }
-      localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString());
+      try { localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString()); } catch(e) {}
     }
 
     e.preventDefault();

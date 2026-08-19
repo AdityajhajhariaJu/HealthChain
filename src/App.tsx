@@ -119,7 +119,7 @@ export default function App() {
             
             const guestProfile = localStorage.getItem(guestPrefix);
             if (guestProfile) {
-              localStorage.setItem(authPrefix, guestProfile);
+              try { localStorage.setItem(authPrefix, guestProfile); } catch(e) {}
               localStorage.removeItem(guestPrefix);
             }
             
@@ -130,7 +130,7 @@ export default function App() {
               const value = localStorage.getItem(key);
               if (!value) return;
               const targetKey = key.replace('_guest', `_${session.user.id}`);
-              localStorage.setItem(targetKey, value);
+              try { localStorage.setItem(targetKey, value); } catch(e) {}
               localStorage.removeItem(key);
             });
           }

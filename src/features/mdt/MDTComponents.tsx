@@ -1592,7 +1592,7 @@ export function MDTReportPanel({
         report: data,
       };
       historyArray.unshift(newHistoryItem);
-      localStorage.setItem('hc_history', JSON.stringify(historyArray));
+      try { localStorage.setItem('hc_history', JSON.stringify(historyArray)); } catch(e) {}
       window.dispatchEvent(new Event('hc_history_updated'));
 
       if (data.topDiagnoses && data.topDiagnoses.length > 0) {

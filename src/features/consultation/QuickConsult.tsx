@@ -722,7 +722,7 @@ export default function QuickConsult() {
               <button 
                 onClick={() => {
                   setPhase('select');
-                  sessionStorage.setItem('hc_qc_phase', 'select');
+                  try { sessionStorage.setItem('hc_qc_phase', 'select'); } catch(e) {}
                 }}
                 style={{
                   width: '100%',

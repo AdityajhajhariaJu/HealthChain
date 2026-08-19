@@ -32,7 +32,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
       if (isMounted.current) {
         if (result) {
           setSimulation(result);
-          sessionStorage.setItem(cacheKey, JSON.stringify(result));
+          try { sessionStorage.setItem(cacheKey, JSON.stringify(result)); } catch(e) {}
           recordHealthMemory({ kind: 'discussion_guide', source: 'pathway_guide', title: `Discussion guide: ${actionItem.step || 'Appointment topic'}`, occurredAt: new Date().toISOString(), payload: { actionItem, result }, dedupeKey: `discussion-guide:${actionItem.id || actionItem.step}` });
         }
       }

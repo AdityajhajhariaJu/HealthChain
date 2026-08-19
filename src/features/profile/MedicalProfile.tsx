@@ -77,9 +77,9 @@ export default function MedicalProfile() {
   });
 
   useEffect(() => {
-    sessionStorage.setItem('hc_profile_demo_editing', String(isEditingDemo));
+    try { sessionStorage.setItem('hc_profile_demo_editing', String(isEditingDemo)); } catch(e) {}
     if (isEditingDemo) {
-      sessionStorage.setItem('hc_profile_demo_form', JSON.stringify(demoForm));
+      try { sessionStorage.setItem('hc_profile_demo_form', JSON.stringify(demoForm)); } catch(e) {}
     } else {
       sessionStorage.removeItem('hc_profile_demo_form');
     }
@@ -215,7 +215,7 @@ export default function MedicalProfile() {
     const result = await generateProfileSynthesis(profile);
     if (result) {
       setSynthesisData(result);
-      sessionStorage.setItem('hc_profile_synthesis', JSON.stringify(result));
+      try { sessionStorage.setItem('hc_profile_synthesis', JSON.stringify(result)); } catch(e) {}
     }
     setIsGeneratingSynthesis(false);
   };

@@ -17,7 +17,7 @@ export const MonetizationService = {
     return new Promise((resolve) => {
       // Mock payment flow
       setTimeout(() => {
-        localStorage.setItem('hc_premium_status', 'active');
+        try { localStorage.setItem('hc_premium_status', 'active'); } catch(e) {}
         trackEvent('Purchase', { tier, currency: 'INR', value: tier === 'yearly' ? 5000 : 500 });
         
         // Dispatch event for UI
