@@ -46,6 +46,15 @@ export default function AvaHealthBuddy() {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setMessages(getSavedMessages());
+    };
+    window.addEventListener('hc_profile_updated', handleProfileUpdate);
+    return () => window.removeEventListener('hc_profile_updated', handleProfileUpdate);
+  }, []);
+
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
