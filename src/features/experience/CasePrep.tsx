@@ -99,13 +99,13 @@ export default function CasePrep() {
   return <main style={{ maxWidth: 1120, margin: '0 auto', padding: '32px 20px 80px' }}>
     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}><button className="btn btn-primary" onClick={() => navigate('/app/case-prep')}>Case Prep</button><button className="btn btn-outline" onClick={() => navigate('/app/collab')}>Classic Deep Collab</button></div>
     <section style={{ padding: 28, borderRadius: 24, background: 'linear-gradient(135deg, #ecfeff, #f8fafc)', border: '1px solid #bae6fd', marginBottom: 24 }}><div style={{ display: 'flex', gap: 12, alignItems: 'center', color: '#0f766e' }}><Sparkles size={22} /><strong>FREE APPOINTMENT PREP</strong></div><h1 style={{ margin: '12px 0 8px', fontSize: 'clamp(30px, 5vw, 48px)', color: '#0f172a' }}>Build the case you want your clinician to see.</h1><p style={{ maxWidth: 760, lineHeight: 1.7, color: '#475569', margin: 0 }}>Turn scattered symptoms, records, and unanswered questions into a dated case brief. HealthChain helps you prepare the conversation; your clinician makes medical decisions.</p></section>
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(280px, .8fr)', gap: 20, alignItems: 'start' }}>
-      <section className="card" style={{ padding: 24 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'flex-start' }}>
+      <section className="card" style={{ padding: 24, flex: '1 1 500px', minWidth: 0 }}>
         <label style={{ fontWeight: 800, display: 'block', marginBottom: 8 }}>What are you trying to understand?</label><textarea value={concern} onChange={(e) => setConcern(e.target.value)} placeholder="Example: fatigue, dizziness, and stomach symptoms that have continued for six months" rows={3} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
         <label style={{ fontWeight: 800, display: 'block', margin: '20px 0 8px' }}>Symptom timeline</label><textarea value={timeline} onChange={(e) => setTimeline(e.target.value)} placeholder={'One event per line\nJan: fatigue began\nMar: dizziness became more frequent'} rows={5} style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #cbd5e1', font: 'inherit', boxSizing: 'border-box' }} />
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', margin: '20px 0 8px' }}>
-          <label style={{ fontWeight: 800, display: 'block' }}>Records or facts to bring</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 8px', flexWrap: 'wrap', gap: '10px' }}>
+          <label style={{ fontWeight: 800, display: 'block', margin: 0 }}>Records or facts to bring</label>
           <div style={{position: 'relative'}}>
             <button className="btn btn-outline" style={{ padding: '4px 10px', fontSize: 12, height: 'auto', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setShowImportDropdown(!showImportDropdown)}>
               <Download size={14} /> Import Essence
@@ -138,7 +138,7 @@ export default function CasePrep() {
             <button className="btn btn-outline" onClick={() => { clearCasePrepDraft(); setConcern(''); setTimeline(''); setRecords(''); setAppointment(''); setGoal(''); setCareSoFar(''); setCaseItem(null); setShowBrief(false); setAiAnalysis(null); }} title="Clear saved draft" style={{ padding: '0 14px' }}><Trash2 size={18} /></button>
         </div>
       </section>
-      <aside style={{ display: 'grid', gap: 16 }}>
+      <aside style={{ display: 'grid', gap: 16, flex: '1 1 300px', minWidth: 0 }}>
         <section className="card" style={{ padding: 20 }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong>Case readiness</strong><strong style={{ color: '#0f8b7e' }}>{readiness}%</strong></div><div style={{ height: 10, borderRadius: 99, background: '#e2e8f0', margin: '14px 0 16px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${readiness}%`, background: '#14b8a6' }} /></div>{['Clear main concern', 'Timeline with 2+ events', 'At least one record or fact', 'Appointment date'].map((item, index) => <div key={item} style={{ display: 'flex', gap: 8, marginTop: 10, color: '#475569', fontSize: 14 }}><CheckCircle2 size={17} color={[concern.trim(), timelineItems.length >= 2, recordItems.length >= 1, appointment][index] ? '#10b981' : '#cbd5e1'} />{item}</div>)}</section>
         <section className="card" style={{ padding: 20 }}><div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><ListChecks size={19} color="#0f8b7e" /><strong>Questions to ask</strong></div><ol style={{ paddingLeft: 20, lineHeight: 1.6, color: '#475569', fontSize: 14 }}>{questions.map((question) => <li key={question} style={{ marginTop: 10 }}>{question}</li>)}</ol></section>
         <section style={{ padding: 18, borderRadius: 16, background: '#fff7ed', border: '1px solid #fed7aa', display: 'flex', gap: 10, color: '#9a3412', fontSize: 13, lineHeight: 1.5 }}><ShieldAlert size={20} style={{ flexShrink: 0 }} />If you have severe, sudden, or rapidly worsening symptoms, seek urgent medical care instead of waiting for an AI review.</section>

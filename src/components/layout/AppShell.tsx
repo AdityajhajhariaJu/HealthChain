@@ -47,7 +47,7 @@ const links = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
   { to: '/app/collab', label: 'Collaborative Specialists', icon: Network },
-  { to: '/app/case-prep', label: 'Case Prep (Beta)', icon: ClipboardList },
+  { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/health-memory', label: 'Health Memory', icon: Brain },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
