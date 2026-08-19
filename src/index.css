@@ -1144,3 +1144,5 @@ html.dark-theme body {
 }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+@media print { body * { visibility: hidden; } .case-prep-printable-dossier, .case-prep-printable-dossier * { visibility: visible; } .case-prep-printable-dossier { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; } .print-hide { display: none !important; } }
+

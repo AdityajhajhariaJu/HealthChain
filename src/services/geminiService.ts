@@ -1443,3 +1443,41 @@ Return ONLY a valid JSON object matching this exact schema:
     return null;
   }
 }
+
+export async function generateAppointmentQuestions(casePrepData: any): Promise<string[]> {
+  const prompt = `You are an expert clinical triage assistant helping a patient prepare for a doctor's appointment.
+The patient has the following notes:
+Concern: ${casePrepData.concern}
+Timeline: ${casePrepData.timeline}
+Records/Facts: ${casePrepData.records}
+
+Generate exactly 4 highly specific, medical questions the patient should ask their doctor. 
+The questions should sound like they were written by a smart, prepared patient.
+Focus on differentiating diagnoses, next steps, and urgency.
+Return strictly as a JSON array of strings.`;
+
+  const payload = {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: "array",
+        items: { type: "string" }
+      }
+    }
+  };
+
+  try {
+    const res = await fetchWithTimeout(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return JSON.parse(data.candidates[0].content.parts[0].text);
+  } catch (err) {
+    console.error('generateAppointmentQuestions error:', err);
+    return [];
+  }
+}
