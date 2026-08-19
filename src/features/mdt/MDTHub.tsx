@@ -41,6 +41,7 @@ import {
   IntakePhase,
   MDTSpecialistPanel,
   MDTReportPanel,
+    MDTConferencePanel,
 } from './MDTComponents';
 import { MDTHubDashboard } from './MDTHubDashboard';
 import { runDifferentialAnalysis } from '../../services/geminiService';
@@ -396,6 +397,18 @@ export default function MDTHub() {
   const handleSpecialistUpdate = useCallback((id: string, transcript: any[]) => {
     setSpecialistTranscripts((prev) => ({ ...prev, [id]: transcript }));
   }, [setSpecialistTranscripts]);
+
+  
+  const handleConferenceComplete = async (conferenceData: any, answers: any) => {
+    try {
+      const report = await generateMDTReport(intakeData, conferenceData, activeCase?.medicalRecords || []);
+      setHistoryReport(report);
+      setPhase('report');
+    } catch (e) {
+      console.error('Failed to generate MDT report', e);
+      alert('Failed to generate consensus report. Please try again.');
+    }
+  };
 
   const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
     setSpecialistTranscripts((prev) => {
@@ -888,6 +901,25 @@ export default function MDTHub() {
                 <CompilingAnimation isDark={false} />
               </motion.div>
             )}
+
+            {phase === 'conference' && (
+              <motion.div
+                key="conference"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+              >
+                <MDTConferencePanel
+                  intakeData={intakeData}
+                  selectedSpecialists={selectedSpecialists}
+                  specialistTranscripts={specialistTranscripts}
+                  medicalRecords={activeCase?.medicalRecords || []}
+                  onComplete={handleConferenceComplete}
+                />
+              </motion.div>
+            )}
+
 
           </AnimatePresence>
         </div>
