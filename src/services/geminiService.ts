@@ -385,7 +385,12 @@ ${questionRule}
 Return your response STRICTLY as JSON matching this format:
 {
   "internalThoughts": "1 sentence describing what you are currently considering/ruling out based on the latest input.",
-  "patientFriendlySummary": "If outputting 'ANALYSIS_COMPLETE', provide a 3-4 sentence patient-friendly summary explaining the connection between their symptoms and your hypotheses. Leave empty otherwise.",
+  "patientFriendlySummary": "If outputting 'ANALYSIS_COMPLETE', provide a 1-2 sentence quick summary.",
+  "keyFindings": "If outputting 'ANALYSIS_COMPLETE', summarize the core clinical findings in a clear paragraph. Leave empty otherwise.",
+  "interpretation": "If outputting 'ANALYSIS_COMPLETE', explain what these findings mean in plain English. Leave empty otherwise.",
+  "nextSteps": "If outputting 'ANALYSIS_COMPLETE', outline the actionable next steps for the patient. Leave empty otherwise.",
+  "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
+  "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
   "currentHypotheses": ["Hypothesis 1 (60%)", "Hypothesis 2 (40%)"],
   "response": "Your conversational question to the patient. (Or 'ANALYSIS_COMPLETE').",
   "widgetType": "none | pain_slider | symptom_pills (CRITICAL: Use 'pain_slider' if asking about pain severity 1-10. Use 'symptom_pills' if asking the user to select from a list of descriptors/symptoms).",
@@ -413,6 +418,11 @@ Return your response STRICTLY as JSON matching this format:
         properties: {
           internalThoughts: { type: "string" },
           patientFriendlySummary: { type: "string" },
+          keyFindings: { type: "string" },
+          interpretation: { type: "string" },
+          nextSteps: { type: "string" },
+          abnormalitiesNoted: { type: "array", items: { type: "string" } },
+          medicalTerms: { type: "array", items: { type: "object", properties: { term: { type: "string" }, definition: { type: "string" } } } },
           currentHypotheses: { type: "array", items: { type: "string" } },
           response: { type: "string" },
           widgetType: { type: "string" },
@@ -532,6 +542,11 @@ Patient's Final Answers: ${JSON.stringify(finalAnswers)}
 Compile a structured, patient-safe Collaborative Board case brief. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list. Return strictly as JSON:
 {
   "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
+  "keyFindings": "Summarize the core clinical findings across all specialists in a clear paragraph.",
+  "interpretation": "Explain what these collective findings mean in plain English.",
+  "nextSteps": "Outline the actionable next steps for the patient, prioritizing the most critical ones.",
+  "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
+  "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
   "urgency": "Routine | Soon | Urgent",
   "topDiagnoses": [
     { 
@@ -554,8 +569,7 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
         "timelineDescription": "Brief description",
         "successRate": 85,
         "costEstimate": "$500",
-        "risks": ["Risk 1"],
-        "milestones": [{"day": 7, "description": "Phase 1"}]
+        "impact": "What this solves"
       }
     }
   ],
@@ -565,7 +579,25 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: reportPrompt }] },
     contents: [{ role: 'user', parts: [{ text: 'Generate final report.' }] }],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { 
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: "object",
+        properties: {
+          executiveSummary: { type: "string" },
+          keyFindings: { type: "string" },
+          interpretation: { type: "string" },
+          nextSteps: { type: "string" },
+          abnormalitiesNoted: { type: "array", items: { type: "string" } },
+          medicalTerms: { type: "array", items: { type: "object", properties: { term: { type: "string" }, definition: { type: "string" } } } },
+          urgency: { type: "string" },
+          topDiagnoses: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, confidence: { type: "number" }, rationale: { type: "string" }, specialty: { type: "string" }, evidenceFor: { type: "array", items: { type: "string" } }, evidenceGaps: { type: "array", items: { type: "string" } }, citations: { type: "array", items: { type: "object", properties: { title: { type: "string" }, journal: { type: "string" }, year: { type: "number" }, link: { type: "string" } } } } } } },
+          recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" }, simulation: { type: "object", properties: { timelineDays: { type: "number" }, timelineDescription: { type: "string" }, successRate: { type: "number" }, costEstimate: { type: "string" }, impact: { type: "string" } } } } } },
+          questionsForClinician: { type: "array", items: { type: "string" } }
+        },
+        required: ["executiveSummary", "topDiagnoses", "recommendedActionPlan"]
+      }
+    },
   };
 
   try {

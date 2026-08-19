@@ -24,6 +24,7 @@ import DDxBoard from './DDxBoard';
 import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ActiveCaseBar } from '../../components/layout/AppShell';
+import { RichReportTemplate } from '../../components/ui/RichReportTemplate';
 
 const formatDate = (value: string) => {
   try {
@@ -470,11 +471,9 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
         {activeTab === 'overview' && (
           <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.25fr .75fr', gap: 22, alignItems: 'start' }}>
             <div style={{ display: 'grid', gap: 22 }}>
-              <section className="card" style={{ padding: 24 }}>
-                 <h2 style={{ fontSize: 20, margin: '0 0 10px' }}>Current Case Synthesis</h2>
-                 <p style={{ margin: 0, lineHeight: 1.7, color: '#334155' }}>
-                   {report.executiveSummary || 'This case is waiting for its first evidence synthesis. Start a Quick Consult to build the initial clinical picture.'}
-                 </p>
+              <section className="card" style={{ padding: 24, background: 'transparent', border: 'none', boxShadow: 'none' }}>
+                <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Current Case Synthesis</h2>
+                <RichReportTemplate report={report} isMobile={isMobile} />
               </section>
               <section className="card" style={{ padding: 24 }}>
                 <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Possible pathways to discuss</h2>
