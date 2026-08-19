@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
@@ -23,7 +23,7 @@ const cachedQuickConsultStreams: any = {};
 export default function QuickConsult() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [phase, setPhase] = useState<'select' | 'chat' | 'compiling' | 'done'>(() => {
+  const [phase, setPhase] = useState<'select' | 'upload' | 'chat' | 'compiling' | 'done'>(() => {
     return (sessionStorage.getItem('hc_qc_phase') as any) || 'select';
   });
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(() => {
@@ -37,6 +37,9 @@ export default function QuickConsult() {
     const saved = sessionStorage.getItem('hc_qc_case');
     return saved ? JSON.parse(saved) : null;
   });
+
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -98,6 +101,30 @@ export default function QuickConsult() {
     
     setActiveCase(newCase);
     setPhase('chat');
+  };
+
+  
+  const handleSkipUpload = () => {
+    setPhase('chat');
+  };
+
+  const handleProceedWithUpload = () => {
+    // If files were uploaded, we'll pass them as context via symptomInput
+    if (uploadedFiles.length > 0) {
+      const fileNames = uploadedFiles.map(f => f.name).join(', ');
+      setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
+    }
+    setPhase('chat');
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleComplete = async (id: string, messages: any[]) => {
@@ -357,6 +384,156 @@ export default function QuickConsult() {
                   Start Consult <ArrowRight size={18} />
                 </button>
               </div>
+            </div>
+          </motion.div>
+        )}
+
+
+        {phase === 'upload' && selectedSpecialist && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{
+              background: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(24px)',
+              padding: isMobile ? '32px 20px' : '40px 56px',
+              borderRadius: '32px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              maxWidth: '560px',
+              margin: '0 auto',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'linear-gradient(135deg, #6366F1, #A855F7)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+              <FileUp size={32} color="#FFF" />
+            </div>
+
+            <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px' }}>
+              Have any existing reports?
+            </h2>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 32px', lineHeight: 1.5 }}>
+              Upload lab results, imaging reports, or previous prescriptions. This helps the {selectedSpecialist.label} AI ask better, more targeted questions.
+            </p>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  padding: '14px 24px',
+                  background: '#F8FAFC',
+                  border: '2px dashed #CBD5E1',
+                  borderRadius: 16,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: '#475569',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#6366F1'; e.currentTarget.style.color = '#6366F1'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+              >
+                <Upload size={18} /> Upload Files
+              </button>
+              <button
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.capture = 'environment';
+                  input.onchange = (e: any) => {
+                    if (e.target.files) setUploadedFiles(prev => [...prev, ...Array.from(e.target.files as FileList)]);
+                  };
+                  input.click();
+                }}
+                style={{
+                  padding: '14px 24px',
+                  background: '#F8FAFC',
+                  border: '2px dashed #CBD5E1',
+                  borderRadius: 16,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: '#475569',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#6366F1'; e.currentTarget.style.color = '#6366F1'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+              >
+                <Image size={18} /> Take Photo
+              </button>
+            </div>
+
+            {uploadedFiles.length > 0 && (
+              <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {uploadedFiles.map((file, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: '#F0FDF4', borderRadius: 12, border: '1px solid #BBF7D0' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#166534', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
+                      {file.name}
+                    </span>
+                    <button onClick={() => removeFile(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', padding: 4 }}>
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                onClick={handleSkipUpload}
+                style={{
+                  padding: '14px 28px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: '#64748B',
+                  transition: 'color 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.color = '#0F172A'; }}
+                onMouseOut={(e) => { e.currentTarget.style.color = '#64748B'; }}
+              >
+                Skip for now
+              </button>
+              {uploadedFiles.length > 0 && (
+                <button
+                  onClick={handleProceedWithUpload}
+                  style={{
+                    padding: '14px 28px',
+                    background: '#0F172A',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: 999,
+                    cursor: 'pointer',
+                    fontSize: 15,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Continue with {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''} <ArrowRight size={16} />
+                </button>
+              )}
             </div>
           </motion.div>
         )}

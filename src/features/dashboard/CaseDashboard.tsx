@@ -366,7 +366,7 @@ export default function CaseDashboard() {
 
 function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: any, refresh: any }) {
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'reviews' | 'actions' | 'connections'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'actions' | 'connections'>('overview');
   const [simulatorAction, setSimulatorAction] = useState<any>(null);
   const report = item.currentSummary || {};
   const records = item.medicalRecords || [];
@@ -383,7 +383,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
       <PrintableDossier item={item} profile={profile} />
 
       <div style={{ display: 'flex', gap: 20, marginTop: 24, borderBottom: '1px solid #e2e8f0', paddingBottom: 10, overflowX: 'auto' }}>
-        {['overview', 'connections', 'timeline', 'evidence', 'reviews', 'actions'].map(tab => (
+        {['overview', 'connections', 'timeline', 'evidence', 'actions'].map(tab => (
           <button 
              key={tab} 
              onClick={() => setActiveTab(tab as any)}
@@ -429,7 +429,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                         <strong>{d.condition}</strong>
-                        <span className="badge badge-teal">{d.specialty || 'Review'}</span>
+                        
                       </div>
                       <p
                         style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
@@ -610,9 +610,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
           </div>
         )}
 
-        {activeTab === 'reviews' && (
-          <SnapshotViewer item={item} />
-        )}
+        
 
         {activeTab === 'actions' && (
           <div className="card" style={{ padding: 24 }}>
