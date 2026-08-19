@@ -174,7 +174,7 @@ export default function CasePrep() {
       
       <section className="print-hide" style={{ padding: 28, borderRadius: 24, background: 'linear-gradient(135deg, #ecfeff, #f8fafc)', border: '1px solid #bae6fd', marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', color: '#0f766e' }}>
-          <Sparkles size={22} /><strong>FREE APPOINTMENT PREP</strong>
+          <Sparkles size={22} /><strong>APPOINTMENT PREP</strong>
         </div>
         <h1 style={{ margin: '12px 0 8px', fontSize: 'clamp(20px, 2.5vw, 26px)', color: '#0f172a' }}>Build the case you want your clinician to see.</h1>
         <p style={{ maxWidth: 760, lineHeight: 1.7, color: '#475569', margin: 0, fontSize: 14 }}>Turn scattered symptoms, records, and unanswered questions into a clean SBAR handoff. Prepare the conversation; let your clinician make the decisions.</p>
