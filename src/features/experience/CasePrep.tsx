@@ -30,7 +30,7 @@ export default function CasePrep() {
   const [goal, setGoal] = useState('');
   const [careSoFar, setCareSoFar] = useState('');
   const [caseItem, setCaseItem] = useState<CaseItem | null>(null);
-  const [showBrief, setShowBrief] = useState(false);
+  // showBrief removed for live preview
   const hydrated = useRef(false);
 
   const [showImportDropdown, setShowImportDropdown] = useState(false);
@@ -131,7 +131,7 @@ export default function CasePrep() {
     if (!concern.trim()) return;
     const item = saveCasePrepCase({ caseId: caseItem?.id, concern, timeline, records, appointment, goal, careSoFar });
     setCaseItem(item);
-    setShowBrief(true);
+    
     window.dispatchEvent(new Event('hc_cases_updated'));
   };
 
@@ -142,6 +142,17 @@ export default function CasePrep() {
     if (qs.length > 0) setSmartQuestions(qs);
     setIsGeneratingQs(false);
   };
+
+    // Auto-generate questions when typing stops for 2.5s
+  useEffect(() => {
+    if (!concern.trim()) return;
+    const timer = setTimeout(() => {
+      // Only generate if we don't have questions yet, or if they are outdated
+      // To keep it simple, we just generate if they haven't explicitly asked recently.
+      handleGenerateQuestions();
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [concern, timeline, records]);
 
   const handleAskCoach = async () => {
     if (!coachInput.trim() || isCoaching) return;
@@ -223,9 +234,9 @@ export default function CasePrep() {
           
           <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
               <button className="btn btn-primary" onClick={createCase} disabled={!concern.trim()} style={{ flex: 1, padding: 14, display: 'flex', justifyContent: 'center', gap: 8, minWidth: 200 }}>
-                <ClipboardList size={18} /> {caseItem ? 'Update my case brief' : 'Generate Doctor Discussion Guide'} <ArrowRight size={18} />
+                <ClipboardList size={18} /> {caseItem ? 'Saved to My Cases' : 'Save to My Cases'} <ArrowRight size={18} />
               </button>
-              <button className="btn btn-outline" onClick={() => { clearCasePrepDraft(); setConcern(''); setTimeline(''); setRecords(''); setAppointment(''); setGoal(''); setCareSoFar(''); setCaseItem(null); setShowBrief(false); setSmartQuestions([]); setCoachChat([]); }}  title="Clear saved draft" style={{ padding: '0 14px' }}><Trash2 size={18} /></button>
+              <button className="btn btn-outline" onClick={() => { clearCasePrepDraft(); setConcern(''); setTimeline(''); setRecords(''); setAppointment(''); setGoal(''); setCareSoFar(''); setCaseItem(null);  setSmartQuestions([]); setCoachChat([]); }}  title="Clear saved draft" style={{ padding: '0 14px' }}><Trash2 size={18} /></button>
           </div>
         </section>
 
@@ -249,7 +260,7 @@ export default function CasePrep() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><ListChecks size={19} color="#0f8b7e" /><strong>Smart Questions</strong></div>
                <button onClick={handleGenerateQuestions} disabled={isGeneratingQs || !concern} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10B981', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700 }}>
-                 {isGeneratingQs ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />} {smartQuestions.length ? 'Regenerate' : 'Auto-Generate'}
+                 {isGeneratingQs ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />} 'Regenerate'
                </button>
             </div>
             {isGeneratingQs ? (
@@ -307,7 +318,7 @@ export default function CasePrep() {
         </aside>
       </div>
 
-      {showBrief && (
+      {(concern.trim().length > 0) && (
         <section className="case-prep-printable-dossier" style={{ marginTop: 40, background: '#FFF' }}>
           <div className="print-hide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
              <h2 style={{ margin: 0 }}>Doctor Discussion Guide</h2>
