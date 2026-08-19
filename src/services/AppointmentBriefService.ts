@@ -18,7 +18,7 @@ function computeFingerprint(caseItem: CaseItem, profile: any): string {
     (caseItem.medicalRecords?.length || 0) + 
     (caseItem.intakeData?.chiefComplaint || '') +
     (profile?.updatedAt || '');
-  return hashString(dataString + '_v3');
+  return hashString(dataString + '_v4');
 }
 
 export function generateDeterministicBrief(caseItem: CaseItem, profile: any): AppointmentBrief {
@@ -34,10 +34,11 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
     if (caseItem.reviews && caseItem.reviews.length > 0) {
       // Find the first user message in any transcript
       for (const review of caseItem.reviews) {
-        if (review.transcripts && Array.isArray(review.transcripts)) {
-          const firstUserMsg = review.transcripts.find(t => t.role === 'user' && t.content);
-          if (firstUserMsg && firstUserMsg.content) {
-            intakeConcern = firstUserMsg.content;
+        if (review.transcripts) {
+          const messages = Array.isArray(review.transcripts) ? review.transcripts : Object.values(review.transcripts).flat();
+          const firstUserMsg = messages.find((t: any) => t.role === 'user' && (t.content || t.text));
+          if (firstUserMsg) {
+            intakeConcern = firstUserMsg.content || firstUserMsg.text;
             break;
           }
         }
