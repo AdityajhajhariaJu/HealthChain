@@ -673,4 +673,11 @@ export async function verifyProStatus() {
   }
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('hc_logout', () => {
+    historyStack = [];
+    historyIndex = -1;
+  });
+}
+
 

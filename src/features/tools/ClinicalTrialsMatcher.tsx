@@ -161,9 +161,9 @@ export default function ClinicalTrialsMatcher() {
     
   // Fallback if no reviews exist yet
   if (diagnoses.length === 0 && activeCase?.differentials) {
-    const diffs = Object.entries(activeCase.differentials)
-      .filter(([_, data]: [string, any]) => data.probability > 25)
-      .map(([cond]) => cond)
+    const diffs = activeCase.differentials
+      .filter((d: any) => d.probability > 25)
+      .map((d: any) => d.condition)
       .slice(0, 2);
     diagnoses.push(...diffs);
   }

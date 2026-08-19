@@ -22,7 +22,7 @@ try {
 }
 
 // Initialize Capacitor storage sync before rendering
-syncStorageFromPreferences().then(() => {
+syncStorageFromPreferences().catch(() => {}).then(() => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>

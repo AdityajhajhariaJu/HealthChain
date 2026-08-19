@@ -221,7 +221,7 @@ export default function MedicalProfile() {
   };
 
   const significantHash = JSON.stringify([
-    profile.medicalConditions,
+    profile.conditions, // was medicalConditions
     profile.medications,
     profile.allergies,
     profile.familyHistory,
@@ -230,7 +230,7 @@ export default function MedicalProfile() {
   const prevHashRef = useRef(significantHash);
 
   useEffect(() => {
-    const hasSignificantData = profile.medicalConditions?.length > 0 || profile.medications?.length > 0 || profile.allergies?.length > 0;
+    const hasSignificantData = profile.conditions?.length > 0 || profile.medications?.length > 0 || profile.allergies?.length > 0;
     const isNewLoadWithoutSynthesis = hasSignificantData && !synthesisData && !isGeneratingSynthesis && !sessionStorage.getItem('hc_profile_synthesis');
     
     if (significantHash !== prevHashRef.current || isNewLoadWithoutSynthesis) {

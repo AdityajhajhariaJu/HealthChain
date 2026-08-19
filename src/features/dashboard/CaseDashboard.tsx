@@ -136,7 +136,7 @@ export default function CaseDashboard() {
           <div>
             <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 38, letterSpacing: -1.2, lineHeight: 1.1 }}>
               Good to see you
-              {profile.demographics.name ? `, ${(profile?.demographics?.name || '').split(' ')[0] || 'User'}` : ''}.
+              {profile?.demographics?.name ? `, ${(profile?.demographics?.name || '').split(' ')[0] || 'User'}` : ''}.
             </h1>
             <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
               Start with parallel AI specialist perspectives, then bring their findings into a Deep

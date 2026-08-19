@@ -31,7 +31,7 @@ export default function ConsentManager() {
             exit={{ y: 100, opacity: 0 }}
             style={{
               position: 'fixed',
-              bottom: isMobile ? 16 : 24,
+              bottom: isMobile ? 80 : 24,
               left: isMobile ? 16 : 24,
               right: isMobile ? 16 : 24,
               backgroundColor: 'var(--surface)',

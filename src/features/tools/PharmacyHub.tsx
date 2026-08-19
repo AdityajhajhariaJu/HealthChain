@@ -379,6 +379,7 @@ export default function PharmacyHub() {
                     <div style={{ marginLeft: isMobile ? '0' : 'auto', display: 'flex', alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
                       <button
                         onClick={() => handleAddMedication(displayData.name)}
+                        disabled={isCheckingInteraction}
                         style={{
                           background: '#10B981',
                           color: '#FFF',

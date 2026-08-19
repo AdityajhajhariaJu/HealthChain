@@ -86,3 +86,10 @@ export function compilePatientContext() {
   lastProfileHash = currentHash;
   return result;
 }
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('hc_logout', () => {
+    cachedContext = null;
+    lastProfileHash = null;
+  });
+}

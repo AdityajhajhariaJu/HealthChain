@@ -71,6 +71,8 @@ export default function Settings() {
     localStorage.clear();
     if (theme) localStorage.setItem('hc_theme', theme);
     if (consent) localStorage.setItem('hc_consent', consent);
+    sessionStorage.clear();
+    window.dispatchEvent(new Event('hc_logout'));
     navigate('/', { replace: true });
   };
 
@@ -87,6 +89,19 @@ export default function Settings() {
         await supabase.from('user_devices').delete().eq('user_id', session.user.id);
         await supabase.from('health_memory').delete().eq('user_id', session.user.id);
       }
+
+      // Call the backend to scramble the identity securely
+      try {
+        await fetch('/api/delete-account', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session?.access_token}` }
+        });
+      } catch (e) {
+        console.error('Delete account API error', e);
+      }
+      
+      sessionStorage.clear();
+      window.dispatchEvent(new Event('hc_logout'));
 
       localStorage.clear();
       await supabase.auth.signOut();

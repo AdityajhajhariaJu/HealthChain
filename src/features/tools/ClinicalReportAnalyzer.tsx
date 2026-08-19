@@ -93,9 +93,9 @@ export default function ClinicalReportAnalyzer() {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
-    // Check size limit (e.g. 5MB)
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      alert('File is too large. Please upload a file smaller than 5MB.');
+    // Check size limit (e.g. 3MB)
+    if (selectedFile.size > 3 * 1024 * 1024) {
+      alert('File size must be less than 3MB.');
       return;
     }
 

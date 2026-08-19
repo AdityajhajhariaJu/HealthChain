@@ -2,7 +2,7 @@
   "name": "HealthChain",
   "short_name": "HealthChain",
   "description": "Cross-specialty symptom routing that cuts diagnostic odysseys from years to weeks.",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#14b8a6",

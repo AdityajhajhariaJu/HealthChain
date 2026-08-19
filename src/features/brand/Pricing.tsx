@@ -64,25 +64,31 @@ export default function Pricing() {
         description: 'Pro Access (30 Days)',
         order_id: orderData.id,
         handler: async function (response: any) {
-          // Verify payment on server
-          const verifyRes = await fetch('/api/verify-payment', {
-            method: 'POST',
-            headers: authHeaders,
-            body: JSON.stringify({
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-              plan_id: 'pro_30_days'
-            })
-          });
-          
-          const verifyData = await verifyRes.json();
-          
-          if (verifyData.success) {
-            alert('Welcome to HealthChain Pro! Your features are now unlocked.');
-            window.location.href = '/app';
-          } else {
-            alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
+          try {
+            // Verify payment on server
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: authHeaders,
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                plan_id: 'pro_30_days'
+              })
+            });
+            
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              alert('Welcome to HealthChain Pro! Your features are now unlocked.');
+              window.location.href = '/app';
+            } else {
+              alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
+            }
+          } catch (err: any) {
+            alert('Payment verification encountered a network error. If you were charged, please contact support.');
+          } finally {
+            setIsProcessing(false);
           }
         },
         prefill: {

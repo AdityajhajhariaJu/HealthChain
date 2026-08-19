@@ -83,6 +83,18 @@ export default function App() {
   const { info } = useToast();
 
   useEffect(() => {
+    const handleLogout = async () => {
+      // Clear MDT transcripts from IndexedDB
+      try {
+        const idb = await import('idb-keyval');
+        await idb.del('hc_mdt_session');
+      } catch (e) {}
+    };
+    window.addEventListener('hc_logout', handleLogout);
+    return () => window.removeEventListener('hc_logout', handleLogout);
+  }, []);
+
+  useEffect(() => {
     registerPushNotifications().catch(console.error);
     setupPushListeners();
 
@@ -177,6 +189,7 @@ export default function App() {
           const theme = localStorage.getItem('hc_theme');
           const consent = localStorage.getItem('hc_consent');
           window.dispatchEvent(new Event('hc_logout'));
+          sessionStorage.clear();
           localStorage.clear();
           if (theme) localStorage.setItem('hc_theme', theme);
           if (consent) localStorage.setItem('hc_consent', consent);

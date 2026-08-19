@@ -326,8 +326,8 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
       return;
     }
     for (let f of files) {
-      if (f.size > 10 * 1024 * 1024) {
-        alert(`${f.name} is too large (max 10MB).`);
+      if (f.size > 3 * 1024 * 1024) {
+        alert(`${f.name} is too large (Max 3MB per file).`);
         return;
       }
     }

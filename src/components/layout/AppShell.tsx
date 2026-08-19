@@ -370,7 +370,7 @@ export function ActiveCaseBar({ navigate }: any) {
         <div>
           <span>YOUR CASE CONTEXT</span>
           <strong>
-            {profile.demographics.name
+            {profile?.demographics?.name
               ? `${(profile?.demographics?.name || '').split(' ')[0] || 'User'}, start where your story is most complex.`
               : 'Start a case so HealthChain can keep your story connected.'}
           </strong>
@@ -389,7 +389,7 @@ export function ActiveCaseBar({ navigate }: any) {
         <BriefcaseBusiness size={18} />
       </div>
       <div className="active-case-bar__copy">
-        <span>ACTIVE CASE · {profile.demographics.name || 'Your health record'}</span>
+        <span>ACTIVE CASE · {profile?.demographics?.name || 'Your health record'}</span>
         <strong>{activeCase.title}</strong>
         <small>
           {(activeCase.medicalRecords || []).length} evidence items · {pending} open actions ·
