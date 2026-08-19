@@ -70,7 +70,7 @@ export default function ProductTour() {
             inset: 0,
             backgroundColor: 'rgba(0,0,0,0.5)',
             backdropFilter: 'blur(2px)',
-            zIndex: 10000,
+            zIndex: 99990,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

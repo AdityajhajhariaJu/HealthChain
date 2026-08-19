@@ -84,11 +84,22 @@ export default function App() {
 
   useEffect(() => {
     const handleLogout = async () => {
-      // Clear MDT transcripts from IndexedDB
       try {
         const idb = await import('idb-keyval');
         await idb.del('hc_mdt_session');
       } catch (e) {}
+      
+      try {
+        const theme = localStorage.getItem('hc_theme');
+        const consent = localStorage.getItem('hc_consent');
+        sessionStorage.clear();
+        localStorage.clear();
+        if (theme) localStorage.setItem('hc_theme', theme);
+        if (consent) localStorage.setItem('hc_consent', consent);
+        await supabase.auth.signOut();
+      } catch (e) {}
+      
+      navigate('/', { replace: true });
     };
     window.addEventListener('hc_logout', handleLogout);
     return () => window.removeEventListener('hc_logout', handleLogout);

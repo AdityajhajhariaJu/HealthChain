@@ -135,8 +135,16 @@ export default function AvaHealthBuddy() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File is too large. Maximum size is 5MB.");
+    if (file.size > 3 * 1024 * 1024) {
+      alert("File is too large. Maximum size is 3MB.");
+      return;
+    }
+    if (file.size === 0) {
+      alert("The uploaded file is empty (0 bytes).");
+      return;
+    }
+    if (file.type.includes('heic') || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+      alert("HEIC/HEIF images from Apple devices are not supported. Please export as JPG.");
       return;
     }
 

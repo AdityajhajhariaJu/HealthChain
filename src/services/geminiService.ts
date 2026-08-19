@@ -52,6 +52,23 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
         await new Promise(r => setTimeout(r, 1000 * (i + 1)));
         continue;
       }
+      if (!response.ok && response.status === 401 && !isGuest) {
+        // Token expired, attempt refresh
+        try {
+          const { data, error } = await supabase.auth.refreshSession();
+          if (error || !data.session) {
+             window.dispatchEvent(new Event('hc_logout'));
+             throw new Error('Session expired. Please log in again.');
+          }
+          // Update token and retry
+          secureOptions.headers.Authorization = `Bearer ${data.session.access_token}`;
+          continue;
+        } catch (e) {
+          window.dispatchEvent(new Event('hc_logout'));
+          throw new Error('Session expired. Please log in again.');
+        }
+      }
+
       if (!response.ok && response.status === 403) {
         try {
           const errData = await response.json();

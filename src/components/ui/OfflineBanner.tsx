@@ -39,7 +39,7 @@ export default function OfflineBanner() {
             padding: '8px 16px',
             fontSize: '14px',
             fontWeight: 500,
-            zIndex: 9999,
+            zIndex: 999999,
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}
         >
