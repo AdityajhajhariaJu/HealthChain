@@ -94,7 +94,9 @@ export default function QuickConsult() {
                  const parsed = JSON.parse(jsonMatch[0]);
                  if (parsed.currentHypotheses) {
                      reportData.executiveSummary = parsed.patientFriendlySummary || parsed.internalThoughts || reportData.executiveSummary;
-                     reportData.topDiagnoses = parsed.currentHypotheses.map((h: any) => ({ condition: h, confidence: 50 }));
+                     reportData.topDiagnoses = parsed.currentHypotheses.map((h: any) => 
+                         typeof h === 'string' ? { condition: h, confidence: 50 } : { condition: h.condition, rationale: h.rationale, confidence: 50 }
+                     );
                  }
                  if (parsed.keyFindings) reportData.keyFindings = parsed.keyFindings;
                  if (parsed.interpretation) reportData.interpretation = parsed.interpretation;

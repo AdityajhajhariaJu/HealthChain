@@ -909,7 +909,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {latestParsed.currentHypotheses?.map((hyp, i) => (
                 <span key={i} style={{ padding: '2px 6px', background: `${specialist.color}15`, color: specialist.color, borderRadius: '4px', fontSize: '10px', fontWeight: 600, border: `1px solid ${specialist.color}30` }}>
-                  {hyp}
+                  {typeof hyp === 'string' ? hyp : hyp.condition}
                 </span>
               ))}
             </div>

@@ -391,7 +391,7 @@ Return your response STRICTLY as JSON matching this format:
   "nextSteps": "If outputting 'ANALYSIS_COMPLETE', outline the actionable next steps for the patient. Leave empty otherwise.",
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
   "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
-  "currentHypotheses": ["Hypothesis 1 (60%)", "Hypothesis 2 (40%)"],
+  "currentHypotheses": [{"condition": "Hypothesis 1 (60%)", "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected based on symptoms."}],
   "response": "Your conversational question to the patient. (Or 'ANALYSIS_COMPLETE').",
   "widgetType": "none | pain_slider | symptom_pills (CRITICAL: Use 'pain_slider' if asking about pain severity 1-10. Use 'symptom_pills' if asking the user to select from a list of descriptors/symptoms).",
   "widgetOptions": ["Array", "Of", "Tags", "If using symptom_pills"]
@@ -423,7 +423,7 @@ Return your response STRICTLY as JSON matching this format:
           nextSteps: { type: "string" },
           abnormalitiesNoted: { type: "array", items: { type: "string" } },
           medicalTerms: { type: "array", items: { type: "object", properties: { term: { type: "string" }, definition: { type: "string" } } } },
-          currentHypotheses: { type: "array", items: { type: "string" } },
+          currentHypotheses: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, rationale: { type: "string" } } } },
           response: { type: "string" },
           widgetType: { type: "string" },
           widgetOptions: { type: "array", items: { type: "string" } }
@@ -552,7 +552,7 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
     { 
       "condition": "Possible pathway", 
       "confidence": 85, 
-      "rationale": "Why this may fit the available information", 
+      "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected, so the patient can easily understand it.", 
       "specialty": "Specialty to discuss it with", 
       "evidenceFor": ["Specific supporting detail"], 
       "evidenceGaps": ["What is unknown or needs checking"],
@@ -691,7 +691,7 @@ export async function generateParallelMultiReport(
       formattedTranscripts += `${m.role.toUpperCase()}: ${m.text}\n`;
       if (m.internalThoughts) formattedTranscripts += `[Internal Thoughts: ${m.internalThoughts}]\n`;
       if (m.currentHypotheses && m.currentHypotheses.length > 0) {
-        formattedTranscripts += `[Active Hypotheses: ${m.currentHypotheses.join(', ')}]\n`;
+        formattedTranscripts += `[Active Hypotheses: ${m.currentHypotheses.map((h: any) => typeof h === 'string' ? h : h.condition).join(', ')}]\n`;
       }
     });
   }
@@ -728,7 +728,7 @@ Return strictly as JSON matching this exact structure:
     { 
       "condition": "Possible pathway", 
       "confidence": 85, 
-      "rationale": "Why this may fit the available multi-specialist data", 
+      "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected, so the patient can easily understand it.", 
       "specialty": "Primary specialty to discuss it with", 
       "evidenceFor": ["Specific supporting detail"], 
       "evidenceGaps": ["What is unknown or needs checking"],
