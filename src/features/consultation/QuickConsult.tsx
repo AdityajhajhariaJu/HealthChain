@@ -80,7 +80,7 @@ export default function QuickConsult() {
     if (activeCase) {
       const aiMessages = messages.filter(m => m.role === 'ai' && !m.text.includes('ANALYSIS_COMPLETE'));
       const summaryMessage = aiMessages[aiMessages.length - 1];
-      let reportData = {
+      let reportData: any = {
         executiveSummary: "Assessment completed by " + selectedSpecialist.label,
         topDiagnoses: [],
         recommendedActionPlan: [],
