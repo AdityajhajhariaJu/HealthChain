@@ -13,8 +13,12 @@ import { AnalyticsProvider } from './services/AnalyticsProvider';
 const queryClient = new QueryClient();
 
 // Initialize X-Ray Dark Mode if selected
-if (localStorage.getItem('hc_theme') === 'dark') {
-  document.documentElement.classList.add('dark-theme');
+try {
+  if (localStorage.getItem('hc_theme') === 'dark') {
+    document.documentElement.classList.add('dark-theme');
+  }
+} catch (e) {
+  console.warn('localStorage access blocked');
 }
 
 // Initialize Capacitor storage sync before rendering

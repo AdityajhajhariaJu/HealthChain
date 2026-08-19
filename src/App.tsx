@@ -148,7 +148,7 @@ export default function App() {
         
         // Auto-redirect if on a public page
         const path = window.location.pathname;
-        if (path === '/login' || path === '/signup' || path === '/onboarding') {
+        if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
           const profileStr = localStorage.getItem(getProfileKey());
           let hasCompletedOnboarding = false;
           if (profileStr) {
@@ -172,12 +172,16 @@ export default function App() {
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        const theme = localStorage.getItem('hc_theme');
-        const consent = localStorage.getItem('hc_consent');
-        window.dispatchEvent(new Event('hc_logout'));
-        localStorage.clear();
-        if (theme) localStorage.setItem('hc_theme', theme);
-        if (consent) localStorage.setItem('hc_consent', consent);
+        try {
+          const theme = localStorage.getItem('hc_theme');
+          const consent = localStorage.getItem('hc_consent');
+          window.dispatchEvent(new Event('hc_logout'));
+          localStorage.clear();
+          if (theme) localStorage.setItem('hc_theme', theme);
+          if (consent) localStorage.setItem('hc_consent', consent);
+        } catch (e) {
+          console.warn('Failed to clear localStorage on sign out', e);
+        }
         
         info('Session ended', 'You have been logged out.');
         setTimeout(() => {
