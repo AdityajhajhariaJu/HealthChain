@@ -694,6 +694,7 @@ export async function syncCasesFromSupabase() {
       
       const mergedCases = Array.from(localCaseMap.values());
       cachedCases = mergedCases;
+      currentCasesKey = getCasesKey();
       setItemSync(getCasesKey(), JSON.stringify(mergedCases));
       window.dispatchEvent(new Event('hc_cases_updated'));
       if (import.meta.env.DEV) console.log('Cases synced from Supabase');
