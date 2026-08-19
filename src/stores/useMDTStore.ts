@@ -15,7 +15,7 @@ const idbStorage: StateStorage = {
   },
 };
 
-export type MDTPhase = 'intake' | 'dashboard' | 'select' | 'assessment' | 'conference' | 'report' | 'action_plan';
+export type MDTPhase = 'intake' | 'dashboard' | 'select' | 'assessment' | 'compiling' | 'conference' | 'report' | 'action_plan';
 
 interface MDTState {
   phase: MDTPhase;

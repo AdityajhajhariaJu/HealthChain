@@ -14,13 +14,14 @@ import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, saveReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 
 const cachedQuickConsultStreams: any = {};
 
 export default function QuickConsult() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [phase, setPhase] = useState<'select' | 'chat' | 'done'>(() => {
+  const [phase, setPhase] = useState<'select' | 'chat' | 'compiling' | 'done'>(() => {
     return (sessionStorage.getItem('hc_qc_phase') as any) || 'select';
   });
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(() => {
@@ -75,7 +76,8 @@ export default function QuickConsult() {
 
   const handleComplete = (id: string, messages: any[]) => {
     setFinalTranscripts({ [id]: messages });
-    setPhase('done');
+    setPhase('compiling');
+    setTimeout(() => setPhase('done'), 8000);
     
     if (activeCase) {
       const aiMessages = messages.filter(m => m.role === 'ai' && !m.text.includes('ANALYSIS_COMPLETE'));
@@ -404,7 +406,27 @@ export default function QuickConsult() {
           </motion.div>
         )}
 
-        {phase === 'done' && (
+          {phase === 'compiling' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              style={{
+                background: 'rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(24px)',
+                padding: isMobile ? '32px 16px' : '32px 64px 64px',
+                borderRadius: '32px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+                border: '1px solid rgba(255,255,255,0.5)',
+                maxWidth: '600px',
+                margin: '0 auto',
+              }}
+            >
+              <CompilingAnimation isDark={false} />
+            </motion.div>
+          )}
+
+          {phase === 'done' && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

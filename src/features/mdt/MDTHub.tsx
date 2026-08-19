@@ -47,6 +47,7 @@ import { runDifferentialAnalysis } from '../../services/geminiService';
 import { updateCaseDifferentials } from '../../services/CaseEngine';
 import { useMDTStore } from '../../stores/useMDTStore';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 
 // ─── Phases ─────────────────────────────────────────────────────────────────
 // intake -> select -> assessment -> conference -> report
@@ -399,7 +400,8 @@ export default function MDTHub() {
     setSpecialistTranscripts((prev) => {
       const updated = { ...prev, [id]: transcript };
       if (Object.keys(updated).length === selectedSpecialists.length) {
-        setTimeout(() => setPhase('conference'), 2000);
+        setPhase('compiling');
+        setTimeout(() => setPhase('conference'), 8000);
       }
       return updated;
     });
@@ -862,6 +864,27 @@ export default function MDTHub() {
                     }
                   />
                 </div>
+              </motion.div>
+            )}
+
+            {phase === 'compiling' && (
+              <motion.div
+                key="compiling"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.05 }}
+                style={{
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(24px)',
+                  padding: isMobile ? '32px 16px' : '32px 64px 64px',
+                  borderRadius: '32px',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  maxWidth: '600px',
+                  margin: '40px auto 0',
+                }}
+              >
+                <CompilingAnimation isDark={false} />
               </motion.div>
             )}
 
