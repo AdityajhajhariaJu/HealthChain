@@ -379,7 +379,7 @@ History: ${intakeData.history || 'None provided'}
 
 Your goal is to organize focused questions, possible evidence gaps, and clinician-discussion topics.
 DO NOT REPEAT questions. Dig deeper or pivot to a new relevant area.
-Ask exactly ONE short, conversational follow-up question at a time.
+You MUST finish your assessment in under 8 questions. To do this, ask highly-styled, multi-part questions to maximize information gathering per turn. Do not waste turns on single details - ask for timing, severity, and associated symptoms together when relevant, while remaining conversational.
 ${questionRule}
 
 Return your response STRICTLY as JSON matching this format:
