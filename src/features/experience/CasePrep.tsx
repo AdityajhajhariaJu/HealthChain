@@ -52,7 +52,7 @@ export default function CasePrep() {
   const timelineItems = lines(timeline);
   const recordItems = lines(records);
   const readiness = useMemo(() => Math.round(([concern.trim(), timelineItems.length >= 2, recordItems.length >= 1, appointment].filter(Boolean).length / 4) * 100), [concern, timelineItems.length, recordItems.length, appointment]);
-  const lenses = useMemo(() => usefulLenses(\\ \ \\), [concern, timeline, records]);
+  const lenses = useMemo(() => usefulLenses(`${concern} ${timeline} ${records}`), [concern, timeline, records]);
   const questions = useMemo(() => {
     const base = ['What findings are confirmed, and what is still only a possibility?', 'Which symptom or test result matters most for deciding what to investigate next?', 'What would make this urgent, and what should I do if that happens?'];
     if (recordItems.length) base.splice(1, 0, 'Could we review which of my existing records are relevant and what is missing?');
@@ -75,13 +75,13 @@ export default function CasePrep() {
   };
 
   const handleImportEssence = (selectedCase: CaseItem) => {
-    const snapshot = selectedCase.reviewSnapshot;
+    const snapshot = selectedCase.reviews?.[selectedCase.reviews.length - 1];
     if (!snapshot) return;
     
-    let essence = \Imported Essence from Case: \\n\;
-    if (snapshot.executiveSummary) essence += \Summary: \\n\;
-    if (snapshot.topDiagnoses?.length) {
-         essence += \Top Possibilities: \\n\;
+    let essence = `Imported Essence from Case: ${selectedCase.title}\n`;
+    if (snapshot.report?.executiveSummary) essence += `Summary: ${snapshot.report?.executiveSummary}\n`;
+    if (snapshot.report?.topDiagnoses?.length) {
+         essence += `Top Possibilities: ${snapshot.report?.topDiagnoses.map((d) => typeof d === 'string' ? d : d.condition).join(', ')}\n`;
     }
     setRecords(prev => prev ? prev + '\n\n' + essence : essence);
     setShowImportDropdown(false);
@@ -112,7 +112,7 @@ export default function CasePrep() {
             </button>
             {showImportDropdown && (
               <div style={{position: 'absolute', right: 0, top: '100%', marginTop: 4, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: 250, maxHeight: 300, overflowY: 'auto'}}>
-                {getCases().filter(c => c.reviewSnapshot).map(c => (
+                {getCases().filter((c: any) => c.reviews?.length > 0).map((c: any) => (
                   <div key={c.id} style={{padding: '10px 14px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: 13}} onClick={() => handleImportEssence(c)}>
                     <strong>{c.title}</strong>
                     <div style={{color: '#64748b', fontSize: 11, marginTop: 4}}>{new Date(c.createdAt).toLocaleDateString()}</div>
@@ -139,7 +139,7 @@ export default function CasePrep() {
         </div>
       </section>
       <aside style={{ display: 'grid', gap: 16 }}>
-        <section className="card" style={{ padding: 20 }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong>Case readiness</strong><strong style={{ color: '#0f8b7e' }}>{readiness}%</strong></div><div style={{ height: 10, borderRadius: 99, background: '#e2e8f0', margin: '14px 0 16px', overflow: 'hidden' }}><div style={{ height: '100%', width: \\%\, background: '#14b8a6' }} /></div>{['Clear main concern', 'Timeline with 2+ events', 'At least one record or fact', 'Appointment date'].map((item, index) => <div key={item} style={{ display: 'flex', gap: 8, marginTop: 10, color: '#475569', fontSize: 14 }}><CheckCircle2 size={17} color={[concern.trim(), timelineItems.length >= 2, recordItems.length >= 1, appointment][index] ? '#10b981' : '#cbd5e1'} />{item}</div>)}</section>
+        <section className="card" style={{ padding: 20 }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><strong>Case readiness</strong><strong style={{ color: '#0f8b7e' }}>{readiness}%</strong></div><div style={{ height: 10, borderRadius: 99, background: '#e2e8f0', margin: '14px 0 16px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${readiness}%`, background: '#14b8a6' }} /></div>{['Clear main concern', 'Timeline with 2+ events', 'At least one record or fact', 'Appointment date'].map((item, index) => <div key={item} style={{ display: 'flex', gap: 8, marginTop: 10, color: '#475569', fontSize: 14 }}><CheckCircle2 size={17} color={[concern.trim(), timelineItems.length >= 2, recordItems.length >= 1, appointment][index] ? '#10b981' : '#cbd5e1'} />{item}</div>)}</section>
         <section className="card" style={{ padding: 20 }}><div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><ListChecks size={19} color="#0f8b7e" /><strong>Questions to ask</strong></div><ol style={{ paddingLeft: 20, lineHeight: 1.6, color: '#475569', fontSize: 14 }}>{questions.map((question) => <li key={question} style={{ marginTop: 10 }}>{question}</li>)}</ol></section>
         <section style={{ padding: 18, borderRadius: 16, background: '#fff7ed', border: '1px solid #fed7aa', display: 'flex', gap: 10, color: '#9a3412', fontSize: 13, lineHeight: 1.5 }}><ShieldAlert size={20} style={{ flexShrink: 0 }} />If you have severe, sudden, or rapidly worsening symptoms, seek urgent medical care instead of waiting for an AI review.</section>
       </aside>
@@ -219,11 +219,11 @@ export default function CasePrep() {
 
     {/* STANDARD CASE MAP PREP */}
     {caseItem && !aiAnalysis && <section style={{ marginTop: 24 }}>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', color: '#0f766e', marginBottom: 12 }}><Network size={20} /><strong>YOUR CASE MAP</strong></div><h2 style={{ margin: '0 0 8px', color: '#0f172a', fontSize: 28 }}>More context, clearly separated.</h2><p style={{ margin: '0 0 18px', color: '#475569', lineHeight: 1.6 }}>These are organization prompts—not medical conclusions or referrals.</p>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', color: '#0f766e', marginBottom: 12 }}><Network size={20} /><strong>YOUR CASE MAP</strong></div><h2 style={{ margin: '0 0 8px', color: '#0f172a', fontSize: 28 }}>More context, clearly separated.</h2><p style={{ margin: '0 0 18px', color: '#475569', lineHeight: 1.6 }}>These are organization promptsï¿½not medical conclusions or referrals.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18 }}>
-        <section className="card" style={{ padding: 22 }}><div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><FileSearch size={19} color="#2563eb" /><strong>Known case facts</strong></div><p style={{ color: '#475569', lineHeight: 1.6, fontSize: 14 }}>{caseItem.intakeData?.chiefComplaint}</p>{caseItem.medicalRecords.length ? caseItem.medicalRecords.map((fact) => <div key={fact.id} style={{ background: '#f8fafc', padding: 10, borderRadius: 10, marginTop: 8, fontSize: 13 }}><strong>{fact.filename}</strong><br />{fact.findings}<div style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>Source: patient-added case note · Verify against the original record with your clinician.</div></div>) : <p style={{ color: '#64748b', fontSize: 14 }}>No records added yet.</p>}</section>
+        <section className="card" style={{ padding: 22 }}><div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><FileSearch size={19} color="#2563eb" /><strong>Known case facts</strong></div><p style={{ color: '#475569', lineHeight: 1.6, fontSize: 14 }}>{caseItem.intakeData?.chiefComplaint}</p>{caseItem.medicalRecords.length ? caseItem.medicalRecords.map((fact) => <div key={fact.id} style={{ background: '#f8fafc', padding: 10, borderRadius: 10, marginTop: 8, fontSize: 13 }}><strong>{fact.filename}</strong><br />{fact.findings}<div style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>Source: patient-added case note ï¿½ Verify against the original record with your clinician.</div></div>) : <p style={{ color: '#64748b', fontSize: 14 }}>No records added yet.</p>}</section>
         <section className="card" style={{ padding: 22 }}><div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><GitCompareArrows size={19} color="#7c3aed" /><strong>Evidence gaps</strong></div><ul style={{ color: '#475569', paddingLeft: 18, lineHeight: 1.65, fontSize: 14 }}>{gaps.map((gap) => <li key={gap}>{gap}</li>)}</ul></section>
-        <section className="card" style={{ padding: 22 }}><div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Stethoscope size={19} color="#0f8b7e" /><strong>Useful perspectives</strong></div><p style={{ color: '#64748b', fontSize: 13 }}>Selected from your wording—not a diagnosis or referral.</p>{lenses.map((lens) => <div key={lens} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, fontSize: 14 }}><CheckCircle2 size={16} color="#10b981" />{lens}</div>)}</section>
+        <section className="card" style={{ padding: 22 }}><div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Stethoscope size={19} color="#0f8b7e" /><strong>Useful perspectives</strong></div><p style={{ color: '#64748b', fontSize: 13 }}>Selected from your wordingï¿½not a diagnosis or referral.</p>{lenses.map((lens) => <div key={lens} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10, fontSize: 14 }}><CheckCircle2 size={16} color="#10b981" />{lens}</div>)}</section>
       </div>
       <section className="card" style={{ padding: 24, marginTop: 20 }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}><div><h2 style={{ margin: '0 0 8px' }}>Clinician-ready brief</h2><p style={{ color: '#475569', lineHeight: 1.7, margin: 0 }}>A focused handoff: timeline, evidence ledger, appointment goal, uncertainty, and questions that matter.</p></div><button className="btn btn-primary" onClick={() => setShowBrief((value) => !value)}>{showBrief ? 'Hide brief' : 'View brief'} <ArrowRight size={17} /></button></div>{showBrief && <div style={{ marginTop: 20, padding: 20, borderRadius: 16, background: '#f8fafc', border: '1px solid #e2e8f0' }}><h3 style={{ marginTop: 0 }}>{caseItem.title}</h3><p><strong>Patient-reported concern:</strong> {caseItem.intakeData?.chiefComplaint || 'Not yet provided'}</p><p><strong>Timeline:</strong> {timelineItems.length ? timelineItems.join(' ? ') : 'Needs dated events.'}</p><p><strong>What has already been tried or checked:</strong> {careSoFar || 'Not yet added.'}</p><p><strong>Appointment goal:</strong> {goal || 'Agree the most useful next step.'}</p><p><strong>What is known:</strong> {recordItems.length ? 'Patient-added records and notes are listed above.' : 'No record highlights were added yet.'}</p><p><strong>What is uncertain:</strong> which facts are clinically relevant, what requires confirmation, and what the appropriate next step is.</p><p style={{ fontSize: 13, color: '#64748b' }}><strong>Evidence note:</strong> No external citation is verified in this brief. Bring original reports and discuss them with your clinician.</p><p><strong>Questions to discuss:</strong></p><ol>{questions.map((question) => <li key={question}>{question}</li>)}</ol></div>}</section>
     </section>}
