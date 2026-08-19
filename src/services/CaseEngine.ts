@@ -271,6 +271,7 @@ async function save(cases: CaseItem[]) {
   try {
     const safeCases = JSON.parse(JSON.stringify(cases));
     cachedCases = safeCases;
+    currentCasesKey = getCasesKey();
     setItemSync(getCasesKey(), JSON.stringify(safeCases));
     window.dispatchEvent(new Event('hc_cases_updated'));
 
