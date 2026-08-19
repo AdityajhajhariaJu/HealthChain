@@ -692,7 +692,11 @@ export async function syncCasesFromSupabase() {
          }
       });
       
-      const mergedCases = Array.from(localCaseMap.values());
+      const cloudIds = new Set(data.map(c => c.id));
+        const hasOfflineCases = localCases.some(c => !cloudIds.has(c.id));
+        if (hasOfflineCases) needsUpload = true;
+        
+        const mergedCases = Array.from(localCaseMap.values());
       cachedCases = mergedCases;
       currentCasesKey = getCasesKey();
       setItemSync(getCasesKey(), JSON.stringify(mergedCases));
