@@ -24,7 +24,7 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
 
   // 2. AppsFlyer (Web / App Wrapper)
   // To be implemented when AppsFlyer Web SDK is initialized
-  console.log(`[Analytics] ${eventName} fired with payload:`, payload);
+  if (import.meta.env.DEV) console.log(`[Analytics] ${eventName}`);
 
   // 3. Supabase Analytics
   try {

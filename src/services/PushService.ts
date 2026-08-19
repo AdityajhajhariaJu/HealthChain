@@ -22,7 +22,7 @@ export const setupPushListeners = () => {
   if (Capacitor.getPlatform() === 'web') return;
 
   PushNotifications.addListener('registration', async (token) => {
-    console.log('Push registration success, token: ' + token.value);
+    if (import.meta.env.DEV) console.log('Push registration success');
     
     // Save to Supabase
     const { data: { session } } = await supabase.auth.getSession();
@@ -41,11 +41,11 @@ export const setupPushListeners = () => {
   });
 
   PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    console.log('Push received: ' + JSON.stringify(notification));
+    if (import.meta.env.DEV) console.log('Push received');
     // Could dispatch custom event to update UI
   });
 
   PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-    console.log('Push action performed: ' + JSON.stringify(notification));
+    if (import.meta.env.DEV) console.log('Push action performed');
   });
 };

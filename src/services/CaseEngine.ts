@@ -695,7 +695,7 @@ export async function syncCasesFromSupabase() {
       cachedCases = mergedCases;
       setItemSync(getCasesKey(), JSON.stringify(mergedCases));
       window.dispatchEvent(new Event('hc_cases_updated'));
-      console.log('Cases synced successfully from Supabase for ' + activeProfileId);
+      if (import.meta.env.DEV) console.log('Cases synced from Supabase');
       
       if (needsUpload) {
         console.log('Local cases are newer than remote. Pushing to cloud.');

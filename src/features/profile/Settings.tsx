@@ -41,7 +41,7 @@ export default function Settings() {
   const userEmail = account?.email || account?.user?.email || 'user@example.com';
 
   useEffect(() => {
-    verifyProStatus().then(setIsPremium);
+    verifyProStatus().then(setIsPremium).catch(() => {});
     
     const handleProfileUpdate = () => {
       setIsPremium(isProUser());

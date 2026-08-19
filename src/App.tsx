@@ -216,34 +216,42 @@ export default function App() {
         <Route
           path="/"
           element={
-            <PageTransition>
-              <Landing />
-            </PageTransition>
+            <SafeRoute>
+              <PageTransition>
+                <Landing />
+              </PageTransition>
+            </SafeRoute>
           }
         />
         <Route
           path="/login"
           element={
-            <PageTransition>
-              <Auth />
-            </PageTransition>
+            <SafeRoute>
+              <PageTransition>
+                <Auth />
+              </PageTransition>
+            </SafeRoute>
           }
         />
         <Route
           path="/signup"
           element={
-            <PageTransition>
-              <Auth />
-            </PageTransition>
+            <SafeRoute>
+              <PageTransition>
+                <Auth />
+              </PageTransition>
+            </SafeRoute>
           }
         />
         <Route
           path="/onboarding"
           element={
             <ProtectedRoute>
-              <PageTransition>
-                <ProfileOnboarding />
-              </PageTransition>
+              <SafeRoute>
+                <PageTransition>
+                  <ProfileOnboarding />
+                </PageTransition>
+              </SafeRoute>
             </ProtectedRoute>
           }
         />
@@ -311,9 +319,11 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute>
-              <PageTransition>
-                <AppShell />
-              </PageTransition>
+              <SafeRoute>
+                <PageTransition>
+                  <AppShell />
+                </PageTransition>
+              </SafeRoute>
             </ProtectedRoute>
           }
         >
@@ -425,7 +435,7 @@ export default function App() {
           />
 
         </Route>
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
       </Routes>
     </SafeRoute>
   );

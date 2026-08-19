@@ -100,7 +100,7 @@ export function CaseConnectionMap({ data, isMobile = false }: CaseConnectionMapP
       )}
 
       <div style={{ position: 'relative', width: '100%', height: height, background: '#FFF', borderRadius: '24px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
-        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
+        <svg role="img" aria-label="Diagnostic case connection map" width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
           <defs>
             <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="25" refY="3.5" orient="auto">
               <polygon points="0 0, 10 3.5, 0 7" fill="#CBD5E1" />

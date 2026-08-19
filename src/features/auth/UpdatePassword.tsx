@@ -15,14 +15,12 @@ export default function UpdatePassword() {
   const [updated, setUpdated] = useState(false);
 
   useEffect(() => {
-    // Supabase redirects to this route with the access_token in the hash
-    // The session listener in App.tsx will automatically pick it up and log the user in,
-    // allowing us to call updateUser() securely.
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        // If there's no session, they shouldn't be here (or link is invalid/expired)
         setError('Invalid or expired reset link. Please request a new one.');
       }
+    }).catch(() => {
+      setError('Could not verify session. Please try again.');
     });
   }, []);
 
