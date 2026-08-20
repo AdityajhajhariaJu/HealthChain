@@ -92,8 +92,7 @@ export function MDTHubDashboard({
                 {selectedSpecialists.map((s, i) => (
                   <button
                     key={s.id}
-                    onClick={() => setMobileActiveTab,
-  onSpecialistComplete(i)}
+                    onClick={() => setMobileActiveTab(i)}
                     style={{
                       padding: '8px 16px',
                       borderRadius: '99px',
