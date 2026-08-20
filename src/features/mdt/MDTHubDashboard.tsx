@@ -42,49 +42,7 @@ export function MDTHubDashboard({
     <>
       
 
-      {/* Dashboard Tabs */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.8)', padding: '6px', borderRadius: '99px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-          <button
-            onClick={() => setDashboardTab('specialists')}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '99px',
-              border: 'none',
-              background: dashboardTab === 'specialists' ? '#10B981' : 'transparent',
-              color: dashboardTab === 'specialists' ? '#FFF' : '#64748B',
-              fontWeight: 700,
-              fontSize: '15px',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Users size={18} /> Board discussion
-          </button>
-          <button
-            onClick={() => setDashboardTab('mdt')}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '99px',
-              border: 'none',
-              background: dashboardTab === 'mdt' ? '#0F172A' : 'transparent',
-              color: dashboardTab === 'mdt' ? '#FFF' : '#64748B',
-              fontWeight: 700,
-              fontSize: '15px',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Network size={18} /> Board Synthesis
-          </button>
-        </div>
-      </div>
+      
 
       {dashboardTab === 'specialists' ? (
         <>
