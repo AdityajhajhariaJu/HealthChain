@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon, ChevronDown, Plus } from 'lucide-react';
 import { getAllProfiles, switchActiveProfile, createNewProfile, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { Star, AlertTriangle, Trash2, X, ShieldCheck } from 'lucide-react';
+import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
 import FocusTrap from '../../components/ui/FocusTrap';
@@ -282,27 +282,28 @@ export default function Settings() {
             justifyContent: 'space-between',
             gap: isMobile ? 12 : 0,
             padding: '16px',
-            background: isPremium ? 'var(--teal-light)' : '#FEF3C7',
+            background: isPremium ? 'var(--teal-light)' : 'var(--bg)',
             borderRadius: 'var(--radius-lg)',
-            border: `1px solid ${isPremium ? 'var(--teal)' : '#F59E0B'}`,
+            border: `1px solid ${isPremium ? 'var(--teal)' : 'var(--border)'}`,
             marginBottom: '16px',
           }}
         >
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: isPremium ? 'var(--teal)' : '#B45309', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: isPremium ? 'var(--teal)' : 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Star size={18} />
               {isPremium ? 'HealthChain Premium Active' : 'Upgrade to Premium'}
             </div>
-            <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : '#B45309', opacity: 0.8 }}>
+            <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : 'var(--text-muted)', opacity: 0.8 }}>
               {isPremium ? 'You have access to all advanced diagnostic tools.' : 'Unlock unlimited parallel board consultations and detailed PDF analysis.'}
             </div>
           </div>
           {!isPremium && (
             <button
               className="btn btn-primary"
-              onClick={() => navigate('/pricing')}
-              style={{ padding: '8px 16px', fontSize: '14px', background: 'var(--teal)', color: '#fff', border: 'none', cursor: 'pointer' }}
+              disabled
+              style={{ padding: '8px 16px', fontSize: '14px', background: 'var(--border)', color: 'var(--text-muted)', border: 'none', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
+              <Lock size={14} />
               Upgrade Now
             </button>
           )}
