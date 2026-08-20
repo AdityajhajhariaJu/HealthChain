@@ -66,7 +66,7 @@ export function MDTHubDashboard({
           </div>
           <div
             style={{
-              display: isMobile ? 'flex' : 'grid',
+              maxWidth: selectedSpecialists.length === 1 ? '800px' : '100%', margin: '0 auto', display: isMobile ? 'flex' : 'grid',
               flexDirection: isMobile ? 'column' : 'unset',
               gridTemplateColumns: isMobile ? 'unset' : 'repeat(auto-fit, minmax(340px, 1fr))',
               gap: '16px',

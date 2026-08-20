@@ -931,7 +931,7 @@ useEffect(() => {
               >
                 <div
                   style={{
-                    display: 'grid',
+                    maxWidth: selectedSpecialists.length === 1 ? '800px' : '100%', margin: '0 auto', display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
                     gap: '16px',
                   }}
