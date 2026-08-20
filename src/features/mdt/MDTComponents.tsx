@@ -1136,7 +1136,7 @@ export function MDTConferencePanel({
   selectedSpecialists,
   specialistTranscripts,
   onComplete,
-  medicalRecords = [],
+  medicalRecords = [] as any[],
 }) {
   const isMobile = useIsMobile();
   const [conferenceData, setConferenceData] = useState<any>(null);

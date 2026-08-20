@@ -94,7 +94,7 @@ export default function App() {
         const consent = localStorage.getItem('hc_consent');
         sessionStorage.clear();
           // Preserve local-only Dietician data from destructive logout
-          const preservedKeys = [];
+          const preservedKeys: { key: string; value: string | null }[] = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key && (key.includes('hc_food_logs') || key.includes('hc_diet_profile') || key.includes('hc_hydration') || key.includes('hc_meal_plan') || key.includes('hc_diet_advice'))) {
@@ -102,7 +102,11 @@ export default function App() {
             }
           }
           localStorage.clear();
-          preservedKeys.forEach(p => localStorage.setItem(p.key, p.value));
+          preservedKeys.forEach(p => {
+            if (p.value !== null) {
+              localStorage.setItem(p.key, p.value);
+            }
+          });
         if (theme) localStorage.setItem('hc_theme', theme);
         if (consent) localStorage.setItem('hc_consent', consent);
         await supabase.auth.signOut();

@@ -266,6 +266,7 @@ export function getCases(): CaseItem[] {
 }
 
 let syncTimeout: any = null;
+let currentCasesKey: string | null = null;
 
 async function save(cases: CaseItem[]) {
   try {
@@ -326,7 +327,6 @@ async function save(cases: CaseItem[]) {
   } catch (err) {
     console.error('Failed to save cases. LocalStorage might be full.', err);
     alert('Storage Full: We have hit the maximum browser limit. Please sign in to sync to the cloud, or clear old cases.');
-  }
   }
 }
 

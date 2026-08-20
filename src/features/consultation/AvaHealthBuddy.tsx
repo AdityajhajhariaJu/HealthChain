@@ -39,6 +39,7 @@ function getSavedMessages() {
 export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const sessionId = useRef(crypto.randomUUID()).current;
   const [messages, setMessages] = useState(getSavedMessages());
   const [input, setInput] = useState(() => { try { return sessionStorage.getItem('hc_ava_draft') || ''; } catch { return ''; } });
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
@@ -128,7 +129,7 @@ export default function AvaHealthBuddy() {
       addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
           lastMessage: response,
           messageCount: newMessages.length + 1,
-        }, false, null, sessionId);
+      }, false, null as any, sessionId as any);
     },
     onError: () => {
       setIsTyping(false);
