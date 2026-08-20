@@ -1053,6 +1053,8 @@ export default function MultiSpecialist() {
                </button>
             </div>
             <MDTReportPanel
+              title="Quick Consult Case Brief"
+              subtitle="AI-assisted synthesis of multi-specialist perspectives"
               intakeData={{
                 chiefComplaint: caseTitle || symptomInput || 'Custom Multi-Specialist Intake',
               }}
@@ -1165,4 +1167,5 @@ function ParallelSideStory({ side }) {
     </aside>
   );
 }
+
 

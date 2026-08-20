@@ -1694,6 +1694,8 @@ export function MDTReportPanel({
   medicalRecords = [] as any[],
   onCaseSaved,
   onCorrelateInMDT,
+  title = 'Collaboration Case Brief',
+  subtitle = 'AI-assisted synthesis of your information and specialist perspectives',
 }: any) {
   const isMobile = useIsMobile();
   const [report, setReport] = useState(initialReport || null);
@@ -1985,10 +1987,10 @@ export function MDTReportPanel({
               letterSpacing: '-1px',
             }}
           >
-            Collaboration Case Brief
+            {title}
           </h2>
           <p style={{ color: '#64748B', marginTop: '12px', fontSize: isMobile ? '14px' : '16px', fontWeight: 500 }}>
-            AI-assisted synthesis of your information and specialist perspectives
+            {subtitle}
           </p>
         </div>
 
@@ -2289,3 +2291,4 @@ export function MDTReportPanel({
     </motion.div>
   );
 }
+

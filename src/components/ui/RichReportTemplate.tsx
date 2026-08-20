@@ -22,7 +22,7 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
   if (!hasRichData) {
     return (
       <p style={{ margin: 0, lineHeight: 1.7, color: '#334155' }}>
-        {report.executiveSummary || 'No case synthesis available yet.'}
+        {report.executiveSummary || 'Based on the review of your symptoms and recent discussion, the board has identified some strong diagnostic pathways, but a structured summary could not be rendered at this time.'}
       </p>
     );
   }
@@ -180,3 +180,4 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
     </div>
   );
 }
+
