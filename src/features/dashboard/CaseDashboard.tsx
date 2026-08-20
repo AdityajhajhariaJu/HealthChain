@@ -50,13 +50,13 @@ export default function CaseDashboard() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [cases, setCases] = useState(getCases());
+  const [cases, setCases] = useState(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
   const [profile, setProfile] = useState(getProfile());
   const [simulatorAction, setSimulatorAction] = useState<any>(null);
 
   useEffect(() => {
     const refresh = () => {
-      setCases(getCases());
+      setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
       setProfile(getProfile());
     };
     window.addEventListener('hc_cases_updated', refresh);
@@ -101,7 +101,7 @@ export default function CaseDashboard() {
          </div>
        );
     }
-    return <CaseWorkspace item={activeCase} navigate={navigate} refresh={() => setCases(getCases())} />;
+    return <CaseWorkspace item={activeCase} navigate={navigate} refresh={() => setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0))} />;
   }
 
   // General dashboard (Health Today)

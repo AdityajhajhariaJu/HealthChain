@@ -28,7 +28,7 @@ export default function MyCases() {
 
   useEffect(() => {
     const refresh = () => {
-      setCases(getCases());
+      setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
       setIsLoading(false);
     };
     
@@ -178,7 +178,7 @@ export default function MyCases() {
                      e.stopPropagation();
                      if (window.confirm('Are you sure you want to delete this case?')) {
                        deleteCase(caseItem.id);
-                       setCases(getCases());
+                       setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
                      }
                    }}
                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px', color: '#ef4444' }}
