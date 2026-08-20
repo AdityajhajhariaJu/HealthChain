@@ -611,7 +611,7 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
           recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" }, simulation: { type: "object", properties: { timelineDays: { type: "number" }, timelineDescription: { type: "string" }, successRate: { type: "number" }, costEstimate: { type: "string" }, impact: { type: "string" } } } } } },
           questionsForClinician: { type: "array", items: { type: "string" } }
         },
-        required: ["executiveSummary", "topDiagnoses", "recommendedActionPlan"]
+        required: ["executiveSummary", "keyFindings", "interpretation", "nextSteps", "abnormalitiesNoted", "medicalTerms", "topDiagnoses", "recommendedActionPlan"]
       }
     },
   };
