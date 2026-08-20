@@ -1592,6 +1592,7 @@ export function MDTReportPanel({
 }: any) {
   const isMobile = useIsMobile();
   const [report, setReport] = useState(initialReport || null);
+  const [connectionMap, setConnectionMap] = useState<any>(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -1663,6 +1664,20 @@ export function MDTReportPanel({
       fetchReport();
     }
   }, [intakeData, specialistTranscripts, initialReport]);
+
+  useEffect(() => {
+    if (report && report.topDiagnoses && !connectionMap) {
+      const fetchMap = async () => {
+        try {
+          const mapData = await generateCaseConnectionMap(report.topDiagnoses);
+          setConnectionMap(mapData);
+        } catch (e) {
+          console.error("Failed to generate map", e);
+        }
+      };
+      fetchMap();
+    }
+  }, [report, connectionMap]);
 
   const downloadPDF = async () => {
     const html2pdf = (await import('html2pdf.js')).default;
@@ -1887,6 +1902,20 @@ export function MDTReportPanel({
         <div style={{ marginBottom: '32px' }}>
           <RichReportTemplate report={report} isMobile={isMobile} />
         </div>
+
+        {connectionMap && (
+          <div style={{ marginBottom: '32px', background: '#0F172A', borderRadius: '24px', padding: isMobile ? '16px' : '32px', overflow: 'hidden' }}>
+            <h3 style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, color: '#FFF', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Network size={20} color="#38BDF8" /> Clinical Correlation Constellation
+            </h3>
+            <p style={{ color: '#94A3B8', fontSize: '14px', marginBottom: '24px' }}>
+              Advanced semantic mapping of overlapping symptoms and cross-specialty correlations.
+            </p>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <CaseConnectionMap data={connectionMap} isMobile={isMobile} />
+            </div>
+          </div>
+        )}
 
         <div style={{ marginBottom: '24px' }}>
           <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '24px' }}>

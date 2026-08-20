@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks } from 'lucide-react';
+import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export interface RichReportData {
@@ -10,6 +10,8 @@ export interface RichReportData {
   abnormalitiesNoted?: string[];
   biomarkers?: Record<string, { value: number; min: number; max: number; unit: string }>;
   medicalTerms?: { term: string; definition: string }[];
+  specialistDebatePoints?: string[];
+  systemicCorrelations?: string[];
 }
 
 export function RichReportTemplate({ report, isMobile }: { report: RichReportData; isMobile?: boolean }) {
@@ -47,6 +49,32 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
             <p style={{ fontSize: '14.5px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
               {report.interpretation}
             </p>
+          </div>
+        )}
+
+        {report.specialistDebatePoints && report.specialistDebatePoints.length > 0 && (
+          <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1px solid #E2E8F0' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={18} color="#6366F1" /> Multidisciplinary Consensus
+            </h3>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
+              {report.specialistDebatePoints.map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {report.systemicCorrelations && report.systemicCorrelations.length > 0 && (
+          <div style={{ background: '#F0F9FF', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1px solid #BAE6FD' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0369A1', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Network size={18} color="#0284C7" /> Systemic Correlations
+            </h3>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#0369A1', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
+              {report.systemicCorrelations.map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
+            </ul>
           </div>
         )}
 

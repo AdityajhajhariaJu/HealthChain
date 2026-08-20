@@ -563,6 +563,8 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
   "nextSteps": "Outline the actionable next steps for the patient, prioritizing the most critical ones.",
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
   "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
+  "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
+  "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
   "urgency": "Routine | Soon | Urgent",
   "topDiagnoses": [
     { 
@@ -606,12 +608,14 @@ Compile a structured, patient-safe Collaborative Board case brief. Do not presen
           nextSteps: { type: "string" },
           abnormalitiesNoted: { type: "array", items: { type: "string" } },
           medicalTerms: { type: "array", items: { type: "object", properties: { term: { type: "string" }, definition: { type: "string" } } } },
+          specialistDebatePoints: { type: "array", items: { type: "string" } },
+          systemicCorrelations: { type: "array", items: { type: "string" } },
           urgency: { type: "string" },
           topDiagnoses: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, confidence: { type: "number" }, rationale: { type: "string" }, specialty: { type: "string" }, evidenceFor: { type: "array", items: { type: "string" } }, evidenceGaps: { type: "array", items: { type: "string" } }, citations: { type: "array", items: { type: "object", properties: { title: { type: "string" }, journal: { type: "string" }, year: { type: "number" }, link: { type: "string" } } } } } } },
           recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" }, simulation: { type: "object", properties: { timelineDays: { type: "number" }, timelineDescription: { type: "string" }, successRate: { type: "number" }, costEstimate: { type: "string" }, impact: { type: "string" } } } } } },
           questionsForClinician: { type: "array", items: { type: "string" } }
         },
-        required: ["executiveSummary", "keyFindings", "interpretation", "nextSteps", "abnormalitiesNoted", "medicalTerms", "topDiagnoses", "recommendedActionPlan"]
+        required: ["executiveSummary", "keyFindings", "interpretation", "nextSteps", "abnormalitiesNoted", "medicalTerms", "specialistDebatePoints", "systemicCorrelations", "topDiagnoses", "recommendedActionPlan"]
       }
     },
   };
@@ -739,6 +743,8 @@ Return strictly as JSON matching this exact structure:
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
   "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
   "debateSummary": "Explicitly state how you resolved conflicts between specialists. Example: 'Neurology suspected MS, but Rheumatology's focus on joint pain prevailed due to elevated ESR in records.'",
+  "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
+  "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
   "urgency": "Routine | Soon | Urgent",
   "topDiagnoses": [
     { 
