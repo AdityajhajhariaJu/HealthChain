@@ -82,6 +82,7 @@ export default function MDTHub() {
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
   const [activeCase, setActiveCase] = useState(getActiveCase());
   const [isSessionPaused, setIsSessionPaused] = useState(false);
+  const isCompilingRef = React.useRef(false);
   const fileInputRef = React.useRef<any>(null);
 
   
@@ -448,7 +449,72 @@ useEffect(() => {
     }
   };
 
-    const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
+      React.useEffect(() => {
+    if (phase === 'compiling' && !isCompilingRef.current) {
+      isCompilingRef.current = true;
+      (async () => {
+        const startTime = Date.now();
+        try {
+          const cleanTranscripts: Record<string, string> = {};
+          Object.keys(specialistTranscripts).forEach((specId) => {
+            const specName = selectedSpecialists.find((s: any) => s.id === specId)?.label || specId;
+            cleanTranscripts[specName] = specialistTranscripts[specId]
+              ?.map((m: any) => `${m.role}: ${m.text}`)
+              .join('\n') || '';
+          });
+
+          // Run backend synthesis
+          const conferenceData = await runMDTConference(intakeData, cleanTranscripts, activeCase?.medicalRecords || []);
+          const safeConferenceData = conferenceData || {
+            corroborations: [],
+            contentions: [],
+            followUpQuestions: [],
+            debateSummary: "Synthesized available information."
+          };
+
+          const report = await generateMDTReport(intakeData, safeConferenceData, {}, activeCase?.medicalRecords || []);
+          
+          const elapsed = Date.now() - startTime;
+          if (elapsed < 15000) {
+            await new Promise(resolve => setTimeout(resolve, 15000 - elapsed));
+          }
+
+          // Save snapshot to CaseEngine
+          saveReviewSnapshot({
+            type: 'mdt',
+            report,
+            transcripts: specialistTranscripts,
+            basedOnEvidenceIds: activeCase?.medicalRecords?.map((r: any) => r.id) || [],
+            specialists: selectedSpecialists.map((s: any) => s.label),
+            caseId: activeCase?.id || '',
+          });
+
+          if (activeCase?.id) {
+            try {
+              const results = await runDifferentialAnalysis(intakeData, activeCase.medicalRecords || [], getProfile());
+              if (results && Array.isArray(results)) {
+                updateCaseDifferentials(activeCase.id, results);
+              }
+            } catch(e) { console.error("Diff analysis failed", e); }
+          }
+
+          setHistoryReport(report);
+          setPhase('report');
+        } catch (e) {
+          console.error('Failed to generate MDT report', e);
+          const elapsed = Date.now() - startTime;
+          if (elapsed < 15000) {
+            await new Promise(resolve => setTimeout(resolve, 15000 - elapsed));
+          }
+          setPhase('report');
+        } finally {
+          isCompilingRef.current = false;
+        }
+      })();
+    }
+  }, [phase, activeCase, intakeData, selectedSpecialists, specialistTranscripts, setPhase]);
+
+  const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
     setSpecialistTranscripts((prev) => {
       const updated = { ...prev, [id]: transcript };
       if (Object.keys(updated).length === selectedSpecialists.length) {
