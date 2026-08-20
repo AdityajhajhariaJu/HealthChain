@@ -157,7 +157,7 @@ useEffect(() => {
 
   // Fix corrupted state where phase was incorrectly saved as 'report'
   useEffect(() => {
-    if (phase === 'report' || phase === 'done') {
+    if (phase === 'report') {
       setPhase('dashboard');
       setDashboardTab('mdt');
     }
@@ -249,6 +249,7 @@ useEffect(() => {
       setIntakeData({ ...data, chiefComplaint: enhancedComplaint + `\n\nShared Case Material:\n${firstPassMaterial}` });
       setSelectedSpecialists(finalSelection);
       setSpecialistTranscripts(transcripts);
+      setDashboardTab('specialists');
       setPhase('dashboard');
     } finally {
       setIsSelecting(false);
