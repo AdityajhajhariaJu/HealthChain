@@ -439,6 +439,9 @@ New Information / Changes in Symptoms since last evaluation:
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
             <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
             <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
+            <p style={{ color: '#475569', fontSize: '12px', margin: '8px 0 0 0', fontWeight: 500, lineHeight: 1.5, maxWidth: '80%' }}>
+              <strong>Not satisfied with a previous diagnosis?</strong> Have new lab results or changing symptoms? Import your existing case below and explicitly cross-question the AI on its previous findings to get a completely revised evaluation.
+            </p>
           </div>
         </div>
 
@@ -469,57 +472,53 @@ New Information / Changes in Symptoms since last evaluation:
                 onFocus={(e) => (e.target.style.borderColor = '#10B981')}
                 onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
               />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  position: 'absolute',
-                  bottom: '12px',
-                  left: '12px',
-                  padding: isMobile ? '4px 10px' : '6px 14px',
-                  background: isMobile ? 'rgba(241, 245, 249, 0.6)' : '#F1F5F9',
-                  backdropFilter: isMobile ? 'blur(4px)' : 'none',
-                  color: '#475569',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '999px',
-                  fontSize: isMobile ? '11px' : '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  transition: 'all 0.2s',
-                }}
-                onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
-              >
-                <Upload size={12} /> Upload lab reports also
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowImportModal(true)}
-                style={{
-                  position: 'absolute',
-                  bottom: '12px',
-                  left: isMobile ? '160px' : '180px',
-                  padding: isMobile ? '4px 10px' : '6px 14px',
-                  background: isMobile ? 'rgba(241, 245, 249, 0.6)' : '#F1F5F9',
-                  backdropFilter: isMobile ? 'blur(4px)' : 'none',
-                  color: '#475569',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '999px',
-                  fontSize: isMobile ? '11px' : '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  transition: 'all 0.2s',
-                }}
-                onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
-              >
-                <GitMerge size={12} /> Import existing case
-              </button>
+              <div style={{ position: 'absolute', bottom: '12px', left: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    padding: isMobile ? '4px 10px' : '6px 14px',
+                    background: isMobile ? 'rgba(241, 245, 249, 0.6)' : '#F1F5F9',
+                    backdropFilter: isMobile ? 'blur(4px)' : 'none',
+                    color: '#475569',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '999px',
+                    fontSize: isMobile ? '11px' : '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <Upload size={12} /> Upload lab reports also
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowImportModal(true)}
+                  style={{
+                    padding: isMobile ? '4px 10px' : '6px 14px',
+                    background: isMobile ? 'rgba(241, 245, 249, 0.6)' : '#F1F5F9',
+                    backdropFilter: isMobile ? 'blur(4px)' : 'none',
+                    color: '#475569',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '999px',
+                    fontSize: isMobile ? '11px' : '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <GitMerge size={12} /> Import existing case
+                </button>
+              </div>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -1170,7 +1169,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
       {/* Progress Bar */}
       <div style={{ height: '4px', background: '#E2E8F0' }}>
         <motion.div
-          animate={{ width: status === 'done' ? '100%' : `${(questionCount / 10) * 100}%` }}
+          animate={{ width: status === 'done' ? '100%' : `${(questionCount / 8) * 100}%` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
           style={{ height: '100%', background: specialist.color }}
         />
@@ -1301,7 +1300,13 @@ export function MDTConferencePanel({
   if (isDebating || !conferenceData) {
     const s1 = selectedSpecialists[0];
     const s2 = selectedSpecialists[1] || s1;
-    const debateMessages = [
+    
+    const debateMessages = selectedSpecialists.length === 1 ? [
+      { id: 1, sender: s1, text: `I'm analyzing the updated case context and new findings.`, time: 500 },
+      { id: 2, sender: s1, text: `Correlating your previous records with the new inputs...`, time: 2300 },
+      { id: 3, sender: s1, text: `Synthesizing the final diagnostic impression and action plan.`, time: 4100 },
+      { id: 4, sender: null, text: `Generating Follow-up Report...`, time: 5900 }
+    ] : [
       { id: 1, sender: s1, text: `I've analyzed the case context and preliminary findings. The structural anomalies seem pronounced.`, time: 500 },
       { id: 2, sender: s2, text: `Agreed. However, we must correlate this with the biochemical markers to rule out systemic issues.`, time: 2300 },
       { id: 3, sender: s1, text: `That's a valid point. I'll integrate those variables into my differential model.`, time: 4100 },

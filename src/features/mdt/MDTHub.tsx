@@ -210,9 +210,22 @@ export default function MDTHub() {
       
       setIntakeData({ ...data, chiefComplaint: enhancedComplaint });
       
-      const ids = (await selectMDTSpecialists(enhancedComplaint)) || [];
-      const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
-      const finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
+      let finalSelection;
+      if (enhancedComplaint.includes('[FOLLOW-UP FROM PREVIOUS EVALUATION]')) {
+        finalSelection = [
+          {
+            id: 'ai_followup',
+            label: 'AI Specialist',
+            icon: BrainCircuit,
+            color: '#8B5CF6',
+            description: 'Advanced Follow-up Specialist focusing on your cross-questions and new findings.',
+          }
+        ];
+      } else {
+        const ids = (await selectMDTSpecialists(enhancedComplaint)) || [];
+        const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
+        finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
+      }
       const firstPassMaterial = `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${enhancedComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [specialist.id, []])
