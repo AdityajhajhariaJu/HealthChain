@@ -325,28 +325,8 @@ async function save(cases: CaseItem[]) {
     }
   } catch (err) {
     console.error('Failed to save cases. LocalStorage might be full.', err);
-    
-    // Self-healing: if localStorage quota is exceeded, gracefully drop the oldest cases until it fits
-    let healedCases = JSON.parse(JSON.stringify(cases));
-    let success = false;
-    
-    // Sort so oldest is at the end
-    healedCases.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    
-    while (healedCases.length > 1 && !success) {
-      healedCases.pop(); // Remove the oldest case
-      try {
-        setItemSync(getCasesKey(), JSON.stringify(healedCases));
-        cachedCases = healedCases;
-        success = true;
-        window.dispatchEvent(new Event('hc_cases_updated'));
-        console.warn('Storage was full. Pruned oldest case to save current progress.');
-      } catch (e) {}
-    }
-    
-    if (!success) {
-      console.error('Even deleting cases failed to save. Quota completely exhausted.');
-    }
+    alert('Storage Full: We have hit the maximum browser limit. Please sign in to sync to the cloud, or clear old cases.');
+  }
   }
 }
 

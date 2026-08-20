@@ -39,6 +39,7 @@
     "idb-keyval": "^6.3.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.513.0",
+    "lz-string": "^1.5.0",
     "razorpay": "^2.9.8",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
