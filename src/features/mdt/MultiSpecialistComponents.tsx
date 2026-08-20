@@ -186,13 +186,14 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        background: 'rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(20px)',
+        background: 'rgba(255, 255, 255, 0.55)',
+        backdropFilter: 'blur(32px)',
+        WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '24px',
         border:
-          status === 'done' ? `2px solid ${specialist.color}` : '1px solid rgba(255,255,255,0.5)',
+          status === 'done' ? `2px solid ${specialist.color}` : '1px solid rgba(255, 255, 255, 0.8)',
         overflow: 'hidden',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
       }}
     >
       <div

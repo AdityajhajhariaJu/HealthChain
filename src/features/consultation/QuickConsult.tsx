@@ -551,12 +551,13 @@ export default function QuickConsult() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              background: 'rgba(255,255,255,0.8)',
-              backdropFilter: 'blur(24px)',
+              background: 'rgba(255, 255, 255, 0.45)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
               height: isMobile ? 'calc(100dvh - 120px)' : '700px',
               display: 'flex',
               flexDirection: 'column'
