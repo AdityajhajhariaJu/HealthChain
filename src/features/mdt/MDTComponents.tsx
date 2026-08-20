@@ -355,9 +355,14 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
   const handleImportCase = (pastCase: any) => {
     const prevSummary = pastCase.report?.executiveSummary || pastCase.title || '';
     const prevFindings = pastCase.report?.keyFindings || '';
+    const prevPathways = (pastCase.report?.topDiagnoses || [])
+      .map((d: any) => `- ${d.condition} (Confidence: ${d.probability}%)\n  Supporting Evidence: ${(d.supportingEvidence || []).join(', ')}`)
+      .join('\n');
+      
     setComplaint(`[FOLLOW-UP FROM PREVIOUS EVALUATION]
 Previous Summary: ${prevSummary}
 ${prevFindings ? `Previous Findings: ${prevFindings}\n` : ''}
+${prevPathways ? `Previous Pathways Investigated:\n${prevPathways}\n` : ''}
 New Information / Changes in Symptoms since last evaluation:
 - `);
     setShowImportModal(false);
