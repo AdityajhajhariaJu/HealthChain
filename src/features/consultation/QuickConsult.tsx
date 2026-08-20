@@ -208,9 +208,10 @@ export default function QuickConsult() {
               }
             }}
             style={{
-              background: 'linear-gradient(120deg, rgba(240,253,244,0.95) 0%, rgba(239,246,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
+              background: 'linear-gradient(120deg, rgba(240, 253, 244, 0.45) 0%, rgba(239, 246, 255, 0.45) 50%, rgba(255, 255, 255, 0.45) 100%)',
               backgroundSize: '200% 200%',
-              backdropFilter: 'blur(24px)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
@@ -226,7 +227,7 @@ export default function QuickConsult() {
                     gap: '8px',
                     marginBottom: '12px',
                     padding: '6px 12px',
-                    background: 'rgba(255,255,255,0.8)',
+                    background: 'rgba(255, 255, 255, 0.45)',
                     backdropFilter: 'blur(10px)',
                     borderRadius: '999px',
                     border: '1px solid rgba(0,0,0,0.05)',
@@ -623,7 +624,7 @@ export default function QuickConsult() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               style={{
-                background: 'rgba(255,255,255,0.8)',
+                background: 'rgba(255, 255, 255, 0.45)',
                 backdropFilter: 'blur(24px)',
                 padding: isMobile ? '32px 16px' : '32px 64px 64px',
                 borderRadius: '32px',
@@ -642,7 +643,7 @@ export default function QuickConsult() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             style={{
-              background: 'rgba(255,255,255,0.8)',
+              background: 'rgba(255, 255, 255, 0.45)',
               backdropFilter: 'blur(24px)',
               padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',
