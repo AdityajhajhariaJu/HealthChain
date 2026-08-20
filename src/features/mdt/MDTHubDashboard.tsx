@@ -9,12 +9,15 @@ import {
   RotateCcw,
   Play,
   Pause,
-  CheckCircle2
+  CheckCircle2, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { MDTSpecialistPanel, MDTReportPanel } from './MDTComponents';
+import { MDTReportPanel } from './MDTComponents';
+import { SpecialistPanel } from './MultiSpecialistComponents';
 import { saveReviewSnapshot, updateCaseDifferentials } from '../../services/CaseEngine';
 import { runDifferentialAnalysis } from '../../services/geminiService';
+
+const cachedMDTSpecialistStreams: any = {};
 
 export function MDTHubDashboard({
   isMobile,
@@ -37,6 +40,7 @@ export function MDTHubDashboard({
   setMobileActiveTab
 }) {
   const navigate = useNavigate();
+  const [completedSpecialists, setCompletedSpecialists] = React.useState<Set<string>>(new Set());
 
   return (
     <>
@@ -46,86 +50,20 @@ export function MDTHubDashboard({
 
       {dashboardTab === 'specialists' ? (
         <>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#FFF',
-              padding: '12px 20px',
-              borderRadius: '16px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-              border: '1px solid rgba(0,0,0,0.05)',
-              flexWrap: 'wrap',
-              gap: '12px'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    background: isSessionPaused ? '#F59E0B' : '#10B981',
-                    boxShadow: isSessionPaused ? '0 0 10px #F59E0B' : '0 0 10px #10B981',
-                  }}
-                />
-                <span style={{ fontSize: '13px', fontWeight: 700, color: isSessionPaused ? '#92400E' : '#065F46' }}>
-                  {isSessionPaused ? 'Paused' : 'Active'}
-                </span>
-              </div>
-              <div style={{ width: '1px', height: '20px', background: '#E2E8F0' }} />
-              <button
-                onClick={() => navigate(activeCase ? `/app/cases/${activeCase.id}` : '/app/today')}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', background: 'transparent', color: '#64748B', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'color 0.15s' }}
-                onMouseOver={e => e.currentTarget.style.color = '#0F172A'}
-                onMouseOut={e => e.currentTarget.style.color = '#64748B'}
-              >
-                <ChevronLeft size={15} /> Back to case
-              </button>
-            </div>
+          
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                onClick={() => {
-                  setPhase('intake');
-                  setIntakeData({ chiefComplaint: '', history: '', redFlags: false });
-                  setHistoryReport(null);
-                  setSelectedSpecialists([]);
-                  setSpecialistTranscripts({});
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', background: '#FFF', color: '#475569', border: '1px solid #E2E8F0', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.15s' }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
-              >
-                <RotateCcw size={14} /> Restart
-              </button>
-              <button
-                onClick={() => setIsSessionPaused(!isSessionPaused)}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', background: isSessionPaused ? '#ECFDF5' : '#FFFBEB', color: isSessionPaused ? '#065F46' : '#92400E', border: `1px solid ${isSessionPaused ? '#A7F3D0' : '#FDE68A'}`, cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.15s' }}
-              >
-                {isSessionPaused ? <Play size={14} /> : <Pause size={14} />}
-                {isSessionPaused ? 'Resume' : 'Pause'}
-              </button>
-              <div style={{ width: '1px', height: '20px', background: '#E2E8F0' }} />
-              <button
-                onClick={() => {
-                  setIsSessionPaused(false);
-                  setDashboardTab('mdt');
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', borderRadius: '8px', background: '#0F172A', color: '#FFF', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '13px', transition: 'all 0.15s', boxShadow: '0 2px 6px rgba(15,23,42,0.15)' }}
-                onMouseOver={e => e.currentTarget.style.background = '#1E293B'}
-                onMouseOut={e => e.currentTarget.style.background = '#0F172A'}
-              >
-                <CheckCircle2 size={14} /> Finish & Save
-              </button>
-            </div>
-          </motion.div>
-
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button
+              onClick={() => {
+                 setPhase('intake');
+                 setIntakeData({ chiefComplaint: '', history: '', redFlags: false });
+                 setHistoryReport(null);
+              }}
+              style={{ padding: '8px 16px', background: 'transparent', border: 'none', color: '#ef4444', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <X size={16} /> Cancel Consultation
+            </button>
+          </div>
           <div
             style={{
               display: isMobile ? 'flex' : 'grid',
@@ -164,29 +102,47 @@ export function MDTHubDashboard({
                 key={s.id}
                 style={{
                   display: (!isMobile || mobileActiveTab === i) ? 'flex' : 'none',
+                  flexDirection: 'column',
                   flex: 1,
                   width: '100%',
                   height: isMobile ? 'calc(100vh - 240px)' : 'auto',
                 }}
               >
-                <MDTSpecialistPanel
-                  specialist={s}
-                  index={i}
-                  isPaused={isSessionPaused}
-                  allSpecialists={selectedSpecialists}
-                  intakeData={intakeData}
-                  initialMessages={specialistTranscripts[s.id] || []}
-                  activeDifferentials={activeCase?.differentials || []}
-                  onUpdate={(id, transcript) => {
-                    setSpecialistTranscripts((prev) => ({ ...prev, [id]: transcript }));
-                  }}
-                  onComplete={(id, transcript) => {
-                    setSpecialistTranscripts((prev) => {
-                      const updated = { ...prev, [id]: transcript };
-                      return updated;
-                    });
-                  }}
-                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '12px', background: s.bg || 'rgba(59, 130, 246, 0.1)', color: s.color || '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <s.icon size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>{s.label}</h3>
+                      <div style={{ fontSize: '13px', color: '#64748B' }}>AI-guided question preparation</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+                  <SpecialistPanel
+                    specialist={s}
+                    isRunning={true}
+                    isPaused={false}
+                    index={i}
+                    onComplete={(id: string, transcript: any) => {
+                      setSpecialistTranscripts((prev: any) => ({ ...prev, [id]: transcript }));
+                      setCompletedSpecialists(prev => {
+                        const next = new Set(prev);
+                        next.add(id);
+                        if (next.size === selectedSpecialists.length) {
+                          setPhase('compiling');
+                        }
+                        return next;
+                      });
+                    }}
+                    allSpecialists={selectedSpecialists}
+                    intakeData={intakeData}
+                    activeDifferentials={activeCase?.differentials || []}
+                    cachedSpecialistStreams={cachedMDTSpecialistStreams}
+                  />
+                </div>
               </div>
             ))}
           </div>
