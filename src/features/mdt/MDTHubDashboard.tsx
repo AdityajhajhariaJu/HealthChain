@@ -97,7 +97,9 @@ export function MDTHubDashboard({
                 ))}
               </div>
             )}
-            {selectedSpecialists.map((s, i) => (
+            {selectedSpecialists.map((s, i) => {
+              const Icon = s.icon;
+              return (
               <div
                 key={s.id}
                 style={{
@@ -111,7 +113,7 @@ export function MDTHubDashboard({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: 40, height: 40, borderRadius: '12px', background: s.bg || 'rgba(59, 130, 246, 0.1)', color: s.color || '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <s.icon size={20} />
+                      <Icon size={20} />
                     </div>
                     <div>
                       <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>{s.label}</h3>
@@ -144,7 +146,8 @@ export function MDTHubDashboard({
                   />
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </>
       ) : (
