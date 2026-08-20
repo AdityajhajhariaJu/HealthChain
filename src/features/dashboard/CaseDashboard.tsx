@@ -661,7 +661,7 @@ function CaseCard({ item, navigate }: { item: CaseItem, navigate: any }) {
           </div>
           <p style={{ margin: '5px 0', color: '#64748b', fontSize: 13, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             {primary?.condition
-              ? `Leading pathway: ${primary.condition}`
+              ? <>Leading pathway: <strong>{primary.condition}</strong> {primary.definition && <span style={{ opacity: 0.8 }}>— {primary.definition}</span>}</>
               : 'Awaiting evidence synthesis'}
           </p>
           <small style={{ color: '#94a3b8', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>

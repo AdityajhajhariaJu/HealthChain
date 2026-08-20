@@ -43,6 +43,7 @@ export interface ReviewSnapshot {
 export interface Differential {
   id: string;
   condition: string;
+  definition?: string;
   probability: number;
   trend: 'up' | 'down' | 'stable';
   supportingEvidence: string[];
