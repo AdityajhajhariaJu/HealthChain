@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GitMerge, AlertCircle, HelpCircle, Activity, HeartPulse, Sparkles, AlertTriangle } from 'lucide-react';
+import { GitMerge, AlertCircle, HelpCircle, Activity, HeartPulse, Sparkles, AlertTriangle, Stethoscope, Users } from 'lucide-react';
 
 export interface CaseConnectionMapProps {
   data: any;
@@ -167,11 +167,11 @@ export function CaseConnectionMap({ data, isMobile = false }: CaseConnectionMapP
 
             return (
               <g key={node.id} transform={`translate(${node.x}, ${node.y})`} onMouseEnter={() => setHoveredNode(node.id)} onMouseLeave={() => setHoveredNode(null)} style={{ cursor: 'pointer', transition: 'all 0.3s' }} opacity={isFaded ? 0.2 : 1}>
-                <motion.rect x="-70" y="-25" width="140" height="50" rx="12" fill={bgColor} stroke={color} strokeWidth="2" initial={{ scale: 0 }} animate={{ scale: isActive && hoveredNode === node.id ? 1.05 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} />
-                <text y="-5" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0F172A">{node.label.length > 18 ? node.label.substring(0, 16) + '...' : node.label}</text>
+                <motion.rect x="-85" y="-25" width="170" height="50" rx="12" fill={bgColor} stroke={color} strokeWidth="2" initial={{ scale: 0 }} animate={{ scale: isActive && hoveredNode === node.id ? 1.05 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} />
+                <text y="-5" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0F172A">{node.label.length > 22 ? node.label.substring(0, 20) + '...' : node.label}</text>
                 <text y="12" textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{node.confidence}% | {node.specialty}</text>
                 {hasPrecaution && (
-                  <motion.g transform="translate(55, -25)" animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+                  <motion.g transform="translate(70, -25)" animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
                     <circle r="10" fill="#EF4444" />
                     <foreignObject x="-7" y="-7" width="14" height="14">
                       <AlertTriangle size={14} color="#FFF" />

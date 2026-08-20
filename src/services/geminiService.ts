@@ -1450,7 +1450,7 @@ Return ONLY a valid JSON object matching this exact schema:
     { "text": "Monitor for fever above 38.5°C", "severity": "red_flag|watch|info", "relatedConditions": ["cond1"] }
   ],
   "missingEvidence": [
-    { "test": "Complete Blood Count", "wouldDifferentiate": ["cond1", "cond2"], "urgency": "Routine|Soon" }
+    { "test": "Complete Blood Count", "wouldDifferentiate": ["cond1", "cond2"], "urgency": "Routine|Soon", "recommendedSpecialists": "General Physician or Hematologist" }
   ],
   "narrative": "A 2-3 sentence plain English summary of how everything connects."
 }
