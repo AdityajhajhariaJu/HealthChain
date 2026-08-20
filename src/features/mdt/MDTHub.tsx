@@ -412,7 +412,7 @@ export default function MDTHub() {
   
   const handleConferenceComplete = async (conferenceData: any, answers: any) => {
     try {
-      const report = await generateMDTReport(intakeData, conferenceData, activeCase?.medicalRecords || []);
+      const report = await generateMDTReport(intakeData, conferenceData, answers, activeCase?.medicalRecords || []);
       setHistoryReport(report);
       setPhase('report');
     } catch (e) {
