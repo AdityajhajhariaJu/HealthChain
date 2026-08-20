@@ -161,15 +161,11 @@ export default function CaseDashboard() {
         style={{
           display: isMobile ? 'flex' : 'grid',
           flexDirection: isMobile ? 'column' : 'unset',
-          gridTemplateColumns: isMobile ? 'unset' : '1.35fr .65fr',
+          gridTemplateColumns: isMobile ? 'unset' : '1fr 1fr',
           gap: 16,
           alignItems: 'start',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
-          
-        </div>
-        <aside style={{ display: 'grid', gap: 16 }}>
           <section className="card" style={{ padding: 22 }}>
             <div style={{ display: 'flex', gap: 10, color: '#10B981', alignItems: 'center' }}>
               <Activity size={19} />
@@ -241,7 +237,6 @@ export default function CaseDashboard() {
               Open Medical Profile <ArrowRight size={14} />
             </button>
           </section>
-        </aside>
       </div>
     </div>
   );
