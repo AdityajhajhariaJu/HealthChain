@@ -570,7 +570,12 @@ Patient Intake: ${intakeData.chiefComplaint}${recordsText}
 Conference Summary: ${conferenceData.debateSummary}
 Patient's Final Answers: ${JSON.stringify(finalAnswers)}
 
-Compile a structured, patient-safe Collaborative Board case brief. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list. Return strictly as JSON:
+Compile a structured, patient-safe Collaborative Board case brief. 
+CRITICAL INSTRUCTIONS:
+1. SCIENTIST PATIENT PERSONA: The patient wants to understand the biological mechanisms behind their condition like a scientist. They want rigorous, data-driven explanations and clear clinical linkages between symptoms, lab results, and hypotheses. Provide deep, rich informational density.
+2. BEAUTIFUL EXPLANATIONS: Even though you are providing scientific density, you MUST explain the mechanisms and terminology in a simple, beautiful, easy-to-understand way. Do not use impenetrable medical jargon without clearly defining it.
+3. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list.
+Return strictly as JSON:
 {
   "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
   "keyFindings": "Summarize the core clinical findings across all specialists in a clear paragraph.",
@@ -744,10 +749,12 @@ ${formattedTranscripts}${recordsText}
 
 Your task is to find the connections between these distinct evaluations, cross-correlate their findings with the medical records, and generate a unified case brief.
 CRITICAL INSTRUCTIONS:
-1. MERGE overlapping diagnoses: Do not list the same condition multiple times (e.g. do not list "Cervical Radiculopathy" 3 times just because 3 specialists mentioned it). Merge them into a single entry with combined evidence.
-2. CONDENSE the Action Plan: Limit the action plan to a maximum of 5 distinct, high-yield steps. Do not repeat instructions. Merge overlapping recommendations (e.g. if 3 specialists recommend an MRI, only list "Obtain MRI" once).
-3. Do not claim certainty; distinguish evidence from gaps and direct clinical decisions to qualified professionals.
-4. Include citations only when a real source is supplied in the case; otherwise return an empty citations list.
+1. SCIENTIST PATIENT PERSONA: The patient wants to understand the biological mechanisms behind their condition like a scientist. They want rigorous, data-driven explanations and clear clinical linkages between symptoms, lab results, and hypotheses. Provide deep, rich informational density.
+2. BEAUTIFUL EXPLANATIONS: Even though you are providing scientific density, you MUST explain the mechanisms and terminology in a simple, beautiful, easy-to-understand way. Do not use impenetrable medical jargon without clearly defining it.
+3. MERGE overlapping diagnoses: Do not list the same condition multiple times. Merge them into a single entry with combined evidence.
+4. CONDENSE the Action Plan: Limit the action plan to a maximum of 5 distinct, high-yield steps.
+5. Do not claim certainty; distinguish evidence from gaps and direct clinical decisions to qualified professionals.
+6. Include citations only when a real source is supplied in the case; otherwise return an empty citations list.
 
 Return strictly as JSON matching this exact structure:
 {
@@ -1044,6 +1051,7 @@ export async function runDifferentialAnalysis(intakeData: any, medicalRecords: a
   const prompt = `
 You are HealthChain's health assessment AI.
 Analyze the patient's symptoms, active clinical cases, and medical records to generate a short list of possibilities for clinician discussion (DDx).
+The patient has a "Scientist" mindset: they want to understand the deep biological mechanisms behind their symptoms, the rigorous connections between data points, and the rationale for your hypotheses. Provide high informational density, but explain all medical terminology beautifully and simply.
 
 Patient Profile:
 ${JSON.stringify({ age: profileData?.demographics?.age, gender: profileData?.demographics?.gender, conditions: profileData?.health?.conditions || profileData?.medicalConditions })}
