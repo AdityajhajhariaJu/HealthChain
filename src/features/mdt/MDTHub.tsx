@@ -196,9 +196,10 @@ useEffect(() => {
     
     setIsSelecting(true);
     let enhancedComplaint = data.chiefComplaint || '';
-    
-    try {
-      if (data.files && data.files.length > 0) {
+      let newRecords: any[] = [];
+      
+      try {
+        if (data.files && data.files.length > 0) {
         const profile = getProfile() || {};
         for (const file of data.files) {
           const reader = new FileReader();
@@ -209,11 +210,12 @@ useEffect(() => {
           
           const result = await analyzeLabReport(base64Data, file.type, profile);
           if (result) {
-            enhancedComplaint += `\n\n--- Document: ${file.name} ---\n`;
-            enhancedComplaint += `Test/Report Type: ${result.testName}\n`;
-            enhancedComplaint += `Key Findings: ${result.keyFindings}\n`;
-            if (result.interpretation) enhancedComplaint += `Interpretation: ${result.interpretation}\n`;
-          }
+              enhancedComplaint += `\n\n--- Document: ${file.name} ---\n`;
+              enhancedComplaint += `Test/Report Type: ${result.testName}\n`;
+              enhancedComplaint += `Key Findings: ${result.keyFindings}\n`;
+              if (result.interpretation) enhancedComplaint += `Interpretation: ${result.interpretation}\n`;
+              newRecords.push({ filename: file.name, findings: result.keyFindings, source: 'mdt_hub' });
+            }
         }
       }
       
@@ -240,9 +242,13 @@ useEffect(() => {
         finalSelection.map((specialist) => [specialist.id, []])
       );
       
-      const { createCaseDraft, setActiveCase: dynSetActiveCase } = await import('../../services/CaseEngine');
-      const newCase = createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
-      dynSetActiveCase(newCase.id);
+      const { createCaseDraft, setActiveCase: dynSetActiveCase, addEvidenceToActiveCase } = await import('../../services/CaseEngine');
+        const newCase = createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
+        dynSetActiveCase(newCase.id);
+        
+        for (const record of newRecords) {
+          addEvidenceToActiveCase(record);
+        }
       
       setIntakeData({ ...data, chiefComplaint: enhancedComplaint + `\n\nShared Case Material:\n${firstPassMaterial}` });
       setSelectedSpecialists(finalSelection);
@@ -294,9 +300,9 @@ useEffect(() => {
       // No need to save a review just for starting MDT. We save it when the report completes.
 
       // trigger refresh
-      setActiveCase(getActiveCase());
-      
-      setDashboardTab('specialists');
+      setGlobalActiveCase(caseItem.id);
+        setActiveCase(getActiveCase());
+        setDashboardTab('specialists');
         setPhase('dashboard');
     } finally {
       setIsSelecting(false);
@@ -309,8 +315,9 @@ useEffect(() => {
         if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
       });
     } catch(e) {}
-    setActiveCase(caseItem);
-    setPhase('dashboard');
+    setGlobalActiveCase(caseItem.id);
+      setActiveCase(getActiveCase());
+      setPhase('dashboard');
   };
 
   const handleResumeActiveCase = () => {
@@ -1109,3 +1116,4 @@ useEffect(() => {
     </div>
   );
 }
+
