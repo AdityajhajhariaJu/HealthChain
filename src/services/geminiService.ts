@@ -331,7 +331,7 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
 // ─── MDT Hub Specialized Prompts ────────────────────────────────────────────
 
 export async function selectMDTSpecialists(intakeText: string): Promise<string[]> {
-  const prompt = `You are a medical triage AI. Based on the patient's chief complaint, select the 3 to 5 most appropriate medical specialists to form a Collaborative Board.
+  const prompt = `You are a medical triage AI. Based on the patient's chief complaint, select the 2 to 4 most highly relevant medical specialists to form a Collaborative Board. Be extremely precise and strict; do not select a specialist unless there is a strong, direct clinical reason based on the specific complaint.
 Chief Complaint: "${intakeText}"
 
 Return ONLY a JSON array of specialist IDs (strings) from this list:

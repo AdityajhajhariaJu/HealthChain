@@ -2,6 +2,35 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
+import { RichReportTemplate } from '../../components/ui/RichReportTemplate';
+
+export function StreamingMarkdown({ text, isNew, inline = false }: { text: string, isNew: boolean, inline?: boolean }) {
+  const [displayed, setDisplayed] = useState(isNew ? '' : text);
+  
+  useEffect(() => {
+    if (!isNew) {
+      setDisplayed(text);
+      return;
+    }
+    
+    let isMounted = true;
+    const stream = async () => {
+      let current = '';
+      for (let i = 0; i < text.length; i++) {
+        if (!isMounted) break;
+        current += text[i];
+        const delay = Math.floor(Math.random() * 15) + 5;
+        await new Promise((r) => setTimeout(r, delay));
+        if (isMounted) setDisplayed(current);
+      }
+    };
+    stream();
+    return () => { isMounted = false; };
+  }, [text, isNew]);
+
+  return <span dangerouslySetInnerHTML={{ __html: displayed.replace(/\n/g, '<br/>') }} style={{ display: inline ? 'inline' : 'block' }} />;
+}
+
 import { generateCaseConnectionMap } from '../../services/geminiService';
 import {
   Network,
@@ -894,52 +923,6 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
         </div>
       </div>
 
-      {/* Live Notepad Sidebar/Header Block */}
-      {latestParsed?.internalThoughts && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          style={{
-            padding: '12px 18px',
-            background: `linear-gradient(90deg, ${specialist.color}10 0%, ${specialist.color}04 100%)`,
-            borderBottom: `1px solid ${specialist.color}25`,
-            fontSize: '13px',
-            color: '#334155',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
-          <motion.div
-             animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.2, 0.9] }}
-             transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-             style={{
-               width: '8px',
-               height: '8px',
-               borderRadius: '50%',
-               background: specialist.color,
-               boxShadow: `0 0 10px ${specialist.color}`,
-               flexShrink: 0
-             }}
-          />
-          <div style={{ lineHeight: 1.5, letterSpacing: '0.2px', fontStyle: 'italic', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-            <span style={{ fontWeight: 700, color: specialist.color, textTransform: 'uppercase', fontSize: '11px', alignSelf: 'center', marginTop: '2px' }}>Case signal</span>
-            {latestParsed.internalThoughts || 'Reviewing the information you shared'}
-          </div>
-          {latestParsed.currentHypotheses && latestParsed.currentHypotheses.length > 0 && (
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              {latestParsed.currentHypotheses?.map((hyp, i) => (
-                <span key={i} style={{ padding: '2px 6px', background: `${specialist.color}15`, color: specialist.color, borderRadius: '4px', fontSize: '10px', fontWeight: 600, border: `1px solid ${specialist.color}30` }}>
-                  {typeof hyp === 'string' ? hyp : hyp.condition}
-                </span>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      )}
-
       {/* Chat Feed */}
       <div
         ref={containerRef}
@@ -1018,8 +1001,54 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
                     </div>
                   )}
 
+                  {!isUser && parsed?.internalThoughts && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      style={{
+                        marginBottom: '16px',
+                        padding: '12px 18px',
+                        background: `linear-gradient(90deg, ${specialist.color}15 0%, ${specialist.color}05 100%)`,
+                        borderRadius: 'var(--radius-lg)',
+                        border: `1px solid ${specialist.color}25`,
+                        fontSize: '13px',
+                        color: '#334155',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div style={{ lineHeight: 1.5, letterSpacing: '0.2px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <motion.div
+                          animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.2, 0.9] }}
+                          transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                          style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: specialist.color,
+                            boxShadow: `0 0 10px ${specialist.color}`,
+                            flexShrink: 0
+                          }}
+                        />
+                        <span style={{ fontWeight: 600, color: specialist.color }}>Background Thought:</span>
+                        <StreamingMarkdown text={parsed.internalThoughts} isNew={i === messages.length - 1} inline />
+                      </div>
+                      {parsed.currentHypotheses && parsed.currentHypotheses.length > 0 && (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          {parsed.currentHypotheses?.map((hyp: any, idx: number) => (
+                            <span key={idx} style={{ padding: '4px 8px', background: `${specialist.color}15`, color: specialist.color, borderRadius: '6px', fontSize: '11px', fontWeight: 600, border: `1px solid ${specialist.color}30` }}>
+                              {typeof hyp === 'string' ? hyp : hyp.condition}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
                   <div style={{ position: 'relative', zIndex: 1, color: isUser ? '#334155' : '#0F172A' }}>
-                    {highlightAnomalies(displayText)}
+                    {!isUser ? <StreamingMarkdown text={displayText || ''} isNew={i === messages.length - 1} /> : highlightAnomalies(displayText)}
                   </div>
                   
                   {/* Interactive Widgets */}
@@ -1855,13 +1884,8 @@ export function MDTReportPanel({
           </p>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
-            Executive Summary
-          </h3>
-          <p style={{ color: '#334155', lineHeight: 1.7, fontSize: isMobile ? '15px' : '17px' }}>
-            {report.executiveSummary}
-          </p>
+        <div style={{ marginBottom: '32px' }}>
+          <RichReportTemplate report={report} isMobile={isMobile} />
         </div>
 
         <div style={{ marginBottom: '24px' }}>

@@ -97,9 +97,7 @@ export default function MDTHub() {
       return;
     }
     
-    if (searchParams.has('caseId') && phase === 'intake') {
-      setPhase('dashboard');
-    }
+    
   }, [location.search, phase, setPhase, resetMDTStore]);
 
   useEffect(() => {

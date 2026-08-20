@@ -18,14 +18,14 @@ import {
   Printer
 } from 'lucide-react';
 import { getCase, getCases, setActiveCase, toggleCaseAction, resolveCase, CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
-import { getProfile } from '../../services/ProfileEngine';
+import { getProfile, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ActiveCaseBar } from '../../components/layout/AppShell';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
-import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock } from 'lucide-react';
 import { RichReportTemplate } from '../../components/ui/RichReportTemplate';
 
 const formatDate = (value: string) => {
@@ -39,6 +39,14 @@ const formatDate = (value: string) => {
 };
 
 export default function CaseDashboard() {
+  const [isPremium, setIsPremium] = useState(false);
+  useEffect(() => {
+    verifyProStatus().then(setIsPremium).catch(() => {});
+    const handleProfile = () => setIsPremium(isProUser());
+    window.addEventListener('hc_profile_updated', handleProfile);
+    return () => window.removeEventListener('hc_profile_updated', handleProfile);
+  }, []);
+
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -155,6 +163,42 @@ export default function CaseDashboard() {
 
       <div style={{ marginBottom: 28 }}>
         <ActiveCaseBar navigate={navigate} />
+      </div>
+
+      {/* Premium Section */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          gap: isMobile ? 12 : 0,
+          padding: '16px',
+          background: isPremium ? 'var(--teal-light)' : '#F3E8FF',
+          borderRadius: 'var(--radius-lg)',
+          border: `1px solid ${isPremium ? 'var(--teal)' : '#D8B4FE'}`,
+          marginBottom: '28px',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: isPremium ? 'var(--teal)' : '#6B21A8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Star size={18} />
+            {isPremium ? 'HealthChain Premium Active' : 'Upgrade to Premium'}
+          </div>
+          <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : '#7E22CE', opacity: 0.8 }}>
+            {isPremium ? 'You have access to all advanced diagnostic tools.' : 'Unlock unlimited parallel board consultations and detailed PDF analysis.'}
+          </div>
+        </div>
+        {!isPremium && (
+          <button
+            className="btn btn-primary"
+            disabled
+            style={{ padding: '8px 16px', fontSize: '14px', background: '#E9D5FF', color: '#6B21A8', border: 'none', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Lock size={14} />
+            Upgrade Now
+          </button>
+        )}
       </div>
 
       <div
