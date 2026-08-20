@@ -67,7 +67,10 @@ export default function MDTHub() {
   const setDashboardTab = useMDTStore(s => s.setDashboardTab);
   const intakeData = useMDTStore(s => s.intakeData);
   const setIntakeData = useMDTStore(s => s.setIntakeData);
-  const selectedSpecialists = useMDTStore(s => s.selectedSpecialists);
+    const rawSelectedSpecialists = useMDTStore(s => s.selectedSpecialists);
+  const selectedSpecialists = useMemo(() => {
+    return rawSelectedSpecialists.map(s => ALL_SPECIALISTS.find(a => a.id === s.id) || s);
+  }, [rawSelectedSpecialists]);
   const setSelectedSpecialists = useMDTStore(s => s.setSelectedSpecialists);
   const specialistTranscripts = useMDTStore(s => s.specialistTranscripts);
   const setSpecialistTranscripts = useMDTStore(s => s.setSpecialistTranscripts);
