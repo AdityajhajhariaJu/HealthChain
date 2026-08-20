@@ -315,8 +315,20 @@ async function saveProfile(profile) {
       }
     }
   } catch (e) {
-    console.error('Failed to save unified profile', e);
-    alert('Storage Full: Unable to save profile changes. Please clear browser storage or delete older data.');
+    console.error('Failed to save unified profile. Quota likely exceeded.', e);
+    
+    // Self-healing: if localStorage quota is exceeded, empty the historyStack to free space
+    if (historyStack && historyStack.length > 1) {
+      historyStack = historyStack.slice(-1);
+      historyIndex = 0;
+      try {
+        setItemSync(getProfileKey(), JSON.stringify(getProfileEngineState()));
+        console.warn('Cleared ProfileEngine history stack to free localStorage quota.');
+      } catch(err2) {
+        console.error('Still failed after clearing history stack.');
+      }
+    }
+    
     window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: e }));
   }
 }
