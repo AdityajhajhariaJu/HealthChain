@@ -347,18 +347,9 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
 
   useEffect(() => {
     try {
-      // Migrate to using the central CaseEngine for case history instead of legacy hc_history
+      // Only display cases from the central CaseEngine that have actually been completed
       const cases = getCases().filter((c: any) => c.reviews && c.reviews.length > 0);
-      
-      // Also merge legacy hc_history if any, just in case
-      const stored = localStorage.getItem('hc_history');
-      let legacyCases = [];
-      if (stored) {
-         legacyCases = JSON.parse(stored);
-      }
-      
-      // Merge, giving preference to CaseEngine cases
-      setHistoryCases([...cases, ...legacyCases.filter((lc: any) => !cases.some((c: any) => c.id === lc.id))]);
+      setHistoryCases(cases);
     } catch (e) {}
   }, []);
 
@@ -1725,18 +1716,6 @@ export function MDTReportPanel({
       
       setReport(data);
 
-      const stored = localStorage.getItem('hc_history');
-      let historyArray = stored ? JSON.parse(stored) : [];
-      const newHistoryItem = {
-        id: 'mdt-' + Date.now(),
-        title: intakeData?.chiefComplaint || 'Advanced Collaborative Consultation',
-        date: new Date().toLocaleDateString(),
-        type: 'mdt',
-        report: data,
-      };
-      historyArray.unshift(newHistoryItem);
-      try { localStorage.setItem('hc_history', JSON.stringify(historyArray)); } catch(e) {}
-      window.dispatchEvent(new Event('hc_history_updated'));
 
       if (data.topDiagnoses && data.topDiagnoses.length > 0) {
         addCondition(data.topDiagnoses[0].condition, 'mdt_hub');
