@@ -421,16 +421,55 @@ export default function MDTHub() {
     }
   };
 
-  const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
+    const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
     setSpecialistTranscripts((prev) => {
       const updated = { ...prev, [id]: transcript };
       if (Object.keys(updated).length === selectedSpecialists.length) {
         setPhase('compiling');
-        setTimeout(() => setPhase('conference'), 15000);
+        
+        (async () => {
+          const startTime = Date.now();
+          try {
+            const cleanTranscripts: Record<string, string> = {};
+            Object.keys(updated).forEach((specId) => {
+              const specName = selectedSpecialists.find((s: any) => s.id === specId)?.label || specId;
+              cleanTranscripts[specName] = updated[specId]
+                ?.map((m: any) => `${m.role}: ${m.text}`)
+                .join('
+') || '';
+            });
+
+            // Run backend synthesis
+            const conferenceData = await runMDTConference(intakeData, cleanTranscripts, activeCase?.medicalRecords || []);
+            const safeConferenceData = conferenceData || {
+              corroborations: [],
+              contentions: [],
+              followUpQuestions: [],
+              debateSummary: "Synthesized available information."
+            };
+
+            const report = await generateMDTReport(intakeData, safeConferenceData, {}, activeCase?.medicalRecords || []);
+            
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 15000) {
+              await new Promise(resolve => setTimeout(resolve, 15000 - elapsed));
+            }
+
+            setHistoryReport(report);
+            setPhase('report');
+          } catch (e) {
+            console.error('Failed to generate MDT report', e);
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 15000) {
+              await new Promise(resolve => setTimeout(resolve, 15000 - elapsed));
+            }
+            alert('Failed to generate consensus report. Please try again.');
+          }
+        })();
       }
       return updated;
     });
-  }, [setSpecialistTranscripts, selectedSpecialists.length, setPhase]);
+  }, [setSpecialistTranscripts, selectedSpecialists, setPhase, intakeData, activeCase]);
 
   return (
     <div
@@ -582,13 +621,13 @@ export default function MDTHub() {
                 icon={Users}
                 label="Collaboration Board"
                 active={phase === 'dashboard'}
-                completed={phase === 'conference' || phase === 'assessment' || phase === 'report'}
+                completed={phase === 'compiling' || phase === 'conference' || phase === 'assessment' || phase === 'report'}
               />
               <StepDivider />
               <Step
                 icon={BrainCircuit}
                 label="Expert Correlation"
-                active={phase === 'conference' || phase === 'assessment'}
+                active={phase === 'compiling' || phase === 'conference' || phase === 'assessment'}
                 completed={phase === 'report'}
               />
               <StepDivider />
@@ -914,23 +953,7 @@ export default function MDTHub() {
               </motion.div>
             )}
 
-            {phase === 'conference' && (
-              <motion.div
-                key="conference"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-              >
-                <MDTConferencePanel
-                  intakeData={intakeData}
-                  selectedSpecialists={selectedSpecialists}
-                  specialistTranscripts={specialistTranscripts}
-                  medicalRecords={activeCase?.medicalRecords || []}
-                  onComplete={handleConferenceComplete}
-                />
-              </motion.div>
-            )}
+            
 
 
           </AnimatePresence>
