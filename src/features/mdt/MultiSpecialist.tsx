@@ -440,7 +440,7 @@ export default function MultiSpecialist() {
               gap: '8px',
               marginBottom: '12px',
               padding: '6px 12px',
-              background: 'rgba(255,255,255,0.8)',
+              background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(10px)',
               borderRadius: '999px',
               border: '1px solid rgba(0,0,0,0.05)',
@@ -515,11 +515,11 @@ export default function MultiSpecialist() {
 
             <div
               style={{
-                background: 'rgba(255,255,255,0.9)',
+                background: 'rgba(255, 255, 255, 0.25)',
                 backdropFilter: 'blur(20px)',
                 borderRadius: '16px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-                border: '1px solid rgba(255,255,255,0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 marginBottom: '24px',
@@ -567,7 +567,7 @@ export default function MultiSpecialist() {
                 }}
               >
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                  <div style={{ padding: '10px', background: '#FFF', borderRadius: '14px', color: '#10B981', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                  <div style={{ padding: '10px', background: 'rgba(255, 255, 255, 0.4)', borderRadius: '14px', color: '#10B981', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                     <Sparkles size={24} />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -645,11 +645,11 @@ export default function MultiSpecialist() {
 
             <div
               style={{
-                background: 'rgba(255,255,255,0.7)',
+                background: 'rgba(255, 255, 255, 0.25)',
                 backdropFilter: 'blur(20px)',
                 padding: isMobile ? '16px 12px' : '20px',
                 borderRadius: isMobile ? '16px' : '20px',
-                border: '1px solid rgba(255,255,255,0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
               }}
             >
@@ -713,7 +713,7 @@ export default function MultiSpecialist() {
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: '#FFFFFF',
+                        background: 'rgba(255, 255, 255, 0.4)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -757,9 +757,9 @@ export default function MultiSpecialist() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '16px 24px',
-                background: 'rgba(255,255,255,0.6)',
+                background: 'rgba(255, 255, 255, 0.2)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 borderRadius: '20px',
                 marginBottom: '24px',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
@@ -848,7 +848,7 @@ export default function MultiSpecialist() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '10px 20px',
-                  background: 'rgba(255,255,255,0.88)',
+                  background: 'rgba(255, 255, 255, 0.25)',
                   backdropFilter: 'blur(24px)',
                   borderRadius: '14px',
                   border: '1px solid rgba(0,0,0,0.06)',
@@ -889,7 +889,7 @@ export default function MultiSpecialist() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
                     onClick={() => setPhase('select')}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', background: '#FFF', color: '#475569', border: '1px solid #E2E8F0', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.15s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.4)', color: '#475569', border: '1px solid #E2E8F0', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.15s' }}
                     onMouseOver={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
                     onMouseOut={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
                   >
@@ -897,7 +897,7 @@ export default function MultiSpecialist() {
                   </button>
                   <button
                     onClick={restartParallelReview}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', background: '#FFF', color: '#475569', border: '1px solid #E2E8F0', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.15s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.4)', color: '#475569', border: '1px solid #E2E8F0', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.15s' }}
                     onMouseOver={e => { e.currentTarget.style.borderColor = '#FCA5A5'; e.currentTarget.style.color = '#DC2626'; }}
                     onMouseOut={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
                   >
@@ -1045,7 +1045,7 @@ export default function MultiSpecialist() {
             <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
                <button 
                  onClick={() => setPhase('running')} 
-                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '999px', background: '#FFF', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '999px', background: 'rgba(255, 255, 255, 0.4)', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
                  onMouseOver={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#0F172A'; }}
                  onMouseOut={e => { e.currentTarget.style.background = '#FFF'; e.currentTarget.style.color = '#475569'; }}
                >

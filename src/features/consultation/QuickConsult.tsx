@@ -220,8 +220,8 @@ export default function QuickConsult() {
               WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
@@ -282,7 +282,7 @@ export default function QuickConsult() {
                       width: '180px',
                       outline: 'none',
                       transition: 'border-color 0.2s',
-                      background: 'rgba(255,255,255,0.6)'
+                      background: 'rgba(255, 255, 255, 0.2)'
                     }}
                     onFocus={(e) => (e.target.style.borderColor = '#2563EB')}
                     onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
@@ -311,7 +311,7 @@ export default function QuickConsult() {
                         width: '140px',
                         padding: '16px',
                         borderRadius: '16px',
-                        border: `1px solid ${isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.6)'}`,
+                        border: `1px solid ${isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.2)'}`,
                         background: isSelected 
                           ? 'rgba(239, 246, 255, 0.85)' 
                           : 'rgba(255, 255, 255, 0.4)',
@@ -324,22 +324,22 @@ export default function QuickConsult() {
                         alignItems: 'flex-start',
                         boxShadow: isSelected 
                           ? '0 12px 24px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,1)' 
-                          : '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.8)'
+                          : '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
                       }}
                       onMouseOver={(e) => { 
                         if (!isSelected) { 
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)'; 
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)'; 
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'; 
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'; 
                           e.currentTarget.style.transform = 'translateY(-2px)';
                           e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1)';
                         } 
                       }}
                       onMouseOut={(e) => { 
                         if (!isSelected) { 
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.6)'; 
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; 
                           e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)'; 
                           e.currentTarget.style.transform = 'none';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.8)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
                         } 
                       }}
                     >
@@ -354,7 +354,7 @@ export default function QuickConsult() {
                             justifyContent: 'center', 
                             background: `linear-gradient(135deg, ${s.bg} 0%, ${s.bg}80 100%)`, 
                             color: s.color,
-                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.8), 0 2px 6px rgba(0,0,0,0.04)'
+                            boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0,0,0,0.04)'
                           }}
                         >
                           <Icon size={20} />
@@ -409,12 +409,12 @@ export default function QuickConsult() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             style={{
-              background: 'rgba(255,255,255,0.85)',
+              background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(24px)',
               padding: isMobile ? '32px 20px' : '40px 56px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               maxWidth: '560px',
               margin: '0 auto',
               textAlign: 'center'
@@ -445,7 +445,7 @@ export default function QuickConsult() {
                 onClick={() => fileInputRef.current?.click()}
                 style={{
                   padding: '14px 24px',
-                  background: '#F8FAFC',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   border: '2px dashed #CBD5E1',
                   borderRadius: 16,
                   cursor: 'pointer',
@@ -475,7 +475,7 @@ export default function QuickConsult() {
                 }}
                 style={{
                   padding: '14px 24px',
-                  background: '#F8FAFC',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   border: '2px dashed #CBD5E1',
                   borderRadius: 16,
                   cursor: 'pointer',
@@ -564,7 +564,7 @@ export default function QuickConsult() {
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
               boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
-              border: '1px solid rgba(255, 255, 255, 0.8)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               height: isMobile ? 'calc(100dvh - 120px)' : '700px',
               display: 'flex',
               flexDirection: 'column'
@@ -635,7 +635,7 @@ export default function QuickConsult() {
                 padding: isMobile ? '32px 16px' : '32px 64px 64px',
                 borderRadius: '32px',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-                border: '1px solid rgba(255,255,255,0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
                 maxWidth: '600px',
                 margin: '0 auto',
               }}
@@ -654,7 +654,7 @@ export default function QuickConsult() {
               padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid rgba(255,255,255,0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               textAlign: 'center'
             }}
           >
@@ -672,7 +672,7 @@ export default function QuickConsult() {
                 style={{
                   width: '100%',
                   padding: '16px',
-                  background: '#FFF',
+                  background: 'rgba(255, 255, 255, 0.4)',
                   border: '2px solid #E2E8F0',
                   borderRadius: '16px',
                   fontWeight: 700,
@@ -718,7 +718,7 @@ export default function QuickConsult() {
                   </div>
                   <div style={{ textAlign: 'left' }}>
                     <div style={{ fontSize: '15px' }}>Escalate to Collaborative Specialists</div>
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Organize multiple AI perspectives for your next clinician visit</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.25)', fontWeight: 500 }}>Organize multiple AI perspectives for your next clinician visit</div>
                   </div>
                 </div>
                 <ChevronRight size={20} />

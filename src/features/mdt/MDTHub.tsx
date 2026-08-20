@@ -471,7 +471,7 @@ export default function MDTHub() {
               gap: '8px',
               marginBottom: '12px',
               padding: '6px 12px',
-              background: 'rgba(255,255,255,0.8)',
+              background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(10px)',
               borderRadius: '999px',
               border: '1px solid rgba(0,0,0,0.05)',
@@ -552,11 +552,11 @@ export default function MDTHub() {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                background: 'rgba(255,255,255,0.7)',
+                background: 'rgba(255, 255, 255, 0.25)',
                 padding: '6px',
                 borderRadius: '999px',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-                border: '1px solid rgba(255,255,255,0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
               }}
             >
               <Step
@@ -655,12 +655,12 @@ export default function MDTHub() {
                 <div
                   style={{
                     padding: isMobile ? '32px 20px' : '40px 24px',
-                    background: 'rgba(255,255,255,0.8)',
+                    background: 'rgba(255, 255, 255, 0.25)',
                     backdropFilter: 'blur(24px)',
                     borderRadius: '24px',
                     textAlign: 'center',
                     boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
-                    border: '1px solid rgba(255,255,255,0.6)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                   }}
                 >
                   {isSelecting ? (
@@ -795,7 +795,7 @@ export default function MDTHub() {
                                 alignItems: 'center',
                                 gap: '12px',
                                 padding: '16px 24px',
-                                background: '#FFF',
+                                background: 'rgba(255, 255, 255, 0.4)',
                                 border: `1px solid ${s.border}`,
                                 borderRadius: '20px',
                                 boxShadow: '0 10px 20px rgba(0,0,0,0.02)',
@@ -888,12 +888,12 @@ export default function MDTHub() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.05 }}
                 style={{
-                  background: 'rgba(255,255,255,0.8)',
+                  background: 'rgba(255, 255, 255, 0.25)',
                   backdropFilter: 'blur(24px)',
                   padding: isMobile ? '32px 16px' : '32px 64px 64px',
                   borderRadius: '32px',
                   boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
-                  border: '1px solid rgba(255,255,255,0.5)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   maxWidth: '600px',
                   margin: '40px auto 0',
                 }}

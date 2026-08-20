@@ -191,7 +191,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
         WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '24px',
         border:
-          status === 'done' ? `2px solid ${specialist.color}` : '1px solid rgba(255, 255, 255, 0.8)',
+          status === 'done' ? `2px solid ${specialist.color}` : '1px solid rgba(255, 255, 255, 0.25)',
         overflow: 'hidden',
         boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
       }}
@@ -211,7 +211,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
             width: '32px',
             height: '32px',
             borderRadius: '10px',
-            background: '#FFF',
+            background: 'rgba(255, 255, 255, 0.4)',
             border: `1px solid ${specialist.border}`,
             display: 'flex',
             alignItems: 'center',
@@ -255,7 +255,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
           display: 'flex',
           flexDirection: 'column',
           gap: '16px',
-          background: 'rgba(248,250,252,0.5)',
+          background: 'transparent',
         }}
       >
         {status === 'idle' && (
@@ -405,7 +405,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
               style={{
                 padding: '12px 16px',
                 borderRadius: 'var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px',
-                background: '#FFF',
+                background: 'rgba(255, 255, 255, 0.4)',
                 border: '1px solid rgba(0,0,0,0.05)',
                 display: 'flex',
                 gap: '6px',
@@ -440,7 +440,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
             onSubmit={handleSend}
             style={{
               padding: '16px',
-              background: '#FFF',
+              background: 'rgba(255, 255, 255, 0.4)',
               borderTop: '1px solid rgba(0,0,0,0.05)',
               display: 'flex',
               gap: '12px',
@@ -462,7 +462,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
                 border: '1px solid #E2E8F0',
                 fontSize: '15px',
                 outline: 'none',
-                background: '#F8FAFC',
+                background: 'rgba(255, 255, 255, 0.2)',
                 transition: 'border-color 0.2s',
               }}
               onFocus={(e) => (e.target.style.borderColor = specialist.color)}
