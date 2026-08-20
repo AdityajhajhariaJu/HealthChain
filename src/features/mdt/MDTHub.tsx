@@ -81,7 +81,18 @@ export default function MDTHub() {
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const fileInputRef = React.useRef<any>(null);
 
+  
   useEffect(() => {
+    // If the user navigates away after finishing a case and returns later via the sidebar,
+    // automatically reset so they see a fresh intake page instead of being stuck on the 'done' screen.
+    if (useMDTStore.getState().phase === 'done') {
+      resetMDTStore();
+      setGlobalActiveCase(null);
+      setHistoryReport(null);
+      setMedicalRecords([]);
+    }
+  }, []); // Empty dependency array ensures this ONLY runs on component mount
+useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     
     if (searchParams.has('new')) {
@@ -1022,8 +1033,13 @@ export default function MDTHub() {
                     View Case Summary
                   </button>
                   
-                  <button 
-                    onClick={() => navigate('/app/collab')}
+                                    <button 
+                    onClick={() => {
+                      resetMDTStore();
+                      setGlobalActiveCase(null);
+                      setHistoryReport(null);
+                      setMedicalRecords([]);
+                    }}
                     style={{
                       width: '100%',
                       padding: '16px',
