@@ -278,12 +278,13 @@ export default function ClinicalReportAnalyzer() {
 
   return (
     <div style={{ padding: '0 0 40px 0', maxWidth: '900px', margin: '0 auto' }}>
-      {/* Header Card */}
+      <div style={{ position: 'absolute', top: '-100px', left: '-50%', right: '-50%', bottom: '-100px', background: 'radial-gradient(circle at 0% 0%, rgba(96, 165, 250, 0.6) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(192, 132, 252, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.5) 0%, transparent 50%)', zIndex: -1, pointerEvents: 'none', filter: 'blur(60px)' }} />
+        {/* Header Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         style={{
-          background: '#FFFFFF',
+          background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
           borderRadius: 'var(--radius-lg)',
           padding: isMobile ? '16px' : '32px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
@@ -443,7 +444,7 @@ export default function ClinicalReportAnalyzer() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '20px',
-                background: '#FFFFFF',
+                background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                 display: 'flex',
                 alignItems: 'center',
@@ -581,7 +582,7 @@ export default function ClinicalReportAnalyzer() {
                   {/* Header Info */}
                   <div
                     style={{
-                      background: '#FFFFFF',
+                      background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
                       borderRadius: 'var(--radius-lg)',
                       padding: isMobile ? '16px' : '24px',
                       border: '1px solid #E2E8F0',
@@ -642,7 +643,7 @@ export default function ClinicalReportAnalyzer() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div
                         style={{
-                          background: '#FFFFFF',
+                          background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
                           borderRadius: 'var(--radius-lg)',
                           padding: isMobile ? '16px' : '24px',
                           border: '1px solid #E2E8F0',
@@ -675,7 +676,7 @@ export default function ClinicalReportAnalyzer() {
 
                       <div
                         style={{
-                          background: '#FFFFFF',
+                          background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
                           borderRadius: 'var(--radius-lg)',
                           padding: isMobile ? '16px' : '24px',
                           border: '1px solid #E2E8F0',
@@ -786,7 +787,7 @@ export default function ClinicalReportAnalyzer() {
                       {displayData.biomarkers && Object.keys(displayData.biomarkers).length > 0 && (
                         <div
                           style={{
-                            background: '#FFFFFF',
+                            background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
                             borderRadius: 'var(--radius-lg)',
                             padding: isMobile ? '16px' : '24px',
                             border: '1px solid #E2E8F0',
@@ -827,7 +828,7 @@ export default function ClinicalReportAnalyzer() {
                                     if (active && payload && payload.length) {
                                       const data = payload[0].payload;
                                       return (
-                                        <div style={{ background: '#FFF', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)', padding: '12px', border: '1px solid #E2E8F0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                                           <div style={{ fontWeight: 600, color: '#0F172A', marginBottom: 4 }}>{data.name}</div>
                                           <div style={{ fontSize: 13, color: data.isLow || data.isHigh ? '#DC2626' : '#059669' }}>
                                             Value: {data.value} {data.unit}
@@ -855,7 +856,7 @@ export default function ClinicalReportAnalyzer() {
                       {displayData.extraTerms?.length > 0 && (
                         <div
                           style={{
-                            background: '#FFFFFF',
+                            background: 'rgba(255, 255, 255, 0.25)', backdropFilter: 'blur(32px)',
                             borderRadius: 'var(--radius-lg)',
                             padding: isMobile ? '16px' : '24px',
                             border: '1px solid #E2E8F0',

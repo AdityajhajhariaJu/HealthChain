@@ -425,14 +425,15 @@ export default function MDTHub() {
     <div
       style={{
         minHeight: '100%',
-        background: getPhaseBackground(),
+        background: 'transparent', zIndex: 1,
         transition: 'background 1.5s ease',
         padding: isMobile ? '16px 16px' : '0px 20px 40px 20px',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Ambient decorative blobs */}
+      <div style={{ position: 'absolute', top: '-100px', left: '-50%', right: '-50%', bottom: '-100px', background: 'radial-gradient(circle at 0% 0%, rgba(96, 165, 250, 0.6) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(192, 132, 252, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.5) 0%, transparent 50%)', zIndex: -1, pointerEvents: 'none', filter: 'blur(60px)' }} />
+        {/* Ambient decorative blobs */}
       <div
         style={{
           position: 'absolute',
