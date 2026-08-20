@@ -196,7 +196,8 @@ export function MDTHubDashboard({
             setIntakeData({ ...intakeData, chiefComplaint: newComplaint });
             setHistoryReport(null);
             setSpecialistTranscripts({});
-            setPhase('assessment');
+            setDashboardTab('specialists');
+            setPhase('dashboard');
           }}
         />
       )}

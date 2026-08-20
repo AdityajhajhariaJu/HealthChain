@@ -296,7 +296,8 @@ useEffect(() => {
       // trigger refresh
       setActiveCase(getActiveCase());
       
-      setPhase('conference');
+      setDashboardTab('specialists');
+        setPhase('dashboard');
     } finally {
       setIsSelecting(false);
     }
@@ -321,7 +322,8 @@ useEffect(() => {
   };
 
   const startAssessment = () => {
-    setPhase('assessment');
+    setDashboardTab('specialists');
+    setPhase('dashboard');
   };
 
       const beginCaseCorrelation = useCallback(() => {
@@ -449,16 +451,14 @@ useEffect(() => {
       (async () => {
         const startTime = Date.now();
         try {
-          const cleanTranscripts: Record<string, string> = {};
+          const namedTranscripts: Record<string, any[]> = {};
           Object.keys(specialistTranscripts).forEach((specId) => {
             const specName = selectedSpecialists.find((s: any) => s.id === specId)?.label || specId;
-            cleanTranscripts[specName] = specialistTranscripts[specId]
-              ?.map((m: any) => `${m.role}: ${m.text}`)
-              .join('\n') || '';
+            namedTranscripts[specName] = specialistTranscripts[specId] || [];
           });
 
           // Run backend synthesis
-          const conferenceData = await runMDTConference(intakeData, cleanTranscripts, activeCase?.medicalRecords || []);
+          const conferenceData = await runMDTConference(intakeData, namedTranscripts, activeCase?.medicalRecords || []);
           const safeConferenceData = conferenceData || {
             corroborations: [],
             contentions: [],
