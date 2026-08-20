@@ -358,6 +358,14 @@ export function saveReviewSnapshot({
   if (!existing) throw new Error("Case not found");
 
   const now = new Date().toISOString();
+  let updatedTitle = existing.title;
+  const primaryCondition = report?.topDiagnoses?.[0]?.condition;
+  if (primaryCondition) {
+    if (existing.title.startsWith('Quick Consult:') || existing.title.endsWith('...')) {
+      updatedTitle = `${primaryCondition} Investigation`;
+    }
+  }
+
   const snapshot: ReviewSnapshot = {
     id: id(),
     type,
@@ -381,6 +389,7 @@ export function saveReviewSnapshot({
 
   const updated: CaseItem = {
     ...existing,
+    title: updatedTitle,
     currentStage: type === 'parallel' ? 'parallel_complete' : 'mdt_complete',
     currentSummary: report,
     updatedAt: now,

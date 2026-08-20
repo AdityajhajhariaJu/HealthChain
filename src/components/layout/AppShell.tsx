@@ -10,6 +10,7 @@ import {
   Heart,
   FileText,
   Settings,
+  Lock,
   Apple,
   Network,
   LayoutDashboard,
@@ -51,7 +52,7 @@ const links = [
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
-  { to: '/app/dietician', label: 'Dietician', icon: Apple },
+  { to: '/app/dietician', label: 'Dietician', icon: Apple, locked: true },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
   { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
@@ -123,12 +124,20 @@ export default function AppShell() {
             {links.map((l) => (
               <NavLink
                 key={l.to}
-                to={l.to}
+                to={l.locked ? '#' : l.to}
                 end={l.to === '/app'}
-                className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
+                onClick={(e) => {
+                  if (l.locked) {
+                    e.preventDefault();
+                    alert(l.label + ' is coming soon!');
+                  }
+                }}
+                className={({ isActive }) => `sidebar__link ${isActive && !l.locked ? 'active' : ''}`}
+                style={{ opacity: l.locked ? 0.6 : 1, position: 'relative' }}
               >
                 <l.icon size={18} aria-hidden="true" />
                 {l.label}
+                {l.locked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
               </NavLink>
             ))}
           </nav>
@@ -315,12 +324,20 @@ export default function AppShell() {
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map(l => (
                     <button
                       key={l.to}
-                      onClick={() => navigate(l.to)}
+                      onClick={() => {
+                        if (l.locked) {
+                          alert(l.label + ' is coming soon!');
+                          return;
+                        }
+                        navigate(l.to);
+                        setShowMoreMenu(false);
+                      }}
                       className="more-menu-item"
-                      style={{ border: 'none', background: 'none', outline: 'none' }}
+                      style={{ border: 'none', background: 'none', outline: 'none', position: 'relative', opacity: l.locked ? 0.6 : 1 }}
                     >
                       <l.icon size={24} />
                       <span>{l.label}</span>
+                      {l.locked && <Lock size={16} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
                     </button>
                   ))}
                   <button 
