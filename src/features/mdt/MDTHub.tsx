@@ -85,7 +85,7 @@ export default function MDTHub() {
   useEffect(() => {
     // If the user navigates away after finishing a case and returns later via the sidebar,
     // automatically reset so they see a fresh intake page instead of being stuck on the 'done' screen.
-    if (useMDTStore.getState().phase === 'done') {
+    if (useMDTStore.getState().phase === 'report') {
       resetMDTStore();
       setGlobalActiveCase(null);
       setHistoryReport(null);
@@ -486,7 +486,7 @@ useEffect(() => {
             }
 
             setHistoryReport(report);
-            setPhase('done');
+            setPhase('report');
           } catch (e) {
             console.error('Failed to generate MDT report', e);
             const elapsed = Date.now() - startTime;
@@ -651,20 +651,20 @@ useEffect(() => {
                 icon={Users}
                 label="Collaboration Board"
                 active={phase === 'dashboard'}
-                completed={phase === 'compiling' || phase === 'conference' || phase === 'assessment' || phase === 'report' || phase === 'done'}
+                completed={phase === 'compiling' || phase === 'conference' || phase === 'assessment' || phase === 'report' || false}
               />
               <StepDivider />
               <Step
                 icon={BrainCircuit}
                 label="Expert Correlation"
                 active={phase === 'compiling' || phase === 'conference' || phase === 'assessment'}
-                completed={phase === 'report' || phase === 'done'}
+                completed={phase === 'report' || false}
               />
               <StepDivider />
               <Step
                 icon={FileText}
                 label="Consensus Report"
-                active={phase === 'report' || phase === 'done'}
+                active={phase === 'report' || false}
                 completed={false}
               />
           </div>
@@ -983,7 +983,7 @@ useEffect(() => {
               </motion.div>
             )}
 
-            {phase === 'done' && (
+            {false && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
