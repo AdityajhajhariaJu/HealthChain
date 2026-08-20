@@ -188,7 +188,8 @@ export default function QuickConsult() {
   }, [phase, selectedSpecialist, searchQuery]);
 
   return (
-    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', marginTop: isMobile ? '0' : '-8px' }}>
+    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', marginTop: isMobile ? '0' : '-8px', position: 'relative', zIndex: 1 }}>
+      <div style={{ position: 'absolute', top: '-100px', left: '-50%', right: '-50%', bottom: '-100px', background: 'radial-gradient(circle at 0% 0%, rgba(219, 234, 254, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(233, 213, 255, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 0%, rgba(204, 251, 241, 0.5) 0%, transparent 50%)', zIndex: -1, pointerEvents: 'none', filter: 'blur(60px)' }} />
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <motion.div
@@ -746,3 +747,4 @@ export default function QuickConsult() {
     </div>
   );
 }
+

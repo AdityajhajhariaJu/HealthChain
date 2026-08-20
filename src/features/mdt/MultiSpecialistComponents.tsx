@@ -541,3 +541,4 @@ export function SpecialistPill({ specialist, isSelected, onToggle, isMobile }) {
     </motion.button>
   );
 }
+
