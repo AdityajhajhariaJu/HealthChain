@@ -177,7 +177,7 @@ export default function MDTHub() {
   ], [activeCase?.medicalRecords, medicalRecords]);
 
   const handleIntakeComplete = async (data) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true' && localStorage.getItem('hc_guest_mode') !== 'true') {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
           title: 'Authentication Required', 
