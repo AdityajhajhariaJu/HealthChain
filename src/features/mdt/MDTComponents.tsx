@@ -511,29 +511,7 @@ New Information / Changes in Symptoms since last evaluation:
                 >
                   <Upload size={12} /> Upload lab reports also
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowImportModal(true)}
-                  style={{
-                    padding: isMobile ? '4px 10px' : '6px 14px',
-                    background: isMobile ? 'rgba(241, 245, 249, 0.6)' : '#F1F5F9',
-                    backdropFilter: isMobile ? 'blur(4px)' : 'none',
-                    color: '#475569',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '999px',
-                    fontSize: isMobile ? '11px' : '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
-                >
-                  <GitMerge size={12} /> Import existing case
-                </button>
+
               </div>
               <input
                 type="file"
@@ -558,30 +536,53 @@ New Information / Changes in Symptoms since last evaluation:
               </div>
             )}
 
-            <button
-              onClick={() => {
-                try { sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} 
-                onComplete({ chiefComplaint: complaint, files: selectedFiles });
-              }}
-              disabled={!complaint.trim() || isPreparing}
-              style={{
-                alignSelf: 'flex-end',
-                padding: '16px 32px',
-                background: complaint.trim() && !isPreparing ? '#0F172A' : '#E2E8F0',
-                color: '#FFF',
-                border: 'none',
-                borderRadius: '999px',
-                fontWeight: 700,
-                fontSize: '16px',
-                cursor: complaint.trim() && !isPreparing ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.2s',
-              }}
-            >
-              {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={18} />
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(true)}
+                style={{
+                  padding: '8px 12px',
+                  background: 'transparent',
+                  color: '#64748B',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'color 0.2s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.color = '#0F172A'; }}
+                onMouseOut={(e) => { e.currentTarget.style.color = '#64748B'; }}
+              >
+                <GitMerge size={16} /> Import existing case
+              </button>
+
+              <button
+                onClick={() => {
+                  try { sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} 
+                  onComplete({ chiefComplaint: complaint, files: selectedFiles });
+                }}
+                disabled={!complaint.trim() || isPreparing}
+                style={{
+                  padding: '16px 32px',
+                  background: complaint.trim() && !isPreparing ? '#0F172A' : '#E2E8F0',
+                  color: '#FFF',
+                  border: 'none',
+                  borderRadius: '999px',
+                  fontWeight: 700,
+                  fontSize: '16px',
+                  cursor: complaint.trim() && !isPreparing ? 'pointer' : 'not-allowed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={18} />
+              </button>
+            </div>
           </div>
         </div>
 
