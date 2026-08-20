@@ -304,7 +304,12 @@ useEffect(() => {
     }
   };
 
-  const handleReviewPastMDT = (caseItem: any) => {
+    const handleReviewPastMDT = (caseItem: any) => {
+    try {
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
+      });
+    } catch(e) {}
     setActiveCase(caseItem);
     setPhase('dashboard');
   };
@@ -321,7 +326,14 @@ useEffect(() => {
     setPhase('assessment');
   };
 
-  const beginCaseCorrelation = useCallback(() => {
+      const beginCaseCorrelation = useCallback(() => {
+      // Clear session storage to ensure AI doesn't load a cached conversation
+      try {
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
+        });
+      } catch(e) {}
+
     if (!activeCase) {
       setPhase('intake');
       return;

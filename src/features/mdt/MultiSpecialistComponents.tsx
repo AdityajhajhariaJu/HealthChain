@@ -81,18 +81,35 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
     
     if (status === 'idle' && step === 0 && !isPaused && !introStarted.current) {
       introStarted.current = true;
-      setTimeout(() => {
+      setTimeout(async () => {
         setStatus('thinking');
-        setTimeout(
-          () => {
-            setMessages([{ role: 'ai', text: introQuestion }]);
+        
+        // Trigger the AI to generate a highly specific first question based on intake
+        const triggerMessage = {
+          role: 'user',
+          text: 'Please begin your diagnostic assessment based on my intake file. Ask the first question.',
+          hidden: true,
+        };
+        const initialArray = [triggerMessage];
+        
+        try {
+          const response = await chatWithMDTSpecialist(initialArray, specialist, allSpecialists, intakeData, activeDifferentials);
+          if (response.includes('ANALYSIS_COMPLETE')) {
+            setStatus('done');
+            if (onComplete) onComplete(specialist.id, initialArray);
+          } else {
+            setMessages([triggerMessage, { role: 'ai', text: response }]);
             setStatus('questioning');
-          },
-          1000 + Math.random() * 800
-        );
+          }
+        } catch (err) {
+          console.error('Failed to fetch initial AI response:', err);
+          // Fallback to generic hardcoded greeting
+          setMessages([{ role: 'ai', text: introQuestion }]);
+          setStatus('questioning');
+        }
       }, startDelay);
     }
-  }, [isRunning, isPaused, status, step, startDelay, introQuestion]);
+  }, [isRunning, isPaused, status, step, startDelay]);
 
   const submitAnswer = async (text) => {
     if (status !== 'questioning') return;
@@ -278,7 +295,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
         )}
         <AnimatePresence>
           {messages.map((msg: any, i: number) => {
-            const isUser = msg.role === 'user';
+            if (msg.hidden) return null; const isUser = msg.role === 'user';
             let parsed: any = null;
             let displayText = msg.text;
             let internalThoughts = null;

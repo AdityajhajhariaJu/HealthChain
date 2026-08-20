@@ -40,7 +40,18 @@ export function MDTHubDashboard({
   setMobileActiveTab
 }) {
   const navigate = useNavigate();
-  const [completedSpecialists, setCompletedSpecialists] = React.useState<Set<string>>(new Set());
+    const [completedSpecialists, setCompletedSpecialists] = React.useState<Set<string>>(new Set());
+
+  // Clear memory cache if case changes
+  React.useEffect(() => {
+    if (activeCase?.id) {
+      const lastCaseId = sessionStorage.getItem('hc_mdt_last_case_id');
+      if (lastCaseId !== activeCase.id) {
+        Object.keys(cachedMDTSpecialistStreams).forEach(k => delete cachedMDTSpecialistStreams[k]);
+        sessionStorage.setItem('hc_mdt_last_case_id', activeCase.id);
+      }
+    }
+  }, [activeCase?.id]);
 
   return (
     <>
