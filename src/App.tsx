@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, backfillHealthMemoryFromProfile } from './services/ProfileEngine';
-import { syncCasesFromSupabase, backfillCaseHealthMemory } from './services/CaseEngine';
+import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory } from './services/CaseEngine';
 import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -116,9 +116,9 @@ export default function App() {
     };
     window.addEventListener('hc_logout', handleLogout);
 
-    const handleProfileSwitch = () => {
+    const handleProfileSwitch = async () => {
       if (localStorage.getItem('isAuthenticated') === 'true') {
-        syncCasesFromSupabase();
+        await initCaseEngine();
         syncHealthMemoryFromSupabase().catch(console.error);
       }
     };
@@ -189,7 +189,7 @@ export default function App() {
         
         // Sync user data now that they are authenticated
         await syncProfileFromSupabase();
-        syncCasesFromSupabase();
+        await initCaseEngine();
         syncHealthMemoryFromSupabase().catch(console.error);
         // Existing timeline and case summaries become durable Health Memory automatically on sign-in.
         backfillHealthMemoryFromProfile();
@@ -225,6 +225,7 @@ export default function App() {
           const theme = localStorage.getItem('hc_theme');
           const consent = localStorage.getItem('hc_consent');
           window.dispatchEvent(new Event('hc_logout'));
+          clearCaseEngineCache();
           sessionStorage.clear();
           localStorage.clear();
           if (theme) localStorage.setItem('hc_theme', theme);

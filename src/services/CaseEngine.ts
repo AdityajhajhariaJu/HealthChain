@@ -160,173 +160,54 @@ const id = () => {
   });
 };
 
-let cachedCases: CaseItem[] | null = null;
+let cachedCases: CaseItem[] | null = [];
 
 export function getCases(): CaseItem[] {
-  if (cachedCases) return cachedCases;
-  try {
-    const key = getCasesKey();
-    let casesData = getItemSync(key);
-    
-    // Migration: If profile_1 cases are empty, try loading legacy global cases
-    if (!casesData && key === 'hc_cases_profile_1') {
-      const legacyCases = getItemSync('hc_cases');
-      if (legacyCases) {
-        casesData = legacyCases;
-        setItemSync(key, legacyCases);
-      }
-    }
-
-    let cases = JSON.parse(casesData || '[]');
-    
-    // Migration: Migrate legacy hc_history into cases if needed.
-    const history = getItemSync('hc_history');
-    if (history) {
-      try {
-        const legacyHistory = JSON.parse(history);
-        if (legacyHistory.length > 0) {
-          legacyHistory.forEach((legacyItem: any) => {
-             const migratedCase: CaseItem = {
-               id: legacyItem.id || id(),
-               title: legacyItem.title || 'Migrated Case',
-               status: 'active',
-               createdAt: legacyItem.date ? new Date(legacyItem.date).toISOString() : new Date().toISOString(),
-               updatedAt: new Date().toISOString(),
-               intakeData: {},
-               medicalRecords: [],
-               reviews: [
-                 {
-                   id: id(),
-                   type: legacyItem.type === 'mdt' ? 'mdt' : 'parallel',
-                   createdAt: legacyItem.date ? new Date(legacyItem.date).toISOString() : new Date().toISOString(),
-                   basedOn: { evidenceIds: [], reviewIds: [] },
-                   specialists: [],
-                   report: legacyItem.analysis || legacyItem.report || {},
-                   status: 'complete',
-                 }
-               ],
-               events: [
-                 {
-                   id: id(),
-                   date: new Date().toISOString(),
-                   label: 'Case Migrated',
-                   note: 'This case was migrated from previous standalone history.',
-                 }
-               ],
-               currentSummary: legacyItem.analysis || legacyItem.report || {},
-               currentStage: legacyItem.type === 'mdt' ? 'mdt_complete' : 'parallel_complete',
-               actions: [],
-             };
-             if (!cases.find((c: any) => c.id === migratedCase.id)) {
-                cases.push(migratedCase);
-             }
-          });
-          removeItemSync('hc_history');
-          save(cases);
-        }
-      } catch (e) {}
-    }
-
-    // Migration for older hc_cases that don't match the new CaseItem signature
-    cases = cases.filter(Boolean).map((c: any) => {
-       if (c.reviewHistory || !c.reviews) {
-          const reviews: ReviewSnapshot[] = (c.reviewHistory || []).map((r: any) => ({
-             id: r.id || id(),
-             type: r.mode === 'mdt' ? 'mdt' : 'parallel',
-             createdAt: r.date || new Date().toISOString(),
-             basedOn: { evidenceIds: c.medicalRecords?.map((m: any) => m.id) || [], reviewIds: [] },
-             specialists: r.specialists || [],
-             report: r.report || {},
-             status: 'complete'
-          }));
-          return {
-            id: c.id,
-            title: c.title,
-            status: c.status === 'active' || c.status === 'archived' ? c.status : 'active',
-            createdAt: c.createdAt,
-            updatedAt: c.updatedAt,
-            intakeData: c.intakeData || {},
-            medicalRecords: c.medicalRecords || [],
-            reviews: reviews,
-            events: c.updates || [],
-            currentSummary: c.report || {},
-            currentStage: c.stage || 'parallel_complete',
-            actions: c.actions || []
-          } as CaseItem;
-       }
-       return c;
-    });
-    cachedCases = cases;
-    return cases;
-  } catch (err) {
-    console.error('Failed to parse or migrate cases', err);
-    setItemSync(getCasesKey(), '[]');
-    return [];
-  }
+  return cachedCases || [];
 }
 
 let syncTimeout: any = null;
 let currentCasesKey: string | null = null;
 
 async function save(cases: CaseItem[]) {
-  try {
-    const safeCases = JSON.parse(JSON.stringify(cases));
-    cachedCases = safeCases;
-    currentCasesKey = getCasesKey();
-    setItemSync(getCasesKey(), JSON.stringify(safeCases));
-    window.dispatchEvent(new Event('hc_cases_updated'));
+  const safeCases = JSON.parse(JSON.stringify(cases));
+  
+  // Find changed cases by checking updatedAt or lengths
+  const changedCases = safeCases.filter((c: any) => {
+    if (!cachedCases) return true;
+    const old = cachedCases.find(o => o.id === c.id);
+    return !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length;
+  });
+  
+  cachedCases = safeCases;
+  window.dispatchEvent(new Event('hc_cases_updated'));
 
-    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      clearTimeout(syncTimeout);
-      syncTimeout = setTimeout(async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          
-          // Fetch current timestamps to prevent overwriting newer cloud data with stale local data
-          if (safeCases.length === 0) return;
-          const { data: cloudData, error: timestampError } = await supabase.from('cases').select('id, updated_at').in('id', safeCases.map((c: any) => c.id));
-          if (timestampError) {
-            window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: timestampError }));
-            return;
-          }
-          const cloudMap = new Map((cloudData || []).map(c => [c.id, c.updated_at]));
-
-          const currentProfileId = getActiveProfileId();
-
-          for (const c of safeCases) {
-             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
-             if (!isUUID) continue; // Skip legacy local IDs
-
-             const cloudUpdated = cloudMap.get(c.id);
-             if (cloudUpdated && new Date(cloudUpdated).getTime() > new Date(c.updatedAt).getTime()) {
-               console.log(`Conflict: Cloud version of case ${c.id} is newer. Skipping upsert to prevent data loss.`);
-               continue;
-             }
-
-             // Inject __profileId to isolate cases in the cloud for Caregiver mode
-             const cloudPayload = { ...c, __profileId: currentProfileId };
-
-             try {
-               const { error: upsertError } = await supabase.from('cases').upsert({
-                  id: c.id,
-                  user_id: session.user.id,
-                  title: c.title,
-                  status: c.status,
-                  specialty: c.currentStage,
-                  data: cloudPayload,
-                  updated_at: new Date().toISOString()
-               });
-               if (upsertError) throw upsertError;
-             } catch (upsertErr) {
-               console.error(`Failed to sync case ${c.id} to cloud:`, upsertErr);
-             }
-          }
-        }
-      }, 2000);
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) {
+    const currentProfileId = getActiveProfileId();
+    // Write only changed cases
+    for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
+       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
+       if (!isUUID) continue;
+       
+       supabase.from('cases').upsert({
+          id: c.id,
+          user_id: session.user.id,
+          title: c.title,
+          status: c.status,
+          specialty: c.currentStage,
+          data: { ...c, __profileId: currentProfileId },
+          updated_at: new Date(c.updatedAt || new Date()).toISOString()
+       }).then(({error}) => {
+          if (error) console.error("Failed to upsert case", error);
+       });
     }
-  } catch (err) {
-    console.error('Failed to save cases. LocalStorage might be full.', err);
-    alert('Storage Full: We have hit the maximum browser limit. Please sign in to sync to the cloud, or clear old cases.');
+    // ensure no big blob in localStorage
+    removeItemSync(getCasesKey());
+  } else {
+    // Guest - cap at 3 cases
+    const capped = safeCases.slice(0, 3);
+    setItemSync(getCasesKey(), JSON.stringify(capped));
   }
 }
 
@@ -671,67 +552,71 @@ export function updateCaseDifferentials(caseId: string, differentials: Different
   }
 }
 
-export async function syncCasesFromSupabase() {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        try {
-          const queue = JSON.parse(localStorage.getItem('hc_deleted_cases') || '[]');
-          if (queue.length > 0) {
-            await supabase.from('cases').delete().in('id', queue).eq('user_id', session.user.id);
-            localStorage.setItem('hc_deleted_cases', '[]');
+export async function initCaseEngine() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const key = getCasesKey();
+  const currentProfileId = getActiveProfileId();
+  
+  if (session?.user) {
+    // Migration: upload existing local cases
+    const localRaw = getItemSync(key);
+    if (localRaw) {
+      try {
+        const localCases = JSON.parse(localRaw);
+        if (Array.isArray(localCases) && localCases.length > 0) {
+          for (const c of localCases) {
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
+            if (!isUUID) continue;
+            await supabase.from('cases').upsert({
+              id: c.id,
+              user_id: session.user.id,
+              title: c.title,
+              status: c.status,
+              specialty: c.currentStage,
+              data: { ...c, __profileId: currentProfileId },
+              updated_at: new Date(c.updatedAt || new Date()).toISOString()
+            });
           }
-        } catch(e) {}
+        }
+      } catch (e) {
+        console.error('Migration failed', e);
       }
-    if (!session?.user) return;
-
-    const { data, error } = await supabase.from('cases').select('*').eq('user_id', session.user.id);
-    if (error) throw error;
-    if (data && data.length > 0) {
-      const localCases = getCases();
-      const localCaseMap = new Map(localCases.map(c => [c.id, c]));
-      const activeProfileId = getActiveProfileId();
-      let needsUpload = false;
-      
-      data.forEach(cloudCase => {
-         if (cloudCase.data) {
-             const caseProfileId = cloudCase.data.__profileId || 'profile_1';
-             if (caseProfileId !== activeProfileId) return;
-
-             const localCase = localCaseMap.get(cloudCase.id);
-             if (!localCase || new Date(cloudCase.updated_at) > new Date(localCase.updatedAt)) {
-                localCaseMap.set(cloudCase.id, cloudCase.data);
-             } else if (new Date(localCase.updatedAt) > new Date(cloudCase.updated_at)) {
-                needsUpload = true;
-             }
-         }
-      });
-      
-      const cloudIds = new Set(data.map(c => c.id));
-        const hasOfflineCases = localCases.some(c => !cloudIds.has(c.id));
-        if (hasOfflineCases) needsUpload = true;
-        
-        const mergedCases = Array.from(localCaseMap.values());
-      cachedCases = mergedCases;
-      currentCasesKey = getCasesKey();
-      setItemSync(getCasesKey(), JSON.stringify(mergedCases));
-      window.dispatchEvent(new Event('hc_cases_updated'));
-      if (import.meta.env.DEV) console.log('Cases synced from Supabase');
-      
-      if (needsUpload) {
-        console.log('Local cases are newer than remote. Pushing to cloud.');
-        save(mergedCases);
-      }
-    } else if (data && data.length === 0) {
-      // A first sign-in must upload existing local cases; waiting for a later edit risks data loss.
-      const localCases = getCases();
-      if (localCases.length > 0) save(localCases);
+      removeItemSync(key);
     }
-  } catch (err) {
-    console.error('Failed to sync cases from Supabase:', err);
+    
+    // Fetch from Supabase
+    const { data, error } = await supabase
+       .from('cases')
+       .select('data')
+       .eq('user_id', session.user.id)
+       .order('updated_at', { ascending: false });
+       
+    if (!error && data) {
+       // Filter by profile
+       cachedCases = data.map(row => row.data).filter(d => (d.__profileId || 'profile_1') === currentProfileId);
+    } else {
+       cachedCases = [];
+    }
+  } else {
+    // Guest
+    const localRaw = getItemSync(key);
+    try {
+      cachedCases = JSON.parse(localRaw || '[]');
+    } catch {
+      cachedCases = [];
+    }
   }
+  
+  window.dispatchEvent(new Event('hc_cases_updated'));
 }
 
+export async function fetchCaseFromCloud(caseId: string): Promise<CaseItem | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+  const { data, error } = await supabase.from('cases').select('data').eq('id', caseId).eq('user_id', session.user.id).single();
+  if (error || !data) return null;
+  return data.data as CaseItem;
+}
 
 export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
   const cases = getCases();
@@ -768,4 +653,8 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
   c.updatedAt = new Date().toISOString();
   save(cases);
   return c;
+}
+
+export function clearCaseEngineCache() {
+  cachedCases = null;
 }
