@@ -282,18 +282,18 @@ export default function Settings() {
             justifyContent: 'space-between',
             gap: isMobile ? 12 : 0,
             padding: '16px',
-            background: isPremium ? 'var(--teal-light)' : 'var(--bg)',
+            background: isPremium ? 'var(--teal-light)' : '#F3E8FF',
             borderRadius: 'var(--radius-lg)',
-            border: `1px solid ${isPremium ? 'var(--teal)' : 'var(--border)'}`,
+            border: `1px solid ${isPremium ? 'var(--teal)' : '#D8B4FE'}`,
             marginBottom: '16px',
           }}
         >
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: isPremium ? 'var(--teal)' : 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: isPremium ? 'var(--teal)' : '#6B21A8', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Star size={18} />
               {isPremium ? 'HealthChain Premium Active' : 'Upgrade to Premium'}
             </div>
-            <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : 'var(--text-muted)', opacity: 0.8 }}>
+            <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : '#7E22CE', opacity: 0.8 }}>
               {isPremium ? 'You have access to all advanced diagnostic tools.' : 'Unlock unlimited parallel board consultations and detailed PDF analysis.'}
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function Settings() {
             <button
               className="btn btn-primary"
               disabled
-              style={{ padding: '8px 16px', fontSize: '14px', background: 'var(--border)', color: 'var(--text-muted)', border: 'none', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
+              style={{ padding: '8px 16px', fontSize: '14px', background: '#E9D5FF', color: '#6B21A8', border: 'none', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Lock size={14} />
               Upgrade Now
