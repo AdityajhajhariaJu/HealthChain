@@ -118,7 +118,7 @@ export function MDTHubDashboard({
                   flexDirection: 'column',
                   flex: 1,
                   width: '100%',
-                  height: isMobile ? 'calc(100vh - 240px)' : 'auto',
+                  height: isMobile ? 'calc(100vh - 240px)' : 'calc(100vh - 300px)', minHeight: isMobile ? 'auto' : '600px', maxHeight: isMobile ? 'auto' : '800px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '24px' }}>
