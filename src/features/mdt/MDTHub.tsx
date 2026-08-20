@@ -243,7 +243,7 @@ useEffect(() => {
       );
       
       const { createCaseDraft, setActiveCase: dynSetActiveCase, addEvidenceToActiveCase } = await import('../../services/CaseEngine');
-        const newCase = createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
+        const newCase = createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', mode: 'mdt', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
         dynSetActiveCase(newCase.id);
         
         for (const record of newRecords) {

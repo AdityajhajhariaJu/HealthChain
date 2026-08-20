@@ -276,9 +276,10 @@ export default function MultiSpecialist() {
       const workingCase =
         activeCase ||
         createCaseDraft({
-          title: intakeText,
-          intakeData: { chiefComplaint: intakeText },
-          specialists: activeSelected.map(
+            title: intakeText,
+            mode: 'multi',
+            intakeData: { chiefComplaint: intakeText },
+            specialists: activeSelected.map(
             (id) => allAvailableSpecialists.find((s) => s.id === id)?.label || id
           ),
         });

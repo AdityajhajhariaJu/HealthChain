@@ -54,6 +54,7 @@ export interface Differential {
 export interface CaseItem {
   id: string;
   title: string;
+  mode?: 'multi' | 'mdt';
   status: 'active' | 'archived';
   createdAt: string;
   updatedAt: string;
@@ -269,11 +270,12 @@ export function resolveCase(caseId: string) {
   }
 }
 
-export function createCaseDraft({ title, intakeData = {}, specialists = [] }: { title?: string, intakeData?: any, specialists?: any[] }): CaseItem {
+export function createCaseDraft({ title, intakeData = {}, specialists = [], mode }: { title?: string, intakeData?: any, specialists?: any[], mode?: 'multi' | 'mdt' }): CaseItem {
   const now = new Date().toISOString();
   const item: CaseItem = {
     id: id(),
     title: title || 'Untitled health case',
+    mode,
     status: 'active',
     createdAt: now,
     updatedAt: now,

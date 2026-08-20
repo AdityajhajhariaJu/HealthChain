@@ -381,8 +381,8 @@ New Information / Changes in Symptoms since last evaluation:
 
   useEffect(() => {
     const cases = getCases();
-    setParallelCases(cases.filter((c: any) => c.mode === 'multi' && c.stage !== 'mdt_complete'));
-    setMdtCases(cases.filter((c: any) => c.mode === 'mdt'));
+    setParallelCases(cases.filter((c: any) => (c.mode === 'multi' || c.currentStage === 'parallel_complete' || c.reviews?.some((r: any) => r.type === 'parallel')) && c.currentStage !== 'mdt_complete'));
+    setMdtCases(cases.filter((c: any) => (c.mode === 'mdt' || c.currentStage === 'mdt_complete' || c.reviews?.some((r: any) => r.type === 'mdt'))));
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
