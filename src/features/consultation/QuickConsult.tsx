@@ -180,7 +180,13 @@ export default function QuickConsult() {
   };
 
   useEffect(() => {
-    // Default select GP if available
+    // SECURITY: Prevent unauthenticated users from bypassing the auth wall via sessionStorage phase restoring.
+    if (phase !== 'select' && localStorage.getItem('isAuthenticated') !== 'true') {
+      setPhase('select');
+    }
+  }, [phase]);
+
+  useEffect(() => {    // Default select GP if available
     if (phase === 'select' && !selectedSpecialist && !searchQuery) {
       const gp = ALL_SPECIALISTS.find(s => s.id === 'gp');
       if (gp) setSelectedSpecialist(gp);
@@ -189,7 +195,7 @@ export default function QuickConsult() {
 
   return (
     <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', marginTop: isMobile ? '0' : '-8px', position: 'relative', zIndex: 1 }}>
-      <div style={{ position: 'absolute', top: '-100px', left: '-50%', right: '-50%', bottom: '-100px', background: 'radial-gradient(circle at 0% 0%, rgba(219, 234, 254, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(233, 213, 255, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 0%, rgba(204, 251, 241, 0.5) 0%, transparent 50%)', zIndex: -1, pointerEvents: 'none', filter: 'blur(60px)' }} />
+      <div style={{ position: 'absolute', top: '-100px', left: '-50%', right: '-50%', bottom: '-100px', background: 'radial-gradient(circle at 0% 0%, rgba(96, 165, 250, 0.6) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(192, 132, 252, 0.5) 0%, transparent 50%), radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.5) 0%, transparent 50%)', zIndex: -1, pointerEvents: 'none', filter: 'blur(60px)' }} />
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <motion.div
@@ -208,7 +214,7 @@ export default function QuickConsult() {
               }
             }}
             style={{
-              background: 'linear-gradient(120deg, rgba(240, 253, 244, 0.45) 0%, rgba(239, 246, 255, 0.45) 50%, rgba(255, 255, 255, 0.45) 100%)',
+              background: 'linear-gradient(120deg, rgba(240, 253, 244, 0.2) 0%, rgba(239, 246, 255, 0.2) 50%, rgba(255, 255, 255, 0.3) 100%)',
               backgroundSize: '200% 200%',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
@@ -227,7 +233,7 @@ export default function QuickConsult() {
                     gap: '8px',
                     marginBottom: '12px',
                     padding: '6px 12px',
-                    background: 'rgba(255, 255, 255, 0.45)',
+                    background: 'rgba(255, 255, 255, 0.25)',
                     backdropFilter: 'blur(10px)',
                     borderRadius: '999px',
                     border: '1px solid rgba(0,0,0,0.05)',
@@ -552,7 +558,7 @@ export default function QuickConsult() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.45)',
+              background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '20px' : '24px 48px 48px',
@@ -624,7 +630,7 @@ export default function QuickConsult() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               style={{
-                background: 'rgba(255, 255, 255, 0.45)',
+                background: 'rgba(255, 255, 255, 0.25)',
                 backdropFilter: 'blur(24px)',
                 padding: isMobile ? '32px 16px' : '32px 64px 64px',
                 borderRadius: '32px',
@@ -643,7 +649,7 @@ export default function QuickConsult() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.45)',
+              background: 'rgba(255, 255, 255, 0.25)',
               backdropFilter: 'blur(24px)',
               padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',

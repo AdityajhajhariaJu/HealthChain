@@ -186,7 +186,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        background: 'rgba(255, 255, 255, 0.55)',
+        background: 'rgba(255, 255, 255, 0.25)',
         backdropFilter: 'blur(32px)',
         WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '24px',
@@ -352,7 +352,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
                     style={{
                       padding: '20px 24px',
                       borderRadius: 'var(--radius-lg)',
-                      background: 'rgba(255, 255, 255, 0.5)',
+                      background: 'rgba(255, 255, 255, 0.2)',
                         backdropFilter: 'blur(12px)',
                       border: '1px solid rgba(226, 232, 240, 0.8)',
                       boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02)',
@@ -374,7 +374,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
                     style={{
                       padding: '16px 20px',
                       borderRadius: 'var(--radius-lg)',
-                      background: 'rgba(255, 255, 255, 0.3)',
+                      background: 'rgba(255, 255, 255, 0.15)',
                         backdropFilter: 'blur(12px)',
                       border: '1px solid rgba(226, 232, 240, 0.6)',
                       display: 'flex',
