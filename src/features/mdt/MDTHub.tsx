@@ -643,7 +643,7 @@ useEffect(() => {
             paddingLeft: '1px' // ensure shadow isn't clipped
           }}
         >
-          <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content', transform: 'scale(0.65)', transformOrigin: 'top center', marginBottom: '-16px' }}>
+          <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content', zoom: 0.65 }}>
             <div
               style={{
                 display: 'inline-flex',
@@ -736,6 +736,7 @@ useEffect(() => {
                   setPhase={setPhase}
                   mobileActiveTab={mobileActiveTab}
                   setMobileActiveTab={setMobileActiveTab}
+                  onSpecialistComplete={handleSpecialistComplete}
                 />
               </motion.div>
             )}
@@ -994,7 +995,7 @@ useEffect(() => {
                   margin: '40px auto 0',
                 }}
               >
-                <CompilingAnimation isDark={false} />
+                <CompilingAnimation isDark={false} isMobile={isMobile} />
               </motion.div>
             )}
 

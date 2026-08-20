@@ -22,7 +22,7 @@ const COMPUTATION_STRINGS = [
   "Formatting output for clinical interoperability..."
 ];
 
-export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
+export function CompilingAnimation({ isDark = false, isMobile = false }: { isDark?: boolean; isMobile?: boolean }) {
   const [activeStep, setActiveStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [compText, setCompText] = useState(COMPUTATION_STRINGS[0]);
@@ -71,11 +71,11 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '40px 20px',
+        padding: isMobile ? '20px 10px' : '40px 20px',
         maxWidth: '540px',
         margin: '0 auto',
         width: '100%',
-        minHeight: '500px',
+        minHeight: isMobile ? '400px' : '500px',
         position: 'relative',
         zIndex: 10
       }}
@@ -105,8 +105,8 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
         }}
         transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
         style={{
-          width: '80px',
-          height: '80px',
+          width: isMobile ? '50px' : '80px',
+          height: isMobile ? '50px' : '80px',
           borderRadius: '24px',
           background: 'linear-gradient(135deg, #6366F1, #A855F7, #EC4899)',
           backgroundSize: '200% 200%',
@@ -118,11 +118,11 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
         }}
       >
         <motion.div animate={{ rotate: [-360, 0] }} transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}>
-          <Brain size={40} color="#FFF" />
+          <Brain size={isMobile ? 24 : 40} color="#FFF" />
         </motion.div>
       </motion.div>
 
-      <h2 style={{ fontSize: '24px', fontWeight: 900, color: textColor, marginBottom: '8px', textAlign: 'center' }}>
+      <h2 style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: 900, color: textColor, marginBottom: '8px', textAlign: 'center' }}>
         Synthesizing Case Data
       </h2>
       <div style={{ height: '24px', overflow: 'hidden', marginBottom: '32px' }}>
@@ -150,7 +150,7 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
         />
       </div>
 
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: isMobile ? '8px' : '12px' }}>
         {STEPS.map((step, index) => {
           const isActive = index === activeStep;
           const isPast = index < activeStep;
@@ -168,8 +168,8 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '16px',
-                padding: '12px 16px',
+                gap: isMobile ? '10px' : '16px',
+                padding: isMobile ? '8px 12px' : '12px 16px',
                 background: isActive ? (isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.05)') : bgColor,
                 borderRadius: '16px',
                 border: `1px solid ${isActive ? activeColor : borderColor}`,
@@ -209,10 +209,10 @@ export function CompilingAnimation({ isDark = false }: { isDark?: boolean }) {
               </div>
               
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: (isActive || isPast) ? textColor : mutedColor }}>
+                <div style={{ fontSize: isMobile ? '13px' : '15px', fontWeight: 700, color: (isActive || isPast) ? textColor : mutedColor }}>
                   {step.label}
                 </div>
-                <div style={{ fontSize: '13px', color: mutedColor, marginTop: '2px' }}>
+                <div style={{ fontSize: isMobile ? '11px' : '13px', color: mutedColor, marginTop: '2px' }}>
                   {step.desc}
                 </div>
               </div>

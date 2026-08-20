@@ -37,7 +37,8 @@ export function MDTHubDashboard({
   setIsSessionPaused,
   setPhase,
   mobileActiveTab,
-  setMobileActiveTab
+  setMobileActiveTab,
+  onSpecialistComplete
 }) {
   const navigate = useNavigate();
     const [completedSpecialists, setCompletedSpecialists] = React.useState<Set<string>>(new Set());
@@ -91,7 +92,8 @@ export function MDTHubDashboard({
                 {selectedSpecialists.map((s, i) => (
                   <button
                     key={s.id}
-                    onClick={() => setMobileActiveTab(i)}
+                    onClick={() => setMobileActiveTab,
+  onSpecialistComplete(i)}
                     style={{
                       padding: '8px 16px',
                       borderRadius: '99px',
@@ -140,15 +142,9 @@ export function MDTHubDashboard({
                     isPaused={false}
                     index={i}
                     onComplete={(id: string, transcript: any) => {
-                      setSpecialistTranscripts((prev: any) => ({ ...prev, [id]: transcript }));
-                      setCompletedSpecialists(prev => {
-                        const next = new Set(prev);
-                        next.add(id);
-                        if (next.size === selectedSpecialists.length) {
-                          setPhase('compiling');
-                        }
-                        return next;
-                      });
+                      if (onSpecialistComplete) {
+                        onSpecialistComplete(id, transcript);
+                      }
                     }}
                     allSpecialists={selectedSpecialists}
                     intakeData={intakeData}
