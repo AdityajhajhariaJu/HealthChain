@@ -643,7 +643,7 @@ useEffect(() => {
             paddingLeft: '1px' // ensure shadow isn't clipped
           }}
         >
-          <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content' }}>
+          <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content', transform: 'scale(0.65)', transformOrigin: 'top center', marginBottom: '-16px' }}>
             <div
               style={{
                 display: 'inline-flex',
