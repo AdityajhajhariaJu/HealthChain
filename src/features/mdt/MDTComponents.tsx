@@ -347,17 +347,37 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
 
   useEffect(() => {
     try {
+      // Migrate to using the central CaseEngine for case history instead of legacy hc_history
+      const cases = getCases().filter((c: any) => c.reviews && c.reviews.length > 0);
+      
+      // Also merge legacy hc_history if any, just in case
       const stored = localStorage.getItem('hc_history');
-      if (stored) setHistoryCases(JSON.parse(stored));
+      let legacyCases = [];
+      if (stored) {
+         legacyCases = JSON.parse(stored);
+      }
+      
+      // Merge, giving preference to CaseEngine cases
+      setHistoryCases([...cases, ...legacyCases.filter((lc: any) => !cases.some((c: any) => c.id === lc.id))]);
     } catch (e) {}
   }, []);
 
+
+  const formatTitle = (title: string) => {
+    if (!title) return 'Untitled Case';
+    if (title.includes('[FOLLOW-UP FROM PREVIOUS EVALUATION]')) {
+      return 'Follow-up Consultation';
+    }
+    return title;
+  };
+
   const handleImportCase = (pastCase: any) => {
-    const prevSummary = pastCase.report?.executiveSummary || pastCase.title || '';
-    const prevFindings = pastCase.report?.keyFindings || '';
-    const prevPathways = (pastCase.report?.topDiagnoses || [])
-      .map((d: any) => `- ${d.condition} (Confidence: ${d.probability}%)\n  Supporting Evidence: ${(d.supportingEvidence || []).join(', ')}`)
-      .join('\n');
+    const report = pastCase.report || pastCase.currentSummary;
+    const prevSummary = report?.executiveSummary || pastCase.title || '';
+    const prevFindings = report?.keyFindings || '';
+    const prevPathways = (report?.topDiagnoses || [])
+      .map((d: any) => `- ${d.condition} (Confidence: ${d.probability}%)\\n  Supporting Evidence: ${(d.supportingEvidence || []).join(', ')}`)
+      .join('\\n');
       
     setComplaint(`[FOLLOW-UP FROM PREVIOUS EVALUATION]
 Previous Summary: ${prevSummary}
@@ -694,12 +714,12 @@ New Information / Changes in Symptoms since last evaluation:
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>{hc.title || 'Untitled Case'}</h4>
+                          <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, color: '#0F172A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{formatTitle(hc.title)}</h4>
                           <p style={{ margin: 0, fontSize: '13px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ padding: '2px 6px', background: '#E2E8F0', borderRadius: '4px', fontSize: '11px', fontWeight: 600, color: '#475569' }}>
-                              {hc.type.toUpperCase()}
+                              {(hc.type || hc.mode || 'Case').toUpperCase()}
                             </span>
-                            {hc.date}
+                            {hc.date || (hc.updatedAt ? new Date(hc.updatedAt).toLocaleDateString() : '')}
                           </p>
                         </div>
                         <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FFF', border: '1px solid #E2E8F0', display: 'grid', placeItems: 'center' }}>
