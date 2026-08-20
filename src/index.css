@@ -579,13 +579,10 @@ textarea {
   margin-bottom: 8px;
   border: 1px solid rgba(13, 148, 136, 0.18);
   border-radius: 18px;
-  background: linear-gradient(
-    100deg,
-    rgba(240, 253, 250, 0.95),
-    rgba(255, 255, 255, 0.92) 58%,
-    rgba(236, 253, 245, 0.9)
-  );
-  box-shadow: 0 8px 28px rgba(15, 118, 110, 0.06);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 .brand-pulse__mark {
   width: 43px;
