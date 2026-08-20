@@ -102,10 +102,6 @@ export default function QuickConsult() {
 
   
   const handleSkipUpload = () => {
-    if (symptomInput.trim().length < 5) {
-      alert('Please enter at least 5 characters describing your concern.');
-      return;
-    }
     setPhase('chat');
   };
 

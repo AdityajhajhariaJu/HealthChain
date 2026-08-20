@@ -3,11 +3,7 @@ import { getActiveCase, AppointmentBrief } from './CaseEngine';
 import { supabase } from './supabaseClient';
 
 // We strictly use the API proxy to prevent exposing the Gemini key in the frontend bundle.
-// (For local development, we can use a direct connection if VITE_GEMINI_API_KEY is defined in .env.local)
-const LOCAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const API_URL = (import.meta.env.DEV && LOCAL_API_KEY)
-  ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${LOCAL_API_KEY}`
-  : '/api/gemini';
+const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api/gemini' : '/api/gemini';
 
 const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000, retries = 2) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
