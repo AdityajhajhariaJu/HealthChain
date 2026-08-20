@@ -28,7 +28,7 @@ export default function Breadcrumbs() {
   }
 
   // Hide breadcrumbs on specific routes as requested
-  const hiddenRoutes = ['/app/trials', '/app/dietician', '/app/ava', '/app/my-cases', '/app/cases'];
+  const hiddenRoutes = ['/app/trials', '/app/dietician', '/app/ava', '/app/my-cases', '/app/cases', '/app/consult', '/app/collab', '/app/case-prep'];
   if (hiddenRoutes.some(route => location.pathname.startsWith(route))) {
     return null;
   }
