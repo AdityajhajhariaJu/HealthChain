@@ -446,8 +446,7 @@ useEffect(() => {
               const specName = selectedSpecialists.find((s: any) => s.id === specId)?.label || specId;
               cleanTranscripts[specName] = updated[specId]
                 ?.map((m: any) => `${m.role}: ${m.text}`)
-                .join('
-') || '';
+                .join('\\n') || '';
             });
 
             // Run backend synthesis
