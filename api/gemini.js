@@ -12,6 +12,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const MAX_OUTPUT_TOKENS = 4096;
 const SERVER_SAFETY_INSTRUCTION = `
 HEALTHCHAIN SAFETY GATE:
 - You are an AI health-information and assessment assistant, not a licensed clinician.
@@ -148,6 +149,17 @@ export default async function handler(req, res) {
     bodyPayload.systemInstruction = {
       ...(bodyPayload.systemInstruction || {}),
       parts: [...existingInstruction, { text: SERVER_SAFETY_INSTRUCTION }],
+    };
+    const incomingGenerationConfig = bodyPayload.generationConfig && typeof bodyPayload.generationConfig === 'object'
+      ? bodyPayload.generationConfig
+      : {};
+    const requestedOutputTokens = Number(incomingGenerationConfig.maxOutputTokens);
+    bodyPayload.generationConfig = {
+      ...incomingGenerationConfig,
+      maxOutputTokens: Number.isFinite(requestedOutputTokens) && requestedOutputTokens > 0
+        ? Math.min(Math.floor(requestedOutputTokens), MAX_OUTPUT_TOKENS)
+        : MAX_OUTPUT_TOKENS,
+      candidateCount: 1,
     };
 
     const response = await fetch(API_URL, {
