@@ -187,7 +187,7 @@ export default function QuickConsult() {
              const parsed = parseModelJson<any>(summaryMessage.text);
              if (parsed) {
                  if (parsed.currentHypotheses) {
-                     reportData.executiveSummary = parsed.patientFriendlySummary || parsed.internalThoughts || reportData.executiveSummary;
+                     reportData.executiveSummary = parsed.patientFriendlySummary || parsed.evidenceNote || reportData.executiveSummary;
                      reportData.topDiagnoses = parsed.currentHypotheses.map((h: any) => 
                          typeof h === 'string' ? { condition: h, confidence: 50 } : { condition: h.condition, rationale: h.rationale, confidence: 50 }
                      );

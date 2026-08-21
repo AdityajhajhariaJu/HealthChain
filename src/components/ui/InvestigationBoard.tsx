@@ -12,7 +12,7 @@ export default function InvestigationBoard({ analysis }) {
       {/* Title */}
       <div style={{ marginBottom: '24px' }}>
         <div className="badge badge-teal mb-4">
-          <GitBranch size={12} /> Diagnostic Chain Built
+          <GitBranch size={12} /> Evidence Connection Map
         </div>
         <h1
           style={{
@@ -25,7 +25,7 @@ export default function InvestigationBoard({ analysis }) {
           {analysis.chain_name}
         </h1>
         <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-          Your personalized diagnosis chain — one root cause traced to every downstream symptom.
+          A visual map of reported symptoms, possible connections, and evidence gaps to discuss with a qualified clinician.
         </p>
       </div>
 
@@ -129,7 +129,7 @@ export default function InvestigationBoard({ analysis }) {
               />
             </svg>
 
-            {/* Root Cause Node */}
+            {/* Central question node */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -157,7 +157,7 @@ export default function InvestigationBoard({ analysis }) {
                   fontWeight: 700,
                 }}
               >
-                Root Cause
+                Central question
               </div>
               <div style={{ fontWeight: '700', color: 'var(--teal-mid)', fontSize: '18px' }}>
                 {analysis.flowchart.root}

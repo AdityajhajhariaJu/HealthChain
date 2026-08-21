@@ -95,10 +95,10 @@ export default function ActionPlan({ analysis }) {
           </div>
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-              Context noted in case
+              Care context
             </div>
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>
-              {analysis.cost_to_confirm || analysis.cost_to_diagnose}
+              {analysis.cost_to_confirm || analysis.cost_to_diagnose || 'Discuss with clinician'}
             </div>
           </div>
         </div>

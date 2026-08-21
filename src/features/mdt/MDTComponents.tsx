@@ -1102,7 +1102,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
                     </div>
                   )}
 
-                  {!isUser && parsed?.internalThoughts && (
+          {!isUser && parsed?.evidenceNote && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -1134,8 +1134,8 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
                             flexShrink: 0
                           }}
                         />
-                        <span style={{ fontWeight: 600, color: specialist.color }}>Background Thought:</span>
-                        <StreamingMarkdown text={parsed.internalThoughts} isNew={i === messages.length - 1} inline />
+                        <span style={{ fontWeight: 600, color: specialist.color }}>Evidence note:</span>
+                        <StreamingMarkdown text={parsed.evidenceNote} isNew={i === messages.length - 1} inline />
                       </div>
                       {parsed.currentHypotheses && parsed.currentHypotheses.length > 0 && (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
