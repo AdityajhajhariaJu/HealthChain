@@ -12,12 +12,27 @@ const ALLOWED_PLANS = {
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ALLOWED_ORIGINS = [
+  'https://www.healthchain360.com',
+  'https://healthchain360.com',
+  'https://healthchain-live.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'capacitor://localhost',
+  'http://localhost'
+];
 
-export default async function handler(req, res) {
-  const origin = req.headers.origin || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+export default async function handler(req, res) {
+  setCors(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -135,6 +150,7 @@ export default async function handler(req, res) {
 
     if (insertError) {
       console.warn('DB payment log warning:', insertError);
+      return res.status(503).json({ error: 'Payment verified, but entitlement logging is unavailable. Please contact support before retrying.' });
     }
 
     // 6. Activate Pro
