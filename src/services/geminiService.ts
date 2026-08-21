@@ -625,14 +625,7 @@ Return strictly as JSON:
     { 
       "step": "Action", 
       "timeline": "When to do it (e.g., Immediately, Within 1 week)", 
-      "type": "Test | Treatment | Lifestyle",
-      "simulation": {
-        "timelineDays": 42,
-        "timelineDescription": "Brief description",
-        "successRate": 85,
-        "costEstimate": "$500",
-        "impact": "What this solves"
-      }
+      "type": "Discussion | Record | Follow-up"
     }
   ],
   "questionsForClinician": ["Specific question the patient can take to a clinician"]
@@ -658,7 +651,7 @@ Return strictly as JSON:
           alternativeOrRarePossibilities: { type: "string" },
           urgency: { type: "string" },
           topDiagnoses: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, confidence: { type: "number" }, rationale: { type: "string" }, specialty: { type: "string" }, evidenceFor: { type: "array", items: { type: "string" } }, evidenceGaps: { type: "array", items: { type: "string" } }, citations: { type: "array", items: { type: "object", properties: { title: { type: "string" }, journal: { type: "string" }, year: { type: "number" }, link: { type: "string" } } } } } } },
-          recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" }, simulation: { type: "object", properties: { timelineDays: { type: "number" }, timelineDescription: { type: "string" }, successRate: { type: "number" }, costEstimate: { type: "string" }, impact: { type: "string" } } } } } },
+          recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" } } } },
           questionsForClinician: { type: "array", items: { type: "string" } }
         },
         required: ["executiveSummary", "keyFindings", "interpretation", "nextSteps", "abnormalitiesNoted", "medicalTerms", "specialistDebatePoints", "systemicCorrelations", "topDiagnoses", "recommendedActionPlan"]
@@ -800,15 +793,7 @@ Return strictly as JSON matching this exact structure:
     { 
       "step": "Action", 
       "timeline": "Immediately / Next week", 
-      "type": "Test | Treatment | Lifestyle",
-      "simulation": {
-        "timelineDays": 42,
-        "timelineDescription": "Brief description",
-        "successRate": 85,
-        "costEstimate": "$500",
-        "risks": ["Risk 1"],
-        "milestones": [{"day": 7, "description": "Phase 1"}]
-      }
+      "type": "Discussion | Record | Follow-up"
     }
   ],
   "questionsForClinician": ["Specific question the patient can take to a clinician"]
@@ -1227,10 +1212,7 @@ ${profileContext}
 
 Describe questions, risks, and possible follow-up topics to discuss with a qualified clinician. Do not predict outcomes, cost, recovery, or success rates. Return your findings strictly as JSON matching this exact structure:
 {
-  "timelineDays": null,
   "timelineDescription": "A clinician can advise on the appropriate timing",
-  "successRate": null,
-  "costEstimate": "Varies by clinician, location, and coverage",
   "risks": ["Risk 1", "Risk 2"],
   "milestones": [
     { "day": 0, "description": "Discuss the item with a qualified clinician" }
@@ -1253,8 +1235,7 @@ Describe questions, risks, and possible follow-up topics to discuss with a quali
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson(text);
     }
   } catch (err) {
     console.error('Simulation error:', err);

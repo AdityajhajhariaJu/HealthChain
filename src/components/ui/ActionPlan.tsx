@@ -98,7 +98,7 @@ export default function ActionPlan({ analysis }) {
               Care context
             </div>
             <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>
-              {analysis.cost_to_confirm || analysis.cost_to_diagnose || 'Discuss with clinician'}
+              {analysis.specialist || 'Discuss with clinician'}
             </div>
           </div>
         </div>
