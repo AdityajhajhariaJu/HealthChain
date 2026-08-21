@@ -38,4 +38,13 @@ describe('SyncOutbox', () => {
 
     expect(await getPendingSyncCount('user-2')).toBe(500);
   });
+
+  it('keeps account queues isolated', async () => {
+    await enqueueSync('case_upsert', 'user-1', { id: 'private-case' });
+    await enqueueSync('case_upsert', 'user-2', { id: 'other-case' });
+
+    expect(await getPendingSyncCount('user-1')).toBe(1);
+    expect(await getPendingSyncCount('user-2')).toBe(1);
+    expect(idbStore.get('hc_sync_outbox_user-1')).not.toEqual(idbStore.get('hc_sync_outbox_user-2'));
+  });
 });
