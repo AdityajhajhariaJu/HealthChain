@@ -47,10 +47,16 @@ export default function QuickConsult() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const resetConsult = () => {
+    const resetConsult = () => {
     for (let key in cachedQuickConsultStreams) {
       delete cachedQuickConsultStreams[key];
     }
+    
+    // Wipe all stream caches so we don't hallucinate past consultations
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
+    });
+
     setPhase('select');
     setSelectedSpecialist(null);
     setSymptomInput('');

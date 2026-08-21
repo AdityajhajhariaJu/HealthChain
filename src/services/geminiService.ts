@@ -652,6 +652,7 @@ Return strictly as JSON:
       responseSchema: {
         type: "object",
         properties: {
+          _scratchpad: { type: "string" },
           executiveSummary: { type: "string" },
           keyFindings: { type: "string" },
           interpretation: { type: "string" },
@@ -660,6 +661,8 @@ Return strictly as JSON:
           medicalTerms: { type: "array", items: { type: "object", properties: { term: { type: "string" }, definition: { type: "string" } } } },
           specialistDebatePoints: { type: "array", items: { type: "string" } },
           systemicCorrelations: { type: "array", items: { type: "string" } },
+          scientificLiteratureContext: { type: "string" },
+          alternativeOrRarePossibilities: { type: "string" },
           urgency: { type: "string" },
           topDiagnoses: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, confidence: { type: "number" }, rationale: { type: "string" }, specialty: { type: "string" }, evidenceFor: { type: "array", items: { type: "string" } }, evidenceGaps: { type: "array", items: { type: "string" } }, citations: { type: "array", items: { type: "object", properties: { title: { type: "string" }, journal: { type: "string" }, year: { type: "number" }, link: { type: "string" } } } } } } },
           recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" }, simulation: { type: "object", properties: { timelineDays: { type: "number" }, timelineDescription: { type: "string" }, successRate: { type: "number" }, costEstimate: { type: "string" }, impact: { type: "string" } } } } } },

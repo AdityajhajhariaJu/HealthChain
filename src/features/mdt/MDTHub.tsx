@@ -184,6 +184,11 @@ useEffect(() => {
       return;
     }
     
+    // 🔥 Bulletproof Cache Wipe: Ensure no zombie LLM streams exist from previous cases
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
+    });
+
     setIsSelecting(true);
     let enhancedComplaint = data.chiefComplaint || '';
       let newRecords: any[] = [];
