@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const migrationsDir = join(root, 'supabase', 'migrations');
 const verifierPath = join(root, 'supabase', 'verify_production.sql');
+const bundlePath = join(root, 'supabase', 'APPLY_ALL.sql');
 
 const requiredFiles = [
   '20260818_health_memory.sql',
@@ -39,6 +40,11 @@ if (missingFiles.length) {
 }
 
 const verifier = await readFile(verifierPath, 'utf8');
+const bundle = await readFile(bundlePath, 'utf8');
+const missingBundleFiles = requiredFiles.filter((file) => !bundle.includes(`===== ${file} =====`));
+if (missingBundleFiles.length) {
+  throw new Error(`Unified Supabase bundle is missing migrations: ${missingBundleFiles.join(', ')}`);
+}
 const missingVerifierTokens = requiredVerifierTokens.filter((token) => !verifier.includes(token));
 if (missingVerifierTokens.length) {
   throw new Error(`Production verifier is missing required checks: ${missingVerifierTokens.join(', ')}`);
