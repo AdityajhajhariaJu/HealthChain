@@ -24,7 +24,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
       hasAutoRun.current = true;
       setIsAnalyzing(true);
       generateCaseConnectionMap(topDiagnoses).then(mapData => {
-        if (mapData && isMounted.current) {
+        if (mapData) {
           updateCaseConnectionMap(item.id, mapData);
         }
       }).catch(console.error).finally(() => {
