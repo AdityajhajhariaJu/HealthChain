@@ -6,17 +6,17 @@ const STEPS = [
   { id: 'sync', icon: Network, label: 'Synchronizing clinical perspectives', desc: 'Aggregating AI specialist inputs' },
   { id: 'correlate', icon: GitMerge, label: 'Correlating symptom clusters', desc: 'Mapping interactions across body systems' },
   { id: 'evidence', icon: Database, label: 'Querying medical literature', desc: 'Cross-referencing global clinical trials' },
-  { id: 'analyze', icon: Brain, label: 'Synthesizing diagnostic hypotheses', desc: 'Running probabilistic differential analysis' },
-  { id: 'map', icon: Fingerprint, label: 'Generating case connection map', desc: 'Plotting causal relationships & evidence gaps' },
+  { id: 'analyze', icon: Brain, label: 'Synthesizing discussion pathways', desc: 'Separating reported facts, possibilities, and gaps' },
+  { id: 'map', icon: Fingerprint, label: 'Generating case connection map', desc: 'Plotting possible relationships & evidence gaps' },
   { id: 'compile', icon: FileText, label: 'Compiling final medical brief', desc: 'Structuring data for clinician review' }
 ];
 
 const COMPUTATION_STRINGS = [
   "Analyzing biomarker correlations...",
-  "Running differential diagnostic algorithms...",
+  "Organizing possible discussion pathways...",
   "Checking for drug-symptom interactions...",
   "Mapping systemic inflammatory pathways...",
-  "Evaluating epidemiological risk factors...",
+  "Checking context and uncertainty labels...",
   "Cross-referencing patient history...",
   "Synthesizing multidisciplinary perspectives...",
   "Formatting output for clinical interoperability..."

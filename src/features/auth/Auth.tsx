@@ -247,7 +247,7 @@ export default function Auth() {
                   ? 'Enter your email to receive a password reset link.'
                   : isLogin
                   ? 'Enter your details to access your clinical dashboard.'
-                  : 'Start your diagnostic journey today.'}
+                  : 'Start organizing your health journey today.'}
               </p>
 
               <form

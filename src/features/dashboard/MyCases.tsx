@@ -101,7 +101,7 @@ export default function MyCases() {
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Search by diagnosis, title..."
+            placeholder="Search by condition, title..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{

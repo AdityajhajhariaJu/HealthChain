@@ -1391,7 +1391,7 @@ export default function MedicalProfile() {
                 >
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
                     <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#ECFDF5', color: '#10B981', display: 'grid', placeItems: 'center' }}><User size={12}/></div>
-                    <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>Diagnostic AI Board</strong>
+                    <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>AI Discussion Board</strong>
                   </div>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Assigned to active case</span>
                 </motion.div>

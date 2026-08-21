@@ -461,7 +461,7 @@ export default function MultiSpecialist() {
               letterSpacing: '-1px',
             }}
           >
-            Parallel Diagnostic Analysis
+              Parallel Evidence Review
           </h1>
           <p
             style={{

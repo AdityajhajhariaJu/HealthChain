@@ -458,7 +458,7 @@ New Information / Changes in Symptoms since last evaluation:
             <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
             <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
             <p style={{ color: '#475569', fontSize: '12px', margin: '8px 0 0 0', fontWeight: 500, lineHeight: 1.5, maxWidth: '80%' }}>
-              <strong>Not satisfied with a previous diagnosis?</strong> Have new lab results or changing symptoms? Import your existing case below and explicitly cross-question the AI on its previous findings to get a completely revised evaluation.
+              <strong>Previous explanations have not resolved the picture?</strong> Have new lab results or changing symptoms? Import your existing case below and ask the AI to compare its earlier discussion pathways with the new information.
             </p>
           </div>
         </div>
@@ -1797,7 +1797,7 @@ export function MDTReportPanel({
     }
     const opt = {
       margin: [15, 15, 15, 15] as [number, number, number, number],
-      filename: 'Collaborative_Diagnostic_Report.pdf',
+      filename: 'Collaborative_Clinician_Discussion_Brief.pdf',
       image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
@@ -1877,7 +1877,7 @@ export function MDTReportPanel({
             }}
           >
             Synthesizing specialist analyses, debate outcomes, and your answers into a unified
-            diagnostic pathway.
+            discussion pathway.
           </p>
         </div>
       </div>

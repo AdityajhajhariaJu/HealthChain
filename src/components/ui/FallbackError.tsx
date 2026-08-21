@@ -39,7 +39,7 @@ export default function FallbackError({ error, resetErrorBoundary }) {
         A system error occurred
       </h2>
       <p style={{ color: '#991B1B', maxWidth: '400px', marginBottom: '24px', lineHeight: 1.6 }}>
-        Our diagnostics engine encountered an unexpected fault in this module. The rest of the
+        Our case-assessment module encountered an unexpected fault. The rest of the
         application is still functioning.
       </p>
 

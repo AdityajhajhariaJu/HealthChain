@@ -871,7 +871,7 @@ useEffect(() => {
                             letterSpacing: '-0.5px',
                           }}
                         >
-                          Medical Board Assembled
+                          AI perspectives assembled
                         </h2>
                         <p
                           style={{
