@@ -17,3 +17,9 @@ test('guest can enter the assessment workspace from the public page', async ({ p
   await expect(page.getByText('Health Today')).toBeVisible();
   await expect(page.getByText(/Ready to find your root cause/i)).toHaveCount(0);
 });
+
+test('clean unauthenticated browsers cannot open account case routes', async ({ page }) => {
+  await page.goto('/app/my-cases');
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: /Welcome back|Create your account/i })).toBeVisible();
+});
