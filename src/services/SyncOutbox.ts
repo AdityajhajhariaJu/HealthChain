@@ -67,6 +67,28 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
 }
 
 async function send(entry: OutboxEntry) {
+  const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
+    ? 'cases'
+    : entry.kind === 'health_memory_upsert' ? 'health_memory' : 'profiles';
+  const recordId = entry.payload?.id;
+  const localUpdatedAt = entry.payload?.updated_at;
+
+  // Offline devices may reconnect out of order. Never let an older snapshot
+  // overwrite a newer server record, and never let an old queued delete erase
+  // a record updated on another device meanwhile.
+  if (recordId && localUpdatedAt) {
+    const { data: remote, error: readError } = await supabase
+      .from(table)
+      .select('updated_at')
+      .eq('id', recordId)
+      .eq('user_id', entry.userId)
+      .maybeSingle();
+    if (readError && readError.code !== 'PGRST116') return { error: readError };
+    if (remote?.updated_at && new Date(remote.updated_at).getTime() > new Date(localUpdatedAt).getTime()) {
+      return { error: null };
+    }
+  }
+
   if (entry.kind === 'case_upsert') {
     return supabase.from('cases').upsert(entry.payload, { onConflict: 'id' });
   }

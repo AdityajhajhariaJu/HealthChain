@@ -239,11 +239,15 @@ export function setActiveCase(caseId: string | null) {
 
 export function deleteCase(caseId: string) {
   const cases = getCases();
+  const deletedCase = cases.find((item) => item.id === caseId);
   const updatedCases = cases.filter((c) => c.id !== caseId);
   save(updatedCases);
   supabase.auth.getSession().then(async ({ data: { session } }) => {
     if (!session?.user) return;
-    await enqueueSync('case_delete', session.user.id, { id: caseId });
+    await enqueueSync('case_delete', session.user.id, {
+      id: caseId,
+      updated_at: deletedCase?.updatedAt || new Date().toISOString(),
+    });
     await flushSyncOutbox(session.user.id);
   }).catch((error) => window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
   if (getActiveCaseId() === caseId) {
