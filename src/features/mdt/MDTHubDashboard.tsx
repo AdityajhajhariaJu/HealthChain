@@ -78,17 +78,15 @@ export function MDTHubDashboard({
           </div>
           <div
             style={{
-              maxWidth: selectedSpecialists.length === 1 ? '800px' : '100%', margin: '0 auto', display: isMobile ? 'flex' : 'grid',
-              flexDirection: isMobile ? 'column' : 'unset',
-              gridTemplateColumns: isMobile ? 'unset' : 'repeat(auto-fit, minmax(340px, 1fr))',
+              maxWidth: '800px', margin: '0 auto', display: 'flex',
+                flexDirection: 'column',
               gap: '16px',
               opacity: isSessionPaused ? 0.6 : 1,
               pointerEvents: isSessionPaused ? 'none' : 'auto',
               transition: 'all 0.3s'
             }}
           >
-            {isMobile && (
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '12px', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '12px', WebkitOverflowScrolling: 'touch', flexWrap: 'wrap', justifyContent: 'center' }}>
                 {selectedSpecialists.map((s, i) => (
                   <button
                     key={s.id}
@@ -101,21 +99,21 @@ export function MDTHubDashboard({
                       background: mobileActiveTab === i ? s.color : '#FFF',
                       color: mobileActiveTab === i ? '#FFF' : '#64748B',
                       fontWeight: 700,
-                      fontSize: '13px',
+                        fontSize: '13px',
+                        cursor: 'pointer',
                     }}
                   >
                     {s.label}
                   </button>
                 ))}
               </div>
-            )}
-            {selectedSpecialists.map((s, i) => {
+              {selectedSpecialists.map((s, i) => {
               const Icon = s.icon;
               return (
               <div
                 key={s.id}
                 style={{
-                  display: (!isMobile || mobileActiveTab === i) ? 'flex' : 'none',
+                  display: (mobileActiveTab === i) ? 'flex' : 'none',
                   flexDirection: 'column',
                   flex: 1,
                   width: '100%',
