@@ -256,6 +256,7 @@ export default function JarvisInvestigator() {
           Return to Dashboard <ArrowRight size={20} />
         </button>
       </div>
+      </>
     );
   }
 
@@ -384,6 +385,7 @@ export default function JarvisInvestigator() {
     </>
   );
 }
+
 
 
 
