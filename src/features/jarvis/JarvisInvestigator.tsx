@@ -152,7 +152,9 @@ export default function JarvisInvestigator() {
 
   if (phase === 'done' && report) {
     return (
-      <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
+    <>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#FFF7ED', zIndex: -1 }} />
+      <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(15,23,42,0.2)' }}>
             <NetworkHubIcon size={32} color="#38BDF8" />
@@ -258,11 +260,13 @@ export default function JarvisInvestigator() {
   }
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
+    <>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#FFF7ED', zIndex: -1 }} />
+      <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
       
       <div
         style={{
-          background: 'linear-gradient(120deg, rgba(255,247,237,0.95) 0%, rgba(255,237,213,0.85) 50%, rgba(255,255,255,0.95) 100%)',
+          background: 'linear-gradient(120deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0.95) 100%)',
           backgroundSize: '200% 200%',
           backdropFilter: 'blur(24px)',
           padding: isMobile ? '32px 24px' : '48px',
@@ -377,8 +381,11 @@ export default function JarvisInvestigator() {
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAnalyze} disabled={!history.trim() && files.length === 0} style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: (!history.trim() && files.length === 0) ? '#94A3B8' : '#FFF', borderRadius: '16px', border: 'none', fontSize: '18px', fontWeight: 800, cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(234,88,12,0.3)', transition: 'all 0.2s' }}> <Sparkles size={24} /> Initiate Core Investigation </motion.button>
       </div>
     </div>
+    </>
   );
 }
+
+
 
 
 
