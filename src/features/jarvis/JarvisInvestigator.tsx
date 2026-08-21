@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -294,7 +294,7 @@ export default function JarvisInvestigator() {
             </div>
             
             <p style={{ color: '#94A3B8', fontSize: '15px', margin: '0', fontWeight: 500, lineHeight: 1.6 }}>
-              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
+              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forthâ€”just upload your entire history and instantly discover patterns your doctors might have missed.
             </p>
           </div>
         </div>
@@ -326,9 +326,9 @@ export default function JarvisInvestigator() {
         </div>
 
         <div style={{ marginBottom: '40px' }}>
-          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#F1F5F9', marginBottom: '12px' }}>
             <span>Medical Records & Labs</span>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', padding: '4px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>PDF / Images</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', padding: '4px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>PDF / Images</span>
           </label>
           <input 
             type="file" 
@@ -362,35 +362,16 @@ export default function JarvisInvestigator() {
           )}
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleRunJarvis}
-          disabled={!history.trim() || !userProfile?.date_of_birth}
-          style={{
-            width: '100%',
-            padding: '20px',
-            background: (!history.trim() || !userProfile?.date_of_birth) 
-              ? '#334155' 
-              : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-            color: (!history.trim() || !userProfile?.date_of_birth) ? '#94A3B8' : '#FFF',
-            borderRadius: '16px',
-            border: 'none',
-            fontSize: '18px',
-            fontWeight: 800,
-            cursor: (!history.trim() || !userProfile?.date_of_birth) ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            boxShadow: (!history.trim() || !userProfile?.date_of_birth) ? 'none' : '0 10px 25px rgba(249,115,22,0.4)',
-            transition: 'all 0.2s',
-          }}
+        <button 
+          onClick={handleAnalyze}
+          disabled={!history.trim() && files.length === 0}
+          style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#334155' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '18px', cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(249,115,22,0.4)', transition: 'all 0.2s' }}
         >
-          <Sparkles size={24} />
-          {userProfile?.date_of_birth ? 'Initiate Core Investigation' : 'Profile Required to Initiate'}
-        </motion.button>
+          <Sparkles size={24} /> Crunch Data & Extract Insights
+        </button>
       </div>
     </div>
   );
 }
+
+
