@@ -95,6 +95,20 @@ export default async function handler(req, res) {
     if (ledgerError && !['42P01', 'PGRST205'].includes(ledgerError.code)) {
       return res.status(503).json({ error: 'AI request ledger unavailable' });
     }
+    if (!ledgerError) {
+      const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
+        p_user_id: userId,
+        p_daily_limit: 120,
+      });
+      if (quotaError) {
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(503).json({ error: 'AI quota service unavailable' });
+      }
+      if (allowed === false) {
+        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'daily_limit', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+        return res.status(429).json({ error: 'Daily AI request limit reached. Please try again tomorrow.' });
+      }
+    }
   }
 
   const API_KEY = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === 'development' ? process.env.VITE_GEMINI_API_KEY : '');
@@ -142,6 +156,9 @@ export default async function handler(req, res) {
         total_tokens: usage.totalTokenCount || null,
         finished_at: new Date().toISOString(),
       }).eq('request_id', String(requestId));
+      if (usage.totalTokenCount) {
+        await adminClient.rpc('record_ai_tokens', { p_user_id: userId, p_total_tokens: usage.totalTokenCount });
+      }
     }
     return res.status(200).json(data);
   } catch (error) {
