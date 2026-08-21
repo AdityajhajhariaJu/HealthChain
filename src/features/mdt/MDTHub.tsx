@@ -444,8 +444,12 @@ useEffect(() => {
   const handleConferenceComplete = async (conferenceData: any, answers: any) => {
     try {
       const report = await generateMDTReport(intakeData, conferenceData, answers, activeCase?.medicalRecords || []);
-      setHistoryReport(report);
-      setPhase('report');
+                setHistoryReport(report);
+          if (activeCase?.id) {
+            navigate('/app/cases/' + activeCase.id);
+          } else {
+            setPhase('report');
+          }
     } catch (e) {
       console.error('Failed to generate MDT report', e);
       alert('Failed to generate consensus report. Please try again.');
@@ -499,8 +503,12 @@ useEffect(() => {
             } catch(e) { console.error("Diff analysis failed", e); }
           }
 
-          setHistoryReport(report);
-          setPhase('report');
+                    setHistoryReport(report);
+          if (activeCase?.id) {
+            navigate('/app/cases/' + activeCase.id);
+          } else {
+            setPhase('report');
+          }
         } catch (e) {
           console.error('Failed to generate MDT report', e);
           const elapsed = Date.now() - startTime;
