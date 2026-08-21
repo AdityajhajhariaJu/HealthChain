@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseModelJson } from '../geminiService';
+import { parseModelJson } from '../modelJson';
 
 describe('parseModelJson', () => {
   it('extracts a complete nested object from surrounding model prose', () => {
