@@ -41,8 +41,8 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Install Chromium for browser smoke tests
-        run: npx playwright install --with-deps chromium
+      - name: Install browsers for smoke tests
+        run: npx playwright install --with-deps chromium webkit
 
-      - name: Guest browser smoke test
-        run: npm run e2e -- --project=chromium
+      - name: Browser smoke tests
+        run: npm run e2e -- --project=chromium --project=webkit
