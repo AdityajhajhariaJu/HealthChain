@@ -24,43 +24,6 @@ import { getActiveSession } from '../../services/authSession';
 const cachedReportAnalyzerState: Record<string, any> = {};
 const fileReportCache: Record<string, any> = {};
 
-const exampleResult = {
-  testName: 'MRI Cervical Dorsal Spine with Whole Spine Screening',
-  date: '08-Jul-2026',
-  filename: 'Patient_Spine_MRI.pdf',
-  keyFindings:
-    'The MRI of the spine is largely normal, with no major structural abnormalities in the dorsal or lumbar regions. The only notable finding is a diffuse disc bulge at the C5-C6 level in the neck, which gently presses against the outer protective covering of the spinal cord (thecal sac). The overall impression is reassuring, noting no other significant abnormalities.',
-  interpretation:
-    'The report indicates a very healthy spine overall. The mild disc bulge at the C5-C6 level in the neck is a common finding and is likely the source of the right-sided neck pain mentioned in your clinical indication. Because there is no severe nerve compression or spinal cord damage, this is not a dangerous condition.',
-  recommendations:
-    'Share these results with your doctor or a physical therapist. Since the bulge is mild, conservative management such as physical therapy, posture correction, and gentle neck exercises will likely help relieve your right-sided neck pain. You should seek immediate medical attention if you experience weakness, numbness, or loss of bowel/bladder control.',
-  abnormalities: [
-    'Diffuse disc bulge at the C5-C6 intervertebral disc level, indenting the anterior thecal sac.',
-  ],
-  extraTerms: [
-    {
-      term: 'Diffuse disc bulge',
-      definition:
-        'A condition where an intervertebral disc swells or extends outward evenly beyond its normal space.',
-    },
-    {
-      term: 'Thecal sac',
-      definition: 'The protective membrane sheath that surrounds the spinal cord and spinal fluid.',
-    },
-    {
-      term: 'C5-C6',
-      definition:
-        'The region of the neck representing the joint between the fifth and sixth cervical vertebrae.',
-    },
-    { term: 'Anterior', definition: 'Refers to the front side of a structure.' },
-  ],
-  biomarkers: {
-    'Vitamin D': { value: 15, unit: 'ng/mL', min: 30, max: 100 },
-    'Vitamin B12': { value: 350, unit: 'pg/mL', min: 200, max: 900 },
-    'Iron': { value: 45, unit: 'µg/dL', min: 65, max: 176 },
-  }
-};
-
 export default function ClinicalReportAnalyzer() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -505,7 +468,7 @@ export default function ClinicalReportAnalyzer() {
 
       {/* Results Area */}
       <AnimatePresence mode="wait">
-        {!loading && (result || !file) && (
+        {!loading && result && (
           <motion.div
             key={result ? 'result' : 'example'}
             initial={{ opacity: 0, y: 10 }}
@@ -514,37 +477,15 @@ export default function ClinicalReportAnalyzer() {
             style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '40px' }}
           >
             {(() => {
-              const displayData = result || exampleResult;
-              const isExample = !result;
+              const displayData = result;
+              
               const displayFile = file ? file.name : displayData.filename;
 
               return (
                 <>
-                  {isExample && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        marginBottom: '-8px',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '13px',
-                          textTransform: 'uppercase',
-                          color: '#94A3B8',
-                          fontWeight: 800,
-                          letterSpacing: '1.5px',
-                        }}
-                      >
-                        Example Result
-                      </span>
-                      <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
-                    </div>
-                  )}
 
-                  {activeCase && !isExample && (
+
+                  {activeCase && (
                     <div
                       style={{
                         padding: '16px 18px',
