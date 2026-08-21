@@ -56,7 +56,7 @@ const landingFaqs = [
   },
   {
     question: "How do the Deep Collaborative Specialists work?",
-    answer: "The Deep Collaborative Specialists feature simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
+    answer: "The Deep Collaborative Specialists feature coordinates multiple AI perspective modules (for example, cardiology, neurology, or endocrinology perspectives) to organize your information, surface evidence gaps, and prepare discussion points for a qualified clinician. It is not a real consultation or a medical recommendation."
   },
   {
     question: "Are the AI agents trained on real medical literature?",
@@ -249,7 +249,7 @@ export default function Landing() {
           animate={{ y: [0, -15, 0] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
         >
-          <CheckCircle2 size={16} color="#00D4B2" /> Analyzing 1M+ Papers...
+          <CheckCircle2 size={16} color="#00D4B2" /> Organizing evidence and questions...
         </motion.div>
         
         <motion.div 
@@ -324,7 +324,7 @@ export default function Landing() {
 
       {/* 3. Trusted By / Logos */}
       <div className={styles.logoMarqueeSection}>
-        <p className={styles.logoMarqueeTitle}>BUILT ON THE WORLD'S LEADING CLINICAL DATABASES</p>
+        <p className={styles.logoMarqueeTitle}>DESIGNED TO HELP YOU REVIEW RELEVANT HEALTH INFORMATION</p>
         <div className={styles.marqueeContainer}>
           <div className={styles.marqueeTrack}>
             <span className={styles.textLogo}>PubMed</span>
@@ -345,16 +345,16 @@ export default function Landing() {
       <section className={styles.statsSection}>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}><AnimatedCounter from={0} to={1} suffix="M+" /></h3>
-            <p className={styles.statLabel}>Papers Indexed</p>
+            <h3 className={styles.statValue}>Structured</h3>
+            <p className={styles.statLabel}>Case information</p>
           </div>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}><AnimatedCounter from={0} to={12} /></h3>
-            <p className={styles.statLabel}>Specialist Agents</p>
+            <h3 className={styles.statValue}>Multiple</h3>
+            <p className={styles.statLabel}>AI perspectives</p>
           </div>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>&lt;<AnimatedCounter from={0} to={8} suffix="m" /></h3>
-            <p className={styles.statLabel}>Avg Analysis Time</p>
+            <h3 className={styles.statValue}>Clearer</h3>
+            <p className={styles.statLabel}>Appointment preparation</p>
           </div>
         </div>
       </section>
@@ -372,10 +372,10 @@ export default function Landing() {
             When standard medicine hits a wall, you need a new approach.
           </h2>
           <p className={styles.problemText}>
-            Doctors have 8 minutes per patient. They don't have the time to connect the complex dots of chronic, multi-systemic illness.
+            Appointments can be short and your health story can be complex. HealthChain helps you bring the important context, records, and questions together for the conversation.
           </p>
           <p className={styles.problemText} style={{ marginTop: '24px', color: '#0F172A', fontWeight: 600 }}>
-            You've seen 5 doctors. Your labs are "normal." But you still feel terrible. You are not crazy. You just need a better angle.
+            If your symptoms continue despite inconclusive results, a clear timeline and well-organized questions can make the next conversation more useful. Your clinician remains the decision-maker.
           </p>
         </motion.div>
       </section>
@@ -438,7 +438,7 @@ export default function Landing() {
       <section className={styles.aiBrainSection}>
         <div className={styles.aiBrainContent}>
           <div className={styles.aiBrainText}>
-            <h2>12 Specialist Agents. <br/>Working Synchronously.</h2>
+            <h2>Multiple AI Perspectives. <br/>One Organized Case.</h2>
             <p>HealthChain organizes your case through multiple AI perspectives to surface questions, evidence gaps, and topics that may be useful to discuss with your clinician.</p>
           </div>
           <div className={styles.aiBrainVisual}>
@@ -460,7 +460,7 @@ export default function Landing() {
       {/* 7. How It Works (Timeline) */}
       <section id="how-it-works" className={styles.timelineSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>The Path to Answers</h2>
+          <h2 className={styles.sectionTitle}>The Path to a Better Visit</h2>
         </div>
 
         <div className={styles.timelineContainer}>
@@ -572,8 +572,8 @@ export default function Landing() {
           >
             <div className={styles.finalCtaMesh}></div>
             <div className={styles.finalCtaContent}>
-              <h2 className={styles.finalCtaTitle}>Ready to find your root cause?</h2>
-              <p className={styles.finalCtaDesc}>Join thousands of patients who took back control of their health.</p>
+              <h2 className={styles.finalCtaTitle}>Ready to organize your health story?</h2>
+              <p className={styles.finalCtaDesc}>Create a private case, prepare your questions, and take a clearer summary into your next clinician conversation.</p>
               <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={() => navigate('/signup')}>
                 Create Free Account <ArrowRight size={18} />
               </button>
