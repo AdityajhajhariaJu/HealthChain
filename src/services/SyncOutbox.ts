@@ -77,11 +77,12 @@ async function send(entry: OutboxEntry) {
   // overwrite a newer server record, and never let an old queued delete erase
   // a record updated on another device meanwhile.
   if (recordId && localUpdatedAt) {
+    const ownerColumn = table === 'profiles' ? 'id' : 'user_id';
     const { data: remote, error: readError } = await supabase
       .from(table)
       .select('updated_at')
       .eq('id', recordId)
-      .eq('user_id', entry.userId)
+      .eq(ownerColumn, entry.userId)
       .maybeSingle();
     if (readError && readError.code !== 'PGRST116') return { error: readError };
     if (remote?.updated_at && new Date(remote.updated_at).getTime() > new Date(localUpdatedAt).getTime()) {
