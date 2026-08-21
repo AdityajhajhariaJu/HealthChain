@@ -12,6 +12,7 @@ const requiredFiles = [
   '20260821_ai_control.sql',
   '20260821_ai_quota.sql',
   '20260821_base_events_payments.sql',
+  '20260821_data_integrity.sql',
   '20260821_operator_views.sql',
   '20260821_payment_entitlement.sql',
   '20260821_payment_integrity.sql',
@@ -58,6 +59,7 @@ const requiredSchemaTokens = [
   'revoke all on table public.ai_requests from anon, authenticated',
   'revoke all on table public.ai_usage_daily from anon, authenticated',
   'revoke all on table public.payments from anon, authenticated',
+  'healthchain_set_updated_at',
 ];
 const missingSchemaTokens = requiredSchemaTokens.filter((token) => !allSql.includes(token));
 if (missingSchemaTokens.length) {
