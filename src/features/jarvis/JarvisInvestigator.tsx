@@ -262,7 +262,7 @@ export default function JarvisInvestigator() {
       
       <div
         style={{
-          background: 'linear-gradient(120deg, rgba(240,249,255,0.95) 0%, rgba(245,243,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
+          background: 'linear-gradient(120deg, rgba(255,247,237,0.95) 0%, rgba(255,237,213,0.85) 50%, rgba(255,255,255,0.95) 100%)',
           backgroundSize: '200% 200%',
           backdropFilter: 'blur(24px)',
           padding: isMobile ? '32px 24px' : '48px',
@@ -379,6 +379,7 @@ export default function JarvisInvestigator() {
     </div>
   );
 }
+
 
 
 
