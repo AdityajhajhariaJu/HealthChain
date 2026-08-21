@@ -295,7 +295,7 @@ export default function Settings() {
               {isPremium ? 'HealthChain Premium Active' : 'Upgrade to Premium'}
             </div>
             <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : '#7E22CE', opacity: 0.8 }}>
-              {isPremium ? 'You have access to all advanced diagnostic tools.' : 'Unlock unlimited parallel board consultations and detailed PDF analysis.'}
+              {isPremium ? 'You have access to advanced assessment and case-organization tools.' : 'Unlock expanded collaborative assessments and detailed PDF organization.'}
             </div>
           </div>
           {!isPremium && (

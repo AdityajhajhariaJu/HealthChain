@@ -1335,7 +1335,7 @@ export function MDTConferencePanel({
     const debateMessages = selectedSpecialists.length === 1 ? [
       { id: 1, sender: s1, text: `I'm analyzing the updated case context and new findings.`, time: 500 },
       { id: 2, sender: s1, text: `Correlating your previous records with the new inputs...`, time: 2300 },
-      { id: 3, sender: s1, text: `Synthesizing the final diagnostic impression and action plan.`, time: 4100 },
+      { id: 3, sender: s1, text: `Organizing the evidence summary and discussion checklist.`, time: 4100 },
       { id: 4, sender: null, text: `Generating Follow-up Report...`, time: 5900 }
     ] : [
       { id: 1, sender: s1, text: `I've analyzed the case context and preliminary findings. The structural anomalies seem pronounced.`, time: 500 },
@@ -2231,7 +2231,7 @@ export function MDTReportPanel({
           }}
         >
           <Sparkles size={18} style={{ flexShrink: 0 }} /> 
-          <span style={{ textAlign: 'center' }}>Not fully happy? Refine Diagnosis</span>
+          <span style={{ textAlign: 'center' }}>Not fully satisfied? Refine the discussion brief</span>
         </button>
 
         <AnimatePresence>
