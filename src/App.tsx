@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
-import { syncProfileFromSupabase, getProfileKey, backfillHealthMemoryFromProfile } from './services/ProfileEngine';
+import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile } from './services/ProfileEngine';
 import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory } from './services/CaseEngine';
 import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -134,12 +134,22 @@ export default function App() {
     };
     window.addEventListener('hc_logout', handleLogout);
 
-    const handleProfileSwitch = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+    // Profile updates are frequent (demographic edits, nutrition, timeline
+    // entries). Only an active-profile change requires reloading the case and
+    // Health Memory scopes; treating every edit as a switch caused redundant
+    // reads and overlapping refreshes that could race with a save.
+    let lastProfileId = getProfileEngineState().activeId;
+    let profileRefresh: Promise<void> = Promise.resolve();
+    const handleProfileSwitch = () => {
+      const nextProfileId = getProfileEngineState().activeId;
+      if (!nextProfileId || nextProfileId === lastProfileId) return;
+      lastProfileId = nextProfileId;
+      profileRefresh = profileRefresh.catch(() => {}).then(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
         await initCaseEngine();
-        syncHealthMemoryFromSupabase().catch(console.error);
-      }
+        await syncHealthMemoryFromSupabase().catch(console.error);
+      });
     };
     window.addEventListener('hc_profile_updated', handleProfileSwitch);
 
