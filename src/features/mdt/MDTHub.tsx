@@ -147,17 +147,7 @@ useEffect(() => {
       }
   }, [location.search, setPhase, setDashboardTab]);
 
-  // Restore from active case if we have a finished MDT review
-  useEffect(() => {
-    if (phase === 'intake' && activeCase && activeCase.reviews) {
-      const latestMDT = [...activeCase.reviews].reverse().find((r: any) => r.type === 'mdt');
-      if (latestMDT && latestMDT.report) {
-        setHistoryReport(latestMDT.report);
-        setPhase('dashboard');
-        setDashboardTab('mdt');
-      }
-    }
-  }, [activeCase, phase, setPhase, setDashboardTab]);
+  
 
   
 
