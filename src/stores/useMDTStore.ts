@@ -24,7 +24,7 @@ const idbStorage: StateStorage = {
   },
 };
 
-export type MDTPhase = 'intake' | 'dashboard' | 'select' | 'assessment' | 'compiling' | 'conference' | 'report' | 'action_plan';
+export type MDTPhase = 'intake' | 'dashboard' | 'select' | 'assessment' | 'compiling' | 'conference' | 'report' | 'action_plan' | 'failed';
 
 interface MDTState {
   phase: MDTPhase;
@@ -33,6 +33,9 @@ interface MDTState {
     chiefComplaint: string;
     history: string;
     redFlags: boolean;
+    sharedCaseMaterial?: string;
+    importedCaseId?: string;
+    importedReviewId?: string;
   };
   selectedSpecialists: any[];
   specialistTranscripts: Record<string, any[]>;

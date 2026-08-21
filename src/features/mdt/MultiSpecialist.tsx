@@ -309,101 +309,7 @@ export default function MultiSpecialist() {
     setSpecialistTranscripts((prev: any) => ({ ...prev, [id]: transcript }));
     setCompletedSpecialists((prev) => {
       const updated = { ...prev, [id]: true };
-      if (Object.keys(updated).length === selected.length) {
-        setPhase('debating');
-        setSpecialistTranscripts((currentTranscripts: any) => {
-          const finalTranscripts = { ...currentTranscripts, [id]: transcript };
-          const caseRecords = activeCase?.medicalRecords || [];
-          const reviewRecords = [
-            ...caseRecords,
-            ...medicalRecords.filter(
-              (record) =>
-                !caseRecords.some(
-                  (existing) =>
-                    existing.filename === record.filename && existing.findings === record.findings
-                )
-            ),
-          ];
-
-          // Run the debate round for all selected specialists in parallel
-          Promise.all(selected.map(async (sId) => {
-            const specObj = ALL_SPECIALISTS.find(s => s.id === sId);
-            if (!specObj) return { id: sId, debateMsg: null };
-            const debateData = await runDebateRound(
-              sId, 
-              specObj.label, 
-              finalTranscripts[sId], 
-              finalTranscripts, 
-              reviewRecords
-            );
-            return {
-              id: sId,
-              debateMsg: {
-                role: 'ai',
-                text: JSON.stringify(debateData),
-                parsedText: debateData.critique,
-                internalThoughts: `Debate Round: ${debateData.revisedHypothesis} (${debateData.confidenceUpdate}% confident)`,
-                currentHypotheses: [debateData.revisedHypothesis]
-              }
-            };
-          })).then((debateResults) => {
-            // Append debate results to transcripts
-            const postDebateTranscripts = { ...finalTranscripts };
-            debateResults.forEach(res => {
-              if (res.debateMsg) {
-                postDebateTranscripts[res.id] = [...postDebateTranscripts[res.id], res.debateMsg];
-              }
-            });
-
-            setPhase('correlating');
-            
-            generateParallelMultiReport(
-              caseTitle || symptomInput || activeCase?.title || 'Custom multi-specialist review',
-              postDebateTranscripts,
-              reviewRecords
-            ).then((reportData: any) => {
-              if (reportData) {
-                setFinalReport(reportData);
-                setPhase('report');
-                if (reportData.topDiagnoses && reportData.topDiagnoses.length > 0)
-                  addCondition(reportData.topDiagnoses[0].condition, 'multi_specialist');
-                addEvent(
-                  'mdt_report',
-                  'multi_specialist',
-                  'Parallel Multi-Specialist Complete',
-                  reportData,
-                  true
-                );
-                if (reportData.recommendedActionPlan)
-                  addActionItems(reportData.recommendedActionPlan, 'multi_specialist');
-                
-                if (workingCaseId || activeCase?.id) {
-                  const savedCaseItem = saveReviewSnapshot({
-                    caseId: workingCaseId || activeCase?.id || '',
-                    type: 'parallel',
-                    report: reportData,
-                    transcripts: postDebateTranscripts,
-                    specialists: selectedSpecialists.map((s) => s.label),
-                    basedOnEvidenceIds: reviewRecords.map((r: any) => r.id),
-                  });
-                  setSavedCaseId(savedCaseItem?.id || null);
-                }
-              } else {
-                alert('Failed to generate report.');
-                setPhase('select');
-              }
-            }).catch(err => {
-              console.error('Report generation failed:', err);
-              setPhase('select');
-            });
-          }).catch(err => {
-            console.error('Debate round failed:', err);
-            setPhase('select');
-          });
-
-          return finalTranscripts;
-        });
-      } else {
+      if (Object.keys(updated).length < selected.length) {
         // Auto-switch to the next one that is not done
         const nextId = selected.find((sId) => !updated[sId]);
         if (nextId) setActiveSpecialistId(nextId);
@@ -411,6 +317,102 @@ export default function MultiSpecialist() {
       return updated;
     });
   };
+
+  useEffect(() => {
+    if (selected.length > 0 && Object.keys(completedSpecialists).length === selected.length && phase === 'running' && !consensusInFlightRef.current) {
+      consensusInFlightRef.current = true;
+      setPhase('debating');
+      const caseRecords = activeCase?.medicalRecords || [];
+      const reviewRecords = [
+        ...caseRecords,
+        ...medicalRecords.filter(
+          (record) =>
+            !caseRecords.some(
+              (existing) =>
+                existing.filename === record.filename && existing.findings === record.findings
+            )
+        ),
+      ];
+
+      // Run the debate round for all selected specialists in parallel
+      Promise.all(selected.map(async (sId) => {
+        const specObj = ALL_SPECIALISTS.find(s => s.id === sId);
+        if (!specObj) return { id: sId, debateMsg: null };
+        const debateData = await runDebateRound(
+          sId, 
+          specObj.label, 
+          specialistTranscripts[sId] || [], 
+          specialistTranscripts, 
+          reviewRecords
+        );
+        return {
+          id: sId,
+          debateMsg: {
+            role: 'ai',
+            text: JSON.stringify(debateData),
+            parsedText: debateData.critique,
+            internalThoughts: `Debate Round: ${debateData.revisedHypothesis} (${debateData.confidenceUpdate}% confident)`,
+            currentHypotheses: [debateData.revisedHypothesis]
+          }
+        };
+      })).then((debateResults) => {
+        // Append debate results to transcripts
+        const postDebateTranscripts = { ...specialistTranscripts };
+        debateResults.forEach(res => {
+          if (res.debateMsg) {
+            postDebateTranscripts[res.id] = [...(postDebateTranscripts[res.id] || []), res.debateMsg];
+          }
+        });
+
+        setPhase('correlating');
+        
+        generateParallelMultiReport(
+          caseTitle || symptomInput || activeCase?.title || 'Custom multi-specialist review',
+          postDebateTranscripts,
+          reviewRecords
+        ).then((reportData: any) => {
+          if (reportData) {
+            setFinalReport(reportData);
+            setPhase('report');
+            if (reportData.topDiagnoses && reportData.topDiagnoses.length > 0)
+              addCondition(reportData.topDiagnoses[0].condition, 'multi_specialist');
+            addEvent(
+              'mdt_report',
+              'multi_specialist',
+              'Parallel Multi-Specialist Complete',
+              reportData,
+              true
+            );
+            if (reportData.recommendedActionPlan)
+              addActionItems(reportData.recommendedActionPlan, 'multi_specialist');
+            
+            if (workingCaseId || activeCase?.id) {
+              const savedCaseItem = saveReviewSnapshot({
+                caseId: workingCaseId || activeCase?.id || '',
+                type: 'parallel',
+                report: reportData,
+                transcripts: postDebateTranscripts,
+                specialists: selectedSpecialists.map((s) => s.label),
+                basedOnEvidenceIds: reviewRecords.map((r: any) => r.id),
+              });
+              setSavedCaseId(savedCaseItem?.id || null);
+            }
+          } else {
+            setPhase('failed');
+          }
+          consensusInFlightRef.current = false;
+        }).catch(err => {
+          console.error('Report generation failed:', err);
+          setPhase('failed');
+          consensusInFlightRef.current = false;
+        });
+      }).catch(err => {
+        console.error('Debate round failed:', err);
+        setPhase('failed');
+        consensusInFlightRef.current = false;
+      });
+    }
+  }, [completedSpecialists, selected.length, phase, specialistTranscripts, activeCase, medicalRecords, caseTitle, symptomInput, workingCaseId, selectedSpecialists]);
 
   return (
     <div

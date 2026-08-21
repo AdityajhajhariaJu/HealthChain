@@ -229,8 +229,8 @@ useEffect(() => {
       const importedCase = data.importedCaseId ? getCases().find((candidate: any) => candidate.id === data.importedCaseId) : null;
       const previousReview = importedCase?.reviews?.[0];
       const firstPassMaterial = importedCase
-        ? `This is a follow-up review of an existing HealthChain case. Do not repeat questions already answered in the prior case. Focus on the patient's new information, changes since the prior review, contradictions, unresolved evidence gaps, and what should be discussed next with a qualified clinician.\n\nExisting case: ${importedCase.title}\nPrior review summary: ${previousReview?.report?.executiveSummary || importedCase.currentSummary?.executiveSummary || 'Prior review available in the case file.'}\n\nNew information: ${enhancedComplaint}`
-        : `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${enhancedComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
+        ? `This is a follow-up review of an existing HealthChain case. Do not repeat questions already answered in the prior case. Focus on the patient's new information, changes since the prior review, contradictions, unresolved evidence gaps, and what should be discussed next with a qualified clinician.\n\nExisting case: ${importedCase.title}\nPrior review summary: ${previousReview?.report?.executiveSummary || importedCase.currentSummary?.executiveSummary || 'Prior review available in the case file.'}`
+        : `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [specialist.id, []])
       );
@@ -246,7 +246,10 @@ useEffect(() => {
         ...data,
         importedCaseId: importedCase?.id || null,
         importedReviewId: previousReview?.id || null,
-        chiefComplaint: enhancedComplaint + `\n\nShared Case Material:\n${firstPassMaterial}`
+        chiefComplaint: enhancedComplaint,
+        // Keep prior-case material separate so it is not duplicated in every
+        // specialist prompt through the chief complaint field.
+        sharedCaseMaterial: firstPassMaterial,
       });
       setSelectedSpecialists(finalSelection);
       setSpecialistTranscripts(transcripts);
@@ -370,9 +373,10 @@ useEffect(() => {
     );
 
     setIntakeData({
-      chiefComplaint: caseConcern + `\n\nShared Case Material:\n${sharedCaseMaterial}`,
+      chiefComplaint: caseConcern,
       history: `Continuing active case: ${activeCase.title || caseConcern}`,
       redFlags: false,
+      sharedCaseMaterial,
     });
     setSelectedSpecialists(board);
     setSpecialistTranscripts(transcripts);
@@ -432,7 +436,8 @@ useEffect(() => {
   
   const handleConferenceComplete = async (conferenceData: any, answers: any) => {
     try {
-      const report = await generateMDTReport(intakeData, conferenceData, answers, activeCase?.medicalRecords || []);
+      const isImportedFollowUp = Boolean((intakeData as any).importedCaseId);
+      const report = await generateMDTReport(intakeData, conferenceData, answers, activeCase?.medicalRecords || [], isImportedFollowUp ? specialistTranscripts : undefined);
                 setHistoryReport(report);
           if (activeCase?.id) {
             navigate('/app/cases/' + activeCase.id);
@@ -475,7 +480,13 @@ useEffect(() => {
             debateSummary: "Synthesized available information."
           };
 
-          const report = await generateMDTReport(intakeData, safeConferenceData, {}, activeCase?.medicalRecords || []);
+          const report = await generateMDTReport(
+            intakeData,
+            safeConferenceData,
+            {},
+            activeCase?.medicalRecords || [],
+            isImportedFollowUp ? specialistTranscripts : undefined
+          );
           
           // Save snapshot to CaseEngine
           saveReviewSnapshot({
@@ -506,16 +517,7 @@ useEffect(() => {
           }
         } catch (e) {
           console.error('Failed to generate MDT report', e);
-          setHistoryReport({
-            executiveSummary: 'Based on the multi-perspective review of your symptoms and recent discussion, the board has identified discussion pathways to review with a qualified clinician.',
-            topDiagnoses: [],
-            recommendedActionPlan: [],
-            abnormalitiesNoted: [],
-            medicalTerms: [],
-            specialistDebatePoints: [],
-            systemicCorrelations: []
-          });
-          setPhase('report');
+          setPhase('failed');
         } finally {
           isCompilingRef.current = false;
         }
@@ -1101,6 +1103,51 @@ useEffect(() => {
             
 
 
+            {phase === 'failed' && (
+              <motion.div
+                key="failed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div style={{
+                  padding: '100px 40px',
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(24px)',
+                  borderRadius: '32px',
+                  textAlign: 'center',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '20px',
+                  maxWidth: 600,
+                  margin: '60px auto'
+                }}>
+                  <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#101828' }}>Synthesis Failed</h2>
+                  <p style={{ margin: 0, fontSize: 16, color: '#475467', lineHeight: 1.6 }}>There was a network issue while synthesizing the board consensus. Your specialist transcripts have been preserved.</p>
+                  <button
+                    onClick={() => {
+                      setPhase('compiling'); // Retries the effect
+                    }}
+                    style={{
+                      padding: '12px 24px',
+                      background: '#101828',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      marginTop: '10px'
+                    }}
+                  >
+                    Retry Synthesis
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </div>

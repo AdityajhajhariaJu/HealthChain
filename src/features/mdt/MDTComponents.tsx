@@ -883,7 +883,12 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
 
       if (aiResponse.includes('ANALYSIS_COMPLETE')) {
         setStatus('done');
-        if (onComplete) onComplete(specialist.id, currentMessages);
+        // Preserve the terminal analysis message; it contains the structured
+        // findings consumed by the final report.
+        const finalMessages = [...currentMessages, { role: 'ai', text: aiResponse }];
+        setMessages(finalMessages);
+        if (onUpdate) onUpdate(specialist.id, finalMessages);
+        if (onComplete) onComplete(specialist.id, finalMessages);
       } else {
         let parsed = { response: aiResponse, internalThoughts: '', currentHypotheses: [] };
         try {

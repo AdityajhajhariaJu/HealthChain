@@ -113,12 +113,13 @@ export async function chatWithGemini(messages: Message[]): Promise<string> {
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: finalSystemPrompt }] },
     contents,
+    generationConfig: { maxOutputTokens: 600 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'quick_chat' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -154,13 +155,13 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: PHARMACY_SYSTEM_PROMPT }] },
     contents: [{ role: 'user', parts: [{ text: promptText }] }],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 900 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'pharmacy' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -214,12 +215,13 @@ export async function chatWithTherapyGemini(messages: Message[]): Promise<string
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: finalSystemPrompt }] },
     contents,
+    generationConfig: { maxOutputTokens: 600 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'ava_chat' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -264,13 +266,13 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
         ],
       },
     ],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1400 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'lab_analysis' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -305,12 +307,13 @@ Example: ["neuro", "physio", "ortho"]${CLINICAL_SAFETY_RULES}`;
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: prompt }] },
     contents: [{ role: 'user', parts: [{ text: 'Select specialists.' }] }],
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 250 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'specialist_selection' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -434,6 +437,7 @@ Return your response STRICTLY as JSON matching this format:
     contents,
     generationConfig: { 
       responseMimeType: 'application/json',
+      maxOutputTokens: 700,
       responseSchema: {
         type: "object",
         properties: {
@@ -457,7 +461,7 @@ Return your response STRICTLY as JSON matching this format:
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': isFollowUp ? 'deep_import_specialist' : 'deep_specialist' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -470,18 +474,44 @@ Return your response STRICTLY as JSON matching this format:
   }
 }
 
+const mdtConferenceCache = new Map<string, any>();
+const mdtConferenceInFlight = new Map<string, Promise<any>>();
+
 export async function runMDTConference(intakeData: any, specialistData: any, medicalRecords: any[] = []): Promise<any> {
+  const requestKey = JSON.stringify({ intakeData, specialistData, medicalRecords });
+  if (mdtConferenceCache.has(requestKey)) return mdtConferenceCache.get(requestKey);
+  if (mdtConferenceInFlight.has(requestKey)) return mdtConferenceInFlight.get(requestKey);
+
+  const request = (async () => {
   const recordsText =
     medicalRecords.length > 0
       ? `\nPatient Medical Records:\n${medicalRecords.map((r) => `- ${r.testName || r.filename}: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n')}`
       : '';
 
-  // Strip transcript metadata to save tokens - orchestrator only needs role, text, and hypotheses
+  // Compact transcripts into an Evidence Packet to save tokens
   const strippedData = Object.fromEntries(
-    Object.entries(specialistData).map(([id, msgs]: [string, any[]]) => [
-      id,
-      msgs.map(m => ({ role: m.role, text: m.text, hypotheses: m.currentHypotheses }))
-    ])
+    Object.entries(specialistData).map(([id, msgs]: [string, any[]]) => {
+      const terminalMsg = msgs.slice().reverse().find(m => m.role === 'ai' && (m.text?.includes('ANALYSIS_COMPLETE') || m.parsedText?.includes('ANALYSIS_COMPLETE')));
+      if (terminalMsg) {
+        try {
+          const textToParse = terminalMsg.text || '';
+          const match = textToParse.match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            return [id, {
+              specialist: id,
+              keyFindings: parsed.keyFindings || parsed.evidenceNote,
+              interpretation: parsed.interpretation,
+              hypotheses: parsed.currentHypotheses || terminalMsg.hypotheses,
+              abnormalities: parsed.abnormalitiesNoted,
+              nextSteps: parsed.nextSteps
+            }];
+          }
+        } catch(e) { /* ignore */ }
+      }
+      // Fallback
+      return [id, msgs.slice(-3).map(m => ({ role: m.role, text: m.text }))];
+    })
   );
 
   const orchestratorPrompt = `You are the Chief Clinical Orchestrator and Lead Medical Research Scientist for a collaborative medical board. Your approach is deeply analytical, evidence-based, and rooted in the latest scientific literature. You synthesize data like a clinical researcher looking for root causes, mechanistic pathways, and scientific consensus.
@@ -513,13 +543,13 @@ Return your analysis strictly in this JSON format:
         parts: [{ text: 'Run the Board Conference based on the provided specialist data.' }],
       },
     ],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 700 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'deep_conference' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
@@ -530,7 +560,9 @@ Return your analysis strictly in this JSON format:
         .replace(/```json/g, '')
         .replace(/```/g, '')
         .trim();
-      return JSON.parse(cleanText);
+      const result = JSON.parse(cleanText);
+      mdtConferenceCache.set(requestKey, result);
+      return result;
     }
   } catch (err) {
     console.error('Orchestrator error:', err);
@@ -542,23 +574,54 @@ Return your analysis strictly in this JSON format:
     };
   }
   return null;
+  })();
+  mdtConferenceInFlight.set(requestKey, request);
+  request.finally(() => mdtConferenceInFlight.delete(requestKey)).catch(() => {});
+  return request;
 }
+
+const mdtReportCache = new Map<string, any>();
+const mdtReportInFlight = new Map<string, Promise<any>>();
 
 export async function generateMDTReport(
   intakeData: any,
   conferenceData: any,
   finalAnswers: any,
-  medicalRecords: any[] = []
+  medicalRecords: any[] = [],
+  specialistTranscripts?: Record<string, any[]>
 ): Promise<any> {
+  const requestKey = JSON.stringify({ intakeData, conferenceData, finalAnswers, medicalRecords, specialistTranscripts });
+  if (mdtReportCache.has(requestKey)) return mdtReportCache.get(requestKey);
+  if (mdtReportInFlight.has(requestKey)) return mdtReportInFlight.get(requestKey);
+  
+  const request = (async () => {
   const recordsText =
     medicalRecords.length > 0
       ? `\nPatient Medical Records:\n${medicalRecords.map((r) => `- ${r.testName || r.filename}: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n')}`
       : '';
 
+  const specialistText = specialistTranscripts && Object.keys(specialistTranscripts).length > 0
+    ? `\nTargeted specialist findings (included for imported/follow-up reviews):\n${Object.entries(specialistTranscripts).map(([id, messages]) => {
+      const terminalMsg = (messages || []).slice().reverse().find((m: any) => m.role === 'ai' && m.text?.includes('ANALYSIS_COMPLETE'));
+      if (terminalMsg) {
+        try {
+          const match = (terminalMsg.text || '').match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            return `--- ${id} ---\nKey Findings: ${parsed.keyFindings}\nInterpretation: ${parsed.interpretation}\nNext Steps: ${parsed.nextSteps}`;
+          }
+        } catch(e) {}
+      }
+      const tail = (messages || []).slice(-3).map((message: any) => `${message.role}: ${String(message.text || message.content || '').slice(0, 700)}`).join('\n');
+      return `--- ${id} ---\n${tail}`;
+    }).join('\n').slice(0, 5000)}`
+    : '';
+
   const reportPrompt = `You are the Chief Clinical Orchestrator compiling the final board report.
 Patient Intake: ${intakeData.chiefComplaint}${recordsText}
 Conference Summary: ${conferenceData.debateSummary}
 Patient's Final Answers: ${JSON.stringify(finalAnswers)}
+${specialistText}
 
 Compile a structured, patient-safe Collaborative Board case brief. 
 CRITICAL INSTRUCTIONS:
@@ -604,6 +667,7 @@ Return strictly as JSON:
     contents: [{ role: 'user', parts: [{ text: 'Generate final report.' }] }],
     generationConfig: { 
       responseMimeType: 'application/json',
+      maxOutputTokens: 1800,
       responseSchema: {
         type: "object",
         properties: {
@@ -633,7 +697,7 @@ Return strictly as JSON:
 
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': specialistTranscripts ? 'deep_import_summary' : 'deep_summary' },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
@@ -645,7 +709,9 @@ Return strictly as JSON:
       const text = data.candidates[0].content.parts[0].text;
 
       // Attempt to extract json block even if there is surrounding text
-      return parseModelJson(text);
+      const result = parseModelJson(text);
+      mdtReportCache.set(requestKey, result);
+      return result;
     }
   } catch (err) {
     console.error('Report error:', err);
@@ -668,6 +734,10 @@ Return strictly as JSON:
     };
   }
   return null;
+  })();
+  mdtReportInFlight.set(requestKey, request);
+  request.finally(() => mdtReportInFlight.delete(requestKey)).catch(() => {});
+  return request;
 }
 
 export async function runDebateRound(
@@ -686,16 +756,39 @@ export async function runDebateRound(
 }
 
 
+const parallelReportCache = new Map<string, any>();
+const parallelReportInFlight = new Map<string, Promise<any>>();
+
 export async function generateParallelMultiReport(
   symptomInput: string,
   transcriptsObject: Record<string, any[]>,
   medicalRecords: any[] = []
 ): Promise<any> {
+  const requestKey = JSON.stringify({ symptomInput, transcriptsObject, medicalRecords });
+  if (parallelReportCache.has(requestKey)) return parallelReportCache.get(requestKey);
+  if (parallelReportInFlight.has(requestKey)) return parallelReportInFlight.get(requestKey);
+
+  const request = (async () => {
   let formattedTranscripts = '';
   for (const [specialistId, messages] of Object.entries(transcriptsObject)) {
     formattedTranscripts += `\n\n--- Specialist (${specialistId}) Transcript ---\n`;
     
-    // Truncation: Keep first 2 and last 6 messages if transcript is too long
+    const terminalMsg = (messages || []).slice().reverse().find((m: any) => m.role === 'ai' && m.text?.includes('ANALYSIS_COMPLETE'));
+    if (terminalMsg) {
+      try {
+        const match = (terminalMsg.text || '').match(/\{[\s\S]*\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          formattedTranscripts += `Key Findings: ${parsed.keyFindings}\nInterpretation: ${parsed.interpretation}\nNext Steps: ${parsed.nextSteps}\n`;
+          if (parsed.currentHypotheses && parsed.currentHypotheses.length > 0) {
+            formattedTranscripts += `[Active Hypotheses: ${parsed.currentHypotheses.map((h: any) => typeof h === 'string' ? h : h.condition).join(', ')}]\n`;
+          }
+          continue; // Skip appending the raw messages
+        }
+      } catch(e) {}
+    }
+
+    // Fallback: Keep first 2 and last 6 messages if transcript is too long
     const totalMsgs = messages.length;
     let msgsToFormat = messages;
     if (totalMsgs > 10) {
@@ -770,7 +863,7 @@ Return strictly as JSON matching this exact structure:
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: reportPrompt }] },
     contents: [{ role: 'user', parts: [{ text: 'Generate final parallel report.' }] }],
-    generationConfig: { responseMimeType: 'application/json' },
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1800 },
   };
 
   try {
@@ -779,7 +872,7 @@ Return strictly as JSON matching this exact structure:
 
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'deep_summary' },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
@@ -789,7 +882,9 @@ Return strictly as JSON matching this exact structure:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      return parseModelJson(text);
+      const result = parseModelJson(text);
+      parallelReportCache.set(requestKey, result);
+      return result;
     }
   } catch (err) {
     console.error('Parallel Report error:', err);
@@ -801,6 +896,10 @@ Return strictly as JSON matching this exact structure:
       questionsForClinician: ["Are there any alternative pathways we should explore while the system reconnects?"]
     };
   }
+  })();
+  parallelReportInFlight.set(requestKey, request);
+  request.finally(() => parallelReportInFlight.delete(requestKey)).catch(() => {});
+  return request;
 }
 
 // ─── AI DIETICIAN FUNCTIONS ──────────────────────────────────────────────────
@@ -834,13 +933,13 @@ Rules:
         ],
       },
     ],
-    generationConfig: { responseMimeType: 'application/json' },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 600 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'dietician_food_log' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -875,11 +974,12 @@ Rules:
         ],
       },
     ],
+    generationConfig: { maxOutputTokens: 400 },
   };
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'dietician_advice' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -936,12 +1036,13 @@ Rules:
         ],
       },
     ],
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1800 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'dietician_meal_plan' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -986,13 +1087,13 @@ ${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.2, responseMimeType: 'application/json', maxOutputTokens: 250 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'suggest_specialists' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1054,13 +1155,13 @@ ${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.2, responseMimeType: 'application/json', maxOutputTokens: 1000 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'differential_generation' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1102,13 +1203,13 @@ ${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.3, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.3, responseMimeType: 'application/json', maxOutputTokens: 600 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'health_synthesis' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1144,13 +1245,13 @@ ${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 650 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'drug_interaction' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1190,13 +1291,13 @@ Describe questions, risks, and possible follow-up topics to discuss with a quali
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.2, responseMimeType: 'application/json', maxOutputTokens: 1000 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'treatment_simulation' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1244,13 +1345,13 @@ Return ONLY a valid JSON array of objects with the exact following schema:
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 650 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_connection_map' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1309,13 +1410,13 @@ Return ONLY a valid JSON array of objects with the exact following schema:
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 800 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'literature_relevance' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('API Error');
@@ -1365,6 +1466,7 @@ Return strictly as JSON matching this structure:
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       responseMimeType: 'application/json',
+      maxOutputTokens: 500,
       responseSchema: {
         type: "object",
         properties: {
@@ -1384,7 +1486,7 @@ Return strictly as JSON matching this structure:
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_prep_analysis' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) return null;
@@ -1397,11 +1499,15 @@ Return strictly as JSON matching this structure:
 }
 
 
+const connectionMapCache = new Map<string, any>();
 const connectionMapInFlight = new Map<string, Promise<any>>();
 
 export async function generateCaseConnectionMap(topDiagnoses: any[]): Promise<any> {
   if (!topDiagnoses || topDiagnoses.length === 0) return null;
   const requestKey = JSON.stringify(topDiagnoses);
+  
+  if (connectionMapCache.has(requestKey)) return connectionMapCache.get(requestKey);
+  
   const existing = connectionMapInFlight.get(requestKey);
   if (existing) return existing;
 
@@ -1446,13 +1552,13 @@ Return ONLY a valid JSON object matching this exact schema:
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 1200 },
   };
 
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_connection_map' },
       body: JSON.stringify(payload),
     });
 
@@ -1460,7 +1566,9 @@ Return ONLY a valid JSON object matching this exact schema:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      return parseModelJson(text);
+      const result = parseModelJson(text);
+      connectionMapCache.set(requestKey, result);
+      return result;
     }
   } catch (err) {
     console.error('Failed to generate connection map:', err);
@@ -1488,6 +1596,7 @@ Return strictly as a JSON array of strings.`;
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: {
       responseMimeType: 'application/json',
+      maxOutputTokens: 600,
       responseSchema: {
         type: "array",
         items: { type: "string" }
@@ -1498,7 +1607,7 @@ Return strictly as a JSON array of strings.`;
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'appointment_questions' },
       body: JSON.stringify(payload),
     });
     if (!res.ok) return [];
@@ -1527,10 +1636,10 @@ Answer them empathetically, concisely, and directly. Help them rehearse how to a
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_prep_coach' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4 }
+        generationConfig: { temperature: 0.4, maxOutputTokens: 600 }
       })
     });
     if (!res.ok) return "I'm having trouble connecting right now. Please try asking again.";
@@ -1554,10 +1663,10 @@ ${JSON.stringify(brief, null, 2)}
   try {
     const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_prep_refine' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2 } // low temp for deterministic rewriting
+        generationConfig: { temperature: 0.2, maxOutputTokens: 900 } // low temp for deterministic rewriting
       })
     });
     if (!res.ok) throw new Error('API Error');

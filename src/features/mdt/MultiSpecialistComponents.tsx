@@ -137,7 +137,9 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
           if (generation !== runGeneration.current) return;
           if (response.includes('ANALYSIS_COMPLETE')) {
             setStatus('done');
-            if (onComplete && !completionSent.current) { completionSent.current = true; onComplete(specialist.id, initialArray); }
+            const finalMessages = [...initialArray, { role: 'ai', text: response }];
+            setMessages(finalMessages);
+            if (onComplete && !completionSent.current) { completionSent.current = true; onComplete(specialist.id, finalMessages); }
           } else {
             setMessages([triggerMessage, { role: 'ai', text: response }]);
             setStatus('questioning');
@@ -172,7 +174,9 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
         const response = await chatWithMDTSpecialist(apiMessages, specialist, allSpecialists, intakeData, activeDifferentials);
         if (response.includes('ANALYSIS_COMPLETE')) {
           setStatus('done');
-          if (onComplete && !completionSent.current) { completionSent.current = true; onComplete(specialist.id, [...nextMessagesState, { role: 'ai', text: response }]); }
+          const finalMessages = [...nextMessagesState, { role: 'ai', text: response }];
+          setMessages(finalMessages);
+          if (onComplete && !completionSent.current) { completionSent.current = true; onComplete(specialist.id, finalMessages); }
         } else {
           setMessages((prev) => [...prev, { role: 'ai', text: response }]);
           setStatus('questioning');

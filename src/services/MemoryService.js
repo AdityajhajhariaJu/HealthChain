@@ -49,8 +49,8 @@ export function compilePatientContext() {
     caseStr += `- ${activeCase.title}\n`;
     if (activeCase.intakeData?.chiefComplaint)
       caseStr += `- Concern: ${activeCase.intakeData.chiefComplaint.substring(0, 200)}\n`;
-    if (activeCase.report?.executiveSummary)
-      caseStr += `- Synthesis: ${activeCase.report.executiveSummary.substring(0, 200)}\n`;
+    if (activeCase.currentSummary?.executiveSummary)
+      caseStr += `- Synthesis: ${activeCase.currentSummary.executiveSummary.substring(0, 200)}\n`;
     const evidence = (activeCase.medicalRecords || []).slice(0, 3);
     if (evidence.length)
       caseStr += `- Evidence: ${evidence.map((r) => `${r.filename} (${r.keyFindings || 'On file'})`).join('; ')}\n`;
