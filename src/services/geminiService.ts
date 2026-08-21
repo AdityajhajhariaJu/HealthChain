@@ -32,6 +32,7 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     headers: {
       ...options.headers,
       'X-HC-Request-Id': requestId,
+      'X-HC-Operation': options.headers?.['X-HC-Operation'] || 'gemini',
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
     }
   };

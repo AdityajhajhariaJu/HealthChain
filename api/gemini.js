@@ -11,6 +11,7 @@ const ALLOWED_ORIGINS = [
   'capacitor://localhost',
   'http://localhost'
 ];
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
@@ -35,7 +36,6 @@ export default async function handler(req, res) {
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
     if (supabaseUrl && supabaseAnonKey) {
       try {
@@ -64,6 +64,26 @@ export default async function handler(req, res) {
   const requestId = req.headers['x-hc-request-id'];
   if (!requestId || !/^[a-zA-Z0-9._:-]{8,120}$/.test(String(requestId))) {
     return res.status(400).json({ error: 'Missing or invalid request id' });
+  }
+  const operation = String(req.headers['x-hc-operation'] || 'gemini').slice(0, 80);
+
+  const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const adminClient = adminKey && supabaseUrl
+    ? createClient(supabaseUrl, adminKey)
+    : null;
+  if (adminClient && userId) {
+    const { error: ledgerError } = await adminClient.from('ai_requests').insert({
+      request_id: String(requestId),
+      user_id: userId,
+      operation,
+      status: 'in_progress',
+    });
+    if (ledgerError && ledgerError.code === '23505') {
+      return res.status(409).json({ error: 'Duplicate AI request rejected' });
+    }
+    if (ledgerError && !['42P01', 'PGRST205'].includes(ledgerError.code)) {
+      return res.status(503).json({ error: 'AI request ledger unavailable' });
+    }
   }
 
   const API_KEY = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === 'development' ? process.env.VITE_GEMINI_API_KEY : '');
@@ -97,8 +117,25 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    if (adminClient && userId) {
+      const usage = data?.usageMetadata || {};
+      await adminClient.from('ai_requests').update({
+        status: 'completed',
+        input_tokens: usage.promptTokenCount || null,
+        output_tokens: usage.candidatesTokenCount || null,
+        total_tokens: usage.totalTokenCount || null,
+        finished_at: new Date().toISOString(),
+      }).eq('request_id', String(requestId));
+    }
     return res.status(200).json(data);
   } catch (error) {
+    if (adminClient && userId) {
+      await adminClient.from('ai_requests').update({
+        status: 'failed',
+        error_code: error?.code || error?.name || 'provider_error',
+        finished_at: new Date().toISOString(),
+      }).eq('request_id', String(requestId)).catch(() => {});
+    }
     console.error('Gemini API Proxy Error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
