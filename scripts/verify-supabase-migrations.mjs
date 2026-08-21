@@ -16,6 +16,7 @@ const requiredFiles = [
   '20260821_operator_views.sql',
   '20260821_payment_entitlement.sql',
   '20260821_payment_integrity.sql',
+  '20260822_caregiver_profiles.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -49,6 +50,7 @@ const migrationText = await Promise.all(
 const allSql = migrationText.map(([, sql]) => sql).join('\n');
 const requiredSchemaTokens = [
   'public.health_memory',
+  'public.healthchain_profiles',
   'public.user_devices',
   'public.ai_requests',
   'public.ai_usage_daily',

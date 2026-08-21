@@ -19,6 +19,9 @@ begin
   if to_regclass('public.health_memory') is not null then
     execute 'delete from public.health_memory where user_id = $1' using p_user_id;
   end if;
+  if to_regclass('public.healthchain_profiles') is not null then
+    execute 'delete from public.healthchain_profiles where user_id = $1' using p_user_id;
+  end if;
   if to_regclass('public.user_devices') is not null then
     execute 'delete from public.user_devices where user_id = $1' using p_user_id;
   end if;

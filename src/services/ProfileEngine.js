@@ -284,10 +284,19 @@ async function saveProfile(profile) {
     // local-first UX while preventing a dropped tab/network transition from
     // losing an important profile update.
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      // ONLY sync the primary profile to the cloud to prevent caregiver profiles from overwriting the main account
-      if (state.activeId === 'profile_1') {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const snapshotUpdatedAt = new Date().toISOString();
+        await enqueueSync('caregiver_profile_upsert', session.user.id, {
+          user_id: session.user.id,
+          profile_id: state.activeId,
+          profile_name: profile.profileName || 'My Profile',
+          data: { ...profile, id: state.activeId, updatedAt: snapshotUpdatedAt },
+          updated_at: snapshotUpdatedAt
+        });
+
+        // Keep the legacy primary row for entitlements and older deployments.
+        if (state.activeId === 'profile_1') {
           await enqueueSync('profile_upsert', session.user.id, {
             id: session.user.id,
             full_name: profile.profileName,
@@ -305,8 +314,8 @@ async function saveProfile(profile) {
             health_focus: profile.healthFocus,
             updated_at: new Date().toISOString()
           });
-          await flushSyncOutbox(session.user.id);
         }
+        await flushSyncOutbox(session.user.id);
       }
     }
   } catch (e) {
@@ -567,6 +576,7 @@ export function clearProfile() {
     state.profiles[state.activeId] = { ...JSON.parse(JSON.stringify(DEFAULT_PROFILE)), id: state.activeId, profileName: state.profiles[state.activeId].profileName };
     setItemSync(getProfileKey(), JSON.stringify(state));
     window.dispatchEvent(new Event('hc_profile_updated'));
+    void saveProfile(state.profiles[state.activeId]);
   }
 }
 
@@ -607,40 +617,75 @@ export async function syncProfileFromSupabase() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
     
-    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    const [{ data, error: legacyError }, { data: snapshots, error: snapshotError }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+      supabase.from('healthchain_profiles')
+        .select('profile_id,profile_name,data,updated_at')
+        .eq('user_id', session.user.id)
+        .order('updated_at', { ascending: false })
+    ]);
+    const schemaMissing = (error) => error?.code === 'PGRST205' || error?.code === '42P01';
+    if (legacyError && !schemaMissing(legacyError)) console.warn('Legacy profile sync failed:', legacyError);
+    if (snapshotError && !schemaMissing(snapshotError)) console.warn('Caregiver profile sync failed:', snapshotError);
+
+    const state = getProfileEngineState();
+    let changed = false;
     if (data) {
-       const state = getProfileEngineState();
-       const localProfile = state.profiles[state.activeId];
-       
-       // Conflict resolution: Don't overwrite local if local is newer (e.g., offline edits)
-       if (localProfile?.demographics?.updatedAt && data.updated_at) {
-         if (new Date(localProfile.demographics.updatedAt).getTime() > new Date(data.updated_at).getTime()) {
-           console.log('Local profile is newer than remote. Pushing local changes to cloud.');
-           saveProfile(localProfile);
-           return;
-         }
-       }
-       
-       state.profiles[state.activeId] = {
-          ...localProfile,
-          profileName: data.full_name || 'My Profile',
-          isPro: data.is_pro || false,
-          proExpiresAt: data.pro_expires_at || null,
-          demographics: data.demographics || {},
+      const localPrimary = state.profiles.profile_1 || state.profiles[state.activeId];
+      const localUpdated = localPrimary?.demographics?.updatedAt || localPrimary?.updatedAt;
+      if (localUpdated && data.updated_at && new Date(localUpdated).getTime() > new Date(data.updated_at).getTime()) {
+        console.log('Local primary profile is newer than remote. Pushing local changes to cloud.');
+        await enqueueSync('profile_upsert', session.user.id, {
+          id: session.user.id,
+          full_name: localPrimary.profileName,
+          demographics: { ...localPrimary.demographics, onboardingCompletedAt: localPrimary.onboardingCompletedAt || null },
+          conditions: localPrimary.conditions || [], medications: localPrimary.medications || [],
+          allergies: localPrimary.allergies || [], family_history: localPrimary.familyHistory || [],
+          timeline: localPrimary.timeline || [], vitals: localPrimary.vitals || {},
+          nutrition: localPrimary.nutrition || {}, health_focus: localPrimary.healthFocus || '',
+          updated_at: new Date().toISOString()
+        });
+      } else {
+        state.profiles.profile_1 = {
+          ...(state.profiles.profile_1 || DEFAULT_PROFILE), id: 'profile_1',
+          profileName: data.full_name || 'My Profile', isPro: data.is_pro || false,
+          proExpiresAt: data.pro_expires_at || null, demographics: data.demographics || {},
           onboardingCompletedAt: data.demographics?.onboardingCompletedAt || null,
-          conditions: data.conditions || [],
-          medications: data.medications || [],
-          allergies: data.allergies || [],
-          familyHistory: data.family_history || [],
-          timeline: data.timeline || [],
-          vitals: data.vitals || { latestLabValues: {}, historicalLabs: [] },
+          conditions: data.conditions || [], medications: data.medications || [],
+          allergies: data.allergies || [], familyHistory: data.family_history || [],
+          timeline: data.timeline || [], vitals: data.vitals || { latestLabValues: {}, historicalLabs: [] },
           nutrition: data.nutrition || { targetCalories: 2000, avgProtein: 0, recentLogs: [] },
           healthFocus: data.health_focus || ''
-       };
-       setItemSync(getProfileKey(), JSON.stringify(state));
-       window.dispatchEvent(new Event('hc_profile_updated'));
-       console.log('Profile synced successfully from Supabase');
+        };
+        changed = true;
+      }
     }
+
+    for (const row of snapshots || []) {
+      if (!row?.profile_id || !row.data || typeof row.data !== 'object') continue;
+      const local = state.profiles[row.profile_id];
+      const localUpdated = local?.updatedAt || local?.demographics?.updatedAt;
+      const remoteUpdated = row.updated_at || row.data.updatedAt;
+      if (localUpdated && remoteUpdated && new Date(localUpdated).getTime() > new Date(remoteUpdated).getTime()) {
+        await enqueueSync('caregiver_profile_upsert', session.user.id, {
+          user_id: session.user.id, profile_id: row.profile_id,
+          profile_name: local.profileName || row.profile_name || 'My Profile',
+          data: { ...local, id: row.profile_id }, updated_at: new Date().toISOString()
+        });
+        continue;
+      }
+      state.profiles[row.profile_id] = {
+        ...row.data, id: row.profile_id,
+        profileName: row.profile_name || row.data.profileName || 'My Profile'
+      };
+      changed = true;
+    }
+    if (changed) {
+      setItemSync(getProfileKey(), JSON.stringify(state));
+      window.dispatchEvent(new Event('hc_profile_updated'));
+    }
+    await flushSyncOutbox(session.user.id);
+    console.log('Profile snapshots synced successfully from Supabase');
   } catch (err) {
     console.error('Failed to sync profile from Supabase:', err);
   }

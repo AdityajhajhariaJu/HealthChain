@@ -2,7 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
 
-type OutboxKind = 'case_upsert' | 'case_delete' | 'health_memory_upsert' | 'profile_upsert';
+type OutboxKind = 'case_upsert' | 'case_delete' | 'health_memory_upsert' | 'profile_upsert' | 'caregiver_profile_upsert';
 
 interface OutboxEntry {
   id: string;
@@ -63,8 +63,9 @@ function entryId() {
 export async function enqueueSync(kind: OutboxKind, userId: string, payload: any) {
   if (!userId) return;
   const queue = await readQueue(userId);
-  const stableId = payload?.id || payload?.data?.id || entryId();
-  const existing = queue.findIndex((entry) => entry.kind === kind && (entry.payload?.id || entry.payload?.data?.id) === stableId);
+  const stableId = payload?.id || payload?.profile_id || payload?.data?.id || entryId();
+  const existing = queue.findIndex((entry) => entry.kind === kind &&
+    (entry.payload?.id || entry.payload?.profile_id || entry.payload?.data?.id) === stableId);
   const entry: OutboxEntry = {
     id: existing >= 0 ? queue[existing].id : entryId(),
     kind,
@@ -81,7 +82,8 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
 async function send(entry: OutboxEntry) {
   const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
     ? 'cases'
-    : entry.kind === 'health_memory_upsert' ? 'health_memory' : 'profiles';
+    : entry.kind === 'health_memory_upsert' ? 'health_memory'
+      : entry.kind === 'caregiver_profile_upsert' ? 'healthchain_profiles' : 'profiles';
   const recordId = entry.payload?.id;
   const localUpdatedAt = entry.payload?.updated_at;
 
@@ -90,12 +92,12 @@ async function send(entry: OutboxEntry) {
   // a record updated on another device meanwhile.
   if (recordId && localUpdatedAt) {
     const ownerColumn = table === 'profiles' ? 'id' : 'user_id';
-    const { data: remote, error: readError } = await supabase
-      .from(table)
-      .select('updated_at')
-      .eq('id', recordId)
-      .eq(ownerColumn, entry.userId)
-      .maybeSingle();
+    const remoteResult = table === 'healthchain_profiles'
+      ? await supabase.from(table).select('updated_at').eq(ownerColumn, entry.userId)
+        .eq('profile_id', entry.payload.profile_id).maybeSingle()
+      : await supabase.from(table).select('updated_at').eq(ownerColumn, entry.userId)
+        .eq('id', recordId).maybeSingle();
+    const { data: remote, error: readError } = remoteResult;
     if (readError && readError.code !== 'PGRST116') return { error: readError };
     if (remote?.updated_at && new Date(remote.updated_at).getTime() > new Date(localUpdatedAt).getTime()) {
       return { error: null };
@@ -123,6 +125,9 @@ async function send(entry: OutboxEntry) {
       }
     }
     return result;
+  }
+  if (entry.kind === 'caregiver_profile_upsert') {
+    return supabase.from('healthchain_profiles').upsert(entry.payload, { onConflict: 'user_id,profile_id' });
   }
   if (entry.kind === 'case_delete') {
     return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);

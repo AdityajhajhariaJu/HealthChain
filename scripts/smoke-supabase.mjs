@@ -12,6 +12,7 @@ const requiredRelations = [
   'profiles',
   'cases',
   'health_memory',
+  'healthchain_profiles',
   'user_devices',
   'analytics_events',
   'ai_requests',

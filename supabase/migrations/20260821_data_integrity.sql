@@ -18,7 +18,7 @@ declare
   target_table text;
 begin
   foreach target_table in array array[
-    'profiles', 'cases', 'health_memory', 'user_devices', 'ai_usage_daily'
+    'profiles', 'cases', 'health_memory', 'user_devices', 'ai_usage_daily', 'healthchain_profiles'
   ] loop
     if to_regclass('public.' || target_table) is not null
        and exists (

@@ -88,6 +88,7 @@ describe('HealthMemory durability', () => {
       kind: 'profile_event',
       source: 'profile',
       title: 'Legacy profile event',
+      occurredAt: new Date().toISOString(),
       payload: { value: true },
       dedupeKey: 'timeline:evt_legacy_id',
     });

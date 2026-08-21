@@ -9,7 +9,8 @@ visible in the UI; the API and deletion workflow depend on the full chain.
 
 1. Open the production project's Supabase SQL Editor.
 2. Run each migration file in order, from `20260818_health_memory.sql` through
-   `20260821_payment_integrity.sql` and `20260821_data_integrity.sql`.
+   `20260821_payment_integrity.sql`, `20260821_data_integrity.sql`, and
+   `20260822_caregiver_profiles.sql`.
 3. Run `supabase/verify_production.sql` as one query. It must not raise an
    exception, and its “Expected: zero rows” queries must return zero rows.
 4. From a checkout with the production `VITE_SUPABASE_URL` and anonymous key,
