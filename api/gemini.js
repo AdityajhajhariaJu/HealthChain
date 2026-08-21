@@ -83,10 +83,30 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'AI service is temporarily unavailable' });
   }
 
+  // Validate before charging a daily request slot. Invalid or oversized
+  // payloads must never consume metered AI capacity.
+  const contentLength = Number(req.headers['content-length'] || 0);
+  if (contentLength > 250000) return res.status(413).json({ error: 'AI request is too large' });
+  let bodyPayload;
+  try {
+    bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  } catch {
+    return res.status(400).json({ error: 'Invalid AI request body' });
+  }
+  if (!bodyPayload || typeof bodyPayload !== 'object' || Array.isArray(bodyPayload)) {
+    return res.status(400).json({ error: 'Invalid AI request body' });
+  }
+  if (Buffer.byteLength(JSON.stringify(bodyPayload), 'utf8') > 250000) {
+    return res.status(413).json({ error: 'AI request is too large' });
+  }
+
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const adminClient = adminKey && supabaseUrl
     ? createClient(supabaseUrl, adminKey)
     : null;
+  if (process.env.NODE_ENV !== 'development' && !adminClient) {
+    return res.status(503).json({ error: 'AI accounting service is temporarily unavailable' });
+  }
   if (adminClient && userId) {
     const { error: ledgerError } = await adminClient.from('ai_requests').insert({
       request_id: String(requestId),
@@ -97,22 +117,24 @@ export default async function handler(req, res) {
     if (ledgerError && ledgerError.code === '23505') {
       return res.status(409).json({ error: 'Duplicate AI request rejected' });
     }
-    if (ledgerError && !['42P01', 'PGRST205'].includes(ledgerError.code)) {
+    if (ledgerError) {
       return res.status(503).json({ error: 'AI request ledger unavailable' });
     }
-    if (!ledgerError) {
-      const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
-        p_user_id: userId,
-        p_daily_limit: 120,
-      });
-      if (quotaError) {
-        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-        return res.status(503).json({ error: 'AI quota service unavailable' });
-      }
-      if (allowed === false) {
-        await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'daily_limit', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
-        return res.status(429).json({ error: 'Daily AI request limit reached. Please try again tomorrow.' });
-      }
+    const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
+      p_user_id: userId,
+      p_daily_limit: 120,
+    });
+    if (quotaError) {
+      await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+      return res.status(503).json({ error: 'AI quota service unavailable' });
+    }
+    if (allowed === false) {
+      await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'daily_limit', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+      return res.status(429).json({ error: 'Daily AI request limit reached. Please try again tomorrow.' });
+    }
+    if (allowed !== true) {
+      await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_invalid', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
+      return res.status(503).json({ error: 'AI quota service unavailable' });
     }
   }
 
@@ -120,13 +142,9 @@ export default async function handler(req, res) {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
   try {
-    const contentLength = Number(req.headers['content-length'] || 0);
-    if (contentLength > 250000) return res.status(413).json({ error: 'AI request is too large' });
-    const bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    if (!bodyPayload || typeof bodyPayload !== 'object') {
-      return res.status(400).json({ error: 'Invalid AI request body' });
-    }
-    const existingInstruction = bodyPayload.systemInstruction?.parts || [];
+    const existingInstruction = Array.isArray(bodyPayload.systemInstruction?.parts)
+      ? bodyPayload.systemInstruction.parts
+      : [];
     bodyPayload.systemInstruction = {
       ...(bodyPayload.systemInstruction || {}),
       parts: [...existingInstruction, { text: SERVER_SAFETY_INSTRUCTION }],
