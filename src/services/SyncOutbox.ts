@@ -2,7 +2,7 @@ import { get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
 
-type OutboxKind = 'case_upsert' | 'health_memory_upsert' | 'profile_upsert';
+type OutboxKind = 'case_upsert' | 'case_delete' | 'health_memory_upsert' | 'profile_upsert';
 
 interface OutboxEntry {
   id: string;
@@ -65,6 +65,9 @@ async function send(entry: OutboxEntry) {
   }
   if (entry.kind === 'health_memory_upsert') {
     return supabase.from('health_memory').upsert(entry.payload, { onConflict: 'id' });
+  }
+  if (entry.kind === 'case_delete') {
+    return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);
   }
   return supabase.from('profiles').upsert(entry.payload, { onConflict: 'id' });
 }
