@@ -363,7 +363,7 @@ export default function MultiSpecialist() {
                 caseId: workingCaseId || activeCase?.id || '',
                 type: 'parallel',
                 report: reportData,
-                transcripts: postDebateTranscripts,
+                transcripts: specialistTranscripts,
                 specialists: selectedSpecialists.map((s) => s.label),
                 basedOnEvidenceIds: reviewRecords.map((r: any) => r.id),
               });

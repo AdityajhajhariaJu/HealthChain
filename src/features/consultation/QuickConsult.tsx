@@ -228,7 +228,7 @@ export default function QuickConsult() {
       setActiveCase(savedCase);
 
       // Fire and forget: Generate connection map
-      generateCaseConnectionMap(savedCase, true).then((mapData) => {
+      generateCaseConnectionMap(reportData.topDiagnoses || []).then((mapData) => {
         if (mapData) updateCaseConnectionMap(savedCase.id, mapData);
       }).catch(err => console.error("Failed to generate connection map:", err));
     }

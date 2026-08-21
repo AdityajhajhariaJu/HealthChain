@@ -30,7 +30,7 @@ export interface MedicalRecord {
 
 export interface ReviewSnapshot {
   id: string;
-  type: 'parallel' | 'mdt' | 'jarvis';
+  type: 'parallel' | 'mdt' | 'jarvis' | 'lab_report';
   createdAt: string;
   parentReviewId?: string;
   basedOn: { evidenceIds: string[]; reviewIds: string[] };
@@ -344,7 +344,7 @@ export function saveReviewSnapshot({
   readiness,
 }: {
   caseId: string;
-  type: 'parallel' | 'mdt' | 'jarvis';
+  type: 'parallel' | 'mdt' | 'jarvis' | 'lab_report';
   parentReviewId?: string;
   basedOnEvidenceIds?: string[];
   basedOnReviewIds?: string[];
