@@ -33,6 +33,8 @@ const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
 const PharmacyHub = React.lazy(() => import('./features/tools/PharmacyHub'));
 const AvaHealthBuddy = React.lazy(() => import('./features/consultation/AvaHealthBuddy'));
 const ClinicalReportAnalyzer = React.lazy(() => import('./features/tools/ClinicalReportAnalyzer'));
+const JarvisInvestigator = React.lazy(() => import('./features/jarvis/JarvisInvestigator'));
+
 const Settings = React.lazy(() => import('./features/profile/Settings'));
 const Dietician = React.lazy(() => import('./features/dietician/Dietician'));
 const CaseDashboard = React.lazy(() => import('./features/dashboard/CaseDashboard'));
