@@ -12,6 +12,7 @@ const ALLOWED_PLANS = {
 
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',
+  'https://healthchain360.com',
   'https://healthchain-live.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',

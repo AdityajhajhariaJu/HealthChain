@@ -7,7 +7,6 @@ import { supabase } from '../../services/supabaseClient';
 export default function Pricing() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const loadRazorpayScript = () => {
@@ -48,11 +47,12 @@ export default function Pricing() {
         'Authorization': `Bearer ${session.access_token}`
       };
 
-      // Create order via Vercel Backend with server-enforced pricing
-      const orderRes = await fetch('https://healthchain-backend-pi.vercel.app/api/create-razorpay-order', {
+      // Use the same deployment's server-enforced pricing endpoint. Never
+      // send checkout through the retired legacy backend.
+      const orderRes = await fetch('/api/create-order', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ billingCycle })
+        body: JSON.stringify({ plan_id: 'pro_30_days' })
       });
 
       if (!orderRes.ok) {
@@ -66,19 +66,19 @@ export default function Pricing() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'HealthChain Pro',
-        description: `Upgrade to Pro (${billingCycle})`,
+        description: 'Upgrade to Pro (30 Days)',
         order_id: orderData.id,
         handler: async function (response: any) {
           try {
-            // Verify payment on server
-            const verifyRes = await fetch('https://healthchain-backend-pi.vercel.app/api/verify-razorpay-payment', {
+            // Verify payment on the same server that owns the entitlement RPC.
+            const verifyRes = await fetch('/api/verify-payment', {
               method: 'POST',
               headers: authHeaders,
               body: JSON.stringify({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
-                billingCycle
+                plan_id: 'pro_30_days'
               })
             });
             
