@@ -7,8 +7,8 @@ select table_name
 from information_schema.tables
 where table_schema = 'public'
   and table_name in (
-    'profiles', 'cases', 'health_memory', 'user_devices', 'ai_requests',
-    'ai_usage_daily', 'payments'
+    'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
+    'ai_requests', 'ai_usage_daily', 'payments'
   )
 order by table_name;
 
@@ -18,8 +18,8 @@ from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public'
   and c.relname in (
-    'profiles', 'cases', 'health_memory', 'user_devices', 'ai_requests',
-    'ai_usage_daily', 'payments'
+    'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
+    'ai_requests', 'ai_usage_daily', 'payments'
   )
 order by c.relname;
 
