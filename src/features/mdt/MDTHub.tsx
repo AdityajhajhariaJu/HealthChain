@@ -232,20 +232,28 @@ useEffect(() => {
         const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
         finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
       }
-      const firstPassMaterial = `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${enhancedComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
+      const importedCase = data.importedCaseId ? getCases().find((candidate: any) => candidate.id === data.importedCaseId) : null;
+      const previousReview = importedCase?.reviews?.[0];
+      const firstPassMaterial = importedCase
+        ? `This is a follow-up review of an existing HealthChain case. Do not repeat questions already answered in the prior case. Focus on the patient's new information, changes since the prior review, contradictions, unresolved evidence gaps, and what should be discussed next with a qualified clinician.\n\nExisting case: ${importedCase.title}\nPrior review summary: ${previousReview?.report?.executiveSummary || importedCase.currentSummary?.executiveSummary || 'Prior review available in the case file.'}\n\nNew information: ${enhancedComplaint}`
+        : `This is a new Collaborative Board case. Do not run a separate specialist interview. Use the patient's single case context below to prepare perspectives for cross-specialty correlation. Identify overlaps, conflicts, missing evidence, and the most useful next questions.\n\nCase context: ${enhancedComplaint}\n\nNo prior Parallel Specialist report is available yet. Treat this as an evidence-light starting point and clearly distinguish possibilities from confirmed information.`;
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [specialist.id, []])
       );
       
       const { createCaseDraft, setActiveCase: dynSetActiveCase, addEvidenceToActiveCase } = await import('../../services/CaseEngine');
-        const newCase = createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', mode: 'mdt', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
-        dynSetActiveCase(newCase.id);
-        
+        const workingCase = importedCase || createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', mode: 'mdt', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
+        dynSetActiveCase(workingCase.id);
         for (const record of newRecords) {
           addEvidenceToActiveCase(record);
         }
       
-      setIntakeData({ ...data, chiefComplaint: enhancedComplaint + `\n\nShared Case Material:\n${firstPassMaterial}` });
+      setIntakeData({
+        ...data,
+        importedCaseId: importedCase?.id || null,
+        importedReviewId: previousReview?.id || null,
+        chiefComplaint: enhancedComplaint + `\n\nShared Case Material:\n${firstPassMaterial}`
+      });
       setSelectedSpecialists(finalSelection);
       setSpecialistTranscripts(transcripts);
       setDashboardTab('specialists');
@@ -481,6 +489,8 @@ useEffect(() => {
             basedOnEvidenceIds: activeCase?.medicalRecords?.map((r: any) => r.id) || [],
             specialists: selectedSpecialists.map((s: any) => s.label),
             caseId: activeCase?.id || '',
+            parentReviewId: (intakeData as any).importedReviewId || undefined,
+            basedOnReviewIds: (intakeData as any).importedReviewId ? [(intakeData as any).importedReviewId] : [],
           });
 
           if (activeCase?.id) {

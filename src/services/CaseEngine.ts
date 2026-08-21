@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
-import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
+import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
 
 export interface CaseUpdate {
   id: string;
@@ -150,6 +150,7 @@ export function clearCasePrepDraft() {
 // Listen for logout to clear in-memory caches
 window.addEventListener('hc_logout', () => {
   cachedCases = null;
+  currentCasesKey = null;
 });
 
 const id = () => {
@@ -163,7 +164,7 @@ const id = () => {
   });
 };
 
-let cachedCases: CaseItem[] | null = [];
+let cachedCases: CaseItem[] | null = null;
 
 export function getCases(): CaseItem[] {
   return cachedCases || [];
@@ -566,8 +567,16 @@ export async function initCaseEngine() {
   const { data: { session } } = await supabase.auth.getSession();
   const key = getCasesKey();
   const currentProfileId = getActiveProfileId();
+  if (currentCasesKey !== key) {
+    cachedCases = null;
+    currentCasesKey = key;
+  }
   
   if (session?.user) {
+    // Deliver queued writes before reading the remote snapshot so a device
+    // switch does not briefly load an older case file over newer offline work.
+    await flushSyncOutbox(session.user.id);
+
     // Migration: upload existing local cases
     const localRaw = getItemSync(key);
     if (localRaw) {
@@ -577,7 +586,7 @@ export async function initCaseEngine() {
           for (const c of localCases) {
             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
             if (!isUUID) continue;
-            await supabase.from('cases').upsert({
+            await enqueueSync('case_upsert', session.user.id, {
               id: c.id,
               user_id: session.user.id,
               title: c.title,
@@ -587,11 +596,14 @@ export async function initCaseEngine() {
               updated_at: new Date(c.updatedAt || new Date()).toISOString()
             });
           }
+          await flushSyncOutbox(session.user.id);
         }
       } catch (e) {
         console.error('Migration failed', e);
       }
-      removeItemSync(key);
+      // Keep the local copy until every migrated record has left the outbox.
+      // This makes a failed migration recoverable on the next launch.
+      if (await getPendingSyncCount(session.user.id) === 0) removeItemSync(key);
     }
     
     // Fetch from Supabase
@@ -604,8 +616,17 @@ export async function initCaseEngine() {
     if (!error && data) {
        // Filter by profile
        cachedCases = data.map(row => row.data).filter(d => (d.__profileId || 'profile_1') === currentProfileId);
+    } else if (localRaw) {
+       // A transient remote read failure must never erase the last known case
+       // list from the current device.
+       try {
+         const localCases = JSON.parse(localRaw);
+         cachedCases = Array.isArray(localCases) ? localCases : [];
+       } catch {
+         cachedCases = cachedCases || [];
+       }
     } else {
-       cachedCases = [];
+       cachedCases = cachedCases || [];
     }
   } else {
     // Guest

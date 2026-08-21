@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
-import { createCaseDraft, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
+import { createCaseDraft, getCase, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { generateCaseConnectionMap } from '../../services/geminiService';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -42,8 +42,14 @@ export default function QuickConsult() {
   const [searchQuery, setSearchQuery] = useState('');
   const [finalTranscripts, setFinalTranscripts] = useState<any>({});
   const [activeCase, setActiveCase] = useState<any>(() => {
-    const saved = sessionStorage.getItem(quickCaseKey);
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = sessionStorage.getItem(quickCaseKey);
+      const parsed = saved ? JSON.parse(saved) : null;
+      return parsed?.id ? getCase(parsed.id) || parsed : null;
+    } catch {
+      sessionStorage.removeItem(quickCaseKey);
+      return null;
+    }
   });
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -186,7 +192,7 @@ export default function QuickConsult() {
          }
       } catch(e) {}
       
-      saveReviewSnapshot({
+      const savedCase = saveReviewSnapshot({
         caseId: newCase.id,
         type: 'parallel',
         report: reportData,
@@ -194,6 +200,10 @@ export default function QuickConsult() {
         specialists: [selectedSpecialist.label],
         basedOnEvidenceIds: []
       });
+      // Keep the workflow view aligned with the canonical My Cases object;
+      // otherwise a refresh during the completion phase can restore a draft
+      // case from sessionStorage without its saved review.
+      setActiveCase(savedCase);
     }
   };
 

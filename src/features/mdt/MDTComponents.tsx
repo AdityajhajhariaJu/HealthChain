@@ -342,6 +342,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [historyCases, setHistoryCases] = useState<any[]>([]);
+  const [importedCaseId, setImportedCaseId] = useState<string | null>(null);
   const activeEvidenceCount = activeCase?.medicalRecords?.length || 0;
   const activeReviewCount = activeCase?.reviews?.length || 0;
 
@@ -363,6 +364,7 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
   };
 
   const handleImportCase = (pastCase: any) => {
+    setImportedCaseId(pastCase?.id || null);
     const report = pastCase.report || pastCase.currentSummary;
     const prevSummary = report?.executiveSummary || pastCase.title || '';
     const prevFindings = report?.keyFindings || '';
@@ -562,7 +564,7 @@ New Information / Changes in Symptoms since last evaluation:
               <button
                 onClick={() => {
                   try { sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} 
-                  onComplete({ chiefComplaint: complaint, files: selectedFiles });
+                  onComplete({ chiefComplaint: complaint, files: selectedFiles, importedCaseId });
                 }}
                 disabled={!complaint.trim() || isPreparing}
                 style={{
