@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { BrainCircuit, User, Sparkles, ArrowRight } from 'lucide-react';
-import { chatWithMDTSpecialist } from '../../services/geminiService';
+import { chatWithMDTSpecialist, parseModelJson } from '../../services/geminiService';
 import { getRunScope, readRunJson, writeRunJson } from '../../services/RunContext';
 
 const MAX_STREAM_MESSAGES = 14;
@@ -355,14 +355,9 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
 
             if (!isUser) {
               try {
-                let jsonText = msg.text;
-                const match = jsonText.match(/```(?:json)?\n?([\s\S]*?)\n?```/i);
-                if (match && match[1]) {
-                  jsonText = match[1].trim();
-                }
-                parsed = JSON.parse(jsonText);
+                parsed = parseModelJson<any>(msg.text);
                 displayText = parsed?.response || parsed?.text || parsed?.message || parsed?.answer || parsed?.professionalAdvice || msg.text;
-                internalThoughts = parsed?.internalThoughts;
+                internalThoughts = parsed?.evidenceNote;
               } catch {
                 displayText = msg.text;
               }

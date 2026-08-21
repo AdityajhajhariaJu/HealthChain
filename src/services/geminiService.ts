@@ -60,6 +60,40 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
   }
 };
 
+/** Parse the first complete JSON value without greedy regex extraction. */
+export function parseModelJson<T = any>(raw: string, fallback: T | null = null): T | null {
+  if (!raw) return fallback;
+  const text = raw.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(text) as T; } catch {}
+  for (let start = 0; start < text.length; start += 1) {
+    if (text[start] !== '{' && text[start] !== '[') continue;
+    const opening = text[start];
+    const stack: string[] = [];
+    let inString = false;
+    let escaped = false;
+    for (let i = start; i < text.length; i += 1) {
+      const char = text[i];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (char === '\\') escaped = true;
+        else if (char === '"') inString = false;
+        continue;
+      }
+      if (char === '"') { inString = true; continue; }
+      if (char === '{') stack.push('}');
+      else if (char === '[') stack.push(']');
+      else if (char === '}' || char === ']') {
+        if (stack[stack.length - 1] !== char) break;
+        stack.pop();
+      }
+      if (stack.length === 0) {
+        try { return JSON.parse(text.slice(start, i + 1)) as T; } catch { break; }
+      }
+    }
+  }
+  return fallback;
+}
+
 export interface Message {
   role: string;
   content?: string | any;
@@ -85,7 +119,7 @@ RULES:
 4. After 3-5 questions, when you have enough data, output "ANALYSIS_COMPLETE" followed by a JSON block:
 
 \`\`\`json
-{"chain_name":"Root Cause -> Symptom","normal_terms_explanation":"Plain English mechanism","match_percentage":"83%","specialists_validated":"3 endocrinologists","resolved_cases":"27","cost_to_confirm":"₹1,400","time_to_relief":"6-8 wks","specialist":"Endocrine","this_week_tasks":["Task 1"],"flowchart":{"root":"","root_sub":"","mechanism":"","mechanism_sub":"","symptoms":[{"name":"","sub":""}]},"what_it_is":"2-3 sentences.","whats_driving_it":"2-3 sentences.","chain_reaction":["Step 1"],"where_it_shows_up":[{"location":"","effect":""}],"if_untreated":[{"time":"","effect":""}],"what_to_do":[{"step":"","cost":""}],"cost_to_diagnose":"₹1,300","cost_unexplained":"₹15,000+","recovery_timeline":[{"time":"","effect":""}],"if_symptoms_persist":"Next check","do":"Do this","dont":"Don't do this","quote":"Insight."}
+{"chain_name":"Symptoms and factors to discuss","normal_terms_explanation":"Plain English summary","match_percentage":"","specialist":"AI perspective","this_week_tasks":["Question to discuss with a clinician"],"flowchart":{"root":"","root_sub":"","mechanism":"","mechanism_sub":"","symptoms":[{"name":"","sub":""}]},"what_it_is":"2-3 sentences.","whats_driving_it":"2-3 sentences.","chain_reaction":["Possible connection to discuss"],"where_it_shows_up":[{"location":"","effect":""}],"if_untreated":[],"what_to_do":[{"step":"Discuss with a qualified clinician","cost":"Varies"}],"if_symptoms_persist":"Discuss next steps with a clinician","do":"Record changes and bring them to your clinician","dont":"Do not treat this as a diagnosis or emergency service","quote":"Insight to discuss."}
 \`\`\`
 
 Do NOT include ANALYSIS_COMPLETE until you are ready to conclude.${CLINICAL_SAFETY_RULES}`;
@@ -165,11 +199,9 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const cleanText = text
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      return JSON.parse(cleanText);
+      const allowed = new Set(["neuro", "ent", "cardio", "gastro", "derma", "ortho", "psych", "obgyn", "pulmo", "endo", "uro", "rheuma", "onco", "opthal", "physio", "gp"]);
+      const parsed = parseModelJson<unknown[]>(text, []);
+      return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string' && allowed.has(id)).slice(0, 4) : [];
     }
     throw new Error('No candidate returned');
   } catch (err) {
@@ -277,11 +309,12 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const cleanText = text
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      return JSON.parse(cleanText);
+      return parseModelJson(text, {
+        corroborations: [],
+        contentions: [],
+        followUpQuestions: [],
+        debateSummary: 'The available perspectives could not be fully correlated.'
+      });
     }
     throw new Error('No candidate returned');
   } catch (err) {
@@ -404,7 +437,7 @@ ${questionRule}
 
 Return your response STRICTLY as JSON matching this format:
 {
-  "internalThoughts": "1 sentence describing what you are currently considering/ruling out based on the latest input.",
+  "evidenceNote": "One short, patient-facing note about which information is missing or relevant. Do not reveal hidden reasoning.",
   "patientFriendlySummary": "If outputting 'ANALYSIS_COMPLETE', provide a 1-2 sentence quick summary.",
   "keyFindings": "If outputting 'ANALYSIS_COMPLETE', summarize the core clinical findings in a clear paragraph. Leave empty otherwise.",
   "interpretation": "If outputting 'ANALYSIS_COMPLETE', explain what these findings mean in plain English. Leave empty otherwise.",
@@ -436,7 +469,7 @@ Return your response STRICTLY as JSON matching this format:
       responseSchema: {
         type: "object",
         properties: {
-          internalThoughts: { type: "string" },
+          evidenceNote: { type: "string" },
           patientFriendlySummary: { type: "string" },
           keyFindings: { type: "string" },
           interpretation: { type: "string" },
@@ -448,7 +481,7 @@ Return your response STRICTLY as JSON matching this format:
           widgetType: { type: "string" },
           widgetOptions: { type: "array", items: { type: "string" } }
         },
-        required: ["internalThoughts", "currentHypotheses", "response"]
+        required: ["currentHypotheses", "response"]
       }
     },
   };
@@ -566,7 +599,6 @@ CRITICAL INSTRUCTIONS:
 3. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list.
 Return strictly as JSON:
 {
-  "_scratchpad": "Use this field to output all your internal reasoning, chain of thought, and scientific debate. Do NOT put internal monologue in any other field.",
     "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
   "keyFindings": "Summarize the core clinical findings across all specialists in a clear paragraph.",
   "interpretation": "Explain what these collective findings mean in plain English.",
@@ -614,7 +646,6 @@ Return strictly as JSON:
       responseSchema: {
         type: "object",
         properties: {
-          _scratchpad: { type: "string" },
           executiveSummary: { type: "string" },
           keyFindings: { type: "string" },
           interpretation: { type: "string" },
@@ -653,15 +684,7 @@ Return strictly as JSON:
       const text = data.candidates[0].content.parts[0].text;
 
       // Attempt to extract json block even if there is surrounding text
-      const match = text.match(/\{[\s\S]*\}/);
-      const cleanText = match
-        ? match[0]
-        : text
-            .replace(/```json/g, '')
-            .replace(/```/g, '')
-            .trim();
-
-      return JSON.parse(cleanText);
+      return parseModelJson(text);
     }
   } catch (err) {
     console.error('Report error:', err);
@@ -724,7 +747,6 @@ export async function generateParallelMultiReport(
     
     msgsToFormat.forEach((m) => {
       formattedTranscripts += `${m.role.toUpperCase()}: ${m.text}\n`;
-      if (m.internalThoughts) formattedTranscripts += `[Internal Thoughts: ${m.internalThoughts}]\n`;
       if (m.currentHypotheses && m.currentHypotheses.length > 0) {
         formattedTranscripts += `[Active Hypotheses: ${m.currentHypotheses.map((h: any) => typeof h === 'string' ? h : h.condition).join(', ')}]\n`;
       }
@@ -814,14 +836,7 @@ Return strictly as JSON matching this exact structure:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      const cleanText = match
-        ? match[0]
-        : text
-            .replace(/```json/g, '')
-            .replace(/```/g, '')
-            .trim();
-      return JSON.parse(cleanText);
+      return parseModelJson(text);
     }
   } catch (err) {
     console.error('Parallel Report error:', err);

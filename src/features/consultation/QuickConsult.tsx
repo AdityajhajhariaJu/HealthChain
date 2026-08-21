@@ -17,7 +17,7 @@ import {
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, getCase, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
-import { generateCaseConnectionMap } from '../../services/geminiService';
+import { generateCaseConnectionMap, parseModelJson } from '../../services/geminiService';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
@@ -184,9 +184,8 @@ export default function QuickConsult() {
       
       try {
          if (summaryMessage && summaryMessage.text.includes('{')) {
-             const jsonMatch = summaryMessage.text.match(/\{[\s\S]*\}/);
-             if (jsonMatch) {
-                 const parsed = JSON.parse(jsonMatch[0]);
+             const parsed = parseModelJson<any>(summaryMessage.text);
+             if (parsed) {
                  if (parsed.currentHypotheses) {
                      reportData.executiveSummary = parsed.patientFriendlySummary || parsed.internalThoughts || reportData.executiveSummary;
                      reportData.topDiagnoses = parsed.currentHypotheses.map((h: any) => 
