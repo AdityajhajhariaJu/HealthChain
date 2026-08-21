@@ -22,6 +22,12 @@ export default function JarvisInvestigator() {
   const profile = getProfile();
   
   const [phase, setPhase] = useState<'input' | 'analyzing' | 'done'>('input');
+
+  useEffect(() => {
+    const el = document.getElementById('main-content');
+    if (el) { el.style.backgroundColor = '#FFF7ED'; }
+    return () => { if (el) { el.style.backgroundColor = ''; } };
+  }, []);
   const [history, setHistory] = useState('');
   const [files, setFiles] = useState<{file: File, base64: string}[]>([]);
   const [report, setReport] = useState<any>(null);
@@ -153,7 +159,6 @@ export default function JarvisInvestigator() {
   if (phase === 'done' && report) {
     return (
     <>
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#FFF7ED', zIndex: -1 }} />
       <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(15,23,42,0.2)' }}>
@@ -262,7 +267,6 @@ export default function JarvisInvestigator() {
 
   return (
     <>
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#FFF7ED', zIndex: -1 }} />
       <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
       
       <div
@@ -385,6 +389,7 @@ export default function JarvisInvestigator() {
     </>
   );
 }
+
 
 
 
