@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import {
-  Cpu, Activity,
+  Radar, Activity,
   Target,
   FolderHeart,
   MessageCircle,
@@ -48,7 +48,7 @@ const links = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
   { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain },
-  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: Cpu },
+  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: Radar },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
@@ -63,7 +63,7 @@ const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick', icon: Stethoscope },
   { to: '/app/collab', label: 'Deep', icon: Brain },
-  { to: '/app/jarvis', label: 'JARVIS', icon: Cpu },
+  { to: '/app/jarvis', label: 'JARVIS', icon: Radar },
   { to: '/app/case-prep', label: 'Prep', icon: ClipboardList },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
