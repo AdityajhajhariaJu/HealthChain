@@ -32,3 +32,5 @@ $$;
 
 revoke all on function public.delete_healthchain_user_data(uuid)
   from public, anon, authenticated;
+grant execute on function public.delete_healthchain_user_data(uuid)
+  to service_role;

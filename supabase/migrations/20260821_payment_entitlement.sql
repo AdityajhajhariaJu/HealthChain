@@ -53,3 +53,5 @@ $$;
 
 revoke all on function public.activate_payment_entitlement(uuid, text, text, integer, timestamptz)
   from public, anon, authenticated;
+grant execute on function public.activate_payment_entitlement(uuid, text, text, integer, timestamptz)
+  to service_role;

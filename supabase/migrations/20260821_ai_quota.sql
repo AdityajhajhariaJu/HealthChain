@@ -48,3 +48,5 @@ $$;
 
 revoke all on function public.consume_ai_request(uuid, integer) from public, anon, authenticated;
 revoke all on function public.record_ai_tokens(uuid, integer) from public, anon, authenticated;
+grant execute on function public.consume_ai_request(uuid, integer) to service_role;
+grant execute on function public.record_ai_tokens(uuid, integer) to service_role;
