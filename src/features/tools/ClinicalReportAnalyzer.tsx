@@ -19,6 +19,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { getRunScope } from '../../services/RunContext';
+import { getActiveSession } from '../../services/authSession';
 
 const cachedReportAnalyzerState: Record<string, any> = {};
 
@@ -80,7 +81,7 @@ export default function ClinicalReportAnalyzer() {
 
   const handleFileChange = async (e) => {
     if (loading) return;
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!(await getActiveSession())) {
       const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10) || 0;
       if (currentCount >= 3) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 

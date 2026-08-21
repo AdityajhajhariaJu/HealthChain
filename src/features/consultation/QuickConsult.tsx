@@ -22,6 +22,7 @@ import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { getRunScope, clearRunStorage, makeRunId } from '../../services/RunContext';
+import { getActiveSession } from '../../services/authSession';
 
 const cachedQuickConsultStreams: any = {};
 const quickPhaseKey = getRunScope('quick-consult', 'draft', 'phase');
@@ -120,7 +121,7 @@ export default function QuickConsult() {
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
     
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!(await getActiveSession())) {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
           title: 'Authentication Required', 
@@ -218,9 +219,11 @@ export default function QuickConsult() {
 
   useEffect(() => {
     // SECURITY: Prevent unauthenticated users from bypassing the auth wall via sessionStorage phase restoring.
-    if (phase !== 'select' && localStorage.getItem('isAuthenticated') !== 'true') {
-      setPhase('select');
-    }
+    let cancelled = false;
+    getActiveSession().then((session) => {
+      if (!cancelled && phase !== 'select' && !session) setPhase('select');
+    });
+    return () => { cancelled = true; };
   }, [phase]);
 
   useEffect(() => {    // Default select GP if available

@@ -17,6 +17,7 @@ import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { Sunrise, Sun, Moon, CheckCircle } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getActiveSession } from '../../services/authSession';
 
 let cachedPharmacyState: any = null;
 
@@ -58,7 +59,7 @@ export default function PharmacyHub() {
   }, [query, loading, result, searched]);
 
   const handleSearch = async (e) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!(await getActiveSession())) {
       const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10) || 0;
       if (currentCount >= 5) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 

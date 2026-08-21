@@ -135,7 +135,8 @@ export default function App() {
     window.addEventListener('hc_logout', handleLogout);
 
     const handleProfileSwitch = async () => {
-      if (localStorage.getItem('isAuthenticated') === 'true') {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         await initCaseEngine();
         syncHealthMemoryFromSupabase().catch(console.error);
       }

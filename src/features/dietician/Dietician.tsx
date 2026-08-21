@@ -43,6 +43,7 @@ import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase
 import { OnboardingWizard } from './DieticianComponents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getActiveSession } from '../../services/authSession';
 import FocusTrap from '../../components/ui/FocusTrap';
 
 // --- Constants & Helpers ---
@@ -291,7 +292,7 @@ export default function Dietician() {
 
   const handleGeneratePlan = async () => {
     if (isGeneratingPlan) return;
-      if (localStorage.getItem('isAuthenticated') !== 'true') {
+      if (!(await getActiveSession())) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
           detail: { 
             title: 'Authentication Required', 

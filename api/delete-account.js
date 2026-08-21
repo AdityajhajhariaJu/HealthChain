@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',
+  'https://healthchain360.com',
   'https://healthchain-live.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
@@ -11,7 +12,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function setCors(req, res) {

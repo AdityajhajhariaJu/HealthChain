@@ -21,6 +21,7 @@ import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
 import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
+import { getActiveSession } from '../../services/authSession';
 
 // --- Sub-components for dynamic elements ---
 
@@ -72,19 +73,27 @@ export default function Landing() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
   const [isNavigating, setIsNavigating] = useState(false);
-  let isLoggedOut = true;
-  try {
-    isLoggedOut = localStorage.getItem('isAuthenticated') !== 'true' && localStorage.getItem('hc_guest_mode') !== 'true';
-  } catch (e) {
-    console.warn('localStorage access blocked in Landing');
-  }
+  const [hasSession, setHasSession] = useState(false);
+  const [guestMode, setGuestMode] = useState(false);
+  const isLoggedOut = !hasSession && !guestMode;
+
+  useEffect(() => {
+    let cancelled = false;
+    getActiveSession().then((session) => {
+      if (!cancelled) {
+        setHasSession(Boolean(session));
+        setGuestMode(localStorage.getItem('hc_guest_mode') === 'true');
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleStartInvestigation = () => {
     setIsNavigating(true);
     setActiveCase(null);
     useMDTStore.getState().reset();
     
-    if (isLoggedOut) {
+    if (!hasSession && !guestMode) {
       try { localStorage.setItem('hc_guest_mode', 'true'); } catch(e) {}
     }
 

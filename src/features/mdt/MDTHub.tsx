@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getActiveSession } from '../../services/authSession';
 import {
   selectMDTSpecialists,
   chatWithMDTSpecialist,
@@ -169,7 +170,7 @@ useEffect(() => {
   ], [activeCase?.medicalRecords, medicalRecords]);
 
   const handleIntakeComplete = async (data) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!(await getActiveSession())) {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
           title: 'Authentication Required', 
@@ -257,7 +258,7 @@ useEffect(() => {
   };
 
   const handleElevateParallel = async (caseItem: any) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!(await getActiveSession())) {
       window.dispatchEvent(new CustomEvent('hc_require_auth', { 
         detail: { 
           title: 'Authentication Required', 

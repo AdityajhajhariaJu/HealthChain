@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import FocusTrap from './FocusTrap';
+import { getActiveSession } from '../../services/authSession';
 
 const TOUR_STEPS = [
   {
@@ -31,12 +32,14 @@ export default function ProductTour() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const hasSeenTour = localStorage.getItem('hc_product_tour_seen');
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    if (!hasSeenTour && isAuthenticated) {
-      const timer = setTimeout(() => setIsVisible(true), 2000);
-      return () => clearTimeout(timer);
-    }
+    getActiveSession().then((session) => {
+      if (cancelled || hasSeenTour || !session) return;
+      timer = setTimeout(() => setIsVisible(true), 2000);
+    });
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
   }, []);
 
   const dismiss = () => {

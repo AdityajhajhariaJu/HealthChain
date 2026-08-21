@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { chatWithTherapyGemini } from '../../services/geminiService';
 import { addEvent } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getActiveSession } from '../../services/authSession';
 
 const SUGGESTIONS = [
   "What does my latest eGFR mean?",
@@ -172,7 +173,7 @@ export default function AvaHealthBuddy() {
   };
 
   const handleSend = async (text: string) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    if (!(await getActiveSession())) {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
         if (userMessageCount >= 3) {

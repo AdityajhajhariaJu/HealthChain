@@ -8,6 +8,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
 import { clearSyncOutbox } from '../../services/SyncOutbox';
 import FocusTrap from '../../components/ui/FocusTrap';
+import { getActiveSession } from '../../services/authSession';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_unified_profile',
@@ -26,7 +27,7 @@ const EXPORTABLE_STORAGE_PREFIXES = [
 export default function Settings() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [profiles, setProfiles] = useState<any[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<string>('');
@@ -36,6 +37,14 @@ export default function Settings() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast, success, error: toastError } = useToast();
+
+  useEffect(() => {
+    let cancelled = false;
+    getActiveSession().then((session) => {
+      if (!cancelled) setIsAuthenticated(Boolean(session));
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const accountStr = localStorage.getItem('hc_account');
   let account: any = null;

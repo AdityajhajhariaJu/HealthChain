@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getActiveSession } from '../../services/authSession';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import {
@@ -234,8 +235,8 @@ export default function MultiSpecialist() {
       ? allAvailableSpecialists
       : allAvailableSpecialists.filter((s) => s.category === activeCategory);
 
-  const handleStart = () => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+  const handleStart = async () => {
+    if (!(await getActiveSession())) {
       window.location.href = '/signup';
       return;
     }
