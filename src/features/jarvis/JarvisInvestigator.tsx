@@ -260,7 +260,7 @@ export default function JarvisInvestigator() {
           <span style={{ padding: '6px 12px', background: '#FEF2F2', color: '#991B1B', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #FECACA' }}><X size={14} /> No Follow-up Chat</span>
         </div>
         <p style={{ fontSize: '16px', color: '#475569', maxWidth: '540px', lineHeight: 1.6, margin: 0 }}>
-          We crunch all your data and extract brutal, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
+          We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
         </p>
       </div>
 
