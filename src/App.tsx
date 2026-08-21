@@ -523,6 +523,14 @@ export default function App() {
               </SafeRoute>
             }
           />
+          <Route
+            path="/app/jarvis"
+            element={
+              <SafeRoute>
+                <JarvisInvestigator />
+              </SafeRoute>
+            }
+          />
 
         </Route>
         <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
