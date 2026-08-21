@@ -22,6 +22,7 @@ import { getRunScope } from '../../services/RunContext';
 import { getActiveSession } from '../../services/authSession';
 
 const cachedReportAnalyzerState: Record<string, any> = {};
+const fileReportCache: Record<string, any> = {};
 
 const exampleResult = {
   testName: 'MRI Cervical Dorsal Spine with Whole Spine Screening',
@@ -113,6 +114,17 @@ export default function ClinicalReportAnalyzer() {
     setLoading(true);
     setResult(null);
 
+    const fileHash = `${selectedFile.name}-${selectedFile.size}-${selectedFile.lastModified}`;
+    
+    if (fileReportCache[fileHash]) {
+      // CACHE HIT: Save API tokens!
+      setLoading(true);
+      await new Promise(r => setTimeout(r, 1000)); // Brief animation for UX
+      setResult(fileReportCache[fileHash]);
+      setLoading(false);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
@@ -132,6 +144,7 @@ export default function ClinicalReportAnalyzer() {
       await new Promise(r => setTimeout(r, 2000));
 
       if (data) {
+        fileReportCache[fileHash] = data; // Cache the result!
         setResult(data);
         addEvent('lab_report', 'report_analyzer', `Analyzed ${data.testName}`, data, true);
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network, ChevronDown, HelpCircle } from 'lucide-react';
 
-const Accordion = ({ title, icon: Icon, iconColor, bgColor, borderColor, textColor, children, defaultOpen = false, isMobile = false }: any) => {
+export const Accordion = ({ title, icon: Icon, iconColor, bgColor, borderColor, textColor, children, defaultOpen = false, isMobile = false }: any) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
     <div style={{ background: bgColor, borderRadius: '16px', border: `1px solid ${borderColor}`, overflow: 'hidden' }}>

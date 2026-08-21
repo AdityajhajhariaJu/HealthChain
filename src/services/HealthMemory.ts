@@ -6,6 +6,7 @@ export type HealthMemoryKind =
   | 'case_prep'
   | 'quick_consult'
   | 'deep_collab'
+  | 'jarvis_analysis'
   | 'lab_report'
   | 'diet'
   | 'health_buddy'

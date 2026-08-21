@@ -1681,3 +1681,78 @@ ${JSON.stringify(brief, null, 2)}
     return brief; // Return original on failure
   }
 }
+
+
+export async function runJarvisInvestigation(history: string, files: { mimeType: string; data: string }[], profile: any): Promise<any> {
+  const prompt = `You are J.A.R.V.I.S. (Joint Analytical Research & Validation Intelligence System), the world's most advanced functional medicine and diagnostic AI.
+You are reviewing a complex, chronic patient case. This patient has likely seen multiple doctors and been told their labs are "normal", but they are still suffering. 
+
+YOUR MISSION:
+1. Identify "Sub-clinical" biomarkers: Look for labs that are technically "in range" but indicate suboptimal functional health (e.g. Ferritin of 15 is "normal" but causes severe fatigue).
+2. Find Systemic Patterns: Connect siloed symptoms (e.g. GI, Neurological, Dermatological) to a single unifying root cause (e.g. Mast Cell, Dysautonomia, Mold, Lyme, Autoimmune).
+3. Generate the "Missing Link": Explain exactly what previous doctors might have missed and why.
+
+PATIENT PROFILE:
+Age: ${profile?.demographics?.age || 'Unknown'}
+Gender: ${profile?.demographics?.gender || 'Unknown'}
+
+PATIENT HISTORY & SYMPTOMS:
+${history}
+
+Review the provided clinical documents, lab reports, and history carefully.
+
+Return ONLY a JSON object with this exact structure:
+{
+  "executiveSummary": "A deeply empathetic, brilliant summary of the patient's long-term suffering and the primary pattern you have identified.",
+  "functionalBiomarkers": [
+    { "biomarker": "Ferritin", "value": "15", "standardRange": "12-150", "optimalRange": "50-100", "insight": "While technically 'normal', levels under 30 cause severe fatigue and restless leg syndrome." }
+  ],
+  "systemicPatterns": [
+    { "pattern": "Post-Viral Dysautonomia", "evidence": "Started after a viral infection, includes dizziness, GI stasis, and fatigue." }
+  ],
+  "missingLinks": [
+    "Endocrinologists looked at TSH but missed Free T3 pooling.",
+    "GI doctor treated IBS, but missed the mast cell connection to the rashes."
+  ],
+  "topDiagnoses": [
+    { "condition": "Mast Cell Activation Syndrome", "rationale": "Explains the systemic, multi-organ inflammation and normal standard labs.", "confidence": 75 }
+  ],
+  "questionsForClinician": [
+    "Should we run a tryptase panel during a flare?",
+    "Could this be functional B12 deficiency despite normal serum levels?"
+  ]
+}`;
+
+  const payload = {
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: prompt },
+          ...files.map(f => ({ inlineData: { mimeType: f.mimeType, data: f.data } }))
+        ],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 2500,
+    },
+  };
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'jarvis_investigation' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    const data = await res.json();
+    if (data.candidates?.[0]) {
+      const text = data.candidates[0].content.parts[0].text;
+      return parseModelJson(text);
+    }
+  } catch (err) {
+    console.error('Jarvis error:', err);
+    return null;
+  }
+}

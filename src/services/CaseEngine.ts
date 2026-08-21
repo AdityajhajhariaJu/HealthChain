@@ -30,7 +30,7 @@ export interface MedicalRecord {
 
 export interface ReviewSnapshot {
   id: string;
-  type: 'parallel' | 'mdt';
+  type: 'parallel' | 'mdt' | 'jarvis';
   createdAt: string;
   parentReviewId?: string;
   basedOn: { evidenceIds: string[]; reviewIds: string[] };
@@ -344,7 +344,7 @@ export function saveReviewSnapshot({
   readiness,
 }: {
   caseId: string;
-  type: 'parallel' | 'mdt';
+  type: 'parallel' | 'mdt' | 'jarvis';
   parentReviewId?: string;
   basedOnEvidenceIds?: string[];
   basedOnReviewIds?: string[];
@@ -390,7 +390,7 @@ export function saveReviewSnapshot({
   const updated: CaseItem = {
     ...existing,
     title: updatedTitle,
-    currentStage: type === 'parallel' ? 'parallel_complete' : 'mdt_complete',
+    currentStage: type === 'parallel' ? 'parallel_complete' : type === 'jarvis' ? 'jarvis_complete' : 'mdt_complete',
     currentSummary: report,
     updatedAt: now,
     reviews: [snapshot, ...(existing.reviews || [])].slice(0, 50),
@@ -398,7 +398,7 @@ export function saveReviewSnapshot({
       {
         id: id(),
         date: now,
-        label: type === 'parallel' ? 'Parallel review complete' : 'Board consensus reached',
+        label: type === 'jarvis' ? 'J.A.R.V.I.S. Analysis complete' : type === 'parallel' ? 'Parallel review complete' : 'Board consensus reached',
         note: 'New specialist findings were added to this active case.',
       },
       ...(existing.events || []),
@@ -409,9 +409,9 @@ export function saveReviewSnapshot({
   save(cases.map((item) => (item.id === caseId ? updated : item)));
   setActiveCase(caseId);
   recordHealthMemory({
-    kind: type === 'mdt' ? 'deep_collab' : 'quick_consult',
-    source: type === 'mdt' ? 'deep_collab' : 'quick_consult',
-    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : `Quick Consult: ${updated.title}`,
+    kind: type === 'mdt' ? 'deep_collab' : type === 'jarvis' ? 'research' : 'quick_consult',
+    source: type === 'mdt' ? 'deep_collab' : type === 'jarvis' ? 'jarvis' : 'quick_consult',
+    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : type === 'jarvis' ? `J.A.R.V.I.S.: ${updated.title}` : `Quick Consult: ${updated.title}`,
     occurredAt: now,
     caseId,
     // The complete transcript remains in the case. Health Memory keeps the concise result users need over years.
@@ -428,9 +428,9 @@ export function backfillCaseHealthMemory() {
     }
     (caseItem.reviews || []).forEach((review) => recordHealthMemory({
       id: review.id,
-      kind: review.type === 'mdt' ? 'deep_collab' : 'quick_consult',
-      source: review.type === 'mdt' ? 'deep_collab' : 'quick_consult',
-      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
+      kind: review.type === 'mdt' ? 'deep_collab' : review.type === 'jarvis' ? 'research' : 'quick_consult',
+      source: review.type === 'mdt' ? 'deep_collab' : review.type === 'jarvis' ? 'jarvis' : 'quick_consult',
+      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : review.type === 'jarvis' ? `J.A.R.V.I.S.: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
       occurredAt: review.createdAt,
       caseId: caseItem.id,
       payload: { report: review.report, readiness: review.readiness, specialists: review.specialists, reviewId: review.id },
