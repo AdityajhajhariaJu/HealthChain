@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
-import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase } from '../../services/CaseEngine';
+import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -122,9 +122,24 @@ export default function ClinicalReportAnalyzer() {
           type: 'clinical_report',
         });
 
-        // Auto-trigger DDx analysis
+        // Auto-trigger DDx analysis & save Snapshot
         const activeCase = getActiveCase();
         if (activeCase) {
+          saveReviewSnapshot({
+            caseId: activeCase.id,
+            type: 'lab_report',
+            report: {
+              executiveSummary: `Lab Report Analysis: ${data.testName}`,
+              keyFindings: data.keyFindings,
+              interpretation: data.interpretation,
+              nextSteps: data.recommendations,
+              abnormalitiesNoted: data.abnormalities?.map((a: any) => `${a.marker}: ${a.value}`) || [],
+              medicalTerms: data.extraTerms || []
+            },
+            specialists: ['Lab AI'],
+            basedOnEvidenceIds: [] // A new evidence ID would normally go here if returned synchronously
+          });
+
           runDifferentialAnalysis(activeCase.intakeData, activeCase.medicalRecords, profile).then(results => {
             if (results && Array.isArray(results)) {
               updateCaseDifferentials(activeCase.id, results);
@@ -205,6 +220,21 @@ export default function ClinicalReportAnalyzer() {
 
         const activeCase = getActiveCase();
         if (activeCase) {
+          saveReviewSnapshot({
+            caseId: activeCase.id,
+            type: 'lab_report',
+            report: {
+              executiveSummary: `Lab Report Analysis: ${data.testName}`,
+              keyFindings: data.keyFindings,
+              interpretation: data.interpretation,
+              nextSteps: data.recommendations,
+              abnormalitiesNoted: data.abnormalities?.map((a: any) => `${a.marker}: ${a.value}`) || [],
+              medicalTerms: data.extraTerms || []
+            },
+            specialists: ['Lab AI'],
+            basedOnEvidenceIds: []
+          });
+
           runDifferentialAnalysis(activeCase.intakeData, activeCase.medicalRecords, profile).then(results => {
             if (results && Array.isArray(results)) {
               updateCaseDifferentials(activeCase.id, results);

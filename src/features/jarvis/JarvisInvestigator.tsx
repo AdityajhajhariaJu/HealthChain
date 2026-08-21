@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
-import { createCaseDraft, saveReviewSnapshot } from '../../services/CaseEngine';
+import { createCaseDraft, saveReviewSnapshot, getActiveCase } from '../../services/CaseEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
@@ -92,15 +92,18 @@ export default function JarvisInvestigator() {
       if (result) {
         setReport(result);
         
-        // 1. Create the case strictly isolated from other cases
-        const newCase = createCaseDraft({
-          title: `J.A.R.V.I.S. Investigation`,
-          intakeData: { chiefComplaint: history || "Data investigation" }
-        });
+        // 1. Link to active case, or create a new one if none exists
+        const currentCase = getActiveCase();
+        const targetCaseId = currentCase 
+          ? currentCase.id 
+          : createCaseDraft({
+              title: `J.A.R.V.I.S. Investigation`,
+              intakeData: { chiefComplaint: history || "Data investigation" }
+            }).id;
         
         // 2. Persist to DB securely
         saveReviewSnapshot({
-          caseId: newCase.id,
+          caseId: targetCaseId,
           type: 'jarvis' as any,
           report: result,
           specialists: ['J.A.R.V.I.S.']

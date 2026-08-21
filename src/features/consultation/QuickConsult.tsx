@@ -226,6 +226,11 @@ export default function QuickConsult() {
       // otherwise a refresh during the completion phase can restore a draft
       // case from sessionStorage without its saved review.
       setActiveCase(savedCase);
+
+      // Fire and forget: Generate connection map
+      generateCaseConnectionMap(savedCase, true).then((mapData) => {
+        if (mapData) updateCaseConnectionMap(savedCase.id, mapData);
+      }).catch(err => console.error("Failed to generate connection map:", err));
     }
   };
 

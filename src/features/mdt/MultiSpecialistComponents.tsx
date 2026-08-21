@@ -163,7 +163,15 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
       const contextualText = sharedSubmit ? (text + '\n\n[SYSTEM NOTE: Meanwhile, the patient has also shared this with other specialists on the board:\n' + sharedSubmit + '\nUse this to avoid redundant questions.]') : text;
       
       const displayMessage = { role: 'user', text }; // What UI shows
-      const apiMessages = compactMessages([...messages, { role: 'user', text: contextualText }]); // What API sees
+      const apiMessages = compactMessages([...messages, { role: 'user', text: contextualText }]).map((msg: any) => {
+        if (msg.role === 'ai' && msg.text && msg.text.startsWith('{')) {
+          try {
+            const parsed = JSON.parse(msg.text);
+            return { ...msg, text: parsed.response || msg.text };
+          } catch(e) {}
+        }
+        return msg;
+      }); // What API sees
       const nextMessagesState = compactMessages([...messages, displayMessage]);
       
       setMessages(nextMessagesState);

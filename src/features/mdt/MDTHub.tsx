@@ -485,7 +485,7 @@ useEffect(() => {
             safeConferenceData,
             {},
             activeCase?.medicalRecords || [],
-            isImportedFollowUp ? specialistTranscripts : undefined
+            namedTranscripts
           );
           
           // Save snapshot to CaseEngine
