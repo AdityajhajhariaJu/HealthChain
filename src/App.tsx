@@ -164,9 +164,13 @@ export default function App() {
       return;
     }
 
-    // Global Auth Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Global Auth Listener. Do not await Supabase reads from inside this
+    // callback: Supabase serializes auth events and a nested getSession() can
+    // otherwise stall sign-in or device-switch transitions.
+    let authBootstrapTimer: ReturnType<typeof setTimeout> | null = null;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+          if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
           setItemSync('isAuthenticated', 'true');
           
           if (localStorage.getItem('hc_guest_mode') === 'true') {
@@ -207,40 +211,48 @@ export default function App() {
           })
         );
         
-        // Sync user data now that they are authenticated
-        await syncProfileFromSupabase();
-        await initCaseEngine();
-        syncHealthMemoryFromSupabase().catch(console.error);
-        // Existing timeline and case summaries become durable Health Memory automatically on sign-in.
-        backfillHealthMemoryFromProfile();
-        backfillCaseHealthMemory();
-        
-        // Auto-redirect if on a public page
-        const path = window.location.pathname;
-        if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
-          const profileStr = localStorage.getItem(getProfileKey());
-          let hasCompletedOnboarding = false;
-          if (profileStr) {
-            try {
-              const profileData = JSON.parse(profileStr);
-              if (profileData.profiles && profileData.activeId) {
-                const activeProfile = profileData.profiles[profileData.activeId];
-                hasCompletedOnboarding = !!(activeProfile?.onboardingCompletedAt || activeProfile?.demographics?.onboardingCompletedAt);
-              } else {
-                hasCompletedOnboarding = !!(profileData.onboardingCompletedAt || profileData.demographics?.onboardingCompletedAt);
+        authBootstrapTimer = setTimeout(() => {
+          void (async () => {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (!currentSession || currentSession.user.id !== session.user.id) return;
+
+            // Sync user data only after the auth callback has returned.
+            await syncProfileFromSupabase();
+            await initCaseEngine();
+            syncHealthMemoryFromSupabase().catch(console.error);
+            // Existing timeline and case summaries become durable Health Memory automatically on sign-in.
+            backfillHealthMemoryFromProfile();
+            backfillCaseHealthMemory();
+
+            // Auto-redirect if on a public page.
+            const path = window.location.pathname;
+            if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
+              const profileStr = localStorage.getItem(getProfileKey());
+              let hasCompletedOnboarding = false;
+              if (profileStr) {
+                try {
+                  const profileData = JSON.parse(profileStr);
+                  if (profileData.profiles && profileData.activeId) {
+                    const activeProfile = profileData.profiles[profileData.activeId];
+                    hasCompletedOnboarding = !!(activeProfile?.onboardingCompletedAt || activeProfile?.demographics?.onboardingCompletedAt);
+                  } else {
+                    hasCompletedOnboarding = !!(profileData.onboardingCompletedAt || profileData.demographics?.onboardingCompletedAt);
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
               }
-            } catch (e) {
-              console.error(e);
+
+              if (hasCompletedOnboarding) navigate('/app', { replace: true });
+              else navigate('/onboarding', { replace: true });
             }
-          }
-          
-          if (hasCompletedOnboarding) {
-            navigate('/app', { replace: true });
-          } else {
-            navigate('/onboarding', { replace: true });
-          }
-        }
+          })().catch((error) => console.error('Authenticated bootstrap failed', error));
+        }, 0);
       } else if (event === 'SIGNED_OUT') {
+        if (authBootstrapTimer) {
+          clearTimeout(authBootstrapTimer);
+          authBootstrapTimer = null;
+        }
         try {
           const theme = localStorage.getItem('hc_theme');
           const consent = localStorage.getItem('hc_consent');
@@ -267,7 +279,10 @@ export default function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
+      subscription.unsubscribe();
+    };
   }, [navigate, info]);
 
   return (
