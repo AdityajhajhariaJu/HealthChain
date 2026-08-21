@@ -5,6 +5,7 @@ import { CaseItem, updateCaseDifferentials, updateCaseConnectionMap } from '../.
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { runDifferentialAnalysis, generateCaseConnectionMap } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getRunScope } from '../../services/RunContext';
 
 export default function DDxBoard({ item, profile }: { item: CaseItem; profile: any }) {
   const isMobile = useIsMobile();
@@ -20,14 +21,20 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
   useEffect(() => {
     if (hasAutoRun.current) return;
     const topDiagnoses = item.currentSummary?.topDiagnoses || [];
-    if (topDiagnoses.length > 0 && !item.connectionMap) {
+    const requestKey = getRunScope('mdt', item.id, 'connection-map');
+    let alreadyRequested = false;
+    try { alreadyRequested = sessionStorage.getItem(requestKey) === 'done'; } catch {}
+    if (topDiagnoses.length > 0 && !item.connectionMap && !alreadyRequested) {
       hasAutoRun.current = true;
+      try { sessionStorage.setItem(requestKey, 'pending'); } catch {}
       setIsAnalyzing(true);
       generateCaseConnectionMap(topDiagnoses).then(mapData => {
         if (mapData) {
           updateCaseConnectionMap(item.id, mapData);
+          try { sessionStorage.setItem(requestKey, 'done'); } catch {}
         }
       }).catch(console.error).finally(() => {
+        try { if (sessionStorage.getItem(requestKey) !== 'done') sessionStorage.removeItem(requestKey); } catch {}
         if (isMounted.current) setIsAnalyzing(false);
       });
     }

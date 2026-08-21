@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { BrainCircuit, User, Sparkles, ArrowRight } from 'lucide-react';
 import { chatWithMDTSpecialist } from '../../services/geminiService';
+import { getRunScope, readRunJson, writeRunJson } from '../../services/RunContext';
 
 export function StreamingMarkdown({ text, isNew, inline = false }: { text: string, isNew: boolean, inline?: boolean }) {
   const [displayed, setDisplayed] = useState(isNew ? '' : text);
@@ -32,23 +33,18 @@ export function StreamingMarkdown({ text, isNew, inline = false }: { text: strin
   return <ReactMarkdown components={inline ? { p: ({node, ...props}) => <span {...props} /> } : {}}>{displayed}</ReactMarkdown>;
 }
 
-export function useSpecialistStream(specialist: any, isRunning: boolean, isPaused: boolean, startDelay: number, onComplete: (id: string, messages: any[]) => void, allSpecialists: any[] = [], intakeData: any, activeDifferentials: any[], cachedSpecialistStreams: any) {
-  const cache = cachedSpecialistStreams[specialist.id] || (() => {
-    try {
-      const saved = sessionStorage.getItem(`hc_stream_${specialist.id}`);
-      return saved ? JSON.parse(saved) : null;
-    } catch(e) { return null; }
-  })();
+export function useSpecialistStream(specialist: any, isRunning: boolean, isPaused: boolean, startDelay: number, onComplete: (id: string, messages: any[]) => void, allSpecialists: any[] = [], intakeData: any, activeDifferentials: any[], cachedSpecialistStreams: any, workflow = 'mdt', caseId = 'draft', runId = 'session') {
+  const runScope = getRunScope(workflow as any, caseId, runId);
+  const cacheKey = `${runScope}_${specialist.id}`;
+  const cache = cachedSpecialistStreams[cacheKey] || readRunJson<any>(cacheKey);
   const [messages, setMessages] = useState<any[]>(cache?.messages || []);
   const [status, setStatus] = useState(cache?.status || 'idle'); // idle | thinking | questioning | done
   const [step, setStep] = useState(cache?.step || 0);
 
   useEffect(() => {
-    cachedSpecialistStreams[specialist.id] = { messages, status, step };
-    try {
-      sessionStorage.setItem(`hc_stream_${specialist.id}`, JSON.stringify({ messages, status, step }));
-    } catch(e) {}
-  }, [messages, status, step, specialist.id, cachedSpecialistStreams]);
+    cachedSpecialistStreams[cacheKey] = { messages, status, step };
+    writeRunJson(cacheKey, { messages, status, step });
+  }, [messages, status, step, cacheKey, cachedSpecialistStreams]);
 
   const otherSpecialists = allSpecialists
     .filter((s) => s.id !== specialist.id)
@@ -69,15 +65,18 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
   });
 
   const introStarted = useRef(false);
+  const completionSent = useRef(false);
+  const runGeneration = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const getSharedContext = () => {
       try {
         const otherDocs = allSpecialists.filter(s => s.id !== specialist.id);
         let sharedText = '';
         otherDocs.forEach(doc => {
-          const saved = sessionStorage.getItem(`hc_stream_${doc.id}`);
+          const saved = readRunJson<any>(`${runScope}_${doc.id}`);
           if (saved) {
-            const data = JSON.parse(saved);
+            const data = saved;
             if (data.messages && data.messages.length > 0) {
               const userAnswers = data.messages.filter((m: any) => m.role === 'user' && !m.hidden).map((m: any) => m.text);
               if (userAnswers.length > 0) {
@@ -92,17 +91,21 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
 
 
   useEffect(() => {
+    const generation = ++runGeneration.current;
     if (!isRunning) {
+      if (timerRef.current) clearTimeout(timerRef.current);
       setMessages([]);
       setStatus('idle');
       setStep(0);
       introStarted.current = false;
+      completionSent.current = false;
       return;
     }
     
     if (status === 'idle' && step === 0 && !isPaused && !introStarted.current) {
       introStarted.current = true;
-      setTimeout(async () => {
+      timerRef.current = setTimeout(async () => {
+        if (generation !== runGeneration.current || !isRunning) return;
         setStatus('thinking');
         
         // Trigger the AI to generate a highly specific first question based on intake
@@ -116,14 +119,16 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
         
         try {
           const response = await chatWithMDTSpecialist(initialArray, specialist, allSpecialists, intakeData, activeDifferentials);
+          if (generation !== runGeneration.current) return;
           if (response.includes('ANALYSIS_COMPLETE')) {
             setStatus('done');
-            if (onComplete) onComplete(specialist.id, initialArray);
+            if (onComplete && !completionSent.current) { completionSent.current = true; onComplete(specialist.id, initialArray); }
           } else {
             setMessages([triggerMessage, { role: 'ai', text: response }]);
             setStatus('questioning');
           }
         } catch (err) {
+          if (generation !== runGeneration.current) return;
           console.error('Failed to fetch initial AI response:', err);
           // Fallback to generic hardcoded greeting
           setMessages([{ role: 'ai', text: introQuestion }]);
@@ -131,10 +136,11 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
         }
       }, startDelay);
     }
-  }, [isRunning, isPaused, status, step, startDelay]);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [isRunning, isPaused, startDelay, runScope, specialist.id]);
 
   const submitAnswer = async (text: string) => {
-      if (status !== 'questioning') return;
+      if (status !== 'questioning' || !isRunning || isPaused) return;
       
       const sharedSubmit = getSharedContext();
       const contextualText = sharedSubmit ? (text + '\n\n[SYSTEM NOTE: Meanwhile, the patient has also shared this with other specialists on the board:\n' + sharedSubmit + '\nUse this to avoid redundant questions.]') : text;
@@ -151,7 +157,7 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
         const response = await chatWithMDTSpecialist(apiMessages, specialist, allSpecialists, intakeData, activeDifferentials);
         if (response.includes('ANALYSIS_COMPLETE')) {
           setStatus('done');
-          if (onComplete) onComplete(specialist.id, [...nextMessagesState, { role: 'ai', text: response }]);
+          if (onComplete && !completionSent.current) { completionSent.current = true; onComplete(specialist.id, [...nextMessagesState, { role: 'ai', text: response }]); }
         } else {
           setMessages((prev) => [...prev, { role: 'ai', text: response }]);
           setStatus('questioning');
@@ -171,7 +177,7 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
   return { messages, status, submitAnswer };
 }
 
-export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, allSpecialists, intakeData, activeDifferentials, cachedSpecialistStreams }) {
+export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, allSpecialists, intakeData, activeDifferentials, cachedSpecialistStreams, workflow = 'mdt', caseId = 'draft', runId = 'session' }) {
   const startDelay = index * 400;
   const { messages, status, submitAnswer } = useSpecialistStream(
     specialist,
@@ -182,7 +188,10 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
     allSpecialists,
     intakeData,
     activeDifferentials,
-    cachedSpecialistStreams
+    cachedSpecialistStreams,
+    workflow,
+    caseId,
+    runId
   );
   const containerRef = useRef<any>(null);
   const inputRef = useRef<any>(null);

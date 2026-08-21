@@ -21,24 +21,28 @@ import { generateCaseConnectionMap } from '../../services/geminiService';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
+import { getRunScope, clearRunStorage } from '../../services/RunContext';
 
 const cachedQuickConsultStreams: any = {};
+const quickPhaseKey = getRunScope('quick-consult', 'draft', 'phase');
+const quickSpecialistKey = getRunScope('quick-consult', 'draft', 'specialist');
+const quickCaseKey = getRunScope('quick-consult', 'draft', 'case');
 
 export default function QuickConsult() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [phase, setPhase] = useState<'select' | 'upload' | 'chat' | 'compiling' | 'done'>(() => {
-    return (sessionStorage.getItem('hc_qc_phase') as any) || 'select';
+    return (sessionStorage.getItem(quickPhaseKey) as any) || 'select';
   });
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(() => {
-    const savedId = sessionStorage.getItem('hc_qc_specialist');
+    const savedId = sessionStorage.getItem(quickSpecialistKey);
     return savedId ? ALL_SPECIALISTS.find(s => s.id === savedId) || null : null;
   });
   const [symptomInput, setSymptomInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [finalTranscripts, setFinalTranscripts] = useState<any>({});
   const [activeCase, setActiveCase] = useState<any>(() => {
-    const saved = sessionStorage.getItem('hc_qc_case');
+    const saved = sessionStorage.getItem(quickCaseKey);
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -53,18 +57,16 @@ export default function QuickConsult() {
     }
     
     // Wipe all stream caches so we don't hallucinate past consultations
-    Object.keys(sessionStorage).forEach(key => {
-      if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
-    });
+    clearRunStorage('quick-consult');
 
     setPhase('select');
     setSelectedSpecialist(null);
     setSymptomInput('');
     setFinalTranscripts({});
     setActiveCase(null);
-    sessionStorage.removeItem('hc_qc_phase');
-    sessionStorage.removeItem('hc_qc_specialist');
-    sessionStorage.removeItem('hc_qc_case');
+    sessionStorage.removeItem(quickPhaseKey);
+    sessionStorage.removeItem(quickSpecialistKey);
+    sessionStorage.removeItem(quickCaseKey);
   };
 
   useEffect(() => {
@@ -75,14 +77,14 @@ export default function QuickConsult() {
     }
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => { sessionStorage.setItem('hc_qc_phase', phase); }, [phase]);
+  useEffect(() => { sessionStorage.setItem(quickPhaseKey, phase); }, [phase]);
   useEffect(() => {
-    if (selectedSpecialist) sessionStorage.setItem('hc_qc_specialist', selectedSpecialist.id);
-    else sessionStorage.removeItem('hc_qc_specialist');
+    if (selectedSpecialist) sessionStorage.setItem(quickSpecialistKey, selectedSpecialist.id);
+    else sessionStorage.removeItem(quickSpecialistKey);
   }, [selectedSpecialist]);
   useEffect(() => {
-    if (activeCase) sessionStorage.setItem('hc_qc_case', JSON.stringify(activeCase));
-    else sessionStorage.removeItem('hc_qc_case');
+    if (activeCase) sessionStorage.setItem(quickCaseKey, JSON.stringify(activeCase));
+    else sessionStorage.removeItem(quickCaseKey);
   }, [activeCase]);
 
   const filteredSpecialists = ALL_SPECIALISTS.filter((s) =>
@@ -625,6 +627,9 @@ export default function QuickConsult() {
                 intakeData={{ chiefComplaint: symptomInput }}
                 activeDifferentials={[]}
                 cachedSpecialistStreams={cachedQuickConsultStreams}
+                workflow="quick-consult"
+                caseId={activeCase?.id || 'draft'}
+                runId={sessionStorage.getItem('hc_qc_run_id') || 'session'}
               />
             </div>
           </motion.div>

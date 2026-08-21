@@ -52,12 +52,18 @@ import { createCaseDraft, getActiveCase, saveReviewSnapshot } from '../../servic
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel, SpecialistPill } from './MultiSpecialistComponents';
+import { getRunScope, readRunJson, clearRunStorage } from '../../services/RunContext';
 
 // Global cache
 let cachedMultiSpecialistState: any = null;
 try {
-  const saved = sessionStorage.getItem('hc_mdt_state');
-  if (saved) cachedMultiSpecialistState = JSON.parse(saved);
+  const saved = sessionStorage.getItem(getRunScope('parallel', 'draft', 'ui'));
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    // Only a selection draft is safe to restore. Never restore a running or
+    // completed AI workflow from a browser/native process restart.
+    if (parsed?.phase === 'select') cachedMultiSpecialistState = parsed;
+  }
 } catch (e) {}
 
 const cachedSpecialistStreams: any = {};
@@ -102,9 +108,15 @@ export default function MultiSpecialist() {
     const stateObj = {
       phase, selected, activeSpecialistId, symptomInput, activeCategory, customSpecialists, completedSpecialists, aiSuggestion, workingCaseId
     };
-    cachedMultiSpecialistState = stateObj;
     try {
-      sessionStorage.setItem('hc_mdt_state', JSON.stringify(stateObj));
+      const key = getRunScope('parallel', 'draft', 'ui');
+      if (phase === 'select') {
+        cachedMultiSpecialistState = stateObj;
+        sessionStorage.setItem(key, JSON.stringify(stateObj));
+      } else {
+        cachedMultiSpecialistState = null;
+        sessionStorage.removeItem(key);
+      }
     } catch(e) {}
   }, [phase, selected, activeSpecialistId, symptomInput, activeCategory, customSpecialists, completedSpecialists, aiSuggestion, workingCaseId]);
 
@@ -124,26 +136,6 @@ export default function MultiSpecialist() {
     }
   }, [phase, selected.length]);
 
-  // Restore from active case if we have a finished parallel review and no cache
-  useEffect(() => {
-    if (!cachedMultiSpecialistState && phase === 'select' && activeCase && activeCase.reviews) {
-      const latestParallel = [...activeCase.reviews].reverse().find((r: any) => r.type === 'parallel');
-      if (latestParallel && latestParallel.report) {
-        setFinalReport(latestParallel.report);
-        setSpecialistTranscripts(latestParallel.transcripts || {});
-        
-        // Match labels to IDs
-        const labels = latestParallel.specialists || [];
-        const matchedIds = ALL_SPECIALISTS.filter(s => labels.includes(s.label)).map(s => s.id);
-        
-        // If there are custom specialists, they won't be in ALL_SPECIALISTS.
-        // We would need to recreate them, but for now we match standard ones.
-        setSelected(matchedIds);
-        setPhase('report');
-      }
-    }
-  }, [activeCase]);
-
   useEffect(() => {
     const refresh = () => setActiveCase(getActiveCase());
     window.addEventListener('hc_active_case_updated', refresh);
@@ -156,16 +148,7 @@ export default function MultiSpecialist() {
 
   useEffect(() => {
     return () => {
-      cachedMultiSpecialistState = {
-        phase,
-        selected,
-        symptomInput,
-        activeCategory,
-        customSpecialists,
-        completedSpecialists,
-        activeSpecialistId,
-        aiSuggestion,
-      };
+      cachedMultiSpecialistState = null;
     };
   }, [
     phase,
@@ -185,7 +168,8 @@ export default function MultiSpecialist() {
     // Harvest the latest messages from the global cache for all selected specialists
     const currentTranscripts: any = {};
     selected.forEach((sId) => {
-      currentTranscripts[sId] = cachedSpecialistStreams[sId]?.messages || [];
+      const scopedKey = `${getRunScope('parallel', activeCase?.id || 'draft', 'session')}_${sId}`;
+      currentTranscripts[sId] = cachedSpecialistStreams[scopedKey]?.messages || readRunJson<any>(scopedKey)?.messages || [];
     });
     setSpecialistTranscripts(currentTranscripts);
 
@@ -214,6 +198,7 @@ export default function MultiSpecialist() {
     setFinalReport(null);
     setActiveSpecialistId(null);
     Object.keys(cachedSpecialistStreams).forEach((key) => delete cachedSpecialistStreams[key]);
+    clearRunStorage('parallel', activeCase?.id);
   };
 
   // Ensure active specialist is always valid
@@ -1020,6 +1005,9 @@ export default function MultiSpecialist() {
                     intakeData={{ chiefComplaint: caseTitle || symptomInput || activeCase?.title || 'Custom multi-specialist review', sharedCaseMaterial: (activeCase as any)?.sharedCaseMaterial }}
                     activeDifferentials={activeCase?.differentials || []}
                     cachedSpecialistStreams={cachedSpecialistStreams}
+                    workflow="parallel"
+                    caseId={activeCase?.id || 'draft'}
+                    runId="session"
                   />
                 </div>
               ))}

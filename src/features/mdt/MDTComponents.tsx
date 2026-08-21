@@ -1282,6 +1282,7 @@ export function MDTConferencePanel({
   }, [isDebating]);
 
   useEffect(() => {
+    let cancelled = false;
     const runDebate = async () => {
       const cleanTranscripts = {};
       Object.keys(specialistTranscripts).forEach((id) => {
@@ -1292,6 +1293,7 @@ export function MDTConferencePanel({
       });
 
       const results = await runMDTConference(intakeData, cleanTranscripts, medicalRecords);
+      if (cancelled) return;
       const safeResults = results || {
         corroborations: [
           'The available case context should be reviewed together with any future clinical records.',
@@ -1305,13 +1307,23 @@ export function MDTConferencePanel({
           'The collaborative board case has been organised, but the current information is still evidence-light. Add clinical records and use the follow-up questions to make the next clinician conversation more focused.',
       };
 
-      setTimeout(() => {
+      const safeTimer = setTimeout(() => {
+        if (cancelled) return;
         setConferenceData(safeResults);
         setIsDebating(false);
-      }, 9500);
+      }, 250);
+      return () => clearTimeout(safeTimer);
     };
 
-    runDebate();
+    let cleanup: (() => void) | undefined;
+    runDebate().then((fn) => { cleanup = fn; }).catch((error) => {
+      if (!cancelled) {
+        console.error('MDT conference failed', error);
+        setConferenceData(null);
+        setIsDebating(false);
+      }
+    });
+    return () => { cancelled = true; cleanup?.(); };
   }, [intakeData, selectedSpecialists, specialistTranscripts]);
 
   if (isDebating || !conferenceData) {

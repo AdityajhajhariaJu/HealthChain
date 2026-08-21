@@ -2,21 +2,25 @@ import { create } from 'zustand';
 import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
 import { get, set, del } from 'idb-keyval';
 import { getItemSync, setItemSync, removeItemSync } from '../services/storage';
+import { getAccountScope } from '../services/RunContext';
+
+const scopedKey = (name: string) => `${name}_${getAccountScope()}`;
 
 const idbStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
     try {
-      const val = await get(name);
+      const key = scopedKey(name);
+      const val = await get(key);
       if (val !== undefined && val !== null) return typeof val === 'string' ? val : JSON.stringify(val);
-      return getItemSync(name);
-    } catch (e) { return getItemSync(name); }
+      return getItemSync(key);
+    } catch (e) { return getItemSync(scopedKey(name)); }
   },
   setItem: async (name: string, value: string): Promise<void> => {
-    try { await set(name, value); } catch (e) { try { setItemSync(name, value); } catch (e2) {} }
+    try { await set(scopedKey(name), value); } catch (e) { try { setItemSync(scopedKey(name), value); } catch (e2) {} }
   },
   removeItem: async (name: string): Promise<void> => {
-    try { await del(name); } catch (e) {}
-    try { removeItemSync(name); } catch (e2) {}
+    try { await del(scopedKey(name)); } catch (e) {}
+    try { removeItemSync(scopedKey(name)); } catch (e2) {}
   },
 };
 
@@ -73,13 +77,22 @@ export const useMDTStore = create<MDTState>()(
     {
       name: 'hc_mdt_session',
       storage: createJSONStorage(() => idbStorage),
-      partialize: (state) => ({ 
-        phase: state.phase,
+      // Only preserve the harmless intake draft and selected dashboard tab.
+      // Running phases and AI transcripts must never resurrect after a reload,
+      // account switch, or an interrupted request.
+      partialize: (state) => ({
+        phase: 'intake' as MDTPhase,
         dashboardTab: state.dashboardTab,
         intakeData: state.intakeData,
-        selectedSpecialists: state.selectedSpecialists,
-        specialistTranscripts: state.specialistTranscripts
-      }) // Omit transient UI states like isSelecting
+        selectedSpecialists: [],
+        specialistTranscripts: {}
+      })
     }
   )
 );
+
+export async function clearPersistedMDTSession() {
+  const key = scopedKey('hc_mdt_session');
+  try { await del(key); } catch {}
+  try { removeItemSync(key); } catch {}
+}

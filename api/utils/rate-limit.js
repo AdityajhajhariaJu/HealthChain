@@ -11,17 +11,18 @@ const rateLimitCache = new Map();
  * @param {number} windowMs - Time window in milliseconds
  * @returns {boolean} True if allowed, false if rate limited
  */
-export function checkRateLimit(req, limit = 10, windowMs = 60000) {
+export function checkRateLimit(req, limit = 10, windowMs = 60000, identity) {
   // Try to get IP from Vercel headers, fallback to socket
   const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+  const key = identity ? `${identity}:${ip}` : ip;
   const now = Date.now();
   
-  if (!rateLimitCache.has(ip)) {
-    rateLimitCache.set(ip, { count: 1, resetTime: now + windowMs });
+  if (!rateLimitCache.has(key)) {
+    rateLimitCache.set(key, { count: 1, resetTime: now + windowMs });
     return true;
   }
   
-  const record = rateLimitCache.get(ip);
+  const record = rateLimitCache.get(key);
   
   // If the time window has passed, reset the count
   if (now > record.resetTime) {

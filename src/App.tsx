@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabaseClient';
 import { setItemSync } from './services/storage';
+import { clearPersistedMDTSession } from './stores/useMDTStore';
 
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
@@ -86,6 +87,9 @@ export default function App() {
     const handleLogout = async () => {
       try {
         const idb = await import('idb-keyval');
+        await clearPersistedMDTSession();
+        // Remove the pre-scoping key left by older builds. This is a one-time
+        // migration cleanup and prevents an old account's draft being revived.
         await idb.del('hc_mdt_session');
       } catch (e) {}
       

@@ -13,16 +13,13 @@ const ALLOWED_ORIGINS = [
 ];
 
 export default async function handler(req, res) {
-  if (!checkRateLimit(req, 15, 60000)) {
-    return res.status(429).json({ error: 'Too many requests' });
-  }
-
   const origin = req.headers.origin;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-HC-Request-Id, X-HC-Operation');
+  res.setHeader('Cache-Control', 'no-store');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -34,7 +31,7 @@ export default async function handler(req, res) {
 
   const authHeader = req.headers.authorization;
 
-  let isAuthorized = false;
+  let userId = null;
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
@@ -45,7 +42,7 @@ export default async function handler(req, res) {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         const { data: { user }, error } = await supabase.auth.getUser(token);
         if (!error && user) {
-          isAuthorized = true;
+          userId = user.id;
         }
       } catch (e) {
         console.warn('Token validation error:', e);
@@ -53,20 +50,23 @@ export default async function handler(req, res) {
     }
   }
 
-  // Also allow requests in local dev if no auth configured
-  if (!isAuthorized && process.env.NODE_ENV === 'development') {
-    isAuthorized = true;
+  // Development can use a local proxy without Supabase, but production AI
+  // processing must always be attributable to an authenticated account.
+  if (!userId && process.env.NODE_ENV !== 'development') {
+    return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
   }
 
-  // Frontend explicitly allows up to 3 messages for Guest users. 
-  // We bypass the strict 401 block here so guests can actually test Ava.
-  // Note: For strict production security, guest limits should ideally be tracked by IP in Redis.
-  if (!isAuthorized && process.env.NODE_ENV === 'production') {
-    // return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
-    isAuthorized = true;
+  if (!checkRateLimit(req, 30, 60000)) return res.status(429).json({ error: 'Too many requests' });
+  if (userId && !checkRateLimit(req, 12, 60000, userId)) {
+    return res.status(429).json({ error: 'Too many AI requests for this account. Please try again shortly.' });
   }
 
-  const API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const requestId = req.headers['x-hc-request-id'];
+  if (!requestId || !/^[a-zA-Z0-9._:-]{8,120}$/.test(String(requestId))) {
+    return res.status(400).json({ error: 'Missing or invalid request id' });
+  }
+
+  const API_KEY = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === 'development' ? process.env.VITE_GEMINI_API_KEY : '');
   if (!API_KEY) {
     return res.status(500).json({ error: 'API key not configured on server' });
   }
@@ -75,7 +75,12 @@ export default async function handler(req, res) {
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
   try {
+    const contentLength = Number(req.headers['content-length'] || 0);
+    if (contentLength > 250000) return res.status(413).json({ error: 'AI request is too large' });
     const bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    if (!bodyPayload || typeof bodyPayload !== 'object') {
+      return res.status(400).json({ error: 'Invalid AI request body' });
+    }
 
     const response = await fetch(API_URL, {
       method: 'POST',

@@ -14,8 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { MDTReportPanel } from './MDTComponents';
 import { SpecialistPanel } from './MultiSpecialistComponents';
-import { saveReviewSnapshot, updateCaseDifferentials, setActiveCase } from '../../services/CaseEngine';
-import { runDifferentialAnalysis } from '../../services/geminiService';
+import { saveReviewSnapshot, setActiveCase } from '../../services/CaseEngine';
 
 const cachedMDTSpecialistStreams: any = {};
 
@@ -147,6 +146,9 @@ export function MDTHubDashboard({
                     intakeData={intakeData}
                     activeDifferentials={activeCase?.differentials || []}
                     cachedSpecialistStreams={cachedMDTSpecialistStreams}
+                    workflow="mdt"
+                    caseId={activeCase?.id || 'draft'}
+                    runId={activeCase?.updatedAt || 'session'}
                   />
                 </div>
               </div>
@@ -169,18 +171,6 @@ export function MDTHubDashboard({
               specialists: selectedSpecialists.map((s) => s.label),
               caseId: activeCase?.id || '',
             });
-
-            if (activeCase?.id) {
-              try {
-                const { getProfile } = await import('../../services/ProfileEngine');
-                const results = await runDifferentialAnalysis(intakeData, reviewRecords, getProfile());
-                if (results && Array.isArray(results)) {
-                  updateCaseDifferentials(activeCase.id, results);
-                }
-              } catch (e) {
-                console.error('Failed auto DDx:', e);
-              }
-            }
           }}
           onRestart={() => {
               // 1. Wipe the module-level stream cache to prevent infinite compiling loops

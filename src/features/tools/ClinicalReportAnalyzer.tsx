@@ -18,8 +18,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { getRunScope } from '../../services/RunContext';
 
-let cachedReportAnalyzerState: any = null;
+const cachedReportAnalyzerState: Record<string, any> = {};
 
 const exampleResult = {
   testName: 'MRI Cervical Dorsal Spine with Whole Spine Screening',
@@ -64,18 +65,21 @@ export default function ClinicalReportAnalyzer() {
   const location = useLocation();
   const activeCase = getActiveCase();
   const returnTo = new URLSearchParams(location.search).get('returnTo');
-  const [file, setFile] = useState(cachedReportAnalyzerState?.file || null);
-  const [loading, setLoading] = useState(cachedReportAnalyzerState?.loading || false);
-  const [result, setResult] = useState(cachedReportAnalyzerState?.result || null);
+  const reportCacheKey = getRunScope('lab', 'draft', 'ui');
+  const cached = cachedReportAnalyzerState[reportCacheKey];
+  const [file, setFile] = useState(cached?.file || null);
+  const [loading, setLoading] = useState(cached?.loading || false);
+  const [result, setResult] = useState(cached?.result || null);
   const fileInputRef = useRef<any>(null);
 
   useEffect(() => {
     return () => {
-      cachedReportAnalyzerState = { file, loading: false, result };
+      cachedReportAnalyzerState[reportCacheKey] = { file, loading: false, result };
     };
-  }, [file, loading, result]);
+  }, [file, loading, result, reportCacheKey]);
 
   const handleFileChange = async (e) => {
+    if (loading) return;
     if (localStorage.getItem('isAuthenticated') !== 'true') {
       const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10) || 0;
       if (currentCount >= 3) {
@@ -186,6 +190,7 @@ export default function ClinicalReportAnalyzer() {
   };
 
   const captureLabReport = async () => {
+    if (loading) return;
     try {
       const photo = await Camera.getPhoto({
         quality: 90,
@@ -252,20 +257,6 @@ export default function ClinicalReportAnalyzer() {
   };
 
   const handleDrop = (e: any) => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
-      const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10) || 0;
-      if (currentCount >= 3) {
-        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-          detail: { 
-            title: 'Guest Limit Reached', 
-            message: 'You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.' 
-          } 
-        }));
-        return;
-      }
-      try { localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString()); } catch(e) {}
-    }
-
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       if (fileInputRef.current) {
