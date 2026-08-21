@@ -39,7 +39,7 @@ import {
   generateDieticianAdvice,
 } from '../../services/geminiService';
 import { addEvent, addNutritionLog, getProfileKey } from '../../services/ProfileEngine';
-import { recordHealthMemory } from '../../services/HealthMemory';
+import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -115,30 +115,41 @@ export default function Dietician() {
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
-  // Load state from local storage on mount
+  // Load the fast local copy first, then hydrate missing diet state from the
+  // durable Health Memory ledger after sign-in/reinstall. Ava chat is
+  // intentionally not part of this recovery path.
   useEffect(() => {
-    try {
-      const savedProfile = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
-      if (savedProfile) {
-        let p = JSON.parse(savedProfile);
-        p = { ...p, ...calculateTargets(p) }; // Force recalculation to apply new algorithms
-        setProfile(p);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const profileKey = getProfileKey();
+        const savedProfile = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
+        const savedLogs = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+        const savedHydration = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+        const savedPlan = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+        const savedAdvice = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+
+        if (savedProfile) setProfile({ ...JSON.parse(savedProfile), ...calculateTargets(JSON.parse(savedProfile)) });
+        if (savedLogs) setFoodLogs(JSON.parse(savedLogs));
+        if (savedHydration) setHydration(JSON.parse(savedHydration));
+        if (savedPlan) setMealPlan(JSON.parse(savedPlan));
+        if (savedAdvice) setAdvice(savedAdvice);
+
+        await syncHealthMemoryFromSupabase();
+        if (cancelled || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;
+        const snapshot = getLatestHealthMemory('diet', 'dietician')?.payload?.state;
+        if (!snapshot) return;
+        if (snapshot.profile) setProfile({ ...snapshot.profile, ...calculateTargets(snapshot.profile) });
+        if (snapshot.foodLogs) setFoodLogs(snapshot.foodLogs);
+        if (snapshot.hydration) setHydration(snapshot.hydration);
+        if (snapshot.mealPlan) setMealPlan(snapshot.mealPlan);
+        if (snapshot.advice) setAdvice(snapshot.advice);
+      } catch (e) {
+        console.error('Failed to restore diet state:', e);
       }
-
-      const savedLogs = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'));
-      if (savedLogs) setFoodLogs(JSON.parse(savedLogs));
-
-      const savedHydration = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'));
-      if (savedHydration) setHydration(JSON.parse(savedHydration));
-
-      const savedPlan = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'));
-      if (savedPlan) setMealPlan(JSON.parse(savedPlan));
-
-      const savedAdvice = localStorage.getItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'));
-      if (savedAdvice) setAdvice(savedAdvice);
-    } catch (e) {
-      console.error(e);
-    }
+    };
+    void load();
+    return () => { cancelled = true; };
   }, []);
 
   // Save state to local storage when it changes
@@ -181,6 +192,25 @@ export default function Dietician() {
       dedupeKey: `diet-day:${currentDate}`,
     });
   }, [profile, foodLogs, hydration, mealPlan, currentDate]);
+
+  // One compact, deduplicated recovery snapshot makes the user's structured
+  // diet state available after browser/app reinstall without storing source
+  // documents. Keep the log window bounded; individual day entries remain in
+  // Health Memory as they are used.
+  useEffect(() => {
+    if (!profile) return;
+    const dates = Object.keys(foodLogs).sort().slice(-180);
+    const boundedLogs = dates.reduce<Record<string, any[]>>((result, date) => {
+      result[date] = foodLogs[date];
+      return result;
+    }, {});
+    recordHealthMemory({
+      kind: 'diet', source: 'dietician', title: 'Diet workspace snapshot',
+      occurredAt: new Date().toISOString(),
+      payload: { state: { profile, foodLogs: boundedLogs, hydration, mealPlan, advice } },
+      dedupeKey: 'diet-state-snapshot',
+    });
+  }, [profile, foodLogs, hydration, mealPlan, advice]);
 
   const adviceFetched = useRef(false);
   const isMounted = useRef(true);

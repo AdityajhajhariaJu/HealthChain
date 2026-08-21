@@ -68,6 +68,10 @@ export function getHealthMemory(): HealthMemoryItem[] {
   try { return JSON.parse(getItemSync(storageKey()) || '[]'); } catch { return []; }
 }
 
+export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string): HealthMemoryItem | undefined {
+  return getHealthMemory().find((item) => item.kind === kind && (!source || item.source === source));
+}
+
 function writeLocal(items: HealthMemoryItem[]) {
   setItemSync(storageKey(), JSON.stringify(items.slice(0, 3000)));
   window.dispatchEvent(new Event('hc_health_memory_updated'));
