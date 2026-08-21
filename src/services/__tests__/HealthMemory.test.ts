@@ -1,16 +1,17 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { enqueueSync, upsert } = vi.hoisted(() => ({
+const { enqueueSync, upsert, from } = vi.hoisted(() => ({
   enqueueSync: vi.fn(async () => undefined),
   upsert: vi.fn(async () => ({ error: { code: 'PGRST205' } })),
+  from: vi.fn(),
 }));
 
 vi.mock('../SyncOutbox', () => ({ enqueueSync }));
 vi.mock('../supabaseClient', () => ({
   supabase: {
     auth: { getSession: vi.fn(async () => ({ data: { session: { user: { id: 'user-1' } } } })) },
-    from: vi.fn(() => ({ upsert })),
+    from,
   },
 }));
 
@@ -20,6 +21,8 @@ describe('HealthMemory durability', () => {
   beforeEach(() => {
     enqueueSync.mockClear();
     upsert.mockClear();
+    from.mockReset();
+    from.mockReturnValue({ upsert });
     window.localStorage.clear();
     window.localStorage.setItem('hc_account', JSON.stringify({ id: 'user-1' }));
   });
@@ -41,5 +44,32 @@ describe('HealthMemory durability', () => {
       'user-1',
       expect.objectContaining({ id: item.id, payload: item.payload }),
     );
+  });
+
+  it('hydrates long histories in bounded pages', async () => {
+    const { syncHealthMemoryFromSupabase } = await import('../HealthMemory');
+    const rows = Array.from({ length: 501 }, (_, index) => ({
+      id: `memory-${index}`,
+      profile_id: 'profile_1',
+      kind: 'quick_consult',
+      source: 'quick_consult',
+      title: `Memory ${index}`,
+      occurred_at: new Date(2026, 0, 1, 0, index).toISOString(),
+      created_at: new Date(2026, 0, 1, 0, index).toISOString(),
+      updated_at: new Date(2026, 0, 1, 0, index).toISOString(),
+      payload: { index },
+    }));
+    const query = {
+      select: vi.fn(() => query),
+      eq: vi.fn(() => query),
+      order: vi.fn(() => query),
+      range: vi.fn(async (start: number) => ({ data: rows.slice(start, start + 500), error: null })),
+    };
+    from.mockReturnValue(query);
+
+    await syncHealthMemoryFromSupabase();
+
+    expect(query.range).toHaveBeenNthCalledWith(1, 0, 499);
+    expect(query.range).toHaveBeenNthCalledWith(2, 500, 999);
   });
 });

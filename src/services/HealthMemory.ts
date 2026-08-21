@@ -159,18 +159,31 @@ export function recordHealthMemory(input: Omit<HealthMemoryItem, 'id' | 'profile
 export async function syncHealthMemoryFromSupabase() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return;
-  const { data, error } = await supabase.from('health_memory')
-    .select('*').eq('user_id', session.user.id).eq('profile_id', profileId()).order('occurred_at', { ascending: false });
-  if (error) {
-    if (isSchemaUnavailable(error)) {
-      // Existing local items are already queued when created. Do not mark the
-      // module permanently unavailable: once the migration is applied, the
-      // normal outbox retry can deliver them without requiring a reload.
-      return;
+  const pageSize = 500;
+  const rows: any[] = [];
+  let page = 0;
+  while (true) {
+    const { data, error } = await supabase.from('health_memory')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('profile_id', profileId())
+      .order('occurred_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    if (error) {
+      if (isSchemaUnavailable(error)) {
+        // Existing local items are already queued when created. Do not mark
+        // the module permanently unavailable: once the migration is applied,
+        // the normal outbox retry can deliver them without a reload.
+        return;
+      }
+      throw error;
     }
-    throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+    page += 1;
   }
-  const remote = (data || []).map((row: any): HealthMemoryItem => ({
+
+  const remote = rows.map((row: any): HealthMemoryItem => ({
     id: row.id, profileId: row.profile_id, kind: row.kind, source: row.source, title: row.title,
     occurredAt: row.occurred_at, payload: row.payload || {}, caseId: row.case_id || undefined,
     dedupeKey: row.dedupe_key || undefined, createdAt: row.created_at, updatedAt: row.updated_at,
