@@ -476,9 +476,9 @@ useEffect(() => {
           const report = await generateMDTReport(intakeData, safeConferenceData, {}, activeCase?.medicalRecords || []);
           
           const elapsed = Date.now() - startTime;
-            if (elapsed < 3000) {
-              await new Promise(resolve => setTimeout(resolve, 3000 - elapsed));
-            }
+          if (elapsed < 15000) {
+            await new Promise(resolve => setTimeout(resolve, 15000 - elapsed));
+          }
 
           // Save snapshot to CaseEngine
           saveReviewSnapshot({
@@ -504,9 +504,9 @@ useEffect(() => {
         } catch (e) {
           console.error('Failed to generate MDT report', e);
           const elapsed = Date.now() - startTime;
-            if (elapsed < 3000) {
-              await new Promise(resolve => setTimeout(resolve, 3000 - elapsed));
-            }
+          if (elapsed < 15000) {
+            await new Promise(resolve => setTimeout(resolve, 15000 - elapsed));
+          }
           setHistoryReport({
             executiveSummary: 'Based on the multi-disciplinary review of your symptoms and recent discussion, the board has identified some strong diagnostic pathways.',
             topDiagnoses: [],
