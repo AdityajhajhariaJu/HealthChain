@@ -34,7 +34,13 @@ async function readQueue(userId: string): Promise<OutboxEntry[]> {
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
   const key = currentUserKey(userId);
   const bounded = queue.slice(-500);
-  try { await set(key, bounded); } catch {}
+  // Keep sensitive queued payloads in IndexedDB when available. Only use the
+  // localStorage copy as a compatibility fallback for environments without
+  // IndexedDB (older WebViews/private browsing).
+  try {
+    await set(key, bounded);
+    return;
+  } catch {}
   try { setItemSync(key, JSON.stringify(bounded)); } catch {}
 }
 
@@ -79,6 +85,7 @@ export async function flushSyncOutbox(userId?: string) {
     const { data: { session } } = await supabase.auth.getSession();
     const accountId = userId || session?.user?.id;
     if (!accountId) return;
+    if (userId && session?.user?.id && userId !== session.user.id) return;
     const queue = await readQueue(accountId);
     if (!queue.length) return;
     const remaining: OutboxEntry[] = [];
