@@ -461,8 +461,18 @@ useEffect(() => {
             namedTranscripts[specName] = specialistTranscripts[specId] || [];
           });
 
-          // Run backend synthesis
-          const conferenceData = await runMDTConference(intakeData, namedTranscripts, activeCase?.medicalRecords || []);
+          // An imported follow-up intentionally uses one targeted specialist.
+          // Do not spend another model call on a one-member "conference" or
+          // rerun a differential that the follow-up report will already frame.
+          const isImportedFollowUp = Boolean((intakeData as any).importedCaseId);
+          const conferenceData = isImportedFollowUp
+            ? {
+                corroborations: [],
+                contentions: [],
+                followUpQuestions: [],
+                debateSummary: 'Targeted follow-up perspective based on the prior case and the patient’s new information.'
+              }
+            : await runMDTConference(intakeData, namedTranscripts, activeCase?.medicalRecords || []);
           const safeConferenceData = conferenceData || {
             corroborations: [],
             contentions: [],
@@ -484,7 +494,7 @@ useEffect(() => {
             basedOnReviewIds: (intakeData as any).importedReviewId ? [(intakeData as any).importedReviewId] : [],
           });
 
-          if (activeCase?.id) {
+          if (activeCase?.id && !isImportedFollowUp) {
             try {
               const results = await runDifferentialAnalysis(intakeData, activeCase.medicalRecords || [], getProfile());
               if (results && Array.isArray(results)) {

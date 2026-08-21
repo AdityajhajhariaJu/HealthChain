@@ -179,8 +179,7 @@ export default function QuickConsult() {
       let reportData: any = {
         executiveSummary: "Assessment completed by " + (selectedSpecialist?.label || 'Specialist'),
         topDiagnoses: [],
-        recommendedActionPlan: [],
-        fullTranscript: messages
+        recommendedActionPlan: []
       };
       
       try {
