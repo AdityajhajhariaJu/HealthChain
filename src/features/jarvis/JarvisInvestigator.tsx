@@ -8,6 +8,7 @@ import {
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
 import { createCaseDraft, saveReviewSnapshot, getActiveCase } from '../../services/CaseEngine';
+import { getActiveSession } from '../../services/authSession';
 import { getProfile } from '../../services/ProfileEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
@@ -79,6 +80,17 @@ export default function JarvisInvestigator() {
 
   const handleAnalyze = async () => {
     if (!history.trim() && files.length === 0) return;
+
+    if (!(await getActiveSession())) {
+      window.dispatchEvent(new CustomEvent('hc_require_auth', {
+        detail: {
+          title: 'Authentication Required',
+          message: 'You need to log in or sign up to run a J.A.R.V.I.S. data engine investigation.'
+        }
+      }));
+      return;
+    }
+
     setPhase('analyzing');
     
     // Explicitly map base64 data to ensure no DOM elements or cyclic refs are passed
@@ -367,5 +379,6 @@ export default function JarvisInvestigator() {
     </div>
   );
 }
+
 
 
