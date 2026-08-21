@@ -25,38 +25,40 @@ import { getRunScope, clearRunStorage, makeRunId } from '../../services/RunConte
 import { getActiveSession } from '../../services/authSession';
 
 const cachedQuickConsultStreams: any = {};
-const quickPhaseKey = getRunScope('quick-consult', 'draft', 'phase');
-const quickSpecialistKey = getRunScope('quick-consult', 'draft', 'specialist');
-const quickCaseKey = getRunScope('quick-consult', 'draft', 'case');
-const quickRunIdKey = getRunScope('quick-consult', 'draft', 'run-id');
+// Resolve these at use-time rather than module import so a profile/account
+// switch cannot reuse the previous user's transient consultation draft.
+const getQuickPhaseKey = () => getRunScope('quick-consult', 'draft', 'phase');
+const getQuickSpecialistKey = () => getRunScope('quick-consult', 'draft', 'specialist');
+const getQuickCaseKey = () => getRunScope('quick-consult', 'draft', 'case');
+const getQuickRunIdKey = () => getRunScope('quick-consult', 'draft', 'run-id');
 
 export default function QuickConsult() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [phase, setPhase] = useState<'select' | 'upload' | 'chat' | 'compiling' | 'done'>(() => {
-    return (sessionStorage.getItem(quickPhaseKey) as any) || 'select';
+    return (sessionStorage.getItem(getQuickPhaseKey()) as any) || 'select';
   });
   const [selectedSpecialist, setSelectedSpecialist] = useState<any>(() => {
-    const savedId = sessionStorage.getItem(quickSpecialistKey);
+    const savedId = sessionStorage.getItem(getQuickSpecialistKey());
     return savedId ? ALL_SPECIALISTS.find(s => s.id === savedId) || null : null;
   });
   const [symptomInput, setSymptomInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [finalTranscripts, setFinalTranscripts] = useState<any>({});
   const [quickRunId, setQuickRunId] = useState(() => {
-    const saved = sessionStorage.getItem(quickRunIdKey);
+    const saved = sessionStorage.getItem(getQuickRunIdKey());
     if (saved) return saved;
     const next = makeRunId();
-    sessionStorage.setItem(quickRunIdKey, next);
+    sessionStorage.setItem(getQuickRunIdKey(), next);
     return next;
   });
   const [activeCase, setActiveCase] = useState<any>(() => {
     try {
-      const saved = sessionStorage.getItem(quickCaseKey);
+      const saved = sessionStorage.getItem(getQuickCaseKey());
       const parsed = saved ? JSON.parse(saved) : null;
       return parsed?.id ? getCase(parsed.id) || parsed : null;
     } catch {
-      sessionStorage.removeItem(quickCaseKey);
+      sessionStorage.removeItem(getQuickCaseKey());
       return null;
     }
   });
@@ -89,11 +91,17 @@ export default function QuickConsult() {
     setActiveCase(null);
     const nextRunId = makeRunId();
     setQuickRunId(nextRunId);
-    sessionStorage.setItem(quickRunIdKey, nextRunId);
-    sessionStorage.removeItem(quickPhaseKey);
-    sessionStorage.removeItem(quickSpecialistKey);
-    sessionStorage.removeItem(quickCaseKey);
+    sessionStorage.setItem(getQuickRunIdKey(), nextRunId);
+    sessionStorage.removeItem(getQuickPhaseKey());
+    sessionStorage.removeItem(getQuickSpecialistKey());
+    sessionStorage.removeItem(getQuickCaseKey());
   };
+
+  useEffect(() => {
+    const handleProfileChange = () => resetConsult();
+    window.addEventListener('hc_profile_updated', handleProfileChange);
+    return () => window.removeEventListener('hc_profile_updated', handleProfileChange);
+  }, []);
 
   useEffect(() => {
     if (searchParams.get('new') === 'true') {
@@ -103,14 +111,14 @@ export default function QuickConsult() {
     }
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => { sessionStorage.setItem(quickPhaseKey, phase); }, [phase]);
+  useEffect(() => { sessionStorage.setItem(getQuickPhaseKey(), phase); }, [phase]);
   useEffect(() => {
-    if (selectedSpecialist) sessionStorage.setItem(quickSpecialistKey, selectedSpecialist.id);
-    else sessionStorage.removeItem(quickSpecialistKey);
+    if (selectedSpecialist) sessionStorage.setItem(getQuickSpecialistKey(), selectedSpecialist.id);
+    else sessionStorage.removeItem(getQuickSpecialistKey());
   }, [selectedSpecialist]);
   useEffect(() => {
-    if (activeCase) sessionStorage.setItem(quickCaseKey, JSON.stringify(activeCase));
-    else sessionStorage.removeItem(quickCaseKey);
+    if (activeCase) sessionStorage.setItem(getQuickCaseKey(), JSON.stringify(activeCase));
+    else sessionStorage.removeItem(getQuickCaseKey());
   }, [activeCase]);
 
   const filteredSpecialists = ALL_SPECIALISTS.filter((s) =>

@@ -207,6 +207,26 @@ export default function MultiSpecialist() {
     clearRunStorage('parallel', activeCase?.id);
   };
 
+  useEffect(() => {
+    const handleProfileChange = () => {
+      cachedMultiSpecialistState = null;
+      setPhase('select');
+      setSelected([]);
+      setActiveSpecialistId(null);
+      setSymptomInput('');
+      setCompletedSpecialists({});
+      setSpecialistTranscripts({});
+      setFinalReport(null);
+      setWorkingCaseId(null);
+      setSavedCaseId(null);
+      setAiSuggestion(null);
+      clearRunStorage('parallel');
+      setActiveCase(getActiveCase());
+    };
+    window.addEventListener('hc_profile_updated', handleProfileChange);
+    return () => window.removeEventListener('hc_profile_updated', handleProfileChange);
+  }, []);
+
   // Ensure active specialist is always valid
   useEffect(() => {
     if (selected.length > 0 && (!activeSpecialistId || !selected.includes(activeSpecialistId))) {
