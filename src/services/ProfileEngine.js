@@ -100,6 +100,11 @@ const DEFAULT_PROFILE = {
   actionItems: [],
 };
 
+// Caregiver profiles remain stored for future re-enablement, but switching and
+// creating dependent profiles are intentionally paused until that workflow is
+// ready for production use.
+export const CAREGIVER_MODE_ENABLED = false;
+
 // Auto-generate ID
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -141,6 +146,14 @@ export function getProfileEngineState() {
           parsed.profiles[key].id = key;
         }
       });
+      if (!CAREGIVER_MODE_ENABLED && !parsed.profiles.profile_1) {
+        parsed.profiles.profile_1 = JSON.parse(JSON.stringify(DEFAULT_PROFILE));
+        setItemSync(getProfileKey(), JSON.stringify(parsed));
+      }
+      if (!CAREGIVER_MODE_ENABLED && parsed.profiles.profile_1 && parsed.activeId !== 'profile_1') {
+        parsed.activeId = 'profile_1';
+        setItemSync(getProfileKey(), JSON.stringify(parsed));
+      }
     }
 
     return parsed;
@@ -161,6 +174,7 @@ export function getAllProfiles() {
 }
 
 export function switchActiveProfile(id) {
+  if (!CAREGIVER_MODE_ENABLED && id !== 'profile_1') return false;
   const state = getProfileEngineState();
   if (state.profiles[id]) {
     state.activeId = id;
@@ -172,6 +186,10 @@ export function switchActiveProfile(id) {
 }
 
 export function createNewProfile(name) {
+  if (!CAREGIVER_MODE_ENABLED) {
+    alert('Caregiver Mode is temporarily unavailable. Your existing profiles are preserved.');
+    return false;
+  }
   const state = getProfileEngineState();
   if (Object.keys(state.profiles).length >= 3) {
     alert("Maximum of 3 profiles allowed (Caregiver Mode Limit).");
@@ -205,7 +223,16 @@ export function getProfile() {
         allergies: parsed.allergies || base.allergies,
         medications: parsed.medications || base.medications,
         timeline: parsed.timeline || base.timeline,
-        actionItems: parsed.actionItems || base.actionItems,
+        actionItems: Array.isArray(parsed.actionItems)
+          ? parsed.actionItems.map((item, index) => ({
+            ...(item || {}),
+            id: item?.id || `action-${index}`,
+            task: typeof item?.task === 'string' && item.task.trim()
+              ? item.task
+              : (typeof item?.title === 'string' && item.title.trim() ? item.title : 'Review this health item'),
+            status: item?.status === 'completed' ? 'completed' : 'pending',
+          }))
+          : base.actionItems,
         profileName: parsed.profileName || base.profileName,
         id: parsed.id || base.id,
       };

@@ -1535,7 +1535,8 @@ export default function MedicalProfile() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {profile.actionItems.map((item) => {
                   let extractedDrug = null;
-                  const match = item.task.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
+                  const taskText = typeof item?.task === 'string' ? item.task : '';
+                  const match = taskText.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
                   if (match && match[1]) extractedDrug = match[1];
 
                   return (
@@ -1582,7 +1583,7 @@ export default function MedicalProfile() {
                             marginBottom: '4px',
                           }}
                         >
-                          {item.task}
+                          {taskText || 'Review this health item'}
                         </div>
                         <div
                           style={{

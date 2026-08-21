@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Settings as SettingsIcon, ChevronDown, Plus } from 'lucide-react';
-import { getAllProfiles, switchActiveProfile, createNewProfile, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
+import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
+import { getAllProfiles, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -31,7 +31,6 @@ export default function Settings() {
 
   const [profiles, setProfiles] = useState<any[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<string>('');
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
@@ -196,93 +195,9 @@ export default function Settings() {
               Manage health profiles for dependents.
             </div>
           </div>
-          <div style={{ position: 'relative', width: '200px' }}>
-            <button 
-              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: '#334155'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <User size={16} />
-                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {profiles.find(p => p.id === activeProfileId)?.profileName || 'My Profile'}
-                </span>
-              </div>
-              <ChevronDown size={14} />
-            </button>
-
-            {isProfileDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: 'calc(100% + 4px)',
-                right: 0,
-                width: '240px',
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                zIndex: 50,
-                overflow: 'hidden'
-              }}>
-                {profiles.map(p => (
-                  <div
-                    key={p.id}
-                    onClick={() => {
-                      switchActiveProfile(p.id);
-                      setIsProfileDropdownOpen(false);
-                      navigate('/app/today');
-                    }}
-                    style={{
-                      padding: '10px 12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      background: p.id === activeProfileId ? '#F8FAFC' : 'transparent',
-                      fontWeight: p.id === activeProfileId ? 600 : 400,
-                      color: p.id === activeProfileId ? 'var(--teal)' : '#334155',
-                      borderBottom: '1px solid #F1F5F9'
-                    }}
-                  >
-                    {p.profileName}
-                  </div>
-                ))}
-                {profiles.length < 3 && (
-                  <div
-                    onClick={() => {
-                      const name = prompt("Enter name for new profile:");
-                      if (name && name.trim()) {
-                        createNewProfile(name.trim());
-                        setIsProfileDropdownOpen(false);
-                        navigate('/app/profile');
-                      }
-                    }}
-                    style={{
-                      padding: '10px 12px',
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      color: 'var(--teal)',
-                      fontWeight: 500
-                    }}
-                  >
-                    <Plus size={14} /> Add Dependent
-                  </div>
-                )}
-              </div>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', border: '1px solid #E2E8F0', borderRadius: '8px', background: '#F8FAFC', color: '#64748B', fontSize: '13px' }} aria-label="Caregiver Mode temporarily locked">
+            <User size={16} />
+            <span>Temporarily locked</span>
           </div>
         </div>
 
