@@ -541,7 +541,7 @@ export default function Settings() {
           </div>
           <button
             className="btn btn-outline"
-            onClick={() => {
+            onClick={async () => {
               const exportedData = Object.keys(localStorage).reduce<Record<string, string>>((data, key) => {
                 if (EXPORTABLE_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
                   const value = localStorage.getItem(key);
@@ -549,18 +549,45 @@ export default function Settings() {
                 }
                 return data;
               }, {});
+
+              let cloudData: Record<string, unknown> | null = null;
+              if (isAuthenticated) {
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError || !session?.user) {
+                  toastError('Export Incomplete', 'Your sign-in session expired. Sign in again before exporting cloud data.');
+                  return;
+                }
+                const [profileResult, casesResult, memoryResult] = await Promise.all([
+                  supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+                  supabase.from('cases').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+                  supabase.from('health_memory').select('*').eq('user_id', session.user.id).order('occurred_at', { ascending: false }),
+                ]);
+                const remoteError = profileResult.error || casesResult.error || memoryResult.error;
+                if (remoteError) {
+                  toastError('Export Incomplete', 'Cloud records could not be read. Nothing was downloaded so you do not receive a partial backup.');
+                  return;
+                }
+                cloudData = {
+                  userId: session.user.id,
+                  profile: profileResult.data,
+                  cases: casesResult.data || [],
+                  healthMemory: memoryResult.data || [],
+                };
+              }
+
               const dataStr = JSON.stringify({
                 exportedAt: new Date().toISOString(),
-                format: 'healthchain-user-data-v1',
-                data: exportedData,
+                format: 'healthchain-user-data-v2',
+                scope: cloudData ? 'local-cache-and-supabase-records' : 'local-cache-only',
+                localStorage: exportedData,
+                supabase: cloudData,
               }, null, 2);
-              const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-              const exportFileDefaultName = 'healthchain_export.json';
+              const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
               const linkElement = document.createElement('a');
               linkElement.setAttribute('href', dataUri);
-              linkElement.setAttribute('download', exportFileDefaultName);
+              linkElement.setAttribute('download', 'healthchain_export.json');
               linkElement.click();
-              success('Export Complete', 'Your data has been successfully downloaded.');
+              success('Export Complete', cloudData ? 'Your local cache and cloud records were downloaded.' : 'Your local data was downloaded. Sign in to include cloud records.');
             }}
           >
             Export JSON
