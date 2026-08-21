@@ -14,7 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { MDTReportPanel } from './MDTComponents';
 import { SpecialistPanel } from './MultiSpecialistComponents';
-import { saveReviewSnapshot, updateCaseDifferentials } from '../../services/CaseEngine';
+import { saveReviewSnapshot, updateCaseDifferentials, setActiveCase } from '../../services/CaseEngine';
 import { runDifferentialAnalysis } from '../../services/geminiService';
 
 const cachedMDTSpecialistStreams: any = {};
@@ -183,12 +183,13 @@ export function MDTHubDashboard({
             }
           }}
           onRestart={() => {
-            setPhase('intake');
-            setIntakeData({ chiefComplaint: '', history: '', redFlags: false });
-            setHistoryReport(null);
-            setSelectedSpecialists([]);
-            setSpecialistTranscripts({});
-          }}
+              setActiveCase(null);
+              setPhase('intake');
+              setIntakeData({ chiefComplaint: '', history: '', redFlags: false });
+              setHistoryReport(null);
+              setSelectedSpecialists([]);
+              setSpecialistTranscripts({});
+            }}
           onRestartWithFeedback={(feedback: any) => {
             const newComplaint = `${intakeData.chiefComplaint}\n\n[USER FEEDBACK FOR RE-EVALUATION]: ${feedback}`;
             setIntakeData({ ...intakeData, chiefComplaint: newComplaint });
