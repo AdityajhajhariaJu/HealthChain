@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Target, Zap, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { getRunScope } from '../../services/RunContext';
 
 export default function ActionPlan({ analysis }) {
   const [tasks, setTasks] = useState<any[]>([]);
+  const planKey = getRunScope('mdt', 'draft', 'action-plan');
 
   useEffect(() => {
     if (analysis) {
-      const storedTasks = localStorage.getItem('hc_plan');
+      const storedTasks = localStorage.getItem(planKey);
       if (storedTasks) {
         try { setTasks(JSON.parse(storedTasks)); } catch { /* ignore */ }
       } else if (analysis.what_to_do || analysis.this_week_tasks) {
@@ -21,15 +23,15 @@ export default function ActionPlan({ analysis }) {
           completed: false,
         }));
         setTasks(initialTasks);
-        try { localStorage.setItem('hc_plan', JSON.stringify(initialTasks)); } catch(e) {}
+        try { localStorage.setItem(planKey, JSON.stringify(initialTasks)); } catch(e) {}
       }
     }
-  }, [analysis]);
+  }, [analysis, planKey]);
 
   const toggleTask = (id) => {
     const updated = tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
     setTasks(updated);
-    try { localStorage.setItem('hc_plan', JSON.stringify(updated)); } catch(e) {}
+    try { localStorage.setItem(planKey, JSON.stringify(updated)); } catch(e) {}
   };
 
   if (!analysis) return null;

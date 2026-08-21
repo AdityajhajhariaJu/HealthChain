@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { MDTReportPanel } from './MDTComponents';
 import { SpecialistPanel } from './MultiSpecialistComponents';
 import { saveReviewSnapshot, setActiveCase } from '../../services/CaseEngine';
+import { getRunScope, clearRunStorage } from '../../services/RunContext';
 
 const cachedMDTSpecialistStreams: any = {};
 
@@ -45,10 +46,12 @@ export function MDTHubDashboard({
   // Clear memory cache if case changes
   React.useEffect(() => {
     if (activeCase?.id) {
-      const lastCaseId = sessionStorage.getItem('hc_mdt_last_case_id');
+      const lastCaseKey = getRunScope('mdt', 'draft', 'last-case');
+      const lastCaseId = sessionStorage.getItem(lastCaseKey);
       if (lastCaseId !== activeCase.id) {
         Object.keys(cachedMDTSpecialistStreams).forEach(k => delete cachedMDTSpecialistStreams[k]);
-        sessionStorage.setItem('hc_mdt_last_case_id', activeCase.id);
+        clearRunStorage('mdt');
+        sessionStorage.setItem(lastCaseKey, activeCase.id);
       }
     }
   }, [activeCase?.id]);

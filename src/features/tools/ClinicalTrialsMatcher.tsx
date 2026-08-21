@@ -187,7 +187,7 @@ export default function ClinicalTrialsMatcher() {
       if (cached) {
         try {
           const parsedCache = JSON.parse(cached);
-          if (parsedCache && parsedCache.length > 0) {
+          if (Array.isArray(parsedCache)) {
             if (isMounted) {
               setResearchItems(parsedCache);
               setLoading(false);
@@ -221,9 +221,9 @@ export default function ClinicalTrialsMatcher() {
           setResearchItems(sortedItems);
           recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${activeCase.title || 'Active case'}`, occurredAt: new Date().toISOString(), caseId: activeCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${activeCase.id}:${searchTerms.join(',')}` });
           
-          if (sortedItems.length > 0) {
-            try { sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems)); } catch {}
-          }
+          // Cache the successful empty result too; otherwise every remount
+          // repeats two literature AI calls when no matches exist.
+          try { sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems)); } catch {}
         }
       } catch (err) {
         console.error('Failed to load research items', err);

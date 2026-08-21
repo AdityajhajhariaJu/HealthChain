@@ -57,11 +57,13 @@ import {
 import { getActiveCase } from '../../services/CaseEngine';
 import { generateProfileSynthesis } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getRunScope } from '../../services/RunContext';
 
 
 export default function MedicalProfile() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const synthesisKey = getRunScope('profile', 'draft', 'synthesis');
   const [profile, setProfile] = useState(getProfile());
   const healthScore = calculateHealthScore(profile);
   const [_trigger, setTrigger] = useState(0); // Force re-render for undo/redo state
@@ -89,7 +91,7 @@ export default function MedicalProfile() {
   const [activeCase, setActiveCase] = useState(getActiveCase());
   const [chartMetric, setChartMetric] = useState<'eGFR' | 'weight' | 'bpSystolic'>('eGFR');
   const [synthesisData, setSynthesisData] = useState<any>(() => {
-    const cached = sessionStorage.getItem('hc_profile_synthesis');
+    const cached = sessionStorage.getItem(synthesisKey);
     return cached ? JSON.parse(cached) : null;
   });
   const [isGeneratingSynthesis, setIsGeneratingSynthesis] = useState(false);
@@ -212,12 +214,17 @@ export default function MedicalProfile() {
 
   const handleGenerateSynthesis = async () => {
     setIsGeneratingSynthesis(true);
-    const result = await generateProfileSynthesis(profile);
-    if (result) {
-      setSynthesisData(result);
-      try { sessionStorage.setItem('hc_profile_synthesis', JSON.stringify(result)); } catch(e) {}
+    try {
+      const result = await generateProfileSynthesis(profile);
+      if (result) {
+        setSynthesisData(result);
+        try { sessionStorage.setItem(synthesisKey, JSON.stringify(result)); } catch(e) {}
+      }
+    } catch (error) {
+      console.error('Profile synthesis failed:', error);
+    } finally {
+      setIsGeneratingSynthesis(false);
     }
-    setIsGeneratingSynthesis(false);
   };
 
   const significantHash = JSON.stringify([
@@ -231,7 +238,7 @@ export default function MedicalProfile() {
 
   useEffect(() => {
     const hasSignificantData = profile.conditions?.length > 0 || profile.medications?.length > 0 || profile.allergies?.length > 0;
-    const isNewLoadWithoutSynthesis = hasSignificantData && !synthesisData && !isGeneratingSynthesis && !sessionStorage.getItem('hc_profile_synthesis');
+    const isNewLoadWithoutSynthesis = hasSignificantData && !synthesisData && !isGeneratingSynthesis && !sessionStorage.getItem(synthesisKey);
     
     if (significantHash !== prevHashRef.current || isNewLoadWithoutSynthesis) {
       prevHashRef.current = significantHash;
@@ -243,10 +250,10 @@ export default function MedicalProfile() {
         return () => clearTimeout(timeoutId);
       } else {
         setSynthesisData(null);
-        sessionStorage.removeItem('hc_profile_synthesis');
+        sessionStorage.removeItem(synthesisKey);
       }
     }
-  }, [significantHash]);
+  }, [significantHash, synthesisKey]);
 
   // Always render the dashboard structure so the user can see it empty
 

@@ -28,14 +28,14 @@ export function CompilingAnimation({ isDark = false, isMobile = false }: { isDar
   const [compText, setCompText] = useState(COMPUTATION_STRINGS[0]);
 
   useEffect(() => {
-    // 6 steps over ~15 seconds = 2500ms per step
+    // 6 steps over ~10 seconds = about 1667ms per step
     const stepInterval = setInterval(() => {
       setActiveStep(prev => Math.min(prev + 1, STEPS.length - 1));
-    }, 2500);
+    }, 10000 / STEPS.length);
 
-    // Smooth progress bar over 15 seconds
+    // Smooth progress bar over 10 seconds
     const startTime = Date.now();
-    const duration = 15000;
+    const duration = 10000;
     const progressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const pct = Math.min((elapsed / duration) * 100, 100);

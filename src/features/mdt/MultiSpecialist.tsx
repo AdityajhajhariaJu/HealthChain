@@ -103,6 +103,7 @@ export default function MultiSpecialist() {
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<any>(cachedMultiSpecialistState?.aiSuggestion || null);
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const consensusInFlightRef = useRef(false);
 
   useEffect(() => {
     const stateObj = {
@@ -162,6 +163,8 @@ export default function MultiSpecialist() {
   ]);
 
   const handleForceConsensus = async () => {
+    if (consensusInFlightRef.current || phase === 'correlating' || phase === 'report') return;
+    consensusInFlightRef.current = true;
     setIsSessionPaused(false);
     setPhase('correlating');
     
@@ -185,6 +188,8 @@ export default function MultiSpecialist() {
     } catch (error) {
       console.error('Failed to force consensus:', error);
       setPhase('running');
+    } finally {
+      consensusInFlightRef.current = false;
     }
   };
 

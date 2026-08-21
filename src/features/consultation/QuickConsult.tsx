@@ -48,10 +48,18 @@ export default function QuickConsult() {
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completionHandledRef = useRef(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-    const resetConsult = () => {
+  useEffect(() => () => {
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+  }, []);
+
+  const resetConsult = () => {
+    if (completionTimerRef.current) clearTimeout(completionTimerRef.current);
+    completionHandledRef.current = false;
     for (let key in cachedQuickConsultStreams) {
       delete cachedQuickConsultStreams[key];
     }
@@ -133,9 +141,11 @@ export default function QuickConsult() {
   };
 
   const handleComplete = async (id: string, messages: any[]) => {
+    if (completionHandledRef.current) return;
+    completionHandledRef.current = true;
     setFinalTranscripts({ [id]: messages });
     setPhase('compiling');
-    setTimeout(() => setPhase('done'), 15000);
+    completionTimerRef.current = setTimeout(() => setPhase('done'), 10000);
     
     const caseTitle = `Quick Consult: ${selectedSpecialist?.label || 'Specialist'}`;
     const newCase = createCaseDraft({
@@ -589,19 +599,7 @@ export default function QuickConsult() {
                 </div>
               </div>
               <button 
-                onClick={() => {
-                  setPhase('select');
-                  setSymptomInput('');
-                  setSelectedSpecialist(null);
-                  setActiveCase(null);
-                  setFinalTranscripts({});
-                  sessionStorage.removeItem('hc_qc_phase');
-                  sessionStorage.removeItem('hc_qc_specialist');
-                  sessionStorage.removeItem('hc_qc_case');
-                  if (selectedSpecialist) {
-                    sessionStorage.removeItem(`hc_stream_${selectedSpecialist.id}`);
-                  }
-                }}
+                onClick={resetConsult}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -736,10 +734,7 @@ export default function QuickConsult() {
               </button>
 
               <button 
-                onClick={() => {
-                  setPhase('select');
-                  try { sessionStorage.setItem('hc_qc_phase', 'select'); } catch(e) {}
-                }}
+                onClick={resetConsult}
                 style={{
                   width: '100%',
                   padding: '16px',
