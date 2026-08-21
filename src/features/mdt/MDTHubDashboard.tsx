@@ -180,9 +180,7 @@ export function MDTHubDashboard({
               Object.keys(cachedMDTSpecialistStreams).forEach(key => delete cachedMDTSpecialistStreams[key]);
               
               // 2. Wipe the sessionStorage streams so the LLM doesn't hallucinate past cases
-              Object.keys(sessionStorage).forEach(key => {
-                if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
-              });
+              clearRunStorage('mdt', activeCase?.id);
               sessionStorage.removeItem('hc_mdt_intake_draft');
 
               setActiveCase(null);
@@ -193,6 +191,7 @@ export function MDTHubDashboard({
               setSpecialistTranscripts({});
             }}
           onRestartWithFeedback={(feedback: any) => {
+            clearRunStorage('mdt', activeCase?.id);
             const newComplaint = `${intakeData.chiefComplaint}\n\n[USER FEEDBACK FOR RE-EVALUATION]: ${feedback}`;
             setIntakeData({ ...intakeData, chiefComplaint: newComplaint });
             setHistoryReport(null);

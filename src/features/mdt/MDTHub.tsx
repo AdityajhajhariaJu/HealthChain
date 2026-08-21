@@ -49,6 +49,7 @@ import { updateCaseDifferentials } from '../../services/CaseEngine';
 import { useMDTStore } from '../../stores/useMDTStore';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
+import { clearRunStorage } from '../../services/RunContext';
 
 // ─── Phases ─────────────────────────────────────────────────────────────────
 // intake -> select -> assessment -> conference -> report
@@ -184,10 +185,8 @@ useEffect(() => {
       return;
     }
     
-    // 🔥 Bulletproof Cache Wipe: Ensure no zombie LLM streams exist from previous cases
-    Object.keys(sessionStorage).forEach(key => {
-      if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
-    });
+    // Clear the current run namespace before starting another case.
+    clearRunStorage('mdt');
 
     setIsSelecting(true);
     let enhancedComplaint = data.chiefComplaint || '';
@@ -313,11 +312,7 @@ useEffect(() => {
   };
 
     const handleReviewPastMDT = (caseItem: any) => {
-    try {
-      Object.keys(sessionStorage).forEach(key => {
-        if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
-      });
-    } catch(e) {}
+    clearRunStorage('mdt', caseItem?.id);
     setGlobalActiveCase(caseItem.id);
       setActiveCase(getActiveCase());
       setPhase('dashboard');
@@ -338,11 +333,7 @@ useEffect(() => {
 
       const beginCaseCorrelation = useCallback(() => {
       // Clear session storage to ensure AI doesn't load a cached conversation
-      try {
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
-        });
-      } catch(e) {}
+      clearRunStorage('mdt', activeCase?.id);
 
     if (!activeCase) {
       setPhase('intake');

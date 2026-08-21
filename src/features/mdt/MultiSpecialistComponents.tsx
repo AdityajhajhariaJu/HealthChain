@@ -5,6 +5,18 @@ import { BrainCircuit, User, Sparkles, ArrowRight } from 'lucide-react';
 import { chatWithMDTSpecialist } from '../../services/geminiService';
 import { getRunScope, readRunJson, writeRunJson } from '../../services/RunContext';
 
+const MAX_STREAM_MESSAGES = 14;
+const MAX_MESSAGE_CHARS = 2400;
+
+function compactMessages(messages: any[]) {
+  const safe = (Array.isArray(messages) ? messages : []).map((message) => ({
+    role: message?.role === 'user' ? 'user' : 'ai',
+    text: String(message?.text || '').slice(0, MAX_MESSAGE_CHARS),
+    ...(message?.hidden ? { hidden: true } : {}),
+  }));
+  return safe.length > MAX_STREAM_MESSAGES ? safe.slice(-MAX_STREAM_MESSAGES) : safe;
+}
+
 export function StreamingMarkdown({ text, isNew, inline = false }: { text: string, isNew: boolean, inline?: boolean }) {
   const [displayed, setDisplayed] = useState(isNew ? '' : text);
   
@@ -37,13 +49,14 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
   const runScope = getRunScope(workflow as any, caseId, runId);
   const cacheKey = `${runScope}_${specialist.id}`;
   const cache = cachedSpecialistStreams[cacheKey] || readRunJson<any>(cacheKey);
-  const [messages, setMessages] = useState<any[]>(cache?.messages || []);
+  const [messages, setMessages] = useState<any[]>(compactMessages(cache?.messages || []));
   const [status, setStatus] = useState(cache?.status || 'idle'); // idle | thinking | questioning | done
   const [step, setStep] = useState(cache?.step || 0);
 
   useEffect(() => {
-    cachedSpecialistStreams[cacheKey] = { messages, status, step };
-    writeRunJson(cacheKey, { messages, status, step });
+    const compacted = compactMessages(messages);
+    cachedSpecialistStreams[cacheKey] = { messages: compacted, status, step };
+    writeRunJson(cacheKey, { messages: compacted, status, step });
   }, [messages, status, step, cacheKey, cachedSpecialistStreams]);
 
   const otherSpecialists = allSpecialists
@@ -78,14 +91,16 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
           if (saved) {
             const data = saved;
             if (data.messages && data.messages.length > 0) {
-              const userAnswers = data.messages.filter((m: any) => m.role === 'user' && !m.hidden).map((m: any) => m.text);
+              const userAnswers = compactMessages(data.messages)
+                .filter((m: any) => m.role === 'user' && !m.hidden)
+                .map((m: any) => m.text.slice(0, 1200));
               if (userAnswers.length > 0) {
                 sharedText += `To ${doc.label}, the patient already stated: "${userAnswers.join(' ')}".\n`;
               }
             }
           }
         });
-        return sharedText;
+        return sharedText.slice(0, 6000);
       } catch (e) { return ''; }
     };
 
@@ -146,8 +161,8 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
       const contextualText = sharedSubmit ? (text + '\n\n[SYSTEM NOTE: Meanwhile, the patient has also shared this with other specialists on the board:\n' + sharedSubmit + '\nUse this to avoid redundant questions.]') : text;
       
       const displayMessage = { role: 'user', text }; // What UI shows
-      const apiMessages = [...messages, { role: 'user', text: contextualText }]; // What API sees
-      const nextMessagesState = [...messages, displayMessage];
+      const apiMessages = compactMessages([...messages, { role: 'user', text: contextualText }]); // What API sees
+      const nextMessagesState = compactMessages([...messages, displayMessage]);
       
       setMessages(nextMessagesState);
       setStatus('thinking');

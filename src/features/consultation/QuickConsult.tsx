@@ -21,12 +21,13 @@ import { generateCaseConnectionMap } from '../../services/geminiService';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
-import { getRunScope, clearRunStorage } from '../../services/RunContext';
+import { getRunScope, clearRunStorage, makeRunId } from '../../services/RunContext';
 
 const cachedQuickConsultStreams: any = {};
 const quickPhaseKey = getRunScope('quick-consult', 'draft', 'phase');
 const quickSpecialistKey = getRunScope('quick-consult', 'draft', 'specialist');
 const quickCaseKey = getRunScope('quick-consult', 'draft', 'case');
+const quickRunIdKey = getRunScope('quick-consult', 'draft', 'run-id');
 
 export default function QuickConsult() {
   const navigate = useNavigate();
@@ -41,6 +42,13 @@ export default function QuickConsult() {
   const [symptomInput, setSymptomInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [finalTranscripts, setFinalTranscripts] = useState<any>({});
+  const [quickRunId, setQuickRunId] = useState(() => {
+    const saved = sessionStorage.getItem(quickRunIdKey);
+    if (saved) return saved;
+    const next = makeRunId();
+    sessionStorage.setItem(quickRunIdKey, next);
+    return next;
+  });
   const [activeCase, setActiveCase] = useState<any>(() => {
     try {
       const saved = sessionStorage.getItem(quickCaseKey);
@@ -78,6 +86,9 @@ export default function QuickConsult() {
     setSymptomInput('');
     setFinalTranscripts({});
     setActiveCase(null);
+    const nextRunId = makeRunId();
+    setQuickRunId(nextRunId);
+    sessionStorage.setItem(quickRunIdKey, nextRunId);
     sessionStorage.removeItem(quickPhaseKey);
     sessionStorage.removeItem(quickSpecialistKey);
     sessionStorage.removeItem(quickCaseKey);
@@ -637,7 +648,7 @@ export default function QuickConsult() {
                 cachedSpecialistStreams={cachedQuickConsultStreams}
                 workflow="quick-consult"
                 caseId={activeCase?.id || 'draft'}
-                runId={sessionStorage.getItem('hc_qc_run_id') || 'session'}
+                runId={quickRunId}
               />
             </div>
           </motion.div>
