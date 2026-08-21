@@ -80,16 +80,16 @@ export default function PrivacyPolicy() {
             You can export the HealthChain case and profile information stored in this browser from Settings. You can request deletion of a signed-in account from Settings. Browser-stored guest data can also be removed by clearing HealthChain site data or using the app's deletion controls. Do not use a shared device if you want to keep health information private.
           </p>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Deletion and retention:</strong> after a successful account-deletion request, HealthChain instructs its application database to delete the account-associated profiles and cases. A limited record may remain where required for payment, fraud prevention, security, or legal obligations. Copies held in service-provider backups may persist for their normal backup cycle. We will update this policy as retention periods and service configuration are finalized.
+            <strong>Deletion and retention:</strong> after a successful account-deletion request, HealthChain asks its application database to delete account-associated profiles, cases, Health Memory, device registrations, AI usage records, analytics, and application payment records. Copies held in service-provider backups or external services may persist for their normal backup or legal-retention cycle. We will update this policy as retention periods and service configuration are finalized.
           </p>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
             <strong>Important:</strong> HealthChain is a consumer health-information product, not an emergency service. If you have severe, sudden, or worsening symptoms, contact local emergency services or a qualified clinician immediately. AI outputs can be incomplete or incorrect and should be reviewed with a clinician before acting on them.
           </p>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Account Deletion Policy:</strong> When you delete your account, we perform a "Hard Deletion." Your clinical cases, profiles, and associated medical data are permanently wiped from our databases. Your authentication identity (email and password) is instantly scrambled and anonymized, freeing up your original email address for reuse.
+            <strong>Account Deletion Policy:</strong> When you request account deletion, we remove the HealthChain application records associated with your account after the deletion transaction succeeds, then request deletion of the authentication identity. Deletion does not guarantee immediate removal from provider backups or records that a third party must retain by law.
           </p>
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Payment Records:</strong> To comply with tax laws and financial accounting standards, your historical payment transactions are not deleted. However, because your personal profile and email are permanently anonymized during deletion, these orphaned payment receipts can no longer be tied back to your true identity.
+            <strong>Payment Records:</strong> Application payment records are included in the HealthChain deletion request. External payment services may retain transaction records under their own legal, fraud-prevention, and accounting obligations.
           </p>
         </motion.div>
       </div>
