@@ -49,7 +49,6 @@ const profileId = () => {
 };
 
 const storageKey = () => `hc_health_memory_${accountId()}_${profileId()}`;
-let remoteSchemaUnavailable = false;
 
 const isSchemaUnavailable = (error: any) => error?.code === '42P01' || error?.code === 'PGRST205';
 
@@ -78,7 +77,6 @@ function writeLocal(items: HealthMemoryItem[]) {
 }
 
 async function syncItem(item: HealthMemoryItem) {
-  if (remoteSchemaUnavailable) return;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return;
   const { error } = await supabase.from('health_memory').upsert({
@@ -96,8 +94,24 @@ async function syncItem(item: HealthMemoryItem) {
   }, { onConflict: 'id' });
   if (error) {
     if (isSchemaUnavailable(error)) {
-      // The feature can ship before its migration. Keep local data intact and retry after a reload once SQL is applied.
-      remoteSchemaUnavailable = true;
+      // The feature can ship before its migration. Queue the compact,
+      // structured item so applying the migration later in this session (or
+      // reconnecting on another device) does not strand processed knowledge
+      // in browser storage.
+      await enqueueSync('health_memory_upsert', session.user.id, {
+        id: item.id,
+        user_id: session.user.id,
+        profile_id: item.profileId,
+        case_id: item.caseId || null,
+        kind: item.kind,
+        source: item.source,
+        title: item.title,
+        occurred_at: item.occurredAt,
+        payload: item.payload,
+        dedupe_key: item.dedupeKey || null,
+        updated_at: item.updatedAt,
+      });
+      window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { area: 'health_memory' } }));
       return;
     }
     await enqueueSync('health_memory_upsert', session.user.id, {
@@ -143,14 +157,15 @@ export function recordHealthMemory(input: Omit<HealthMemoryItem, 'id' | 'profile
 }
 
 export async function syncHealthMemoryFromSupabase() {
-  if (remoteSchemaUnavailable) return;
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return;
   const { data, error } = await supabase.from('health_memory')
     .select('*').eq('user_id', session.user.id).eq('profile_id', profileId()).order('occurred_at', { ascending: false });
   if (error) {
     if (isSchemaUnavailable(error)) {
-      remoteSchemaUnavailable = true;
+      // Existing local items are already queued when created. Do not mark the
+      // module permanently unavailable: once the migration is applied, the
+      // normal outbox retry can deliver them without requiring a reload.
       return;
     }
     throw error;
