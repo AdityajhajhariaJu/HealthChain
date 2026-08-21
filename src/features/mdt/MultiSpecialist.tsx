@@ -378,11 +378,6 @@ export default function MultiSpecialist() {
           setPhase('failed');
           consensusInFlightRef.current = false;
         });
-        }).catch(err => {
-          console.error('Report generation failed:', err);
-          setPhase('failed');
-          consensusInFlightRef.current = false;
-        });
     }
   }, [completedSpecialists, selected.length, phase, specialistTranscripts, activeCase, medicalRecords, caseTitle, symptomInput, workingCaseId, selectedSpecialists]);
 
