@@ -97,18 +97,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid Payment Signature.' });
     }
 
-    // 3. Replay Protection
-    const { data: existingPayment } = await supabase
-      .from('payments')
-      .select('id')
-      .eq('razorpay_payment_id', razorpay_payment_id)
-      .maybeSingle();
-
-    if (existingPayment) {
-      return res.status(400).json({ error: 'This payment has already been processed and credited.' });
-    }
-
-    // 4. Server-Side Amount Verification
+    // 3. Server-Side Amount Verification
     const targetPlan = ALLOWED_PLANS[plan_id];
     if (!targetPlan) return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
     let verifiedAmount = targetPlan.amount;
@@ -133,41 +122,26 @@ export default async function handler(req, res) {
         }
       } catch (rzpErr) {
         console.error('Razorpay verification failed:', rzpErr);
-        return res.status(502).json({ error: 'Failed to verify transaction with payment gateway.', details: rzpErr.message });
+        return res.status(502).json({ error: 'Payment provider verification is temporarily unavailable.' });
       }
     }
 
-    // 5. Log payment record
-    const { error: insertError } = await supabase
-      .from('payments')
-      .insert({
-        user_id: effectiveUserId,
-        razorpay_order_id,
-        razorpay_payment_id,
-        amount: verifiedAmount,
-        status: 'paid'
-      });
-
-    if (insertError) {
-      console.warn('DB payment log warning:', insertError);
-      return res.status(503).json({ error: 'Payment verified, but entitlement logging is unavailable. Please contact support before retrying.' });
-    }
-
-    // 6. Activate Pro
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
+    // Payment logging and entitlement activation must happen together. The
+    // RPC is installed by 20260821_payment_entitlement.sql; without it we
+    // fail closed instead of accepting money with an unrecoverable entitlement.
+    const { error: entitlementError } = await supabase.rpc('activate_payment_entitlement', {
+      p_user_id: effectiveUserId,
+      p_order_id: razorpay_order_id,
+      p_payment_id: razorpay_payment_id,
+      p_amount: verifiedAmount,
+      p_expires_at: expiryDate.toISOString(),
+    });
 
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        is_pro: true,
-        pro_expires_at: expiryDate.toISOString()
-      })
-      .eq('id', effectiveUserId);
-
-    if (updateError) {
-      console.error('Profile Update Error:', updateError);
-      return res.status(500).json({ error: 'Payment verified, but failed to update profile', details: updateError });
+    if (entitlementError) {
+      console.error('Payment entitlement transaction failed:', entitlementError);
+      return res.status(503).json({ error: 'Payment verified, but entitlement activation is temporarily unavailable. Please contact support before retrying.' });
     }
 
     return res.status(200).json({ 
@@ -177,6 +151,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
-    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    return res.status(500).json({ error: 'Payment verification could not be completed.' });
   }
 }

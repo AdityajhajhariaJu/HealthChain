@@ -90,6 +90,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
-    return res.status(500).json({ error: 'Failed to create order', details: error.message });
+    return res.status(502).json({ error: 'Payment provider is temporarily unavailable' });
   }
 }

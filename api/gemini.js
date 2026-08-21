@@ -29,6 +29,7 @@ export default async function handler(req, res) {
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-HC-Request-Id, X-HC-Operation');
   res.setHeader('Cache-Control', 'no-store');
@@ -77,6 +78,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid request id' });
   }
   const operation = String(req.headers['x-hc-operation'] || 'gemini').slice(0, 80);
+  const API_KEY = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === 'development' ? process.env.VITE_GEMINI_API_KEY : '');
+  if (!API_KEY) {
+    return res.status(500).json({ error: 'AI service is temporarily unavailable' });
+  }
 
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const adminClient = adminKey && supabaseUrl
@@ -111,11 +116,6 @@ export default async function handler(req, res) {
     }
   }
 
-  const API_KEY = process.env.GEMINI_API_KEY || (process.env.NODE_ENV === 'development' ? process.env.VITE_GEMINI_API_KEY : '');
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'API key not configured on server' });
-  }
-
   // Use the verified gemini-2.5-flash endpoint
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
@@ -142,8 +142,8 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('Gemini API returned an error:', response.status, errorData);
-      return res.status(response.status).json({ error: errorData });
+      console.error('Gemini API returned an error:', response.status, errorData.slice(0, 1000));
+      return res.status(502).json({ error: 'AI provider request failed' });
     }
 
     const data = await response.json();

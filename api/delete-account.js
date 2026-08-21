@@ -89,6 +89,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, message: 'Account and user-owned HealthChain data permanently deleted.' });
   } catch (error) {
     console.error("Delete account error:", error);
-    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    return res.status(500).json({ error: 'Account deletion could not be completed. Please contact support.' });
   }
 }
