@@ -117,7 +117,16 @@ export default async function handler(req, res) {
         verifiedAmount = paymentDetails.amount;
 
         const orderDetails = await instance.orders.fetch(razorpay_order_id);
-        if (orderDetails.notes?.user_id && orderDetails.notes.user_id !== effectiveUserId) {
+        if (
+          orderDetails.amount !== targetPlan.amount ||
+          orderDetails.currency !== 'INR' ||
+          orderDetails.notes?.plan_id !== plan_id
+        ) {
+          return res.status(400).json({ error: 'Payment order does not match the selected plan.' });
+        }
+        // Orders created by this application always carry the authenticated
+        // account binding. Missing metadata is not treated as trustworthy.
+        if (orderDetails.notes?.user_id !== effectiveUserId) {
           return res.status(403).json({ error: 'Payment identity mismatch. This order does not belong to your account.' });
         }
       } catch (rzpErr) {
