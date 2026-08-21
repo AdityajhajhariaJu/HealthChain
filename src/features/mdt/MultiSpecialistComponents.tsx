@@ -70,6 +70,27 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
 
   const introStarted = useRef(false);
 
+    const getSharedContext = () => {
+      try {
+        const otherDocs = allSpecialists.filter(s => s.id !== specialist.id);
+        let sharedText = '';
+        otherDocs.forEach(doc => {
+          const saved = sessionStorage.getItem(`hc_stream_${doc.id}`);
+          if (saved) {
+            const data = JSON.parse(saved);
+            if (data.messages && data.messages.length > 0) {
+              const userAnswers = data.messages.filter((m: any) => m.role === 'user' && !m.hidden).map((m: any) => m.text);
+              if (userAnswers.length > 0) {
+                sharedText += `To ${doc.label}, the patient already stated: "${userAnswers.join(' ')}".\n`;
+              }
+            }
+          }
+        });
+        return sharedText;
+      } catch (e) { return ''; }
+    };
+
+
   useEffect(() => {
     if (!isRunning) {
       setMessages([]);
@@ -85,11 +106,12 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
         setStatus('thinking');
         
         // Trigger the AI to generate a highly specific first question based on intake
-        const triggerMessage = {
-          role: 'user',
-          text: 'Please begin your diagnostic assessment based on my intake file. Ask the first question.',
-          hidden: true,
-        };
+        const sharedInit = getSharedContext();
+          const triggerMessage = {
+            role: 'user',
+            text: 'Please begin your diagnostic assessment based on my intake file. Ask the first question.' + (sharedInit ? '\n\n[SYSTEM NOTE: The patient has already provided the following information to other specialists on the board. DO NOT ask about these things again:\n' + sharedInit + ']' : ''),
+            hidden: true,
+          };
         const initialArray = [triggerMessage];
         
         try {
@@ -111,15 +133,22 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
     }
   }, [isRunning, isPaused, status, step, startDelay]);
 
-  const submitAnswer = async (text) => {
-    if (status !== 'questioning') return;
-    const newMessages = [...messages, { role: 'user', text }];
+  const submitAnswer = async (text: string) => {
+      if (status !== 'questioning') return;
+      
+      const sharedSubmit = getSharedContext();
+      const contextualText = sharedSubmit ? (text + '\n\n[SYSTEM NOTE: Meanwhile, the patient has also shared this with other specialists on the board:\n' + sharedSubmit + '\nUse this to avoid redundant questions.]') : text;
+      
+      const displayMessage = { role: 'user', text }; // What UI shows
+      const apiMessages = [...messages, { role: 'user', text: contextualText }]; // What API sees
+      
+      setMessages([...messages, displayMessage]);
     setMessages(newMessages);
     setStatus('thinking');
     setStep(prev => prev + 1);
 
     try {
-      const response = await chatWithMDTSpecialist(newMessages, specialist, allSpecialists, intakeData, activeDifferentials);
+      const response = await chatWithMDTSpecialist(apiMessages, specialist, allSpecialists, intakeData, activeDifferentials);
       if (response.includes('ANALYSIS_COMPLETE')) {
         setStatus('done');
         if (onComplete) onComplete(specialist.id, newMessages);

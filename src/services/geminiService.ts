@@ -521,7 +521,7 @@ export async function runMDTConference(intakeData: any, specialistData: any, med
     ])
   );
 
-  const orchestratorPrompt = `You are the Chief Clinical Orchestrator for a collaborative medical board.
+  const orchestratorPrompt = `You are the Chief Clinical Orchestrator and Lead Medical Research Scientist for a collaborative medical board. Your approach is deeply analytical, evidence-based, and rooted in the latest scientific literature. You synthesize data like a clinical researcher looking for root causes, mechanistic pathways, and scientific consensus.
 The patient's intake:
 Chief Complaint: ${intakeData.chiefComplaint}${recordsText}
 
