@@ -6,7 +6,11 @@ test('guest can enter the assessment workspace from the public page', async ({ p
 
   const consent = page.getByRole('button', { name: 'I Accept' });
   if (await consent.isVisible().catch(() => false)) {
-    await consent.click();
+    // The banner animates in WebKit; wait for it to render, then use a forced
+    // click so the test does not mistake its entrance animation for a broken
+    // public-to-app transition.
+    await consent.waitFor({ state: 'visible' });
+    await consent.click({ force: true });
   }
 
   await expect(page.getByRole('heading', { name: /Your Symptoms\. Finally Explained\./i })).toBeVisible();
