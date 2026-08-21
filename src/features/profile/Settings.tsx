@@ -577,12 +577,15 @@ export default function Settings() {
                   toastError('Export Incomplete', 'Your sign-in session expired. Sign in again before exporting cloud data.');
                   return;
                 }
-                const [profileResult, casesResult, memoryResult] = await Promise.all([
+                const [profileResult, casesResult, memoryResult, caregiverResult] = await Promise.all([
                   supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
                   supabase.from('cases').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
                   supabase.from('health_memory').select('*').eq('user_id', session.user.id).order('occurred_at', { ascending: false }),
+                  supabase.from('healthchain_profiles').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
                 ]);
-                const remoteError = profileResult.error || casesResult.error || memoryResult.error;
+                const snapshotUnavailable = caregiverResult.error?.code === 'PGRST205' || caregiverResult.error?.code === '42P01';
+                const remoteError = profileResult.error || casesResult.error || memoryResult.error ||
+                  (snapshotUnavailable ? null : caregiverResult.error);
                 if (remoteError) {
                   toastError('Export Incomplete', 'Cloud records could not be read. Nothing was downloaded so you do not receive a partial backup.');
                   return;
@@ -592,6 +595,7 @@ export default function Settings() {
                   profile: profileResult.data,
                   cases: casesResult.data || [],
                   healthMemory: memoryResult.data || [],
+                  caregiverProfiles: snapshotUnavailable ? [] : (caregiverResult.data || []),
                 };
               }
 
@@ -602,11 +606,12 @@ export default function Settings() {
                 localStorage: exportedData,
                 supabase: cloudData,
               }, null, 2);
-              const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+              const blobUrl = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
               const linkElement = document.createElement('a');
-              linkElement.setAttribute('href', dataUri);
+              linkElement.setAttribute('href', blobUrl);
               linkElement.setAttribute('download', 'healthchain_export.json');
               linkElement.click();
+              window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
               success('Export Complete', cloudData ? 'Your local cache and cloud records were downloaded.' : 'Your local data was downloaded. Sign in to include cloud records.');
             }}
           >
