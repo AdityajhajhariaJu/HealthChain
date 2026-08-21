@@ -23,3 +23,12 @@ test('clean unauthenticated browsers cannot open account case routes', async ({ 
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: /Welcome back|Create your account/i })).toBeVisible();
 });
+
+test('a forged browser auth flag cannot bypass the Supabase session boundary', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('isAuthenticated', 'true');
+  });
+  await page.goto('/app/my-cases');
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: /Welcome back|Create your account/i })).toBeVisible();
+});
