@@ -12,6 +12,8 @@ export interface RichReportData {
   medicalTerms?: { term: string; definition: string }[];
   specialistDebatePoints?: string[];
   systemicCorrelations?: string[];
+  scientificLiteratureContext?: string;
+  alternativeOrRarePossibilities?: string;
 }
 
 export function RichReportTemplate({ report, isMobile }: { report: RichReportData; isMobile?: boolean }) {
