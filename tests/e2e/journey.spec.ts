@@ -1,23 +1,19 @@
 import { test, expect } from '@playwright/test';
 
-test('User can navigate landing page to dashboard', async ({ page }) => {
-  // Go to Landing Page
+test('guest can enter the assessment workspace from the public page', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle(/HealthChain/);
+  await expect(page).toHaveTitle(/HealthChain.*Health Assessment/i);
 
-  // Click Get Started which should redirect to /signup or /login
-  await page.click('text=Get Started');
-  
-  // For the sake of the test, let's assume we can navigate to the app
-  await page.goto('/app/today');
-  
-  // Wait for the app shell to load
+  const consent = page.getByRole('button', { name: 'I Accept' });
+  if (await consent.isVisible().catch(() => false)) {
+    await consent.click();
+  }
+
+  await expect(page.getByRole('heading', { name: /Your Symptoms\. Finally Explained\./i })).toBeVisible();
+  await page.getByRole('button', { name: 'Start Your Assessment' }).click();
+
+  await expect(page).toHaveURL(/\/app\/collab\?new=true/);
   await expect(page.locator('.app-shell')).toBeVisible();
-
-  // Verify Sidebar Links
-  await expect(page.locator('text=Health Today')).toBeVisible();
-  
-  // Navigate to Parallel Specialists
-  await page.click('text=Parallel Specialists');
-  await expect(page).toHaveURL(/.*\/app\/multi/);
+  await expect(page.getByText('Health Today')).toBeVisible();
+  await expect(page.getByText(/Ready to find your root cause/i)).toHaveCount(0);
 });
