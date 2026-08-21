@@ -270,7 +270,7 @@ export default function JarvisInvestigator() {
               opacity: isMobile ? 0.4 : 1,
             }}
           >
-            <JarvisCore size={isMobile ? 180 : 260} />
+            <JarvisCore size={isMobile ? 135 : 195} />
           </div>
           
           <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
