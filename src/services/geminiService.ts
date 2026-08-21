@@ -5,7 +5,7 @@ import { supabase } from './supabaseClient';
 // We strictly use the API proxy to prevent exposing the Gemini key in the frontend bundle.
 const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api/gemini' : '/api/gemini';
 
-const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000, retries = 2) => {
+const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     throw new Error('Offline');
   }
@@ -19,83 +19,44 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     }
   } catch {}
 
-  let isGuest = false;
-  try { isGuest = localStorage.getItem('hc_guest_mode') === 'true'; } catch (e) {}
-
-  if (!import.meta.env.DEV && !sessionToken && !isGuest) {
+  if (!import.meta.env.DEV && !sessionToken) {
     throw new Error('Please sign in to use secure AI health processing.');
   }
 
-  let lastError;
-  
+  const requestId = (() => {
+    try { return crypto.randomUUID(); } catch { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+  })();
   // A browser bundle cannot keep a route secret. The server verifies the Supabase access token.
   const secureOptions = {
     ...options,
     headers: {
       ...options.headers,
+      'X-HC-Request-Id': requestId,
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
     }
   };
-
-  for (let i = 0; i <= retries; i++) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const response = await fetch(url, { ...secureOptions, signal: controller.signal });
-      clearTimeout(id);
-      if (response.status === 429 && i < retries) {
-        // Rate limited, wait 1s then retry
-        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
-        continue;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...secureOptions, signal: controller.signal });
+    if (!response.ok && response.status === 401) {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error || !data.session) {
+        window.dispatchEvent(new Event('hc_logout'));
+        throw new Error('Session expired. Please log in again.');
       }
-      if (!response.ok && response.status === 401 && !isGuest) {
-        // Token expired, attempt refresh
-        try {
-          const { data, error } = await supabase.auth.refreshSession();
-          if (error || !data.session) {
-             window.dispatchEvent(new Event('hc_logout'));
-             throw new Error('Session expired. Please log in again.');
-          }
-          // Update token and retry
-          secureOptions.headers.Authorization = `Bearer ${data.session.access_token}`;
-          continue;
-        } catch (e) {
-          window.dispatchEvent(new Event('hc_logout'));
-          throw new Error('Session expired. Please log in again.');
-        }
-      }
-
-      if (!response.ok && response.status === 403) {
-        try {
-          const errData = await response.json();
-          if (errData.error === 'MONTHLY_QUOTA_EXCEEDED') {
-            alert("You have reached your Monthly AI Token Limit (500,000 tokens). Your limit will reset at the start of your next 30-day billing cycle.");
-            throw new Error("Monthly AI Quota Exceeded");
-          }
-        } catch (e) {}
-      }
-
-      if (!response.ok && response.status >= 500 && i < retries) {
-        // 5xx Server Error, retry
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
-        continue;
-      }
-      return response;
-    } catch (err: any) {
-      clearTimeout(id);
-      lastError = err;
-      // Retry on network failures (TypeError) or Timeout (AbortError)
-      if ((err.name === 'AbortError' || err.name === 'TypeError') && i < retries) {
-        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
-        continue;
-      }
-      if (i === retries) {
-        if (err.name === 'AbortError') throw new Error('Timeout');
-        throw err;
-      }
+      // A single token refresh is safe; generation requests are never
+      // automatically retried after network, 429, or 5xx responses.
+      secureOptions.headers.Authorization = `Bearer ${data.session.access_token}`;
+      return await fetch(url, { ...secureOptions, signal: controller.signal });
     }
+    return response;
+  } catch (err: any) {
+    if (err?.name === 'AbortError') throw new Error('Timeout');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-  throw lastError;
 };
 
 export interface Message {
@@ -448,7 +409,7 @@ Return your response STRICTLY as JSON matching this format:
   "interpretation": "If outputting 'ANALYSIS_COMPLETE', explain what these findings mean in plain English. Leave empty otherwise.",
   "nextSteps": "If outputting 'ANALYSIS_COMPLETE', outline the actionable next steps for the patient. Leave empty otherwise.",
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
-  "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
+  "medicalTerms": [{"term": "Medical Term Used", "definition": "A 1-2 sentence, extremely clear and simple definition for the patient. STRICT RULE: DO NOT include meta-commentary like 'Definition tailored for...'."}],
   "currentHypotheses": [{"condition": "Hypothesis 1 (60%)", "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected based on symptoms."}],
   "response": "Your conversational question to the patient. (Or 'ANALYSIS_COMPLETE').",
   "widgetType": "none | pain_slider | symptom_pills (CRITICAL: Use 'pain_slider' if asking about pain severity 1-10. Use 'symptom_pills' if asking the user to select from a list of descriptors/symptoms).",
@@ -610,7 +571,7 @@ Return strictly as JSON:
   "interpretation": "Explain what these collective findings mean in plain English.",
   "nextSteps": "Outline the actionable next steps for the patient, prioritizing the most critical ones.",
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
-  "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
+  "medicalTerms": [{"term": "Medical Term Used", "definition": "A 1-2 sentence, extremely clear and simple definition for the patient. STRICT RULE: DO NOT include meta-commentary like 'Definition tailored for...'."}],
   "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
   "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
     "scientificLiteratureContext": "A paragraph explaining what recent clinical research or literature says about this symptom cluster.",
@@ -796,7 +757,7 @@ Return strictly as JSON matching this exact structure:
   "interpretation": "Explain what these findings mean in plain English.",
   "nextSteps": "Outline the actionable next steps for the patient.",
   "abnormalitiesNoted": ["List of concerning symptoms or red flags noted", "Leave empty if none"],
-  "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
+  "medicalTerms": [{"term": "Medical Term Used", "definition": "A 1-2 sentence, extremely clear and simple definition for the patient. STRICT RULE: DO NOT include meta-commentary like 'Definition tailored for...'."}],
   "debateSummary": "Explicitly state how you resolved conflicts between specialists. Example: 'Neurology suspected MS, but Rheumatology's focus on joint pain prevailed due to elevated ESR in records.'",
   "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
   "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
