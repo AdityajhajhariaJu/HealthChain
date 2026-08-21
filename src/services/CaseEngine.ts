@@ -605,12 +605,28 @@ export async function initCaseEngine() {
       if (await getPendingSyncCount(session.user.id) === 0) removeItemSync(key);
     }
     
-    // Fetch from Supabase
-    const { data, error } = await supabase
-       .from('cases')
-       .select('data')
-       .eq('user_id', session.user.id)
-       .order('updated_at', { ascending: false });
+    // Fetch in bounded pages. Case data contains structured review history and
+    // can grow substantially for long-running cases; one unbounded response
+    // would make reinstall/device recovery fragile.
+    const pageSize = 100;
+    const data: { data: any }[] = [];
+    let error: any = null;
+    let page = 0;
+    while (true) {
+      const result = await supabase
+        .from('cases')
+        .select('data')
+        .eq('user_id', session.user.id)
+        .order('updated_at', { ascending: false })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+      if (result.error) {
+        error = result.error;
+        break;
+      }
+      data.push(...(result.data || []));
+      if (!result.data || result.data.length < pageSize) break;
+      page += 1;
+    }
        
     if (!error && data) {
        // Filter by profile
