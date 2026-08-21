@@ -898,7 +898,7 @@ html.dark-theme body {
     left: 0;
     right: 0;
     height: 64px;
-    background: rgba(240, 253, 250, 0.95);
+    background: rgba(220, 252, 231, 0.95); /* A bit greener */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     display: flex;
