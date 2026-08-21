@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Radar, FileUp, Sparkles, Activity, Search, ArrowRight, ShieldCheck, 
+  BrainCircuit, FileUp, Sparkles, Activity, Search, ArrowRight, ShieldCheck, 
   X, CheckCircle2, ChevronDown, ListChecks, HelpCircle 
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -141,7 +141,7 @@ export default function JarvisInvestigator() {
       <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(15,23,42,0.2)' }}>
-            <Radar size={32} color="#38BDF8" />
+            <BrainCircuit size={32} color="#38BDF8" />
           </div>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0 }}>J.A.R.V.I.S. Analysis Complete</h1>
@@ -276,7 +276,7 @@ export default function JarvisInvestigator() {
           <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E0F2FE', color: '#0284C7' }}>
-                <Radar size={18} />
+                <BrainCircuit size={18} />
               </div>
               <span style={{ color: '#0284C7', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
             </div>
