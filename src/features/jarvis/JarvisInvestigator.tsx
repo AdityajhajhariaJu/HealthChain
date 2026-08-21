@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -12,7 +12,6 @@ import { getProfile } from '../../services/ProfileEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
-import { JarvisCoreDark } from '../../components/ui/JarvisCoreIconDark';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 
 export default function JarvisInvestigator() {
@@ -250,13 +249,13 @@ export default function JarvisInvestigator() {
       
       <div
         style={{
-          background: 'linear-gradient(120deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.95) 100%)',
+          background: 'linear-gradient(120deg, rgba(240,249,255,0.95) 0%, rgba(245,243,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
           backgroundSize: '200% 200%',
           backdropFilter: 'blur(24px)',
           padding: isMobile ? '24px' : '48px',
           borderRadius: '32px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
+          border: '1px solid rgba(255,255,255,0.5)',
           marginBottom: '32px'
         }}
       >
@@ -272,39 +271,39 @@ export default function JarvisInvestigator() {
               opacity: isMobile ? 0.4 : 1,
             }}
           >
-            <JarvisCoreDark size={isMobile ? 135 : 195} />
+            <JarvisCore size={isMobile ? 135 : 195} />
           </div>
           
           <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: 'rgba(249,115,22,0.15)', color: '#F97316' }}>
+              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E0F2FE', color: '#0284C7' }}>
                 <NetworkHubIcon size={18} />
               </div>
-              <span style={{ color: '#F97316', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
+              <span style={{ color: '#0284C7', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
             </div>
             
-            <h2 style={{ fontSize: isMobile ? '30px' : '40px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
+            <h2 style={{ fontSize: isMobile ? '30px' : '40px', fontWeight: 900, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
               Uncover the missing link.
             </h2>
             
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-              <span style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.05)', color: '#CBD5E1', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(255,255,255,0.1)' }}><Search size={14} /> Unvarnished Insights</span>
-              <span style={{ padding: '6px 12px', background: 'rgba(249,115,22,0.1)', color: '#F97316', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(249,115,22,0.2)' }}><CheckCircle2 size={14} /> One-Shot Execution</span>
-              <span style={{ padding: '6px 12px', background: 'rgba(249,115,22,0.1)', color: '#F97316', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(249,115,22,0.2)' }}><CheckCircle2 size={14} /> No Follow-up Chat</span>
+              <span style={{ padding: '6px 12px', background: '#F1F5F9', color: '#334155', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #E2E8F0' }}><Search size={14} /> Unvarnished Insights</span>
+              <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> One-Shot Execution</span>
+              <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> No Follow-up Chat</span>
             </div>
             
-            <p style={{ color: '#94A3B8', fontSize: '15px', margin: '0', fontWeight: 500, lineHeight: 1.6 }}>
-              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forthâ€”just upload your entire history and instantly discover patterns your doctors might have missed.
+            <p style={{ color: '#475569', fontSize: '15px', margin: '0', fontWeight: 500, lineHeight: 1.6 }}>
+              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
             </p>
           </div>
         </div>
       </div>
 
-      <div style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: isMobile ? '24px' : '40px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '24px', padding: isMobile ? '24px' : '40px', boxShadow: '0 20px 40px rgba(15,23,42,0.06)' }}>
         <div style={{ marginBottom: '28px' }}>
-          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#F1F5F9', marginBottom: '12px' }}>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
             <span>Clinical Timeline & Symptoms</span>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', padding: '4px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Raw Text</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', padding: '4px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>Raw Text</span>
           </label>
           <textarea 
             value={history}
@@ -316,9 +315,9 @@ export default function JarvisInvestigator() {
               }
             }}
             placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 300 words)..."
-            style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid rgba(255,255,255,0.1)', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#0F172A', color: '#F1F5F9', transition: 'border-color 0.2s', outline: 'none' }}
-            onFocus={(e) => e.target.style.borderColor = '#F97316'}
-            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+            style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid #E2E8F0', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }}
+            onFocus={(e) => e.target.style.borderColor = '#38BDF8'}
+            onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
           />
           <div style={{ textAlign: 'right', fontSize: '13px', fontWeight: 600, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 300) ? '#EF4444' : '#94A3B8', marginTop: '8px' }}>
             {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 300 words
@@ -326,9 +325,9 @@ export default function JarvisInvestigator() {
         </div>
 
         <div style={{ marginBottom: '40px' }}>
-          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#F1F5F9', marginBottom: '12px' }}>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
             <span>Medical Records & Labs</span>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', padding: '4px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>PDF / Images</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', padding: '4px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>PDF / Images</span>
           </label>
           <input 
             type="file" 
@@ -365,7 +364,7 @@ export default function JarvisInvestigator() {
         <button 
           onClick={handleAnalyze}
           disabled={!history.trim() && files.length === 0}
-          style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#334155' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '18px', cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(249,115,22,0.4)', transition: 'all 0.2s' }}
+          style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#CBD5E1' : '#0F172A', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '18px', cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 12px 24px rgba(15,23,42,0.25)', transition: 'all 0.2s' }}
         >
           <Sparkles size={24} /> Crunch Data & Extract Insights
         </button>
@@ -373,5 +372,3 @@ export default function JarvisInvestigator() {
     </div>
   );
 }
-
-
