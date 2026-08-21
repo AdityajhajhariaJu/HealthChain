@@ -11,6 +11,7 @@ import { createCaseDraft, saveReviewSnapshot, getActiveCase } from '../../servic
 import { getProfile } from '../../services/ProfileEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
+import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
 
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
@@ -243,25 +244,58 @@ export default function JarvisInvestigator() {
   }
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '800px', margin: '0 auto', paddingBottom: '100px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '40px' }}>
-        <div style={{ position: 'relative', marginBottom: '24px' }}>
-          <div style={{ position: 'absolute', top: -15, left: -15, right: -15, bottom: -15, background: 'linear-gradient(135deg, #38BDF8, #8B5CF6)', filter: 'blur(20px)', opacity: 0.4, borderRadius: '50%' }} />
-          <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '24px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <Cpu size={40} color="#38BDF8" />
+    <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px' }}>
+      
+      <div
+        style={{
+          background: 'linear-gradient(120deg, rgba(240,249,255,0.95) 0%, rgba(245,243,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
+          backgroundSize: '200% 200%',
+          backdropFilter: 'blur(24px)',
+          padding: isMobile ? '24px' : '48px',
+          borderRadius: '32px',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
+          border: '1px solid rgba(255,255,255,0.5)',
+          marginBottom: '32px'
+        }}
+      >
+        <div style={{ position: 'relative' }}>
+          <div 
+            style={{ 
+              position: 'absolute', 
+              top: '50%', 
+              right: isMobile ? '-30px' : '0px', 
+              transform: 'translateY(-50%)',
+              zIndex: 0,
+              pointerEvents: 'none',
+              opacity: isMobile ? 0.4 : 1,
+            }}
+          >
+            <JarvisCore size={isMobile ? 180 : 260} />
+          </div>
+          
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E0F2FE', color: '#0284C7' }}>
+                <Cpu size={18} />
+              </div>
+              <span style={{ color: '#0284C7', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
+            </div>
+            
+            <h2 style={{ fontSize: isMobile ? '30px' : '40px', fontWeight: 900, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
+              Uncover the missing link.
+            </h2>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <span style={{ padding: '6px 12px', background: '#F1F5F9', color: '#334155', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #E2E8F0' }}><Search size={14} /> Unvarnished Insights</span>
+              <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> One-Shot Execution</span>
+              <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> No Follow-up Chat</span>
+            </div>
+            
+            <p style={{ color: '#475569', fontSize: '15px', margin: '0', fontWeight: 500, lineHeight: 1.6 }}>
+              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
+            </p>
           </div>
         </div>
-        <h1 style={{ fontSize: isMobile ? '32px' : '42px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1.5px', margin: '0 0 16px 0' }}>
-          J.A.R.V.I.S. Data Engine
-        </h1>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <span style={{ padding: '6px 12px', background: '#F1F5F9', color: '#334155', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #E2E8F0' }}><Search size={14} /> Unvarnished Insights</span>
-          <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> One-Shot Execution</span>
-          <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> No Follow-up Chat</span>
-        </div>
-        <p style={{ fontSize: '16px', color: '#475569', maxWidth: '540px', lineHeight: 1.6, margin: 0 }}>
-          We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
-        </p>
       </div>
 
       <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '24px', padding: isMobile ? '24px' : '40px', boxShadow: '0 20px 40px rgba(15,23,42,0.06)' }}>
