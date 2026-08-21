@@ -265,11 +265,11 @@ export default function JarvisInvestigator() {
           background: 'linear-gradient(120deg, rgba(240,249,255,0.95) 0%, rgba(245,243,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
           backgroundSize: '200% 200%',
           backdropFilter: 'blur(24px)',
-          padding: isMobile ? '24px' : '48px',
-          borderRadius: '32px',
+          padding: isMobile ? '32px 24px' : '48px',
+          borderRadius: isMobile ? '0 0 32px 32px' : '32px',
+          margin: isMobile ? '-16px -16px 32px -16px' : '0 0 32px 0',
           boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255,255,255,0.5)',
-          marginBottom: '32px'
+          border: '1px solid rgba(255,255,255,0.5)'
         }}
       >
         <div style={{ position: 'relative' }}>
@@ -379,6 +379,7 @@ export default function JarvisInvestigator() {
     </div>
   );
 }
+
 
 
 
