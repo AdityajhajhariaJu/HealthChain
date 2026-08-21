@@ -604,7 +604,8 @@ CRITICAL INSTRUCTIONS:
 3. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list.
 Return strictly as JSON:
 {
-  "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
+  "_scratchpad": "Use this field to output all your internal reasoning, chain of thought, and scientific debate. Do NOT put internal monologue in any other field.",
+    "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
   "keyFindings": "Summarize the core clinical findings across all specialists in a clear paragraph.",
   "interpretation": "Explain what these collective findings mean in plain English.",
   "nextSteps": "Outline the actionable next steps for the patient, prioritizing the most critical ones.",
@@ -612,12 +613,14 @@ Return strictly as JSON:
   "medicalTerms": [{"term": "Medical Term Used", "definition": "Simple definition for the patient"}],
   "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
   "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
+    "scientificLiteratureContext": "A paragraph explaining what recent clinical research or literature says about this symptom cluster.",
+    "alternativeOrRarePossibilities": "A brief mention of rare, environmental, or edge-case conditions a scientist might consider if standard tests are negative.",
   "urgency": "Routine | Soon | Urgent",
   "topDiagnoses": [
     { 
       "condition": "Possible pathway", 
       "confidence": 85, 
-      "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected, so the patient can easily understand it.", 
+      "rationale": "Patient-friendly ELI5 explanation of why this condition is suspected. MUST BE EXTREMELY CONCISE (MAX 2-3 SENTENCES). Do NOT include internal reasoning here.", 
       "specialty": "Specialty to discuss it with", 
       "evidenceFor": ["Specific supporting detail"], 
       "evidenceGaps": ["What is unknown or needs checking"],
