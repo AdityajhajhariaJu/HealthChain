@@ -183,6 +183,15 @@ export function MDTHubDashboard({
             }
           }}
           onRestart={() => {
+              // 1. Wipe the module-level stream cache to prevent infinite compiling loops
+              Object.keys(cachedMDTSpecialistStreams).forEach(key => delete cachedMDTSpecialistStreams[key]);
+              
+              // 2. Wipe the sessionStorage streams so the LLM doesn't hallucinate past cases
+              Object.keys(sessionStorage).forEach(key => {
+                if (key.startsWith('hc_stream_')) sessionStorage.removeItem(key);
+              });
+              sessionStorage.removeItem('hc_mdt_intake_draft');
+
               setActiveCase(null);
               setPhase('intake');
               setIntakeData({ chiefComplaint: '', history: '', redFlags: false });
