@@ -1055,7 +1055,18 @@ ${CLINICAL_SAFETY_RULES}`;
   }
 }
 
+const differentialInFlight = new Map<string, Promise<any>>();
+
 export async function runDifferentialAnalysis(intakeData: any, medicalRecords: any[], profileData: any) {
+  const requestKey = JSON.stringify({
+    intakeData,
+    records: (medicalRecords || []).map((record: any) => ({ id: record.id, filename: record.filename, findings: record.findings, keyFindings: record.keyFindings })),
+    profile: { age: profileData?.demographics?.age, gender: profileData?.demographics?.gender, conditions: profileData?.health?.conditions || profileData?.medicalConditions },
+  });
+  const existing = differentialInFlight.get(requestKey);
+  if (existing) return existing;
+
+  const request = (async () => {
 
 
   const prompt = `
@@ -1103,13 +1114,16 @@ ${CLINICAL_SAFETY_RULES}`;
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\[[\s\S]*\]/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson(text, []);
     }
   } catch (err) {
     console.error('DDx analysis error:', err);
     return null;
   }
+  })();
+  differentialInFlight.set(requestKey, request);
+  request.finally(() => differentialInFlight.delete(requestKey)).catch(() => {});
+  return request;
 }
 
 export async function generateProfileSynthesis(profileData: any) {
