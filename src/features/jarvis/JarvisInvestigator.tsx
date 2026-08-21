@@ -245,20 +245,31 @@ export default function JarvisInvestigator() {
   return (
     <div style={{ padding: isMobile ? '16px' : '32px', maxWidth: '800px', margin: '0 auto', paddingBottom: '100px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '40px' }}>
-        <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'linear-gradient(135deg, #0F172A, #1E293B)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 32px rgba(15,23,42,0.3)', marginBottom: '24px' }}>
-          <Cpu size={40} color="#38BDF8" />
+        <div style={{ position: 'relative', marginBottom: '24px' }}>
+          <div style={{ position: 'absolute', top: -15, left: -15, right: -15, bottom: -15, background: 'linear-gradient(135deg, #38BDF8, #8B5CF6)', filter: 'blur(20px)', opacity: 0.4, borderRadius: '50%' }} />
+          <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '24px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <Cpu size={40} color="#38BDF8" />
+          </div>
         </div>
-        <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', margin: '0 0 12px 0' }}>
+        <h1 style={{ fontSize: isMobile ? '32px' : '42px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1.5px', margin: '0 0 16px 0' }}>
           J.A.R.V.I.S. Data Engine
         </h1>
-        <p style={{ fontSize: '16px', color: '#475569', maxWidth: '500px', lineHeight: 1.6, margin: 0 }}>
-          Upload years of records, labs, and history. The AI will crunch the data to find sub-clinical clues and patterns your doctors missed.
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <span style={{ padding: '6px 12px', background: '#F1F5F9', color: '#334155', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #E2E8F0' }}><Search size={14} /> Unvarnished Insights</span>
+          <span style={{ padding: '6px 12px', background: '#F0FDF4', color: '#166534', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #BBF7D0' }}><CheckCircle2 size={14} /> One-Shot Execution</span>
+          <span style={{ padding: '6px 12px', background: '#FEF2F2', color: '#991B1B', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #FECACA' }}><X size={14} /> No Follow-up Chat</span>
+        </div>
+        <p style={{ fontSize: '16px', color: '#475569', maxWidth: '540px', lineHeight: 1.6, margin: 0 }}>
+          We crunch all your data and extract brutal, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
         </p>
       </div>
 
-      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '24px', padding: isMobile ? '20px' : '32px', boxShadow: '0 8px 32px rgba(0,0,0,0.04)' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Your Entire History</label>
+      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '24px', padding: isMobile ? '24px' : '40px', boxShadow: '0 20px 40px rgba(15,23,42,0.06)' }}>
+        <div style={{ marginBottom: '28px' }}>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
+            <span>Clinical Timeline & Symptoms</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', padding: '4px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>Raw Text</span>
+          </label>
           <textarea 
             value={history}
             onChange={(e) => {
@@ -268,16 +279,21 @@ export default function JarvisInvestigator() {
                 setHistory(text);
               }
             }}
-            placeholder="Briefly summarize your primary concern (Max 300 words)..."
-            style={{ width: '100%', height: '160px', padding: '16px', borderRadius: '16px', border: '1px solid #CBD5E1', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC' }}
+            placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 300 words)..."
+            style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid #E2E8F0', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }}
+            onFocus={(e) => e.target.style.borderColor = '#38BDF8'}
+            onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
           />
-          <div style={{ textAlign: 'right', fontSize: '12px', color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 300) ? '#EF4444' : '#94A3B8', marginTop: '4px' }}>
+          <div style={{ textAlign: 'right', fontSize: '13px', fontWeight: 600, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 300) ? '#EF4444' : '#94A3B8', marginTop: '8px' }}>
             {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 300 words
           </div>
         </div>
 
-        <div style={{ marginBottom: '32px' }}>
-          <label style={{ display: 'block', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Medical Records & Labs</label>
+        <div style={{ marginBottom: '40px' }}>
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
+            <span>Medical Records & Labs</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', padding: '4px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>PDF / Images</span>
+          </label>
           <input 
             type="file" 
             ref={fileInputRef} 
@@ -288,20 +304,22 @@ export default function JarvisInvestigator() {
           />
           <button 
             onClick={() => fileInputRef.current?.click()}
-            style={{ width: '100%', padding: '24px', background: '#F1F5F9', border: '2px dashed #CBD5E1', borderRadius: '16px', color: '#475569', fontWeight: 600, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+            style={{ width: '100%', padding: '32px', background: '#F8FAFC', border: '2px dashed #CBD5E1', borderRadius: '16px', color: '#475569', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseOver={(e) => e.currentTarget.style.borderColor = '#38BDF8'}
+            onMouseOut={(e) => e.currentTarget.style.borderColor = '#CBD5E1'}
           >
-            <div style={{ background: '#FFF', padding: '12px', borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-              <FileUp size={24} color="#0F172A" />
+            <div style={{ background: '#FFF', padding: '16px', borderRadius: '50%', boxShadow: '0 8px 16px rgba(0,0,0,0.06)' }}>
+              <FileUp size={28} color="#0F172A" />
             </div>
-            Upload PDFs or Photos
+            <span style={{ fontSize: '16px' }}>Upload PDFs or Photos</span>
           </button>
 
           {files.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
               {files.map((f, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.file.name}</span>
-                  <button onClick={() => removeFile(idx)} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '4px' }}><X size={16} /></button>
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.file.name}</span>
+                  <button onClick={() => removeFile(idx)} style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px', color: '#EF4444', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}><X size={16} /></button>
                 </div>
               ))}
             </div>
@@ -311,9 +329,9 @@ export default function JarvisInvestigator() {
         <button 
           onClick={handleAnalyze}
           disabled={!history.trim() && files.length === 0}
-          style={{ width: '100%', padding: '18px', background: (!history.trim() && files.length === 0) ? '#94A3B8' : '#0F172A', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '16px', cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 8px 24px rgba(15,23,42,0.25)', transition: 'all 0.2s' }}
+          style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#CBD5E1' : '#0F172A', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '18px', cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 12px 24px rgba(15,23,42,0.25)', transition: 'all 0.2s' }}
         >
-          <Sparkles size={20} /> Initialize J.A.R.V.I.S. Engine
+          <Sparkles size={24} /> Crunch Data & Extract Insights
         </button>
       </div>
     </div>
