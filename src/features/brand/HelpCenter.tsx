@@ -10,11 +10,11 @@ const faqs = [
   },
   {
     question: "How is my medical data secured?",
-    answer: "Your privacy is our top priority. HealthChain uses enterprise-grade encryption for all data at rest and in transit. By default, your data is stored locally in your browser unless you explicitly create an account for cloud sync."
+    answer: "HealthChain uses access controls and server-side boundaries for signed-in cloud features. Guest information stays in the browser on that device; signed-in information may sync with Supabase. No online service can guarantee absolute security, so use a private device and review the Privacy Policy for current storage and processing details."
   },
   {
     question: "How do the Deep Collaborative Specialists work?",
-    answer: "The Deep Collaborative Specialists feature simulates a consultation between multiple AI specialist agents (e.g., Cardiology, Neurology, Endocrinology) who review your case, debate findings, and provide a unified recommendation report."
+    answer: "The Deep Collaborative Specialists feature uses multiple AI perspectives (for example, cardiology, neurology, or endocrinology perspectives) to organize evidence gaps and discussion topics. These are not licensed clinicians, consultations, referrals, or second opinions, and the output does not provide a diagnosis or treatment directive."
   },
   {
     question: "Can I export my profile and case data?",

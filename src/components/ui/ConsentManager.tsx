@@ -3,20 +3,43 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
+const GA_ID = 'G-0JPQJJHTB6';
+
+function enableAnalytics() {
+  if (typeof window === 'undefined' || (window as any).__hc_ga_loaded) return;
+  (window as any).dataLayer = (window as any).dataLayer || [];
+  (window as any).gtag = (...args: any[]) => (window as any).dataLayer.push(args);
+  (window as any).gtag('js', new Date());
+  (window as any).gtag('config', GA_ID, { anonymize_ip: true });
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+  document.head.appendChild(script);
+  (window as any).__hc_ga_loaded = true;
+}
+
 export default function ConsentManager() {
   const isMobile = useIsMobile();
   const [showCookies, setShowCookies] = useState(false);
 
   useEffect(() => {
     const cookiesAccepted = localStorage.getItem('hc_cookies_accepted');
-    if (!cookiesAccepted) {
+    if (!cookiesAccepted || cookiesAccepted === 'true') {
       setShowCookies(true);
+    } else if (cookiesAccepted === 'accepted') {
+      enableAnalytics();
     }
   }, []);
 
   const acceptCookies = () => {
     if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
-    try { localStorage.setItem('hc_cookies_accepted', 'true'); } catch(e) {}
+    try { localStorage.setItem('hc_cookies_accepted', 'accepted'); } catch(e) {}
+    enableAnalytics();
+    setShowCookies(false);
+  };
+
+  const declineOptionalCookies = () => {
+    try { localStorage.setItem('hc_cookies_accepted', 'declined'); } catch(e) {}
     setShowCookies(false);
   };
 
@@ -56,11 +79,17 @@ export default function ConsentManager() {
                   Privacy & Terms
                 </h4>
                 <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
-                  By continuing to use HealthChain, you agree to our Terms of Service (including the Medical Disclaimer that this tool is not a substitute for professional medical advice) and our Privacy Policy.
+                  HealthChain uses necessary storage for sign-in and app operation. Optional analytics helps us understand product usage and is loaded only if you accept it. See our Terms of Service and Privacy Policy.
                 </p>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                onClick={declineOptionalCookies}
+                style={{ background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 18px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Necessary only
+              </button>
               <button
                 onClick={acceptCookies}
                 style={{

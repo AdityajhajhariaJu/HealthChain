@@ -39,6 +39,7 @@ const CaseDashboard = React.lazy(() => import('./features/dashboard/CaseDashboar
 const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/ClinicalTrialsMatcher'));
 const PrivacyPolicy = React.lazy(() => import('./features/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./features/legal/TermsOfService'));
+const ReviewerDemo = React.lazy(() => import('./features/legal/ReviewerDemo'));
 const UpdatePassword = React.lazy(() => import('./features/auth/UpdatePassword'));
 
 const Changelog = React.lazy(() => import('./features/brand/Changelog'));
@@ -373,6 +374,7 @@ export default function App() {
             </PageTransition>
           }
         />
+        <Route path="/review-demo" element={<PageTransition><SafeRoute><ReviewerDemo /></SafeRoute></PageTransition>} />
         <Route
           path="/changelog"
           element={

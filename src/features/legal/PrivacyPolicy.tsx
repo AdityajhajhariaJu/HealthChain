@@ -3,94 +3,39 @@ import { motion } from 'framer-motion';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+const sectionStyle = { fontSize: '20px', marginTop: '32px', marginBottom: '12px', color: 'var(--text-primary)' };
+const bodyStyle = { marginBottom: '14px', color: 'var(--text-secondary)' };
+
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', padding: '24px', overflowY: 'auto' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto', paddingBottom: '60px' }}>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            padding: '12px 0',
-            marginBottom: '24px'
-          }}
-        >
-          <ArrowLeft size={20} />
-          Back
-        </button>
+      <div style={{ maxWidth: '820px', margin: '0 auto', paddingBottom: '60px' }}>
+        <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '12px 0', marginBottom: '24px' }}><ArrowLeft size={20} /> Back</button>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', color: 'var(--text-primary)', lineHeight: '1.6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}><div style={{ padding: '12px', backgroundColor: 'rgba(20, 184, 166, 0.1)', borderRadius: '16px', color: 'var(--primary-color)' }}><Shield size={32} /></div><div><h1 style={{ fontSize: '32px', margin: 0 }}>Privacy Policy</h1><p style={{ margin: '4px 0 0', color: 'var(--text-secondary)' }}>HealthChain</p></div></div>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Last updated: August 21, 2026</p>
+          <p style={bodyStyle}>This policy explains what HealthChain collects, why it is processed, which service providers receive it, how long it is retained, and how you can control or delete it. HealthChain is an AI-assisted health-information organization and clinician-visit preparation service. It is not a certification, legal notice for every country, or medical advice. Please obtain local legal advice before launch in a new market.</p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            backgroundColor: 'var(--bg-secondary)',
-            borderRadius: '24px',
-            padding: '24px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-            color: 'var(--text-primary)',
-            lineHeight: '1.6'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-            <div style={{ padding: '12px', backgroundColor: 'rgba(20, 184, 166, 0.1)', borderRadius: '16px', color: 'var(--primary-color)' }}>
-              <Shield size={32} />
-            </div>
-            <h1 style={{ fontSize: '32px', margin: 0 }}>Privacy Policy</h1>
-          </div>
-          
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Last Updated: August 2026</p>
+          <h2 style={sectionStyle}>1. Information we collect</h2>
+          <ul style={{ ...bodyStyle, paddingLeft: '24px' }}><li><strong>Account data:</strong> email address, authentication identifiers, sign-in provider details, and basic account metadata.</li><li><strong>Health information you provide:</strong> symptoms, timelines, conditions, medications, allergies, diet information, uploaded record content or extracted highlights, case notes, questions, and clinician-visit preparation data.</li><li><strong>AI-derived information:</strong> structured summaries, evidence gaps, uncertainty labels, discussion points, suggested perspectives, and other outputs generated from the information you submit.</li><li><strong>Device and usage data:</strong> device/platform information, approximate technical logs, product events, error information, and analytics events. We do not intentionally collect precise location for the core service.</li><li><strong>Payment data:</strong> payment identifiers and entitlement records. Card and payment credentials are handled by the payment provider, not stored by HealthChain.</li></ul>
 
-          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>1. Introduction</h2>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            HealthChain helps you organize health information and prepare questions for a qualified clinician. We respect the sensitivity of that information and explain below what the app stores, where it may be processed, and the choices available to you. This policy describes the product as it works today; it is not a claim of certification or a substitute for local legal notices.
-          </p>
+          <h2 style={sectionStyle}>2. How we use information</h2>
+          <ul style={{ ...bodyStyle, paddingLeft: '24px' }}><li>To authenticate you, keep cases and profiles available across signed-in devices, and provide HealthChain features.</li><li>To organize health information, prepare clinician-visit materials, and generate AI-assisted assessment and research outputs that you ask for.</li><li>To provide support, maintain reliability, prevent abuse, enforce quotas, process payments, and investigate security incidents.</li><li>To understand product usage and improve the service. We do not sell personal health information or use it for behavioral advertising.</li></ul>
 
-          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>2. Data Collection</h2>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            We collect information you provide directly to us, including:
-            <ul style={{ paddingLeft: '24px', marginTop: '8px' }}>
-              <li>Account information (email, password)</li>
-              <li>Medical profile data (demographics, conditions, medications, allergies)</li>
-              <li>Clinical case history and interactions with our AI systems</li>
-              <li>Uploaded medical records and lab reports</li>
-            </ul>
-          </p>
+          <h2 style={sectionStyle}>3. Service providers and sharing</h2>
+          <p style={bodyStyle}>We share information only as needed to operate the service, comply with law, or protect users and the service:</p>
+          <ul style={{ ...bodyStyle, paddingLeft: '24px' }}><li><strong>Supabase:</strong> authentication, database storage, row-level access controls, and signed-in synchronization.</li><li><strong>Vercel:</strong> web hosting and server-side application/API execution.</li><li><strong>Google Gemini API:</strong> AI processing. When you use an AI feature, the relevant text or structured data is sent through HealthChain's server-side proxy to generate the requested output. Do not submit information you are not authorized to share.</li><li><strong>Google Analytics:</strong> optional website usage measurement. The current web build loads Analytics only after optional analytics consent is accepted.</li><li><strong>Razorpay:</strong> payment checkout and payment verification while Razorpay billing is enabled. Razorpay may retain transaction information under its own terms, legal, accounting, and fraud-prevention obligations.</li></ul>
+          <p style={bodyStyle}>We may disclose information when required by law, valid legal process, safety obligations, or to prevent fraud and abuse. We do not disclose health information to advertisers for targeting.</p>
 
-          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>3. How We Use Your Data</h2>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            We use your information to provide the features you choose: account access, case organization, record summaries, AI-assisted health assessment, support, payments, and product security. We do not sell personal health information. HealthChain does not provide diagnoses, prescriptions, or treatment plans; AI output is intended to support preparation and discussion with a qualified clinician.
-          </p>
+          <h2 style={sectionStyle}>4. International and cross-border processing</h2><p style={bodyStyle}>Our providers may process information in countries other than the country where you live, including the United States or other locations where their infrastructure operates. By using signed-in or AI features, you acknowledge this possibility. We use contractual, technical, and organizational safeguards offered by the relevant providers where available. Market-specific transfer notices or consent requirements may apply.</p>
+          <h2 style={sectionStyle}>5. Storage, security, and retention</h2><p style={bodyStyle}><strong>Guest use:</strong> information may remain in the browser on the device you use. Clearing site data, using a shared device, or losing that device can affect guest data.</p><p style={bodyStyle}><strong>Signed-in use:</strong> application records are synchronized to Supabase so they can be recovered after refresh, logout, or a device change. We use access controls and server-side boundaries, but no internet service can guarantee absolute security. We do not describe HealthChain as HIPAA-certified, GDPR-certified, or “enterprise-grade encrypted.”</p><p style={bodyStyle}>We retain account and user-created records while your account is active or as needed to provide the service. When you request account deletion, the application deletion transaction removes the account-associated profiles, cases, Health Memory, device records, analytics events, AI usage records, and application payment records that HealthChain controls. Provider backups, security logs, and external payment records may remain for their normal backup, fraud-prevention, accounting, or legal-retention period. AI providers may also retain or process requests according to the applicable API/service configuration and terms; confirm the selected configuration before launch.</p>
 
-          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>4. Data Security & Storage</h2>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Guest mode:</strong> case information is stored in your browser on the device you use. Anyone who can access that browser profile may be able to access it, and clearing browser data can remove it.<br /><br />
-            <strong>Signed-in use:</strong> the application may sync account and case information with Supabase to provide account features. Requests to our web application are served through Vercel. When you choose an AI feature, the information required for that request is sent through our server-side AI proxy to Google Gemini. These providers may process data in locations outside your country, subject to their applicable terms and safeguards.
-          </p>
-          
-          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>5. Your Rights & Data Deletion</h2>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            You can export the HealthChain case and profile information stored in this browser from Settings. You can request deletion of a signed-in account from Settings. Browser-stored guest data can also be removed by clearing HealthChain site data or using the app's deletion controls. Do not use a shared device if you want to keep health information private.
-          </p>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Deletion and retention:</strong> after a successful account-deletion request, HealthChain asks its application database to delete account-associated profiles, cases, Health Memory, device registrations, AI usage records, analytics, and application payment records. Copies held in service-provider backups or external services may persist for their normal backup or legal-retention cycle. We will update this policy as retention periods and service configuration are finalized.
-          </p>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Important:</strong> HealthChain is a consumer health-information product, not an emergency service. If you have severe, sudden, or worsening symptoms, contact local emergency services or a qualified clinician immediately. AI outputs can be incomplete or incorrect and should be reviewed with a clinician before acting on them.
-          </p>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Account Deletion Policy:</strong> When you request account deletion, we remove the HealthChain application records associated with your account after the deletion transaction succeeds, then request deletion of the authentication identity. Deletion does not guarantee immediate removal from provider backups or records that a third party must retain by law.
-          </p>
-          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-            <strong>Payment Records:</strong> Application payment records are included in the HealthChain deletion request. External payment services may retain transaction records under their own legal, fraud-prevention, and accounting obligations.
-          </p>
+          <h2 style={sectionStyle}>6. Your choices and rights</h2><ul style={{ ...bodyStyle, paddingLeft: '24px' }}><li>Access, correct, export, or update information through the product's available controls.</li><li>Request deletion through Settings, or contact us if the in-app flow is unavailable.</li><li>Withdraw optional consent where the product or local law provides that choice.</li><li>Ask questions about processing or submit a privacy request using the support contact below. Depending on your location, you may have rights to access, correction, deletion, restriction, portability, objection, or complaint to a data-protection authority.</li></ul>
+          <h2 style={sectionStyle}>7. AI and medical-safety notice</h2><p style={bodyStyle}>AI outputs can be incomplete, incorrect, or unsuitable for your circumstances. They organize information and identify topics to discuss; they do not diagnose, prescribe, provide a treatment plan, act as a clinician, or replace professional care. Review outputs and original records with a qualified clinician. HealthChain is not an emergency service. For severe, sudden, or worsening symptoms, contact local emergency services or a qualified clinician immediately.</p>
+          <h2 style={sectionStyle}>8. Children</h2><p style={bodyStyle}>HealthChain is not directed to children. Do not create an account or submit a child's information unless you are legally authorized to do so and the service is permitted for that use in your location.</p>
+          <h2 style={sectionStyle}>9. Contact</h2><p style={bodyStyle}>For privacy questions, deletion support, or rights requests, contact <a href="mailto:support@healthchain360.com" style={{ color: 'var(--teal)' }}>support@healthchain360.com</a>. Before launch, the operating legal entity and applicable jurisdiction should be inserted here and reviewed by qualified counsel.</p>
+          <p style={{ ...bodyStyle, marginTop: '28px', fontSize: '13px' }}>This policy may change as providers, features, markets, or legal requirements change. We will post the updated version here and update the date above.</p>
         </motion.div>
       </div>
     </div>
