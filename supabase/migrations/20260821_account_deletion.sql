@@ -7,10 +7,21 @@ security definer
 set search_path = public
 as $$
 begin
-  delete from public.cases where user_id = p_user_id;
-  delete from public.profiles where id = p_user_id;
-  delete from public.health_memory where user_id = p_user_id;
-  delete from public.user_devices where user_id = p_user_id;
+  -- Keep installation and deletion compatible with a partially migrated
+  -- project. Every table is checked before dynamic deletion, so an older
+  -- deployment cannot fail the function definition with a missing relation.
+  if to_regclass('public.cases') is not null then
+    execute 'delete from public.cases where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.profiles') is not null then
+    execute 'delete from public.profiles where id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.health_memory') is not null then
+    execute 'delete from public.health_memory where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.user_devices') is not null then
+    execute 'delete from public.user_devices where user_id = $1' using p_user_id;
+  end if;
 
   -- These tables are introduced by optional integrations/migrations. The
   -- existence guard keeps deletion compatible with older deployments while

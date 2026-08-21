@@ -3,6 +3,24 @@
 -- the comments so this can be used in a Supabase SQL Editor or CI runner.
 
 -- Expected: one row per installed table below.
+do $$
+declare
+  missing_tables text;
+begin
+  select string_agg(name, ', ' order by name)
+    into missing_tables
+  from (values
+    ('profiles'), ('cases'), ('health_memory'), ('user_devices'),
+    ('analytics_events'), ('ai_requests'), ('ai_usage_daily'), ('payments')
+  ) as expected(name)
+  where to_regclass('public.' || name) is null;
+
+  if missing_tables is not null then
+    raise exception 'HealthChain migration incomplete. Missing public tables: %', missing_tables
+      using hint = 'Apply every file in supabase/migrations in filename order, then rerun this verifier.';
+  end if;
+end $$;
+
 select table_name
 from information_schema.tables
 where table_schema = 'public'
