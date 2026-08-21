@@ -106,7 +106,23 @@ async function send(entry: OutboxEntry) {
     return supabase.from('cases').upsert(entry.payload, { onConflict: 'id' });
   }
   if (entry.kind === 'health_memory_upsert') {
-    return supabase.from('health_memory').upsert(entry.payload, { onConflict: 'id' });
+    const result = await supabase.from('health_memory').upsert(entry.payload, { onConflict: 'id' });
+    if (result.error?.code === '23505' && entry.payload?.dedupe_key) {
+      const { data: existing, error: lookupError } = await supabase
+        .from('health_memory')
+        .select('id')
+        .eq('user_id', entry.userId)
+        .eq('profile_id', entry.payload.profile_id)
+        .eq('dedupe_key', entry.payload.dedupe_key)
+        .maybeSingle();
+      if (!lookupError && existing?.id) {
+        const replacement = { ...entry.payload, id: existing.id };
+        return supabase.from('health_memory').update(replacement)
+          .eq('id', existing.id)
+          .eq('user_id', entry.userId);
+      }
+    }
+    return result;
   }
   if (entry.kind === 'case_delete') {
     return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);

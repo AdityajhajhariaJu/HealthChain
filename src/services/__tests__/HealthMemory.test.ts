@@ -15,7 +15,7 @@ vi.mock('../supabaseClient', () => ({
   },
 }));
 
-import { recordHealthMemory } from '../HealthMemory';
+import { getHealthMemory, recordHealthMemory } from '../HealthMemory';
 
 describe('HealthMemory durability', () => {
   beforeEach(() => {
@@ -71,5 +71,31 @@ describe('HealthMemory durability', () => {
 
     expect(query.range).toHaveBeenNthCalledWith(1, 0, 499);
     expect(query.range).toHaveBeenNthCalledWith(2, 500, 999);
+  });
+
+  it('reconciles a legacy duplicate by dedupe key', async () => {
+    const query = {
+      upsert: vi.fn(async () => ({ error: { code: '23505' } })),
+      select: vi.fn(() => query),
+      eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: { id: 'remote-uuid' }, error: null })),
+      update: vi.fn(() => query),
+    };
+    from.mockReturnValue(query);
+
+    const item = recordHealthMemory({
+      id: 'evt_legacy_id',
+      kind: 'profile_event',
+      source: 'profile',
+      title: 'Legacy profile event',
+      payload: { value: true },
+      dedupeKey: 'timeline:evt_legacy_id',
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(query.upsert).toHaveBeenCalledOnce();
+    expect(query.update).toHaveBeenCalledWith(expect.objectContaining({ id: 'remote-uuid' }));
+    expect(getHealthMemory().find((entry) => entry.id === item.id)).toBeUndefined();
+    expect(getHealthMemory().some((entry) => entry.id === 'remote-uuid')).toBe(true);
   });
 });

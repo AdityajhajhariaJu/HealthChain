@@ -76,12 +76,17 @@ function writeLocal(items: HealthMemoryItem[]) {
   window.dispatchEvent(new Event('hc_health_memory_updated'));
 }
 
-async function syncItem(item: HealthMemoryItem) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return;
-  const { error } = await supabase.from('health_memory').upsert({
-    id: item.id,
-    user_id: session.user.id,
+function replaceLocalMemoryId(oldId: string, newId: string) {
+  if (oldId === newId) return;
+  const items = getHealthMemory();
+  if (!items.some((item) => item.id === oldId)) return;
+  writeLocal(items.map((item) => item.id === oldId ? { ...item, id: newId } : item));
+}
+
+function remotePayload(item: HealthMemoryItem, id = item.id): any {
+  return {
+    id,
+    user_id: undefined,
     profile_id: item.profileId,
     case_id: item.caseId || null,
     kind: item.kind,
@@ -91,8 +96,40 @@ async function syncItem(item: HealthMemoryItem) {
     payload: item.payload,
     dedupe_key: item.dedupeKey || null,
     updated_at: item.updatedAt,
-  }, { onConflict: 'id' });
+  };
+}
+
+async function syncItem(item: HealthMemoryItem) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return;
+  const row = remotePayload(item);
+  row.user_id = session.user.id;
+  const { error } = await supabase.from('health_memory').upsert(row,
+    { onConflict: 'id' });
   if (error) {
+    if (error.code === '23505' && item.dedupeKey) {
+      const { data: existing, error: lookupError } = await supabase
+        .from('health_memory')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('profile_id', item.profileId)
+        .eq('dedupe_key', item.dedupeKey)
+        .maybeSingle();
+      if (!lookupError && existing?.id) {
+        const replacement = remotePayload(item, existing.id);
+        replacement.user_id = session.user.id;
+        const { error: updateError } = await supabase
+          .from('health_memory')
+          .update(replacement)
+          .eq('id', existing.id)
+          .eq('user_id', session.user.id);
+        if (!updateError) {
+          replaceLocalMemoryId(item.id, existing.id);
+          window.dispatchEvent(new CustomEvent('hc_sync_complete', { detail: { area: 'health_memory', at: new Date().toISOString() } }));
+          return;
+        }
+      }
+    }
     if (isSchemaUnavailable(error)) {
       // The feature can ship before its migration. Queue the compact,
       // structured item so applying the migration later in this session (or
