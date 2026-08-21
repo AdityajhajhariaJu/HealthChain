@@ -238,11 +238,6 @@ export function setActiveCase(caseId: string | null) {
 }
 
 export function deleteCase(caseId: string) {
-  try {
-    const queue = JSON.parse(localStorage.getItem('hc_deleted_cases') || '[]');
-    if (!queue.includes(caseId)) queue.push(caseId);
-    localStorage.setItem('hc_deleted_cases', JSON.stringify(queue));
-  } catch(e) {}
   const cases = getCases();
   const updatedCases = cases.filter((c) => c.id !== caseId);
   save(updatedCases);
