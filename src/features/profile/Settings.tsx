@@ -83,21 +83,14 @@ export default function Settings() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
-        // Delete user's cases, profile, and push notification devices in Supabase
-        await supabase.from('cases').delete().eq('user_id', session.user.id);
-        await supabase.from('profiles').delete().eq('id', session.user.id);
-        await supabase.from('user_devices').delete().eq('user_id', session.user.id);
-        await supabase.from('health_memory').delete().eq('user_id', session.user.id);
-      }
-
-      // Call the backend to scramble the identity securely
-      try {
-        await fetch('/api/delete-account', {
+        const response = await fetch('/api/delete-account', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${session?.access_token}` }
         });
-      } catch (e) {
-        console.error('Delete account API error', e);
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok || !body.success) {
+          throw new Error(body.error || 'The secure deletion service could not complete the request. Your data was not cleared locally.');
+        }
       }
       
       sessionStorage.clear();
@@ -105,7 +98,7 @@ export default function Settings() {
 
       localStorage.clear();
       await supabase.auth.signOut();
-      success('Health data removed', 'Your HealthChain data has been removed. Your login identity is signed out; full identity deletion requires the secure account-deletion service.');
+      success('Health data removed', 'Your HealthChain account and user-owned data have been permanently deleted.');
       navigate('/');
     } catch (err: any) {
       toastError('Error deleting account', err.message);

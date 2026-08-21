@@ -1,6 +1,5 @@
 import { checkRateLimit } from './utils/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',
@@ -13,13 +12,20 @@ const ALLOWED_ORIGINS = [
 ];
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY; 
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-export default async function handler(req, res) {
-  const origin = req.headers.origin || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+export default async function handler(req, res) {
+  setCors(req, res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -56,30 +62,31 @@ export default async function handler(req, res) {
 
     const userId = user.id;
 
-    // 1. Wipe Health Data (Profiles, Cases)
-    // We execute these deletes sequentially to ensure no orphaned sensitive data
-    await supabaseClient.from('cases').delete().eq('user_id', userId);
-    await supabaseClient.from('profiles').delete().eq('id', userId);
-
-    // 2. Anonymize Auth Identity (Hard Deletion Equivalent)
-    // We scramble the email and password so the original email is freed up for reuse.
-    // The payment history remains in the DB tied to this anonymized UUID.
-    const ghostEmail = `deleted_${Date.now()}_${Math.random().toString(36).substring(2)}@healthchain.local`;
-    const ghostPassword = `deleted_${crypto.randomUUID()}`;
-
-    const { error: scrambleError } = await supabaseClient.auth.admin.updateUserById(userId, {
-      email: ghostEmail,
-      password: ghostPassword,
-      user_metadata: { deleted: true },
-      app_metadata: { deleted: true }
-    });
-
-    if (scrambleError) {
-      console.error("Identity Scramble Error:", scrambleError);
-      return res.status(500).json({ error: 'Failed to fully anonymize identity.', details: scrambleError.message });
+    // Delete user-owned application data before deleting the identity. Required
+    // tables fail the request; optional integrations are tolerated when their
+    // migration has not been installed yet.
+    const requiredDeletes = [
+      ['cases', 'user_id'],
+      ['profiles', 'id'],
+      ['health_memory', 'user_id'],
+      ['user_devices', 'user_id'],
+    ];
+    for (const [table, column] of requiredDeletes) {
+      const { error } = await supabaseClient.from(table).delete().eq(column, userId);
+      if (error) throw new Error(`Failed deleting ${table}: ${error.message}`);
     }
 
-    return res.status(200).json({ success: true, message: 'Account permanently deleted and identity anonymized.' });
+    for (const table of ['analytics_events', 'payments']) {
+      const { error } = await supabaseClient.from(table).delete().eq('user_id', userId);
+      if (error && !['42P01', 'PGRST205'].includes(error.code)) {
+        throw new Error(`Failed deleting ${table}: ${error.message}`);
+      }
+    }
+
+    const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId);
+    if (deleteError) throw new Error(`Failed deleting auth identity: ${deleteError.message}`);
+
+    return res.status(200).json({ success: true, message: 'Account and user-owned HealthChain data permanently deleted.' });
   } catch (error) {
     console.error("Delete account error:", error);
     return res.status(500).json({ error: 'Internal Server Error', details: error.message });
