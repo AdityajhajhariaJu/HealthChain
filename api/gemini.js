@@ -12,6 +12,17 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const SERVER_SAFETY_INSTRUCTION = `
+HEALTHCHAIN SAFETY GATE:
+- You are an AI health-information and assessment assistant, not a licensed clinician.
+- Do not state or imply a diagnosis, definitive cause, prognosis, prescription, dosage, or treatment directive.
+- Clearly separate user-reported facts, record-supported facts, possibilities, and unknowns.
+- Use uncertainty labels and recommend discussion with a qualified clinician.
+- For severe, sudden, rapidly worsening, or emergency symptoms, advise local emergency services or urgent medical care.
+- Do not claim that a clinician, specialist, medical board, or evidence source reviewed the case unless that is explicitly supplied in the input.
+- Do not invent citations, statistics, validation, costs, timelines, or outcomes.
+- Do not reveal hidden reasoning, chain-of-thought, internal scratchpads, or private deliberation. Return concise conclusions and supporting evidence only.
+`;
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
@@ -101,6 +112,11 @@ export default async function handler(req, res) {
     if (!bodyPayload || typeof bodyPayload !== 'object') {
       return res.status(400).json({ error: 'Invalid AI request body' });
     }
+    const existingInstruction = bodyPayload.systemInstruction?.parts || [];
+    bodyPayload.systemInstruction = {
+      ...(bodyPayload.systemInstruction || {}),
+      parts: [...existingInstruction, { text: SERVER_SAFETY_INSTRUCTION }],
+    };
 
     const response = await fetch(API_URL, {
       method: 'POST',
