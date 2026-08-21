@@ -100,7 +100,11 @@ export default function QuickConsult() {
   useEffect(() => {
     const handleProfileChange = () => resetConsult();
     window.addEventListener('hc_profile_updated', handleProfileChange);
-    return () => window.removeEventListener('hc_profile_updated', handleProfileChange);
+    window.addEventListener('hc_logout', handleProfileChange);
+    return () => {
+      window.removeEventListener('hc_profile_updated', handleProfileChange);
+      window.removeEventListener('hc_logout', handleProfileChange);
+    };
   }, []);
 
   useEffect(() => {

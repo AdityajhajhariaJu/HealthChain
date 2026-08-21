@@ -224,7 +224,11 @@ export default function MultiSpecialist() {
       setActiveCase(getActiveCase());
     };
     window.addEventListener('hc_profile_updated', handleProfileChange);
-    return () => window.removeEventListener('hc_profile_updated', handleProfileChange);
+    window.addEventListener('hc_logout', handleProfileChange);
+    return () => {
+      window.removeEventListener('hc_profile_updated', handleProfileChange);
+      window.removeEventListener('hc_logout', handleProfileChange);
+    };
   }, []);
 
   // Ensure active specialist is always valid
