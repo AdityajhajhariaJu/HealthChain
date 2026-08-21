@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { getItemSync, setItemSync } from './storage';
+import { enqueueSync } from './SyncOutbox';
 
 export type HealthMemoryKind =
   | 'case_prep'
@@ -95,6 +96,19 @@ async function syncItem(item: HealthMemoryItem) {
       remoteSchemaUnavailable = true;
       return;
     }
+    await enqueueSync('health_memory_upsert', session.user.id, {
+      id: item.id,
+      user_id: session.user.id,
+      profile_id: item.profileId,
+      case_id: item.caseId || null,
+      kind: item.kind,
+      source: item.source,
+      title: item.title,
+      occurred_at: item.occurredAt,
+      payload: item.payload,
+      dedupe_key: item.dedupeKey || null,
+      updated_at: item.updatedAt,
+    });
     window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
     throw error;
   }

@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
+import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
 
 export interface CaseUpdate {
   id: string;
@@ -187,12 +188,12 @@ async function save(cases: CaseItem[]) {
   const { data: { session } } = await supabase.auth.getSession();
   if (session?.user) {
     const currentProfileId = getActiveProfileId();
-    // Write only changed cases
+    // Queue before attempting network delivery. This keeps the local update
+    // recoverable if the app is closed or Supabase is temporarily unavailable.
     for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
        if (!isUUID) continue;
-       
-       supabase.from('cases').upsert({
+       await enqueueSync('case_upsert', session.user.id, {
           id: c.id,
           user_id: session.user.id,
           title: c.title,
@@ -200,10 +201,9 @@ async function save(cases: CaseItem[]) {
           specialty: c.currentStage,
           data: { ...c, __profileId: currentProfileId },
           updated_at: new Date(c.updatedAt || new Date()).toISOString()
-       }).then(({error}) => {
-          if (error) console.error("Failed to upsert case", error);
        });
     }
+    await flushSyncOutbox(session.user.id);
     // ensure no big blob in localStorage
     removeItemSync(getCasesKey());
   } else {

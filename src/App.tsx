@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabaseClient';
 import { setItemSync } from './services/storage';
 import { clearPersistedMDTSession } from './stores/useMDTStore';
+import { flushSyncOutbox } from './services/SyncOutbox';
 
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
@@ -84,6 +85,10 @@ export default function App() {
   const { info } = useToast();
 
   useEffect(() => {
+    const flush = () => { flushSyncOutbox().catch((error) => console.warn('Sync outbox flush failed', error)); };
+    flush();
+    window.addEventListener('online', flush);
+
     const handleLogout = async () => {
       try {
         const idb = await import('idb-keyval');
@@ -131,6 +136,7 @@ export default function App() {
     return () => {
       window.removeEventListener('hc_logout', handleLogout);
       window.removeEventListener('hc_profile_updated', handleProfileSwitch);
+      window.removeEventListener('online', flush);
     };
   }, []);
 
