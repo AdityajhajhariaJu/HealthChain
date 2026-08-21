@@ -6,7 +6,29 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import prettier from 'eslint-config-prettier';
 
 export default [
-  { ignores: ['dist', 'node_modules', 'coverage'] },
+  {
+    ignores: [
+      'dist',
+      'node_modules',
+      'coverage',
+      // Root-level one-off migration/debug scripts are not application code.
+      '/*.js',
+      '/*.cjs',
+      '/*.py',
+      '/*.ps1',
+      '/*.bat',
+      '**/fix_*.js',
+      '**/debug_*.js',
+      '**/test_*.js',
+      '**/update_*.js',
+      '**/add_mode_to_case_engine.js',
+      '**/inject_shared_state.js',
+      '**/remove_mdt_trap.js',
+      '**/structural_refactor.cjs',
+      '**/scan_*.cjs',
+      '**/find-*.cjs',
+    ],
+  },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

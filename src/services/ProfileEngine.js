@@ -11,9 +11,9 @@ export function getProfileKey() {
         const account = JSON.parse(accountStr);
         if (account.id) return `hc_unified_profile_${account.id}`;
       }
-    } catch(e) {}
+    } catch { /* malformed account data; use the default profile key */ }
     return 'hc_unified_profile';
-  } catch (e) {
+  } catch {
     return 'hc_unified_profile_guest';
   }
 }
@@ -446,8 +446,6 @@ export function addEvent(type, source, title, data = {}, significant = true, exi
       };
     }
   }
-
-  const existingIdx = eventId ? profile.timeline.findIndex(e => e.id === eventId) : -1;
 
   const event = {
     id: eventId || generateId(),

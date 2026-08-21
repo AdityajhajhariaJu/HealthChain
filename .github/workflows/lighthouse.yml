@@ -2,9 +2,9 @@ name: Lighthouse CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   lighthouse:
@@ -23,6 +23,9 @@ jobs:
         
       - name: Build project
         run: npm run build
+
+      - name: Run unit tests
+        run: npm test -- --run
         
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v11
