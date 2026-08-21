@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -12,6 +12,7 @@ import { getProfile } from '../../services/ProfileEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
+import { JarvisCoreOrange } from '../../components/ui/JarvisCoreIconOrange';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 
 export default function JarvisInvestigator() {
@@ -271,15 +272,15 @@ export default function JarvisInvestigator() {
               opacity: isMobile ? 0.4 : 1,
             }}
           >
-            <JarvisCore size={isMobile ? 135 : 195} />
+            <JarvisCoreOrange size={isMobile ? 135 : 195} />
           </div>
           
           <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E0F2FE', color: '#0284C7' }}>
+              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#FFEDD5', color: '#EA580C' }}>
                 <NetworkHubIcon size={18} />
               </div>
-              <span style={{ color: '#0284C7', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
+              <span style={{ color: '#EA580C', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
             </div>
             
             <h2 style={{ fontSize: isMobile ? '30px' : '40px', fontWeight: 900, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
@@ -293,7 +294,7 @@ export default function JarvisInvestigator() {
             </div>
             
             <p style={{ color: '#475569', fontSize: '15px', margin: '0', fontWeight: 500, lineHeight: 1.6 }}>
-              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth—just upload your entire history and instantly discover patterns your doctors might have missed.
+              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forthâ€”just upload your entire history and instantly discover patterns your doctors might have missed.
             </p>
           </div>
         </div>
@@ -316,7 +317,7 @@ export default function JarvisInvestigator() {
             }}
             placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 300 words)..."
             style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid #E2E8F0', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }}
-            onFocus={(e) => e.target.style.borderColor = '#38BDF8'}
+            onFocus={(e) => e.target.style.borderColor = '#F97316'}
             onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
           />
           <div style={{ textAlign: 'right', fontSize: '13px', fontWeight: 600, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 300) ? '#EF4444' : '#94A3B8', marginTop: '8px' }}>
@@ -361,14 +362,10 @@ export default function JarvisInvestigator() {
           )}
         </div>
 
-        <button 
-          onClick={handleAnalyze}
-          disabled={!history.trim() && files.length === 0}
-          style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#CBD5E1' : '#0F172A', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '18px', cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 12px 24px rgba(15,23,42,0.25)', transition: 'all 0.2s' }}
-        >
-          <Sparkles size={24} /> Crunch Data & Extract Insights
-        </button>
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAnalyze} disabled={!history.trim() && files.length === 0} style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: (!history.trim() && files.length === 0) ? '#94A3B8' : '#FFF', borderRadius: '16px', border: 'none', fontSize: '18px', fontWeight: 800, cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(234,88,12,0.3)', transition: 'all 0.2s' }}> <Sparkles size={24} /> Initiate Core Investigation </motion.button>
       </div>
     </div>
   );
 }
+
+
