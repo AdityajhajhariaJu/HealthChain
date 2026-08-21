@@ -935,7 +935,7 @@ export default function MedicalProfile() {
             </motion.div>
           )}
 
-          {/* 2.5 Clinical Treatment Threads (Conditions) */}
+          {/* 2.5 Health context (conditions) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <AnimatePresence>
             {profile.conditions.map((condition) => {
@@ -951,7 +951,7 @@ export default function MedicalProfile() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                       <div>
-                        <div style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Active Treatment Thread</div>
+                        <div style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Health context</div>
                         <h3 style={{ fontSize: '20px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Activity size={20} color="#8B5CF6" /> {condition}
                         </h3>
@@ -967,8 +967,8 @@ export default function MedicalProfile() {
                           <HeartPulse size={14} /> Connected Treatment
                         </div>
                         <div style={{ background: 'var(--surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                          <strong style={{ display: 'block', fontSize: '15px' }}>Lisinopril 10mg</strong>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Daily, morning</span>
+                          <strong style={{ display: 'block', fontSize: '15px' }}>No linked medication</strong>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Add only information confirmed in your records.</span>
                         </div>
                       </div>
                       <div>
@@ -976,8 +976,8 @@ export default function MedicalProfile() {
                           <Beaker size={14} /> Tracking Metric
                         </div>
                         <div style={{ background: 'var(--surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                          <strong style={{ display: 'block', fontSize: '15px', color: '#3B82F6' }}>Blood Pressure (118/75)</strong>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Stabilized over 30 days</span>
+                          <strong style={{ display: 'block', fontSize: '15px', color: '#3B82F6' }}>No verified metric linked</strong>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Review measurements with a qualified clinician.</span>
                         </div>
                       </div>
                     </div>

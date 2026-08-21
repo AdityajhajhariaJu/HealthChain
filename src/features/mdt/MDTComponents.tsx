@@ -1749,13 +1749,13 @@ export function MDTReportPanel({
       console.error(err);
       setReport({
         executiveSummary:
-          'Based on the multi-disciplinary review of your symptoms and recent discussion, the board has identified some strong diagnostic pathways.',
+          'Based on the multi-perspective review of your symptoms and recent discussion, the board has identified discussion pathways to review with a qualified clinician.',
         topDiagnoses: [
           {
             condition: 'Pending Further Review',
             confidence: 60,
             rationale:
-              'The board requires the results of your next tests to provide a conclusive diagnosis.',
+              'Additional records may help a qualified clinician assess the discussion pathways more confidently.',
             specialty: 'General Practice',
           },
         ],
@@ -2201,7 +2201,7 @@ export function MDTReportPanel({
         </div>
       </div>
 
-      {/* Rediagnose Feedback Section */}
+      {/* Revisit-and-feedback section */}
       <div
         style={{
           marginTop: '48px',

@@ -80,7 +80,7 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
   // 4. Missing Information
   const missingInformation: BriefGap[] = [];
   if (!caseItem.medicalRecords || caseItem.medicalRecords.length === 0) {
-    missingInformation.push({ missingText: 'No lab or imaging records provided.', reason: 'Could help clarify diagnosis' });
+      missingInformation.push({ missingText: 'No lab or imaging records provided.', reason: 'Could help clarify the clinical picture' });
   }
 
   // 5. Questions for Clinician

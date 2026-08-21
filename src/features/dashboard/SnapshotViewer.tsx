@@ -152,7 +152,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                </section>
 
                <section>
-                  <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Diagnostic Pathways</h3>
+                  <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Discussion Pathways</h3>
                   <div style={{ display: 'grid', gap: 12 }}>
                     {(activeReview.report.topDiagnoses || []).map((d: any, i: number) => (
                       <div

@@ -684,7 +684,7 @@ Return strictly as JSON:
     // Fallback data so it doesn't get stuck on loading
     return {
       executiveSummary:
-        'Based on the multi-disciplinary review of your symptoms and recent discussion, the board has identified some strong diagnostic pathways. Please follow the recommended action plan for the next steps.',
+        'Based on the multi-perspective review of your symptoms and recent discussion, the board has identified discussion pathways. Review any next steps with a qualified clinician.',
       topDiagnoses: [
         {
           condition: 'Pending Further Review',

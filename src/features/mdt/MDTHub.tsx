@@ -507,7 +507,7 @@ useEffect(() => {
         } catch (e) {
           console.error('Failed to generate MDT report', e);
           setHistoryReport({
-            executiveSummary: 'Based on the multi-disciplinary review of your symptoms and recent discussion, the board has identified some strong diagnostic pathways.',
+            executiveSummary: 'Based on the multi-perspective review of your symptoms and recent discussion, the board has identified discussion pathways to review with a qualified clinician.',
             topDiagnoses: [],
             recommendedActionPlan: [],
             abnormalitiesNoted: [],

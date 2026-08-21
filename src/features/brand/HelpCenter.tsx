@@ -6,7 +6,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const faqs = [
   {
     question: "Is HealthChain a replacement for my doctor?",
-    answer: "No. HealthChain is an AI-powered diagnostic navigator. It is designed to help you organize your medical history, explore potential diagnostic pathways, and prepare for specialist visits. It does not provide definitive medical diagnoses or treatments."
+    answer: "No. HealthChain is an AI-assisted health assessment and appointment-preparation tool. It helps you organize your medical history, explore discussion pathways, and prepare for specialist visits. It does not provide definitive diagnoses or treatment instructions."
   },
   {
     question: "How is my medical data secured?",

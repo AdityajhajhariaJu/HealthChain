@@ -764,7 +764,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
                   <li key={i}><strong>{p.condition}</strong> - {p.specialty || 'General'}</li>
                 ))
               ) : (
-                <li>No active diagnostic pathways</li>
+                <li>No active discussion pathways</li>
               )}
             </ul>
           </div>

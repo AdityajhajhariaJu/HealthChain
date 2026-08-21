@@ -292,7 +292,7 @@ export default function ClinicalTrialsMatcher() {
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: '13px', color: '#94A3B8' }}>No active diagnoses found in current case.</div>
+                <div style={{ fontSize: '13px', color: '#94A3B8' }}>No active discussion pathways found in the current case.</div>
               )}
             </div>
 
