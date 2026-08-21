@@ -52,3 +52,30 @@ jobs:
 
       - name: Browser smoke tests
         run: npm run e2e -- --project=chromium --project=webkit
+
+  supabase-smoke:
+    name: Live Supabase smoke (when configured)
+    # Enable by setting the repository variable ENABLE_SUPABASE_SMOKE=true and
+    # the two matching repository secrets. The variable avoids exposing secret
+    # values in a job-level conditional.
+    if: ${{ vars.ENABLE_SUPABASE_SMOKE == 'true' }}
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run read-only Supabase smoke check
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run smoke:supabase

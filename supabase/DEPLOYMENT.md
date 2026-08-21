@@ -19,6 +19,11 @@ visible in the UI; the API and deletion workflow depend on the full chain.
    npm run smoke:supabase
    ```
 
+For automatic checks on every push, set the GitHub repository variable
+`ENABLE_SUPABASE_SMOKE=true` and repository secrets
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. The guarded CI job then runs
+the same read-only smoke check after the normal quality gates.
+
 The smoke check is read-only. It verifies that the required relations exist and
 that anonymous requests cannot read server-only AI or payment rows.
 
