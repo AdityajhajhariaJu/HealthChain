@@ -38,7 +38,10 @@ export default function Settings() {
   const { toast, success, error: toastError } = useToast();
 
   const accountStr = localStorage.getItem('hc_account');
-  const account = accountStr ? JSON.parse(accountStr) : null;
+  let account: any = null;
+  try { account = accountStr ? JSON.parse(accountStr) : null; } catch {}
+  const storageScope = account?.id || 'guest';
+  const scopedExportPrefixes = EXPORTABLE_STORAGE_PREFIXES.map((prefix) => `${prefix}_${storageScope}`);
   const userEmail = account?.email || account?.user?.email || 'user@example.com';
 
   useEffect(() => {
@@ -551,7 +554,7 @@ export default function Settings() {
             className="btn btn-outline"
             onClick={async () => {
               const exportedData = Object.keys(localStorage).reduce<Record<string, string>>((data, key) => {
-                if (EXPORTABLE_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+                if (scopedExportPrefixes.some((prefix) => key.startsWith(prefix))) {
                   const value = localStorage.getItem(key);
                   if (value !== null) data[key] = value;
                 }
@@ -642,7 +645,7 @@ export default function Settings() {
                       throw new Error('Invalid JSON format');
                     }
                     const FORBIDDEN_KEYS = ['isAuthenticated', 'hc_account', 'hc_remember', 'hc_guest_mode', 'hc_premium_status'];
-                    const ALLOWED_PREFIXES = [...EXPORTABLE_STORAGE_PREFIXES, 'hc_theme'];
+                    const ALLOWED_PREFIXES = [...scopedExportPrefixes, 'hc_theme'];
 
                     let importedCount = 0;
                     Object.keys(result).forEach(key => {
