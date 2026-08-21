@@ -62,25 +62,15 @@ export default async function handler(req, res) {
 
     const userId = user.id;
 
-    // Delete user-owned application data before deleting the identity. Required
-    // tables fail the request; optional integrations are tolerated when their
-    // migration has not been installed yet.
-    const requiredDeletes = [
-      ['cases', 'user_id'],
-      ['profiles', 'id'],
-      ['health_memory', 'user_id'],
-      ['user_devices', 'user_id'],
-    ];
-    for (const [table, column] of requiredDeletes) {
-      const { error } = await supabaseClient.from(table).delete().eq(column, userId);
-      if (error) throw new Error(`Failed deleting ${table}: ${error.message}`);
-    }
-
-    for (const table of ['analytics_events', 'payments']) {
-      const { error } = await supabaseClient.from(table).delete().eq('user_id', userId);
-      if (error && !['42P01', 'PGRST205'].includes(error.code)) {
-        throw new Error(`Failed deleting ${table}: ${error.message}`);
-      }
+    // Delete application data in one database transaction. The function is
+    // deliberately unavailable to client roles and must be installed by the
+    // account-deletion migration; fail closed if the deployment is incomplete.
+    const { error: dataDeleteError } = await supabaseClient.rpc('delete_healthchain_user_data', {
+      p_user_id: userId,
+    });
+    if (dataDeleteError) {
+      console.error('HealthChain data deletion transaction failed:', dataDeleteError);
+      return res.status(503).json({ error: 'Account deletion is temporarily unavailable. Please contact support.' });
     }
 
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId);
