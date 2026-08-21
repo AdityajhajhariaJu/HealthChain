@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Activity, Brain, Loader2 } from 'lucide-react';
 import { CaseItem, updateCaseDifferentials, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
-import { runDifferentialAnalysis, generateCaseConnectionMap } from '../../services/geminiService';
+import { generateCaseConnectionMap } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getRunScope } from '../../services/RunContext';
 
