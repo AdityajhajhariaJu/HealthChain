@@ -22,11 +22,26 @@ const requiredRelations = [
   'healthchain_case_overview',
   'healthchain_memory_overview',
 ];
+const expectedAnonDenied = new Set([
+  'healthchain_profiles',
+  'ai_requests',
+  'ai_usage_daily',
+  'payments',
+  'healthchain_user_summary',
+  'healthchain_case_overview',
+  'healthchain_memory_overview',
+]);
 const checks = [];
 
 for (const relation of requiredRelations) {
   const { data, error } = await client.from(relation).select('*').limit(1);
-  const check = { relation, ok: !error, error: error?.code || error?.message || null };
+  const permissionDenied = error?.code === '42501';
+  const check = {
+    relation,
+    ok: !error || (permissionDenied && expectedAnonDenied.has(relation)),
+    error: error?.code || error?.message || null,
+    protected_from_anon: permissionDenied && expectedAnonDenied.has(relation),
+  };
   if (Array.isArray(data) && data.length > 0) {
     check.ok = false;
     check.error = 'anonymous_data_visible';
