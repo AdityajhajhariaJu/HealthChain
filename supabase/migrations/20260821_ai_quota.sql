@@ -9,6 +9,8 @@ create table if not exists public.ai_usage_daily (
 
 alter table public.ai_usage_daily enable row level security;
 -- No client policies. Usage is read/written by the server service role only.
+revoke all on table public.ai_usage_daily from anon, authenticated;
+grant all on table public.ai_usage_daily to service_role;
 
 create or replace function public.consume_ai_request(p_user_id uuid, p_daily_limit integer default 120)
 returns boolean

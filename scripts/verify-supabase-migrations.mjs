@@ -55,6 +55,9 @@ const requiredSchemaTokens = [
   'public.payments',
   'public.healthchain_user_summary',
   'public.healthchain_memory_overview',
+  'revoke all on table public.ai_requests from anon, authenticated',
+  'revoke all on table public.ai_usage_daily from anon, authenticated',
+  'revoke all on table public.payments from anon, authenticated',
 ];
 const missingSchemaTokens = requiredSchemaTokens.filter((token) => !allSql.includes(token));
 if (missingSchemaTokens.length) {

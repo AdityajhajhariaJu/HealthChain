@@ -18,4 +18,5 @@ create index if not exists ai_requests_user_started_idx
 
 alter table public.ai_requests enable row level security;
 -- No client policies: this is written by the server-side service role only.
-
+revoke all on table public.ai_requests from anon, authenticated;
+grant all on table public.ai_requests to service_role;

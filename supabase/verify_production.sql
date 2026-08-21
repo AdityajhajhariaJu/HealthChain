@@ -55,6 +55,38 @@ where n.nspname = 'public'
   and not c.relrowsecurity
 order by c.relname;
 
+-- Expected: zero rows. Server-only operational and payment tables must not
+-- expose table privileges to browser roles, even if a future policy changes.
+select table_name, grantee, privilege_type
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and table_name in ('ai_requests', 'ai_usage_daily', 'payments')
+  and grantee in ('anon', 'authenticated')
+order by table_name, grantee, privilege_type;
+
+-- Expected: at least one policy for each browser-owned table. RLS enabled with
+-- no policy is a silent outage; a broad policy is reviewed separately below.
+do $$
+declare
+  missing_policies text;
+begin
+  select string_agg(expected.table_name, ', ' order by expected.table_name)
+    into missing_policies
+  from (values
+    ('profiles'), ('cases'), ('health_memory'), ('user_devices'), ('analytics_events')
+  ) as expected(table_name)
+  where not exists (
+    select 1 from pg_policies policy
+    where policy.schemaname = 'public'
+      and policy.tablename = expected.table_name
+  );
+
+  if missing_policies is not null then
+    raise exception 'HealthChain RLS policy coverage incomplete for: %', missing_policies
+      using hint = 'Create an owner-scoped policy for every browser-owned table before release.';
+  end if;
+end $$;
+
 -- Expected: these server-only routines exist.
 select routine_name
 from information_schema.routines

@@ -31,5 +31,7 @@ create table if not exists public.payments (
 
 alter table public.payments enable row level security;
 -- Payment rows are server-only; the service role is used by the API.
+revoke all on table public.payments from anon, authenticated;
+grant all on table public.payments to service_role;
 comment on table public.payments is
   'Server-only payment and entitlement ledger. No browser client policies.';
