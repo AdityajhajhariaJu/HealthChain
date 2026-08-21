@@ -21,13 +21,12 @@ const requiredRelations = [
   'healthchain_case_overview',
   'healthchain_memory_overview',
 ];
-const serverOnly = new Set(['ai_requests', 'ai_usage_daily', 'payments']);
 const checks = [];
 
 for (const relation of requiredRelations) {
-  const { data, error } = await client.from(relation).select('*').limit(serverOnly.has(relation) ? 1 : 0);
+  const { data, error } = await client.from(relation).select('*').limit(1);
   const check = { relation, ok: !error, error: error?.code || error?.message || null };
-  if (serverOnly.has(relation) && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data) && data.length > 0) {
     check.ok = false;
     check.error = 'anonymous_data_visible';
   }
