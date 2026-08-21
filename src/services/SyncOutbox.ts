@@ -15,6 +15,7 @@ interface OutboxEntry {
 }
 
 let flushInFlight: Promise<void> | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
 function currentUserKey(userId: string) { return `hc_sync_outbox_${userId}`; }
 
@@ -90,7 +91,17 @@ export async function flushSyncOutbox(userId?: string) {
       }
     }
     await writeQueue(accountId, remaining);
-    if (remaining.length) window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: remaining.length } }));
+    if (remaining.length) {
+      window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: remaining.length } }));
+      const attempts = Math.min(...remaining.map((entry) => entry.attempts));
+      const delay = Math.min(5 * 60 * 1000, Math.max(5000, 5000 * (2 ** Math.min(attempts, 5))));
+      if (!retryTimer) {
+        retryTimer = setTimeout(() => {
+          retryTimer = null;
+          flushSyncOutbox().catch(() => {});
+        }, delay);
+      }
+    }
   })().finally(() => { flushInFlight = null; });
   return flushInFlight;
 }
