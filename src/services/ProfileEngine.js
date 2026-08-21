@@ -607,7 +607,7 @@ export async function syncProfileFromSupabase() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
     
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
     if (data) {
        const state = getProfileEngineState();
        const localProfile = state.profiles[state.activeId];
@@ -665,7 +665,7 @@ export async function verifyProStatus() {
       }
     }
     return false;
-  } catch (e) {
+  } catch {
     return isProUser();
   }
 }
