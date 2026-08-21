@@ -223,13 +223,15 @@ export default function AppShell() {
       )}
 
         <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
-          <div style={{ display: (isMobile && ['/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
-            <BrandPulseBanner />
-          </div>
-          {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases'].some(p => location.pathname.startsWith(p)) && (
+          {!location.pathname.startsWith('/app/jarvis') && (
+            <div style={{ display: (isMobile && ['/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
+              <BrandPulseBanner />
+            </div>
+          )}
+          {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
             <ActiveCaseBar navigate={navigate} />
           )}
-        <Breadcrumbs />
+          {!location.pathname.startsWith('/app/jarvis') && <Breadcrumbs />}
         <div style={{ minHeight: 'calc(100% - 104px)' }}>
           <Outlet />
         </div>
