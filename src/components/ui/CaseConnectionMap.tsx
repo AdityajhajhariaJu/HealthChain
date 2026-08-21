@@ -202,7 +202,7 @@ export function CaseConnectionMap({ data, isMobile = false }: CaseConnectionMapP
           )}
           {data.missingEvidence?.length > 0 && (
             <div style={{ padding: '16px', background: '#F0FDF4', borderRadius: '16px', border: '1px solid #BBF7D0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803D', fontWeight: 700, marginBottom: '12px' }}><HelpCircle size={18} /> Missing Evidence</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803D', fontWeight: 700, marginBottom: '12px' }}><HelpCircle size={18} /> Ask your Doctor</div>
               <ul style={{ margin: 0, paddingLeft: '20px', color: '#166534', fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {data.missingEvidence.map((e: any, i: number) => <li key={i}><strong>{e.test}</strong> <span style={{ color: '#15803D', opacity: 0.8, fontSize: '12px', marginLeft: '4px' }}>(Urgency: {e.urgency})</span></li>)}
               </ul>
