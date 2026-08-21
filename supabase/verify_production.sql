@@ -64,6 +64,17 @@ where table_schema = 'public'
   and grantee in ('anon', 'authenticated')
 order by table_name, grantee, privilege_type;
 
+-- Expected: zero rows. Account-wide operator views are not browser-readable.
+select table_name, grantee, privilege_type
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and table_name in (
+    'healthchain_user_overview', 'healthchain_user_summary',
+    'healthchain_case_overview', 'healthchain_memory_overview'
+  )
+  and grantee in ('anon', 'authenticated')
+order by table_name, grantee, privilege_type;
+
 -- Expected: at least one policy for each browser-owned table. RLS enabled with
 -- no policy is a silent outage; a broad policy is reviewed separately below.
 do $$

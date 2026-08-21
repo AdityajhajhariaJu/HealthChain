@@ -15,6 +15,8 @@ create index if not exists healthchain_profiles_user_updated_idx
   on public.healthchain_profiles (user_id, updated_at desc);
 
 alter table public.healthchain_profiles enable row level security;
+revoke all on table public.healthchain_profiles from anon;
+grant select, insert, update, delete on table public.healthchain_profiles to authenticated;
 
 drop policy if exists "Users manage own caregiver profiles" on public.healthchain_profiles;
 create policy "Users manage own caregiver profiles"
@@ -46,3 +48,16 @@ select
     'data', hp.data
   ) order by hp.updated_at desc) from public.healthchain_profiles hp where hp.user_id = p.id), '[]'::jsonb) as caregiver_profiles
 from public.profiles p;
+
+-- Operator aggregates are deliberately server-side. The browser must use the
+-- owner-scoped base tables, never an all-account overview view.
+revoke all on public.healthchain_user_overview,
+  public.healthchain_user_summary,
+  public.healthchain_case_overview,
+  public.healthchain_memory_overview
+  from anon, authenticated;
+grant select on public.healthchain_user_overview,
+  public.healthchain_user_summary,
+  public.healthchain_case_overview,
+  public.healthchain_memory_overview
+  to service_role;
