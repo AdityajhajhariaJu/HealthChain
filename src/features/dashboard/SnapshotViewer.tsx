@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen } from 'lucide-react';
+import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, FileText } from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -60,8 +60,10 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
          <div>
            {[...reviews].reverse().map((review, index) => {
               const isParallel = review.type === 'parallel';
-              const Icon = isParallel ? GitMerge : Network;
-              const label = isParallel ? 'Parallel Specialists' : 'Deep Collab Correlation';
+              const isJarvis = review.type === 'jarvis';
+              const isLab = review.type === 'lab_report';
+              const Icon = isJarvis ? Brain : isLab ? FileText : isParallel ? GitMerge : Network;
+              const label = isJarvis ? 'J.A.R.V.I.S. Analysis' : isLab ? 'Lab Report' : isParallel ? 'Quick Consult' : 'Deep Collab Correlation';
               const summary = review.report?.executiveSummary || 'Review saved to case.';
               const isSelected = activeReviewId === review.id;
 

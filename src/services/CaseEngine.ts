@@ -205,8 +205,8 @@ async function save(cases: CaseItem[]) {
        });
     }
     await flushSyncOutbox(session.user.id);
-    // ensure no big blob in localStorage
-    removeItemSync(getCasesKey());
+    // Keep localStorage as a read-only safety net for offline/poor-network scenarios.
+    // It will be refreshed on next successful initCaseEngine read from Supabase.
   } else {
     // Guest - cap at 3 cases
     const capped = safeCases.slice(0, 3);

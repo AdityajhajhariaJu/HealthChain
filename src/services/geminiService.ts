@@ -99,7 +99,7 @@ export async function chatWithGemini(messages: Message[]): Promise<string> {
   const contents = recentMessages.map((msg) => {
     let textContent = msg.content;
     if (msg.role === 'analysis') {
-      textContent = `ANALYSIS_COMPLETE\n\`\`\`json\n${JSON.stringify(msg.content)}\n\`\`\``;
+      textContent = 'ANALYSIS_COMPLETE (structured findings already captured)';
     }
     return {
       role: msg.role === 'user' ? 'user' : 'model',
@@ -155,7 +155,7 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: PHARMACY_SYSTEM_PROMPT }] },
     contents: [{ role: 'user', parts: [{ text: promptText }] }],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 900 },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 450 },
   };
 
   try {
@@ -204,7 +204,7 @@ ${CLINICAL_SAFETY_RULES}`;
 
 
 export async function chatWithTherapyGemini(messages: Message[]): Promise<string> {
-  const contents = messages.slice(-50).map((msg) => ({
+  const contents = messages.slice(-12).map((msg) => ({
     role: msg.role === 'user' ? 'user' : 'model',
     parts: [{ text: msg.content }],
   }));
@@ -215,7 +215,7 @@ export async function chatWithTherapyGemini(messages: Message[]): Promise<string
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: finalSystemPrompt }] },
     contents,
-    generationConfig: { maxOutputTokens: 600 },
+    generationConfig: { maxOutputTokens: 200 },
   };
 
   try {
@@ -280,10 +280,12 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
       return parseModelJson(text, {
-        corroborations: [],
-        contentions: [],
-        followUpQuestions: [],
-        debateSummary: 'The available perspectives could not be fully correlated.'
+        testName: 'Unknown Report',
+        keyFindings: 'Unable to parse report data.',
+        interpretation: 'Please re-upload the document or try a clearer scan.',
+        recommendations: '',
+        abnormalities: [],
+        biomarkers: {}
       });
     }
     throw new Error('No candidate returned');
@@ -556,11 +558,12 @@ Return your analysis strictly in this JSON format:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const cleanText = text
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      const result = JSON.parse(cleanText);
+      const result = parseModelJson(text, {
+        corroborations: [],
+        contentions: [],
+        followUpQuestions: [],
+        debateSummary: 'Board consensus could not be fully resolved.'
+      });
       mdtConferenceCache.set(requestKey, result);
       return result;
     }
@@ -617,9 +620,15 @@ export async function generateMDTReport(
     }).join('\n').slice(0, 5000)}`
     : '';
 
+  const conferenceFindings = `
+Cross-Specialty Corroborations: ${JSON.stringify(conferenceData.corroborations || [])}
+Points of Contention: ${JSON.stringify(conferenceData.contentions || [])}
+Follow-Up Questions Identified: ${JSON.stringify(conferenceData.followUpQuestions || [])}`;
+
   const reportPrompt = `You are the Chief Clinical Orchestrator compiling the final board report.
 Patient Intake: ${intakeData.chiefComplaint}${recordsText}
 Conference Summary: ${conferenceData.debateSummary}
+${conferenceFindings}
 Patient's Final Answers: ${JSON.stringify(finalAnswers)}
 ${specialistText}
 
@@ -933,7 +942,7 @@ Rules:
         ],
       },
     ],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 600 },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300 },
   };
 
   try {
@@ -974,7 +983,7 @@ Rules:
         ],
       },
     ],
-    generationConfig: { maxOutputTokens: 400 },
+    generationConfig: { maxOutputTokens: 150 },
   };
   try {
     const res = await fetchWithTimeout(API_URL, {
@@ -1245,7 +1254,7 @@ ${CLINICAL_SAFETY_RULES}`;
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 650 },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 250 },
   };
 
   try {
@@ -1345,7 +1354,7 @@ Return ONLY a valid JSON array of objects with the exact following schema:
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 650 },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 1500 },
   };
 
   try {
@@ -1410,7 +1419,7 @@ Return ONLY a valid JSON array of objects with the exact following schema:
 
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 800 },
+    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 1500 },
   };
 
   try {
@@ -1639,7 +1648,7 @@ Answer them empathetically, concisely, and directly. Help them rehearse how to a
       headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_prep_coach' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 600 }
+        generationConfig: { temperature: 0.4, maxOutputTokens: 250 }
       })
     });
     if (!res.ok) return "I'm having trouble connecting right now. Please try asking again.";
@@ -1735,6 +1744,7 @@ Return ONLY a JSON object with this exact structure:
     ],
     generationConfig: {
       temperature: 0.2,
+      responseMimeType: 'application/json',
       maxOutputTokens: 2500,
     },
   };

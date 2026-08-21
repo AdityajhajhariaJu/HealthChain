@@ -187,8 +187,8 @@ export default function QuickConsult() {
     
     // We must use newCase directly because activeCase hasn't updated in this closure yet
     if (newCase) {
-      const aiMessages = messages.filter(m => m.role === 'ai' && !m.text.includes('ANALYSIS_COMPLETE'));
-      const summaryMessage = aiMessages[aiMessages.length - 1];
+      const summaryMessage = messages.find(m => m.role === 'ai' && m.text.includes('ANALYSIS_COMPLETE'))
+        || messages.filter(m => m.role === 'ai').pop();
       let reportData: any = {
         executiveSummary: "Assessment completed by " + (selectedSpecialist?.label || 'Specialist'),
         topDiagnoses: [],

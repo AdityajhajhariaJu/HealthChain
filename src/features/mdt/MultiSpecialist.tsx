@@ -334,41 +334,13 @@ export default function MultiSpecialist() {
         ),
       ];
 
-      // Run the debate round for all selected specialists in parallel
-      Promise.all(selected.map(async (sId) => {
-        const specObj = ALL_SPECIALISTS.find(s => s.id === sId);
-        if (!specObj) return { id: sId, debateMsg: null };
-        const debateData = await runDebateRound(
-          sId, 
-          specObj.label, 
-          specialistTranscripts[sId] || [], 
-          specialistTranscripts, 
-          reviewRecords
-        );
-        return {
-          id: sId,
-          debateMsg: {
-            role: 'ai',
-            text: JSON.stringify(debateData),
-            parsedText: debateData.critique,
-            internalThoughts: `Debate Round: ${debateData.revisedHypothesis} (${debateData.confidenceUpdate}% confident)`,
-            currentHypotheses: [debateData.revisedHypothesis]
-          }
-        };
-      })).then((debateResults) => {
-        // Append debate results to transcripts
-        const postDebateTranscripts = { ...specialistTranscripts };
-        debateResults.forEach(res => {
-          if (res.debateMsg) {
-            postDebateTranscripts[res.id] = [...(postDebateTranscripts[res.id] || []), res.debateMsg];
-          }
-        });
-
-        setPhase('correlating');
-        
-        generateParallelMultiReport(
-          caseTitle || symptomInput || activeCase?.title || 'Custom multi-specialist review',
-          postDebateTranscripts,
+      // The debate round has been deprecated in favor of a single Orchestrator consensus step.
+      // Bypass the dummy loop and send transcripts directly to correlation.
+      setPhase('correlating');
+      
+      generateParallelMultiReport(
+        caseTitle || symptomInput || activeCase?.title || 'Custom multi-specialist review',
+        specialistTranscripts,
           reviewRecords
         ).then((reportData: any) => {
           if (reportData) {
@@ -406,11 +378,11 @@ export default function MultiSpecialist() {
           setPhase('failed');
           consensusInFlightRef.current = false;
         });
-      }).catch(err => {
-        console.error('Debate round failed:', err);
-        setPhase('failed');
-        consensusInFlightRef.current = false;
-      });
+        }).catch(err => {
+          console.error('Report generation failed:', err);
+          setPhase('failed');
+          consensusInFlightRef.current = false;
+        });
     }
   }, [completedSpecialists, selected.length, phase, specialistTranscripts, activeCase, medicalRecords, caseTitle, symptomInput, workingCaseId, selectedSpecialists]);
 
