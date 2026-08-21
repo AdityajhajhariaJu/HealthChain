@@ -21,14 +21,25 @@ function currentUserKey(userId: string) { return `hc_sync_outbox_${userId}`; }
 
 async function readQueue(userId: string): Promise<OutboxEntry[]> {
   const key = currentUserKey(userId);
+  let indexedDbQueue: OutboxEntry[] | null = null;
   try {
     const value = await get(key);
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) {
+      indexedDbQueue = value;
+      if (value.length > 0) return value;
+    }
   } catch {}
   try {
     const value = JSON.parse(getItemSync(key) || '[]');
-    return Array.isArray(value) ? value : [];
-  } catch { return []; }
+    if (Array.isArray(value) && value.length > 0) {
+      // Migrate a queue written by an older/fallback storage path into the
+      // primary store before returning it. This prevents an empty IndexedDB
+      // namespace from masking recoverable localStorage work.
+      try { await set(key, value); } catch {}
+      return value;
+    }
+  } catch {}
+  return indexedDbQueue || [];
 }
 
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
@@ -39,6 +50,7 @@ async function writeQueue(userId: string, queue: OutboxEntry[]) {
   // IndexedDB (older WebViews/private browsing).
   try {
     await set(key, bounded);
+    try { window.localStorage.removeItem(key); } catch {}
     return;
   } catch {}
   try { setItemSync(key, JSON.stringify(bounded)); } catch {}

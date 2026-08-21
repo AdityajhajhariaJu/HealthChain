@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const idbStore = new Map<string, unknown>();
 const { getSession, from } = vi.hoisted(() => ({
-  getSession: vi.fn(async () => ({ data: { session: null } })),
+  getSession: vi.fn(async (): Promise<any> => ({ data: { session: null } })),
   from: vi.fn(),
 }));
 
@@ -77,5 +77,17 @@ describe('SyncOutbox', () => {
     expect(query.eq).not.toHaveBeenCalledWith('user_id', 'user-1');
     expect(query.upsert).toHaveBeenCalledOnce();
     expect(await getPendingSyncCount('user-1')).toBe(0);
+  });
+
+  it('recovers a fallback localStorage queue when IndexedDB is empty', async () => {
+    idbStore.set('hc_sync_outbox_user-3', []);
+    window.localStorage.setItem('hc_sync_outbox_user-3', JSON.stringify([
+      { id: 'queued-1', kind: 'case_upsert', userId: 'user-3', payload: { id: 'case-1' }, attempts: 0, createdAt: '2026-08-21T00:00:00.000Z' },
+    ]));
+
+    expect(await getPendingSyncCount('user-3')).toBe(1);
+    expect(idbStore.get('hc_sync_outbox_user-3')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'queued-1' }),
+    ]));
   });
 });
