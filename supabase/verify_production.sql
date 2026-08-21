@@ -23,6 +23,20 @@ where n.nspname = 'public'
   )
 order by c.relname;
 
+-- Expected: zero rows. This is the actionable failure query for a deployment
+-- where a table exists but RLS was not enabled.
+select c.relname as table_missing_rls
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public'
+  and c.relkind = 'r'
+  and c.relname in (
+    'profiles', 'cases', 'health_memory', 'user_devices', 'analytics_events',
+    'ai_requests', 'ai_usage_daily', 'payments'
+  )
+  and not c.relrowsecurity
+order by c.relname;
+
 -- Expected: these server-only routines exist.
 select routine_name
 from information_schema.routines
@@ -31,6 +45,30 @@ where routine_schema = 'public'
     'consume_ai_request', 'record_ai_tokens',
     'activate_payment_entitlement', 'delete_healthchain_user_data'
   )
+order by routine_name;
+
+-- Expected: zero rows. Client roles must not be able to call quota, payment,
+-- or deletion routines directly.
+select routine_name, grantee
+from information_schema.routine_privileges
+where routine_schema = 'public'
+  and routine_name in (
+    'consume_ai_request', 'record_ai_tokens',
+    'activate_payment_entitlement', 'delete_healthchain_user_data'
+  )
+  and grantee in ('anon', 'authenticated', 'public')
+order by routine_name, grantee;
+
+-- Expected: four rows, all granted to service_role. This catches a deployment
+-- where the functions exist but the API cannot execute them.
+select routine_name, grantee
+from information_schema.routine_privileges
+where routine_schema = 'public'
+  and routine_name in (
+    'consume_ai_request', 'record_ai_tokens',
+    'activate_payment_entitlement', 'delete_healthchain_user_data'
+  )
+  and grantee = 'service_role'
 order by routine_name;
 
 -- Expected: these operator views exist and remain read-only views.
