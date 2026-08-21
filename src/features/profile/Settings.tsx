@@ -6,6 +6,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
+import { clearSyncOutbox } from '../../services/SyncOutbox';
 import FocusTrap from '../../components/ui/FocusTrap';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
@@ -68,9 +69,15 @@ export default function Settings() {
     }
     const theme = localStorage.getItem('hc_theme');
     const consent = localStorage.getItem('hc_consent');
+    const pendingOutbox: { key: string; value: string | null }[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('hc_sync_outbox_')) pendingOutbox.push({ key, value: localStorage.getItem(key) });
+    }
     localStorage.clear();
     if (theme) localStorage.setItem('hc_theme', theme);
     if (consent) localStorage.setItem('hc_consent', consent);
+    pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
     sessionStorage.clear();
     window.dispatchEvent(new Event('hc_logout'));
     navigate('/', { replace: true });
@@ -91,6 +98,7 @@ export default function Settings() {
         if (!response.ok || !body.success) {
           throw new Error(body.error || 'The secure deletion service could not complete the request. Your data was not cleared locally.');
         }
+        await clearSyncOutbox(session.user.id);
       }
       
       sessionStorage.clear();

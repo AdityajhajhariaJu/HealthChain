@@ -121,23 +121,17 @@ useEffect(() => {
       const historyId = searchParams.get('historyId');
       if (historyId) {
         let foundReport = null;
-        const stored = localStorage.getItem('hc_history');
-        if (stored) {
-          let historyArray;
-          try { historyArray = JSON.parse(stored); } catch (e) { historyArray = []; }
-          const item = historyArray.find((h: any) => h.id === historyId);
-          if (item && item.type === 'mdt' && item.report) {
-            foundReport = item.report;
-          }
-        }
-        
-        if (!foundReport) {
-          const cases = getCases();
-          const caseItem = cases.find((c: any) => c.id === historyId);
-          if (caseItem && caseItem.reviews) {
-            const mdtReview = caseItem.reviews.find((r: any) => r.type === 'mdt' || r.id === historyId + '-review');
-            if (mdtReview && mdtReview.report) foundReport = mdtReview.report;
-          }
+        // History must come from the authenticated canonical case store. The
+        // old global `hc_history` key was not account/profile scoped and could
+        // show a previous user's report after a device switch or logout.
+        const cases = getCases();
+        const caseItem = cases.find((c: any) => c.id === historyId);
+        const reviewItem = caseItem?.reviews?.find((r: any) => r.id === historyId)
+          || cases.flatMap((c: any) => c.reviews || []).find((r: any) => r.id === historyId);
+        if (reviewItem?.type === 'mdt' && reviewItem.report) {
+          foundReport = reviewItem.report;
+        } else if (caseItem?.currentSummary && caseItem.currentStage === 'mdt_complete') {
+          foundReport = caseItem.currentSummary;
         }
 
         if (foundReport) {

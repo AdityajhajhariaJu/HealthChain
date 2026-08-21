@@ -653,37 +653,40 @@ export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
   const cases = getCases();
   const idx = cases.findIndex(c => c.id === caseId);
   if (idx !== -1) {
-    cases[idx].connectionMap = connectionMap;
-    cases[idx].updatedAt = new Date().toISOString();
-    save(cases);
+    const updated = {
+      ...cases[idx],
+      connectionMap,
+      updatedAt: new Date().toISOString(),
+    };
+    save(cases.map((item, index) => index === idx ? updated : item));
     window.dispatchEvent(new Event('hc_cases_updated'));
   }
 }
 
 export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
   const cases = getCases();
-  const c = cases.find(item => item.id === caseId);
-  if (!c) return;
-  
-  if (!c.appointmentBriefs) c.appointmentBriefs = { history: [] };
-  if (!c.appointmentBriefs.history) c.appointmentBriefs.history = [];
-  
-  if (c.appointmentBriefs.current) {
-    c.appointmentBriefs.history.push(c.appointmentBriefs.current);
-  }
-  c.appointmentBriefs.current = brief;
-  
-  if (!c.events) c.events = [];
-  c.events.push({
-    id: 'evt_' + Math.random().toString(36).substr(2, 9),
-    date: new Date().toISOString(),
-    label: 'Appointment brief prepared',
-    note: 'Patient generated a structured appointment brief.'
-  });
-  
-  c.updatedAt = new Date().toISOString();
-  save(cases);
-  return c;
+  const index = cases.findIndex(item => item.id === caseId);
+  if (index === -1) return;
+
+  const existing = cases[index];
+  const now = new Date().toISOString();
+  const priorHistory = existing.appointmentBriefs?.history || [];
+  const history = existing.appointmentBriefs?.current
+    ? [existing.appointmentBriefs.current, ...priorHistory].slice(0, 20)
+    : priorHistory.slice(0, 20);
+  const updated: CaseItem = {
+    ...existing,
+    appointmentBriefs: { current: brief, history },
+    events: [{
+      id: id(),
+      date: now,
+      label: 'Appointment brief prepared',
+      note: 'Patient generated a structured appointment brief.'
+    }, ...(existing.events || [])].slice(0, 100),
+    updatedAt: now,
+  };
+  save(cases.map((item, itemIndex) => itemIndex === index ? updated : item));
+  return updated;
 }
 
 export function clearCaseEngineCache() {

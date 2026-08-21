@@ -110,12 +110,21 @@ export default function App() {
               preservedKeys.push({ key, value: localStorage.getItem(key) });
             }
           }
+          // Keep an offline account-scoped outbox across logout. It cannot be
+          // read by another account, and deleting it here would silently lose
+          // writes that are waiting for the next connection.
+          const pendingOutbox: { key: string; value: string | null }[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith('hc_sync_outbox_')) pendingOutbox.push({ key, value: localStorage.getItem(key) });
+          }
           localStorage.clear();
           preservedKeys.forEach(p => {
             if (p.value !== null) {
               localStorage.setItem(p.key, p.value);
             }
           });
+          pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
         if (theme) localStorage.setItem('hc_theme', theme);
         if (consent) localStorage.setItem('hc_consent', consent);
         await supabase.auth.signOut();
@@ -237,9 +246,15 @@ export default function App() {
           window.dispatchEvent(new Event('hc_logout'));
           clearCaseEngineCache();
           sessionStorage.clear();
+          const pendingOutbox: { key: string; value: string | null }[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith('hc_sync_outbox_')) pendingOutbox.push({ key, value: localStorage.getItem(key) });
+          }
           localStorage.clear();
           if (theme) localStorage.setItem('hc_theme', theme);
           if (consent) localStorage.setItem('hc_consent', consent);
+          pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
         } catch (e) {
           console.warn('Failed to clear localStorage on sign out', e);
         }

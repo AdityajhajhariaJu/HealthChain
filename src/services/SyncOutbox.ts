@@ -1,4 +1,4 @@
-import { get, set } from 'idb-keyval';
+import { del, get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
 
@@ -115,4 +115,12 @@ export async function flushSyncOutbox(userId?: string) {
 
 export async function getPendingSyncCount(userId: string) {
   return (await readQueue(userId)).length;
+}
+
+/** Remove queued writes only after a confirmed account deletion. */
+export async function clearSyncOutbox(userId: string) {
+  if (!userId) return;
+  const key = currentUserKey(userId);
+  try { await del(key); } catch {}
+  try { window.localStorage.removeItem(key); } catch {}
 }
