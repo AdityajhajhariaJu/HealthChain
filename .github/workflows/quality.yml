@@ -28,6 +28,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Validate serverless API syntax
+        shell: bash
+        run: |
+          for file in api/*.js api/utils/*.js; do
+            node --check "$file"
+          done
+
       - name: Unit tests
         run: npm test -- --run
 

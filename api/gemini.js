@@ -161,6 +161,13 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorData = await response.text();
       console.error('Gemini API returned an error:', response.status, errorData.slice(0, 1000));
+      if (adminClient && userId) {
+        await adminClient.from('ai_requests').update({
+          status: 'failed',
+          error_code: `provider_${response.status}`,
+          finished_at: new Date().toISOString(),
+        }).eq('request_id', String(requestId));
+      }
       return res.status(502).json({ error: 'AI provider request failed' });
     }
 
