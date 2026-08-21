@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
+import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
 
 export function getProfileKey() {
   try {
@@ -279,36 +280,32 @@ async function saveProfile(profile) {
       dedupeKey: `profile-snapshot:${profile.id || state.activeId}`,
     });
 
-    // Asynchronously sync to secure cloud backend if configured
+    // Queue the primary profile for durable cloud sync. This preserves the
+    // local-first UX while preventing a dropped tab/network transition from
+    // losing an important profile update.
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
       // ONLY sync the primary profile to the cloud to prevent caregiver profiles from overwriting the main account
       if (state.activeId === 'profile_1') {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          const { error } = await supabase
-            .from('profiles')
-            .upsert({ 
-               id: session.user.id,
-               full_name: profile.profileName,
-               demographics: {
-                 ...profile.demographics,
-                 onboardingCompletedAt: profile.onboardingCompletedAt || null
-               },
-               conditions: profile.conditions,
-               medications: profile.medications,
-               allergies: profile.allergies,
-               family_history: profile.familyHistory,
-               timeline: profile.timeline,
-               vitals: profile.vitals,
-               nutrition: profile.nutrition,
-               health_focus: profile.healthFocus,
-               updated_at: new Date().toISOString()
-            });
-            
-          if (error) {
-            console.error('Supabase sync failed:', error);
-            window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
-          }
+          await enqueueSync('profile_upsert', session.user.id, {
+            id: session.user.id,
+            full_name: profile.profileName,
+            demographics: {
+              ...profile.demographics,
+              onboardingCompletedAt: profile.onboardingCompletedAt || null
+            },
+            conditions: profile.conditions,
+            medications: profile.medications,
+            allergies: profile.allergies,
+            family_history: profile.familyHistory,
+            timeline: profile.timeline,
+            vitals: profile.vitals,
+            nutrition: profile.nutrition,
+            health_focus: profile.healthFocus,
+            updated_at: new Date().toISOString()
+          });
+          await flushSyncOutbox(session.user.id);
         }
       }
     }
