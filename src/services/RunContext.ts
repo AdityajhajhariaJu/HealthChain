@@ -32,8 +32,15 @@ export function getProfileScope(): string {
     const account = getAccountScope();
     const raw = localStorage.getItem(`hc_unified_profile_${account}`) || localStorage.getItem('hc_unified_profile');
     if (!raw) return 'profile-default';
-    const profile = JSON.parse(raw);
-    const stable = JSON.stringify({ id: profile?.id, updatedAt: profile?.updatedAt, version: profile?.version });
+    const state = JSON.parse(raw);
+    const activeId = state?.activeId || state?.id || 'profile_1';
+    const profile = state?.profiles?.[activeId] || state;
+    const stable = JSON.stringify({
+      activeId,
+      id: profile?.id || activeId,
+      updatedAt: profile?.demographics?.updatedAt || profile?.updatedAt,
+      version: profile?.version,
+    });
     let hash = 0;
     for (let i = 0; i < stable.length; i++) hash = ((hash << 5) - hash + stable.charCodeAt(i)) | 0;
     return safePart(`profile-${Math.abs(hash)}`, 'profile-default');
