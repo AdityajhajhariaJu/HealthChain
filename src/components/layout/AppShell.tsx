@@ -317,21 +317,10 @@ export default function AppShell() {
                         navigate('/pricing');
                       }}
                       className="more-menu-item"
-                      style={{ 
-                        border: 'none', 
-                        background: 'linear-gradient(135deg, #4F46E5, #3B82F6)',
-                        color: 'white',
-                        outline: 'none',
-                        gridColumn: '1 / -1',
-                        borderRadius: '12px',
-                        padding: '12px',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        marginTop: '8px'
-                      }}
+                      style={{ border: 'none', background: 'none', outline: 'none' }}
                     >
-                      <Lock size={16} /> <span style={{ color: 'white', fontWeight: 600 }}>Upgrade to Pro (₹499)</span>
+                      <Lock size={24} />
+                      <span>Upgrade to Premium</span>
                     </button>
                   )}
                 </div>

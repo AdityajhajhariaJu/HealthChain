@@ -192,7 +192,7 @@ export default function CaseDashboard() {
         {!isPremium && (
           <button
             className="btn btn-primary"
-              onClick={() => navigate('/pricing')} style={{ padding: '8px 16px', fontSize: '14px', background: '#9333EA', color: '#ffffff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={14} />Upgrade (₹499)
+              onClick={() => navigate('/pricing')} style={{ padding: '8px 16px', fontSize: '14px', background: '#9333EA', color: '#ffffff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={14} />Upgrade to Premium
           </button>
         )}
       </div>
