@@ -1,9 +1,19 @@
-import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function FallbackError({ error, resetErrorBoundary }) {
   const isMobile = useIsMobile();
+  
+  useEffect(() => {
+    if (error && (error.message.includes('dynamically imported module') || error.message.includes('Importing a module script failed'))) {
+      if (!sessionStorage.getItem('hc_reloaded_for_chunk')) {
+        sessionStorage.setItem('hc_reloaded_for_chunk', 'true');
+        window.location.reload();
+      }
+    }
+  }, [error]);
+
   return (
     <div
       style={{
