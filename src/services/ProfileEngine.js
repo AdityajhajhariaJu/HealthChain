@@ -615,7 +615,7 @@ export function addNutritionLog(log) {
   saveProfile(profile);
 }
 
-export function recordDailyCheckin({ symptom, severity, score, note }) {
+export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }) {
   const profile = getProfile();
   if (!profile.dailyCheckins) {
     profile.dailyCheckins = [];
@@ -632,6 +632,7 @@ export function recordDailyCheckin({ symptom, severity, score, note }) {
     severity: severity || 'Mild',
     score: score ?? 1,
     note: note || '',
+    lifestyle: lifestyle || {},
   };
 
   profile.dailyCheckins.unshift(checkinEntry);
@@ -644,7 +645,7 @@ export function recordDailyCheckin({ symptom, severity, score, note }) {
     'mental_health',
     'daily_checkin',
     `Daily Check-in: ${symptom} (${severity})`,
-    { symptom, severity, score, note },
+    { symptom, severity, score, note, lifestyle },
     true,
     profile
   );
@@ -653,11 +654,12 @@ export function recordDailyCheckin({ symptom, severity, score, note }) {
 
   try {
     recordHealthMemory({
-      kind: 'profile_event',
+      kind: 'timeline_event',
       source: 'daily_checkin',
-      title: `Daily Symptom Check-in: ${symptom} (${severity})`,
+      title: `Daily Check-in: ${symptom} (${severity})`,
       occurredAt: new Date().toISOString(),
-      payload: { symptom, severity, score, note, date: todayStr }
+      payload: { symptom, severity, score, note, lifestyle },
+      dedupeKey: `daily_checkin:${todayStr}`,
     });
   } catch(e) {}
 
