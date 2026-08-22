@@ -13,7 +13,7 @@ const rateLimitCache = new Map();
  */
 export function checkRateLimit(req, limit = 10, windowMs = 60000, identity) {
   // Try to get IP from Vercel headers, fallback to socket
-  const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+  const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || 'unknown';
   const key = identity ? `${identity}:${ip}` : ip;
   const now = Date.now();
   

@@ -55,8 +55,9 @@ export default async function handler(req, res) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data: { user } } = await supabase.auth.getUser(authHeader.slice(7));
     if (!user) return res.status(401).json({ error: 'Invalid authentication session.' });
-    const { plan_id = 'pro_30_days' } = req.body || {};
-    const plan = ALLOWED_PLANS[plan_id];
+    const { planId, plan_id } = req.body || {};
+    const resolvedPlanId = planId || plan_id || 'pro_30_days';
+    const plan = ALLOWED_PLANS[resolvedPlanId];
 
     if (!plan) {
       return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
@@ -76,7 +77,7 @@ export default async function handler(req, res) {
       currency: plan.currency,
       receipt: `rcpt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       notes: {
-        plan_id,
+        plan_id: resolvedPlanId,
         user_id: user.id
       }
     };

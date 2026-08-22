@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       razorpay_order_id, 
       razorpay_payment_id, 
       razorpay_signature, 
-      plan_id = 'pro_30_days'
+      planId, plan_id
     } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -99,7 +99,8 @@ export default async function handler(req, res) {
     }
 
     // 3. Server-Side Amount Verification
-    const targetPlan = ALLOWED_PLANS[plan_id];
+    const resolvedPlanId = planId || plan_id || 'pro_30_days';
+    const targetPlan = ALLOWED_PLANS[resolvedPlanId];
     if (!targetPlan) return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
     let verifiedAmount = targetPlan.amount;
 
@@ -121,7 +122,7 @@ export default async function handler(req, res) {
         if (
           orderDetails.amount !== targetPlan.amount ||
           orderDetails.currency !== 'INR' ||
-          orderDetails.notes?.plan_id !== plan_id
+          orderDetails.notes?.plan_id !== resolvedPlanId
         ) {
           return res.status(400).json({ error: 'Payment order does not match the selected plan.' });
         }
