@@ -1760,7 +1760,7 @@ Return ONLY a JSON object with this exact structure:
     generationConfig: {
       temperature: 0.2,
       responseMimeType: 'application/json',
-      maxOutputTokens: 2500,
+      maxOutputTokens: 8192,
     },
   };
 

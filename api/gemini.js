@@ -12,7 +12,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost'
 ];
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const MAX_OUTPUT_TOKENS = 4096;
+const MAX_OUTPUT_TOKENS = 8192;
 const SERVER_SAFETY_INSTRUCTION = `
 HEALTHCHAIN SAFETY GATE:
 - You are an AI health-information and assessment assistant, not a licensed clinician.
@@ -196,6 +196,7 @@ export default async function handler(req, res) {
     const requestedOutputTokens = Number(incomingGenerationConfig.maxOutputTokens);
     bodyPayload.generationConfig = {
       ...incomingGenerationConfig,
+      thinkingConfig: incomingGenerationConfig.thinkingConfig || { thinkingBudget: 0 },
       maxOutputTokens: Number.isFinite(requestedOutputTokens) && requestedOutputTokens > 0
         ? Math.min(Math.floor(requestedOutputTokens), MAX_OUTPUT_TOKENS)
         : MAX_OUTPUT_TOKENS,
