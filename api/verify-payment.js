@@ -114,6 +114,14 @@ export default async function handler(req, res) {
     const resolvedPlanId = planId || plan_id || 'pro_30_days';
     const targetPlan = ALLOWED_PLANS[resolvedPlanId];
     if (!targetPlan) return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
+    
+    if (targetPlan.type === 'topup') {
+      const { data: profile } = await supabase.from('profiles').select('is_pro').eq('id', effectiveUserId).single();
+      if (!profile?.is_pro) {
+        return res.status(403).json({ error: 'Top-ups are only available for active Pro subscribers.' });
+      }
+    }
+    
     let verifiedAmount = targetPlan.amount;
 
     if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
@@ -153,9 +161,11 @@ export default async function handler(req, res) {
     let finalExpiry = null;
 
     if (targetPlan.type === 'subscription') {
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
-      finalExpiry = expiryDate.toISOString();
+      const { data: currentProfile } = await supabase.from('profiles').select('pro_expires_at').eq('id', effectiveUserId).single();
+      const currentExpiry = currentProfile?.pro_expires_at ? new Date(currentProfile.pro_expires_at) : new Date();
+      const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+      baseDate.setDate(baseDate.getDate() + targetPlan.days);
+      finalExpiry = baseDate.toISOString();
       
       const { error } = await supabase.rpc('activate_payment_entitlement', {
         p_user_id: effectiveUserId,

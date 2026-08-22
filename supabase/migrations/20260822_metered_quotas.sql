@@ -107,7 +107,15 @@ begin
     values (p_user_id, p_feature_name, v_allocated, 1)
     on conflict (user_id, feature_name) do nothing;
 
-    return jsonb_build_object('allowed', true, 'remaining', v_allocated - 1);
+    if found then
+      return jsonb_build_object('allowed', true, 'remaining', v_allocated - 1);
+    end if;
+    
+    -- If we didn't insert it, a concurrent transaction did! Re-lock and fall through.
+    select allocated, used, expires_at into v_allocated, v_used, v_expires_at
+    from public.user_quotas
+    where user_id = p_user_id and feature_name = p_feature_name
+    for update;
   end if;
 
   if v_used >= v_allocated then

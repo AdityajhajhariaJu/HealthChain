@@ -76,6 +76,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid or unsupported subscription plan.' });
     }
 
+    if (plan.type === 'topup') {
+      const { data: profile } = await supabase.from('profiles').select('is_pro').eq('id', user.id).single();
+      if (!profile?.is_pro) {
+        return res.status(403).json({ error: 'Top-ups are only available for active Pro subscribers.' });
+      }
+    }
+
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       return res.status(500).json({ error: 'Payment gateway configuration is missing on the server.' });
     }

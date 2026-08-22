@@ -89,9 +89,11 @@ export default async function handler(req, res) {
       const targetPlan = ALLOWED_PLANS[resolvedPlanId] || ALLOWED_PLANS.pro_30_days;
 
       if (targetPlan.type === 'subscription') {
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
-        const finalExpiry = expiryDate.toISOString();
+        const { data: currentProfile } = await supabase.from('profiles').select('pro_expires_at').eq('id', userId).single();
+        const currentExpiry = currentProfile?.pro_expires_at ? new Date(currentProfile.pro_expires_at) : new Date();
+        const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+        baseDate.setDate(baseDate.getDate() + targetPlan.days);
+        const finalExpiry = baseDate.toISOString();
 
         const { error } = await supabase.rpc('activate_payment_entitlement', {
           p_user_id: userId,
@@ -167,6 +169,13 @@ export default async function handler(req, res) {
             .from('profiles')
             .update({ is_pro: false, pro_expires_at: null, updated_at: new Date().toISOString() })
             .eq('id', userId);
+            
+          // WIPE their quotas so they don't get to keep the premium features after a refund!
+          await supabase
+            .from('user_quotas')
+            .delete()
+            .eq('user_id', userId)
+            .not('expires_at', 'is', null);
         }
       }
     } else if (event === 'payment.failed') {
