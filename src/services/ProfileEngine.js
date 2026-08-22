@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
@@ -730,10 +730,20 @@ export async function verifyProStatus() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return false;
-    const { data } = await supabase.from('profiles').select('is_pro, pro_expires_at').eq('id', session.user.id).single();
+    
+    // Explicitly grab error so we can handle PGRST errors
+    const { data, error } = await supabase.from('profiles').select('is_pro, pro_expires_at').eq('id', session.user.id).single();
+    
+    // If network fails or database errors, trust the local cache to prevent UI flashing
+    if (error) {
+      console.warn('verifyProStatus DB error, falling back to cache:', error);
+      return isProUser();
+    }
+
+    const state = getProfileEngineState();
+    const p = state.profiles[state.activeId];
+
     if (data?.is_pro && (!data.pro_expires_at || new Date(data.pro_expires_at) > new Date())) {
-      const state = getProfileEngineState();
-      const p = state.profiles[state.activeId];
       if (p && (!p.isPro || p.proExpiresAt !== data.pro_expires_at)) {
         p.isPro = true;
         p.proExpiresAt = data.pro_expires_at;
@@ -741,9 +751,8 @@ export async function verifyProStatus() {
         window.dispatchEvent(new Event('hc_profile_updated'));
       }
       return true;
-    } else if (data && !data.is_pro) {
-      const state = getProfileEngineState();
-      const p = state.profiles[state.activeId];
+    } else {
+      // Explicitly revoke if DB says false OR expired
       if (p && p.isPro) {
         p.isPro = false;
         p.proExpiresAt = null;
@@ -752,8 +761,8 @@ export async function verifyProStatus() {
       }
       return false;
     }
-    return false;
-  } catch {
+  } catch (err) {
+    console.warn('verifyProStatus unexpected error, falling back to cache:', err);
     return isProUser();
   }
 }
