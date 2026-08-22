@@ -145,7 +145,7 @@ export default function Pricing() {
           Simple, transparent pricing
         </h1>
         <p style={{ fontSize: '18px', color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto' }}>
-          Start for free, then upgrade to unlock unlimited AI specialist consultations and premium features.
+          Start for free, then upgrade to unlock AI specialist consultations and premium features.
         </p>
       </div>
 
