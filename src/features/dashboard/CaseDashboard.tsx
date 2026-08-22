@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -15,7 +15,8 @@ import {
   Stethoscope,
   Clock,
   Archive,
-  Printer
+  Printer,
+  ClipboardList
 } from 'lucide-react';
 import { getCase, getCases, setActiveCase, toggleCaseAction, resolveCase, CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { getProfile, verifyProStatus, isProUser } from '../../services/ProfileEngine';
@@ -28,6 +29,7 @@ import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock, Search, HelpCircle } from 'lucide-react';
 import { RichReportTemplate, Accordion } from '../../components/ui/RichReportTemplate';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
+import { parseModelJson } from '../../services/modelJson';
 
 const formatDate = (value: string) => {
   try {
@@ -505,6 +507,224 @@ function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navi
   );
 }
 
+function getQuickConsultDetails(item: CaseItem) {
+  let root = '';
+  let mechanism = '';
+  let trigger = '';
+  let questions: string[] = [];
+
+  const summary = item.currentSummary || {};
+  if (summary.flowchart) {
+    root = summary.flowchart.root || summary.flowchart.root_sub || '';
+    mechanism = summary.flowchart.mechanism || summary.flowchart.mechanism_sub || '';
+    if (Array.isArray(summary.flowchart.symptoms) && summary.flowchart.symptoms.length > 0) {
+      trigger = summary.flowchart.symptoms[0].name || summary.flowchart.symptoms[0].sub || '';
+    }
+  }
+  if (summary.this_week_tasks && Array.isArray(summary.this_week_tasks)) {
+    questions = summary.this_week_tasks;
+  } else if (summary.questionsForClinician && Array.isArray(summary.questionsForClinician)) {
+    questions = summary.questionsForClinician;
+  }
+
+  if (!root || questions.length === 0) {
+    try {
+      const transcripts = item.reviews?.[0]?.transcripts;
+      if (transcripts) {
+        const msgs = Object.values(transcripts).flat();
+        for (const m of msgs as any[]) {
+          if (m?.text && m.text.includes('{')) {
+            const parsed = parseModelJson<any>(m.text);
+            if (parsed) {
+              if (!root && parsed.flowchart) {
+                root = parsed.flowchart.root || parsed.flowchart.root_sub || '';
+                mechanism = parsed.flowchart.mechanism || parsed.flowchart.mechanism_sub || '';
+                if (Array.isArray(parsed.flowchart.symptoms) && parsed.flowchart.symptoms.length > 0) {
+                  trigger = parsed.flowchart.symptoms[0].name || parsed.flowchart.symptoms[0].sub || '';
+                }
+              }
+              if (!root && parsed.whats_driving_it) {
+                root = parsed.whats_driving_it;
+                mechanism = parsed.what_it_is || 'Clinical Mechanism';
+                trigger = parsed.chain_name || item.intakeData?.chiefComplaint || 'Symptoms';
+              }
+              if (questions.length === 0 && Array.isArray(parsed.this_week_tasks)) {
+                questions = parsed.this_week_tasks;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (!root && summary.interpretation) {
+    root = summary.interpretation.slice(0, 75);
+    mechanism = summary.keyFindings ? summary.keyFindings.slice(0, 75) : 'Systemic Interaction';
+    trigger = item.title.replace('Quick Consult:', '').trim() || 'Reported Symptoms';
+  }
+
+  return { root, mechanism, trigger, questions };
+}
+
+function VisualRootChain({ root, mechanism, trigger, isMobile }: { root: string; mechanism: string; trigger: string; isMobile: boolean }) {
+  if (!root && !mechanism && !trigger) return null;
+
+  const items = [
+    { label: 'Root Factor', value: root || 'Primary Trigger Factor', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A', icon: '🔍' },
+    { label: 'Biological Mechanism', value: mechanism || 'Systemic Mechanism', color: '#4338CA', bg: '#EEF2FF', border: '#C7D2FE', icon: '⚙️' },
+    { label: 'Symptom Trigger', value: trigger || 'Target Symptoms', color: '#047857', bg: '#ECFDF5', border: '#A7F3D0', icon: '⚡' }
+  ];
+
+  return (
+    <div style={{ background: '#FFFFFF', borderRadius: 20, padding: isMobile ? '20px 16px' : '24px', border: '1px solid #E2E8F0', boxShadow: '0 4px 16px rgba(15,23,42,0.03)', marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+          Visual Root-Cause Chain
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: 12 }}>
+        {items.map((step, idx) => (
+          <React.Fragment key={idx}>
+            <div style={{ flex: 1, padding: '16px', borderRadius: 16, background: step.bg, border: `1px solid ${step.border}`, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 14 }}>{step.icon}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: step.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {step.label}
+                </span>
+              </div>
+              <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
+                {step.value}
+              </div>
+            </div>
+
+            {idx < items.length - 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#94A3B8', padding: isMobile ? '2px 0' : '0 4px' }}>
+                <ArrowRight size={isMobile ? 18 : 22} style={{ transform: isMobile ? 'rotate(90deg)' : 'none' }} />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ClinicianCheatSheet({ questions, isMobile }: { questions: string[]; isMobile: boolean }) {
+  const [copied, setCopied] = useState(false);
+  if (!questions || questions.length === 0) return null;
+
+  const handleCopy = () => {
+    const text = "Questions for My Doctor:\n" + questions.map((q, i) => `${i + 1}. ${q}`).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)', borderRadius: 20, padding: isMobile ? '20px 16px' : '24px', border: '1px solid #CBD5E1', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: '#0F172A', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Stethoscope size={16} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0F172A', margin: 0 }}>Bring to Your Next Doctor Visit</h3>
+            <span style={{ fontSize: 12, color: '#64748B' }}>Targeted clinical questions generated from your consult</span>
+          </div>
+        </div>
+        <button
+          onClick={handleCopy}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 10,
+            border: '1px solid #CBD5E1',
+            background: copied ? '#DCFCE7' : '#FFFFFF',
+            color: copied ? '#15803D' : '#0F172A',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            transition: 'all 0.2s'
+          }}
+        >
+          {copied ? <CheckCircle2 size={14} color="#15803D" /> : <ClipboardList size={14} />}
+          {copied ? 'Copied to Clipboard!' : 'Copy Questions'}
+        </button>
+      </div>
+
+      <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {questions.map((q, idx) => (
+          <li key={idx} style={{ color: '#334155', fontSize: '14.5px', lineHeight: 1.5, fontWeight: 500 }}>
+            {q}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ElevateToBoardCard({ item, navigate, isMobile }: { item: CaseItem; navigate: any; isMobile: boolean }) {
+  const handleElevate = () => {
+    navigate(`/app/collab?caseId=${item.id}&elevate=true`);
+  };
+
+  return (
+    <div
+      style={{
+        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        borderRadius: 20,
+        padding: isMobile ? '20px' : '24px',
+        color: '#FFF',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'stretch' : 'center',
+        gap: 16,
+        marginBottom: 24,
+        boxShadow: '0 10px 25px rgba(79,70,229,0.2)'
+      }}
+    >
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: 999, letterSpacing: '0.5px' }}>NEXT LEVEL REVIEW</span>
+        </div>
+        <h3 style={{ fontSize: 17, fontWeight: 800, margin: '4px 0', color: '#FFF' }}>
+          Need deeper correlation across multiple organs?
+        </h3>
+        <p style={{ margin: 0, fontSize: 13.5, color: '#E0E7FF', lineHeight: 1.4 }}>
+          Elevate this consult into a 16-Specialist Collaborative Board to uncover cross-system consensus.
+        </p>
+      </div>
+
+      <button
+        onClick={handleElevate}
+        style={{
+          padding: '12px 20px',
+          borderRadius: 12,
+          background: '#FFF',
+          color: '#4F46E5',
+          border: 'none',
+          fontWeight: 800,
+          fontSize: 14,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          flexShrink: 0,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+        }}
+      >
+        Elevate to Board <ArrowRight size={16} />
+      </button>
+    </div>
+  );
+}
+
 function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: any, refresh: any }) {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'actions' | 'connections'>('overview');
@@ -512,6 +732,8 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
   const report = item.currentSummary || {};
   const records = item.medicalRecords || [];
   const profile = getProfile();
+  const isQuickConsult = item.title?.toLowerCase().includes('quick consult') || item.reviews?.[0]?.type === 'parallel' || item.currentStage === 'parallel_complete';
+  const quickDetails = isQuickConsult ? getQuickConsultDetails(item) : null;
 
   return (
     <div style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 40 }}>
@@ -519,8 +741,6 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
         <ArrowLeft size={16} /> Back to My Cases
       </button>
 
-
-      
       <PrintableDossier item={item} profile={profile} />
 
       <div style={{ display: 'flex', gap: 20, marginTop: 24, borderBottom: '1px solid #e2e8f0', paddingBottom: 10, overflowX: 'auto' }}>
@@ -551,6 +771,13 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
         {activeTab === 'overview' && (
           <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.25fr .75fr', gap: 22, alignItems: 'start' }}>
             <div style={{ display: 'grid', gap: 22 }}>
+              {isQuickConsult && quickDetails && (
+                <>
+                  <VisualRootChain root={quickDetails.root} mechanism={quickDetails.mechanism} trigger={quickDetails.trigger} isMobile={isMobile} />
+                  <ClinicianCheatSheet questions={quickDetails.questions} isMobile={isMobile} />
+                  <ElevateToBoardCard item={item} navigate={navigate} isMobile={isMobile} />
+                </>
+              )}
               <section className="card" style={{ padding: 24, background: 'transparent', border: 'none', boxShadow: 'none' }}>
                 <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Current Case Synthesis</h2>
                 <RichReportTemplate report={report} isMobile={isMobile} />
