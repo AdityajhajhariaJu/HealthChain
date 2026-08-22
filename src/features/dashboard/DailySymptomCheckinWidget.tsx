@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Check, Sparkles, Flame, Edit3, HeartPulse, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
@@ -224,11 +224,9 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                       ({SEVERITY_OPTIONS.find(o => o.label === todayCheckin.severity)?.desc})
                     </span>
                   </div>
-                  <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '2px' }}>
                     {justSaved
-                      ? '✨ Logged! Ava & J.A.R.V.I.S. longitudinal trends updated.'
-                      : 'Continuously correlated across your cases & specialist reviews.'}
-                  </div>
+                      ? '✨ Logged in your daily wellness timeline.'
+                      : 'Saved in your personal daily log · Tap to update anytime'}
                 </div>
               </div>
 

@@ -288,16 +288,14 @@ export default function MultiSpecialist() {
     }
     setSelected(activeSelected);
     if (activeSelected.length > 0) {
-      const workingCase =
-        activeCase ||
-        createCaseDraft({
-            title: intakeText,
-            mode: 'multi',
-            intakeData: { chiefComplaint: intakeText },
-            specialists: activeSelected.map(
-            (id) => allAvailableSpecialists.find((s) => s.id === id)?.label || id
-          ),
-        });
+      const workingCase = createCaseDraft({
+        title: intakeText,
+        mode: 'multi',
+        intakeData: { chiefComplaint: intakeText },
+        specialists: activeSelected.map(
+          (id) => allAvailableSpecialists.find((s) => s.id === id)?.label || id
+        ),
+      });
       setWorkingCaseId(workingCase.id);
       setActiveSpecialistId(activeSelected[0]);
       setPhase('running');

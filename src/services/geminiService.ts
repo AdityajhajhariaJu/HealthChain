@@ -116,7 +116,7 @@ export async function chatWithGemini(messages: Message[]): Promise<string> {
     };
   });
 
-  const patientContext = compilePatientContext();
+  const patientContext = compilePatientContext({ includeActiveCase: false, includeDailyCheckins: false });
   const finalSystemPrompt = SYSTEM_PROMPT + patientContext;
 
   const payload = {
@@ -189,28 +189,24 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
 }
 
 const AVA_CHIEF_OF_STAFF_PROMPT = `You are Ava, HealthChain's "Medical Chief of Staff" and Personal Health Assistant.
-You have access to the user's complete longitudinal medical profile, including their vitals, medications, chronic conditions, and past case history.
-Your goal is to act as an incredibly intelligent, proactive, and empathetic clinical assistant.
+You act as an empathetic, proactive, and intelligent wellness guide. Focus primarily on what the user is currently asking or sharing with you today. Treat their immediate query with warmth and conversational clarity.
 
 APP KNOWLEDGE:
 1. Health Today: Dashboard with status, plans, and activity.
-2. Parallel Specialists: Multiple AI experts review file simultaneously, asking independent questions.
-3. Board Consensus: Correlates specialist findings into a single hospital board report.
+2. Quick Consult: Single-specialist clinical evaluation.
+3. Collaborative Board: Multiple specialists review complex symptoms together.
 4. Pharmacy Hub: Tracks meds and interactions.
 5. Dietician: AI nutritional plans and tracking.
-6. Lab Report Analyzer: Extracts text/vitals from PDFs.
-7. Medical Profile: Longitudinal record.
-8. Ava: Medical Chief of Staff (You).
+6. Lab Report Analyzer: Extracts vitals from lab PDFs.
+7. Ava: Medical Chief of Staff (You).
 
 RULES:
-1. Always cross-reference the user's symptoms or questions with their PATIENT CONTEXT.
-2. Be proactive. Suggest missing data or follow-ups.
+1. Focus on the user's immediate question or symptom shared today.
+2. Only reference chronic background history if directly relevant to what the user asks.
 3. Maintain a warm, highly professional "concierge doctor" tone.
-4. Keep responses concise (2-4 sentences) for chat flow.
+4. Keep responses concise (2-4 sentences) for natural chat flow.
 5. No markdown. Plain conversational text.
-6. Suggest questions and possibilities, but never offer definitive clinical conclusions.
 ${CLINICAL_SAFETY_RULES}`;
-
 
 export async function chatWithTherapyGemini(messages: Message[]): Promise<string> {
   const contents = messages.slice(-12).map((msg) => ({
@@ -218,7 +214,7 @@ export async function chatWithTherapyGemini(messages: Message[]): Promise<string
     parts: [{ text: msg.content }],
   }));
 
-  const patientContext = compilePatientContext();
+  const patientContext = compilePatientContext({ includeActiveCase: false, includeDailyCheckins: true });
   const finalSystemPrompt = AVA_CHIEF_OF_STAFF_PROMPT + patientContext;
 
   const payload = {
@@ -1013,27 +1009,31 @@ Rules:
 }
 
 export async function generateMealPlan(profile: any, days: number = 7): Promise<any> {
-  const activeCase = getActiveCase();
-  const caseDiagnosis = activeCase?.currentSummary?.topDiagnoses?.map((d: any) => d.condition).join(', ') || 'None';
+  const dietaryRelevantConditions = (profile?.medicalConditions || []).filter((c: string) => {
+    const l = (c || '').toLowerCase();
+    return l.includes('diabet') || l.includes('gerd') || l.includes('acid') || l.includes('celiac') || 
+           l.includes('gluten') || l.includes('gout') || l.includes('hypertens') || l.includes('renal') || 
+           l.includes('kidney') || l.includes('ibs') || l.includes('crohn') || l.includes('colitis') || 
+           l.includes('cholesterol') || l.includes('liver') || l.includes('thyroid');
+  });
 
   const payload = {
     contents: [
       {
         parts: [
           {
-            text: `You are a clinical dietician AI. Generate a strictly valid JSON ${days}-day meal plan.
-Conditions: ${(profile.medicalConditions || []).join(', ') || 'None'}
-Active Diagnoses: ${caseDiagnosis}
+            text: `You are an expert clinical dietician AI. Generate a strictly valid JSON ${days}-day meal plan.
+Dietary/Medical Needs: ${dietaryRelevantConditions.join(', ') || 'Standard balanced nutrition'}
 Cuisine: ${profile.cuisine || 'Any'}
 Target: ${profile.targetCalories || 2000} kcal/day
 Schedule: ${profile.mealSchedule || 'Standard 3 meals'}
 
 Rules:
 1. Output ONLY JSON.
-2. Total daily calories should closely match their target (${profile.targetCalories || 2000} kcal).
-3. Cuisine: Strictly follow the '${profile.cuisine}' cuisine preference. Generate authentic dishes.
-4. Medical & Diagnosis: Strictly avoid foods contraindicated for '${(profile.medicalConditions || []).join(', ')}' AND their Active Diagnoses ('${caseDiagnosis}'). Condition-tailored nutrition is CRITICAL.
-5. Schedule: Strictly follow the '${profile.mealSchedule}' meal schedule. If Intermittent Fasting, skip breakfast. If 5 small meals, add extra snacks.
+2. Total daily calories should closely match the target (${profile.targetCalories || 2000} kcal).
+3. Cuisine: Strictly follow the '${profile.cuisine}' cuisine preference. Generate authentic, delicious dishes.
+4. Dietary Safety: Tailor meals for '${dietaryRelevantConditions.join(', ') || 'general wellness'}'.
+5. Schedule: Strictly follow the '${profile.mealSchedule}' meal schedule.
 6. Format:
 {
   "plan": [
@@ -1082,12 +1082,15 @@ Rules:
 // â”€â”€â”€ 3D BODY MAP / FABLE EXPERIMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function suggestSpecialists(profileData: any, availableSpecialists: { id: string, label: string }[]) {
-
+  const cleanConditions = (profileData?.conditions || profileData?.health?.conditions || []).filter((c: string) => {
+    const l = (c || '').toLowerCase();
+    return !l.includes('diagnostic ambig') && !l.includes('undifferentiated') && !l.includes('unknown') && !l.includes('review');
+  });
 
   const profileSummary = {
     age: profileData?.demographics?.age,
     gender: profileData?.demographics?.gender,
-    conditions: profileData?.conditions || profileData?.health?.conditions || [],
+    conditions: cleanConditions,
     medications: (profileData?.medications || []).map((m: any) => m.name),
     healthFocus: profileData?.healthFocus
   };
