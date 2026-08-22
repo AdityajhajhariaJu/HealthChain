@@ -173,8 +173,6 @@ export default function CaseDashboard() {
         <ActiveCaseBar navigate={navigate} />
       </div>
 
-      <DailySymptomCheckinWidget />
-
       {/* Premium Section */}
       <div
         style={{
@@ -206,6 +204,8 @@ export default function CaseDashboard() {
           </button>
         )}
       </div>
+
+      <DailySymptomCheckinWidget />
 
       <div
         style={{
