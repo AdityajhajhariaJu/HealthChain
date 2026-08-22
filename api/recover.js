@@ -19,10 +19,18 @@ export default async function handler(req, res) {
   for (const p of payments) {
     const { data: profile } = await supabase.from('profiles').select('is_pro').eq('id', p.user_id).single();
     if (profile && !profile.is_pro) {
-      await supabase.from('profiles').update({ is_pro: true, pro_expires_at: p.entitlement_expires_at }).eq('id', p.user_id);
+      // Set updated_at to future to force client to pull
+      const future = new Date(Date.now() + 60000).toISOString();
+      await supabase.from('profiles')
+        .update({ 
+          is_pro: true, 
+          pro_expires_at: p.entitlement_expires_at,
+          updated_at: future
+        })
+        .eq('id', p.user_id);
       recovered++;
     }
   }
 
-  res.json({ success: true, message: "Recovered  + recovered +  lost entitlements." });
+  res.json({ success: true, message: "Recovered " + recovered + " lost entitlements." });
 }
