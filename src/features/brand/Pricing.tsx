@@ -56,7 +56,8 @@ export default function Pricing() {
       });
 
       if (!orderRes.ok) {
-        throw new Error('Failed to create order');
+        const errData = await orderRes.json();
+          throw new Error(errData.error || 'Failed to create order');
       }
 
       const orderData = await orderRes.json();
@@ -125,7 +126,7 @@ export default function Pricing() {
 
     } catch (err) {
       console.error(err);
-      alert('Checkout failed unexpectedly.');
+      alert('Checkout Error: ' + err.message);
       setIsProcessing(false);
     }
   };
@@ -201,5 +202,6 @@ export default function Pricing() {
     </div>
   );
 }
+
 
 
