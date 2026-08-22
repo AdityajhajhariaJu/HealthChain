@@ -1,10 +1,10 @@
-import { checkRateLimit } from './utils/rate-limit.js';
+﻿import { checkRateLimit } from './utils/rate-limit.js';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_PLANS = {
   pro_30_days: {
-    amount: 49900, // ₹499.00 in paise
+    amount: 49900, // â‚¹499.00 in paise
     currency: 'INR',
     description: 'Pro Access (30 Days)'
   }
@@ -91,6 +91,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
-    return res.status(502).json({ error: 'Payment provider is temporarily unavailable' });
+    return res.status(502).json({ error: 'Razorpay Error: ' + (error.error?.description || error.message || 'Unknown error') });
   }
 }
+
