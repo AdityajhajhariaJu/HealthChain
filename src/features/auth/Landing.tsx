@@ -438,7 +438,7 @@ export default function Landing() {
               <MessageSquare size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Ava Health Buddy</h3>
-            <p className={styles.bentoDesc}>A supportive companion for organizing questions, tracking your case, and preparing for next stepsâ€”not a replacement for urgent or professional care.</p>
+            <p className={styles.bentoDesc}>A supportive companion for organizing questions, tracking your case, and preparing for next steps””not a replacement for urgent or professional care.</p>
           </motion.div>
         </div>
       </section>

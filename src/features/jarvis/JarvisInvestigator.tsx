@@ -315,7 +315,7 @@ export default function JarvisInvestigator() {
             </div>
             
             <p style={{ color: '#475569', fontSize: '15px', margin: '0', fontWeight: 500, lineHeight: 1.6 }}>
-              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forthâ€”just upload your entire history and instantly discover patterns your doctors might have missed.
+              We crunch all your data and extract precise, actionable insights. No chat, no back-and-forth””just upload your entire history and instantly discover patterns your doctors might have missed.
             </p>
           </div>
         </div>

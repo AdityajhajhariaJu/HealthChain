@@ -314,7 +314,7 @@ export default function QuickConsult() {
                   Which AI clinical perspective would you like to explore?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>
-                  Choose an AI perspective to help organize questions for your clinicianâ€”not a consultation with a licensed professional.
+                  Choose an AI perspective to help organize questions for your clinician””not a consultation with a licensed professional.
                 </p>
               </div>
             </div>

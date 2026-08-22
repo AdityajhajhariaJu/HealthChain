@@ -358,10 +358,10 @@ export function ActiveCaseBar({ navigate }: any) {
         <BriefcaseBusiness size={18} />
       </div>
       <div className="active-case-bar__copy">
-        <span>ACTIVE CASE Â· {profile?.demographics?.name || 'Your health record'}</span>
+        <span>ACTIVE CASE · {profile?.demographics?.name || 'Your health record'}</span>
         <strong>{activeCase.title}</strong>
         <small>
-          {(activeCase.medicalRecords || []).length} evidence items Â· {pending} open actions Â·
+          {(activeCase.medicalRecords || []).length} evidence items · {pending} open actions ·
           Updated {new Date(activeCase.updatedAt).toLocaleDateString()}
         </small>
       </div>
@@ -383,7 +383,7 @@ function BrandPulseBanner() {
     },
     {
       quote:
-        'Youâ€™ve explained your symptoms to five different doctors. Your labs come back â€œnormal,â€ but you still feel terrible.',
+        'You’ve explained your symptoms to five different doctors. Your labs come back “normal,” but you still feel terrible.',
       sub: 'Your experience is real. HealthChain helps you organise the full picture for the next conversation.',
     },
     {
@@ -435,7 +435,7 @@ function BrandPulseBanner() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.32 }}
           >
-            <strong>â€œ{message.quote}â€</strong>
+            <strong>“{message.quote}”</strong>
             <span>{message.sub}</span>
           </motion.div>
         </AnimatePresence>
