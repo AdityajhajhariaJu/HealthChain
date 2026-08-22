@@ -31,6 +31,7 @@ export default function JarvisInvestigator() {
   const [history, setHistory] = useState('');
   const [files, setFiles] = useState<{file: File, base64: string}[]>([]);
   const [report, setReport] = useState<any>(null);
+  const [includeProfile, setIncludeProfile] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -42,6 +43,7 @@ export default function JarvisInvestigator() {
     setHistory('');
     setFiles([]);
     setReport(null);
+    setIncludeProfile(false);
     return () => {
       isMounted.current = false;
     };
@@ -136,32 +138,27 @@ export default function JarvisInvestigator() {
     }));
 
     try {
-      const result = await runJarvisInvestigation(history, payloadFiles, profile);
+      const profileToPass = includeProfile ? profile : { demographics: profile?.demographics };
+      const result = await runJarvisInvestigation(history, payloadFiles, profileToPass);
       
       if (!isMounted.current) return; // Prevent memory leak / crash if user navigated away during animation
       
       if (result) {
         setReport(result);
         
-        // 1. Link to active case, or create a new one if none exists
-        const currentCase = getActiveCase();
-        const targetCaseId = currentCase 
-          ? currentCase.id 
-          : createCaseDraft({
-              title: `J.A.R.V.I.S. Investigation`,
-              intakeData: { chiefComplaint: history || "Data investigation" }
-            }).id;
+        // 1. Create a distinct new case draft for this specific J.A.R.V.I.S. investigation
+        const newCase = createCaseDraft({
+          title: `J.A.R.V.I.S.: ${(history || 'Investigation').trim().slice(0, 32)}`,
+          intakeData: { chiefComplaint: history || "Data engine investigation" }
+        });
         
         // 2. Persist to DB securely
         saveReviewSnapshot({
-          caseId: targetCaseId,
+          caseId: newCase.id,
           type: 'jarvis' as any,
           report: result,
           specialists: ['J.A.R.V.I.S.']
         });
-        
-        // 3. Optional: we DO NOT setActiveCase here if we don't want to overwrite the user's active CaseDashboard state.
-        // We let them navigate to /app/my-cases to view it, or we navigate them explicitly.
         
         setPhase('done');
       } else {
@@ -412,6 +409,30 @@ export default function JarvisInvestigator() {
             </div>
           )}
         </div>
+
+        {profile?.conditions && profile.conditions.length > 0 && (
+          <div style={{ marginBottom: '28px', padding: '16px 20px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                Cross-Correlate with Medical Profile
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                {includeProfile
+                  ? `Active background conditions (${profile.conditions.slice(0, 2).map((c: string) => c.split(',')[0]).join(', ')}) will be included in the causal analysis.`
+                  : 'Isolated Investigation (Analyzes only the symptoms & records you entered above).'}
+              </div>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: includeProfile ? '#EA580C' : '#64748B' }}>
+              <input
+                type="checkbox"
+                checked={includeProfile}
+                onChange={(e) => setIncludeProfile(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: '#EA580C', cursor: 'pointer' }}
+              />
+              {includeProfile ? 'Profile Included' : 'Isolated (New Case)'}
+            </label>
+          </div>
+        )}
 
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAnalyze} disabled={!history.trim() && files.length === 0} style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: (!history.trim() && files.length === 0) ? '#94A3B8' : '#FFF', borderRadius: '16px', border: 'none', fontSize: '18px', fontWeight: 800, cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(234,88,12,0.3)', transition: 'all 0.2s' }}> <Sparkles size={24} /> Initiate Core Investigation </motion.button>
       </div>

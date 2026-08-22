@@ -1708,24 +1708,33 @@ ${JSON.stringify(brief, null, 2)}
 
 export async function runJarvisInvestigation(history: string, files: { mimeType: string; data: string }[], profile: any): Promise<any> {
   const idempotencyKey = await sha256Hash('jarvis-' + history + files.length);
+
+  const cleanConditions = (profile?.conditions || []).filter((c: string) => {
+    const l = (c || '').toLowerCase();
+    return !l.includes('diagnostic ambig') && !l.includes('undifferentiated') && !l.includes('unknown') && !l.includes('review');
+  });
+
   const prompt = `You are J.A.R.V.I.S. (Joint Analytical Research & Validation Intelligence System), the world's most advanced functional medicine and diagnostic AI.
-You are reviewing a complex, chronic patient case. This patient has likely seen multiple doctors and been told their labs are "normal", but they are still suffering. 
 
-YOUR MISSION:
-1. Identify "Sub-clinical" biomarkers: Look for labs that are technically "in range" but indicate suboptimal functional health (e.g. Ferritin of 15 is "normal" but causes severe fatigue).
-2. Find Systemic Patterns: Connect siloed symptoms (e.g. GI, Neurological, Dermatological) to a single unifying root cause (e.g. Mast Cell, Dysautonomia, Mold, Lyme, Autoimmune).
-3. Generate the "Missing Link": Explain exactly what previous doctors might have missed and why.
-
-PATIENT PROFILE:
+PATIENT CONTEXT:
 Age: ${profile?.demographics?.age || 'Unknown'}
 Gender: ${profile?.demographics?.gender || 'Unknown'}
-Active Conditions: ${(profile?.conditions || []).join(', ') || 'None reported'}
-Recent Daily Symptom Tracking: ${(profile?.dailyCheckins || []).slice(0, 5).map((c: any) => `${c.symptom}: ${c.severity}${c.note ? ` (${c.note})` : ''}`).join('; ') || 'None recorded'}
+${cleanConditions.length > 0 ? `Known Background Profile Conditions: ${cleanConditions.join(', ')}` : ''}
+${(profile?.dailyCheckins || []).length > 0 ? `Recent Daily Tracking: ${(profile.dailyCheckins).slice(0, 3).map((c: any) => `${c.symptom}: ${c.severity}`).join('; ')}` : ''}
 
-PATIENT HISTORY & SYMPTOMS:
+PRIMARY PRESENTING SYMPTOMS & CASE HISTORY:
 ${history}
 
-Review the provided clinical documents, lab reports, and history carefully.
+CRITICAL CLINICAL RULES:
+1. FOCUS STRICTLY on the presenting symptoms and chief complaint provided above. 
+2. If the user presents with an acute or standalone symptom (e.g. stomach pain), analyze this specific issue directly and accurately.
+3. DO NOT hallucinate symptoms not mentioned by the patient or records (e.g., do NOT invent 'difficulty breathing' or other symptoms unless explicitly stated in the input).
+4. Only connect background conditions if there is a scientifically plausible physiological link (e.g. NSAID overuse for headaches causing gastritis/stomach pain, or vagal nerve/gut-brain axis). If they are unrelated, evaluate the presenting complaint on its own merits without forcing synthetic multi-system diagnoses.
+
+YOUR MISSION:
+1. Identify "Sub-clinical" biomarkers: Look for labs that are technically "in range" but indicate suboptimal functional health.
+2. Find Systemic Patterns: Connect relevant symptoms to underlying physiological mechanisms (e.g., GI inflammation, Dysautonomia, Gut-Brain axis, Autoimmune, Metabolic).
+3. Generate the "Missing Link": Explain what conventional single-organ evaluations often miss and what questions to explore next.
 
 Return ONLY a JSON object with this exact structure:
 {
