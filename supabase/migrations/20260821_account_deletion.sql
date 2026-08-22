@@ -41,6 +41,11 @@ begin
   if to_regclass('public.ai_usage_daily') is not null then
     execute 'delete from public.ai_usage_daily where user_id = $1' using p_user_id;
   end if;
+
+  -- Ensure sensitive medical files are not orphaned in Supabase Storage
+  if to_regclass('storage.objects') is not null then
+    execute 'delete from storage.objects where owner = $1' using p_user_id;
+  end if;
 end;
 $$;
 

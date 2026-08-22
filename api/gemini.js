@@ -146,6 +146,31 @@ export default async function handler(req, res) {
       await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_invalid', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
       return res.status(503).json({ error: 'AI quota service unavailable' });
     }
+
+    // --- GHOST MODE METERED QUOTAS ---
+    // Track usage natively in the new user_quotas table. Paywall enforcement 
+    // is disabled (Ghost Mode) until explicitly toggled on by admin.
+    let featureCode = null;
+    const opLow = operation.toLowerCase();
+    if (opLow.includes('ava') || opLow.includes('buddy')) featureCode = 'ava_replies';
+    else if (opLow.includes('quick')) featureCode = 'quick_consult';
+    else if (opLow.includes('deep')) featureCode = 'deep_collab';
+    else if (opLow.includes('jarvis')) featureCode = 'jarvis';
+    else if (opLow.includes('lab')) featureCode = 'lab_report';
+    else if (opLow.includes('pharmacy')) featureCode = 'pharmacy_hub';
+
+    if (featureCode) {
+      try {
+        await adminClient.rpc('consume_feature_quota', {
+          p_user_id: userId,
+          p_feature_name: featureCode
+        });
+        // const ENFORCE_PAYWALLS = false;
+        // if (ENFORCE_PAYWALLS && !quotaResult?.allowed) { return res.status(402)... }
+      } catch (e) {
+        // Ghost mode ignores tracking failures to prevent service disruption
+      }
+    }
   }
 
   // Use the verified gemini-2.5-flash endpoint

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 import { getAllProfiles, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
@@ -73,6 +73,17 @@ export default function Settings() {
   }, []);
 
   const handleLogout = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.id) {
+      const { getPendingSyncCount } = await import('../../services/SyncOutbox');
+      const pending = await getPendingSyncCount(session.user.id);
+      if (pending > 0) {
+        if (!window.confirm('You have offline work that has not been saved to the cloud yet. Logging out will delete it permanently from this device. Are you sure you want to log out?')) {
+          return;
+        }
+      }
+    }
+
     try {
       await supabase.auth.signOut();
     } catch (e) {
@@ -80,19 +91,24 @@ export default function Settings() {
     }
     const theme = localStorage.getItem('hc_theme');
     const consent = localStorage.getItem('hc_consent');
-    const pendingOutbox: { key: string; value: string | null }[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith('hc_sync_outbox_')) pendingOutbox.push({ key, value: localStorage.getItem(key) });
-    }
     localStorage.clear();
+    
+    try {
+      const idb = await import('idb-keyval');
+      const keys = await idb.keys();
+      for (const k of keys) {
+        if (typeof k === 'string' && k.startsWith('hc_sync_outbox_')) continue;
+        await idb.del(k);
+      }
+    } catch (e) {}
+
     if (theme) localStorage.setItem('hc_theme', theme);
     if (consent) localStorage.setItem('hc_consent', consent);
-    pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
     sessionStorage.clear();
     window.dispatchEvent(new Event('hc_logout'));
     navigate('/', { replace: true });
   };
+
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') return;

@@ -67,6 +67,16 @@ export default function TermsOfService() {
           <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
             HealthChain and its creators shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising out of your access to, or use of, the service. This includes any actions taken based on the information provided by our AI systems.
           </p>
+
+          <h2 style={{ fontSize: '20px', marginTop: '32px', marginBottom: '16px', color: 'var(--text-primary)' }}>5. Subscriptions, Quotas, and Purchases</h2>
+          <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
+            HealthChain offers premium features through time-bound subscriptions and metered quotas. By purchasing a subscription or top-up, you agree to the following terms:
+          </p>
+          <ul style={{ marginBottom: '16px', color: 'var(--text-secondary)', paddingLeft: '24px' }}>
+            <li style={{ marginBottom: '8px' }}><strong>Expirations:</strong> Subscriptions are billed in advance and provide specific feature quotas that expire at the end of the subscription term.</li>
+            <li style={{ marginBottom: '8px' }}><strong>Top-Ups:</strong> Top-ups purchased to increase specific feature quotas also expire simultaneously with the active base subscription. Unused quotas do not roll over.</li>
+            <li style={{ marginBottom: '8px' }}><strong>Refunds:</strong> All purchases are final and non-refundable, except as strictly required by applicable consumer law. We reserve the right to suspend accounts that abuse our systems or violate these terms, without refund.</li>
+          </ul>
         </motion.div>
       </div>
     </div>

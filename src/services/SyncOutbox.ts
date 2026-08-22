@@ -1,4 +1,4 @@
-﻿import { del, get, set } from 'idb-keyval';
+import { del, get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
 
@@ -44,7 +44,7 @@ async function readQueue(userId: string): Promise<OutboxEntry[]> {
 
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
   const key = currentUserKey(userId);
-  const bounded = queue.slice(-500);
+  const bounded = queue;
   // Keep sensitive queued payloads in IndexedDB when available. Only use the
   // localStorage copy as a compatibility fallback for environments without
   // IndexedDB (older WebViews/private browsing).

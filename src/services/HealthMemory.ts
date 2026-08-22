@@ -64,8 +64,18 @@ function safePayload(payload: any) {
   };
 }
 
+let memoryCache: Record<string, HealthMemoryItem[]> = {};
+
 export function getHealthMemory(): HealthMemoryItem[] {
-  try { return JSON.parse(getItemSync(storageKey()) || '[]'); } catch { return []; }
+  const key = storageKey();
+  if (memoryCache[key]) return memoryCache[key];
+  try {
+    const parsed = JSON.parse(getItemSync(key) || '[]');
+    memoryCache[key] = parsed;
+    return parsed;
+  } catch {
+    return [];
+  }
 }
 
 export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string): HealthMemoryItem | undefined {
@@ -73,7 +83,15 @@ export function getLatestHealthMemory(kind: HealthMemoryKind, source?: string): 
 }
 
 function writeLocal(items: HealthMemoryItem[]) {
-  setItemSync(storageKey(), JSON.stringify(items.slice(0, 3000)));
+  const key = storageKey();
+  const bounded = items.slice(0, 3000);
+  memoryCache[key] = bounded;
+  
+  import('idb-keyval').then(idb => {
+    idb.set(key, JSON.stringify(bounded)).catch(console.warn);
+    try { removeItemSync(key); } catch {}
+  }).catch(() => {});
+  
   window.dispatchEvent(new Event('hc_health_memory_updated'));
 }
 
@@ -197,6 +215,12 @@ export function recordHealthMemory(input: Omit<HealthMemoryItem, 'id' | 'profile
 export async function syncHealthMemoryFromSupabase() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return;
+  const key = storageKey();
+  try {
+    const idb = await import('idb-keyval');
+    const raw = await idb.get(key) as string;
+    if (raw) memoryCache[key] = JSON.parse(raw);
+  } catch {}
   const pageSize = 500;
   const rows: any[] = [];
   let page = 0;

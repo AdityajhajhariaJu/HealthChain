@@ -1,4 +1,4 @@
-﻿import { checkRateLimit } from './utils/rate-limit.js';
+import { checkRateLimit } from './utils/rate-limit.js';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
 
@@ -6,8 +6,21 @@ const ALLOWED_PLANS = {
   pro_30_days: {
     amount: 49900, // â‚¹499.00 in paise
     currency: 'INR',
-    description: 'Pro Access (30 Days)'
-  }
+    description: 'Pro Access (30 Days)',
+    type: 'subscription'
+  },
+  pro_90_days: {
+    amount: 89900,
+    currency: 'INR',
+    description: 'Pro Access (90 Days)',
+    type: 'subscription'
+  },
+  topup_ava: { amount: 9900, currency: 'INR', description: 'Ava Health Buddy Top-up', type: 'topup', feature: 'ava_replies', quantity: 10 },
+  topup_quick_consult: { amount: 12900, currency: 'INR', description: 'Quick Consult Top-up', type: 'topup', feature: 'quick_consult', quantity: 1 },
+  topup_deep_collab: { amount: 14900, currency: 'INR', description: 'Deep Collab Top-up', type: 'topup', feature: 'deep_collab', quantity: 1 },
+  topup_jarvis: { amount: 16900, currency: 'INR', description: 'Jarvis Top-up', type: 'topup', feature: 'jarvis', quantity: 1 },
+  topup_pharmacy_hub: { amount: 9900, currency: 'INR', description: 'Pharmacy Hub Top-up', type: 'topup', feature: 'pharmacy_hub', quantity: 30 },
+  topup_lab_report: { amount: 9900, currency: 'INR', description: 'Lab Report Analyzer Top-up', type: 'topup', feature: 'lab_report', quantity: 2 }
 };
 
 const ALLOWED_ORIGINS = [

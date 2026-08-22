@@ -34,7 +34,11 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     throw new Error('Please sign in to use secure AI health processing.');
   }
 
-  const requestId = idempotencyKey || await sha256Hash(options.body || Date.now().toString());
+    // Create an idempotency key that expires every 5 minutes.
+  // This prevents double-clicks and page-refresh quota burns, but allows
+  // genuine retries later if the user gets stuck or the UI drops the response.
+  const timeWindow = Math.floor(Date.now() / (5 * 60 * 1000));
+  const requestId = idempotencyKey || await sha256Hash((options.body || '') + timeWindow.toString());
 
   const secureOptions = {
     ...options,
@@ -49,14 +53,21 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { ...secureOptions, signal: controller.signal });
-    if (!response.ok && response.status === 401) {
-      const { data, error } = await supabase.auth.refreshSession();
-      if (error || !data.session) {
-        window.dispatchEvent(new Event('hc_logout'));
-        throw new Error('Session expired. Please log in again.');
+    if (!response.ok) {
+      if (response.status === 401) {
+        const { data, error } = await supabase.auth.refreshSession();
+        if (error || !data.session) {
+          window.dispatchEvent(new Event('hc_logout'));
+          throw new Error('Session expired. Please log in again.');
+        }
+        secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
+        return await fetch(url, { ...secureOptions, signal: controller.signal });
+      } else if (response.status === 402) {
+        window.dispatchEvent(new CustomEvent('hc_quota_exceeded', { 
+          detail: { operation: secureOptions.headers['X-HC-Operation'] } 
+        }));
+        throw new Error('QUOTA_EXCEEDED');
       }
-      secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
-      return await fetch(url, { ...secureOptions, signal: controller.signal });
     }
     return response;
   } finally {

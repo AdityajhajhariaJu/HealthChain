@@ -24,6 +24,7 @@ import OfflineBanner from './components/ui/OfflineBanner';
 import ConsentManager from './components/ui/ConsentManager';
 
 import ProductTour from './components/ui/ProductTour';
+import TopUpModal from './features/brand/TopUpModal';
 
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
@@ -86,6 +87,22 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const { info } = useToast();
+  const [topUpFeature, setTopUpFeature] = React.useState<any>(null);
+
+  useEffect(() => {
+    const handleQuota = (e: any) => {
+      // Map API operations to TopUpModal features
+      const op = e.detail?.operation || '';
+      if (op.includes('ava') || op.includes('buddy')) setTopUpFeature('ava_replies');
+      else if (op.includes('quick')) setTopUpFeature('quick_consult');
+      else if (op.includes('deep')) setTopUpFeature('deep_collab');
+      else if (op.includes('jarvis')) setTopUpFeature('jarvis');
+      else if (op.includes('lab')) setTopUpFeature('lab_report');
+      else if (op.includes('pharmacy')) setTopUpFeature('pharmacy_hub');
+    };
+    window.addEventListener('hc_quota_exceeded', handleQuota);
+    return () => window.removeEventListener('hc_quota_exceeded', handleQuota);
+  }, []);
 
   useEffect(() => {
     const flush = () => { flushSyncOutbox().catch((error) => console.warn('Sync outbox flush failed', error)); };
@@ -96,9 +113,11 @@ export default function App() {
       try {
         const idb = await import('idb-keyval');
         await clearPersistedMDTSession();
-        // Remove the pre-scoping key left by older builds. This is a one-time
-        // migration cleanup and prevents an old account's draft being revived.
-        await idb.del('hc_mdt_session');
+        const keys = await idb.keys();
+        for (const k of keys) {
+          if (typeof k === 'string' && k.startsWith('hc_sync_outbox_')) continue;
+          await idb.del(k);
+        }
       } catch (e) {}
       
       try {
@@ -537,6 +556,17 @@ export default function App() {
         </Route>
         <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
       </Routes>
+      
+      {topUpFeature && (
+        <TopUpModal 
+          feature={topUpFeature} 
+          onClose={() => setTopUpFeature(null)} 
+          onSuccess={() => {
+            setTopUpFeature(null);
+            info('Top-up successful! You can now retry your action.');
+          }} 
+        />
+      )}
     </SafeRoute>
   );
 }

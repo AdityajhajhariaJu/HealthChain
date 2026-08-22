@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
+import { get as idbGet, set as idbSet, del as idbDel } from 'idb-keyval';
 
 export interface CaseUpdate {
   id: string;
@@ -205,12 +206,17 @@ async function save(cases: CaseItem[]) {
        });
     }
     await flushSyncOutbox(session.user.id);
-    // Keep localStorage as a read-only safety net for offline/poor-network scenarios.
+      // Fix: Keep IndexedDB updated immediately as a read-only safety net for offline recovery!
+      const fallbackCases = safeCases.filter((c: any) => (c.__profileId || 'profile_1') === currentProfileId);
+      idbSet(currentCasesKey || getCasesKey(), JSON.stringify(fallbackCases)).catch(console.warn);
+      try { removeItemSync(currentCasesKey || getCasesKey()); } catch {} // Clear legacy localStorage
+    // Keep IndexedDB as a read-only safety net for offline/poor-network scenarios.
     // It will be refreshed on next successful initCaseEngine read from Supabase.
   } else {
     // Guest - cap at 3 cases
     const capped = safeCases.slice(0, 3);
-    setItemSync(getCasesKey(), JSON.stringify(capped));
+    idbSet(getCasesKey(), JSON.stringify(capped)).catch(console.warn);
+    try { removeItemSync(getCasesKey()); } catch {}
   }
 }
 
@@ -577,7 +583,8 @@ export async function initCaseEngine() {
     await flushSyncOutbox(session.user.id);
 
     // Migration: upload existing local cases
-    const localRaw = getItemSync(key);
+    let localRaw = await idbGet(key) as string;
+    if (!localRaw) localRaw = getItemSync(key);
     if (localRaw) {
       try {
         const localCases = JSON.parse(localRaw);
@@ -602,7 +609,10 @@ export async function initCaseEngine() {
       }
       // Keep the local copy until every migrated record has left the outbox.
       // This makes a failed migration recoverable on the next launch.
-      if (await getPendingSyncCount(session.user.id) === 0) removeItemSync(key);
+      if (await getPendingSyncCount(session.user.id) === 0) {
+        idbDel(key).catch(() => {});
+        removeItemSync(key);
+      }
     }
     
     // Fetch in bounded pages. Case data contains structured review history and
@@ -631,6 +641,9 @@ export async function initCaseEngine() {
     if (!error && data) {
        // Filter by profile
        cachedCases = data.map(row => row.data).filter(d => (d.__profileId || 'profile_1') === currentProfileId);
+         // Fix: Always persist the remote snapshot locally so offline-mode has a durable fallback!
+         idbSet(key, JSON.stringify(cachedCases)).catch(() => {});
+         try { removeItemSync(key); } catch {}
     } else if (localRaw) {
        // A transient remote read failure must never erase the last known case
        // list from the current device.
@@ -645,7 +658,8 @@ export async function initCaseEngine() {
     }
   } else {
     // Guest
-    const localRaw = getItemSync(key);
+    let localRaw = await idbGet(key) as string;
+    if (!localRaw) localRaw = getItemSync(key);
     try {
       cachedCases = JSON.parse(localRaw || '[]');
     } catch {

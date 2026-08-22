@@ -6,8 +6,20 @@ import { createClient } from '@supabase/supabase-js';
 const ALLOWED_PLANS = {
   pro_30_days: {
     amount: 49900,
-    days: 30
-  }
+    days: 30,
+    type: 'subscription'
+  },
+  pro_90_days: {
+    amount: 89900,
+    days: 90,
+    type: 'subscription'
+  },
+  topup_ava: { amount: 9900, type: 'topup', feature: 'ava_replies', quantity: 10 },
+  topup_quick_consult: { amount: 12900, type: 'topup', feature: 'quick_consult', quantity: 1 },
+  topup_deep_collab: { amount: 14900, type: 'topup', feature: 'deep_collab', quantity: 1 },
+  topup_jarvis: { amount: 16900, type: 'topup', feature: 'jarvis', quantity: 1 },
+  topup_pharmacy_hub: { amount: 9900, type: 'topup', feature: 'pharmacy_hub', quantity: 30 },
+  topup_lab_report: { amount: 9900, type: 'topup', feature: 'lab_report', quantity: 2 }
 };
 
 const ALLOWED_ORIGINS = [
@@ -137,18 +149,51 @@ export default async function handler(req, res) {
       }
     }
 
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
-    // Payment logging and entitlement activation must happen together. The
-    // RPC is installed by 20260821_payment_entitlement.sql; without it we
-    // fail closed instead of accepting money with an unrecoverable entitlement.
-    const { error: entitlementError } = await supabase.rpc('activate_payment_entitlement', {
-      p_user_id: effectiveUserId,
-      p_order_id: razorpay_order_id,
-      p_payment_id: razorpay_payment_id,
-      p_amount: verifiedAmount,
-      p_expires_at: expiryDate.toISOString(),
-    });
+    let entitlementError = null;
+    let finalExpiry = null;
+
+    if (targetPlan.type === 'subscription') {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + targetPlan.days);
+      finalExpiry = expiryDate.toISOString();
+      
+      const { error } = await supabase.rpc('activate_payment_entitlement', {
+        p_user_id: effectiveUserId,
+        p_order_id: razorpay_order_id,
+        p_payment_id: razorpay_payment_id,
+        p_amount: verifiedAmount,
+        p_expires_at: finalExpiry,
+      });
+      entitlementError = error;
+
+      if (!error) {
+        await supabase.rpc('provision_base_quota', {
+          p_user_id: effectiveUserId,
+          p_plan_id: resolvedPlanId,
+          p_expires_at: finalExpiry
+        });
+      }
+    } else if (targetPlan.type === 'topup') {
+      // Record payment safely (idempotent)
+      const { error: insertError } = await supabase.from('payments').insert({
+        user_id: effectiveUserId,
+        razorpay_order_id: razorpay_order_id,
+        razorpay_payment_id: razorpay_payment_id,
+        amount: verifiedAmount,
+        status: 'paid'
+      });
+      // 23505 is duplicate key, which means already processed
+      if (insertError && insertError.code !== '23505') {
+        entitlementError = insertError;
+      } else if (!insertError) {
+        // Only provision if we successfully inserted (prevent double spend)
+        await supabase.rpc('provision_topup', {
+          p_user_id: effectiveUserId,
+          p_feature_name: targetPlan.feature,
+          p_amount: targetPlan.quantity
+        });
+      }
+    }
 
     if (entitlementError) {
       console.error('Payment entitlement transaction failed:', entitlementError);
@@ -157,8 +202,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ 
       success: true, 
-      message: 'Payment verified and Pro status activated',
-      expires_at: expiryDate.toISOString()
+      message: 'Payment verified and status updated',
+      expires_at: finalExpiry
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
