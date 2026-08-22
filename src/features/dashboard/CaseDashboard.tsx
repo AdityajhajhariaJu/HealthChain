@@ -1210,7 +1210,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
             <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6 }}>
               {Array.isArray(item.currentSummary?.topDiagnoses) && item.currentSummary.topDiagnoses.length > 0 ? (
                 item.currentSummary.topDiagnoses.map((p, i) => (
-                  <li key={i}><strong>{p.condition}</strong> - {p.specialty || 'General'}</li>
+                  <li key={i}><strong>{p.condition}</strong> {p.confidence ? `(${p.confidence}% Match)` : ''} {p.specialty ? `- ${p.specialty}` : ''}</li>
                 ))
               ) : (
                 <li>No active discussion pathways</li>
@@ -1218,19 +1218,56 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
             </ul>
           </div>
         </div>
+
+        {/* J.A.R.V.I.S. Missing Links & Patterns if present */}
+        {Array.isArray(item.currentSummary?.missingLinks) && item.currentSummary.missingLinks.length > 0 && (
+          <div style={{ marginTop: 16, background: '#FEFCE8', padding: 14, borderRadius: 8, border: '1px solid #FEF08A' }}>
+            <strong style={{ color: '#854D0E', fontSize: 14, display: 'block', marginBottom: 6 }}>The Missing Links:</strong>
+            <ul style={{ margin: 0, paddingLeft: 18, color: '#854D0E', fontSize: 13, lineHeight: 1.5 }}>
+              {item.currentSummary.missingLinks.map((l: string, i: number) => (
+                <li key={i}>{l}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* J.A.R.V.I.S. Functional Biomarkers if present */}
+        {Array.isArray(item.currentSummary?.functionalBiomarkers) && item.currentSummary.functionalBiomarkers.length > 0 && (
+          <div style={{ marginTop: 16, background: '#F0FDF4', padding: 14, borderRadius: 8, border: '1px solid #BBF7D0' }}>
+            <strong style={{ color: '#166534', fontSize: 14, display: 'block', marginBottom: 6 }}>Sub-Clinical Biomarkers:</strong>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {item.currentSummary.functionalBiomarkers.map((b: any, i: number) => (
+                <div key={i} style={{ fontSize: 13, color: '#166534' }}>
+                  <strong>{b.biomarker}:</strong> {b.value} (Standard: {b.standardRange}, Optimal: {b.optimalRange}) - {b.insight}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Action Plan Section */}
+      {/* Action Plan & Questions for Clinician */}
       <div style={{ marginBottom: 24 }} className="print-avoid-break">
-        <h2 style={{ fontSize: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 8, marginBottom: 16 }}>2. CLINICAL ACTION PLAN</h2>
+        <h2 style={{ fontSize: 20, borderBottom: '1px solid #e5e7eb', paddingBottom: 8, marginBottom: 16 }}>2. CLINICAL ACTION PLAN & QUESTIONS</h2>
         <div style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-          <h3 style={{ fontSize: 16, color: '#0f172a', margin: '0 0 12px' }}>Outstanding Items</h3>
+          {Array.isArray(item.currentSummary?.questionsForClinician) && item.currentSummary.questionsForClinician.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <strong style={{ fontSize: 15, color: '#0F172A', display: 'block', marginBottom: 6 }}>Questions for Your Clinician:</strong>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13.5, lineHeight: 1.5, color: '#334155' }}>
+                {item.currentSummary.questionsForClinician.map((q: string, i: number) => (
+                  <li key={i} style={{ marginBottom: 4 }}>{q}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <h3 style={{ fontSize: 15, color: '#0f172a', margin: '0 0 8px' }}>Action Items:</h3>
           {pendingActions.length > 0 ? (
             <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.6, color: '#1e293b' }}>
               {pendingActions.map(a => (
                 <li key={a.id} style={{ marginBottom: 6 }}>
                   <strong>{a.step}</strong> {a.timeline ? `- ${a.timeline}` : ''}
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Recommended by {a.type || 'Deep Collab'}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Recommended by {a.type || 'Clinical Assessment'}</div>
                 </li>
               ))}
             </ul>
