@@ -172,8 +172,8 @@ export default function Pricing() {
               { f: 'Dietician', v: false },
               { f: 'Case Prep & Trials', v: false },
             ].map(item => (
-              <div key={item.f} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: item.v ? 'var(--text-main)' : 'var(--text-muted)', opacity: item.v ? 1 : 0.6 }}>
-                <Check size={18} color={item.v ? "#10B981" : "var(--border-color)"} /> 
+              <div key={item.f} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: item.v ? 'var(--text-main)' : '#9ca3af', opacity: item.v ? 1 : 0.7 }}>
+                {item.v ? <Check size={18} color="#10B981" /> : <div style={{ width: '18px' }} />} 
                 <span style={{ textDecoration: item.v ? 'none' : 'line-through' }}>{item.f}</span>
               </div>
             ))}
