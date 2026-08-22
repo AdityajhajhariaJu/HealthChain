@@ -85,7 +85,7 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 
 const ProRoute = ({ children }: { children: React.ReactNode }) => {
   const profile = getProfile();
-  if (!profile?.is_pro) return <Navigate to="/pricing" replace />;
+  if (!profile?.isPro) return <Navigate to="/pricing" replace />;
   return <SafeRoute>{children}</SafeRoute>;
 };
 
@@ -98,7 +98,7 @@ export default function App() {
   useEffect(() => {
     const handleQuota = (e: any) => {
       const profile = getProfile();
-      if (!profile?.is_pro) {
+      if (!profile?.isPro) {
         navigate('/pricing');
         return;
       }

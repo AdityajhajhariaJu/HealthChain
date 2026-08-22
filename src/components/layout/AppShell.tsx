@@ -45,7 +45,7 @@ function AnimatedOutlet() {
   return outlet;
 }
 
-const links = [
+const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
   { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain },
@@ -125,7 +125,7 @@ export default function AppShell() {
 
           <nav className="sidebar__nav" aria-label="Main navigation">
             {links.map((l) => {
-              const isLocked = l.locked || (l.proOnly && !profile?.is_pro);
+              const isLocked = l.locked || (l.proOnly && !profile?.isPro);
               return (
               <NavLink
                 key={l.to}
@@ -134,7 +134,7 @@ export default function AppShell() {
                 onClick={(e) => {
                   if (isLocked) {
                     e.preventDefault();
-                    if (l.proOnly && !profile?.is_pro) navigate('/pricing');
+                    if (l.proOnly && !profile?.isPro) navigate('/pricing');
                     else alert(l.label + ' is coming soon!');
                   }
                 }}
@@ -277,13 +277,13 @@ export default function AppShell() {
                 </div>
                 <div className="mobile-more-menu__grid">
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map((l) => {
-                    const isLocked = l.locked || (l.proOnly && !profile?.is_pro);
+                    const isLocked = l.locked || (l.proOnly && !profile?.isPro);
                     return (
                     <button
                       key={l.to}
                       onClick={() => {
                         if (isLocked) {
-                          if (l.proOnly && !profile?.is_pro) {
+                          if (l.proOnly && !profile?.isPro) {
                             setShowMoreMenu(false);
                             navigate('/pricing');
                           } else {
@@ -311,7 +311,7 @@ export default function AppShell() {
                     <span>Settings</span>
                   </button>
                 </div>
-                {!profile?.is_pro && (
+                {!profile?.isPro && (
                   <button 
                     onClick={() => {
                       setShowMoreMenu(false);

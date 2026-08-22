@@ -578,7 +578,7 @@ export default function MedicalProfile() {
               <Sparkles size={20} />
               <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
             </div>
-            {!profile?.is_pro && (
+            {!profile?.isPro && (
               <button 
                 onClick={() => navigate('/pricing')}
                 className="btn btn-primary btn-sm"

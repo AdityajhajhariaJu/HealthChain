@@ -89,7 +89,7 @@ function writeLocal(items: HealthMemoryItem[]) {
   
   import('idb-keyval').then(idb => {
     idb.set(key, JSON.stringify(bounded)).catch(console.warn);
-    try { removeItemSync(key); } catch {}
+    try { localStorage.removeItem(key); } catch {}
   }).catch(() => {});
   
   window.dispatchEvent(new Event('hc_health_memory_updated'));

@@ -584,7 +584,7 @@ export async function initCaseEngine() {
 
     // Migration: upload existing local cases
     let localRaw = await idbGet(key) as string;
-    if (!localRaw) localRaw = getItemSync(key);
+    if (!localRaw) localRaw = getItemSync(key) as string;
     if (localRaw) {
       try {
         const localCases = JSON.parse(localRaw);
@@ -659,7 +659,7 @@ export async function initCaseEngine() {
   } else {
     // Guest
     let localRaw = await idbGet(key) as string;
-    if (!localRaw) localRaw = getItemSync(key);
+    if (!localRaw) localRaw = getItemSync(key) as string;
     try {
       cachedCases = JSON.parse(localRaw || '[]');
     } catch {
