@@ -192,11 +192,7 @@ export default function CaseDashboard() {
         {!isPremium && (
           <button
             className="btn btn-primary"
-            disabled
-            style={{ padding: '8px 16px', fontSize: '14px', background: '#E9D5FF', color: '#6B21A8', border: 'none', cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <Lock size={14} />
-            Upgrade Now
+            onClick={() => navigate('/pricing')} style={{ padding: '8px 16px', fontSize: '14px', background: '#9333EA', color: '#ffffff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={14} />Upgrade Now
           </button>
         )}
       </div>
@@ -829,4 +825,5 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
     </div>
   );
 }
+
 
