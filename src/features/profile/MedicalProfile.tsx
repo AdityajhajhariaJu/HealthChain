@@ -1595,7 +1595,7 @@ export default function MedicalProfile() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {uniqueActionItems.map((item) => {
-                  let extractedDrug = null;
+                  let extractedDrug: string | null = null;
                   const rawText = typeof item?.task === 'string' && item.task.length > 0 
                     ? item.task 
                     : (typeof item?.step === 'string' && item.step.length > 0 
