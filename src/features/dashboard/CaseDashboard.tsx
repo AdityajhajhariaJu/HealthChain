@@ -25,8 +25,9 @@ import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ActiveCaseBar } from '../../components/layout/AppShell';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
-import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock } from 'lucide-react';
-import { RichReportTemplate } from '../../components/ui/RichReportTemplate';
+import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock, Search, HelpCircle } from 'lucide-react';
+import { RichReportTemplate, Accordion } from '../../components/ui/RichReportTemplate';
+import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 
 const formatDate = (value: string) => {
   try {
@@ -100,6 +101,10 @@ export default function CaseDashboard() {
            </button>
          </div>
        );
+    }
+    const isJarvisCase = activeCase.currentStage === 'jarvis_complete' || activeCase.reviews?.[0]?.type === 'jarvis' || activeCase.title?.toLowerCase().includes('j.a.r.v.i.s.');
+    if (isJarvisCase) {
+      return <JarvisCaseWorkspace item={activeCase} navigate={navigate} refresh={() => setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0))} />;
     }
     return <CaseWorkspace item={activeCase} navigate={navigate} refresh={() => setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0))} />;
   }
@@ -278,6 +283,224 @@ export default function CaseDashboard() {
             </button>
           </section>
       </div>
+    </div>
+  );
+}
+
+function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: any, refresh: any }) {
+  const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState<'report' | 'intake' | 'timeline'>('report');
+  const report = item.currentSummary || item.reviews?.[0]?.report || {};
+  const records = item.medicalRecords || [];
+  const profile = getProfile();
+
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto', paddingBottom: 40 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/my-cases')}>
+          <ArrowLeft size={16} /> Back to My Cases
+        </button>
+        <button 
+          className="btn btn-outline btn-sm"
+          onClick={() => window.print()}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <Printer size={14} /> Print Dossier
+        </button>
+      </div>
+
+      <PrintableDossier item={item} profile={profile} />
+
+      {/* Header Banner */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          borderRadius: 24,
+          padding: isMobile ? '24px 20px' : '32px',
+          color: '#FFF',
+          marginBottom: 24,
+          boxShadow: '0 12px 32px rgba(15,23,42,0.15)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 16
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EA580C', flexShrink: 0 }}>
+            <NetworkHubIcon size={24} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#FB923C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>J.A.R.V.I.S. Investigation</span>
+              <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: 999 }}>{item.status.toUpperCase()}</span>
+            </div>
+            <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 900, margin: 0, letterSpacing: '-0.5px' }}>{item.title}</h1>
+            <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: 13 }}>
+              Updated {formatDate(item.updatedAt)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div style={{ display: 'flex', gap: 16, borderBottom: '1px solid #E2E8F0', paddingBottom: 10, marginBottom: 24, overflowX: 'auto' }}>
+        {[
+          { id: 'report', label: 'Investigation Report' },
+          { id: 'intake', label: 'Intake & Records' },
+          { id: 'timeline', label: 'Timeline' }
+        ].map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 15,
+              fontWeight: activeTab === tab.id ? 700 : 500,
+              color: activeTab === tab.id ? '#EA580C' : '#64748B',
+              borderBottom: activeTab === tab.id ? '2px solid #EA580C' : 'none',
+              paddingBottom: 6,
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'report' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {report.executiveSummary && (
+            <div style={{ background: '#F8FAFC', padding: isMobile ? '20px' : '24px', borderRadius: '20px', border: '1px solid #E2E8F0' }}>
+              <strong style={{ color: '#0F172A', display: 'block', marginBottom: '8px', fontSize: '16px' }}>Executive Summary</strong>
+              <p style={{ margin: 0, color: '#334155', lineHeight: 1.6, fontSize: '15px' }}>{report.executiveSummary}</p>
+            </div>
+          )}
+
+          {report.missingLinks && report.missingLinks.length > 0 && (
+            <Accordion title="The Missing Links" icon={Search} iconColor="#EAB308" bgColor="#FEFCE8" borderColor="#FEF08A" textColor="#854D0E" isMobile={isMobile} defaultOpen={true}>
+              <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {report.missingLinks.map((link: string, i: number) => (
+                  <li key={i} style={{ color: '#854D0E', lineHeight: 1.6, fontSize: '14.5px' }}>{link}</li>
+                ))}
+              </ul>
+            </Accordion>
+          )}
+
+          {report.functionalBiomarkers && report.functionalBiomarkers.length > 0 && (
+            <div style={{ background: '#F0FDF4', borderRadius: '20px', padding: isMobile ? '20px' : '24px', border: '1px solid #BBF7D0' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 16px 0' }}>
+                <Activity size={20} color="#15803D" /> Sub-clinical Biomarker Insights
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {report.functionalBiomarkers.map((bio: any, i: number) => (
+                  <div key={i} style={{ background: '#FFF', padding: '16px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <strong style={{ color: '#0F172A', fontSize: '15px' }}>{bio.biomarker}</strong>
+                      <span style={{ background: '#FEF2F2', color: '#991B1B', padding: '4px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 700 }}>Value: {bio.value}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', marginBottom: '10px', fontSize: '13px', color: '#64748B' }}>
+                      <span>Standard Range: {bio.standardRange}</span>
+                      <span>Optimal Range: <strong>{bio.optimalRange}</strong></span>
+                    </div>
+                    <p style={{ margin: 0, color: '#334155', fontSize: '14px', lineHeight: 1.5, padding: '12px', background: '#F8FAFC', borderRadius: '8px' }}>
+                      {bio.insight}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {report.systemicPatterns && report.systemicPatterns.length > 0 && (
+            <Accordion title="Systemic Patterns Detected" icon={Sparkles} iconColor="#8B5CF6" bgColor="#F5F3FF" borderColor="#DDD6FE" textColor="#5B21B6" isMobile={isMobile} defaultOpen={true}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {report.systemicPatterns.map((pat: any, i: number) => (
+                  <div key={i}>
+                    <strong style={{ color: '#4C1D95', display: 'block', marginBottom: '4px', fontSize: '15px' }}>{pat.pattern}</strong>
+                    <p style={{ margin: 0, color: '#5B21B6', lineHeight: 1.5, fontSize: '14px' }}>{pat.evidence}</p>
+                  </div>
+                ))}
+              </div>
+            </Accordion>
+          )}
+
+          {report.topDiagnoses && report.topDiagnoses.length > 0 && (
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginBottom: '16px' }}>Possible Underlying Conditions</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+                {report.topDiagnoses.map((dx: any, i: number) => (
+                  <div key={i} style={{ background: '#FFF', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <strong style={{ fontSize: '16px', color: '#0F172A' }}>{dx.condition}</strong>
+                      {dx.confidence ? <span style={{ background: '#F0F9FF', color: '#0369A1', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>{dx.confidence}% Match</span> : null}
+                    </div>
+                    <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.5 }}>{dx.rationale}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {report.questionsForClinician && report.questionsForClinician.length > 0 && (
+            <Accordion title="Questions for Your Clinician" icon={HelpCircle} iconColor="#0F172A" bgColor="#F1F5F9" borderColor="#E2E8F0" textColor="#0F172A" isMobile={isMobile} defaultOpen={true}>
+              <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {report.questionsForClinician.map((q: string, i: number) => (
+                  <li key={i} style={{ color: '#334155', lineHeight: 1.6, fontSize: '14.5px' }}>{q}</li>
+                ))}
+              </ul>
+            </Accordion>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'intake' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>Submitted Clinical Timeline & Notes</h3>
+            <p style={{ margin: 0, color: '#334155', lineHeight: 1.6, fontSize: '14.5px', whiteSpace: 'pre-wrap' }}>
+              {item.intakeData?.chiefComplaint || 'No raw notes provided.'}
+            </p>
+          </div>
+
+          <div className="card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>Uploaded Records & Evidence</h3>
+            {records.length > 0 ? (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {records.map((r: any) => (
+                  <div key={r.id} style={{ padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+                    <strong>{r.filename}</strong>
+                    <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '13px' }}>{r.findings}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, color: '#64748B', fontSize: '14px' }}>No files attached to this investigation.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'timeline' && (
+        <div className="card" style={{ padding: '28px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginBottom: '16px' }}>Investigation History</h3>
+          <div style={{ display: 'grid', gap: '14px' }}>
+            {([...(item.events || []), ...(item.reviews || [])].sort((a: any, b: any) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())).map((ev: any, idx: number) => (
+              <div key={idx} style={{ padding: '12px 16px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <strong style={{ fontSize: '14px', color: '#0F172A', display: 'block' }}>{ev.label || 'Investigation Event'}</strong>
+                  <span style={{ fontSize: '13px', color: '#64748B' }}>{ev.note || 'Snapshot recorded'}</span>
+                </div>
+                <small style={{ color: '#94A3B8', fontSize: '12px' }}>{formatDate(ev.date || ev.createdAt)}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

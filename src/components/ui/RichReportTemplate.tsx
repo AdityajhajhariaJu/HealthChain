@@ -41,12 +41,16 @@ export interface RichReportData {
   systemicCorrelations?: string[];
   scientificLiteratureContext?: string;
   alternativeOrRarePossibilities?: string;
+  missingLinks?: string[];
+  functionalBiomarkers?: Array<{ biomarker: string; value: string; standardRange: string; optimalRange: string; insight: string }>;
+  systemicPatterns?: Array<{ pattern: string; evidence: string }>;
+  topDiagnoses?: Array<{ condition: string; rationale: string; confidence?: number }>;
 }
 
 export function RichReportTemplate({ report, isMobile }: { report: RichReportData; isMobile?: boolean }) {
   if (!report) return null;
 
-  const hasRichData = report.keyFindings || report.interpretation || (report.abnormalitiesNoted && report.abnormalitiesNoted.length > 0) || report.nextSteps;
+  const hasRichData = report.keyFindings || report.interpretation || (report.abnormalitiesNoted && report.abnormalitiesNoted.length > 0) || report.nextSteps || (report.missingLinks && report.missingLinks.length > 0) || (report.functionalBiomarkers && report.functionalBiomarkers.length > 0) || (report.systemicPatterns && report.systemicPatterns.length > 0);
 
   if (!hasRichData) {
     return (
@@ -122,6 +126,54 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
             <p style={{ margin: 0, color: '#92400E', fontSize: '14.5px', lineHeight: 1.6 }}>
               {report.alternativeOrRarePossibilities}
             </p>
+          </Accordion>
+        )}
+
+        {report.missingLinks && report.missingLinks.length > 0 && (
+          <Accordion title="The Missing Links" icon={AlertCircle} iconColor="#EAB308" bgColor="#FEFCE8" borderColor="#FEF08A" textColor="#854D0E" isMobile={isMobile} defaultOpen={true}>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: '#854D0E', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
+              {report.missingLinks.map((link, i) => (
+                <li key={i}>{link}</li>
+              ))}
+            </ul>
+          </Accordion>
+        )}
+
+        {report.functionalBiomarkers && report.functionalBiomarkers.length > 0 && (
+          <div style={{ background: '#F0FDF4', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1px solid #BBF7D0' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#166534', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={18} color="#166534" /> Sub-clinical Biomarker Insights
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {report.functionalBiomarkers.map((bio, i) => (
+                <div key={i} style={{ background: '#FFF', padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <strong style={{ color: '#0F172A', fontSize: '14.5px' }}>{bio.biomarker}</strong>
+                    <span style={{ background: '#FEF2F2', color: '#991B1B', padding: '2px 8px', borderRadius: '999px', fontSize: '11px', fontWeight: 700 }}>Value: {bio.value}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '8px', fontSize: '12px', color: '#64748B' }}>
+                    <span>Standard: {bio.standardRange}</span>
+                    <span>Optimal: <strong>{bio.optimalRange}</strong></span>
+                  </div>
+                  <p style={{ margin: 0, color: '#334155', fontSize: '13px', lineHeight: 1.5, padding: '8px 10px', background: '#F8FAFC', borderRadius: '6px' }}>
+                    {bio.insight}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {report.systemicPatterns && report.systemicPatterns.length > 0 && (
+          <Accordion title="Systemic Patterns Detected" icon={Network} iconColor="#8B5CF6" bgColor="#F5F3FF" borderColor="#DDD6FE" textColor="#5B21B6" isMobile={isMobile} defaultOpen={true}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {report.systemicPatterns.map((pat, i) => (
+                <div key={i}>
+                  <strong style={{ color: '#4C1D95', display: 'block', marginBottom: '4px', fontSize: '14px' }}>{pat.pattern}</strong>
+                  <p style={{ margin: 0, color: '#5B21B6', fontSize: '13.5px', lineHeight: 1.5 }}>{pat.evidence}</p>
+                </div>
+              ))}
+            </div>
           </Accordion>
         )}
 
