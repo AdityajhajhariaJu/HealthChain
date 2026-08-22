@@ -31,7 +31,7 @@ export default function Settings() {
 
   const [profiles, setProfiles] = useState<any[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<string>('');
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium, setIsPremium] = useState(isProUser());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -759,5 +759,6 @@ export default function Settings() {
     </div>
   );
 }
+
 
 

@@ -39,7 +39,7 @@ const formatDate = (value: string) => {
 };
 
 export default function CaseDashboard() {
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium, setIsPremium] = useState(isProUser());
   useEffect(() => {
     verifyProStatus().then(setIsPremium).catch(() => {});
     const handleProfile = () => setIsPremium(isProUser());
@@ -825,5 +825,6 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
     </div>
   );
 }
+
 
 
