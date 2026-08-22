@@ -39,7 +39,7 @@ function getSavedMessages() {
   }
 }
 
-const TypewriterText = ({ content, onComplete, chatContainerRef }: any) => {
+const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   const [displayed, setDisplayed] = useState('');
   const isMounted = useRef(true);
 
@@ -53,10 +53,18 @@ const TypewriterText = ({ content, onComplete, chatContainerRef }: any) => {
         current += content.substring(i, i + chunkSize);
         setDisplayed(current);
         
-        if (chatContainerRef?.current) {
-          const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-          if (scrollHeight - scrollTop - clientHeight < 150) {
-             chatContainerRef.current.scrollTo({ top: scrollHeight, behavior: 'auto' });
+        // Auto-scroll logic if user is at the bottom
+        if (messagesEndRef?.current) {
+          const container = messagesEndRef.current.parentElement;
+          if (container) {
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            if (scrollHeight - scrollTop - clientHeight < 150) {
+              requestAnimationFrame(() => {
+                if (messagesEndRef.current) {
+                  messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+                }
+              });
+            }
           }
         }
         await new Promise(r => setTimeout(r, 10));
@@ -68,7 +76,7 @@ const TypewriterText = ({ content, onComplete, chatContainerRef }: any) => {
     };
     type();
     return () => { isMounted.current = false; };
-  }, [content, chatContainerRef]);
+  }, [content, messagesEndRef]);
 
   return <span>{displayed}</span>;
 };
@@ -82,18 +90,24 @@ export default function AvaHealthBuddy() {
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const currentProfileId = useRef(getProfileEngineState()?.activeId);
 
   useEffect(() => {
     const handleProfileUpdate = () => {
-      setMessages(getSavedMessages());
+      const state = getProfileEngineState();
+      if (state?.activeId !== currentProfileId.current) {
+        currentProfileId.current = state?.activeId;
+        setMessages(getSavedMessages());
+      }
     };
     window.addEventListener('hc_profile_updated', handleProfileUpdate);
     return () => window.removeEventListener('hc_profile_updated', handleProfileUpdate);
   }, []);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -128,19 +142,19 @@ export default function AvaHealthBuddy() {
     };
   }, []);
 
+  // Safe auto-scroll when user sends a new message or Ava starts typing
   useEffect(() => {
-    if (chatContainerRef.current) {
+    if (messagesEndRef.current && chatContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 250;
       
       if (isNearBottom || isTyping) {
-        chatContainerRef.current.scrollTo({
-          top: chatContainerRef.current.scrollHeight,
-          behavior: isStreaming ? 'auto' : 'smooth'
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         });
       }
     }
-  }, [messages, isTyping, isStreaming]);
+  }, [messages.length, isTyping]); // Only run on length change or typing status change
 
   const chatMutation = useMutation({
     mutationFn: (newMessages: any[]) => chatWithTherapyGemini(newMessages),
@@ -387,7 +401,7 @@ export default function AvaHealthBuddy() {
                     {msg.isStreaming ? (
                       <TypewriterText 
                         content={msg.content} 
-                        chatContainerRef={chatContainerRef}
+                        messagesEndRef={messagesEndRef}
                         onComplete={() => {
                           setMessages(prev => {
                             const updated = [...prev];
@@ -473,6 +487,8 @@ export default function AvaHealthBuddy() {
                 </div>
               </motion.div>
             )}
+
+            <div ref={messagesEndRef} style={{ height: 1 }} />
 
             {/* Suggestions - Only show after initial message if user hasn't typed yet */}
             {messages.length === 1 && !isTyping && (
