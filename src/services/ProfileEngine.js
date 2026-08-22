@@ -213,13 +213,29 @@ export function getProfile() {
     
     let profile = base;
     if (parsed) {
+      const rawConditions = parsed.conditions || base.conditions;
+      const cleanConditions = Array.isArray(rawConditions)
+        ? rawConditions
+            .map((c) => (typeof c === 'string' ? c.trim() : c?.name || ''))
+            .filter((c) => {
+              const l = c.toLowerCase();
+              return (
+                l &&
+                !l.includes('diagnostic ambig') &&
+                !l.includes('undifferentiated') &&
+                !l.includes('unknown') &&
+                !l.includes('review this')
+              );
+            })
+        : [];
+
       profile = {
         ...base,
         ...parsed,
         demographics: { ...base.demographics, ...(parsed.demographics || {}) },
         vitals: { ...base.vitals, ...(parsed.vitals || {}) },
         nutrition: { ...base.nutrition, ...(parsed.nutrition || {}) },
-        conditions: parsed.conditions || base.conditions,
+        conditions: cleanConditions,
         allergies: parsed.allergies || base.allergies,
         medications: parsed.medications || base.medications,
         timeline: parsed.timeline || base.timeline,
@@ -409,10 +425,22 @@ export function completeProfileOnboarding({
 }
 
 export function addCondition(condition, source = 'manual') {
+  if (!condition || typeof condition !== 'string') return;
+  const clean = condition.trim();
+  const l = clean.toLowerCase();
+  if (
+    !clean ||
+    l.includes('diagnostic ambig') ||
+    l.includes('undifferentiated') ||
+    l.includes('unknown') ||
+    l.includes('review this')
+  ) {
+    return;
+  }
   const profile = getProfile();
-  if (!profile.conditions.includes(condition)) {
-    profile.conditions.push(condition);
-    addEvent('system', source, `Condition Added: ${condition}`, { condition }, false, profile);
+  if (!profile.conditions.includes(clean)) {
+    profile.conditions.push(clean);
+    addEvent('system', source, `Condition Added: ${clean}`, { condition: clean }, false, profile);
     saveProfile(profile);
   }
 }

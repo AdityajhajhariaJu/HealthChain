@@ -138,6 +138,8 @@ export default function ClinicalTrialsMatcher() {
   const [researchItems, setResearchItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [customQuery, setCustomQuery] = useState('');
+  const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (loading) {
@@ -159,7 +161,6 @@ export default function ClinicalTrialsMatcher() {
     )
     .filter((v: any, i: any, a: any) => a.indexOf(v) === i) || [];
     
-  // Fallback if no reviews exist yet
   if (diagnoses.length === 0 && activeCase?.differentials) {
     const diffs = activeCase.differentials
       .filter((d: any) => d.probability > 25)
@@ -168,6 +169,10 @@ export default function ClinicalTrialsMatcher() {
     diagnoses.push(...diffs);
   }
 
+  const effectiveTerms = customSearchTerms && customSearchTerms.length > 0
+    ? customSearchTerms
+    : (diagnoses.length > 0 ? diagnoses : ['pain']);
+
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -175,13 +180,8 @@ export default function ClinicalTrialsMatcher() {
     async function loadResearch() {
       setLoading(true);
       
-      if (!activeCase) {
-        if (isMounted) setLoading(false);
-        return;
-      }
-      
-      const searchTerms = diagnoses.length > 0 ? diagnoses : ['pain']; // fallback
-      const cacheKey = `researchHub_${activeCase.id}_${searchTerms.join(',')}`;
+      const searchTerms = effectiveTerms;
+      const cacheKey = `researchHub_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
       
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
@@ -206,9 +206,10 @@ export default function ClinicalTrialsMatcher() {
         
         if (!isMounted) return;
 
+        const targetCase = activeCase || { id: 'manual_search', title: searchTerms.join(', ') };
         const [enrichedTrials, enrichedPapers] = await Promise.all([
-           analyzeTrialRelevance(rawTrials, activeCase, profile).catch(() => []),
-           analyzeLiteratureRelevance(rawPapers, activeCase, profile).catch(() => [])
+           analyzeTrialRelevance(rawTrials, targetCase, profile).catch(() => []),
+           analyzeLiteratureRelevance(rawPapers, targetCase, profile).catch(() => [])
         ]);
         
         if (!isMounted) return;
@@ -219,10 +220,8 @@ export default function ClinicalTrialsMatcher() {
         
         if (isMounted) {
           setResearchItems(sortedItems);
-          recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${activeCase.title || 'Active case'}`, occurredAt: new Date().toISOString(), caseId: activeCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${activeCase.id}:${searchTerms.join(',')}` });
+          recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${targetCase.title || 'Clinical Research'}`, occurredAt: new Date().toISOString(), caseId: targetCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${targetCase.id}:${searchTerms.join(',')}` });
           
-          // Cache the successful empty result too; otherwise every remount
-          // repeats two literature AI calls when no matches exist.
           try { sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems)); } catch {}
         }
       } catch (err) {
@@ -238,7 +237,7 @@ export default function ClinicalTrialsMatcher() {
       isMounted = false;
       controller.abort();
     };
-  }, [activeCase?.id, diagnoses.join(',')]);
+  }, [activeCase?.id, effectiveTerms.join(',')]);
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '40px' }}>
