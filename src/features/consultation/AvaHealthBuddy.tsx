@@ -15,7 +15,7 @@ const SUGGESTIONS = [
   "Can we review my health plan?",
 ];
 
-import { getProfileEngineState, getProfileKey } from '../../services/ProfileEngine';
+import { getProfileEngineState, getProfileKey, getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 
 const getAvaVaultKey = () => {
   const state = getProfileEngineState();
@@ -29,6 +29,8 @@ const INITIAL_MSG = {
 };
 
 function getSavedMessages() {
+  const profile = getProfile();
+  if (profile && profile.avaData) return profile.avaData;
   try {
     const saved = localStorage.getItem(getAvaVaultKey());
     return saved ? JSON.parse(saved) : [INITIAL_MSG];
@@ -61,17 +63,16 @@ export default function AvaHealthBuddy() {
 
   useEffect(() => {
     try {
+      updateProfileFeatureData('avaData', messages);
       localStorage.setItem(getAvaVaultKey(), JSON.stringify(messages));
     } catch (e: any) {
       if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
-        // Splice oldest 20% of messages if quota exceeded, keep initial message
         const keepCount = Math.floor(messages.length * 0.8);
         const newMsgs = [messages[0], ...messages.slice(messages.length - keepCount)];
         try {
+          updateProfileFeatureData('avaData', newMsgs);
           localStorage.setItem(getAvaVaultKey(), JSON.stringify(newMsgs));
-        } catch (e2) {
-          console.error('Storage full, unable to save chat:', e2);
-        }
+        } catch (e2) {}
       }
     }
   }, [messages]);

@@ -352,6 +352,13 @@ async function saveProfile(profile) {
   }
 }
 
+export function updateProfileFeatureData(featureKey, data) {
+  const profile = getProfile();
+  if (!profile) return;
+  profile[featureKey] = data;
+  saveProfile(profile);
+}
+
 export function updateDemographics(data) {
   const profile = getProfile();
   profile.demographics = { ...profile.demographics, ...data, updatedAt: new Date().toISOString() };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+﻿import { useState, useEffect, useRef, useMemo } from 'react';
 
 export function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
@@ -38,7 +38,7 @@ import {
   generateMealPlan,
   generateDieticianAdvice,
 } from '../../services/geminiService';
-import { addEvent, addNutritionLog, getProfileKey } from '../../services/ProfileEngine';
+import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
@@ -123,6 +123,16 @@ export default function Dietician() {
     let cancelled = false;
     const load = async () => {
       try {
+        const coreProfile = getCoreProfile();
+        if (coreProfile?.dietician) {
+          const { profile: p, foodLogs: fl, hydration: h, mealPlan: mp, advice: a } = coreProfile.dietician;
+          if (p) setProfile({ ...p, ...calculateTargets(p) });
+          if (fl) setFoodLogs(fl);
+          if (h) setHydration(h);
+          if (mp) setMealPlan(mp);
+          if (a) setAdvice(a);
+          return;
+        }
         const profileKey = getProfileKey();
         const savedProfile = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
         const savedLogs = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
@@ -155,35 +165,17 @@ export default function Dietician() {
 
   // Save state to local storage when it changes
   useEffect(() => {
-    if (profile) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'), JSON.stringify(profile));
-  }, [profile]);
-  useEffect(() => {
     try {
+      const data = { profile, foodLogs, hydration, mealPlan, advice };
+      updateProfileFeatureData('dietician', data);
+      
+      if (profile) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'), JSON.stringify(profile));
       localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'), JSON.stringify(foodLogs));
-    } catch (e: any) {
-      if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
-        const dates = Object.keys(foodLogs).sort();
-        const dropCount = Math.max(1, Math.floor(dates.length * 0.2));
-        const datesToKeep = dates.slice(dropCount);
-        const newLogs: Record<string, any[]> = {};
-        datesToKeep.forEach(date => newLogs[date] = foodLogs[date]);
-        try {
-          localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_food_logs'), JSON.stringify(newLogs));
-        } catch (e2) {
-          console.error('Storage full, unable to save food logs:', e2);
-        }
-      }
-    }
-  }, [foodLogs]);
-  useEffect(() => {
-    try { localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'), JSON.stringify(hydration)); } catch(e) {}
-  }, [hydration]);
-  useEffect(() => {
-    if (mealPlan) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'), JSON.stringify(mealPlan));
-  }, [mealPlan]);
-  useEffect(() => {
-    if (advice) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'), advice);
-  }, [advice]);
+      localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_hydration'), JSON.stringify(hydration));
+      if (mealPlan) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_meal_plan'), JSON.stringify(mealPlan));
+      if (advice) localStorage.setItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_advice'), advice);
+    } catch(e) {}
+  }, [profile, foodLogs, hydration, mealPlan, advice]);
   useEffect(() => {
     if (!profile) return;
     const dailyFood = foodLogs[currentDate] || [];
@@ -1032,7 +1024,7 @@ export default function Dietician() {
                                           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                                         }}
                                       >
-                                        {item.emoji || '🍽️'}
+                                        {item.emoji || 'ðŸ½ï¸'}
                                       </div>
                                       <div>
                                         <div
@@ -1607,3 +1599,4 @@ export default function Dietician() {
     </div>
   );
 }
+

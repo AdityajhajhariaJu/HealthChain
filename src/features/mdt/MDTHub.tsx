@@ -515,10 +515,18 @@ useEffect(() => {
           } else {
             setPhase('report');
           }
-        } catch (e) {
-          console.error('Failed to generate MDT report', e);
-          setPhase('failed');
-        } finally {
+        } catch (e: any) {
+            console.error('Failed to generate MDT report', e);
+            if (e.message && e.message.includes('409') && (activeCase as any)?.data?.reviews) {
+              const latestMDT = (activeCase as any).data.reviews.find((r: any) => r.type === 'mdt');
+              if (latestMDT && latestMDT.report) {
+                setHistoryReport(latestMDT.report);
+                setPhase('report');
+                return;
+              }
+            }
+            setPhase('failed');
+          } finally {
           isCompilingRef.current = false;
         }
       })();

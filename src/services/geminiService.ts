@@ -4,15 +4,24 @@ import { supabase } from './supabaseClient';
 import { parseModelJson } from './modelJson';
 export { parseModelJson } from './modelJson';
 
-// We strictly use the API proxy to prevent exposing the Gemini key in the frontend bundle.
 const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api/gemini' : '/api/gemini';
 
-const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000) => {
+async function sha256Hash(text: string): Promise<string> {
+  try {
+    const msgBuffer = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return Date.now().toString();
+  }
+}
+
+const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 60000, idempotencyKey?: string) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     throw new Error('Offline');
   }
 
-  // Get current user session token if available
   let sessionToken = '';
   try {
     const { data } = await supabase.auth.getSession();
@@ -25,10 +34,8 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     throw new Error('Please sign in to use secure AI health processing.');
   }
 
-  const requestId = (() => {
-    try { return crypto.randomUUID(); } catch { return `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
-  })();
-  // A browser bundle cannot keep a route secret. The server verifies the Supabase access token.
+  const requestId = idempotencyKey || await sha256Hash(options.body || Date.now().toString());
+
   const secureOptions = {
     ...options,
     headers: {
@@ -48,15 +55,10 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
         window.dispatchEvent(new Event('hc_logout'));
         throw new Error('Session expired. Please log in again.');
       }
-      // A single token refresh is safe; generation requests are never
-      // automatically retried after network, 429, or 5xx responses.
-      secureOptions.headers.Authorization = `Bearer ${data.session.access_token}`;
+      secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
       return await fetch(url, { ...secureOptions, signal: controller.signal });
     }
     return response;
-  } catch (err: any) {
-    if (err?.name === 'AbortError') throw new Error('Timeout');
-    throw err;
   } finally {
     clearTimeout(timeout);
   }
@@ -295,7 +297,7 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
   }
 }
 
-// ─── MDT Hub Specialized Prompts ────────────────────────────────────────────
+// â”€â”€â”€ MDT Hub Specialized Prompts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function selectMDTSpecialists(intakeText: string): Promise<string[]> {
   const prompt = `You are a medical triage AI. Based on the patient's chief complaint, select the 2 to 4 most highly relevant medical specialists to form a Collaborative Board. Be extremely precise and strict; do not select a specialist unless there is a strong, direct clinical reason based on the specific complaint.
@@ -485,6 +487,7 @@ export async function runMDTConference(intakeData: any, specialistData: any, med
   if (mdtConferenceInFlight.has(requestKey)) return mdtConferenceInFlight.get(requestKey);
 
   const request = (async () => {
+    const idempotencyKey = await sha256Hash('mdt-' + requestKey);
   const recordsText =
     medicalRecords.length > 0
       ? `\nPatient Medical Records:\n${medicalRecords.map((r) => `- ${r.testName || r.filename}: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n')}`
@@ -598,6 +601,7 @@ export async function generateMDTReport(
   if (mdtReportInFlight.has(requestKey)) return mdtReportInFlight.get(requestKey);
   
   const request = (async () => {
+    const idempotencyKey = await sha256Hash('mdt-' + requestKey);
   const recordsText =
     medicalRecords.length > 0
       ? `\nPatient Medical Records:\n${medicalRecords.map((r) => `- ${r.testName || r.filename}: ${r.keyFindings || (typeof r.findings === 'string' ? r.findings.substring(0, 300) + '...' : 'Available')}`).join('\n')}`
@@ -778,6 +782,7 @@ export async function generateParallelMultiReport(
   if (parallelReportInFlight.has(requestKey)) return parallelReportInFlight.get(requestKey);
 
   const request = (async () => {
+    const idempotencyKey = await sha256Hash('mdt-' + requestKey);
   let formattedTranscripts = '';
   for (const [specialistId, messages] of Object.entries(transcriptsObject)) {
     formattedTranscripts += `\n\n--- Specialist (${specialistId}) Transcript ---\n`;
@@ -911,7 +916,7 @@ Return strictly as JSON matching this exact structure:
   return request;
 }
 
-// ─── AI DIETICIAN FUNCTIONS ──────────────────────────────────────────────────
+// â”€â”€â”€ AI DIETICIAN FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function analyzeFoodEntry(text: string): Promise<any> {
   const payload = {
@@ -1067,7 +1072,7 @@ Rules:
   }
 }
 
-// ─── 3D BODY MAP / FABLE EXPERIMENT ──────────────────────────────────────────
+// â”€â”€â”€ 3D BODY MAP / FABLE EXPERIMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function suggestSpecialists(profileData: any, availableSpecialists: { id: string, label: string }[]) {
 
@@ -1130,6 +1135,7 @@ export async function runDifferentialAnalysis(intakeData: any, medicalRecords: a
   if (existing) return existing;
 
   const request = (async () => {
+    const idempotencyKey = await sha256Hash('mdt-' + requestKey);
 
 
   const prompt = `
@@ -1521,6 +1527,7 @@ export async function generateCaseConnectionMap(topDiagnoses: any[]): Promise<an
   if (existing) return existing;
 
   const request = (async () => {
+    const idempotencyKey = await sha256Hash('mdt-' + requestKey);
   
   const prompt = `
 You are an expert diagnostic correlation engine. I am providing you with the "Possible pathways" (top diagnoses) generated by independent AI medical specialists for a specific case.
@@ -1550,7 +1557,7 @@ Return ONLY a valid JSON object matching this exact schema:
     { "from": "symp1", "to": "cond1", "type": "symptom_presentation", "label": "Primary presentation", "strength": "strong" }
   ],
   "precautions": [
-    { "text": "Monitor for fever above 38.5°C", "severity": "red_flag|watch|info", "relatedConditions": ["cond1"] }
+    { "text": "Monitor for fever above 38.5Â°C", "severity": "red_flag|watch|info", "relatedConditions": ["cond1"] }
   ],
   "missingEvidence": [
     { "test": "Complete Blood Count", "wouldDifferentiate": ["cond1", "cond2"], "urgency": "Routine|Soon", "recommendedSpecialists": "General Physician or Hematologist" }
@@ -1693,6 +1700,7 @@ ${JSON.stringify(brief, null, 2)}
 
 
 export async function runJarvisInvestigation(history: string, files: { mimeType: string; data: string }[], profile: any): Promise<any> {
+  const idempotencyKey = await sha256Hash('jarvis-' + history + files.length);
   const prompt = `You are J.A.R.V.I.S. (Joint Analytical Research & Validation Intelligence System), the world's most advanced functional medicine and diagnostic AI.
 You are reviewing a complex, chronic patient case. This patient has likely seen multiple doctors and been told their labs are "normal", but they are still suffering. 
 
@@ -1766,3 +1774,8 @@ Return ONLY a JSON object with this exact structure:
     return null;
   }
 }
+
+
+
+
+
