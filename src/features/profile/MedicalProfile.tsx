@@ -548,8 +548,8 @@ export default function MedicalProfile() {
         animate={{ opacity: 1, y: 0 }}
         className="card"
         style={{
-          padding: '20px 24px',
-          marginBottom: '24px',
+          padding: isMobile ? '18px 20px' : '22px 32px',
+          margin: isMobile ? '0 0 20px 0' : '0 32px 24px 32px',
           background: 'linear-gradient(135deg,#0f172a,#153d45 65%,#059669)',
           color: '#F8FAFC',
           borderRadius: '20px',
@@ -557,14 +557,14 @@ export default function MedicalProfile() {
           boxShadow: '0 12px 32px rgba(15,23,42,0.15)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+          <div style={{ flex: '1 1 300px', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#99f6e4' }}>
               <ShieldCheck size={18} />
               <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Profile Completeness</span>
             </div>
             <h3 style={{ fontSize: '20px', margin: '0 0 6px 0', fontWeight: 700 }}>Health Score: {healthScore.score}%</h3>
-            <p style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '400px' }}>
+            <p style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '480px' }}>
               A complete profile helps HealthChain's AI provide more accurate insights and clinical correlations.
             </p>
 
@@ -574,8 +574,8 @@ export default function MedicalProfile() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {healthScore.missing.map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#f8fafc', background: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '6px' }}>
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }} />
-                      {item}
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
+                      <span>{item}</span>
                     </div>
                   ))}
                 </div>
@@ -588,7 +588,7 @@ export default function MedicalProfile() {
             )}
           </div>
           
-          <div style={{ width: '96px', height: '96px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '96px', height: '96px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="96" height="96" viewBox="0 0 96 96">
               <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
               <circle cx="48" cy="48" r="42" fill="none" stroke="#99f6e4" strokeWidth="6" strokeDasharray={`${(healthScore.score / 100) * 264} 264`} strokeDashoffset="0" transform="rotate(-90 48 48)" strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
