@@ -27,7 +27,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { ActiveCaseBar } from '../../components/layout/AppShell';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock, Search, HelpCircle } from 'lucide-react';
-import { RichReportTemplate, Accordion } from '../../components/ui/RichReportTemplate';
+import { RichReportTemplate, Accordion, cleanClinicalText } from '../../components/ui/RichReportTemplate';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 import { parseModelJson } from '../../services/modelJson';
 
@@ -567,6 +567,65 @@ function getQuickConsultDetails(item: CaseItem) {
   return { root, mechanism, trigger, questions };
 }
 
+function cleanActionItem(action: any): { title: string; subtitle?: string; type: string; timeline: string } {
+  let rawStep = (typeof action === 'string' ? action : action?.step || action?.action || 'Recommended Next Step').trim();
+  
+  rawStep = cleanClinicalText(rawStep);
+
+  let title = rawStep;
+  let subtitle = '';
+
+  if (rawStep.includes('·') || rawStep.includes(' - ') || rawStep.includes(':') || rawStep.length > 70) {
+    const parts = rawStep.split(/[·\n:\.]/);
+    if (parts.length > 0 && parts[0].trim().length > 3 && parts[0].trim().length < 75) {
+      title = parts[0].trim();
+    } else {
+      const firstPeriod = rawStep.indexOf('.');
+      if (firstPeriod > 5 && firstPeriod < 75) {
+        title = rawStep.slice(0, firstPeriod).trim();
+      } else {
+        title = rawStep.slice(0, 65).trim() + '...';
+      }
+    }
+  }
+
+  // Strip trailing category/timeline labels or leaked words from the title
+  title = title
+    .replace(/\s*(Immediately|Investigation|Consultation|Routine|Urgent)[\s\S]*/i, '')
+    .replace(/["'{}]/g, '')
+    .trim();
+    
+  if (!title || title.length < 3) {
+    title = 'Clinical Follow-up & Evaluation';
+  }
+
+  const sentences = rawStep.split('.').map(s => s.trim()).filter(Boolean);
+  for (const s of sentences) {
+    const sLower = s.toLowerCase();
+    if (
+      s.length > 15 &&
+      s.length < 140 &&
+      !sLower.includes('costestimate') &&
+      !sLower.includes('successrate') &&
+      !sLower.includes('simulation') &&
+      !sLower.includes('i will') &&
+      !sLower.includes('let\'s make') &&
+      !sLower.includes('i need to be careful') &&
+      !sLower.includes('timelinedescription') &&
+      !sLower.includes('timelinedays') &&
+      !sLower.includes(title.toLowerCase())
+    ) {
+      subtitle = s + '.';
+      break;
+    }
+  }
+
+  const type = action?.type && typeof action.type === 'string' && !action.type.includes('{') && action.type.length < 25 ? action.type : 'Consultation';
+  const timeline = action?.timeline && typeof action.timeline === 'string' && !action.timeline.includes('{') && action.timeline.length < 25 ? action.timeline : 'Upcoming';
+
+  return { title, subtitle, type, timeline };
+}
+
 function VisualRootChain({ root, mechanism, trigger, isMobile }: { root: string; mechanism: string; trigger: string; isMobile: boolean }) {
   if (!root && !mechanism && !trigger) return null;
 
@@ -988,74 +1047,163 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
 
         
 
-        {activeTab === 'actions' && (
-          <div className="card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Care Plan & Actions</h2>
-            {item.actions.length ? (
-              <div style={{ display: 'grid', gap: 12 }}>
-              {item.actions.map((action) => (
-                <div
-                  key={action.id}
-                  style={{
-                    width: '100%',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 12,
-                    background: action.status === 'completed' ? '#f0fdfa' : '#fff',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '16px',
-                  }}
-                >
-                  <div 
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', flex: 1 }}
-                    onClick={() => {
-                      toggleCaseAction(item.id, action.id);
-                      refresh();
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 99,
-                        flexShrink: 0,
-                        border: `2px solid ${action.status === 'completed' ? '#10b981' : '#cbd5e1'}`,
-                        background: action.status === 'completed' ? '#10b981' : 'transparent',
-                      }}
-                    />
-                    <span>
-                      <strong
-                        style={{
-                          fontSize: 14,
-                          display: 'block',
-                          textDecoration: action.status === 'completed' ? 'line-through' : 'none',
-                          color: action.status === 'completed' ? '#065f46' : '#0f172a'
-                        }}
-                      >
-                        {action.step}
-                      </strong>
-                      <small style={{ color: '#64748b' }}>
-                        {action.timeline || 'No timing set'} · {action.type || 'Next step'}
-                      </small>
+        {activeTab === 'actions' && (() => {
+          const totalActions = item.actions.length;
+          const completedActions = item.actions.filter(a => a.status === 'completed').length;
+          const progressPercent = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Header card */}
+              <div style={{ background: '#FFFFFF', borderRadius: 20, padding: isMobile ? '20px 16px' : '22px 24px', border: '1px solid #E2E8F0', boxShadow: '0 4px 16px rgba(15,23,42,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <h2 style={{ fontSize: 19, fontWeight: 800, margin: '0 0 4px', color: '#0F172A' }}>Recommended Next Steps</h2>
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 13.5 }}>
+                      Clear, practical action items prioritized from your consultations.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F8FAFC', padding: '6px 14px', borderRadius: 999, border: '1px solid #E2E8F0' }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: progressPercent === 100 ? '#10B981' : '#0F172A' }}>
+                      {completedActions} of {totalActions} Completed
                     </span>
                   </div>
-
-                  <button 
-                    onClick={() => setSimulatorAction(action)}
-                    style={{ background: '#eff6ff', color: '#3b82f6', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
-                  >
-                    <GitMerge size={14} />
-                    Simulate Path
-                  </button>
                 </div>
-              ))}
+
+                {/* Progress bar */}
+                <div style={{ width: '100%', height: 6, background: '#F1F5F9', borderRadius: 999, overflow: 'hidden' }}>
+                  <div 
+                    style={{ 
+                      width: `${progressPercent}%`, 
+                      height: '100%', 
+                      background: progressPercent === 100 ? '#10B981' : 'linear-gradient(90deg, #3B82F6, #10B981)',
+                      transition: 'width 0.3s ease'
+                    }} 
+                  />
+                </div>
               </div>
-            ) : (
-              <p style={{ color: '#64748b' }}>No action plan yet. Complete a review to generate next steps.</p>
-            )}
-          </div>
-        )}
+
+              {/* Action items list */}
+              {item.actions.length ? (
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {item.actions.map((action) => {
+                    const isDone = action.status === 'completed';
+                    const { title, subtitle, type, timeline } = cleanActionItem(action);
+
+                    return (
+                      <div
+                        key={action.id}
+                        style={{
+                          width: '100%',
+                          border: `1px solid ${isDone ? '#BBF7D0' : '#E2E8F0'}`,
+                          borderRadius: 16,
+                          background: isDone ? '#F0FDF4' : '#FFFFFF',
+                          boxShadow: '0 2px 8px rgba(15,23,42,0.02)',
+                          display: 'flex',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          justifyContent: 'space-between',
+                          alignItems: isMobile ? 'stretch' : 'center',
+                          padding: isMobile ? '16px' : '18px 20px',
+                          gap: 14,
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div 
+                          style={{ display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer', flex: 1 }}
+                          onClick={() => {
+                            toggleCaseAction(item.id, action.id);
+                            refresh();
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: 6,
+                              flexShrink: 0,
+                              marginTop: 2,
+                              border: `2px solid ${isDone ? '#16A34A' : '#CBD5E1'}`,
+                              background: isDone ? '#16A34A' : '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#FFFFFF',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {isDone && <CheckCircle2 size={16} />}
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                              <span
+                                style={{
+                                  fontSize: 15,
+                                  fontWeight: 700,
+                                  textDecoration: isDone ? 'line-through' : 'none',
+                                  color: isDone ? '#15803D' : '#0F172A',
+                                  lineHeight: 1.3
+                                }}
+                              >
+                                {title}
+                              </span>
+                            </div>
+
+                            {subtitle && (
+                              <p style={{ margin: '0 0 8px 0', fontSize: 13.5, color: isDone ? '#166534' : '#64748B', lineHeight: 1.4 }}>
+                                {subtitle}
+                              </p>
+                            )}
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 999 }}>
+                                📋 {type}
+                              </span>
+                              <span style={{ fontSize: 11, fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', padding: '2px 8px', borderRadius: 999 }}>
+                                📅 {timeline}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={() => setSimulatorAction(action)}
+                          style={{
+                            background: '#F8FAFC',
+                            color: '#475569',
+                            border: '1px solid #E2E8F0',
+                            padding: '8px 14px',
+                            borderRadius: 10,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            flexShrink: 0,
+                            alignSelf: isMobile ? 'flex-end' : 'center',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#EFF6FF'; e.currentTarget.style.color = '#2563EB'; e.currentTarget.style.borderColor = '#BFDBFE'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
+                        >
+                          <GitMerge size={14} />
+                          Simulate Path
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ padding: 40, textAlign: 'center', background: '#F8FAFC', borderRadius: 16, border: '1px dashed #E2E8F0' }}>
+                  <CheckCircle2 size={32} color="#10B981" style={{ marginBottom: 12 }} />
+                  <h3 style={{ margin: '0 0 4px', color: '#0F172A' }}>All actions completed</h3>
+                  <p style={{ margin: 0, color: '#64748B', fontSize: 14 }}>No outstanding items. You're up to date on this case.</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <AnimatePresence>
           {simulatorAction && (

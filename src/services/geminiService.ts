@@ -674,9 +674,9 @@ Return strictly as JSON:
   ],
   "recommendedActionPlan": [
     { 
-      "step": "Action", 
-      "timeline": "When to do it (e.g., Immediately, Within 1 week)", 
-      "type": "Discussion | Record | Follow-up"
+      "step": "Short 3-6 word action title only (e.g. Schedule Primary Care Consultation)", 
+      "timeline": "When to do it (e.g. Next Visit, Within 1-2 weeks)", 
+      "type": "Consultation | Investigation | Lifestyle"
     }
   ],
   "questionsForClinician": ["Specific question the patient can take to a clinician"]

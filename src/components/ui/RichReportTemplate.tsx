@@ -14,6 +14,11 @@ export function cleanClinicalText(text?: string): string {
   }
   cleaned = cleaned.replace(/"?internalThoughts"?\s*:\s*"[^"]*"/gi, '');
   cleaned = cleaned.replace(/ANALYSIS_COMPLETE/g, '');
+  cleaned = cleaned.replace(/The 'costEstimate'[\s\S]*/gi, '');
+  cleaned = cleaned.replace(/The 'simulation'[\s\S]*/gi, '');
+  cleaned = cleaned.replace(/The simulation block[\s\S]*/gi, '');
+  cleaned = cleaned.replace(/I need to be careful with estimates[\s\S]*/gi, '');
+  cleaned = cleaned.replace(/Let's make it more concrete[\s\S]*/gi, '');
   return cleaned.trim();
 }
 
