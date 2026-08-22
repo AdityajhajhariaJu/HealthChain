@@ -94,10 +94,15 @@ export default function AvaHealthBuddy() {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: isStreaming ? 'auto' : 'smooth'
-      });
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      
+      if (isNearBottom || isTyping) {
+        chatContainerRef.current.scrollTo({
+          top: chatContainerRef.current.scrollHeight,
+          behavior: isStreaming ? 'auto' : 'smooth'
+        });
+      }
     }
   }, [messages, isTyping, isStreaming]);
 
@@ -113,13 +118,13 @@ export default function AvaHealthBuddy() {
         let lastUpdateTime = Date.now();
         const chunkSize = 3; 
         for (let i = 0; i < response.length; i += chunkSize) {
-          if (!isMounted.current) break;
+          if (!isMounted.current || window.location.pathname !== '/app/ava') break;
           currentContent += response.substring(i, i + chunkSize);
           
           // Yield to event loop
           await new Promise((r) => setTimeout(r, 10));
           
-          if (!isMounted.current) break;
+          if (!isMounted.current || window.location.pathname !== '/app/ava') break;
           
           // Throttle React state updates to every 80ms to prevent Concurrent Mode starvation.
           // Without this, constant high-priority state updates interrupt React Router's 
