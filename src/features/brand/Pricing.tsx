@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, Check, Sparkles, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -156,7 +156,7 @@ export default function Pricing() {
           <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px' }}>Basic</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px' }}>Essential tools for personal health tracking.</p>
           <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
-            Ã¢”šÂ¹0 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ forever</span>
+            ₹0 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ forever</span>
           </div>
           <button className="btn btn-outline" style={{ width: '100%', marginBottom: '20px', padding: '12px' }}>Current Plan</button>
           
@@ -177,7 +177,7 @@ export default function Pricing() {
           <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: 'var(--teal)' }}>Pro</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px' }}>Advanced AI synthesis for complex medical cases.</p>
           <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
-            Ã¢”šÂ¹499 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ 30 Days</span>
+            ₹499 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ 30 Days</span>
           </div>
           <button 
             onClick={handleCheckout}
