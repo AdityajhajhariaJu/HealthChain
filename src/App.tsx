@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
-import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile } from './services/ProfileEngine';
+import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory } from './services/CaseEngine';
 import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -91,6 +91,11 @@ export default function App() {
 
   useEffect(() => {
     const handleQuota = (e: any) => {
+      const profile = getProfile();
+      if (!profile?.is_pro) {
+        navigate('/pricing');
+        return;
+      }
       // Map API operations to TopUpModal features
       const op = e.detail?.operation || '';
       if (op.includes('ava') || op.includes('buddy')) setTopUpFeature('ava_replies');

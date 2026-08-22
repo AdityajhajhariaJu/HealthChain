@@ -60,10 +60,13 @@ create or replace function public.provision_topup(
 language plpgsql security definer
 as $$
 begin
-  -- Top-ups apply to the current active row, meaning they expire when the base plan expires
-  update public.user_quotas
-  set allocated = allocated + p_amount, updated_at = now()
-  where user_id = p_user_id and feature_name = p_feature_name;
+  -- Upsert so that if a free user buys a top-up for a feature they don't have, the row is created!
+  insert into public.user_quotas (user_id, feature_name, allocated)
+  values (p_user_id, p_feature_name, p_amount)
+  on conflict (user_id, feature_name)
+  do update set 
+    allocated = user_quotas.allocated + excluded.allocated, 
+    updated_at = now();
 end;
 $$;
 
