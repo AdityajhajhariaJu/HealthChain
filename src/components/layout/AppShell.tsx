@@ -310,28 +310,31 @@ export default function AppShell() {
                     <Settings size={24} />
                     <span>Settings</span>
                   </button>
+                  {!profile?.isPro && (
+                    <button 
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        navigate('/pricing');
+                      }}
+                      className="more-menu-item"
+                      style={{ 
+                        border: 'none', 
+                        background: 'linear-gradient(135deg, #4F46E5, #3B82F6)',
+                        color: 'white',
+                        outline: 'none',
+                        gridColumn: '1 / -1',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        marginTop: '8px'
+                      }}
+                    >
+                      <Lock size={16} /> <span style={{ color: 'white', fontWeight: 600 }}>Upgrade to Pro (₹499)</span>
+                    </button>
+                  )}
                 </div>
-                {!profile?.isPro && (
-                  <button 
-                    onClick={() => {
-                      setShowMoreMenu(false);
-                      navigate('/pricing');
-                    }}
-                    className="btn btn-primary"
-                    style={{ 
-                      width: '100%', 
-                      marginTop: '24px', 
-                      background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
-                      border: 'none', 
-                      display: 'flex', 
-                      justifyContent: 'center',
-                      alignItems: 'center', 
-                      gap: '8px' 
-                    }}
-                  >
-                    <Lock size={16} /> Upgrade to Pro from ₹499
-                  </button>
-                )}
               </motion.div>
               </>
             )}
