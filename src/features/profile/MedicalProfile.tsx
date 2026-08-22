@@ -60,6 +60,7 @@ import { getActiveCase } from '../../services/CaseEngine';
 import { generateProfileSynthesis } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getRunScope } from '../../services/RunContext';
+import { cleanClinicalText } from '../../components/ui/RichReportTemplate';
 
 
 export default function MedicalProfile() {
