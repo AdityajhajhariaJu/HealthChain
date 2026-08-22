@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import {
   BrainCircuit, Activity,
@@ -145,60 +145,7 @@ export default function AppShell() {
             ))}
           </nav>
 
-          <div
-            style={{
-              padding: '12px 20px 0',
-              borderTop: '1px solid var(--border)',
-              marginTop: '4px',
-              flex: 1,
-              overflowY: 'auto',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '11px',
-                color: 'var(--text-muted)',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                marginBottom: '12px',
-                fontWeight: 600,
-              }}
-            >
-              Recents
-            </div>
-            {history.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {history.slice(0, 5).map((h) => (
-                  <NavLink
-                    key={h.id}
-                    to={`/app/cases/${h.id}`}
-                    className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
-                    style={{
-                      fontSize: '13px',
-                      padding: '8px 12px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: 'block',
-                    }}
-                  >
-                    {h.title || 'Untitled Case'}
-                  </NavLink>
-                ))}
-              </div>
-            ) : (
-              <div
-                style={{
-                  fontSize: '13px',
-                  color: 'var(--text-muted)',
-                  padding: '8px 12px',
-                  fontStyle: 'italic',
-                }}
-              >
-                No recent assessments
-              </div>
-            )}
-          </div>
+          <div style={{ flex: 1 }}></div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
             <NavLink
@@ -411,10 +358,10 @@ export function ActiveCaseBar({ navigate }: any) {
         <BriefcaseBusiness size={18} />
       </div>
       <div className="active-case-bar__copy">
-        <span>ACTIVE CASE · {profile?.demographics?.name || 'Your health record'}</span>
+        <span>ACTIVE CASE Â· {profile?.demographics?.name || 'Your health record'}</span>
         <strong>{activeCase.title}</strong>
         <small>
-          {(activeCase.medicalRecords || []).length} evidence items · {pending} open actions ·
+          {(activeCase.medicalRecords || []).length} evidence items Â· {pending} open actions Â·
           Updated {new Date(activeCase.updatedAt).toLocaleDateString()}
         </small>
       </div>
@@ -436,7 +383,7 @@ function BrandPulseBanner() {
     },
     {
       quote:
-        'You’ve explained your symptoms to five different doctors. Your labs come back “normal,” but you still feel terrible.',
+        'Youâ€™ve explained your symptoms to five different doctors. Your labs come back â€œnormal,â€ but you still feel terrible.',
       sub: 'Your experience is real. HealthChain helps you organise the full picture for the next conversation.',
     },
     {
@@ -488,7 +435,7 @@ function BrandPulseBanner() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.32 }}
           >
-            <strong>“{message.quote}”</strong>
+            <strong>â€œ{message.quote}â€</strong>
             <span>{message.sub}</span>
           </motion.div>
         </AnimatePresence>
@@ -505,3 +452,4 @@ function BrandPulseBanner() {
     </section>
   );
 }
+
