@@ -320,8 +320,20 @@ export default function MedicalProfile() {
     return compressedGrouped;
   }, [profile.timeline]);
 
-  const completedActions = profile.actionItems.filter((i) => i.status === 'completed').length;
-  const totalActions = profile.actionItems.length;
+  const uniqueActionItems = useMemo(() => {
+    const seen = new Set<string>();
+    return (profile.actionItems || []).filter((item: any) => {
+      let rawText = item?.task || item?.step || item?.action || item?.title || '';
+      rawText = cleanClinicalText(rawText);
+      const key = rawText.trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [profile.actionItems]);
+
+  const completedActions = uniqueActionItems.filter((i) => i.status === 'completed').length;
+  const totalActions = uniqueActionItems.length;
   const recordFields = [
     profile.demographics.name,
     profile.demographics.age,
@@ -1001,99 +1013,63 @@ export default function MedicalProfile() {
             </motion.div>
           )}
 
-          {/* 2.5 Health context (conditions) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <AnimatePresence>
-            {profile.conditions.map((condition) => {
-              if (condition.toLowerCase().includes('hypertension') || condition.toLowerCase().includes('blood pressure')) {
-                return (
-                  <motion.div
-                    key={`thread-${condition}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="card"
-                    style={{ padding: '24px', borderLeft: '4px solid #8B5CF6' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                      <div>
-                        <div style={{ fontSize: '12px', color: '#8B5CF6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Health context</div>
-                        <h3 style={{ fontSize: '20px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Activity size={20} color="#8B5CF6" /> {condition}
-                        </h3>
-                      </div>
-                      <button className="btn btn-ghost btn-sm" onClick={() => removeCondition(condition)}>
-                        <X size={16} />
+          {/* 2.5 Active Health Conditions */}
+          {profile.conditions && profile.conditions.length > 0 && (
+            <div className="card" style={{ padding: '16px 20px', borderRadius: '16px', background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Activity size={15} color="var(--teal)" /> Active Health Conditions ({profile.conditions.length})
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                <AnimatePresence>
+                  {profile.conditions.map((condition) => (
+                    <motion.div
+                      key={`c-${condition}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      style={{
+                        background: '#F8FAFC',
+                        border: '1px solid #E2E8F0',
+                        padding: '6px 12px',
+                        borderRadius: 999,
+                        fontSize: '13px',
+                        fontWeight: 650,
+                        color: '#0F172A',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <Activity size={13} color="var(--teal)" style={{ flexShrink: 0 }} />
+                      <span>{cleanClinicalText(condition)}</span>
+                      <button
+                        onClick={() => removeCondition(condition)}
+                        aria-label={`Remove condition ${condition}`}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '2px',
+                          borderRadius: '50%',
+                          marginLeft: '2px'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; }}
+                      >
+                        <X size={13} />
                       </button>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', background: 'var(--surface-hover)', padding: '16px', borderRadius: 'var(--radius-lg)' }}>
-                      <div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <HeartPulse size={14} /> Connected Treatment
-                        </div>
-                        <div style={{ background: 'var(--surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                          <strong style={{ display: 'block', fontSize: '15px' }}>No linked medication</strong>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Add only information confirmed in your records.</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Beaker size={14} /> Tracking Metric
-                        </div>
-                        <div style={{ background: 'var(--surface)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                          <strong style={{ display: 'block', fontSize: '15px', color: '#3B82F6' }}>No verified metric linked</strong>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Review measurements with a qualified clinician.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              }
-
-              return (
-                <motion.div
-                  key={`thread-${condition}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="card"
-                  style={{ padding: '20px' }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                    <h3 style={{ fontSize: '16px', margin: 0, display: 'flex', alignItems: 'flex-start', gap: '8px', flex: 1, wordBreak: 'break-word' }}>
-                      <Activity size={16} color="var(--text-muted)" style={{ marginTop: '2px', flexShrink: 0 }} /> {condition}
-                    </h3>
-                    <button className="btn btn-ghost btn-sm" onClick={() => removeCondition(condition)}>
-                      <X size={16} />
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
-            </AnimatePresence>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                placeholder="Add allergy..."
-                value={newAllergy}
-                onChange={(e) => setNewAllergy(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newAllergy) {
-                    addAllergy(newAllergy);
-                    setNewAllergy('');
-                  }
-                }}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '99px',
-                  border: '1px solid var(--border)',
-                  fontSize: '13px',
-                  width: '120px',
-                }}
-              />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 4. Vitals & Biomarkers Dashboard */}
           <div className="card" style={{ padding: '20px' }}>
@@ -1616,75 +1592,94 @@ export default function MedicalProfile() {
             {totalActions === 0 ? (
               <p className="text-sm text-gray m-0">No actions required currently.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {profile.actionItems.map((item) => {
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {uniqueActionItems.map((item) => {
                   let extractedDrug = null;
-                  const taskText = typeof item?.task === 'string' ? item.task : '';
-                  const match = taskText.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
+                  const rawText = typeof item?.task === 'string' && item.task.length > 0 
+                    ? item.task 
+                    : (typeof item?.step === 'string' && item.step.length > 0 
+                      ? item.step 
+                      : (typeof item?.action === 'string' && item.action.length > 0 
+                        ? item.action 
+                        : (typeof item?.title === 'string' ? item.title : 'Review clinical assessment')));
+                  
+                  const cleanTitle = cleanClinicalText(rawText)
+                    .replace(/\s*·\s*(Immediately|Investigation|Consultation|Routine|Urgent)[\s\S]*/i, '')
+                    .replace(/["'{}]/g, '')
+                    .trim() || 'Review clinical finding';
+
+                  const match = cleanTitle.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
                   if (match && match[1]) extractedDrug = match[1];
+
+                  const isCompleted = item.status === 'completed';
 
                   return (
                     <div
                       key={item.id}
                       onClick={() => toggleActionItem(item.id)}
                       style={{
-                        padding: '16px',
-                        background:
-                          item.status === 'completed' ? 'var(--surface)' : 'var(--surface-hover)',
-                        borderRadius: 'var(--radius-lg)',
-                        border: '1px solid var(--border)',
+                        padding: '10px 12px',
+                        background: isCompleted ? '#F0FDF4' : 'var(--surface-hover)',
+                        borderRadius: '12px',
+                        border: `1px solid ${isCompleted ? '#BBF7D0' : 'var(--border)'}`,
                         display: 'flex',
-                        gap: '12px',
+                        gap: '10px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        opacity: item.status === 'completed' ? 0.6 : 1,
+                        transition: 'all 0.2s ease',
+                        alignItems: 'center',
                         position: 'relative',
                       }}
                     >
                       <div
                         style={{
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '6px',
-                          border: `2px solid ${item.status === 'completed' ? 'var(--teal)' : 'var(--border-strong)'}`,
-                          background: item.status === 'completed' ? 'var(--teal)' : 'transparent',
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '5px',
+                          border: `2px solid ${isCompleted ? '#16A34A' : 'var(--border-strong)'}`,
+                          background: isCompleted ? '#16A34A' : 'transparent',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
-                          marginTop: '2px',
                         }}
                       >
-                        {item.status === 'completed' && <Check size={14} color="#FFF" />}
+                        {isCompleted && <Check size={12} color="#FFF" />}
                       </div>
-                      <div style={{ flex: 1, paddingRight: extractedDrug ? '90px' : '0' }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: extractedDrug ? '70px' : '8px' }}>
                         <div
                           style={{
-                            fontSize: '14px',
-                            fontWeight: item.status === 'completed' ? 500 : 600,
-                            color: 'var(--text-main)',
-                            textDecoration: item.status === 'completed' ? 'line-through' : 'none',
-                            marginBottom: '4px',
+                            fontSize: '13.5px',
+                            fontWeight: isCompleted ? 500 : 650,
+                            color: isCompleted ? '#15803D' : 'var(--text-main)',
+                            textDecoration: isCompleted ? 'line-through' : 'none',
+                            lineHeight: 1.3,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
                           }}
+                          title={cleanTitle}
                         >
-                          {taskText || 'Review this health item'}
+                          {cleanTitle}
                         </div>
                         <div
                           style={{
-                            fontSize: '12px',
+                            fontSize: '11px',
                             color: 'var(--text-muted)',
                             display: 'flex',
-                            gap: '8px',
+                            gap: '6px',
+                            marginTop: '2px',
+                            alignItems: 'center'
                           }}
                         >
-                          <span>From {item.source}</span>
-                          {item.cost && (
-                            <span style={{ color: '#F59E0B', fontWeight: 600 }}>
-                              • Est. {item.cost}
-                            </span>
+                          <span style={{ textTransform: 'capitalize' }}>
+                            {item.source ? item.source.replace('_', ' ') : 'MDT Hub'}
+                          </span>
+                          {item.timeline && (
+                            <span>• {item.timeline}</span>
                           )}
                         </div>
                       </div>
+
                       {extractedDrug && (
                         <button
                           onClick={(e) => {
@@ -1692,25 +1687,21 @@ export default function MedicalProfile() {
                             navigate('/app/pharmacy', { state: { searchQuery: extractedDrug } });
                           }}
                           style={{
-                            position: 'absolute',
-                            right: '16px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
                             background: '#ECFDF5',
                             color: '#10B981',
                             border: 'none',
-                            padding: '6px 10px',
+                            padding: '4px 8px',
                             borderRadius: '6px',
-                            fontSize: '12px',
+                            fontSize: '11px',
                             fontWeight: 600,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px',
+                            gap: '3px',
                             cursor: 'pointer',
-                            zIndex: 2,
+                            flexShrink: 0
                           }}
                         >
-                          <Search size={12} /> Lookup
+                          <Search size={11} /> Lookup
                         </button>
                       )}
                       
@@ -1718,12 +1709,9 @@ export default function MedicalProfile() {
                         onClick={(e) => {
                           e.stopPropagation();
                           removeActionItem(item.id);
-                          setProfile(getProfile()); // Force refresh
+                          setProfile(getProfile());
                         }}
                         style={{
-                          position: 'absolute',
-                          top: '12px',
-                          right: '12px',
                           background: 'transparent',
                           border: 'none',
                           color: '#94A3B8',
@@ -1732,11 +1720,14 @@ export default function MedicalProfile() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          zIndex: 2,
+                          borderRadius: '50%',
+                          flexShrink: 0
                         }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; }}
                         title="Remove Action Item"
                       >
-                        <X size={16} />
+                        <X size={14} />
                       </button>
                     </div>
                   );
