@@ -133,7 +133,6 @@ async function send(entry: OutboxEntry) {
     return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);
   }
   if (entry.kind === 'profile_upsert') {
-    // Prevent PostgREST upsert from injecting default is_pro=false on missing columns
     const { data: existing } = await supabase.from('profiles').select('*').eq('id', entry.payload.id).maybeSingle();
     if (existing) {
       return supabase.from('profiles').update(entry.payload).eq('id', entry.payload.id);
@@ -141,6 +140,7 @@ async function send(entry: OutboxEntry) {
       return supabase.from('profiles').insert(entry.payload);
     }
   }
+  return { error: new Error('Unknown outbox kind') };
 }
 
 export async function flushSyncOutbox(userId?: string) {
@@ -188,4 +188,5 @@ export async function clearSyncOutbox(userId: string) {
   try { await del(key); } catch {}
   try { window.localStorage.removeItem(key); } catch {}
 }
+
 
