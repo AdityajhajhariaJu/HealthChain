@@ -113,7 +113,7 @@ export default async function handler(req, res) {
       const userId = payment.notes?.user_id;
       const paymentId = payment.id;
       if (userId) {
-        console.log(\Payment failed for user \, payment_id: \\);
+        console.log(`Payment failed for user ${userId}, payment_id: ${paymentId}`);
       }
     }
 
