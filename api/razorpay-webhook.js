@@ -1,5 +1,20 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+async function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', () => { resolve(body); });
+    req.on('error', err => reject(err));
+  });
+}
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,7 +37,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing signature' });
     }
 
-    const bodyText = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    const bodyText = await getRawBody(req);
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
       .update(bodyText)
@@ -32,8 +47,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid signature' });
     }
 
-    // Parse the payload if it's a string
-    const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const payload = JSON.parse(bodyText);
     const event = payload.event;
     
     if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -97,9 +111,9 @@ export default async function handler(req, res) {
     } else if (event === 'payment.failed') {
       const payment = payload.payload.payment.entity;
       const userId = payment.notes?.user_id;
+      const paymentId = payment.id;
       if (userId) {
-        // Log failed attempt if needed, though usually just ignored for entitlements
-        console.log(Payment failed for user , payment_id: );
+        console.log(\Payment failed for user \, payment_id: \\);
       }
     }
 
