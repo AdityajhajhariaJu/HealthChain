@@ -95,7 +95,7 @@ export default function App() {
       const op = e.detail?.operation || '';
       if (op.includes('ava') || op.includes('buddy')) setTopUpFeature('ava_replies');
       else if (op.includes('quick')) setTopUpFeature('quick_consult');
-      else if (op.includes('deep')) setTopUpFeature('deep_collab');
+      else if (op.includes('specialist_selection')) setTopUpFeature('deep_collab');
       else if (op.includes('jarvis')) setTopUpFeature('jarvis');
       else if (op.includes('lab')) setTopUpFeature('lab_report');
       else if (op.includes('pharmacy')) setTopUpFeature('pharmacy_hub');

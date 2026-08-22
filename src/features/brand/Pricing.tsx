@@ -164,7 +164,7 @@ export default function Pricing() {
             {[
               { f: 'Medical Profile', v: true },
               { f: 'Ava Health Buddy (Max 5 Replies)', v: true },
-              { f: 'Pharmacy Hub (5 Uses)', v: true },
+              { f: 'Pharmacy Hub (5 Sessions)', v: true },
               { f: 'Quick Consult', v: false },
               { f: 'Deep Collab', v: false },
               { f: 'J.A.R.V.I.S.', v: false },
@@ -207,8 +207,8 @@ export default function Pricing() {
               'Ava Health Buddy (30 Replies)',
               '3 Quick Consults',
               '2 Deep Collab Sessions',
-              '1 J.A.R.V.I.S. Use',
-              '60 Pharmacy Hub Uses',
+              '1 J.A.R.V.I.S. Session',
+              '60 Pharmacy Hub Sessions',
               '10 Lab Report Analyzers',
             ].map(feature => (
               <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 500 }}>
@@ -245,8 +245,8 @@ export default function Pricing() {
               'Ava Health Buddy (120 Replies)',
               '10 Quick Consults',
               '8 Deep Collab Sessions',
-              '5 J.A.R.V.I.S. Uses',
-              '120 Pharmacy Hub Uses',
+              '5 J.A.R.V.I.S. Sessions',
+              '120 Pharmacy Hub Sessions',
               '30 Lab Report Analyzers',
             ].map(feature => (
               <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 500 }}>

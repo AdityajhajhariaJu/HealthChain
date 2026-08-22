@@ -152,16 +152,22 @@ export default async function handler(req, res) {
     // is disabled (Ghost Mode) until explicitly toggled on by admin.
     let featureCode = null;
     const opLow = operation.toLowerCase();
+    const contentsCount = Array.isArray(bodyPayload.contents) ? bodyPayload.contents.length : 0;
+    
+    // Bill Ava per message
     if (opLow.includes('ava') || opLow.includes('buddy')) featureCode = 'ava_replies';
-    else if (opLow.includes('quick')) featureCode = 'quick_consult';
-    else if (opLow.includes('deep')) featureCode = 'deep_collab';
+    // Bill Quick Consult ONLY on the first message (contents.length === 1) to bill per-session
+    else if (opLow.includes('quick') && contentsCount <= 1) featureCode = 'quick_consult';
+    // Bill Deep Collab ONLY at triage (specialist_selection) to bill per-session
+    else if (opLow.includes('specialist_selection')) featureCode = 'deep_collab';
+    // Single-shot tools bill every time
     else if (opLow.includes('jarvis')) featureCode = 'jarvis';
     else if (opLow.includes('lab')) featureCode = 'lab_report';
     else if (opLow.includes('pharmacy')) featureCode = 'pharmacy_hub';
 
     if (featureCode) {
       try {
-        await adminClient.rpc('consume_feature_quota', {
+        const { data: quotaResult } = await adminClient.rpc('consume_feature_quota', {
           p_user_id: userId,
           p_feature_name: featureCode
         });
