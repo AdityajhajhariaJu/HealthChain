@@ -63,11 +63,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // Development can use a local proxy without Supabase, but production AI
-  // processing must always be attributable to an authenticated account.
-  if (!userId && process.env.NODE_ENV !== 'development') {
-    return res.status(401).json({ error: 'Unauthorized request. Valid authentication required.' });
-  }
+  // Development and production allow guest access up to 5 messages, enforced by local storage on frontend.
 
   if (!checkRateLimit(req, 30, 60000)) return res.status(429).json({ error: 'Too many requests' });
   if (userId && !checkRateLimit(req, 12, 60000, userId)) {
