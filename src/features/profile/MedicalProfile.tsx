@@ -25,6 +25,7 @@ import {
   BriefcaseBusiness,
   Stethoscope,
   ChevronRight,
+  ChevronDown,
   ArrowRight,
   Sparkles,
   ClipboardCheck,
@@ -256,20 +257,68 @@ export default function MedicalProfile() {
     }
   }, [significantHash, synthesisKey]);
 
-  // Always render the dashboard structure so the user can see it empty
+  const [showAllTimeline, setShowAllTimeline] = useState(false);
+  const [expandedAggregates, setExpandedAggregates] = useState<Record<string, boolean>>({});
 
-  // Helper to group timeline events by date
-  const groupedTimeline = profile.timeline.reduce((acc, event) => {
-    const dateStr = new Date(event.date).toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+  // Helper to group and intelligently compress timeline events by date
+  const groupedTimeline = useMemo(() => {
+    const rawGrouped: Record<string, any[]> = {};
+    
+    (profile.timeline || []).forEach((event) => {
+      const dateStr = new Date(event.date).toLocaleDateString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      if (!rawGrouped[dateStr]) rawGrouped[dateStr] = [];
+      rawGrouped[dateStr].push(event);
     });
-    if (!acc[dateStr]) acc[dateStr] = [];
-    acc[dateStr].push(event);
-    return acc;
-  }, {});
+
+    const compressedGrouped: Record<string, any[]> = {};
+
+    Object.entries(rawGrouped).forEach(([dateStr, events]) => {
+      const regularEvents: any[] = [];
+      const healthBuddySessions: any[] = [];
+
+      events.forEach((ev) => {
+        const titleLower = (ev.title || '').toLowerCase();
+        const sourceLower = (ev.source || '').toLowerCase();
+        if (sourceLower === 'health_buddy' || titleLower.includes('ava health buddy')) {
+          healthBuddySessions.push(ev);
+        } else {
+          regularEvents.push(ev);
+        }
+      });
+
+      const finalEvents: any[] = [...regularEvents];
+
+      if (healthBuddySessions.length > 0) {
+        if (healthBuddySessions.length === 1) {
+          finalEvents.unshift(healthBuddySessions[0]);
+        } else {
+          healthBuddySessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          const latest = healthBuddySessions[0];
+          finalEvents.unshift({
+            id: `hb-agg-${dateStr}`,
+            date: latest.date,
+            source: 'health_buddy',
+            type: 'mental_health',
+            title: 'Ava Health Buddy Session',
+            isAggregated: true,
+            sessionCount: healthBuddySessions.length,
+            latestTime: new Date(latest.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            allSessions: healthBuddySessions,
+          });
+        }
+      }
+
+      finalEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      compressedGrouped[dateStr] = finalEvents;
+    });
+
+    return compressedGrouped;
+  }, [profile.timeline]);
 
   const completedActions = profile.actionItems.filter((i) => i.status === 'completed').length;
   const totalActions = profile.actionItems.length;
@@ -1204,179 +1253,197 @@ export default function MedicalProfile() {
 
           {/* 6. Medical Timeline */}
           <div>
-            <h3
-              style={{
-                fontSize: '18px',
-                color: 'var(--text-main)',
-                marginBottom: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <Clock size={20} color="var(--teal)" /> Medical Timeline
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3
+                style={{
+                  fontSize: '17px',
+                  fontWeight: 700,
+                  color: 'var(--text-main)',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <Clock size={18} color="var(--teal)" /> Medical Timeline
+              </h3>
+              {Object.keys(groupedTimeline).length > 2 && (
+                <button
+                  onClick={() => setShowAllTimeline(prev => !prev)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--teal)',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 8px'
+                  }}
+                >
+                  {showAllTimeline ? 'Show Recent Only' : `View All (${Object.keys(groupedTimeline).length} days)`}
+                  <ChevronDown size={14} style={{ transform: showAllTimeline ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                </button>
+              )}
+            </div>
 
-            <div className="card" style={{ padding: '32px 32px 32px 40px', position: 'relative' }}>
+            <div className="card" style={{ padding: isMobile ? '16px' : '20px 24px', position: 'relative' }}>
               <div
                 style={{
                   position: 'absolute',
-                  left: '20px',
-                  top: '32px',
-                  bottom: '32px',
+                  left: isMobile ? '24px' : '32px',
+                  top: '24px',
+                  bottom: '24px',
                   width: '2px',
                   background: 'var(--surface-hover)',
                 }}
               />
 
               {profile.timeline.length === 0 && (
-                <p className="text-gray m-0 text-center py-8">No events recorded in timeline.</p>
+                <p className="text-gray m-0 text-center py-6" style={{ fontSize: '14px' }}>No events recorded in timeline yet.</p>
               )}
 
-              {Object.entries(groupedTimeline).map(([dateStr, events]: [string, any[]], gIdx) => (
-                <div
-                  key={dateStr}
-                  style={{
-                    marginBottom: gIdx === Object.keys(groupedTimeline).length - 1 ? 0 : '40px',
-                  }}
-                >
-                  {/* Date Header */}
-                  <div style={{ position: 'relative', marginBottom: '20px' }}>
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: '-27px',
-                        top: '4px',
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        background: 'var(--surface)',
-                        border: '4px solid var(--border-strong)',
-                        zIndex: 2,
-                      }}
-                    />
-                    <h4
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: 700,
-                        color: 'var(--text-muted)',
-                        margin: 0,
-                        textTransform: 'uppercase',
-                        letterSpacing: '1px',
-                      }}
-                    >
-                      {dateStr}
-                    </h4>
-                  </div>
+              {(() => {
+                const allEntries = Object.entries(groupedTimeline);
+                const visibleEntries = showAllTimeline ? allEntries : allEntries.slice(0, 2);
 
-                  {events.map((event, idx) => {
-                    const isRecent = profile.timeline.findIndex((e) => e.id === event.id) < 8;
-                    const hasDetails =
-                      event.data?.chain_name ||
-                      event.data?.abnormalities ||
-                      event.data?.topDiagnoses;
-                    return (
-                      <div
-                        key={event.id}
-                        style={{
-                          position: 'relative',
-                          marginLeft: '16px',
-                          marginBottom: idx === events.length - 1 ? 0 : '12px',
-                          padding: '12px 16px',
-                          background: 'var(--surface-hover)',
-                          borderRadius: 'var(--radius-lg)',
-                          border: '1px solid var(--border)',
-                        }}
-                      >
-                        <div className="flex-between mb-2">
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {visibleEntries.map(([dateStr, events]: [string, any[]]) => (
+                      <div key={dateStr} style={{ position: 'relative' }}>
+                        {/* Date Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', marginLeft: isMobile ? '28px' : '36px' }}>
+                          <div
+                            style={{
+                              position: 'absolute',
+                              left: isMobile ? '21px' : '29px',
+                              top: '4px',
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: 'var(--teal)',
+                              zIndex: 2,
+                            }}
+                          />
                           <span
-                            className={`badge ${event.type === 'diagnosis' ? 'badge-amber' : event.type === 'lab_report' ? 'badge-teal' : event.type === 'mental_health' ? 'badge-green' : 'badge-navy'}`}
-                            style={{ padding: '2px 8px', fontSize: '10px' }}
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              color: 'var(--text-muted)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.8px',
+                            }}
                           >
-                            {event.source.replace('_', ' ').toUpperCase()}
-                          </span>
-                          <span className="text-xs text-gray" style={{ fontSize: '11px' }}>
-                            {new Date(event.date).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {dateStr}
                           </span>
                         </div>
-                        <h5
-                          style={{
-                            fontSize: '14px',
-                            color: 'var(--text-main)',
-                            margin: isRecent && hasDetails ? '0 0 8px 0' : 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          {event.type === 'diagnosis' ? (
-                            <Activity size={16} color="var(--teal)" />
-                          ) : event.type === 'lab_report' ? (
-                            <FileText size={16} color="#3B82F6" />
-                          ) : (
-                            <Link2 size={16} />
-                          )}
-                          {event.title}
-                        </h5>
 
-                        {isRecent && event.data?.chain_name && (
-                          <div
-                            style={{
-                              padding: '8px 12px',
-                              background: 'var(--surface)',
-                              borderRadius: '6px',
-                              borderLeft: '3px solid var(--teal)',
-                              fontSize: '13px',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            <strong style={{ color: 'var(--text-muted)' }}>Hypothesis:</strong>{' '}
-                            <span style={{ fontWeight: 500 }}>{event.data.chain_name}</span>
-                          </div>
-                        )}
-                        {isRecent && event.data?.abnormalities && (
-                          <div
-                            style={{
-                              padding: '8px 12px',
-                              background: 'var(--surface)',
-                              borderRadius: '6px',
-                              borderLeft: '3px solid #EF4444',
-                              fontSize: '13px',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            <strong style={{ color: 'var(--text-muted)' }}>Abnormalities:</strong>{' '}
-                            <span style={{ fontWeight: 500 }}>
-                              {event.data.abnormalities.join(', ')}
-                            </span>
-                          </div>
-                        )}
-                        {isRecent && event.data?.topDiagnoses && (
-                          <div
-                            style={{
-                              padding: '8px 12px',
-                              background: 'var(--surface)',
-                              borderRadius: '6px',
-                              borderLeft: '3px solid #8B5CF6',
-                              fontSize: '13px',
-                              marginBottom: '4px',
-                            }}
-                          >
-                            <strong style={{ color: 'var(--text-muted)' }}>Board Consensus:</strong>{' '}
-                            <span style={{ fontWeight: 500 }}>
-                              {event.data.topDiagnoses[0]?.condition} (
-                              {event.data.topDiagnoses[0]?.confidence}%)
-                            </span>
-                          </div>
-                        )}
+                        {/* Events on this date */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: isMobile ? '28px' : '36px' }}>
+                          {events.map((event) => {
+                            const isAggregated = !!event.isAggregated;
+                            const isExpanded = !!expandedAggregates[event.id];
+
+                            let badgeBg = '#F1F5F9';
+                            let badgeColor = '#475569';
+                            if (event.type === 'diagnosis' || event.source === 'mdt_hub') {
+                              badgeBg = '#FEF3C7';
+                              badgeColor = '#B45309';
+                            } else if (event.type === 'lab_report') {
+                              badgeBg = '#EFF6FF';
+                              badgeColor = '#1D4ED8';
+                            } else if (event.source === 'health_buddy') {
+                              badgeBg = '#F0FDF4';
+                              badgeColor = '#15803D';
+                            }
+
+                            return (
+                              <div
+                                key={event.id}
+                                style={{
+                                  padding: '8px 12px',
+                                  background: 'var(--surface-hover)',
+                                  borderRadius: '10px',
+                                  border: '1px solid var(--border)',
+                                  fontSize: '13px',
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                                    <span
+                                      style={{
+                                        background: badgeBg,
+                                        color: badgeColor,
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        fontSize: '10px',
+                                        fontWeight: 800,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px',
+                                        flexShrink: 0
+                                      }}
+                                    >
+                                      {event.source.replace('_', ' ')}
+                                    </span>
+                                    <span style={{ fontWeight: 650, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {isAggregated ? `Ava Health Buddy (${event.sessionCount} sessions)` : event.title}
+                                    </span>
+                                    {isAggregated && (
+                                      <button
+                                        onClick={() => setExpandedAggregates(prev => ({ ...prev, [event.id]: !prev[event.id] }))}
+                                        style={{ background: 'none', border: 'none', color: 'var(--teal)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '2px', padding: 0 }}
+                                      >
+                                        {isExpanded ? 'Hide' : 'Details'}
+                                        <ChevronDown size={12} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none' }} />
+                                      </button>
+                                    )}
+                                  </div>
+                                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: 500, flexShrink: 0 }}>
+                                    {isAggregated ? `Latest ${event.latestTime}` : new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+
+                                {isAggregated && isExpanded && (
+                                  <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {event.allSessions.map((s: any, sIdx: number) => (
+                                      <span key={sIdx} style={{ fontSize: '11px', background: 'var(--surface)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                                        {new Date(s.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {event.data?.chain_name && (
+                                  <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                    <strong>Hypothesis:</strong> {event.data.chain_name}
+                                  </div>
+                                )}
+                                {event.data?.topDiagnoses && event.data.topDiagnoses[0] && (
+                                  <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                                    <strong>Consensus:</strong> {event.data.topDiagnoses[0].condition} ({event.data.topDiagnoses[0].confidence}%)
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ))}
+                    ))}
+
+                    {!showAllTimeline && allEntries.length > 2 && (
+                      <button
+                        onClick={() => setShowAllTimeline(true)}
+                        className="btn btn-outline btn-sm"
+                        style={{ alignSelf: 'center', marginTop: '6px', fontSize: '12px' }}
+                      >
+                        Show Earlier History (+{allEntries.length - 2} more days)
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
