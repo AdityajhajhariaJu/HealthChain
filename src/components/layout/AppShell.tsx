@@ -312,29 +312,25 @@ export default function AppShell() {
                   </button>
                 </div>
                 {!profile?.is_pro && (
-                  <div style={{ padding: '0 20px', marginTop: '16px' }}>
-                    <button
-                      onClick={() => {
-                        navigate('/pricing');
-                        setShowMoreMenu(false);
-                      }}
-                      className="btn btn-primary"
-                      style={{
-                        width: '100%',
-                        background: 'linear-gradient(135deg, #4F46E5, #3B82F6)',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        padding: '12px',
-                        fontSize: '15px'
-                      }}
-                    >
-                      <Lock size={16} />
-                      Upgrade to Premium
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      navigate('/pricing');
+                    }}
+                    className="btn btn-primary"
+                    style={{ 
+                      width: '100%', 
+                      marginTop: '24px', 
+                      background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
+                      border: 'none', 
+                      display: 'flex', 
+                      justifyContent: 'center',
+                      alignItems: 'center', 
+                      gap: '8px' 
+                    }}
+                  >
+                    <Lock size={16} /> Upgrade to Pro from ₹499
+                  </button>
                 )}
               </motion.div>
               </>

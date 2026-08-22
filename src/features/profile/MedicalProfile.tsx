@@ -591,7 +591,7 @@ export default function MedicalProfile() {
                   boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
                 }}
               >
-                <Lock size={14} /> Upgrade Now
+                <Lock size={14} /> Upgrade (₹499)
               </button>
             )}
             {isGeneratingSynthesis && (

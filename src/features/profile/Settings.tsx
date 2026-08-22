@@ -244,7 +244,7 @@ export default function Settings() {
           {!isPremium && (
             <button
               className="btn btn-primary"
-              onClick={() => navigate('/pricing')} style={{ padding: '8px 16px', fontSize: '14px', background: '#9333EA', color: '#ffffff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={14} />Upgrade Now
+              onClick={() => navigate('/pricing')} style={{ padding: '8px 16px', fontSize: '14px', background: '#9333EA', color: '#ffffff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={14} />Upgrade (₹499)
             </button>
           )}
         </div>
