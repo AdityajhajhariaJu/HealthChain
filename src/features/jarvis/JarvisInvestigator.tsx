@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -57,27 +57,57 @@ export default function JarvisInvestigator() {
       alert("JARVIS is currently limited to processing 10 documents at a time to prevent API overload.");
       return;
     }
-    
-    // Limits: Total size < 5MB per batch to control token costs
-    const totalSize = selected.reduce((acc, f) => acc + f.size, 0);
-    if (totalSize > 15 * 1024 * 1024) {
-      alert("Total upload size must be under 15MB to optimize processing speed and cost.");
-      return;
-    }
 
     const processed = await Promise.all(selected.map(async (f) => {
+      return new Promise<{file: File, base64: string, size: number}>((resolve) => {
+        if (f.type.startsWith('image/')) {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1200;
+            const MAX_HEIGHT = 1200;
+            let width = img.width;
+            let height = img.height;
 
-      return new Promise<{file: File, base64: string}>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          const base64 = (ev.target?.result as string).split(',')[1];
-          resolve({ file: f, base64 });
-        };
-        reader.readAsDataURL(f);
+            if (width > height && width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            } else if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            const base64 = dataUrl.split(',')[1];
+            const estimatedBytes = Math.round((base64.length * 3) / 4);
+            resolve({ file: f, base64, size: estimatedBytes });
+          };
+          img.src = URL.createObjectURL(f);
+        } else {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const base64 = (ev.target?.result as string).split(',')[1];
+            resolve({ file: f, base64, size: f.size });
+          };
+          reader.readAsDataURL(f);
+        }
       });
     }));
     
-    setFiles(prev => [...prev, ...processed]);
+    setFiles(prev => {
+      const allFiles = [...prev, ...processed];
+      const totalRawBytes = allFiles.reduce((acc, curr) => acc + ((curr as any).size || curr.file.size), 0);
+      if (totalRawBytes > 3.3 * 1024 * 1024) {
+        alert("Total upload size across all files exceeds the 3.3MB network limit. Images are automatically compressed, but if you are uploading large PDFs, please compress them first or select fewer files.");
+        return prev;
+      }
+      return allFiles;
+    });
   };
 
   const removeFile = (idx: number) => {
