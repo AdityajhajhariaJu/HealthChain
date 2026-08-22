@@ -33,6 +33,7 @@ import {
   Mail,
   Undo2,
   Redo2,
+  Lock,
 } from 'lucide-react';
 import {
   getProfile,
@@ -577,6 +578,22 @@ export default function MedicalProfile() {
               <Sparkles size={20} />
               <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
             </div>
+            {!profile?.is_pro && (
+              <button 
+                onClick={() => navigate('/pricing')}
+                className="btn btn-primary btn-sm"
+                style={{ 
+                  background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
+                  border: 'none', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+                }}
+              >
+                <Lock size={14} /> Upgrade Now
+              </button>
+            )}
             {isGeneratingSynthesis && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import {
   BrainCircuit, Activity,
@@ -301,6 +301,31 @@ export default function AppShell() {
                     <span>Settings</span>
                   </button>
                 </div>
+                {!profile?.is_pro && (
+                  <div style={{ padding: '0 20px', marginTop: '16px' }}>
+                    <button
+                      onClick={() => {
+                        navigate('/pricing');
+                        setShowMoreMenu(false);
+                      }}
+                      className="btn btn-primary"
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #4F46E5, #3B82F6)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '12px',
+                        fontSize: '15px'
+                      }}
+                    >
+                      <Lock size={16} />
+                      Upgrade to Premium
+                    </button>
+                  </div>
+                )}
               </motion.div>
               </>
             )}
