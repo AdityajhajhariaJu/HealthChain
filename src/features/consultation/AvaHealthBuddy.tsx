@@ -96,10 +96,10 @@ export default function AvaHealthBuddy() {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
         top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth'
+        behavior: isStreaming ? 'auto' : 'smooth'
       });
     }
-  }, [messages, isTyping]);
+  }, [messages, isTyping, isStreaming]);
 
   const chatMutation = useMutation({
     mutationFn: (newMessages: any[]) => chatWithTherapyGemini(newMessages),
