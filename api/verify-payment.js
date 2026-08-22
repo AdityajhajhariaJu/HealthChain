@@ -1,4 +1,4 @@
-﻿import { checkRateLimit } from './utils/rate-limit.js';
+import { checkRateLimit } from './utils/rate-limit.js';
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';

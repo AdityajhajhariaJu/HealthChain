@@ -1,4 +1,4 @@
-﻿import { checkRateLimit } from './utils/rate-limit.js';
+import { checkRateLimit } from './utils/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_ORIGINS = [
