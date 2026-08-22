@@ -162,19 +162,13 @@ export default function Pricing() {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             {[
-              { f: 'Medical Profile', v: true },
-              { f: 'Quick Consult', v: false },
-              { f: 'Deep Collab', v: false },
-              { f: 'J.A.R.V.I.S.', v: false },
-              { f: 'Ava Health Buddy (10 Replies)', v: true },
-              { f: 'Case Prep & Trials', v: false },
-              { f: 'Dietician', v: false },
-              { f: 'Pharmacy Hub', v: true },
-              { f: 'Lab Report Analyzer', v: true },
-            ].map(item => (
-              <div key={item.f} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: item.v ? 'var(--text-main)' : '#9ca3af', opacity: item.v ? 1 : 0.7 }}>
-                {item.v ? <Check size={18} color="#10B981" /> : <div style={{ width: '18px' }} />} 
-                <span style={{ textDecoration: item.v ? 'none' : 'line-through' }}>{item.f}</span>
+              'Medical Profile',
+              'Ava Health Buddy (10 Replies)',
+              'Pharmacy Hub',
+              'Lab Report Analyzer',
+            ].map(feature => (
+              <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)' }}>
+                <Check size={18} color="var(--teal)" /> {feature}
               </div>
             ))}
           </div>
