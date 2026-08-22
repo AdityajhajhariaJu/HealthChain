@@ -731,10 +731,26 @@ export async function verifyProStatus() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return false;
     const { data } = await supabase.from('profiles').select('is_pro, pro_expires_at').eq('id', session.user.id).single();
-    if (data?.is_pro) {
-      if (!data.pro_expires_at || new Date(data.pro_expires_at) > new Date()) {
-        return true;
+    if (data?.is_pro && (!data.pro_expires_at || new Date(data.pro_expires_at) > new Date())) {
+      const state = getProfileEngineState();
+      const p = state.profiles[state.activeId];
+      if (p && (!p.isPro || p.proExpiresAt !== data.pro_expires_at)) {
+        p.isPro = true;
+        p.proExpiresAt = data.pro_expires_at;
+        setItemSync(getProfileKey(), JSON.stringify(state));
+        window.dispatchEvent(new Event('hc_profile_updated'));
       }
+      return true;
+    } else if (data && !data.is_pro) {
+      const state = getProfileEngineState();
+      const p = state.profiles[state.activeId];
+      if (p && p.isPro) {
+        p.isPro = false;
+        p.proExpiresAt = null;
+        setItemSync(getProfileKey(), JSON.stringify(state));
+        window.dispatchEvent(new Event('hc_profile_updated'));
+      }
+      return false;
     }
     return false;
   } catch {
