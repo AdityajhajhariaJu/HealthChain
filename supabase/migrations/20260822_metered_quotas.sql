@@ -94,7 +94,7 @@ begin
   if not found then
     -- Handle Free Tier fallback
     if p_feature_name = 'ava_replies' then
-      v_allocated := 5;
+      v_allocated := 10;
     elsif p_feature_name = 'pharmacy_hub' then
       v_allocated := 5;
     else

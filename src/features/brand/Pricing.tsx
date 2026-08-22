@@ -163,7 +163,7 @@ export default function Pricing() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
             {[
               { f: 'Medical Profile', v: true },
-              { f: 'Ava Health Buddy (Max 5 Replies)', v: true },
+              { f: 'Ava Health Buddy (Max 10 Replies)', v: true },
               { f: 'Pharmacy Hub (5 Sessions)', v: true },
               { f: 'Quick Consult', v: false },
               { f: 'Deep Collab', v: false },

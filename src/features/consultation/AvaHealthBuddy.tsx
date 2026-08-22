@@ -177,11 +177,11 @@ export default function AvaHealthBuddy() {
     if (!(await getActiveSession())) {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
-        if (userMessageCount >= 3) {
+        if (userMessageCount >= 5) {
           window.dispatchEvent(new CustomEvent('hc_require_auth', { 
             detail: { 
               title: 'Guest Limit Reached', 
-              message: 'You have reached the guest limit of 3 messages. Please log in or sign up to continue chatting with Ava.' 
+              message: 'You have reached the guest limit of 5 messages. Please log in or sign up to continue chatting with Ava.' 
             } 
           }));
           return;
@@ -191,8 +191,8 @@ export default function AvaHealthBuddy() {
 
     let finalContent = text.trim();
     if (attachments.length > 0) {
-      const attachStr = attachments.map(a => `[Attached Document: ${a.name}]`).join('\\n');
-      finalContent = finalContent ? `${finalContent}\\n\\n${attachStr}` : attachStr;
+      const attachStr = attachments.map(a => `[Attached Document: ${a.name}]`).join('\n');
+      finalContent = finalContent ? `${finalContent}\n\n${attachStr}` : attachStr;
     }
 
     const newMessages = [...messages, { role: 'user', content: finalContent, attachments: attachments.map(a => a.name) }];
