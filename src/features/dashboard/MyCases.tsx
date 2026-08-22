@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2 } from 'lucide-react';
+import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import Skeleton from '../../components/ui/Skeleton';
@@ -14,6 +14,115 @@ const formatDate = (value: string) => {
     return 'N/A';
   }
 };
+
+function CrossCaseInsightBanner({ cases, isMobile }: { cases: CaseItem[]; isMobile: boolean }) {
+  const insights = useMemo(() => {
+    if (!cases || cases.length < 2) return null;
+
+    const allSpecialists = new Set<string>();
+    const allDiagnoses: string[] = [];
+    let jarvisCount = 0;
+    let mdtCount = 0;
+    let quickCount = 0;
+
+    cases.forEach(c => {
+      const isJarvis = c.currentStage === 'jarvis_complete' || c.reviews?.[0]?.type === 'jarvis' || c.title?.toLowerCase().includes('j.a.r.v.i.s.');
+      const isQuick = c.title?.toLowerCase().includes('quick consult') || c.reviews?.[0]?.type === 'parallel';
+
+      if (isJarvis) {
+        jarvisCount++;
+      } else if (isQuick) {
+        quickCount++;
+      } else {
+        mdtCount++;
+      }
+
+      if (Array.isArray(c.reviews)) {
+        c.reviews.forEach(r => {
+          if (Array.isArray(r.specialists)) {
+            r.specialists.forEach((s: any) => {
+              const name = typeof s === 'string' ? s : (s?.label || s?.name);
+              if (name) allSpecialists.add(name);
+            });
+          }
+        });
+      }
+      if (Array.isArray(c.currentSummary?.topDiagnoses)) {
+        c.currentSummary.topDiagnoses.forEach((d: any) => {
+          if (d?.condition) allDiagnoses.push(d.condition);
+        });
+      }
+    });
+
+    const uniqueDiagnoses = Array.from(new Set(allDiagnoses)).slice(0, 3);
+    const specialistList = Array.from(allSpecialists).slice(0, 4);
+
+    return {
+      totalCases: cases.length,
+      jarvisCount,
+      mdtCount,
+      quickCount,
+      specialistList,
+      themes: uniqueDiagnoses
+    };
+  }, [cases]);
+
+  if (!insights) return null;
+
+  return (
+    <div
+      style={{
+        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        borderRadius: 24,
+        padding: isMobile ? '20px 16px' : '24px 28px',
+        color: '#FFF',
+        marginBottom: 20,
+        boxShadow: '0 10px 28px rgba(15,23,42,0.12)',
+        border: '1px solid rgba(255,255,255,0.08)'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkles size={16} />
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#10B981', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+            Cross-Case Clinical Intelligence
+          </span>
+        </div>
+        <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>
+          {insights.totalCases} Consultations Synced
+        </span>
+      </div>
+
+      <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, margin: '0 0 8px 0', color: '#FFF' }}>
+        Synthesized across {insights.specialistList.length > 0 ? insights.specialistList.join(', ') : 'your medical consultations'}
+      </h3>
+
+      {insights.themes.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12, alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>Active Diagnostic Threads:</span>
+          {insights.themes.map((theme, i) => (
+            <span
+              key={i}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                padding: '4px 10px',
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#E2E8F0',
+                border: '1px solid rgba(255,255,255,0.12)'
+              }}
+            >
+              {theme}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MyCases() {
   const isMobile = useIsMobile();
@@ -32,7 +141,6 @@ export default function MyCases() {
       setIsLoading(false);
     };
     
-    // Simulate slight network delay for skeleton loader
     const timer = setTimeout(refresh, 500);
     
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,7 +163,6 @@ export default function MyCases() {
   const totalPages = Math.ceil(filteredCases.length / itemsPerPage);
   const paginatedCases = filteredCases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  // Reset page when searching
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -87,6 +194,10 @@ export default function MyCases() {
           </div>;
         })}
       </section>
+
+      {!isLoading && cases.length >= 2 && (
+        <CrossCaseInsightBanner cases={cases} isMobile={isMobile} />
+      )}
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
         <div
@@ -130,6 +241,35 @@ export default function MyCases() {
         ) : paginatedCases.length > 0 ? (
           paginatedCases.map(caseItem => {
             const primary = caseItem.currentSummary?.topDiagnoses?.[0];
+            const isJarvis = caseItem.currentStage === 'jarvis_complete' || caseItem.reviews?.[0]?.type === 'jarvis' || caseItem.title?.toLowerCase().includes('j.a.r.v.i.s.');
+            const isQuick = caseItem.title?.toLowerCase().includes('quick consult') || caseItem.reviews?.[0]?.type === 'parallel';
+
+            let badgeBg = '#F0FDFA';
+            let badgeColor = '#0F766E';
+            let badgeBorder = '#99F6E4';
+            let badgeLabel = 'Collaborative Board';
+            let iconBg = '#F0FDFA';
+            let iconColor = '#10B981';
+            let IconComponent = Users;
+
+            if (isJarvis) {
+              badgeBg = '#FFEDD5';
+              badgeColor = '#C2410C';
+              badgeBorder = '#FED7AA';
+              badgeLabel = 'J.A.R.V.I.S. Investigation';
+              iconBg = '#FFEDD5';
+              iconColor = '#EA580C';
+              IconComponent = Sparkles;
+            } else if (isQuick) {
+              badgeBg = '#EFF6FF';
+              badgeColor = '#1D4ED8';
+              badgeBorder = '#BFDBFE';
+              badgeLabel = 'Specialist Consult';
+              iconBg = '#EFF6FF';
+              iconColor = '#3B82F6';
+              IconComponent = GitMerge;
+            }
+
             return (
               <div 
                  key={caseItem.id}
@@ -142,12 +282,17 @@ export default function MyCases() {
                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#5EEAD4'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(15,23,42,.05)'; }}
                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EEF5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,.02)'; }}
               >
-                 <div style={{ width: 52, height: 52, borderRadius: 16, background: '#F0FDFA', color: '#10B981', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                    <Archive size={24} />
+                 <div style={{ width: 52, height: 52, borderRadius: 16, background: iconBg, color: iconColor, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <IconComponent size={24} />
                  </div>
                  <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, background: badgeBg, color: badgeColor, border: `1px solid ${badgeBorder}`, padding: '2px 8px', borderRadius: 999 }}>
+                              {badgeLabel}
+                            </span>
+                          </div>
                           <h3 style={{ margin: '0 0 6px', fontSize: 18, color: '#0F172A' }}>{caseItem.title}</h3>
                           <p style={{ margin: 0, color: '#475569', fontSize: 14 }}>
                             {primary?.condition ? `Leading pathway: ${primary.condition}` : 'Awaiting evidence synthesis'}
