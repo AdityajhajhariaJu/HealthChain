@@ -1765,11 +1765,11 @@ Return ONLY a JSON object with this exact structure:
   };
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetchWithTimeout(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'jarvis_investigation' },
       body: JSON.stringify(payload),
-    });
+    }, 60000, idempotencyKey);
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     const data = await res.json();
     if (data.candidates?.[0]) {
