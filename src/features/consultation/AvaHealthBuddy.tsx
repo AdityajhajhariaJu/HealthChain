@@ -90,6 +90,7 @@ export default function AvaHealthBuddy() {
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentProfileId = useRef(getProfileEngineState()?.activeId);
@@ -162,6 +163,7 @@ export default function AvaHealthBuddy() {
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, newMessages: any[]) => {
       setIsTyping(false); // Stop 'thinking' animation
+      setIsStreaming(true);
       setMessages([...newMessages, { role: 'model', content: response, isStreaming: true }]);
 
       addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
@@ -403,6 +405,7 @@ export default function AvaHealthBuddy() {
                         content={msg.content} 
                         messagesEndRef={messagesEndRef}
                         onComplete={() => {
+                          setIsStreaming(false);
                           setMessages(prev => {
                             const updated = [...prev];
                             const idx = updated.findIndex(m => m === msg);
