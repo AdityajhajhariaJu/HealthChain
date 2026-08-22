@@ -5,7 +5,7 @@
       "destination": "/index.html"
     }
   ],
-  "crons": [{"path": "/api/cron/revoke-expired", "schedule": "0 * * * *"}],
+  "crons": [{"path": "/api/cron/revoke-expired", "schedule": "0 0 * * *"}],
   "functions": {
     "api/*.js": {
       "maxDuration": 60
@@ -43,5 +43,6 @@
     }
   ]
 }
+
 
 
