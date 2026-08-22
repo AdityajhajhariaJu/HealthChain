@@ -50,11 +50,11 @@ const links = [
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
   { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain },
   { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: NetworkHubIcon },
-  { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
-  { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
+  { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList, proOnly: true },
+  { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical, proOnly: true },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
-  { to: '/app/dietician', label: 'Dietician', icon: Apple, locked: true },
+  { to: '/app/dietician', label: 'Dietician', icon: Apple, proOnly: true },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
   { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
@@ -124,25 +124,28 @@ export default function AppShell() {
           </div>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
-            {links.map((l) => (
+            {links.map((l) => {
+              const isLocked = l.locked || (l.proOnly && !profile?.is_pro);
+              return (
               <NavLink
                 key={l.to}
-                to={l.locked ? '#' : l.to}
+                to={isLocked ? '#' : l.to}
                 end={l.to === '/app'}
                 onClick={(e) => {
-                  if (l.locked) {
+                  if (isLocked) {
                     e.preventDefault();
-                    alert(l.label + ' is coming soon!');
+                    if (l.proOnly && !profile?.is_pro) navigate('/pricing');
+                    else alert(l.label + ' is coming soon!');
                   }
                 }}
-                className={({ isActive }) => `sidebar__link ${isActive && !l.locked ? 'active' : ''}`}
-                style={{ opacity: l.locked ? 0.6 : 1, position: 'relative' }}
+                className={({ isActive }) => `sidebar__link ${isActive && !isLocked ? 'active' : ''}`}
+                style={{ opacity: isLocked ? 0.6 : 1, position: 'relative' }}
               >
                 <l.icon size={18} aria-hidden="true" />
                 {l.label}
-                {l.locked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
+                {isLocked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
               </NavLink>
-            ))}
+            )})}
           </nav>
 
           <div style={{ flex: 1 }}></div>
@@ -273,25 +276,32 @@ export default function AppShell() {
                   </button>
                 </div>
                 <div className="mobile-more-menu__grid">
-                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map(l => (
+                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map((l) => {
+                    const isLocked = l.locked || (l.proOnly && !profile?.is_pro);
+                    return (
                     <button
                       key={l.to}
                       onClick={() => {
-                        if (l.locked) {
-                          alert(l.label + ' is coming soon!');
+                        if (isLocked) {
+                          if (l.proOnly && !profile?.is_pro) {
+                            setShowMoreMenu(false);
+                            navigate('/pricing');
+                          } else {
+                            alert(l.label + ' is coming soon!');
+                          }
                           return;
                         }
                         navigate(l.to);
                         setShowMoreMenu(false);
                       }}
                       className="more-menu-item"
-                      style={{ border: 'none', background: 'none', outline: 'none', position: 'relative', opacity: l.locked ? 0.6 : 1 }}
+                      style={{ border: 'none', background: 'none', outline: 'none', position: 'relative', opacity: isLocked ? 0.6 : 1 }}
                     >
                       <l.icon size={24} />
                       <span>{l.label}</span>
-                      {l.locked && <Lock size={16} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
+                      {isLocked && <Lock size={16} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
                     </button>
-                  ))}
+                  )})}
                   <button 
                     onClick={() => navigate('/app/settings')} 
                     className="more-menu-item"

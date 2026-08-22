@@ -83,6 +83,12 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
   </ErrorBoundary>
 );
 
+const ProRoute = ({ children }: { children: React.ReactNode }) => {
+  const profile = getProfile();
+  if (!profile?.is_pro) return <Navigate to="/pricing" replace />;
+  return <SafeRoute>{children}</SafeRoute>;
+};
+
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -498,7 +504,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
+          <Route path="/app/case-prep" element={<ProRoute><CasePrep /></ProRoute>} />
           <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
           <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
           <Route
@@ -512,9 +518,9 @@ export default function App() {
           <Route
             path="/app/dietician"
             element={
-              <SafeRoute>
+              <ProRoute>
                 <Dietician />
-              </SafeRoute>
+              </ProRoute>
             }
           />
           <Route
@@ -536,9 +542,9 @@ export default function App() {
           <Route
             path="/app/trials"
             element={
-              <SafeRoute>
+              <ProRoute>
                 <ClinicalTrialsMatcher />
-              </SafeRoute>
+              </ProRoute>
             }
           />
           <Route
