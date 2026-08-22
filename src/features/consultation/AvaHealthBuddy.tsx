@@ -122,7 +122,11 @@ export default function AvaHealthBuddy() {
         if (!isMounted.current) break;
         setMessages((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = { role: 'model', content: currentContent };
+          if (updated.length > 0 && updated[updated.length - 1].role === 'model') {
+            updated[updated.length - 1] = { role: 'model', content: currentContent };
+          } else {
+            updated.push({ role: 'model', content: currentContent });
+          }
           return updated;
         });
       }
