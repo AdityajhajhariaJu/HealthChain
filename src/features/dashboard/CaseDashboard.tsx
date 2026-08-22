@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -371,7 +371,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                                   {cit.title}
     </a>
   );
-})()} — <i>{cit.journal} ({cit.year})</i>
+})()} â€” <i>{cit.journal} ({cit.year})</i>
                               </li>
                             ))}
                           </ul>
@@ -587,7 +587,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                         {action.step}
                       </strong>
                       <small style={{ color: '#64748b' }}>
-                        {action.timeline || 'No timing set'} · {action.type || 'Next step'}
+                        {action.timeline || 'No timing set'} Â· {action.type || 'Next step'}
                       </small>
                     </span>
                   </div>
@@ -661,12 +661,12 @@ function CaseCard({ item, navigate }: { item: CaseItem, navigate: any }) {
           </div>
           <p style={{ margin: '5px 0', color: '#64748b', fontSize: 13, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             {primary?.condition
-              ? <>Leading pathway: <strong>{primary.condition}</strong> {primary.definition && <span style={{ opacity: 0.8 }}>— {primary.definition}</span>}</>
+              ? <>Leading pathway: <strong>{primary.condition}</strong> {primary.definition && <span style={{ opacity: 0.8 }}>â€” {primary.definition}</span>}</>
               : 'Awaiting evidence synthesis'}
           </p>
           <small style={{ color: '#94a3b8', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             <CalendarClock size={12} style={{ verticalAlign: 'middle' }} /> Updated{' '}
-            {formatDate(item.updatedAt)} · {pending} actions open
+            {formatDate(item.updatedAt)} Â· {pending} actions open
           </small>
         </div>
       </div>
@@ -737,7 +737,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.demographics.name}</div>
             <div style={{ color: '#4b5563', fontSize: 14 }}>
-              DOB: {profile.demographics.dob || 'N/A'} • {profile.demographics.gender || 'N/A'}
+              DOB: {profile.demographics.dob || 'N/A'} â€¢ {profile.demographics.gender || 'N/A'}
             </div>
             <div style={{ color: '#4b5563', fontSize: 14 }}>
               Blood Group: {profile.demographics.bloodGroup || 'N/A'}
@@ -824,8 +824,9 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
 
       {/* Footer */}
       <div style={{ marginTop: 50, paddingTop: 20, borderTop: '1px solid #e5e7eb', textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-        <strong>HealthChain AI</strong> — Not medical advice. This document is intended to facilitate discussion with a qualified healthcare professional.
+        <strong>HealthChain AI</strong> â€” Not medical advice. This document is intended to facilitate discussion with a qualified healthcare professional.
       </div>
     </div>
   );
 }
+
