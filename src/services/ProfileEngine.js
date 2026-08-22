@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+﻿import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox } from './SyncOutbox';
@@ -748,5 +748,6 @@ if (typeof window !== 'undefined') {
     historyIndex = -1;
   });
 }
+
 
 
