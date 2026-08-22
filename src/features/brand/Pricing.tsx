@@ -219,11 +219,11 @@ export default function Pricing() {
         </div>
 
         {/* Pro 90-Days */}
-        <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', border: '2px solid #8b5cf6', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: '#8b5cf6', color: 'white', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', border: '2px solid var(--teal)', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: 'var(--teal)', color: 'white', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Sparkles size={14} /> BEST VALUE
           </div>
-          <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: '#8b5cf6' }}>Pro 90-Days</h3>
+          <h3 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: 'var(--teal)' }}>Pro 90-Days</h3>
           <p style={{ color: 'var(--text-muted)', margin: '0 0 24px', fontSize: '14px', minHeight: '40px' }}>Comprehensive tools for chronic condition management.</p>
           <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '20px' }}>
             ₹899 <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 500 }}>/ 90 Days</span>
@@ -232,7 +232,7 @@ export default function Pricing() {
             onClick={() => handleCheckout('pro_90_days')}
             disabled={isProcessing !== null}
             className="btn btn-primary" 
-            style={{ width: '100%', marginBottom: '24px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: '#8b5cf6', borderColor: '#8b5cf6' }}
+            style={{ width: '100%', marginBottom: '24px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
           >
             {isProcessing === 'pro_90_days' ? <Loader2 size={18} className="spin" /> : null}
             {isProcessing === 'pro_90_days' ? 'Processing...' : 'Upgrade 90-Days'}
@@ -250,7 +250,7 @@ export default function Pricing() {
               '30 Lab Report Analyzers',
             ].map(feature => (
               <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 500 }}>
-                <Check size={18} color="#8b5cf6" /> {feature}
+                <Check size={18} color="var(--teal)" /> {feature}
               </div>
             ))}
           </div>
