@@ -1,4 +1,4 @@
-import { del, get, set } from 'idb-keyval';
+﻿import { del, get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
 
@@ -132,7 +132,15 @@ async function send(entry: OutboxEntry) {
   if (entry.kind === 'case_delete') {
     return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);
   }
-  return supabase.from('profiles').upsert(entry.payload, { onConflict: 'id' });
+  if (entry.kind === 'profile_upsert') {
+    // Prevent PostgREST upsert from injecting default is_pro=false on missing columns
+    const { data: existing } = await supabase.from('profiles').select('*').eq('id', entry.payload.id).maybeSingle();
+    if (existing) {
+      return supabase.from('profiles').update(entry.payload).eq('id', entry.payload.id);
+    } else {
+      return supabase.from('profiles').insert(entry.payload);
+    }
+  }
 }
 
 export async function flushSyncOutbox(userId?: string) {
@@ -180,3 +188,4 @@ export async function clearSyncOutbox(userId: string) {
   try { await del(key); } catch {}
   try { window.localStorage.removeItem(key); } catch {}
 }
+
