@@ -778,6 +778,9 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                   <ElevateToBoardCard item={item} navigate={navigate} isMobile={isMobile} />
                 </>
               )}
+              {!isQuickConsult && report.questionsForClinician && report.questionsForClinician.length > 0 && (
+                <ClinicianCheatSheet questions={report.questionsForClinician} isMobile={isMobile} />
+              )}
               <section className="card" style={{ padding: 24, background: 'transparent', border: 'none', boxShadow: 'none' }}>
                 <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Current Case Synthesis</h2>
                 <RichReportTemplate report={report} isMobile={isMobile} />

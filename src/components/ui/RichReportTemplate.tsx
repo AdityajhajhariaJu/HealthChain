@@ -1,5 +1,57 @@
 import React, { useState } from 'react';
-import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network, ChevronDown, HelpCircle } from 'lucide-react';
+import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network, ChevronDown, HelpCircle, GitMerge } from 'lucide-react';
+
+export function cleanClinicalText(text?: string): string {
+  if (!text || typeof text !== 'string') return '';
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/```json[\s\S]*?```/gi, '');
+  cleaned = cleaned.replace(/```[\s\S]*?```/gi, '');
+  if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(cleaned);
+      cleaned = parsed.response || parsed.executiveSummary || parsed.patientFriendlySummary || parsed.interpretation || parsed.keyFindings || '';
+    } catch(e) {}
+  }
+  cleaned = cleaned.replace(/"?internalThoughts"?\s*:\s*"[^"]*"/gi, '');
+  cleaned = cleaned.replace(/ANALYSIS_COMPLETE/g, '');
+  return cleaned.trim();
+}
+
+export function categorizeDebatePoints(points: string[]) {
+  const consensus: string[] = [];
+  const debate: string[] = [];
+
+  points.forEach((p) => {
+    const cleaned = cleanClinicalText(p);
+    if (!cleaned) return;
+    const lower = cleaned.toLowerCase();
+    const isDebate = lower.includes('contention') ||
+                     lower.includes('differ') ||
+                     lower.includes('diverge') ||
+                     lower.includes('whereas') ||
+                     lower.includes('however') ||
+                     lower.includes('vs') ||
+                     lower.includes('questions') ||
+                     lower.includes('advocates') ||
+                     lower.includes('suggests instead') ||
+                     lower.includes('prioritize') ||
+                     lower.includes('argues') ||
+                     lower.includes('debate');
+
+    if (isDebate) {
+      debate.push(cleaned);
+    } else {
+      consensus.push(cleaned);
+    }
+  });
+
+  // If all points ended up in consensus or none had explicit debate flags, ensure balanced display
+  if (debate.length === 0 && consensus.length > 2) {
+    return { consensus: consensus.slice(0, Math.ceil(consensus.length / 2)), debate: consensus.slice(Math.ceil(consensus.length / 2)) };
+  }
+
+  return { consensus, debate };
+}
 
 export const Accordion = ({ title, icon: Icon, iconColor, bgColor, borderColor, textColor, children, defaultOpen = false, isMobile = false }: any) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -50,63 +102,85 @@ export interface RichReportData {
 export function RichReportTemplate({ report, isMobile }: { report: RichReportData; isMobile?: boolean }) {
   if (!report) return null;
 
-  const hasRichData = report.keyFindings || report.interpretation || (report.abnormalitiesNoted && report.abnormalitiesNoted.length > 0) || report.nextSteps || (report.missingLinks && report.missingLinks.length > 0) || (report.functionalBiomarkers && report.functionalBiomarkers.length > 0) || (report.systemicPatterns && report.systemicPatterns.length > 0);
+  const sanitizedExecSummary = cleanClinicalText(report.executiveSummary);
+  const sanitizedKeyFindings = cleanClinicalText(report.keyFindings);
+  const sanitizedInterpretation = cleanClinicalText(report.interpretation);
+  const sanitizedNextSteps = cleanClinicalText(report.nextSteps);
+
+  const hasRichData = sanitizedKeyFindings || sanitizedInterpretation || (report.abnormalitiesNoted && report.abnormalitiesNoted.length > 0) || sanitizedNextSteps || (report.missingLinks && report.missingLinks.length > 0) || (report.functionalBiomarkers && report.functionalBiomarkers.length > 0) || (report.systemicPatterns && report.systemicPatterns.length > 0) || (report.specialistDebatePoints && report.specialistDebatePoints.length > 0);
 
   if (!hasRichData) {
     return (
       <p style={{ margin: 0, lineHeight: 1.7, color: '#334155' }}>
-        {report.executiveSummary || 'Based on the review of your symptoms and recent discussion, the board has identified discussion pathways, but a structured summary could not be rendered at this time.'}
+        {sanitizedExecSummary || 'Based on the review of your symptoms and recent discussion, the board has identified discussion pathways, but a structured summary could not be rendered at this time.'}
       </p>
     );
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {report.executiveSummary && hasRichData && (
+      {sanitizedExecSummary && hasRichData && (
         <div style={{ background: '#F8FAFC', padding: isMobile ? '16px' : '24px', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#334155', fontSize: '15.5px', lineHeight: 1.7 }}>
           <strong style={{ color: '#0F172A', display: 'block', marginBottom: '8px' }}>Executive Summary</strong>
-          {report.executiveSummary}
+          {sanitizedExecSummary}
         </div>
       )}
       <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 0.8fr', gap: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {report.keyFindings && (
+          {sanitizedKeyFindings && (
           <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1px solid #E2E8F0' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CheckCircle2 size={18} color="#4F46E5" /> Key Findings
             </h3>
             <p style={{ fontSize: '14.5px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
-              {report.keyFindings}
+              {sanitizedKeyFindings}
             </p>
           </div>
         )}
 
-        {report.interpretation && (
+        {sanitizedInterpretation && (
           <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1px solid #E2E8F0' }}>
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Activity size={18} color="#059669" /> Interpretation
             </h3>
             <p style={{ fontSize: '14.5px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
-              {report.interpretation}
+              {sanitizedInterpretation}
             </p>
           </div>
         )}
 
-        {report.specialistDebatePoints && report.specialistDebatePoints.length > 0 && (
-          <Accordion title="Multidisciplinary Consensus" icon={Users} iconColor="#6366F1" bgColor="#F8FAFC" borderColor="#E2E8F0" textColor="#0F172A" isMobile={isMobile}>
-            <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
-              {report.specialistDebatePoints.map((point, i) => (
-                <li key={i}>{point}</li>
-              ))}
-            </ul>
-          </Accordion>
-        )}
+        {report.specialistDebatePoints && report.specialistDebatePoints.length > 0 && (() => {
+          const { consensus, debate } = categorizeDebatePoints(report.specialistDebatePoints);
+          return (
+            <>
+              {consensus.length > 0 && (
+                <Accordion title="Multidisciplinary Consensus (Agreed Findings)" icon={Users} iconColor="#16A34A" bgColor="#F0FDF4" borderColor="#BBF7D0" textColor="#166534" isMobile={isMobile} defaultOpen={true}>
+                  <ul style={{ margin: 0, paddingLeft: '20px', color: '#166534', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
+                    {consensus.map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))}
+                  </ul>
+                </Accordion>
+              )}
+
+              {debate.length > 0 && (
+                <Accordion title="Specialist Perspectives & Clinical Debate" icon={GitMerge} iconColor="#D97706" bgColor="#FFFBEB" borderColor="#FDE68A" textColor="#92400E" isMobile={isMobile} defaultOpen={true}>
+                  <ul style={{ margin: 0, paddingLeft: '20px', color: '#92400E', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
+                    {debate.map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))}
+                  </ul>
+                </Accordion>
+              )}
+            </>
+          );
+        })()}
 
         {report.systemicCorrelations && report.systemicCorrelations.length > 0 && (
           <Accordion title="Systemic Correlations" icon={Network} iconColor="#0284C7" bgColor="#F0F9FF" borderColor="#BAE6FD" textColor="#0369A1" isMobile={isMobile}>
             <ul style={{ margin: 0, paddingLeft: '20px', color: '#0369A1', fontSize: '14.5px', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: 1.6 }}>
               {report.systemicCorrelations.map((point, i) => (
-                <li key={i}>{point}</li>
+                <li key={i}>{cleanClinicalText(point)}</li>
               ))}
             </ul>
           </Accordion>
