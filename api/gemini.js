@@ -167,12 +167,16 @@ export default async function handler(req, res) {
 
     if (featureCode) {
       try {
-        const { data: quotaResult } = await adminClient.rpc('consume_feature_quota', {
+        const { data: quotaResult, error: quotaError } = await adminClient.rpc('consume_feature_quota', {
           p_user_id: userId,
           p_feature_name: featureCode
         });
+        
         // const ENFORCE_PAYWALLS = false;
-        // if (ENFORCE_PAYWALLS && !quotaResult?.allowed) { return res.status(402)... }
+        // if (ENFORCE_PAYWALLS) {
+        //   if (quotaError) return res.status(503).json({ error: 'Quota service unavailable' });
+        //   if (!quotaResult?.allowed) return res.status(402).json({ error: 'Feature quota exceeded' });
+        // }
       } catch (e) {
         // Ghost mode ignores tracking failures to prevent service disruption
       }

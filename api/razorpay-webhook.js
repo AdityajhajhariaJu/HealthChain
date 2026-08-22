@@ -109,6 +109,9 @@ export default async function handler(req, res) {
             p_plan_id: resolvedPlanId,
             p_expires_at: finalExpiry
           });
+        } else if (error.code === '23505') {
+          // Idempotent: already processed
+          return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
           console.error('Webhook entitlement error:', error);
           return res.status(500).json({ error: 'Failed to activate entitlement' });
@@ -128,7 +131,10 @@ export default async function handler(req, res) {
             p_feature_name: targetPlan.feature,
             p_amount: targetPlan.quantity
           });
-        } else if (insertError.code !== '23505') {
+        } else if (insertError.code === '23505') {
+          // Idempotent: already processed
+          return res.status(200).json({ status: 'ok', message: 'Already processed' });
+        } else {
           console.error('Webhook topup error:', insertError);
           return res.status(500).json({ error: 'Failed to record topup' });
         }
