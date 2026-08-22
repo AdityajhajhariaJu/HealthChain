@@ -1719,6 +1719,8 @@ YOUR MISSION:
 PATIENT PROFILE:
 Age: ${profile?.demographics?.age || 'Unknown'}
 Gender: ${profile?.demographics?.gender || 'Unknown'}
+Active Conditions: ${(profile?.conditions || []).join(', ') || 'None reported'}
+Recent Daily Symptom Tracking: ${(profile?.dailyCheckins || []).slice(0, 5).map((c: any) => `${c.symptom}: ${c.severity}${c.note ? ` (${c.note})` : ''}`).join('; ') || 'None recorded'}
 
 PATIENT HISTORY & SYMPTOMS:
 ${history}

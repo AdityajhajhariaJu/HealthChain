@@ -30,6 +30,7 @@ import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Loc
 import { RichReportTemplate, Accordion, cleanClinicalText } from '../../components/ui/RichReportTemplate';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 import { parseModelJson } from '../../services/modelJson';
+import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 
 const formatDate = (value: string) => {
   try {
@@ -171,6 +172,8 @@ export default function CaseDashboard() {
       <div style={{ marginBottom: 28 }}>
         <ActiveCaseBar navigate={navigate} />
       </div>
+
+      <DailySymptomCheckinWidget />
 
       {/* Premium Section */}
       <div

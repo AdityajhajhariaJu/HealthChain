@@ -587,7 +587,66 @@ export function addNutritionLog(log) {
   saveProfile(profile);
 }
 
+export function recordDailyCheckin({ symptom, severity, score, note }) {
+  const profile = getProfile();
+  if (!profile.dailyCheckins) {
+    profile.dailyCheckins = [];
+  }
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  // Remove existing checkin for today if any, so we update it smoothly
+  profile.dailyCheckins = profile.dailyCheckins.filter(c => !c.date || !c.date.startsWith(todayStr));
+
+  const checkinEntry = {
+    id: generateId(),
+    date: new Date().toISOString(),
+    symptom: symptom || 'Overall Wellness',
+    severity: severity || 'Mild',
+    score: score ?? 1,
+    note: note || '',
+  };
+
+  profile.dailyCheckins.unshift(checkinEntry);
+  if (profile.dailyCheckins.length > 90) {
+    profile.dailyCheckins = profile.dailyCheckins.slice(0, 90);
+  }
+
+  // Record timeline event
+  addEvent(
+    'mental_health',
+    'daily_checkin',
+    `Daily Check-in: ${symptom} (${severity})`,
+    { symptom, severity, score, note },
+    true,
+    profile
+  );
+
+  saveProfile(profile);
+
+  try {
+    recordHealthMemory({
+      kind: 'profile_event',
+      source: 'daily_checkin',
+      title: `Daily Symptom Check-in: ${symptom} (${severity})`,
+      occurredAt: new Date().toISOString(),
+      payload: { symptom, severity, score, note, date: todayStr }
+    });
+  } catch(e) {}
+
+  window.dispatchEvent(new CustomEvent('hc_daily_checkin_completed', { detail: checkinEntry }));
+  return checkinEntry;
+}
+
+export function getTodayCheckin() {
+  const profile = getProfile();
+  const todayStr = new Date().toISOString().split('T')[0];
+  return (profile.dailyCheckins || []).find(c => c.date && c.date.startsWith(todayStr));
+}
+
+export function getRecentCheckins(days = 7) {
+  const profile = getProfile();
+  return (profile.dailyCheckins || []).slice(0, days);
+}
 
 export function toggleActionItem(id) {
   const profile = getProfile();

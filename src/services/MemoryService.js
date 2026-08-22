@@ -58,7 +58,7 @@ export function compilePatientContext() {
   }
 
   // 4. History Context (compact - title + date only, max 3 events)
-  const diagnosticEvents = profile.timeline.filter((t) =>
+  const diagnosticEvents = (profile.timeline || []).filter((t) =>
     ['diagnosis', 'mdt_report', 'lab_report'].includes(t.type)
   );
   if (diagnosticEvents.length > 0) {
@@ -67,6 +67,17 @@ export function compilePatientContext() {
       historyStr += `- ${new Date(h.date).toLocaleDateString()}: ${h.title}\n`;
     });
     contextParts.push(historyStr);
+  }
+
+  // 5. Daily Symptom Check-in Trends (Longitudinal tracking)
+  const recentCheckins = (profile.dailyCheckins || []).slice(0, 4);
+  if (recentCheckins.length > 0) {
+    let checkinStr = `RECENT DAILY SYMPTOM TRACKING:\n`;
+    recentCheckins.forEach((c) => {
+      const d = c.date ? new Date(c.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent';
+      checkinStr += `- ${d}: ${c.symptom} (${c.severity})${c.note ? ` - "${c.note.slice(0, 40)}"` : ''}\n`;
+    });
+    contextParts.push(checkinStr);
   }
 
   if (contextParts.length === 0) {
