@@ -166,11 +166,11 @@ export default function Pricing() {
               { f: 'Quick Consult', v: false },
               { f: 'Deep Collab', v: false },
               { f: 'J.A.R.V.I.S.', v: false },
-              { f: 'Ava Health Buddy (Max 10 Replies)', v: true },
+              { f: 'Ava Health Buddy (10 Replies)', v: true },
               { f: 'Case Prep & Trials', v: false },
               { f: 'Dietician', v: false },
               { f: 'Pharmacy Hub', v: true },
-              { f: 'Lab Report Analyzer', v: false },
+              { f: 'Lab Report Analyzer', v: true },
             ].map(item => (
               <div key={item.f} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: item.v ? 'var(--text-main)' : '#9ca3af', opacity: item.v ? 1 : 0.7 }}>
                 {item.v ? <Check size={18} color="#10B981" /> : <div style={{ width: '18px' }} />} 
@@ -242,7 +242,7 @@ export default function Pricing() {
             {[
               '10 Quick Consults',
               '8 Deep Collab Sessions',
-              '5 J.A.R.V.I.S. Sessions',
+              '3 J.A.R.V.I.S. Sessions',
               'Ava Health Buddy (120 Replies)',
               'Case Prep & Trials (Unlimited)',
               'Dietician (Unlimited)',
