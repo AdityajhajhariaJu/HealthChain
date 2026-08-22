@@ -65,7 +65,6 @@ const mobileTabs = [
   { to: '/app/consult', label: 'Quick', icon: Stethoscope },
   { to: '/app/collab', label: 'Deep', icon: Brain },
   { to: '/app/jarvis', label: 'JARVIS', icon: NetworkHubIcon },
-  { to: '/app/case-prep', label: 'Prep', icon: ClipboardList },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 
