@@ -54,7 +54,7 @@ const links: any[] = [
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
-  { to: '/app/dietician', label: 'Dietician', icon: Apple },
+  { to: '/app/dietician', label: 'Dietician', icon: Apple, locked: true },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
   { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
