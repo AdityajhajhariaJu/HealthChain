@@ -504,7 +504,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/case-prep" element={<ProRoute><CasePrep /></ProRoute>} />
+          <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
           <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
           <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
           <Route
@@ -518,9 +518,9 @@ export default function App() {
           <Route
             path="/app/dietician"
             element={
-              <ProRoute>
+              <SafeRoute>
                 <Dietician />
-              </ProRoute>
+              </SafeRoute>
             }
           />
           <Route
@@ -542,9 +542,9 @@ export default function App() {
           <Route
             path="/app/trials"
             element={
-              <ProRoute>
+              <SafeRoute>
                 <ClinicalTrialsMatcher />
-              </ProRoute>
+              </SafeRoute>
             }
           />
           <Route
