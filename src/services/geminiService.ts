@@ -30,10 +30,6 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     }
   } catch {}
 
-  if (!import.meta.env.DEV && !sessionToken) {
-    throw new Error('Please sign in to use secure AI health processing.');
-  }
-
     // Create an idempotency key that expires every 5 minutes.
   // This prevents double-clicks and page-refresh quota burns, but allows
   // genuine retries later if the user gets stuck or the UI drops the response.
