@@ -701,10 +701,19 @@ export async function syncProfileFromSupabase() {
         });
         continue;
       }
+      const existingPro = state.profiles[row.profile_id]?.isPro;
+      const existingProExpiresAt = state.profiles[row.profile_id]?.proExpiresAt;
+      
       state.profiles[row.profile_id] = {
         ...row.data, id: row.profile_id,
         profileName: row.profile_name || row.data.profileName || 'My Profile'
       };
+      
+      if (row.profile_id === 'profile_1' || row.profile_id === state.activeId) {
+        state.profiles[row.profile_id].isPro = existingPro;
+        state.profiles[row.profile_id].proExpiresAt = existingProExpiresAt;
+      }
+      
       changed = true;
     }
     if (changed) {
