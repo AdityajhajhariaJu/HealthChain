@@ -228,7 +228,7 @@ export async function chatWithTherapyGemini(messages: Message[]): Promise<string
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: finalSystemPrompt }] },
     contents,
-    generationConfig: { maxOutputTokens: 200 },
+    generationConfig: { maxOutputTokens: 2000 },
   };
 
   try {
