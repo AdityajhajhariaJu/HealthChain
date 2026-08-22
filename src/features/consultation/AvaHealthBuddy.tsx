@@ -109,27 +109,34 @@ export default function AvaHealthBuddy() {
       setIsTyping(false); // Stop 'thinking' animation
       setIsStreaming(true);
       setMessages([...newMessages, { role: 'model', content: '' }]); // Initialize empty message for streaming
-      
-      let currentContent = '';
-      for (let i = 0; i < response.length; i++) {
-        if (!isMounted.current) break;
-        currentContent += response[i];
-        
-        // Random typing speed between 10ms and 30ms for realism
-        const delay = Math.floor(Math.random() * 20) + 10;
-        await new Promise((r) => setTimeout(r, delay));
-        
-        if (!isMounted.current) break;
-        setMessages((prev) => {
-          const updated = [...prev];
-          if (updated.length > 0 && updated[updated.length - 1].role === 'model') {
-            updated[updated.length - 1] = { role: 'model', content: currentContent };
-          } else {
-            updated.push({ role: 'model', content: currentContent });
+            let currentContent = '';
+        let lastUpdateTime = Date.now();
+        const chunkSize = 3; 
+        for (let i = 0; i < response.length; i += chunkSize) {
+          if (!isMounted.current) break;
+          currentContent += response.substring(i, i + chunkSize);
+          
+          // Yield to event loop
+          await new Promise((r) => setTimeout(r, 10));
+          
+          if (!isMounted.current) break;
+          
+          // Throttle React state updates to every 80ms to prevent Concurrent Mode starvation.
+          // Without this, constant high-priority state updates interrupt React Router's 
+          // low-priority navigation transitions, causing tab switching to hang completely!
+          if (Date.now() - lastUpdateTime > 80 || i + chunkSize >= response.length) {
+            lastUpdateTime = Date.now();
+            setMessages((prev) => {
+              const updated = [...prev];
+              if (updated.length > 0 && updated[updated.length - 1].role === 'model') {
+                updated[updated.length - 1] = { role: 'model', content: currentContent };
+              } else {
+                updated.push({ role: 'model', content: currentContent });
+              }
+              return updated;
+            });
           }
-          return updated;
-        });
-      }
+        }
       if (isMounted.current) setIsStreaming(false);
 
       addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
