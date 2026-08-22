@@ -1,4 +1,4 @@
-import { checkRateLimit } from './utils/rate-limit.js';
+﻿import { checkRateLimit } from './utils/rate-limit.js';
 import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { createClient } from '@supabase/supabase-js';
@@ -10,8 +10,6 @@ const ALLOWED_PLANS = {
   }
 };
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ALLOWED_ORIGINS = [
   'https://www.healthchain360.com',
   'https://healthchain360.com',
@@ -47,6 +45,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     const { 
       razorpay_order_id, 
       razorpay_payment_id, 
@@ -163,3 +164,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Payment verification could not be completed.' });
   }
 }
+

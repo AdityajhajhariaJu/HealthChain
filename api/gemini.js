@@ -1,4 +1,4 @@
-import { checkRateLimit } from './utils/rate-limit.js';
+﻿import { checkRateLimit } from './utils/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
 
 const ALLOWED_ORIGINS = [
@@ -121,9 +121,18 @@ export default async function handler(req, res) {
     if (ledgerError) {
       return res.status(503).json({ error: 'AI request ledger unavailable' });
     }
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('is_pro, pro_expires_at')
+      .eq('id', userId)
+      .single();
+
+    const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
+    const dailyLimit = isPro ? 500 : 15;
+
     const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
       p_user_id: userId,
-      p_daily_limit: 120,
+      p_daily_limit: dailyLimit,
     });
     if (quotaError) {
       await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
@@ -210,5 +219,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
 
 
