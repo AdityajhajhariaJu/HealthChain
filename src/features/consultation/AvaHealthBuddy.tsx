@@ -39,6 +39,40 @@ function getSavedMessages() {
   }
 }
 
+const TypewriterText = ({ content, onComplete, chatContainerRef }: any) => {
+  const [displayed, setDisplayed] = useState('');
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    let current = '';
+    const type = async () => {
+      const chunkSize = 3;
+      for (let i = 0; i < content.length; i += chunkSize) {
+        if (!isMounted.current) break;
+        current += content.substring(i, i + chunkSize);
+        setDisplayed(current);
+        
+        if (chatContainerRef?.current) {
+          const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+          if (scrollHeight - scrollTop - clientHeight < 150) {
+             chatContainerRef.current.scrollTo({ top: scrollHeight, behavior: 'auto' });
+          }
+        }
+        await new Promise(r => setTimeout(r, 10));
+      }
+      if (isMounted.current) {
+        setDisplayed(content);
+        onComplete();
+      }
+    };
+    type();
+    return () => { isMounted.current = false; };
+  }, [content, chatContainerRef]);
+
+  return <span>{displayed}</span>;
+};
+
 export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -63,15 +97,17 @@ export default function AvaHealthBuddy() {
 
   useEffect(() => {
     try {
-      updateProfileFeatureData('avaData', messages);
-      localStorage.setItem(getAvaVaultKey(), JSON.stringify(messages));
+      const sanitized = messages.map(m => { const { isStreaming, ...rest } = m; return rest; });
+      updateProfileFeatureData('avaData', sanitized);
+      localStorage.setItem(getAvaVaultKey(), JSON.stringify(sanitized));
     } catch (e: any) {
       if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
         const keepCount = Math.floor(messages.length * 0.8);
         const newMsgs = [messages[0], ...messages.slice(messages.length - keepCount)];
+        const sanitized = newMsgs.map(m => { const { isStreaming, ...rest } = m; return rest; });
         try {
-          updateProfileFeatureData('avaData', newMsgs);
-          localStorage.setItem(getAvaVaultKey(), JSON.stringify(newMsgs));
+          updateProfileFeatureData('avaData', sanitized);
+          localStorage.setItem(getAvaVaultKey(), JSON.stringify(sanitized));
         } catch (e2) {}
       }
     }
@@ -112,37 +148,7 @@ export default function AvaHealthBuddy() {
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, newMessages: any[]) => {
       setIsTyping(false); // Stop 'thinking' animation
-      setIsStreaming(true);
-      setMessages([...newMessages, { role: 'model', content: '' }]); // Initialize empty message for streaming
-            let currentContent = '';
-        let lastUpdateTime = Date.now();
-        const chunkSize = 3; 
-        for (let i = 0; i < response.length; i += chunkSize) {
-          if (!isMounted.current || window.location.pathname !== '/app/ava') break;
-          currentContent += response.substring(i, i + chunkSize);
-          
-          // Yield to event loop
-          await new Promise((r) => setTimeout(r, 10));
-          
-          if (!isMounted.current || window.location.pathname !== '/app/ava') break;
-          
-          // Throttle React state updates to every 80ms to prevent Concurrent Mode starvation.
-          // Without this, constant high-priority state updates interrupt React Router's 
-          // low-priority navigation transitions, causing tab switching to hang completely!
-          if (Date.now() - lastUpdateTime > 80 || i + chunkSize >= response.length) {
-            lastUpdateTime = Date.now();
-            setMessages((prev) => {
-              const updated = [...prev];
-              if (updated.length > 0 && updated[updated.length - 1].role === 'model') {
-                updated[updated.length - 1] = { role: 'model', content: currentContent };
-              } else {
-                updated.push({ role: 'model', content: currentContent });
-              }
-              return updated;
-            });
-          }
-        }
-      if (isMounted.current) setIsStreaming(false);
+      setMessages([...newMessages, { role: 'model', content: response, isStreaming: true }]);
 
       addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
           lastMessage: response,
@@ -378,8 +384,23 @@ export default function AvaHealthBuddy() {
                       maxWidth: '85%',
                     }}
                   >
-                    {msg.content || (
-                       <span style={{ opacity: 0.5 }}>...</span>
+                    {msg.isStreaming ? (
+                      <TypewriterText 
+                        content={msg.content} 
+                        chatContainerRef={chatContainerRef}
+                        onComplete={() => {
+                          setMessages(prev => {
+                            const updated = [...prev];
+                            const idx = updated.findIndex(m => m === msg);
+                            if (idx !== -1) {
+                              updated[idx] = { ...msg, isStreaming: false };
+                            }
+                            return updated;
+                          });
+                        }} 
+                      />
+                    ) : (
+                      msg.content || <span style={{ opacity: 0.5 }}>...</span>
                     )}
                   </div>
                 </motion.div>
