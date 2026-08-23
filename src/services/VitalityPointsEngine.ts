@@ -194,3 +194,8 @@ export function awardMysteryDrop(amount: number = 3): boolean {
   const todayStr = new Date().toISOString().split('T')[0];
   return awardPoints(amount, `✨ Daily Mystery Drop (+${amount} PTS)`, 'mystery', `mystery_${todayStr}`);
 }
+
+export function awardMythBusterPoints(): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(2, '🔮 Clinical MythBuster Solved', 'trivia', `mythbuster_${todayStr}`);
+}

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Trophy, Flame, Zap, Play, RotateCcw, CheckCircle2, XCircle, Gift, Brain, Heart, ChevronRight, Award, Compass, RefreshCw } from 'lucide-react';
-import { awardMindfulPoints, awardTriviaPoints, awardMysteryDrop, getVitalityState } from '../../services/VitalityPointsEngine';
+import { Sparkles, Trophy, Flame, Gift, Brain, HelpCircle, CheckCircle2, XCircle, Check, X, ShieldAlert } from 'lucide-react';
+import { awardTriviaPoints, awardMysteryDrop, awardMythBusterPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { getProfile, saveProfile } from '../../services/ProfileEngine';
 
 interface TriviaQuestion {
   id: number;
@@ -83,17 +82,63 @@ const TRIVIA_BANK: TriviaQuestion[] = [
   },
 ];
 
+interface MythBusterItem {
+  id: number;
+  statement: string;
+  isFact: boolean;
+  explanation: string;
+  category: string;
+}
+
+const MYTH_BANK: MythBusterItem[] = [
+  {
+    id: 1,
+    category: 'Joint Health',
+    statement: 'Cracking your knuckles causes long-term osteoarthritis in your fingers.',
+    isFact: false,
+    explanation: 'Extensive clinical research demonstrates knuckle popping simply releases harmless dissolved nitrogen gas bubbles in the synovial fluid.',
+  },
+  {
+    id: 2,
+    category: 'Thermogenesis',
+    statement: 'Mild cold exposure activates Brown Adipose Tissue (BAT) to burn stored triglycerides for heat.',
+    isFact: true,
+    explanation: 'Brown fat is rich in mitochondria expressing UCP-1, converting calories directly into heat through non-shivering thermogenesis.',
+  },
+  {
+    id: 3,
+    category: 'Brain Health',
+    statement: 'Consistent aerobic exercise triggers BDNF release and stimulates hippocampal neurogenesis.',
+    isFact: true,
+    explanation: 'Aerobic exertion releases Brain-Derived Neurotrophic Factor (BDNF), enhancing synapse density and memory resilience.',
+  },
+  {
+    id: 4,
+    category: 'Digestion & Metabolism',
+    statement: 'Drinking water with meals dilutes stomach acid to dangerous levels and halts digestion.',
+    isFact: false,
+    explanation: 'The stomach produces acid adaptively and water actually aids smooth peristalsis and bolus transit down the GI tract.',
+  },
+  {
+    id: 5,
+    category: 'Detoxification',
+    statement: 'Commercial juice cleanses are essential to flush accumulated toxins from the bloodstream.',
+    isFact: false,
+    explanation: 'Your liver and kidneys perform 24/7 detoxification continuously; juice cleanses often lack the amino acids needed for Phase II liver detox.',
+  },
+];
+
 export default function VitalityPlayground() {
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<'mystery' | 'trivia' | 'breath'>('mystery');
+  const [activeTab, setActiveTab] = useState<'mystery' | 'trivia' | 'myth'>('mystery');
   const todayStr = new Date().toISOString().split('T')[0];
 
   // Storage keys
   const mysteryKey = `hc_mystery_${todayStr}`;
   const triviaKey = `hc_trivia_${todayStr}`;
-  const breathKey = `hc_breath_${todayStr}`;
+  const mythKey = `hc_myth_${todayStr}`;
 
-  // State
+  // Mystery Drop State
   const [mysteryClaimed, setMysteryClaimed] = useState<number | null>(() => {
     try {
       const saved = localStorage.getItem(mysteryKey);
@@ -115,70 +160,20 @@ export default function VitalityPlayground() {
   });
   const [triviaSubmitted, setTriviaSubmitted] = useState<boolean>(false);
 
-  // Breathwork State
-  const [breathActive, setBreathActive] = useState(false);
-  const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale' | 'Rest'>('Inhale');
-  const [cycleCount, setCycleCount] = useState(0);
-  const [secondsRemaining, setSecondsRemaining] = useState(4);
-  const [breathCompletedToday, setBreathCompletedToday] = useState<boolean>(() => {
+  // MythBuster State
+  const [mythAnswered, setMythAnswered] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(breathKey) === 'true';
+      return localStorage.getItem(mythKey) === 'true';
     } catch {
       return false;
     }
   });
+  const [selectedMythChoice, setSelectedMythChoice] = useState<boolean | null>(null);
 
-  // Pick question based on day of year
+  // Day indexing
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
   const currentTrivia = TRIVIA_BANK[dayOfYear % TRIVIA_BANK.length];
-
-  // Breathwork timer loop
-  useEffect(() => {
-    if (!breathActive) return;
-
-    const timer = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          // Switch phase
-          if (breathPhase === 'Inhale') {
-            setBreathPhase('Hold');
-            triggerHapticLight();
-            return 4;
-          } else if (breathPhase === 'Hold') {
-            setBreathPhase('Exhale');
-            triggerHapticLight();
-            return 4;
-          } else if (breathPhase === 'Exhale') {
-            setBreathPhase('Rest');
-            triggerHapticLight();
-            return 4;
-          } else {
-            // Completed 1 full cycle
-            const nextCycle = cycleCount + 1;
-            setCycleCount(nextCycle);
-            if (nextCycle >= 3) {
-              // Finish 60s session!
-              setBreathActive(false);
-              setBreathCompletedToday(true);
-              try {
-                localStorage.setItem(breathKey, 'true');
-              } catch {}
-              awardMindfulPoints();
-              triggerHapticSuccess();
-              return 4;
-            } else {
-              setBreathPhase('Inhale');
-              triggerHapticLight();
-              return 4;
-            }
-          }
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [breathActive, breathPhase, cycleCount]);
+  const currentMyth = MYTH_BANK[dayOfYear % MYTH_BANK.length];
 
   const handleRevealMystery = () => {
     if (mysteryClaimed !== null || isRevealingMystery) return;
@@ -186,7 +181,6 @@ export default function VitalityPlayground() {
     setIsRevealingMystery(true);
 
     setTimeout(() => {
-      // Pick random drop (2 to 5 points)
       const possibleDrops = [2, 3, 4, 5, 3, 4];
       const drop = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
       setMysteryClaimed(drop);
@@ -216,20 +210,20 @@ export default function VitalityPlayground() {
     }
   };
 
-  const startBreathwork = () => {
-    triggerHapticLight();
-    setBreathPhase('Inhale');
-    setCycleCount(0);
-    setSecondsRemaining(4);
-    setBreathActive(true);
-  };
+  const handleMythChoice = (choice: boolean) => {
+    if (mythAnswered) return;
+    setSelectedMythChoice(choice);
+    setMythAnswered(true);
+    try {
+      localStorage.setItem(mythKey, 'true');
+    } catch {}
 
-  const resetBreathwork = () => {
-    triggerHapticLight();
-    setBreathActive(false);
-    setBreathPhase('Inhale');
-    setCycleCount(0);
-    setSecondsRemaining(4);
+    if (choice === currentMyth.isFact) {
+      awardMythBusterPoints();
+      triggerHapticSuccess();
+    } else {
+      triggerHapticWarning();
+    }
   };
 
   return (
@@ -246,7 +240,7 @@ export default function VitalityPlayground() {
         overflow: 'hidden',
       }}
     >
-      {/* Background ambient glow */}
+      {/* Ambient glow */}
       <div
         style={{
           position: 'absolute',
@@ -297,7 +291,7 @@ export default function VitalityPlayground() {
               <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>Play & Earn Points</span>
             </div>
             <h3 style={{ margin: '2px 0 0', fontSize: isMobile ? '16px' : '18px', fontWeight: 700, letterSpacing: '-0.2px' }}>
-              Wellness Habits & Instant Boosters
+              Longevity Micro-Challenges & Quizzes
             </h3>
           </div>
         </div>
@@ -370,7 +364,7 @@ export default function VitalityPlayground() {
           <button
             onClick={() => {
               triggerHapticLight();
-              setActiveTab('breath');
+              setActiveTab('myth');
             }}
             style={{
               padding: isMobile ? '6px 10px' : '6px 14px',
@@ -382,15 +376,15 @@ export default function VitalityPlayground() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: activeTab === 'breath' ? '#10B981' : 'transparent',
-              color: activeTab === 'breath' ? '#FFFFFF' : '#94A3B8',
+              background: activeTab === 'myth' ? '#10B981' : 'transparent',
+              color: activeTab === 'myth' ? '#FFFFFF' : '#94A3B8',
               transition: 'all 0.15s ease',
               flex: isMobile ? 1 : 'unset',
               justifyContent: 'center',
             }}
           >
-            <Heart size={14} />
-            <span>HRV Reset</span>
+            <HelpCircle size={14} />
+            <span>Myth vs Fact</span>
           </button>
         </div>
       </div>
@@ -437,7 +431,7 @@ export default function VitalityPlayground() {
                 </p>
               </div>
 
-              {/* Interactive Card/Chest */}
+              {/* Interactive Chest */}
               <button
                 onClick={handleRevealMystery}
                 disabled={mysteryClaimed !== null || isRevealingMystery}
@@ -601,10 +595,10 @@ export default function VitalityPlayground() {
             </motion.div>
           )}
 
-          {/* TAB 3: 60S MINDFUL HRV RESET (BREATHWORK) */}
-          {activeTab === 'breath' && (
+          {/* TAB 3: MYTH VS FACT (CLINICAL MYTHBUSTER) */}
+          {activeTab === 'myth' && (
             <motion.div
-              key="tab-breath"
+              key="tab-myth"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
@@ -614,139 +608,115 @@ export default function VitalityPlayground() {
                 borderRadius: '18px',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 padding: isMobile ? '16px' : '20px 24px',
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '20px',
               }}
             >
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Heart size={13} color="#A78BFA" /> 4-4-4 Box Breathing
-                  </span>
-                  <span style={{ background: 'rgba(167, 139, 250, 0.15)', color: '#DDD6FE', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px' }}>
-                    +3 PTS
-                  </span>
-                </div>
-                <h4 style={{ margin: '0 0 4px', fontSize: '16.5px', fontWeight: 800, color: '#FFFFFF' }}>
-                  {breathCompletedToday ? '✨ 60s Breathwork Complete!' : '60-Second Vagal Nerve Calming Rhythm'}
-                </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', lineHeight: 1.4 }}>
-                  {breathCompletedToday
-                    ? 'Great job! You engaged parasympathetic recovery and collected +3 Vitality Points.'
-                    : 'Follow the glowing rhythm for 3 cycles (1 minute) to boost HRV, lower acute cortisol, and earn points.'}
-                </p>
-
-                {/* Status / Controls */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '14px' }}>
-                  {!breathActive ? (
-                    <button
-                      onClick={startBreathwork}
-                      style={{
-                        padding: '8px 16px',
-                        borderRadius: '10px',
-                        background: '#10B981',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                      }}
-                    >
-                      <Play size={14} fill="#FFFFFF" /> {breathCompletedToday ? 'Repeat Practice' : 'Begin 60s Reset'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={resetBreathwork}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '10px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        color: '#CBD5E1',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <RotateCcw size={13} /> Stop / Reset
-                    </button>
-                  )}
-                  {breathActive && (
-                    <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>
-                      Cycle {cycleCount + 1} of 3
-                    </span>
-                  )}
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#F472B6', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <HelpCircle size={13} color="#F472B6" /> {currentMyth.category} · Myth vs Fact
+                </span>
+                <span style={{ background: 'rgba(244, 114, 182, 0.15)', color: '#FBCFE8', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px' }}>
+                  +2 PTS Reward
+                </span>
               </div>
 
-              {/* Dynamic Animated Breathing Sphere */}
-              <div
-                style={{
-                  width: '130px',
-                  height: '130px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  flexShrink: 0,
-                }}
-              >
-                <motion.div
-                  animate={{
-                    scale: breathActive
-                      ? breathPhase === 'Inhale'
-                        ? 1.3
-                        : breathPhase === 'Exhale'
-                        ? 0.8
-                        : breathPhase === 'Hold'
-                        ? 1.3
-                        : 0.8
-                      : 1,
-                  }}
-                  transition={{ duration: 4, ease: 'easeInOut' }}
+              <h4 style={{ margin: '0 0 16px', fontSize: isMobile ? '14.5px' : '16px', fontWeight: 700, color: '#F8FAFC', lineHeight: 1.4 }}>
+                "{currentMyth.statement}"
+              </h4>
+
+              {/* 2 Big Action Buttons: Myth vs Fact */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <button
+                  onClick={() => handleMythChoice(false)}
+                  disabled={mythAnswered}
                   style={{
-                    width: '90px',
-                    height: '90px',
-                    borderRadius: '50%',
-                    background: breathActive
-                      ? breathPhase === 'Inhale'
-                        ? 'radial-gradient(circle, #34D399 0%, #059669 80%)'
-                        : breathPhase === 'Hold'
-                        ? 'radial-gradient(circle, #60A5FA 0%, #2563EB 80%)'
-                        : 'radial-gradient(circle, #A78BFA 0%, #7C3AED 80%)'
-                      : 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.15) 80%)',
-                    boxShadow: breathActive
-                      ? '0 0 35px rgba(52, 211, 153, 0.5)'
-                      : '0 0 15px rgba(16, 185, 129, 0.15)',
+                    padding: '12px',
+                    borderRadius: '14px',
+                    background: mythAnswered
+                      ? !currentMyth.isFact
+                        ? 'rgba(16, 185, 129, 0.25)'
+                        : selectedMythChoice === false
+                        ? 'rgba(239, 68, 68, 0.25)'
+                        : 'rgba(255, 255, 255, 0.04)'
+                      : 'rgba(239, 68, 68, 0.15)',
+                    border: mythAnswered
+                      ? !currentMyth.isFact
+                        ? '1.5px solid #10B981'
+                        : selectedMythChoice === false
+                        ? '1.5px solid #EF4444'
+                        : '1px solid rgba(255, 255, 255, 0.08)'
+                      : '1.5px solid rgba(239, 68, 68, 0.3)',
+                    color: '#FFFFFF',
+                    fontSize: '13.5px',
+                    fontWeight: 800,
+                    cursor: mythAnswered ? 'default' : 'pointer',
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#FFFFFF',
-                    textAlign: 'center',
-                    border: '1.5px solid rgba(255, 255, 255, 0.3)',
+                    gap: '8px',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {breathActive ? breathPhase : 'Calm'}
-                  </span>
-                  {breathActive && (
-                    <span style={{ fontSize: '16px', fontWeight: 900, marginTop: '2px' }}>
-                      {secondsRemaining}s
-                    </span>
-                  )}
-                </motion.div>
+                  <X size={16} color="#F87171" strokeWidth={3} />
+                  <span>❌ It's a Myth</span>
+                </button>
+
+                <button
+                  onClick={() => handleMythChoice(true)}
+                  disabled={mythAnswered}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '14px',
+                    background: mythAnswered
+                      ? currentMyth.isFact
+                        ? 'rgba(16, 185, 129, 0.25)'
+                        : selectedMythChoice === true
+                        ? 'rgba(239, 68, 68, 0.25)'
+                        : 'rgba(255, 255, 255, 0.04)'
+                      : 'rgba(16, 185, 129, 0.15)',
+                    border: mythAnswered
+                      ? currentMyth.isFact
+                        ? '1.5px solid #10B981'
+                        : selectedMythChoice === true
+                        ? '1.5px solid #EF4444'
+                        : '1px solid rgba(255, 255, 255, 0.08)'
+                      : '1.5px solid rgba(16, 185, 129, 0.3)',
+                    color: '#FFFFFF',
+                    fontSize: '13.5px',
+                    fontWeight: 800,
+                    cursor: mythAnswered ? 'default' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Check size={16} color="#34D399" strokeWidth={3} />
+                  <span>✔️ It's a Fact</span>
+                </button>
               </div>
+
+              {/* Explanation Note */}
+              {mythAnswered && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    fontSize: '12.5px',
+                    color: '#E2E8F0',
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <strong style={{ color: currentMyth.isFact ? '#34D399' : '#F87171' }}>
+                    {currentMyth.isFact ? '✔️ VERIFIED CLINICAL FACT: ' : '❌ DEBUNKED MYTH: '}
+                  </strong>
+                  {currentMyth.explanation}
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
