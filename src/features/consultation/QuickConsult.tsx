@@ -12,12 +12,14 @@ import {
   Upload,
   Image,
   X,
-  FileUp
+  FileUp,
+  Loader2
 } from 'lucide-react';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, getCase, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
-import { generateCaseConnectionMap, parseModelJson } from '../../services/geminiService';
+import { generateCaseConnectionMap, parseModelJson, analyzeLabReport } from '../../services/geminiService';
+import { getProfile } from '../../services/ProfileEngine';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
@@ -150,15 +152,45 @@ export default function QuickConsult() {
   };
 
   
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+
   const handleSkipUpload = () => {
     setPhase('chat');
   };
 
-  const handleProceedWithUpload = () => {
-    // If files were uploaded, we'll pass them as context via symptomInput
+  const handleProceedWithUpload = async () => {
     if (uploadedFiles.length > 0) {
-      const fileNames = uploadedFiles.map(f => f.name).join(', ');
-      setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
+      setIsProcessingFiles(true);
+      try {
+        let extractedContext = '';
+        const profile = getProfile() || {};
+        for (const file of uploadedFiles) {
+          const reader = new FileReader();
+          const base64Data = await new Promise<string>((resolve) => {
+            reader.onload = (e) => resolve((e.target?.result as string).split(',')[1]);
+            reader.readAsDataURL(file);
+          });
+          const result = await analyzeLabReport(base64Data, file.type, profile);
+          if (result) {
+            extractedContext += `\n\n--- Document: ${file.name} ---\n`;
+            extractedContext += `Test/Report Type: ${result.testName || 'Lab Report'}\n`;
+            extractedContext += `Key Findings: ${result.keyFindings || 'Findings extracted'}\n`;
+            if (result.interpretation) extractedContext += `Interpretation: ${result.interpretation}\n`;
+          }
+        }
+        if (extractedContext) {
+          setSymptomInput(prev => (prev ? prev + extractedContext : extractedContext.trim()));
+        } else {
+          const fileNames = uploadedFiles.map(f => f.name).join(', ');
+          setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
+        }
+      } catch (err) {
+        console.error('Error parsing files in Quick Consult:', err);
+        const fileNames = uploadedFiles.map(f => f.name).join(', ');
+        setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
+      } finally {
+        setIsProcessingFiles(false);
+      }
     }
     setPhase('chat');
   };
@@ -585,14 +617,15 @@ export default function QuickConsult() {
               </button>
               {uploadedFiles.length > 0 && (
                 <button
-                  onClick={() => setPhase('chat')}
+                  onClick={handleProceedWithUpload}
+                  disabled={isProcessingFiles}
                   style={{
                     padding: '14px 28px',
-                    background: '#0F172A',
+                    background: isProcessingFiles ? '#64748B' : '#0F172A',
                     color: '#FFF',
                     border: 'none',
                     borderRadius: 999,
-                    cursor: 'pointer',
+                    cursor: isProcessingFiles ? 'not-allowed' : 'pointer',
                     fontSize: 15,
                     fontWeight: 700,
                     display: 'flex',
@@ -601,7 +634,9 @@ export default function QuickConsult() {
                     transition: 'all 0.2s'
                   }}
                 >
-                  Continue with {uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''} <ArrowRight size={16} />
+                  {isProcessingFiles ? <Loader2 size={16} className="spin" /> : null}
+                  {isProcessingFiles ? 'Extracting Lab Findings...' : `Continue with ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`}
+                  {!isProcessingFiles && <ArrowRight size={16} />}
                 </button>
               )}
             </div>

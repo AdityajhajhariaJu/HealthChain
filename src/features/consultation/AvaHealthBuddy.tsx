@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { chatWithTherapyGemini } from '../../services/geminiService';
+import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiService';
 import { addEvent } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
@@ -199,9 +199,23 @@ export default function AvaHealthBuddy() {
     }
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const base64Data = event.target?.result as string;
-      setAttachments(prev => [...prev, { name: file.name, data: base64Data }]);
+      const cleanBase64 = base64Data.split(',')[1];
+      const attachmentItem: { name: string; data: string; findings?: string } = { name: file.name, data: base64Data };
+
+      // Pre-extract document findings so Ava understands exact lab values
+      try {
+        const profile = getProfile() || {};
+        const parsed = await analyzeLabReport(cleanBase64, file.type, profile);
+        if (parsed?.keyFindings) {
+          attachmentItem.findings = `Test: ${parsed.testName || 'Lab/Image Report'} | Key Findings: ${parsed.keyFindings}${parsed.interpretation ? ' | Interpretation: ' + parsed.interpretation : ''}`;
+        }
+      } catch (e) {
+        console.error('Error pre-analyzing file in Ava:', e);
+      }
+
+      setAttachments(prev => [...prev, attachmentItem]);
     };
     reader.readAsDataURL(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -218,8 +232,8 @@ export default function AvaHealthBuddy() {
         if (userMessageCount >= 5) {
           window.dispatchEvent(new CustomEvent('hc_require_auth', { 
             detail: { 
-              title: 'Guest Limit Reached', 
-              message: 'You have reached the guest limit of 5 messages. Please log in or sign up to continue chatting with Ava.' 
+            title: 'Guest Limit Reached', 
+            message: 'You have reached the guest limit of 5 messages. Please log in or sign up to continue chatting with Ava.' 
             } 
           }));
           return;
@@ -229,11 +243,15 @@ export default function AvaHealthBuddy() {
 
     let finalContent = text.trim();
     if (attachments.length > 0) {
-      const attachStr = attachments.map(a => `[Attached Document: ${a.name}]`).join('\n');
+      const attachStr = attachments.map((a: any) => {
+        return a.findings
+          ? `[Attached Document: ${a.name}\n${a.findings}]`
+          : `[Attached Document: ${a.name}]`;
+      }).join('\n\n');
       finalContent = finalContent ? `${finalContent}\n\n${attachStr}` : attachStr;
     }
 
-    const newMessages = [...messages, { role: 'user', content: finalContent, attachments: attachments.map(a => a.name) }];
+    const newMessages = [...messages, { role: 'user', content: finalContent, attachments: attachments.map((a: any) => a.name) }];
     setMessages(newMessages);
     setInput('');
     setAttachments([]);
