@@ -8,6 +8,7 @@ playwright-report/
 test-results/
 
 # Ignore python scripts or build stats
+scripts/
 bundle-stats.html
 *.py
 *.ps1
