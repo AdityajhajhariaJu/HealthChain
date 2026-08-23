@@ -23,6 +23,7 @@ import {
   X,
   Bot,
   Trophy,
+  Flame,
   Bell,
   Stethoscope,
   ClipboardList
@@ -154,9 +155,10 @@ export default function AppShell() {
             }}
             title="View Vitality Points & Daily Rewards"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Trophy size={16} color="#059669" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Trophy size={15} color="#059669" />
               <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
+              <Flame size={14} color="#EA580C" fill="#F97316" />
             </div>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
           </button>
@@ -250,11 +252,21 @@ export default function AppShell() {
                     triggerHapticLight();
                     window.dispatchEvent(new Event('hc_open_points_modal'));
                   }}
-                  style={{ cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
+                  style={{
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: '#ffffff',
+                    padding: '5px 9px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    borderRadius: '20px',
+                  }}
                   aria-label="View Vitality Points & Daily Rewards"
                 >
                   <Trophy size={14} color="var(--teal)" />
-                  <span>{points} PTS</span>
+                  <span style={{ fontWeight: 800 }}>{points} PTS</span>
+                  <Flame size={13} color="#EA580C" fill="#F97316" />
                 </button>
                 <button className="mobile-top-bar__bell" aria-label="View notifications">
                   <Bell size={18} aria-hidden="true" />
