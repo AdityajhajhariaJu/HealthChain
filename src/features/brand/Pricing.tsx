@@ -227,11 +227,11 @@ export default function Pricing() {
         <h1 style={{ fontSize: isMobile ? '30px' : '46px', fontWeight: 900, color: '#0F172A', marginBottom: '14px', letterSpacing: '-1.5px', lineHeight: 1.15 }}>
           Invest in Clarity. Resolve Medical Ambiguity.
         </h1>
-        <p style={{ fontSize: isMobile ? '15px' : '17px', color: '#64748B', maxWidth: '720px', margin: '0 auto 16px', lineHeight: 1.5 }}>
-          Equip yourself with parallel AI specialist evaluations, autonomous J.A.R.V.I.S. biomarker cross-correlation, and structured clinical dossiers before your next doctor appointment.
+        <p style={{ fontSize: isMobile ? '15px' : '17px', color: '#64748B', maxWidth: '780px', margin: '0 auto 16px', lineHeight: 1.5 }}>
+          Equip yourself with parallel AI specialist evaluations, autonomous J.A.R.V.I.S. biomarker cross-correlation, and structured clinical dossiers before your next doctor appointment. Burn through your limits early? You can always buy top-ups individually later.
         </p>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#F8FAFC', borderRadius: '20px', fontSize: '13px', color: '#475569', border: '1px solid #E2E8F0' }}>
-          <Info size={15} color="#059669" /> All plans include full profile persistence & bank-grade AES-256 data privacy.
+          <Info size={15} color="#059669" /> Any purchased top-ups expire when your base subscription expires.
         </div>
       </div>
 
