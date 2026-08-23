@@ -514,30 +514,35 @@ export default function Dietician() {
               display: 'flex',
               gap: '4px',
               background: '#FFFFFF',
-              padding: '6px',
+              padding: '4px 6px',
               borderRadius: '14px',
               border: '1px solid #E2E8F0',
               boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
               overflowX: 'auto',
+              width: isMobile ? '100%' : 'auto',
               maxWidth: '100%',
+              flexWrap: 'nowrap',
+              WebkitOverflowScrolling: 'touch',
+              alignItems: 'center',
             }}
           >
             <button
               onClick={() => setActiveTab('dashboard')}
               style={{
-                padding: '8px 16px',
+                padding: isMobile ? '8px 12px' : '8px 16px',
                 borderRadius: '10px',
                 border: 'none',
                 background: activeTab === 'dashboard' ? '#0F172A' : 'transparent',
                 color: activeTab === 'dashboard' ? '#FFFFFF' : '#64748B',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: isMobile ? '12.5px' : '13px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               <Target size={15} /> Dashboard
@@ -545,19 +550,20 @@ export default function Dietician() {
             <button
               onClick={() => setActiveTab('mealplan')}
               style={{
-                padding: '8px 16px',
+                padding: isMobile ? '8px 12px' : '8px 16px',
                 borderRadius: '10px',
                 border: 'none',
                 background: activeTab === 'mealplan' ? '#0F172A' : 'transparent',
                 color: activeTab === 'mealplan' ? '#FFFFFF' : '#64748B',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: isMobile ? '12.5px' : '13px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               <Calendar size={15} /> 7-Day Plan
@@ -565,19 +571,20 @@ export default function Dietician() {
             <button
               onClick={() => setActiveTab('grocery')}
               style={{
-                padding: '8px 16px',
+                padding: isMobile ? '8px 12px' : '8px 16px',
                 borderRadius: '10px',
                 border: 'none',
                 background: activeTab === 'grocery' ? '#0F172A' : 'transparent',
                 color: activeTab === 'grocery' ? '#FFFFFF' : '#64748B',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: isMobile ? '12.5px' : '13px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               <ShoppingCart size={15} /> Grocery List
@@ -585,24 +592,25 @@ export default function Dietician() {
             <button
               onClick={() => setActiveTab('guardrails')}
               style={{
-                padding: '8px 16px',
+                padding: isMobile ? '8px 12px' : '8px 16px',
                 borderRadius: '10px',
                 border: 'none',
                 background: activeTab === 'guardrails' ? '#0F172A' : 'transparent',
                 color: activeTab === 'guardrails' ? '#FFFFFF' : '#64748B',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: isMobile ? '12.5px' : '13px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               <ShieldCheck size={15} /> Guardrails
             </button>
-            <div style={{ width: '1px', height: '22px', background: '#E2E8F0', margin: '6px 2px' }} />
+            <div style={{ width: '1px', height: '22px', background: '#E2E8F0', margin: '6px 2px', flexShrink: 0 }} />
             <button
               onClick={() => {
                 if (window.confirm('Reset your personalized diet profile and targets?')) {
@@ -631,6 +639,7 @@ export default function Dietician() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '8px',
+                flexShrink: 0,
               }}
               title="Reset Profile"
             >
