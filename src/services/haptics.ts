@@ -23,3 +23,11 @@ export const triggerHapticSuccess = async () => {
     // Ignore
   }
 };
+
+export const triggerHapticWarning = async () => {
+  try {
+    await Haptics.notification({ type: 'WARNING' as any });
+  } catch (e) {
+    // Ignore
+  }
+};

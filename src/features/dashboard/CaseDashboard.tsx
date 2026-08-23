@@ -31,6 +31,7 @@ import { RichReportTemplate, Accordion, cleanClinicalText } from '../../componen
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 import { parseModelJson } from '../../services/modelJson';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
+import VitalityPlayground from '../../components/ui/VitalityPlayground';
 
 const formatDate = (value: string) => {
   try {
@@ -206,6 +207,7 @@ export default function CaseDashboard() {
       </div>
 
       <DailySymptomCheckinWidget />
+      <VitalityPlayground />
 
       <div
         style={{

@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, X, Zap, Sparkles, CheckCircle2, ArrowRight, Flame, Droplets, HeartPulse, Award, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Trophy, X, Zap, Sparkles, CheckCircle2, ArrowRight, Flame, Droplets, HeartPulse, Award, ShieldCheck, ChevronRight, Gift, Brain, Heart } from 'lucide-react';
 import { getVitalityState, TIERS, VitalityState } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate } from 'react-router-dom';
@@ -278,7 +278,85 @@ export default function VitalityPointsModal() {
                   )}
                 </div>
 
-                {/* Quest 4: Clinical Consult */}
+                {/* Quest 4: Mystery Drop */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '16px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Gift size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>Daily Mystery Vitality Drop</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>Tap to claim your daily random drop</div>
+                    </div>
+                  </div>
+                  <button onClick={() => handleQuestAction('/app/today')} className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                    Play (+1-5 PTS)
+                  </button>
+                </div>
+
+                {/* Quest 5: Longevity Brain Byte */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '16px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F0F9FF', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Brain size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>Longevity Brain Byte Quiz</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>Daily evidence-based micro trivia</div>
+                    </div>
+                  </div>
+                  <button onClick={() => handleQuestAction('/app/today')} className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                    Quiz (+2 PTS)
+                  </button>
+                </div>
+
+                {/* Quest 6: Mindful Breathwork */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 16px',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '16px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FAF5FF', color: '#7E22CE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Heart size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>60-Sec Mindful HRV Reset</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>4-4-4 Calming Vagal Nerve Rhythm</div>
+                    </div>
+                  </div>
+                  <button onClick={() => handleQuestAction('/app/today')} className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                    Reset (+3 PTS)
+                  </button>
+                </div>
+
+                {/* Quest 7: Clinical Consult */}
                 <div
                   style={{
                     display: 'flex',

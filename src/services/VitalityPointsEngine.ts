@@ -1,11 +1,11 @@
-﻿import { getProfile, saveProfile } from './ProfileEngine';
+import { getProfile, saveProfile } from './ProfileEngine';
 import { triggerHapticSuccess } from './haptics';
 
 export interface PointsTransaction {
   id: string;
   amount: number;
   reason: string;
-  category: 'welcome' | 'signup' | 'streak' | 'consult' | 'checkin' | 'lifestyle' | 'research' | 'milestone';
+  category: 'welcome' | 'signup' | 'streak' | 'consult' | 'checkin' | 'lifestyle' | 'research' | 'milestone' | 'mindful' | 'trivia' | 'mystery';
   date: string;
   icon?: string;
 }
@@ -178,4 +178,19 @@ export function ensureWelcomeGrant(): void {
 
 export function awardSignupBonus(): void {
   awardPoints(5, 'Account Created Bonus', 'signup', 'bonus_account_signup');
+}
+
+export function awardMindfulPoints(): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(3, '🧘 60s Mindful HRV Reset', 'mindful', `mindful_${todayStr}`);
+}
+
+export function awardTriviaPoints(): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(2, '🧠 Longevity Brain Byte Solved', 'trivia', `trivia_${todayStr}`);
+}
+
+export function awardMysteryDrop(amount: number = 3): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(amount, `✨ Daily Mystery Drop (+${amount} PTS)`, 'mystery', `mystery_${todayStr}`);
 }
