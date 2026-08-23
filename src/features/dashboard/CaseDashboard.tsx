@@ -33,6 +33,7 @@ import { parseModelJson } from '../../services/modelJson';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import VitalityPlayground from '../../components/ui/VitalityPlayground';
+import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 
 const formatDate = (value: string) => {
   try {
@@ -210,6 +211,7 @@ export default function CaseDashboard() {
       <DailySymptomCheckinWidget />
       <MindfulHRVCard />
       <VitalityPlayground />
+      <LongevityBioStackCard />
 
       <div
         style={{

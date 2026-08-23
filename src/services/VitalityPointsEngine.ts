@@ -199,3 +199,18 @@ export function awardMythBusterPoints(): boolean {
   const todayStr = new Date().toISOString().split('T')[0];
   return awardPoints(2, '🔮 Clinical MythBuster Solved', 'trivia', `mythbuster_${todayStr}`);
 }
+
+export function awardPhytoPoints(): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(2, '🌈 Phytonutrient Rainbow Shield', 'lifestyle', `phyto_${todayStr}`);
+}
+
+export function awardHydrationPoints(): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(2, '💧 Optimal Cellular Osmosis Goal', 'lifestyle', `hydration_${todayStr}`);
+}
+
+export function awardMicroMovementPoints(): boolean {
+  const todayStr = new Date().toISOString().split('T')[0];
+  return awardPoints(2, '⚡ 90s Posture & Metabolic Flow', 'lifestyle', `movement_${todayStr}`);
+}
