@@ -379,8 +379,9 @@ export default function AppShell() {
                   </button>
                 </div>
 
-                <div style={{ padding: '0 20px 24px 20px', marginTop: 'auto' }}>
+                <div style={{ padding: '0 16px 18px 16px', marginTop: 'auto' }}>
                   <UpgradeToProCard
+                    compact
                     isPro={!!profile?.isPro}
                     onNavigate={() => setShowMoreMenu(false)}
                   />
