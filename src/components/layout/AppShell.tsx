@@ -362,25 +362,170 @@ export default function AppShell() {
                     </button>
                   )})}
                   <button 
-                    onClick={() => navigate('/app/settings')} 
+                    onClick={() => {
+                      setShowMoreMenu(false);
+                      navigate('/app/settings');
+                    }} 
                     className="more-menu-item"
                     style={{ border: 'none', background: 'none', outline: 'none' }}
                   >
                     <Settings size={24} />
                     <span>Settings</span>
                   </button>
-                  {!profile?.isPro && (
-                    <button 
+                </div>
+
+                <div style={{ padding: '0 20px 24px 20px', marginTop: 'auto' }}>
+                  {!profile?.isPro ? (
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => {
+                        triggerHapticLight();
                         setShowMoreMenu(false);
                         navigate('/pricing');
                       }}
-                      className="more-menu-item"
-                      style={{ border: 'none', background: 'none', outline: 'none' }}
+                      style={{
+                        width: '100%',
+                        padding: '14px 16px',
+                        borderRadius: '20px',
+                        background: 'linear-gradient(135deg, #064E3B 0%, #047857 50%, #0F172A 100%)',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        boxShadow: '0 10px 25px -5px rgba(4, 120, 87, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                        color: '#FFFFFF',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
                     >
-                      <Lock size={24} />
-                      <span>Upgrade to Premium</span>
-                    </button>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '-20px',
+                          right: '-20px',
+                          width: '100px',
+                          height: '100px',
+                          borderRadius: '50%',
+                          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, transparent 70%)',
+                          filter: 'blur(10px)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
+                            color: '#FFFFFF',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Sparkles size={20} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                            <span style={{ fontWeight: 800, fontSize: '14px', letterSpacing: '-0.2px', whiteSpace: 'nowrap' }}>Upgrade to Pro</span>
+                            <span
+                              style={{
+                                fontSize: '9px',
+                                fontWeight: 800,
+                                textTransform: 'uppercase',
+                                padding: '2px 6px',
+                                borderRadius: '999px',
+                                background: 'rgba(245, 158, 11, 0.25)',
+                                border: '1px solid rgba(245, 158, 11, 0.5)',
+                                color: '#FDE68A',
+                                letterSpacing: '0.5px',
+                              }}
+                            >
+                              Pro
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '11px', color: 'rgba(255, 255, 255, 0.75)', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            Unlock MDT consensus & clinical tools
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          borderRadius: '50%',
+                          background: 'rgba(255, 255, 255, 0.15)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFFFFF',
+                          flexShrink: 0,
+                          zIndex: 1,
+                          marginLeft: '8px',
+                        }}
+                      >
+                        <ArrowRight size={15} />
+                      </div>
+                    </motion.button>
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '16px',
+                        background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDFA 100%)',
+                        border: '1px solid rgba(5, 150, 105, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background: '#047857',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#FFFFFF',
+                          }}
+                        >
+                          <Sparkles size={16} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '13px', color: '#065F46' }}>HealthChain Pro Active</div>
+                          <div style={{ fontSize: '11px', color: '#047857' }}>All clinical tools & quota unlocked</div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowMoreMenu(false);
+                          navigate('/pricing');
+                        }}
+                        style={{
+                          border: 'none',
+                          background: '#047857',
+                          color: '#FFFFFF',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          borderRadius: '8px',
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Manage
+                      </button>
+                    </div>
                   )}
                 </div>
               </motion.div>
