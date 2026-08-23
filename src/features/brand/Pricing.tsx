@@ -22,7 +22,8 @@ import {
   ChevronUp,
   HelpCircle,
   Clock,
-  Shield
+  Shield,
+  Trophy
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -42,6 +43,7 @@ const BASIC_FEATURES: FeatureItem[] = [
   { name: 'Ava Health Buddy (10 Replies)', desc: 'Concierge medical Q&A', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Pharmacy Hub (Unlimited)', desc: 'Interactions & safe dosage', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
   { name: 'Lab Report PDF Analyzer', desc: 'Basic vital extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: 'Vitality Points & Rewards System', desc: 'Daily arcade, streaks & tier medals', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const PRO_30_FEATURES: FeatureItem[] = [
@@ -53,6 +55,8 @@ const PRO_30_FEATURES: FeatureItem[] = [
   { name: 'Clinical Dietician (Unlimited)', desc: 'Precision metabolic meal plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
   { name: 'Pharmacy Hub & Drug Interactions', desc: 'Full profile contraindication screening', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
   { name: 'Lab Report PDF Analyzer (Full)', desc: 'Sub-clinical biomarkers & graph trends', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: 'Medical Profile & Encrypted Vault', desc: 'Permanent personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Vitality Points & Rewards System', desc: 'Full arcade access & tier progression', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const PRO_90_FEATURES: FeatureItem[] = [
@@ -64,6 +68,8 @@ const PRO_90_FEATURES: FeatureItem[] = [
   { name: 'Clinical Dietician (Unlimited)', desc: 'Condition-specific Indian nutritional plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
   { name: 'Pharmacy Hub & Interactions', desc: 'Real-time multi-drug safety monitoring', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
   { name: 'Lab Report PDF Analyzer (Full)', desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: 'Medical Profile & Encrypted Vault', desc: 'Permanent personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Vitality Points & Rewards System', desc: 'Full arcade access & tier progression', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const FAQS = [
