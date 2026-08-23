@@ -41,7 +41,7 @@ import FeedbackWidget from '../ui/FeedbackWidget';
 import { AuthModal } from '../ui/AuthModal';
 import VitalityPointsModal from '../ui/VitalityPointsModal';
 import PointsAwardedToast from '../ui/PointsAwardedToast';
-import { getVitalityPoints } from '../../services/VitalityPointsEngine';
+import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -80,6 +80,8 @@ export default function AppShell() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [profile, setProfile] = useState(getProfile());
   const [points, setPoints] = useState(getVitalityPoints());
+  const [vitalityState, setVitalityState] = useState(() => getVitalityState());
+  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
 
   const handleNavClick = (path: string) => {
     triggerHapticLight();
@@ -106,9 +108,11 @@ export default function AppShell() {
     const handleProfileUpdate = () => {
       setProfile(getProfile());
       setPoints(getVitalityPoints());
+      setVitalityState(getVitalityState());
     };
     const handlePointsUpdate = () => {
       setPoints(getVitalityPoints());
+      setVitalityState(getVitalityState());
     };
     window.addEventListener('hc_cases_updated', loadHistory);
     window.addEventListener('hc_profile_updated', handleProfileUpdate);
@@ -158,7 +162,7 @@ export default function AppShell() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Trophy size={15} color="#059669" />
               <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
-              <Flame size={14} color="#EA580C" fill="#F97316" />
+              <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
             </div>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
           </button>
@@ -266,7 +270,7 @@ export default function AppShell() {
                 >
                   <Trophy size={14} color="var(--teal)" />
                   <span style={{ fontWeight: 800 }}>{points} PTS</span>
-                  <Flame size={13} color="#EA580C" fill="#F97316" />
+                  <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
                 </button>
                 <button className="mobile-top-bar__bell" aria-label="View notifications">
                   <Bell size={18} aria-hidden="true" />
