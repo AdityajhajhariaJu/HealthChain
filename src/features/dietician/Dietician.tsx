@@ -295,10 +295,6 @@ export default function Dietician() {
     }
   }, [profile, advice]);
 
-  if (!profile) {
-    return <OnboardingWizard onComplete={(p) => setProfile({ ...p, ...calculateTargets(p) })} />;
-  }
-
   // Derived state for current day
   const todayLogs = foodLogs[currentDate] || [];
   const { consumedCalories, consumedProtein, consumedCarbs, consumedFat } = useMemo(() => {
@@ -309,6 +305,11 @@ export default function Dietician() {
       consumedFat: todayLogs.reduce((sum: number, item: any) => sum + (item.fat || 0), 0)
     };
   }, [todayLogs]);
+
+  if (!profile) {
+    return <OnboardingWizard onComplete={(p) => setProfile({ ...p, ...calculateTargets(p) })} />;
+  }
+
   const waterGlasses = hydration[currentDate] || 0;
 
   const handleAddFood = async () => {
@@ -420,7 +421,7 @@ export default function Dietician() {
 
   const copyGroceryListText = () => {
     triggerHapticLight();
-    let text = `🛒 HealthChain 7-Day Grocery List (${profile.cuisine || 'Healthy'} Plan)\n\n`;
+    let text = `🛒 HealthChain 7-Day Grocery List (${profile?.cuisine || 'Healthy'} Plan)\n\n`;
     groceryList.forEach(cat => {
       text += `${cat.emoji} ${cat.category}\n`;
       cat.items.forEach((item: any) => {
