@@ -65,9 +65,9 @@ export default async function handler(req, res) {
 
   // Development and production allow guest access up to 5 messages, enforced by local storage on frontend.
 
-  if (!checkRateLimit(req, 60, 60000)) return res.status(429).json({ error: 'Too many requests' });
-  if (userId && !checkRateLimit(req, 30, 60000, userId)) {
-    return res.status(429).json({ error: 'Too many AI requests for this account. Please try again in a moment.' });
+  if (!checkRateLimit(req, 40, 60000)) return res.status(429).json({ error: 'Too many requests' });
+  if (userId && !checkRateLimit(req, 15, 60000, userId)) {
+    return res.status(429).json({ error: 'Too many AI requests for this account. Please try again shortly.' });
   }
 
   const requestId = req.headers['x-hc-request-id'];
@@ -124,7 +124,7 @@ export default async function handler(req, res) {
       .single();
 
     const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
-    const dailyLimit = isPro ? 1000 : 30;
+    const dailyLimit = isPro ? 500 : 10;
 
     const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
       p_user_id: userId,
