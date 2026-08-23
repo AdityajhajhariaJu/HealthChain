@@ -34,6 +34,7 @@ import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import VitalityPlayground from '../../components/ui/VitalityPlayground';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
+import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
 
 const formatDate = (value: string) => {
   try {
@@ -177,36 +178,7 @@ export default function CaseDashboard() {
       </div>
 
       {/* Premium Section */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          alignItems: isMobile ? 'flex-start' : 'center',
-          justifyContent: 'space-between',
-          gap: isMobile ? 12 : 0,
-          padding: '16px',
-          background: isPremium ? 'var(--teal-light)' : '#F3E8FF',
-          borderRadius: 'var(--radius-lg)',
-          border: `1px solid ${isPremium ? 'var(--teal)' : '#D8B4FE'}`,
-          marginBottom: '28px',
-        }}
-      >
-        <div>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: isPremium ? 'var(--teal)' : '#6B21A8', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Star size={18} />
-            {isPremium ? 'HealthChain Premium Active' : 'Upgrade to Premium'}
-          </div>
-          <div style={{ fontSize: '13px', color: isPremium ? 'var(--teal)' : '#7E22CE', opacity: 0.8 }}>
-            {isPremium ? 'You have access to advanced assessment and case-organization tools.' : 'Unlock expanded collaborative assessments and detailed PDF organization.'}
-          </div>
-        </div>
-        {!isPremium && (
-          <button
-            className="btn btn-primary"
-              onClick={() => navigate('/pricing')} style={{ padding: '8px 16px', fontSize: '14px', background: '#9333EA', color: '#ffffff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}><Star size={14} />Upgrade to Premium
-          </button>
-        )}
-      </div>
+      <UpgradeToProCard isPro={isPremium} style={{ marginBottom: '28px' }} />
 
       <DailySymptomCheckinWidget />
       <MindfulHRVCard />

@@ -1091,20 +1091,32 @@ html.dark-theme body {
     box-shadow: 0 8px 30px rgba(0,0,0,0.08);
   }
 
-  .more-menu-item svg {
+  .more-menu-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: #EFF6FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--teal);
-    background: #eff6ff;
-    padding: 10px;
-    border-radius: 12px;
-    width: 40px;
-    height: 40px;
-    box-sizing: border-box;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .more-menu-icon svg {
+    color: var(--teal);
+    width: 22px;
+    height: 22px;
+    stroke-width: 2.2px;
+    background: transparent;
+    padding: 0;
     pointer-events: none;
   }
 
-  .more-menu-item:active svg {
+  .more-menu-item:active .more-menu-icon {
     transform: scale(1.1);
+    background: #DBEAFE;
   }
 }
 
