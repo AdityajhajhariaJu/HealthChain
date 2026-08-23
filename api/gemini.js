@@ -129,7 +129,7 @@ export default async function handler(req, res) {
       .single();
 
     const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
-    const dailyLimit = isPro ? 500 : 10;
+    const dailyLimit = isPro ? 500 : 60;
 
     const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
       p_user_id: userId,

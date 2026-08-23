@@ -793,11 +793,62 @@ function ElevateToBoardCard({ item, navigate, isMobile }: { item: CaseItem; navi
   );
 }
 
+function resolveCaseReport(item: CaseItem): any {
+  let rep = { ...(item.currentSummary || {}) };
+  
+  // Check if topDiagnoses is missing, empty, or only contains dummy "Pending Further Review"
+  const isDummyDiagnoses = !rep.topDiagnoses || rep.topDiagnoses.length === 0 || 
+    (rep.topDiagnoses.length === 1 && (rep.topDiagnoses[0].condition === 'Pending Further Review' || !rep.topDiagnoses[0].condition));
+
+  // If report lacks rich findings or has dummy diagnoses, harvest from transcripts
+  if (isDummyDiagnoses || !rep.keyFindings || !rep.interpretation) {
+    const reviews = item.reviews || [];
+    for (const rev of reviews) {
+      if (rev.transcripts) {
+        Object.values(rev.transcripts).forEach((msgs: any) => {
+          if (Array.isArray(msgs)) {
+            msgs.forEach((m: any) => {
+              if (m.text && typeof m.text === 'string' && m.text.includes('{')) {
+                try {
+                  const cleaned = m.text.replace(/```json/g, '').replace(/```/g, '').trim();
+                  const parsed = JSON.parse(cleaned);
+                  if (parsed.currentHypotheses && Array.isArray(parsed.currentHypotheses) && parsed.currentHypotheses.length > 0) {
+                    if (isDummyDiagnoses) {
+                      rep.topDiagnoses = parsed.currentHypotheses;
+                    }
+                  }
+                  if (parsed.interpretation && !rep.interpretation) {
+                    rep.interpretation = parsed.interpretation;
+                    if (!rep.executiveSummary || rep.executiveSummary.includes('identified discussion pathways') || rep.executiveSummary.includes('Pending Further Review')) {
+                      rep.executiveSummary = parsed.interpretation;
+                    }
+                  }
+                  if (parsed.keyFindings && !rep.keyFindings) {
+                    rep.keyFindings = parsed.keyFindings;
+                  }
+                  if (parsed.abnormalitiesNoted && (!rep.abnormalitiesNoted || rep.abnormalitiesNoted.length === 0)) {
+                    rep.abnormalitiesNoted = parsed.abnormalitiesNoted;
+                  }
+                  if (parsed.medicalTerms && (!rep.medicalTerms || rep.medicalTerms.length === 0)) {
+                    rep.medicalTerms = parsed.medicalTerms;
+                  }
+                } catch(e) {}
+              }
+            });
+          }
+        });
+      }
+    }
+  }
+
+  return rep;
+}
+
 function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: any, refresh: any }) {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'evidence' | 'actions' | 'connections'>('overview');
   const [simulatorAction, setSimulatorAction] = useState<any>(null);
-  const report = item.currentSummary || {};
+  const report = resolveCaseReport(item);
   const records = item.medicalRecords || [];
   const profile = getProfile();
   const isQuickConsult = item.title?.toLowerCase().includes('quick consult') || item.reviews?.[0]?.type === 'parallel' || item.currentStage === 'parallel_complete';
