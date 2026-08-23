@@ -224,8 +224,8 @@ export default function AppShell() {
           {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
             <ActiveCaseBar navigate={navigate} />
           )}
-          {!location.pathname.startsWith('/app/jarvis') && <Breadcrumbs />}
-        <div style={{ minHeight: 'calc(100% - 104px)' }}>
+          {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
+        <div style={{ minHeight: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'calc(100% - 104px)', height: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'auto' }}>
           <Outlet />
         </div>
       </main>
