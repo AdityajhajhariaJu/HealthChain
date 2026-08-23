@@ -167,7 +167,7 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  flex: 1;
+  flex: none;
 }
 .sidebar__link {
   display: flex;
@@ -193,7 +193,7 @@ textarea {
   color: var(--teal);
   font-weight: 600;
   border-left: 3px solid var(--teal);
-  padding-left: 9px; /* offset for border */
+  padding-left: 9px;
 }
 
 .sidebar__footer {

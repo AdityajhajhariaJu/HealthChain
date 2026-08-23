@@ -190,11 +190,6 @@ export default function AppShell() {
                 {isLocked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
               </NavLink>
             )})}
-          </nav>
-
-          <div style={{ flex: 1 }}></div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
             <NavLink
               to="/app/settings"
               className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
@@ -202,7 +197,9 @@ export default function AppShell() {
               <Settings size={18} />
               Settings
             </NavLink>
+          </nav>
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto', paddingTop: '12px' }}>
             <div style={{ display: 'flex', gap: '12px', padding: '0 20px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
               <NavLink to="/changelog" style={{ color: 'inherit', textDecoration: 'none' }}>What's New</NavLink>
               <NavLink to="/help" style={{ color: 'inherit', textDecoration: 'none' }}>Help</NavLink>
