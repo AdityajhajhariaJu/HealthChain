@@ -28,6 +28,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';
+import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
 
 interface FeatureItem {
   name: string;
@@ -147,6 +148,7 @@ export default function Pricing() {
       }
 
       const orderData = await orderRes.json();
+      trackCheckoutInitiated(orderData.amount / 100, planId);
 
       const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!razorpayKey) {
@@ -178,6 +180,7 @@ export default function Pricing() {
             const verifyData = await verifyRes.json();
 
             if (verifyData.success) {
+              trackPurchase(orderData.amount / 100, planId);
               alert('Welcome to HealthChain Pro! Your features and quotas are now unlocked.');
               window.location.href = '/app';
             } else {

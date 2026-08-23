@@ -18,6 +18,7 @@ import { recordHealthMemory } from '../../services/HealthMemory';
 import { Sunrise, Sun, Moon, CheckCircle } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
+import { trackFeatureUsed } from '../../services/analytics';
 
 let cachedPharmacyState: any = null;
 
@@ -85,8 +86,10 @@ export default function PharmacyHub() {
 
     if (data) {
       setResult(data);
+      trackFeatureUsed('pharmacy_drug_searched', { drug: query.trim(), found: true });
       recordHealthMemory({ kind: 'pharmacy', source: 'pharmacy_hub', title: `Medication information: ${data.name || query.trim()}`, occurredAt: new Date().toISOString(), payload: data, dedupeKey: `pharmacy:${query.trim().toLowerCase()}` });
     } else {
+      trackFeatureUsed('pharmacy_drug_searched', { drug: query.trim(), found: false });
       setResult({
         name: query.toUpperCase(),
         class: 'Unknown / Error',
@@ -105,6 +108,7 @@ export default function PharmacyHub() {
     try {
     const profile = getProfile();
     const interactionCheck = await checkDrugInteractions(medicineName, profile?.medications || []);
+    trackFeatureUsed('pharmacy_interaction_checked', { drug: medicineName, hasInteraction: Boolean(interactionCheck?.hasInteraction) });
     
     addMedication({ name: medicineName }, 'pharmacy_hub');
     const activeCase = getActiveCase();

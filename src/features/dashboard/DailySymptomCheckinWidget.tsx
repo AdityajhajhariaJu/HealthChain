@@ -5,6 +5,7 @@ import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } fr
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { trackFeatureUsed } from '../../services/analytics';
 
 interface DailySymptomCheckinWidgetProps {
   onCheckinComplete?: (checkin: any) => void;
@@ -118,6 +119,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
     // Award Vitality Points
     const todayStr = new Date().toISOString().split('T')[0];
     awardPoints(2, `Daily Log: ${selectedSymptom}`, 'checkin', `checkin_${todayStr}`);
+    trackFeatureUsed('daily_checkin', { symptom: selectedSymptom, severity: option.label, score: option.score });
     
     if (streakDays + 1 === 3) {
       awardPoints(5, '🔥 3-Day Rhythm Streak Milestone', 'streak', `streak_3_${todayStr}`);
