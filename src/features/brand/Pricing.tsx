@@ -306,13 +306,13 @@ export default function Pricing() {
         {/* PRO 30-DAYS */}
         <div
           style={{
-            background: '#FFFFFF',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%)',
             borderRadius: '24px',
-            border: '2px solid #38BDF8',
+            border: '2px solid #059669',
             padding: isMobile ? '24px 20px' : '30px 24px',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 8px 30px rgba(56, 189, 248, 0.12)',
+            boxShadow: '0 12px 35px -8px rgba(5, 150, 105, 0.18)',
             position: 'relative',
           }}
         >
@@ -322,7 +322,7 @@ export default function Pricing() {
               top: '-13px',
               left: '50%',
               transform: 'translateX(-50%)',
-              background: '#0284C7',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
               color: '#FFFFFF',
               padding: '4px 14px',
               borderRadius: '999px',
@@ -332,14 +332,15 @@ export default function Pricing() {
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+              whiteSpace: 'nowrap',
             }}
           >
             <Star size={13} fill="#FFFFFF" /> ACUTE CASE RESOLUTION
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
               Standard Pro
             </span>
             <h3 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '4px 0' }}>Pro 30-Days</h3>
@@ -350,11 +351,11 @@ export default function Pricing() {
 
           <div style={{ margin: '14px 0 20px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-              <span style={{ fontSize: '42px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px' }}>₹499</span>
+              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹499</span>
               <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>/ 30 Days</span>
             </div>
-            <div style={{ fontSize: '12.5px', color: '#0284C7', fontWeight: 700, marginTop: '4px' }}>
-              Just ₹16.6 / day · Complete acute coverage
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#DCFCE7', color: '#166534', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, marginTop: '6px' }}>
+              ⚡ Just ₹16.6 / day · Complete acute coverage
             </div>
           </div>
 
@@ -369,13 +370,13 @@ export default function Pricing() {
               borderRadius: '12px',
               fontWeight: 800,
               fontSize: '14.5px',
-              background: '#0284C7',
-              borderColor: '#0284C7',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              borderColor: '#059669',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)',
+              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
             }}
           >
             {isProcessing === 'pro_30_days' ? <Loader2 size={18} className="spin" /> : null}
