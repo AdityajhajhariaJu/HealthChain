@@ -42,9 +42,11 @@ async function readQueue(userId: string): Promise<OutboxEntry[]> {
   return indexedDbQueue || [];
 }
 
+const MAX_QUEUE_SIZE = 500;
+
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
   const key = currentUserKey(userId);
-  const bounded = queue;
+  const bounded = queue.slice(-MAX_QUEUE_SIZE);
   // Keep sensitive queued payloads in IndexedDB when available. Only use the
   // localStorage copy as a compatibility fallback for environments without
   // IndexedDB (older WebViews/private browsing).
@@ -133,12 +135,7 @@ async function send(entry: OutboxEntry) {
     return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);
   }
   if (entry.kind === 'profile_upsert') {
-    const { data: existing } = await supabase.from('profiles').select('*').eq('id', entry.payload.id).maybeSingle();
-    if (existing) {
-      return supabase.from('profiles').update(entry.payload).eq('id', entry.payload.id);
-    } else {
-      return supabase.from('profiles').insert(entry.payload);
-    }
+    return supabase.from('profiles').upsert(entry.payload, { onConflict: 'id' });
   }
   return { error: new Error('Unknown outbox kind') };
 }

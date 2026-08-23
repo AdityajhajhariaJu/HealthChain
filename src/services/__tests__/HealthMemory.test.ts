@@ -64,6 +64,7 @@ describe('HealthMemory durability', () => {
       eq: vi.fn(() => query),
       order: vi.fn(() => query),
       range: vi.fn(async (start: number) => ({ data: rows.slice(start, start + 500), error: null })),
+      upsert: vi.fn(async () => ({ error: null })),
     };
     from.mockReturnValue(query);
 

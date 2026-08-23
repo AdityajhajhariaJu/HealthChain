@@ -208,14 +208,18 @@ async function save(cases: CaseItem[]) {
     await flushSyncOutbox(session.user.id);
       // Fix: Keep IndexedDB updated immediately as a read-only safety net for offline recovery!
       const fallbackCases = safeCases.filter((c: any) => (c.__profileId || 'profile_1') === currentProfileId);
-      idbSet(currentCasesKey || getCasesKey(), JSON.stringify(fallbackCases)).catch(console.warn);
+      if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
+        idbSet(currentCasesKey || getCasesKey(), JSON.stringify(fallbackCases)).catch(console.warn);
+      }
       try { removeItemSync(currentCasesKey || getCasesKey()); } catch {} // Clear legacy localStorage
     // Keep IndexedDB as a read-only safety net for offline/poor-network scenarios.
     // It will be refreshed on next successful initCaseEngine read from Supabase.
   } else {
     // Guest - cap at 3 cases
     const capped = safeCases.slice(0, 3);
-    idbSet(getCasesKey(), JSON.stringify(capped)).catch(console.warn);
+    if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
+      idbSet(getCasesKey(), JSON.stringify(capped)).catch(console.warn);
+    }
     try { removeItemSync(getCasesKey()); } catch {}
   }
 }
