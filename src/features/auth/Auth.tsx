@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
 import { setItemSync } from '../../services/storage';
 import { useToast } from '../../components/ui/ToastProvider';
+import { awardSignupBonus } from '../../services/VitalityPointsEngine';
 
 export default function Auth() {
   const isMobile = useIsMobile();
@@ -142,7 +143,8 @@ export default function Auth() {
           return;
         }
         
-        success('Account created successfully!');
+        awardSignupBonus();
+        success('Account created! +5 Vitality Points awarded 🎉');
         if (rememberMe) {
           try { localStorage.setItem('hc_remember', 'true'); } catch(e) {}
         } else {

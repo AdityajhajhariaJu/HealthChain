@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, Edit3, HeartPulse, Sparkles, Zap, Trophy, Award } from 'lucide-react';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
 import { triggerHapticLight } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 interface DailySymptomCheckinWidgetProps {
   onCheckinComplete?: (checkin: any) => void;
@@ -82,6 +83,21 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
     };
   }, []);
 
+  const streakDays = useMemo(() => {
+    if (!profile.dailyCheckins || profile.dailyCheckins.length === 0) return 0;
+    let streak = 0;
+    const now = new Date();
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dStr = d.toISOString().split('T')[0];
+      const found = profile.dailyCheckins.some((c: any) => c.date && c.date.startsWith(dStr));
+      if (found) streak++;
+      else if (i > 0) break;
+    }
+    return streak;
+  }, [profile.dailyCheckins]);
+
   const handleSelectSeverity = (option: typeof SEVERITY_OPTIONS[0]) => {
     triggerHapticLight();
     const entry = recordDailyCheckin({
@@ -96,6 +112,17 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
     setIsEditing(false);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 3500);
+
+    // Award Vitality Points
+    const todayStr = new Date().toISOString().split('T')[0];
+    awardPoints(2, `Daily Log: ${selectedSymptom}`, 'checkin', `checkin_${todayStr}`);
+    
+    if (streakDays + 1 === 3) {
+      awardPoints(5, '🔥 3-Day Rhythm Streak Milestone', 'streak', `streak_3_${todayStr}`);
+    } else if (streakDays + 1 === 7) {
+      awardPoints(15, '🌟 7-Day Horizon Master Milestone', 'milestone', `streak_7_${todayStr}`);
+    }
+
     if (onCheckinComplete) onCheckinComplete(entry);
   };
 
@@ -113,6 +140,9 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
     setSleep(newSleep);
     setEnergy(newEnergy);
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    awardPoints(1, 'Daily Lifestyle Tag', 'lifestyle', `lifestyle_${todayStr}`);
+
     if (todayCheckin) {
       const entry = recordDailyCheckin({
         symptom: todayCheckin.symptom,
@@ -124,21 +154,6 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
       setTodayCheckin(entry);
     }
   };
-
-  const streakDays = useMemo(() => {
-    if (!profile.dailyCheckins || profile.dailyCheckins.length === 0) return 0;
-    let streak = 0;
-    const now = new Date();
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dStr = d.toISOString().split('T')[0];
-      const found = profile.dailyCheckins.some((c: any) => c.date && c.date.startsWith(dStr));
-      if (found) streak++;
-      else if (i > 0) break;
-    }
-    return streak;
-  }, [profile.dailyCheckins]);
 
   const weekDays = useMemo(() => {
     const days: any[] = [];

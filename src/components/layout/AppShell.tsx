@@ -38,6 +38,9 @@ import { triggerHapticLight } from '../../services/haptics';
 import Breadcrumbs from '../ui/Breadcrumbs';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import { AuthModal } from '../ui/AuthModal';
+import VitalityPointsModal from '../ui/VitalityPointsModal';
+import PointsAwardedToast from '../ui/PointsAwardedToast';
+import { getVitalityPoints } from '../../services/VitalityPointsEngine';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -75,6 +78,7 @@ export default function AppShell() {
   const isMobile = useIsMobile();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [profile, setProfile] = useState(getProfile());
+  const [points, setPoints] = useState(getVitalityPoints());
 
   const handleNavClick = (path: string) => {
     triggerHapticLight();
@@ -98,12 +102,20 @@ export default function AppShell() {
       setHistory(cases);
     };
     loadHistory();
-    const handleProfileUpdate = () => setProfile(getProfile());
+    const handleProfileUpdate = () => {
+      setProfile(getProfile());
+      setPoints(getVitalityPoints());
+    };
+    const handlePointsUpdate = () => {
+      setPoints(getVitalityPoints());
+    };
     window.addEventListener('hc_cases_updated', loadHistory);
     window.addEventListener('hc_profile_updated', handleProfileUpdate);
+    window.addEventListener('hc_points_updated', handlePointsUpdate);
     return () => {
       window.removeEventListener('hc_cases_updated', loadHistory);
       window.removeEventListener('hc_profile_updated', handleProfileUpdate);
+      window.removeEventListener('hc_points_updated', handlePointsUpdate);
     };
   }, []);
 
@@ -121,6 +133,33 @@ export default function AppShell() {
               <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>
             </div>
           </div>
+
+          {/* Desktop Vitality Rewards Pill */}
+          <button
+            onClick={() => {
+              triggerHapticLight();
+              window.dispatchEvent(new Event('hc_open_points_modal'));
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              margin: '0 16px 14px',
+              padding: '8px 12px',
+              background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
+              border: '1px solid #A7F3D0',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            title="View Vitality Points & Daily Rewards"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Trophy size={16} color="#059669" />
+              <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
+          </button>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
             {links.map((l) => {
@@ -205,10 +244,18 @@ export default function AppShell() {
                 <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
               </button>
               <div className="mobile-top-bar__actions">
-                <div className="mobile-top-bar__points">
+                <button
+                  className="mobile-top-bar__points"
+                  onClick={() => {
+                    triggerHapticLight();
+                    window.dispatchEvent(new Event('hc_open_points_modal'));
+                  }}
+                  style={{ cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
+                  aria-label="View Vitality Points & Daily Rewards"
+                >
                   <Trophy size={14} color="var(--teal)" />
-                  <span>5 PTS</span>
-                </div>
+                  <span>{points} PTS</span>
+                </button>
                 <button className="mobile-top-bar__bell" aria-label="View notifications">
                   <Bell size={18} aria-hidden="true" />
                 </button>
@@ -334,6 +381,8 @@ export default function AppShell() {
         <FeedbackWidget />
       )}
       <AuthModal />
+      <VitalityPointsModal />
+      <PointsAwardedToast />
     </div>
   );
 }

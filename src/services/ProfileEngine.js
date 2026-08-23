@@ -279,7 +279,7 @@ export function getProfile() {
   }
 }
 
-async function saveProfile(profile) {
+export async function saveProfile(profile) {
   try {
     const state = getProfileEngineState();
     

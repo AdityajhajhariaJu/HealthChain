@@ -8,6 +8,7 @@ import { fetchRecentLiterature } from '../../services/pubMedService';
 import { analyzeTrialRelevance, analyzeLiteratureRelevance } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { recordHealthMemory } from '../../services/HealthMemory';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const loadingSteps = [
   "Analyzing biomarkers...",
@@ -222,6 +223,10 @@ export default function ClinicalTrialsMatcher() {
           setResearchItems(sortedItems);
           recordHealthMemory({ kind: 'research', source: 'clinical_trials', title: `Research search: ${targetCase.title || 'Clinical Research'}`, occurredAt: new Date().toISOString(), caseId: targetCase.id, payload: { searchTerms, results: sortedItems }, dedupeKey: `research:${targetCase.id}:${searchTerms.join(',')}` });
           
+          if (sortedItems.length > 0) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            awardPoints(2, `Clinical Research: ${searchTerms[0] || 'Topics'}`, 'research', `research_${todayStr}`);
+          }
           try { sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems)); } catch {}
         }
       } catch (err) {

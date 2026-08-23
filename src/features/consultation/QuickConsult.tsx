@@ -23,6 +23,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { getRunScope, clearRunStorage, makeRunId } from '../../services/RunContext';
 import { getActiveSession } from '../../services/authSession';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const cachedQuickConsultStreams: any = {};
 // Resolve these at use-time rather than module import so a profile/account
@@ -226,6 +227,7 @@ export default function QuickConsult() {
       // otherwise a refresh during the completion phase can restore a draft
       // case from sessionStorage without its saved review.
       setActiveCase(savedCase);
+      awardPoints(5, `Quick Consult: ${selectedSpecialist?.label || 'Specialist'}`, 'consult');
 
       // Fire and forget: Generate connection map
       generateCaseConnectionMap(reportData.topDiagnoses || []).then((mapData) => {
