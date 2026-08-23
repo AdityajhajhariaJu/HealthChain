@@ -18,7 +18,7 @@ import {
   Printer,
   ClipboardList
 } from 'lucide-react';
-import { getCase, getCases, setActiveCase, toggleCaseAction, resolveCase, CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
+import { getCase, getCases, setActiveCase, toggleCaseAction, resolveCase, CaseItem, ReviewSnapshot, fetchCaseFromCloud } from '../../services/CaseEngine';
 import { getProfile, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
@@ -26,7 +26,7 @@ import PathwaySimulator from './PathwaySimulator';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ActiveCaseBar } from '../../components/layout/AppShell';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
-import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock, Search, HelpCircle } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, FileQuestion, Users, AlertCircle, Star, Lock, Search, HelpCircle, Loader2 } from 'lucide-react';
 import { RichReportTemplate, Accordion, cleanClinicalText } from '../../components/ui/RichReportTemplate';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 import { parseModelJson } from '../../services/modelJson';
@@ -59,6 +59,7 @@ export default function CaseDashboard() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [cases, setCases] = useState(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
+  const [cloudCase, setCloudCase] = useState<CaseItem | null>(null);
   const [profile, setProfile] = useState(getProfile());
   const [simulatorAction, setSimulatorAction] = useState<any>(null);
 
@@ -76,7 +77,14 @@ export default function CaseDashboard() {
   }, []);
 
   useEffect(() => {
-    if (id && getCase(id)) setActiveCase(id);
+    if (id) {
+      if (getCase(id)) setActiveCase(id);
+      fetchCaseFromCloud(id).then((remoteCase) => {
+        if (remoteCase) {
+          setCloudCase(remoteCase);
+        }
+      }).catch(() => {});
+    }
   }, [id]);
 
   const nextActions = useMemo(
@@ -98,7 +106,7 @@ export default function CaseDashboard() {
   ), [cases]);
 
   if (id) {
-    const activeCase = getCase(id);
+    const activeCase = cloudCase || getCase(id);
     if (!activeCase) {
        return (
          <div className="card" style={{ padding: 36, textAlign: 'center', margin: '40px auto', maxWidth: 600 }}>
