@@ -9,7 +9,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 
 const SUGGESTIONS = [
-  "What does my latest eGFR mean?",
+  "I'm looking for mental peace and a calm space to de-stress.",
   "Are there any side effects to my new meds?",
   "I have a headache, is it related to my condition?",
   "Can we review my health plan?",
