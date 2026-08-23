@@ -1392,8 +1392,8 @@ Return ONLY a valid JSON array of objects with the exact following schema:
         const aiData = parsed.find((p: any) => p.id === trial.id) || {};
         return {
           ...trial,
-          matchScore: aiData.matchScore || Math.floor(Math.random() * 20) + 60, // fallback
-          aiContext: aiData.aiContext || 'Relevance based on your active clinical hypotheses.'
+          matchScore: typeof aiData.matchScore === 'number' ? aiData.matchScore : null,
+          aiContext: aiData.aiContext || 'Relevance evaluation pending clinician discussion.'
         };
       });
     }
@@ -1456,7 +1456,7 @@ Return ONLY a valid JSON array of objects with the exact following schema:
         const aiData = parsed.find((p: any) => p.id === paper.id) || {};
         return {
           ...paper,
-          matchScore: aiData.matchScore || Math.floor(Math.random() * 20) + 60,
+          matchScore: typeof aiData.matchScore === 'number' ? aiData.matchScore : null,
           aiContext: aiData.aiContext || 'This research paper investigates biological mechanisms relevant to your hypotheses.'
         };
       });

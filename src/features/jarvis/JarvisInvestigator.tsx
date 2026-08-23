@@ -36,6 +36,8 @@ export default function JarvisInvestigator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
   
+  const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
+
   useEffect(() => {
     isMounted.current = true;
     // Strictly clear all state on mount to prevent context bleeding from old cases
@@ -43,6 +45,7 @@ export default function JarvisInvestigator() {
     setHistory('');
     setFiles([]);
     setReport(null);
+    setCreatedCaseId(null);
     setIsIsolated(true);
     return () => {
       isMounted.current = false;
@@ -54,7 +57,7 @@ export default function JarvisInvestigator() {
     if (!e.target.files) return;
     const selected = Array.from(e.target.files);
     
-    // Limits: Max 5 files total
+    // Limits: Max 10 files total
     if (files.length + selected.length > 10) {
       alert("JARVIS is currently limited to processing 10 documents at a time to prevent API overload.");
       return;
@@ -100,20 +103,14 @@ export default function JarvisInvestigator() {
         }
       });
     }));
-    
-    setFiles(prev => {
-      const allFiles = [...prev, ...processed];
-      const totalRawBytes = allFiles.reduce((acc, curr) => acc + ((curr as any).size || curr.file.size), 0);
-      if (totalRawBytes > 3.3 * 1024 * 1024) {
-        alert("Total upload size across all files exceeds the 3.3MB network limit. Images are automatically compressed, but if you are uploading large PDFs, please compress them first or select fewer files.");
-        return prev;
-      }
-      return allFiles;
-    });
+
+    if (!isMounted.current) return;
+    setFiles(prev => [...prev, ...processed]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const removeFile = (idx: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== idx));
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleAnalyze = async () => {
@@ -132,14 +129,15 @@ export default function JarvisInvestigator() {
     setPhase('analyzing');
     
     // Explicitly map base64 data to ensure no DOM elements or cyclic refs are passed
-    const payloadFiles = files.map(f => ({
+    const mappedFiles = files.map(f => ({
       mimeType: f.file.type || 'application/pdf',
       data: f.base64
     }));
 
     try {
-      const profileToPass = !isIsolated ? profile : { demographics: profile?.demographics };
-      const result = await runJarvisInvestigation(history, payloadFiles, profileToPass);
+      // Pass profile context only if user didn't request isolation
+      const contextProfile = isIsolated ? null : profile;
+      const result = await runJarvisInvestigation(history, mappedFiles, contextProfile);
       
       if (!isMounted.current) return; // Prevent memory leak / crash if user navigated away during animation
       
@@ -151,6 +149,7 @@ export default function JarvisInvestigator() {
           title: `J.A.R.V.I.S.: ${(history || 'Investigation').trim().slice(0, 32)}`,
           intakeData: { chiefComplaint: history || "Data engine investigation" }
         });
+        setCreatedCaseId(newCase.id);
         
         // 2. Persist to DB securely
         saveReviewSnapshot({
@@ -257,15 +256,30 @@ export default function JarvisInvestigator() {
             <div>
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginBottom: '16px' }}>Possible Underlying Conditions</h3>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-                {report.topDiagnoses.map((dx: any, i: number) => (
-                  <div key={i} style={{ background: '#FFF', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                      <strong style={{ fontSize: '16px', color: '#0F172A' }}>{dx.condition}</strong>
-                      <span style={{ background: '#F0F9FF', color: '#0369A1', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>{dx.confidence}% Match</span>
+                {report.topDiagnoses.map((dx: any, i: number) => {
+                  const numPct = typeof dx.confidence === 'number' ? dx.confidence : parseInt(dx.confidence) || 0;
+                  const tierLabel = numPct >= 50 ? 'Tier 1 • High Clinical Corroboration' : numPct >= 25 ? 'Tier 2 • Moderate Consideration' : 'Tier 3 • Low / Ruling-Out Only';
+                  const badgeBg = numPct >= 50 ? '#ECFDF5' : numPct >= 25 ? '#EFF6FF' : '#F8FAFC';
+                  const badgeColor = numPct >= 50 ? '#059669' : numPct >= 25 ? '#2563EB' : '#64748B';
+                  const badgeBorder = numPct >= 50 ? '#A7F3D0' : numPct >= 25 ? '#BFDBFE' : '#E2E8F0';
+
+                  return (
+                    <div key={i} style={{ background: '#FFF', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', flexWrap: 'wrap', gap: 6 }}>
+                        <strong style={{ fontSize: '16px', color: '#0F172A' }}>{dx.condition}</strong>
+                        {numPct > 0 && (
+                          <span style={{ background: badgeBg, color: badgeColor, border: `1px solid ${badgeBorder}`, padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>
+                            {numPct}% Match
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ display: 'inline-block', fontSize: '11px', fontWeight: 700, color: badgeColor, marginBottom: '8px' }}>
+                        {tierLabel}
+                      </span>
+                      <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.5 }}>{dx.rationale}</p>
                     </div>
-                    <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.5 }}>{dx.rationale}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -281,12 +295,32 @@ export default function JarvisInvestigator() {
           )}
         </div>
 
-        <button 
-          onClick={() => navigate('/app/today')}
-          style={{ width: '100%', padding: '16px', background: '#0F172A', color: '#FFF', border: 'none', borderRadius: '16px', fontWeight: 700, fontSize: '16px', marginTop: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-        >
-          Return to Dashboard <ArrowRight size={20} />
-        </button>
+        {/* J.A.R.V.I.S. Next-Step Bridge */}
+        <div style={{ marginTop: '36px', background: '#FFF', padding: isMobile ? '20px' : '28px', borderRadius: '24px', border: '1px solid #E2E8F0', boxShadow: '0 8px 30px rgba(15,23,42,0.04)' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>Next Steps with Your Findings</h3>
+          <p style={{ color: '#64748B', fontSize: '14px', margin: '0 0 20px 0' }}>Take these insights further with our AI care team or prepare for your physician visit.</p>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
+            <button 
+              onClick={() => navigate('/app/ava')}
+              style={{ padding: '14px 18px', background: 'linear-gradient(135deg, #0EA5E9, #0284C7)', color: '#FFF', border: 'none', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(14,165,233,0.25)' }}
+            >
+              💬 Discuss with Ava
+            </button>
+            <button 
+              onClick={() => navigate('/app/mdt')}
+              style={{ padding: '14px 18px', background: '#F8FAFC', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              🧠 Elevate to Board
+            </button>
+            <button 
+              onClick={() => createdCaseId ? navigate(`/app/cases/${createdCaseId}`) : navigate('/app/cases')}
+              style={{ padding: '14px 18px', background: '#0F172A', color: '#FFF', border: 'none', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              📋 Open Case File <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
       </div>
       </>
     );
@@ -359,17 +393,17 @@ export default function JarvisInvestigator() {
             onChange={(e) => {
               const text = e.target.value;
               const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-              if (words.length <= 300 || text.length < history.length) {
+              if (words.length <= 800 || text.length < history.length) {
                 setHistory(text);
               }
             }}
-            placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 300 words)..."
+            placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 800 words)..."
             style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid #E2E8F0', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }}
             onFocus={(e) => e.target.style.borderColor = '#F97316'}
             onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
           />
-          <div style={{ textAlign: 'right', fontSize: '13px', fontWeight: 600, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 300) ? '#EF4444' : '#94A3B8', marginTop: '8px' }}>
-            {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 300 words
+          <div style={{ textAlign: 'right', fontSize: '13px', fontWeight: 600, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 800) ? '#EF4444' : '#94A3B8', marginTop: '8px' }}>
+            {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 800 words
           </div>
         </div>
 

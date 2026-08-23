@@ -915,6 +915,75 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                 <ClinicianCheatSheet questions={report.questionsForClinician} isMobile={isMobile} />
               )}
               
+              {/* 🌟 Pinned #1 Immediate Priority Step For Today */}
+              {(() => {
+                const pendingActions = (item.actions || []).filter(a => a.status !== 'completed');
+                if (!pendingActions.length) return null;
+                const topAction = pendingActions.find(a => {
+                  const l = JSON.stringify(a).toLowerCase();
+                  return l.includes('immediately') || l.includes('today') || l.includes('this week') || l.includes('urgent');
+                }) || pendingActions[0];
+                const { title, subtitle, timeline, type } = cleanActionItem(topAction);
+
+                return (
+                  <div
+                    style={{
+                      background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                      borderRadius: 20,
+                      padding: isMobile ? '18px' : '22px 26px',
+                      color: '#FFF',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 16,
+                      flexWrap: 'wrap',
+                      boxShadow: '0 10px 25px rgba(15,23,42,0.15)',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flex: 1 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(16,185,129,0.2)', color: '#34D399', display: 'grid', placeItems: 'center', flexShrink: 0, marginTop: 2 }}>
+                        <Sparkles size={22} />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: '#34D399', letterSpacing: '0.8px', textTransform: 'uppercase' }}>🌟 Priority Step For Today</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: 999 }}>📅 {timeline}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.12)', padding: '2px 8px', borderRadius: 999 }}>📋 {type}</span>
+                        </div>
+                        <strong style={{ fontSize: isMobile ? 15.5 : 17, color: '#F8FAFC', display: 'block', lineHeight: 1.35 }}>{title}</strong>
+                        {subtitle && <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: 13.5, lineHeight: 1.4 }}>{subtitle}</p>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        toggleCaseAction(item.id, topAction.id);
+                        refresh();
+                      }}
+                      style={{
+                        background: '#10B981',
+                        color: '#FFF',
+                        border: 'none',
+                        padding: '10px 20px',
+                        borderRadius: 12,
+                        fontWeight: 800,
+                        fontSize: 14,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        transition: 'all 0.2s',
+                        flexShrink: 0,
+                        alignSelf: isMobile ? 'flex-end' : 'center',
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.3)'
+                      }}
+                    >
+                      <CheckCircle2 size={16} /> Mark Completed
+                    </button>
+                  </div>
+                );
+              })()}
+
               {/* 1. Synthesis & Executive Summary */}
               <section className="card" style={{ padding: 24, background: 'transparent', border: 'none', boxShadow: 'none' }}>
                 <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Current Case Synthesis</h2>
@@ -942,9 +1011,10 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                     const cleanCondition = rawCondition.replace(/\s*\(\d+%\)\s*/, '').trim();
                     const numPct = pctMatch ? parseInt(pctMatch) : 0;
                     
-                    const badgeBg = numPct >= 50 ? '#ECFDF5' : numPct >= 20 ? '#EFF6FF' : '#F8FAFC';
-                    const badgeColor = numPct >= 50 ? '#059669' : numPct >= 20 ? '#2563EB' : '#64748B';
-                    const badgeBorder = numPct >= 50 ? '#A7F3D0' : numPct >= 20 ? '#BFDBFE' : '#E2E8F0';
+                    const tierLabel = numPct >= 50 ? 'Tier 1 • High Clinical Corroboration (Primary Pathway)' : numPct >= 25 ? 'Tier 2 • Moderate Consideration (Secondary Differential)' : 'Tier 3 • Low Probability / For Clinician Ruling-Out Only';
+                    const badgeBg = numPct >= 50 ? '#ECFDF5' : numPct >= 25 ? '#EFF6FF' : '#F8FAFC';
+                    const badgeColor = numPct >= 50 ? '#059669' : numPct >= 25 ? '#2563EB' : '#64748B';
+                    const badgeBorder = numPct >= 50 ? '#A7F3D0' : numPct >= 25 ? '#BFDBFE' : '#E2E8F0';
 
                     return (
                       <div
@@ -954,17 +1024,23 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                           borderRadius: 16,
                           background: '#FFFFFF',
                           border: '1px solid #E2E8F0',
-                          borderLeft: `5px solid ${numPct >= 50 ? '#10B981' : numPct >= 20 ? '#3B82F6' : '#94A3B8'}`,
+                          borderLeft: `5px solid ${numPct >= 50 ? '#10B981' : numPct >= 25 ? '#3B82F6' : '#94A3B8'}`,
                           boxShadow: '0 2px 10px rgba(15,23,42,0.02)'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
                           <strong style={{ fontSize: 16, color: '#0F172A' }}>{cleanCondition}</strong>
                           {pctMatch && (
                             <span style={{ background: badgeBg, color: badgeColor, border: `1px solid ${badgeBorder}`, padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 800 }}>
                               {pctMatch}% Match
                             </span>
                           )}
+                        </div>
+
+                        <div style={{ marginBottom: 10 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: badgeColor }}>
+                            {tierLabel}
+                          </span>
                         </div>
 
                         <p style={{ margin: '0 0 10px', color: '#475569', fontSize: 14, lineHeight: 1.55 }}>
@@ -1220,7 +1296,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                 </div>
 
                 {item.reviews?.[0]?.specialists && item.reviews[0].specialists.length > 0 && (
-                  <div style={{ paddingTop: 14, borderTop: '1px solid #F1F5F9' }}>
+                  <div style={{ paddingTop: 14, borderTop: '1px solid #F1F5F9', marginBottom: 16 }}>
                     <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                       Specialists Involved
                     </span>
@@ -1233,6 +1309,31 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                     </div>
                   </div>
                 )}
+
+                <div style={{ paddingTop: 14, borderTop: '1px solid #F1F5F9' }}>
+                  <button
+                    onClick={() => window.print()}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'linear-gradient(135deg, #0F172A 0%, #334155 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: 12,
+                      fontWeight: 800,
+                      fontSize: 13.5,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      boxShadow: '0 4px 12px rgba(15,23,42,0.15)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <Printer size={15} /> Print / Export Doctor Dossier
+                  </button>
+                </div>
               </section>
             </aside>
           </div>
