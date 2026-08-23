@@ -175,13 +175,6 @@ export default async function handler(req, res) {
             .from('profiles')
             .update({ is_pro: false, pro_expires_at: null, updated_at: new Date().toISOString() })
             .eq('id', userId);
-            
-          // WIPE their quotas so they don't get to keep the premium features after a refund!
-          await supabase
-            .from('user_quotas')
-            .delete()
-            .eq('user_id', userId)
-            .not('expires_at', 'is', null);
         }
       }
     } else if (event === 'payment.failed') {
