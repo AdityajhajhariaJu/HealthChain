@@ -1,9 +1,52 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Apple, Utensils, Target, CheckCircle2, ChevronRight, ArrowRight } from 'lucide-react';
+import { 
+  Apple, Utensils, Target, CheckCircle2, ChevronRight, ChevronLeft, 
+  ArrowRight, Flame, Scale, Ruler, Heart, Sparkles, Zap, Activity, 
+  Clock, ShieldCheck, Droplets, User, Info, Check
+} from 'lucide-react';
 import { GOALS, ACTIVITY_LEVELS, RESTRICTIONS, MEDICAL_CONDITIONS, CUISINES, MEAL_SCHEDULES } from './Dietician';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+
+function computeTargets(p: any) {
+  const w = Math.max(20, parseFloat(p.weight || '70'));
+  const h = Math.max(50, parseFloat(p.height || '170'));
+  const age = Math.max(1, parseInt(p.age || '30'));
+  
+  let bmr = 10 * w + 6.25 * h - 5 * age;
+  bmr = p.gender === 'female' ? bmr - 161 : bmr + 5;
+
+  let multiplier = 1.2;
+  if (p.activityLevel === 'light') multiplier = 1.375;
+  if (p.activityLevel === 'moderate') multiplier = 1.55;
+  if (p.activityLevel === 'active') multiplier = 1.725;
+
+  let tdee = bmr * multiplier;
+  let targetCalories = Math.round(tdee);
+
+  if (p.targetDays && parseInt(p.targetDays) > 0 && p.goal !== 'Maintain') {
+    const targetW = parseFloat(p.targetWeight || String(w));
+    const weightDiff = Math.abs(w - targetW);
+    const totalCalorieChange = weightDiff * 7700;
+    const dailyChange = totalCalorieChange / (parseInt(p.targetDays) || 1);
+    const safeDailyChange = Math.min(dailyChange, 1000);
+
+    if (p.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
+    if (p.goal === 'Gain muscle') targetCalories = Math.round(tdee + safeDailyChange);
+  } else {
+    if (p.goal === 'Lose weight') targetCalories -= 500;
+    if (p.goal === 'Gain muscle') targetCalories += 500;
+  }
+
+  targetCalories = Math.max(1200, targetCalories);
+  const targetProtein = Math.round((targetCalories * 0.25) / 4);
+  const targetCarbs = Math.round((targetCalories * 0.45) / 4);
+  const targetFat = Math.round((targetCalories * 0.3) / 9);
+
+  return { bmr: Math.round(bmr), tdee: Math.round(tdee), targetCalories, targetProtein, targetCarbs, targetFat };
+}
 
 export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => void }) {
   const isMobile = useIsMobile();
@@ -32,31 +75,92 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
     };
   });
 
-  const next = () => setStep((s) => s + 1);
+  const next = () => {
+    try { triggerHapticLight(); } catch {}
+    setStep((s) => Math.min(8, s + 1));
+  };
+
+  const prev = () => {
+    try { triggerHapticLight(); } catch {}
+    setStep((s) => Math.max(1, s - 1));
+  };
+
+  // Live Metrics
+  const w = parseFloat(data.weight);
+  const h = parseFloat(data.height) / 100;
+  const targetW = parseFloat(data.targetWeight);
+  const bmi = (w > 0 && h > 0) ? (w / (h * h)).toFixed(1) : null;
+  
+  let bmiCategory = '';
+  let bmiColor = '#059669';
+  if (bmi) {
+    const num = parseFloat(bmi);
+    if (num < 18.5) { bmiCategory = 'Underweight'; bmiColor = '#D97706'; }
+    else if (num <= 24.9) { bmiCategory = 'Optimal Range'; bmiColor = '#059669'; }
+    else if (num <= 29.9) { bmiCategory = 'Overweight'; bmiColor = '#D97706'; }
+    else { bmiCategory = 'Obesity Class'; bmiColor = '#DC2626'; }
+  }
+
+  const calculated = computeTargets(data);
 
   return (
     <div
       style={{
-        paddingBottom: '100px',
+        minHeight: '85vh',
+        padding: isMobile ? '12px 8px 100px' : '24px 16px 100px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        position: 'relative',
       }}
     >
+      {/* Immersive Ambient Glow Elements */}
       <div
         style={{
-          background: '#FFFFFF',
-          borderRadius: '32px',
-          padding: isMobile ? '28px 20px' : '48px',
-          maxWidth: '540px',
+          position: 'absolute',
+          top: '10%',
+          left: '15%',
+          width: '320px',
+          height: '320px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '15%',
+          right: '15%',
+          width: '350px',
+          height: '350px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%)',
+          filter: 'blur(50px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      <div
+        style={{
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.9) 100%)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          borderRadius: isMobile ? '28px' : '36px',
+          padding: isMobile ? '24px 18px' : '44px 40px',
+          maxWidth: '600px',
           width: '100%',
-          boxShadow: '0 24px 48px rgba(0,0,0,0.04)',
-          border: '1px solid #F1F5F9',
+          boxShadow: '0 25px 60px -15px rgba(5, 150, 105, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 10px 25px rgba(0, 0, 0, 0.03)',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
           position: 'relative',
           overflow: 'hidden',
+          zIndex: 1,
         }}
       >
-        {/* Progress Bar */}
+        {/* Shimmering Progress Bar */}
         <div
           style={{
             position: 'absolute',
@@ -64,658 +168,859 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
             left: 0,
             right: 0,
             height: '6px',
-            background: '#F1F5F9',
+            background: 'rgba(226, 232, 240, 0.6)',
           }}
         >
-          <div
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${(step / 8) * 100}%` }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             style={{
               height: '100%',
-              width: `${(step / 8) * 100}%`,
-              background: 'linear-gradient(90deg, #10B981, #34D399)',
-              transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              background: 'linear-gradient(90deg, #059669 0%, #10B981 50%, #34D399 100%)',
+              boxShadow: '0 0 12px rgba(16, 185, 129, 0.6)',
             }}
           />
         </div>
 
+        {/* Header with Step indicator and back button */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            marginBottom: '24px',
-            color: '#10B981',
-            fontWeight: 800,
-            fontSize: '18px',
+            justifyContent: 'space-between',
+            marginBottom: '28px',
           }}
         >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {step > 1 && step < 8 ? (
+              <button
+                onClick={prev}
+                aria-label="Back"
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#475569',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <ChevronLeft size={20} />
+              </button>
+            ) : (
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                }}
+              >
+                <Apple size={20} />
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
+                Clinical Dietician Setup
+              </div>
+              <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                Metabolic Target Engine · Step {step} of 8
+              </div>
+            </div>
+          </div>
+
           <div
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              background: '#ECFDF5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              fontSize: '11px',
+              fontWeight: 800,
+              padding: '4px 10px',
+              borderRadius: '999px',
+              background: 'rgba(5, 150, 105, 0.1)',
+              color: '#047857',
+              border: '1px solid rgba(5, 150, 105, 0.2)',
             }}
           >
-            <Apple size={20} />
+            {Math.round((step / 8) * 100)}% Ready
           </div>
-          Clinical Dietician Setup
         </div>
 
+        {/* STEP 1: METABOLIC BASELINE */}
         {step === 1 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <h2
               style={{
-                fontSize: isMobile ? '24px' : '28px',
+                fontSize: isMobile ? '22px' : '26px',
                 fontWeight: 800,
                 color: '#0F172A',
-                marginBottom: '8px',
+                marginBottom: '6px',
                 letterSpacing: '-0.5px',
               }}
             >
-              Let's set your baseline.
+              Let's establish your metabolic baseline.
             </h2>
-            <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '20px' }}>
-              We need a few details to calculate your metabolic targets accurately.
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '20px', lineHeight: 1.45 }}>
+              We use the gold-standard <strong style={{ color: '#0F172A' }}>Mifflin-St Jeor equation</strong> to compute your basal expenditure and macro partitioning.
             </p>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+            {/* Gender Toggle */}
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                Biological Sex (for metabolic coefficient)
+              </label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {['male', 'female'].map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setData({ ...data, gender: g })}
+                    style={{
+                      flex: 1,
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${data.gender === g ? '#059669' : '#E2E8F0'}`,
+                      background: data.gender === g ? '#ECFDF5' : '#FFFFFF',
+                      color: data.gender === g ? '#065F46' : '#64748B',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      textTransform: 'capitalize',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <User size={15} />
+                    {g === 'male' ? 'Male (BMR +5)' : 'Female (BMR -161)'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Weight & Target Weight */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: '#475569',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Weight (kg)
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  <Scale size={13} color="#059669" /> Current Weight (kg)
                 </label>
                 <input
-                  type="number" min="20" max="300"
+                  type="number"
+                  min="20"
+                  max="300"
                   value={data.weight}
                   onChange={(e) => setData({ ...data, weight: e.target.value })}
                   placeholder="e.g. 75"
                   style={{
                     width: '100%',
-                    padding: '16px',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid #E2E8F0',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '1.5px solid #E2E8F0',
                     outline: 'none',
-                    background: '#F8FAFC',
-                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                   }}
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: '#475569',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Target (kg)
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  <Target size={13} color="#059669" /> Target Weight (kg)
                 </label>
                 <input
-                  type="number" min="20" max="300"
+                  type="number"
+                  min="20"
+                  max="300"
                   value={data.targetWeight}
                   onChange={(e) => setData({ ...data, targetWeight: e.target.value })}
                   placeholder="e.g. 70"
                   style={{
                     width: '100%',
-                    padding: '16px',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid #E2E8F0',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '1.5px solid #E2E8F0',
                     outline: 'none',
-                    background: '#F8FAFC',
-                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                   }}
                 />
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+            {/* Height & Age */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: '#475569',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Height (cm)
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  <Ruler size={13} color="#059669" /> Height (cm)
                 </label>
                 <input
-                  type="number" min="50" max="260"
+                  type="number"
+                  min="50"
+                  max="260"
                   value={data.height}
                   onChange={(e) => setData({ ...data, height: e.target.value })}
                   placeholder="e.g. 175"
                   style={{
                     width: '100%',
-                    padding: '16px',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid #E2E8F0',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '1.5px solid #E2E8F0',
                     outline: 'none',
-                    background: '#F8FAFC',
-                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                   }}
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: '#475569',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Age
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  <Clock size={13} color="#059669" /> Age (Years)
                 </label>
                 <input
-                  type="number" min="1" max="120"
+                  type="number"
+                  min="1"
+                  max="120"
                   value={data.age}
                   onChange={(e) => setData({ ...data, age: e.target.value })}
-                  placeholder="e.g. 30"
+                  placeholder="e.g. 29"
                   style={{
                     width: '100%',
-                    padding: '16px',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid #E2E8F0',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '1.5px solid #E2E8F0',
                     outline: 'none',
-                    background: '#F8FAFC',
-                    fontSize: '16px',
+                    background: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                   }}
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  color: '#475569',
-                  marginBottom: '8px',
-                }}
-              >
-                Timeframe to reach target (Days)
+            {/* Timeframe */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                <Clock size={13} color="#059669" /> Target Duration (Days)
               </label>
               <input
-                type="number" min="7" max="730"
+                type="number"
+                min="7"
+                max="730"
                 value={data.targetDays}
                 onChange={(e) => setData({ ...data, targetDays: e.target.value })}
                 placeholder="e.g. 90"
                 style={{
                   width: '100%',
-                  padding: '16px',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid #E2E8F0',
+                  padding: '14px 16px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #E2E8F0',
                   outline: 'none',
-                  background: '#F8FAFC',
-                  fontSize: '16px',
+                  background: '#FFFFFF',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                 }}
               />
             </div>
 
+            {/* Live Instant Biometric Feedback Box */}
+            {bmi && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: '16px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                  marginBottom: '22px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: 'rgba(5, 150, 105, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#059669',
+                    }}
+                  >
+                    <Activity size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                      BMI: {bmi}
+                    </div>
+                    <div style={{ fontSize: '11px', color: bmiColor, fontWeight: 700 }}>
+                      {bmiCategory}
+                    </div>
+                  </div>
+                </div>
+
+                {w > 0 && targetW > 0 && (
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textAlign: 'right' }}>
+                    {w === targetW ? (
+                      <span style={{ color: '#059669' }}>⚖️ Maintenance Plan</span>
+                    ) : (
+                      <span>
+                        {w > targetW ? '📉 -' : '📈 +'}{Math.abs(w - targetW).toFixed(1)} kg over {data.targetDays || 90}d
+                      </span>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
             <button
               onClick={next}
-              disabled={
-                [data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null)
-              }
+              disabled={[data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null)}
               style={{
                 width: '100%',
-                padding: '18px',
-                background: '#10B981',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
                 color: '#FFF',
                 border: 'none',
-                borderRadius: 'var(--radius-lg)',
+                borderRadius: '16px',
                 fontWeight: 800,
-                fontSize: '16px',
-                cursor:
-                  !data.weight ||
-                  !data.targetWeight ||
-                  !data.height ||
-                  !data.age ||
-                  !data.targetDays
-                    ? 'not-allowed'
-                    : 'pointer',
-                opacity:
-                  !data.weight ||
-                  !data.targetWeight ||
-                  !data.height ||
-                  !data.age ||
-                  !data.targetDays
-                    ? 0.5
-                    : 1,
+                fontSize: '15px',
+                cursor: [data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null) ? 'not-allowed' : 'pointer',
+                opacity: [data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null) ? 0.5 : 1,
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
                 transition: 'all 0.2s',
               }}
             >
-              Continue
+              Continue to Goal Setup <ArrowRight size={16} />
             </button>
           </motion.div>
         )}
 
+        {/* STEP 2: PRIMARY GOAL */}
         {step === 2 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2
-              style={{
-                fontSize: isMobile ? '24px' : '28px',
-                fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '20px',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              What's your primary goal?
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+              What is your primary clinical goal?
             </h2>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                marginBottom: '24px',
-              }}
-            >
-              {GOALS.map((goal) => (
-                <button
-                  key={goal}
-                  onClick={() => {
-                    setData({ ...data, goal });
-                    setTimeout(next, 150);
-                  }}
-                  style={{
-                    padding: '24px',
-                    borderRadius: '20px',
-                    border: `2px solid ${data.goal === goal ? '#10B981' : '#F1F5F9'}`,
-                    background: data.goal === goal ? '#ECFDF5' : '#F8FAFC',
-                    color: data.goal === goal ? '#059669' : '#334155',
-                    fontWeight: 800,
-                    fontSize: '18px',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  {goal}
-                  {data.goal === goal && <CheckCircle2 size={24} color="#10B981" />}
-                </button>
-              ))}
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
+              Your caloric deficit/surplus and macronutrient ratios will calibrate automatically.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+              {[
+                { 
+                  id: 'Lose weight', 
+                  title: 'Fat Loss & Metabolic Reset', 
+                  subtitle: 'Targeted caloric deficit with high protein satiety to spare lean tissue.', 
+                  icon: Flame, 
+                  color: '#EF4444', 
+                  bg: '#FEF2F2' 
+                },
+                { 
+                  id: 'Maintain', 
+                  title: 'Metabolic Balance & Longevity', 
+                  subtitle: 'Energy equilibrium with steady glycemic control and mitochondrial support.', 
+                  icon: Heart, 
+                  color: '#059669', 
+                  bg: '#ECFDF5' 
+                },
+                { 
+                  id: 'Gain muscle', 
+                  title: 'Hypertrophy & Clean Muscle Surplus', 
+                  subtitle: 'Controlled positive energy balance with optimized amino acid timing.', 
+                  icon: Zap, 
+                  color: '#3B82F6', 
+                  bg: '#EFF6FF' 
+                },
+              ].map((item) => {
+                const isSelected = data.goal === item.id;
+                const IconComponent = item.icon;
+                return (
+                  <motion.button
+                    key={item.id}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setData({ ...data, goal: item.id });
+                      setTimeout(next, 160);
+                    }}
+                    style={{
+                      padding: '18px 20px',
+                      borderRadius: '20px',
+                      border: `2px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
+                      background: isSelected ? '#ECFDF5' : '#FFFFFF',
+                      boxShadow: isSelected ? '0 8px 20px rgba(5, 150, 105, 0.15)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '12px',
+                          background: item.bg,
+                          color: item.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <IconComponent size={22} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '15px', color: isSelected ? '#065F46' : '#0F172A', marginBottom: '3px' }}>
+                          {item.title}
+                        </div>
+                        <div style={{ fontSize: '12px', color: isSelected ? '#047857' : '#64748B', lineHeight: 1.35 }}>
+                          {item.subtitle}
+                        </div>
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', flexShrink: 0 }}>
+                        <Check size={15} />
+                      </div>
+                    )}
+                  </motion.button>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
+        {/* STEP 3: ACTIVITY LEVEL */}
         {step === 3 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2
-              style={{
-                fontSize: isMobile ? '24px' : '28px',
-                fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '20px',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              How active are you?
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+              How active is your daily routine?
             </h2>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                gap: '16px',
-                marginBottom: '24px',
-              }}
-            >
-              {ACTIVITY_LEVELS.map((level) => (
-                <button
-                  key={level.id}
-                  onClick={() => {
-                    setData({ ...data, activityLevel: level.id });
-                    setTimeout(next, 150);
-                  }}
-                  style={{
-                    padding: '20px',
-                    borderRadius: '20px',
-                    border: `2px solid ${data.activityLevel === level.id ? '#10B981' : '#F1F5F9'}`,
-                    background: data.activityLevel === level.id ? '#ECFDF5' : '#F8FAFC',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <div
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
+              Physical activity sets your Total Daily Energy Expenditure (TDEE) multiplier.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+              {ACTIVITY_LEVELS.map((level) => {
+                const isSelected = data.activityLevel === level.id;
+                return (
+                  <motion.button
+                    key={level.id}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setData({ ...data, activityLevel: level.id });
+                      setTimeout(next, 160);
+                    }}
                     style={{
-                      fontWeight: 800,
-                      fontSize: '16px',
-                      color: data.activityLevel === level.id ? '#059669' : '#1E293B',
-                      marginBottom: '6px',
+                      padding: '18px 16px',
+                      borderRadius: '18px',
+                      border: `2px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
+                      background: isSelected ? '#ECFDF5' : '#FFFFFF',
+                      boxShadow: isSelected ? '0 8px 20px rgba(5, 150, 105, 0.12)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.2s',
                     }}
                   >
-                    {level.label}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '13px',
-                      color: data.activityLevel === level.id ? '#10B981' : '#64748B',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {level.desc}
-                  </div>
-                </button>
-              ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ fontWeight: 800, fontSize: '15px', color: isSelected ? '#065F46' : '#0F172A' }}>
+                        {level.label}
+                      </div>
+                      {isSelected && <CheckCircle2 size={18} color="#059669" />}
+                    </div>
+                    <div style={{ fontSize: '12px', color: isSelected ? '#047857' : '#64748B', lineHeight: 1.4 }}>
+                      {level.desc}
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
+        {/* STEP 4: DIETARY RESTRICTIONS */}
         {step === 4 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2
-              style={{
-                fontSize: isMobile ? '24px' : '28px',
-                fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '20px',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Any dietary restrictions?
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+              Any dietary preferences or restrictions?
             </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
+              Select all that apply. Your 7-day meal plans and grocery lists will adapt strictly.
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
               {RESTRICTIONS.map((r) => {
                 const isSelected = data.restrictions.includes(r);
                 return (
-                  <button
+                  <motion.button
                     key={r}
+                    whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       if (r === 'None') {
                         setData({ ...data, restrictions: ['None'] });
-                        setTimeout(next, 150);
                       } else {
                         const newRest = isSelected
                           ? data.restrictions.filter((x: string) => x !== r)
                           : [...data.restrictions.filter((x: string) => x !== 'None'), r];
-                        setData({ ...data, restrictions: newRest });
+                        setData({ ...data, restrictions: newRest.length > 0 ? newRest : ['None'] });
                       }
                     }}
                     style={{
-                      padding: '16px 24px',
-                      borderRadius: '99px',
-                      border: `2px solid ${isSelected ? '#10B981' : '#F1F5F9'}`,
-                      background: isSelected ? '#10B981' : '#F8FAFC',
-                      color: isSelected ? '#FFF' : '#475569',
+                      padding: '14px 20px',
+                      borderRadius: '999px',
+                      border: `1.5px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
+                      background: isSelected ? '#059669' : '#FFFFFF',
+                      color: isSelected ? '#FFFFFF' : '#475569',
                       fontWeight: 700,
-                      fontSize: '15px',
+                      fontSize: '14px',
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: isSelected ? '0 4px 14px rgba(5, 150, 105, 0.25)' : 'none',
                       transition: 'all 0.2s',
                     }}
                   >
+                    {isSelected && <Check size={15} />}
                     {r}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
-            {!data.restrictions.includes('None') && data.restrictions.length > 0 && (
-              <button
-                onClick={() => next()}
-                style={{
-                  width: '100%',
-                  padding: '18px',
-                  background: '#0F172A',
-                  color: '#FFF',
-                  border: 'none',
-                  borderRadius: 'var(--radius-lg)',
-                  fontWeight: 800,
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-              >
-                Continue <ArrowRight size={18} />
-              </button>
-            )}
+
+            <button
+              onClick={next}
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+                color: '#FFF',
+                border: 'none',
+                borderRadius: '16px',
+                fontWeight: 800,
+                fontSize: '15px',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              Continue <ArrowRight size={16} />
+            </button>
           </motion.div>
         )}
 
+        {/* STEP 5: MEDICAL CONDITIONS */}
         {step === 5 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2
-              style={{
-                fontSize: isMobile ? '24px' : '28px',
-                fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '20px',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Any medical conditions?
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+              Clinical guardrails & biomarkers?
             </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
+              Our AI dietician implements clinical nutritional therapy protocols (e.g. low GI for Diabetes, anti-inflammatory for PCOS).
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
               {MEDICAL_CONDITIONS.map((c) => {
                 const isSelected = data.medicalConditions.includes(c);
                 return (
-                  <button
+                  <motion.button
                     key={c}
+                    whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       if (c === 'None') {
                         setData({ ...data, medicalConditions: ['None'] });
-                        setTimeout(next, 150);
                       } else {
                         const newCond = isSelected
                           ? data.medicalConditions.filter((x: string) => x !== c)
                           : [...data.medicalConditions.filter((x: string) => x !== 'None'), c];
-                        setData({ ...data, medicalConditions: newCond });
+                        setData({ ...data, medicalConditions: newCond.length > 0 ? newCond : ['None'] });
                       }
                     }}
                     style={{
-                      padding: '16px 24px',
-                      borderRadius: '99px',
-                      border: `2px solid ${isSelected ? '#3B82F6' : '#F1F5F9'}`,
-                      background: isSelected ? '#3B82F6' : '#F8FAFC',
-                      color: isSelected ? '#FFF' : '#475569',
+                      padding: '14px 20px',
+                      borderRadius: '999px',
+                      border: `1.5px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
+                      background: isSelected ? '#3B82F6' : '#FFFFFF',
+                      color: isSelected ? '#FFFFFF' : '#475569',
                       fontWeight: 700,
-                      fontSize: '15px',
+                      fontSize: '14px',
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: isSelected ? '0 4px 14px rgba(59, 130, 246, 0.25)' : 'none',
                       transition: 'all 0.2s',
                     }}
                   >
+                    {isSelected && <Check size={15} />}
                     {c}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
-            {!data.medicalConditions.includes('None') && data.medicalConditions.length > 0 && (
-              <button
-                onClick={() => next()}
-                style={{
-                  width: '100%',
-                  padding: '18px',
-                  background: '#0F172A',
-                  color: '#FFF',
-                  border: 'none',
-                  borderRadius: 'var(--radius-lg)',
-                  fontWeight: 800,
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-              >
-                Continue <ArrowRight size={18} />
-              </button>
-            )}
-          </motion.div>
-        )}
 
-        {step === 6 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2
+            <button
+              onClick={next}
               style={{
-                fontSize: isMobile ? '24px' : '28px',
+                width: '100%',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+                color: '#FFF',
+                border: 'none',
+                borderRadius: '16px',
                 fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '20px',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Preferred Cuisine?
-            </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-              {CUISINES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setData({ ...data, cuisine: c });
-                    setTimeout(next, 150);
-                  }}
-                  style={{
-                    padding: '16px 24px',
-                    borderRadius: '99px',
-                    border: `2px solid ${data.cuisine === c ? '#F59E0B' : '#F1F5F9'}`,
-                    background: data.cuisine === c ? '#F59E0B' : '#F8FAFC',
-                    color: data.cuisine === c ? '#FFF' : '#475569',
-                    fontWeight: 700,
-                    fontSize: '15px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {step === 7 && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2
-              style={{
-                fontSize: isMobile ? '24px' : '28px',
-                fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '20px',
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Meal Schedule?
-            </h2>
-            <div
-              style={{
+                fontSize: '15px',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                marginBottom: '24px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
               }}
             >
-              {MEAL_SCHEDULES.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    setData({ ...data, mealSchedule: m });
-                    setTimeout(next, 150);
-                  }}
-                  style={{
-                    padding: '24px',
-                    borderRadius: '20px',
-                    border: `2px solid ${data.mealSchedule === m ? '#6366F1' : '#F1F5F9'}`,
-                    background: data.mealSchedule === m ? '#EEF2FF' : '#F8FAFC',
-                    color: data.mealSchedule === m ? '#4F46E5' : '#334155',
-                    fontWeight: 800,
-                    fontSize: '16px',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  {m}
-                  {data.mealSchedule === m && <CheckCircle2 size={24} color="#6366F1" />}
-                </button>
-              ))}
+              Continue to Cuisine Setup <ArrowRight size={16} />
+            </button>
+          </motion.div>
+        )}
+
+        {/* STEP 6: CUISINE PREFERENCE */}
+        {step === 6 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+              What is your culinary style?
+            </h2>
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
+              Recipes will prioritize authentic native spices, ingredients, and realistic prep methods.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+              {CUISINES.map((c) => {
+                const isSelected = data.cuisine === c;
+                return (
+                  <motion.button
+                    key={c}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setData({ ...data, cuisine: c });
+                      setTimeout(next, 160);
+                    }}
+                    style={{
+                      padding: '18px 14px',
+                      borderRadius: '16px',
+                      border: `2px solid ${isSelected ? '#F59E0B' : '#E2E8F0'}`,
+                      background: isSelected ? '#FFFBEB' : '#FFFFFF',
+                      color: isSelected ? '#92400E' : '#334155',
+                      fontWeight: 800,
+                      fontSize: '14px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      boxShadow: isSelected ? '0 6px 16px rgba(245, 158, 11, 0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <Utensils size={18} style={{ margin: '0 auto 6px', color: isSelected ? '#D97706' : '#94A3B8' }} />
+                    {c}
+                  </motion.button>
+                );
+              })}
             </div>
           </motion.div>
         )}
 
+        {/* STEP 7: MEAL SCHEDULE */}
+        {step === 7 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
+              Daily Meal Timing & Schedule
+            </h2>
+            <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
+              Choose a structure that matches your work rhythm and digestion windows.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              {MEAL_SCHEDULES.map((m) => {
+                const isSelected = data.mealSchedule === m;
+                return (
+                  <motion.button
+                    key={m}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setData({ ...data, mealSchedule: m });
+                      setTimeout(next, 160);
+                    }}
+                    style={{
+                      padding: '18px 20px',
+                      borderRadius: '18px',
+                      border: `2px solid ${isSelected ? '#6366F1' : '#E2E8F0'}`,
+                      background: isSelected ? '#EEF2FF' : '#FFFFFF',
+                      color: isSelected ? '#4338CA' : '#334155',
+                      fontWeight: 800,
+                      fontSize: '15px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      boxShadow: isSelected ? '0 6px 18px rgba(99, 102, 241, 0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Clock size={18} color={isSelected ? '#6366F1' : '#94A3B8'} />
+                      <span>{m}</span>
+                    </div>
+                    {isSelected && <CheckCircle2 size={20} color="#6366F1" />}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* STEP 8: REVEAL & COMPUTED METABOLIC BLUEPRINT */}
         {step === 8 && (
           <motion.div
-            initial={{ opacity: 0, x: 20, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             style={{ textAlign: 'center' }}
           >
             <div
               style={{
-                width: '96px',
-                height: '96px',
+                width: '76px',
+                height: '76px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #10B981, #34D399)',
+                background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
                 color: '#FFF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 32px auto',
-                boxShadow: '0 12px 32px rgba(16, 185, 129, 0.3)',
+                margin: '0 auto 20px auto',
+                boxShadow: '0 12px 30px rgba(16, 185, 129, 0.35)',
               }}
             >
-              <CheckCircle2 size={48} />
+              <Sparkles size={36} />
             </div>
-            <h2
+
+            <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.8px' }}>
+              Metabolic Blueprint Ready!
+            </h2>
+            <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', lineHeight: 1.5 }}>
+              Your clinical targets have been computed and synchronized across your HealthChain ecosystem.
+            </p>
+
+            {/* Calculated Blueprint Card */}
+            <div
               style={{
-                fontSize: isMobile ? '26px' : '32px',
-                fontWeight: 800,
-                color: '#0F172A',
-                marginBottom: '16px',
-                letterSpacing: '-1px',
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: '20px',
+                border: '1.5px solid #A7F3D0',
+                boxShadow: '0 10px 25px rgba(16, 185, 129, 0.08)',
+                marginBottom: '28px',
+                textAlign: 'left',
               }}
             >
-              Profile Complete!
-            </h2>
-            <p
-              style={{ fontSize: '16px', color: '#64748B', marginBottom: '24px', lineHeight: 1.6 }}
-            >
-              We've computed your clinical targets based on the Mifflin-St Jeor equation. Your
-              personalized AI dashboard is ready.
-            </p>
-            <button
-              onClick={() => onComplete(data)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Flame size={18} color="#EF4444" />
+                  <span style={{ fontWeight: 800, fontSize: '14px', color: '#0F172A' }}>Daily Caloric Budget</span>
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 900, color: '#059669' }}>
+                  {calculated.targetCalories} <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>kcal/day</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <div style={{ background: '#FEF2F2', padding: '12px 10px', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#991B1B', textTransform: 'uppercase' }}>Protein (25%)</div>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#DC2626', marginTop: '2px' }}>{calculated.targetProtein}g</div>
+                </div>
+                <div style={{ background: '#EFF6FF', padding: '12px 10px', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#1E40AF', textTransform: 'uppercase' }}>Carbs (45%)</div>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#2563EB', marginTop: '2px' }}>{calculated.targetCarbs}g</div>
+                </div>
+                <div style={{ background: '#FFFBEB', padding: '12px 10px', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#92400E', textTransform: 'uppercase' }}>Healthy Fat (30%)</div>
+                  <div style={{ fontSize: '17px', fontWeight: 900, color: '#D97706', marginTop: '2px' }}>{calculated.targetFat}g</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', fontSize: '12px', color: '#475569' }}>
+                <ShieldCheck size={15} color="#059669" />
+                <span>Calibrated for: <strong>{data.goal}</strong> · {data.cuisine} cuisine · {data.mealSchedule}</span>
+              </div>
+            </div>
+
+            <motion.button
+              whileTap={{ scale: 0.985 }}
+              onClick={() => {
+                triggerHapticSuccess();
+                onComplete(data);
+              }}
               style={{
                 width: '100%',
-                padding: '20px',
-                background: '#0F172A',
+                padding: '18px',
+                background: 'linear-gradient(135deg, #064E3B 0%, #047857 50%, #0F172A 100%)',
                 color: '#FFF',
                 border: 'none',
-                borderRadius: 'var(--radius-lg)',
+                borderRadius: '18px',
                 fontWeight: 800,
-                fontSize: '18px',
+                fontSize: '16px',
                 cursor: 'pointer',
-                boxShadow: '0 12px 32px rgba(15, 23, 42, 0.2)',
-                transition: 'transform 0.2s',
+                boxShadow: '0 12px 30px rgba(4, 120, 87, 0.35)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
-              Go to Dashboard
-            </button>
+              Enter Dietician Dashboard <ArrowRight size={18} />
+            </motion.button>
           </motion.div>
         )}
       </div>
