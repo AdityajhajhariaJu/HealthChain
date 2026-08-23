@@ -462,20 +462,20 @@ New Information / Changes in Symptoms since last evaluation:
 
         {/* Start Fresh Case (Now Primary) */}
         <div style={{ marginBottom: '40px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ position: 'relative' }}>
               <textarea maxLength={3000}
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
-                placeholder={"Write down your entire history — every symptom and how long you've been facing it.\n\nAttach all reports, lab results, or documents so our multiple AI agents can connect everything."}
+                placeholder={"Describe your symptoms, health history, or questions in detail...\n\n(Optional: You can also attach lab reports, scans, or past records below)."}
                 style={{
                   width: '100%',
                   minHeight: '160px',
-                  padding: '20px',
-                  paddingBottom: '50px',
+                  padding: '18px',
                   borderRadius: 'var(--radius-lg)',
                   border: '1px solid #E2E8F0',
-                  fontSize: '16px',
+                  fontSize: '15.5px',
+                  lineHeight: 1.6,
                   resize: 'vertical',
                   fontFamily: 'inherit',
                   outline: 'none',
@@ -487,31 +487,6 @@ New Information / Changes in Symptoms since last evaluation:
                 onFocus={(e) => (e.target.style.borderColor = '#10B981')}
                 onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
               />
-              <div style={{ position: 'absolute', bottom: '12px', left: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    padding: isMobile ? '4px 10px' : '6px 14px',
-                    background: isMobile ? 'rgba(241, 245, 249, 0.6)' : '#F1F5F9',
-                    backdropFilter: isMobile ? 'blur(4px)' : 'none',
-                    color: '#475569',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '999px',
-                    fontSize: isMobile ? '11px' : '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#0F172A'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#475569'; }}
-                >
-                  <Upload size={12} /> Upload lab reports also
-                </button>
-
-              </div>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -523,19 +498,32 @@ New Information / Changes in Symptoms since last evaluation:
               />
             </div>
 
-            {selectedFiles.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 4px' }}>
-                {selectedFiles.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', padding: '4px 10px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '13px', color: '#334155' }}>
-                    <FileText size={14} color="#64748B" />
-                    <span style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
-                    <button onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#94A3B8' }}><X size={14} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Optional Document Attachment Toolbar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  padding: isMobile ? '7px 12px' : '8px 16px',
+                  background: '#F8FAFC',
+                  color: '#475569',
+                  border: '1px dashed #CBD5E1',
+                  borderRadius: '10px',
+                  fontSize: isMobile ? '12.5px' : '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#94A3B8'; e.currentTarget.style.color = '#0F172A'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+              >
+                <Upload size={14} color="#64748B" />
+                <span>Attach Lab Reports or Photos <span style={{ color: '#94A3B8', fontWeight: 500 }}>(Optional)</span></span>
+              </button>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '4px' }}>
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
@@ -544,10 +532,10 @@ New Information / Changes in Symptoms since last evaluation:
                   background: 'transparent',
                   color: '#64748B',
                   border: 'none',
-                  fontSize: '14px',
+                  fontSize: isMobile ? '12.5px' : '13.5px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
                   transition: 'color 0.2s',
@@ -555,9 +543,25 @@ New Information / Changes in Symptoms since last evaluation:
                 onMouseOver={(e) => { e.currentTarget.style.color = '#0F172A'; }}
                 onMouseOut={(e) => { e.currentTarget.style.color = '#64748B'; }}
               >
-                <GitMerge size={16} /> Import existing case
+                <GitMerge size={15} /> Import existing case
               </button>
+            </div>
 
+            {/* Attached Files List */}
+            {selectedFiles.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '4px 0' }}>
+                {selectedFiles.map((f, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', padding: '5px 12px', borderRadius: '8px', border: '1px solid #BBF7D0', fontSize: '13px', color: '#166534' }}>
+                    <FileText size={14} color="#16a34a" />
+                    <span style={{ maxWidth: isMobile ? '160px' : '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>{f.name}</span>
+                    <button onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#16a34a', marginLeft: '4px' }}><X size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Submit Action */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '6px' }}>
               <button
                 onClick={() => {
                   try { sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} 
@@ -565,7 +569,9 @@ New Information / Changes in Symptoms since last evaluation:
                 }}
                 disabled={!complaint.trim() || isPreparing}
                 style={{
-                  padding: '16px 32px',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: 'center',
+                  padding: isMobile ? '14px 24px' : '16px 32px',
                   background: complaint.trim() && !isPreparing ? '#0F172A' : '#E2E8F0',
                   color: '#FFF',
                   border: 'none',
@@ -577,6 +583,7 @@ New Information / Changes in Symptoms since last evaluation:
                   alignItems: 'center',
                   gap: '8px',
                   transition: 'all 0.2s',
+                  boxShadow: complaint.trim() && !isPreparing ? '0 4px 14px rgba(15, 23, 42, 0.2)' : 'none',
                 }}
               >
                 {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={18} />

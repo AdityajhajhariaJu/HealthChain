@@ -35,6 +35,8 @@ import {
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { addEvent, addActionItems, addCondition, getProfile } from '../../services/ProfileEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { trackConsultationStarted } from '../../services/analytics';
 import { getActiveCase, saveReviewSnapshot, setActiveCase as setGlobalActiveCase, getCases } from '../../services/CaseEngine';
 import {
   Step,
@@ -184,6 +186,7 @@ useEffect(() => {
     
     // Clear the current run namespace before starting another case.
     clearRunStorage('mdt');
+    trackConsultationStarted('mdt', { hasFiles: Boolean(data.files && data.files.length > 0), hasImportedCase: Boolean(data.importedCaseId) });
 
     setIsSelecting(true);
     let enhancedComplaint = data.chiefComplaint || '';

@@ -26,6 +26,7 @@ import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { getRunScope, clearRunStorage, makeRunId } from '../../services/RunContext';
 import { getActiveSession } from '../../services/authSession';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { trackConsultationStarted } from '../../services/analytics';
 
 const cachedQuickConsultStreams: any = {};
 // Resolve these at use-time rather than module import so a profile/account
@@ -155,6 +156,7 @@ export default function QuickConsult() {
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   const handleSkipUpload = () => {
+    trackConsultationStarted('quick', { specialist: selectedSpecialist?.name, hasFiles: false });
     setPhase('chat');
   };
 
@@ -192,6 +194,7 @@ export default function QuickConsult() {
         setIsProcessingFiles(false);
       }
     }
+    trackConsultationStarted('quick', { specialist: selectedSpecialist?.name, hasFiles: uploadedFiles.length > 0 });
     setPhase('chat');
   };
 

@@ -43,6 +43,7 @@ import VitalityPointsModal from '../ui/VitalityPointsModal';
 import PointsAwardedToast from '../ui/PointsAwardedToast';
 import UpgradeToProCard from '../ui/UpgradeToProCard';
 import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
+import { trackPageView, trackButtonClick } from '../../services/analytics';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -84,15 +85,17 @@ export default function AppShell() {
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
   const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
 
-  const handleNavClick = (path: string) => {
+  const handleNavClick = (path: string, label?: string) => {
     triggerHapticLight();
+    trackButtonClick(label || path, 'navigation');
     navigate(path);
     setShowMoreMenu(false);
   };
 
-  // Scroll to top on route change
+  // Scroll to top on route change & track page view
   useEffect(() => {
     setShowMoreMenu(false);
+    trackPageView(location.pathname);
     const scrollContainer = document.querySelector('.app-shell__content');
     if (scrollContainer) {
       scrollContainer.scrollTo(0, 0);

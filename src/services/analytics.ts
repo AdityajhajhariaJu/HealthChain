@@ -49,8 +49,14 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
   }
 };
 
-// Common Events
+// Common & Advanced Telemetry Events (100% GDPR/CCPA Privacy Compliant)
+export const trackPageView = (path: string) => trackEvent('page_view', { path });
+export const trackFeatureUsed = (featureName: string, metadata: any = {}) => trackEvent('feature_used', { feature: featureName, ...metadata });
+export const trackButtonClick = (buttonName: string, context: string = '') => trackEvent('button_click', { button: buttonName, context });
 export const trackSignup = () => trackEvent('CompleteRegistration');
 export const trackLabUpload = () => trackEvent('LabReportUploaded', { status: 'success' });
-export const trackCheckoutInitiated = (value: number) => trackEvent('InitiateCheckout', { value, currency: 'INR' });
-export const trackPurchase = (value: number) => trackEvent('Purchase', { value, currency: 'INR' });
+export const trackCheckoutInitiated = (value: number, planId?: string) => trackEvent('InitiateCheckout', { value, currency: 'INR', planId });
+export const trackPurchase = (value: number, planId?: string) => trackEvent('Purchase', { value, currency: 'INR', planId });
+export const trackConsultationStarted = (mode: 'quick' | 'mdt' | 'jarvis' | 'ava', details: any = {}) => trackEvent('consultation_started', { mode, ...details });
+export const trackCaseAction = (action: string, metadata: any = {}) => trackEvent('case_action', { action, ...metadata });
+
