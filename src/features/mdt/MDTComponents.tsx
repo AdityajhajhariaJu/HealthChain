@@ -117,11 +117,10 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
     <div
       style={{
         padding: isMobile ? '20px' : '48px',
-        background: 'rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(24px)',
+        background: '#FFFFFF',
         borderRadius: '32px',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
-        border: '1px solid rgba(16,185,129,0.2)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+        border: '1px solid #E2E8F0',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '20px' }}>
@@ -425,13 +424,11 @@ New Information / Changes in Symptoms since last evaluation:
           backgroundPosition: { duration: 10, ease: "linear", repeat: Infinity }
         }}
         style={{
-          background: 'linear-gradient(120deg, rgba(240,253,244,0.95) 0%, rgba(239,246,255,0.95) 50%, rgba(255,255,255,0.95) 100%)',
-          backgroundSize: '200% 200%',
-          backdropFilter: 'blur(24px)',
+          background: '#FFFFFF',
           padding: isMobile ? '20px' : '48px',
           borderRadius: '32px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+          border: '1px solid #E2E8F0',
         }}
       >
         <div style={{ position: 'relative', marginBottom: '32px' }}>

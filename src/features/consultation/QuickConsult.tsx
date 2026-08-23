@@ -279,14 +279,11 @@ export default function QuickConsult() {
               }
             }}
             style={{
-              background: 'linear-gradient(120deg, rgba(240, 253, 244, 0.2) 0%, rgba(239, 246, 255, 0.2) 50%, rgba(255, 255, 255, 0.3) 100%)',
-              backgroundSize: '200% 200%',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              background: '#FFFFFF',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+              border: '1px solid #E2E8F0',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
@@ -347,7 +344,7 @@ export default function QuickConsult() {
                       width: '180px',
                       outline: 'none',
                       transition: 'border-color 0.2s',
-                      background: 'rgba(255, 255, 255, 0.2)'
+                      background: '#F8FAFC'
                     }}
                     onFocus={(e) => (e.target.style.borderColor = '#2563EB')}
                     onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
@@ -376,35 +373,33 @@ export default function QuickConsult() {
                         width: '140px',
                         padding: '16px',
                         borderRadius: '16px',
-                        border: `1px solid ${isSelected ? '#3B82F6' : 'rgba(255, 255, 255, 0.2)'}`,
+                        border: `1.5px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
                         background: isSelected 
-                          ? 'rgba(239, 246, 255, 0.85)' 
-                          : 'rgba(255, 255, 255, 0.4)',
-                        backdropFilter: 'blur(12px)',
-                        WebkitBackdropFilter: 'blur(12px)',
+                          ? '#EFF6FF' 
+                          : '#FFFFFF',
                         cursor: 'pointer',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transition: 'all 0.2s ease',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'flex-start',
                         boxShadow: isSelected 
-                          ? '0 12px 24px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,1)' 
-                          : '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                          ? '0 8px 16px rgba(59, 130, 246, 0.12)' 
+                          : '0 2px 6px rgba(0,0,0,0.02)'
                       }}
                       onMouseOver={(e) => { 
                         if (!isSelected) { 
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)'; 
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'; 
+                          e.currentTarget.style.borderColor = '#CBD5E1'; 
+                          e.currentTarget.style.background = '#F8FAFC'; 
                           e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,1)';
+                          e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.04)';
                         } 
                       }}
                       onMouseOut={(e) => { 
                         if (!isSelected) { 
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; 
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)'; 
+                          e.currentTarget.style.borderColor = '#E2E8F0'; 
+                          e.currentTarget.style.background = '#FFFFFF'; 
                           e.currentTarget.style.transform = 'none';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
                         } 
                       }}
                     >
@@ -474,12 +469,11 @@ export default function QuickConsult() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.25)',
-              backdropFilter: 'blur(24px)',
+              background: '#FFFFFF',
               padding: isMobile ? '32px 20px' : '40px 56px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              border: '1px solid #E2E8F0',
               maxWidth: '560px',
               margin: '0 auto',
               textAlign: 'center'
@@ -510,7 +504,7 @@ export default function QuickConsult() {
                 onClick={() => fileInputRef.current?.click()}
                 style={{
                   padding: '14px 24px',
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: '#F8FAFC',
                   border: '2px dashed #CBD5E1',
                   borderRadius: 16,
                   cursor: 'pointer',
@@ -540,7 +534,7 @@ export default function QuickConsult() {
                 }}
                 style={{
                   padding: '14px 24px',
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: '#F8FAFC',
                   border: '2px dashed #CBD5E1',
                   borderRadius: 16,
                   cursor: 'pointer',
@@ -560,41 +554,42 @@ export default function QuickConsult() {
             </div>
 
             {uploadedFiles.length > 0 && (
-              <div style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {uploadedFiles.map((file, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: '#F0FDF4', borderRadius: 12, border: '1px solid #BBF7D0' }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#166534', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
-                      {file.name}
-                    </span>
-                    <button onClick={() => removeFile(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', padding: 4 }}>
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
+              <div style={{ marginBottom: 24, textAlign: 'left', background: '#F8FAFC', padding: '12px 16px', borderRadius: 16, border: '1px solid #E2E8F0' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginBottom: 8 }}>Attached Records:</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {uploadedFiles.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#64748B' }}>
+                      <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '280px' }}>{f.name}</span>
+                      <button onClick={() => removeFile(i)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 2 }}>
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
               <button
-                onClick={handleSkipUpload}
+                onClick={() => setPhase('chat')}
                 style={{
                   padding: '14px 28px',
-                  background: 'transparent',
+                  background: 'none',
                   border: 'none',
+                  color: '#64748B',
                   cursor: 'pointer',
                   fontSize: 15,
-                  fontWeight: 700,
-                  color: '#64748B',
+                  fontWeight: 600,
                   transition: 'color 0.2s'
                 }}
                 onMouseOver={(e) => { e.currentTarget.style.color = '#0F172A'; }}
                 onMouseOut={(e) => { e.currentTarget.style.color = '#64748B'; }}
               >
-                Skip for now
+                Skip this step
               </button>
               {uploadedFiles.length > 0 && (
                 <button
-                  onClick={handleProceedWithUpload}
+                  onClick={() => setPhase('chat')}
                   style={{
                     padding: '14px 28px',
                     background: '#0F172A',
@@ -623,13 +618,11 @@ export default function QuickConsult() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.25)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              background: '#FFFFFF',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05)',
+              border: '1px solid #E2E8F0',
               height: isMobile ? 'calc(100dvh - 120px)' : '700px',
               display: 'flex',
               flexDirection: 'column'
@@ -686,12 +679,11 @@ export default function QuickConsult() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               style={{
-                background: 'rgba(255, 255, 255, 0.25)',
-                backdropFilter: 'blur(24px)',
+                background: '#FFFFFF',
                 padding: isMobile ? '32px 16px' : '32px 64px 64px',
                 borderRadius: '32px',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                border: '1px solid #E2E8F0',
                 maxWidth: '600px',
                 margin: '0 auto',
               }}
@@ -705,12 +697,11 @@ export default function QuickConsult() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.25)',
-              backdropFilter: 'blur(24px)',
+              background: '#FFFFFF',
               padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              border: '1px solid #E2E8F0',
               textAlign: 'center'
             }}
           >
@@ -728,7 +719,7 @@ export default function QuickConsult() {
                 style={{
                   width: '100%',
                   padding: '16px',
-                  background: 'rgba(255, 255, 255, 0.4)',
+                  background: '#F8FAFC',
                   border: '2px solid #E2E8F0',
                   borderRadius: '16px',
                   fontWeight: 700,
@@ -741,8 +732,8 @@ export default function QuickConsult() {
                   fontSize: '15px',
                   transition: 'all 0.2s'
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = '#F8FAFC'; }}
-                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = '#F1F5F9'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#F8FAFC'; }}
               >
                 <FileText size={18} />
                 View Case Summary

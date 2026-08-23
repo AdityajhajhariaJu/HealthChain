@@ -429,11 +429,10 @@ export default function MultiSpecialist() {
               gap: '8px',
               marginBottom: '12px',
               padding: '6px 12px',
-              background: 'rgba(255, 255, 255, 0.25)',
-              backdropFilter: 'blur(10px)',
+              background: '#FFFFFF',
               borderRadius: '999px',
-              border: '1px solid rgba(0,0,0,0.05)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
             }}
           >
             <Sparkles size={14} color="#10B981" />
@@ -504,11 +503,10 @@ export default function MultiSpecialist() {
 
             <div
               style={{
-                background: 'rgba(255, 255, 255, 0.25)',
-                backdropFilter: 'blur(20px)',
+                background: '#FFFFFF',
                 borderRadius: '16px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                border: '1px solid #E2E8F0',
                 display: 'flex',
                 alignItems: 'center',
                 marginBottom: '24px',

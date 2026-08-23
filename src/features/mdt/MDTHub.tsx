@@ -600,11 +600,10 @@ useEffect(() => {
               gap: '8px',
               marginBottom: '12px',
               padding: '6px 12px',
-              background: 'rgba(255, 255, 255, 0.25)',
-              backdropFilter: 'blur(10px)',
+              background: '#FFFFFF',
               borderRadius: '999px',
-              border: '1px solid rgba(0,0,0,0.05)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
               position: 'relative',
               zIndex: 1
             }}
