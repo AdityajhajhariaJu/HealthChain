@@ -4,6 +4,7 @@ import { Flame, Edit3, HeartPulse, Sparkles, Zap, Trophy, Award, CheckCircle2, A
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface DailySymptomCheckinWidgetProps {
   onCheckinComplete?: (checkin: any) => void;
@@ -19,6 +20,7 @@ const SEVERITY_OPTIONS = [
 ];
 
 export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySymptomCheckinWidgetProps) {
+  const isMobile = useIsMobile();
   const [profile, setProfile] = useState(getProfile());
   const [todayCheckin, setTodayCheckin] = useState<any>(getTodayCheckin());
   const [recentCheckins, setRecentCheckins] = useState<any[]>(getRecentCheckins(7));
@@ -185,24 +187,33 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
   return (
     <div
       style={{
-        borderRadius: '24px',
+        borderRadius: isMobile ? '20px' : '24px',
         background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
         border: '1px solid #E2E8F0',
         boxShadow: '0 8px 30px -4px rgba(15, 23, 42, 0.05)',
-        padding: '24px 28px',
-        marginBottom: '28px',
+        padding: isMobile ? '16px 16px 18px' : '24px 28px',
+        marginBottom: isMobile ? '20px' : '28px',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
       {/* Top Header Row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          justifyContent: 'space-between',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          marginBottom: isMobile ? '14px' : '18px',
+          gap: isMobile ? '10px' : '12px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '12px',
+              width: isMobile ? '34px' : '38px',
+              height: isMobile ? '34px' : '38px',
+              borderRadius: isMobile ? '10px' : '12px',
               background: '#ECFDF5',
               color: '#059669',
               display: 'flex',
@@ -210,26 +221,27 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
               justifyContent: 'center',
               border: '1px solid #A7F3D0',
               boxShadow: '0 2px 6px rgba(5,150,105,0.1)',
+              flexShrink: 0,
             }}
           >
-            <HeartPulse size={20} />
+            <HeartPulse size={isMobile ? 18 : 20} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                10-Second Daily Check-in
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                Daily Check-in
               </span>
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#10B981' }} />
+              <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#10B981' }} />
               <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>1-Tap Wellness Log</span>
             </div>
-            <h3 style={{ margin: '2px 0 0', fontSize: '17px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.2px' }}>
+            <h3 style={{ margin: '2px 0 0', fontSize: isMobile ? '16px' : '17px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.2px' }}>
               {todayCheckin && !isEditing ? `Today's Log: ${todayCheckin.symptom}` : `How is your ${selectedSymptom} today?`}
             </h3>
           </div>
         </div>
 
         {/* Streak & Milestone Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', alignSelf: isMobile ? 'flex-start' : 'center' }}>
           <div
             style={{
               display: 'flex',
@@ -237,17 +249,17 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
               gap: '6px',
               background: streakDays > 0 ? '#FFF7ED' : '#F8FAFC',
               border: `1px solid ${streakDays > 0 ? '#FED7AA' : '#E2E8F0'}`,
-              padding: '6px 12px',
+              padding: '5px 12px',
               borderRadius: '999px',
-              fontSize: '12.5px',
+              fontSize: '12px',
               fontWeight: 700,
               color: streakDays > 0 ? '#C2410C' : '#64748B',
             }}
           >
-            <Flame size={15} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
+            <Flame size={14} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
             <span>{streakDays} Day Streak</span>
             {streakDays > 0 && (
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#9A3412', borderLeft: '1px solid #FDBA74', paddingLeft: '6px' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#9A3412', borderLeft: '1px solid #FDBA74', paddingLeft: '5px' }}>
                 {milestone.remaining > 0 ? `${milestone.remaining}d to ${milestone.label}` : milestone.label}
               </span>
             )}
@@ -404,18 +416,20 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'flex-start' : 'center',
                 justifyContent: 'space-between',
-                padding: '14px 18px',
+                padding: isMobile ? '12px 14px' : '14px 18px',
                 background: '#FFFFFF',
                 borderRadius: '16px',
                 border: '1px solid #E2E8F0',
+                gap: isMobile ? '10px' : '8px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>7-Day Week Progress:</span>
+                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155' }}>7-Day Week Progress:</span>
               </div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: isMobile ? '4px' : '8px', alignItems: 'center', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
                 {weekDays.map((day: any, i: number) => {
                   const checkin = day.checkin;
                   const opt = checkin ? (SEVERITY_OPTIONS.find(o => o.label === checkin.severity) || SEVERITY_OPTIONS[0]) : null;
@@ -426,29 +440,29 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '4px',
-                        padding: '6px 8px',
-                        borderRadius: '10px',
+                        gap: '3px',
+                        padding: isMobile ? '4px 6px' : '6px 8px',
+                        borderRadius: '8px',
                         background: day.isToday ? '#F0FDFA' : (day.isLogged ? '#F8FAFC' : 'transparent'),
                         border: day.isToday ? '1.5px solid #14B8A6' : (day.isLogged ? '1px solid #E2E8F0' : '1px dashed #E2E8F0'),
-                        minWidth: '34px',
+                        minWidth: isMobile ? '30px' : '34px',
                       }}
                       title={checkin ? `${day.dayShort}: ${checkin.symptom} (${checkin.severity})` : `${day.dayShort}: Not logged`}
                     >
-                      <span style={{ fontSize: '10px', fontWeight: 700, color: day.isToday ? '#0D9488' : '#64748B' }}>
-                        {day.dayShort}
+                      <span style={{ fontSize: '9.5px', fontWeight: 700, color: day.isToday ? '#0D9488' : '#64748B' }}>
+                        {isMobile ? day.dayLetter : day.dayShort}
                       </span>
                       <div
                         style={{
-                          width: '18px',
-                          height: '18px',
+                          width: isMobile ? '16px' : '18px',
+                          height: isMobile ? '16px' : '18px',
                           borderRadius: '50%',
                           background: day.isLogged ? (opt?.bg || '#DCFCE7') : '#F1F5F9',
                           border: day.isLogged ? `1.5px solid ${opt?.color || '#10B981'}` : '1.5px solid #CBD5E1',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '10px',
+                          fontSize: '9px',
                           color: opt?.color || '#10B981',
                           fontWeight: 800,
                         }}
@@ -506,8 +520,8 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '10px',
+                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                gap: isMobile ? '8px' : '10px',
               }}
             >
               {SEVERITY_OPTIONS.map((option) => {
@@ -517,18 +531,19 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                     key={option.label}
                     onClick={() => handleSelectSeverity(option)}
                     style={{
-                      padding: '10px 8px',
+                      padding: isMobile ? '10px 12px' : '10px 8px',
                       background: option.bg,
                       border: `1.5px solid ${option.border}`,
                       borderRadius: '14px',
                       display: 'flex',
-                      flexDirection: 'column',
+                      flexDirection: isMobile ? 'row' : 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '3px',
+                      justifyContent: isMobile ? 'flex-start' : 'center',
+                      gap: isMobile ? '8px' : '3px',
                       cursor: 'pointer',
                       transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                       boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                      textAlign: isMobile ? 'left' : 'center',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
@@ -543,25 +558,27 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                   >
                     <div
                       style={{
-                        width: '26px',
-                        height: '26px',
+                        width: isMobile ? '28px' : '26px',
+                        height: isMobile ? '28px' : '26px',
                         borderRadius: '50%',
                         background: option.iconBg,
                         color: option.color,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: '1px',
+                        flexShrink: 0,
                       }}
                     >
                       <Icon size={15} strokeWidth={2.5} />
                     </div>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: option.color }}>
-                      {option.label}
-                    </span>
-                    <span style={{ fontSize: '10.5px', color: '#64748B', textAlign: 'center', lineHeight: 1.15 }}>
-                      {option.desc}
-                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: option.color, lineHeight: 1.2 }}>
+                        {option.label}
+                      </div>
+                      <div style={{ fontSize: '10.5px', color: '#64748B', lineHeight: 1.15, marginTop: '1px' }}>
+                        {option.desc}
+                      </div>
+                    </div>
                   </button>
                 );
               })}
