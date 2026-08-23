@@ -315,16 +315,44 @@ function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navi
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', paddingBottom: 40 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/my-cases')}>
           <ArrowLeft size={16} /> Back to My Cases
         </button>
-        <button 
-          className="btn btn-outline btn-sm"
-          onClick={() => window.print()}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        <button
+          onClick={() => {
+            const caseBrief = {
+              caseId: item.id,
+              title: item.title,
+              type: 'J.A.R.V.I.S. Investigation',
+              symptoms: item.intakeData?.chiefComplaint || item.title,
+              topConditions: (report.topDiagnoses || []).map((d: any) => `${d.condition || ''} (${d.confidence || 'Plausible'}% match)`).join(', '),
+              summary: report.executiveSummary || '',
+              questions: report.questionsForClinician || [],
+              actions: (item.actions || []).map((a: any) => cleanActionItem(a).title).join('; ')
+            };
+            try {
+              sessionStorage.setItem('hc_imported_case_brief', JSON.stringify(caseBrief));
+            } catch(e) {}
+            navigate(`/app/ava?importCase=${item.id}`);
+          }}
+          style={{
+            padding: '8px 18px',
+            background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: 12,
+            fontWeight: 800,
+            fontSize: 13.5,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            boxShadow: '0 4px 14px rgba(139,92,246,0.25)',
+            transition: 'all 0.2s'
+          }}
         >
-          <Printer size={14} /> Print Dossier
+          <Sparkles size={15} /> Correlate Findings with Ava
         </button>
       </div>
 
@@ -866,11 +894,50 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
   const completedActions = item.actions.filter(a => a.status === 'completed').length;
   const progressPercent = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
 
+  const handleDiscussWithAva = () => {
+    const caseBrief = {
+      caseId: item.id,
+      title: item.title,
+      type: isQuickConsult ? 'Quick Consult' : item.reviews?.[0]?.type === 'jarvis' ? 'J.A.R.V.I.S.' : 'Deep Collab',
+      symptoms: item.intakeData?.chiefComplaint || item.title,
+      topConditions: (Array.isArray(report.topDiagnoses) ? report.topDiagnoses : []).map((d: any) => `${d.condition || ''} (${d.confidence || 'Plausible'}% match)`).join(', '),
+      summary: report.executiveSummary || report.interpretation || '',
+      questions: report.questionsForClinician || [],
+      actions: (item.actions || []).map((a: any) => cleanActionItem(a).title).join('; ')
+    };
+    try {
+      sessionStorage.setItem('hc_imported_case_brief', JSON.stringify(caseBrief));
+    } catch(e) {}
+    navigate(`/app/ava?importCase=${item.id}`);
+  };
+
   return (
     <div style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 40 }}>
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/my-cases')}>
-        <ArrowLeft size={16} /> Back to My Cases
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/app/my-cases')}>
+          <ArrowLeft size={16} /> Back to My Cases
+        </button>
+        <button
+          onClick={handleDiscussWithAva}
+          style={{
+            padding: '8px 18px',
+            background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: 12,
+            fontWeight: 800,
+            fontSize: 13.5,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            boxShadow: '0 4px 14px rgba(139,92,246,0.25)',
+            transition: 'all 0.2s'
+          }}
+        >
+          <Sparkles size={15} /> Re-evaluate & Correlate with Ava
+        </button>
+      </div>
 
       <PrintableDossier item={item} profile={profile} />
 
@@ -1311,6 +1378,30 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                 )}
 
                 <div style={{ paddingTop: 14, borderTop: '1px solid #F1F5F9' }}>
+                  <button
+                    onClick={handleDiscussWithAva}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: 12,
+                      fontWeight: 800,
+                      fontSize: 13.5,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      boxShadow: '0 4px 12px rgba(139,92,246,0.25)',
+                      marginBottom: 10,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <Sparkles size={15} /> Re-evaluate with Ava
+                  </button>
+
                   <button
                     onClick={() => window.print()}
                     style={{

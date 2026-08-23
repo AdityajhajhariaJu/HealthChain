@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiService';
 import { addEvent } from '../../services/ProfileEngine';
@@ -13,6 +13,14 @@ const SUGGESTIONS = [
   "Are there any side effects to my new meds?",
   "I have a headache, is it related to my condition?",
   "Can we review my health plan?",
+];
+
+const CASE_RECHECK_SUGGESTIONS = [
+  "Re-evaluate: What other alternative conditions could explain this?",
+  "Could any of my active medications be causing or worsening this?",
+  "Help me prepare the most important questions for my doctor.",
+  "What specific blood tests or imaging would confirm or rule this out?",
+  "Can you explain the underlying biological mechanism in simple terms?"
 ];
 
 import { getProfileEngineState, getProfileKey, getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
@@ -84,6 +92,7 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
 export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const location = useLocation();
   const sessionId = useRef(crypto.randomUUID()).current;
   const [messages, setMessages] = useState(getSavedMessages());
   const [input, setInput] = useState(() => { try { return sessionStorage.getItem('hc_ava_draft') || ''; } catch { return ''; } });
@@ -92,6 +101,44 @@ export default function AvaHealthBuddy() {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [importedCase, setImportedCase] = useState<any>(() => {
+    try {
+      const stored = sessionStorage.getItem('hc_imported_case_brief');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const initializedImportRef = useRef(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const caseId = params.get('importCase');
+    if (caseId && !initializedImportRef.current) {
+      initializedImportRef.current = true;
+      try {
+        const stored = sessionStorage.getItem('hc_imported_case_brief');
+        const parsed = stored ? JSON.parse(stored) : null;
+        if (parsed) {
+          setImportedCase(parsed);
+          const caseGreeting = `I have imported and reviewed your **${parsed.title}** (${parsed.type || 'Consultation'}).\n\nI've loaded your primary differential considerations (**${parsed.topConditions || 'findings'}**) and clinical notes.\n\nI'm ready to help you re-evaluate alternative hypotheses, cross-correlate with your medications, or prepare what to ask your doctor. What would you like to explore?`;
+          
+          setMessages((prev: any[]) => {
+            if (prev.length <= 1) {
+              return [{ role: 'model', content: caseGreeting, isStreaming: true }];
+            } else {
+              return [...prev, { role: 'model', content: caseGreeting, isStreaming: true }];
+            }
+          });
+          setIsStreaming(true);
+        }
+      } catch (e) {
+        console.error('Error importing case into Ava:', e);
+      }
+    }
+  }, [location.search]);
 
   const currentProfileId = useRef(getProfileEngineState()?.activeId);
 
@@ -374,6 +421,81 @@ export default function AvaHealthBuddy() {
               gap: '16px',
             }}
           >
+            {importedCase && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{
+                  background: 'linear-gradient(135deg, #FAF5FF 0%, #EDE9FE 100%)',
+                  border: '1.5px solid #DDD6FE',
+                  borderRadius: 20,
+                  padding: isMobile ? '14px 16px' : '16px 20px',
+                  marginBottom: 8,
+                  boxShadow: '0 4px 16px rgba(139,92,246,0.08)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 12,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 220 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#8B5CF6', color: '#FFF', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: 0.6 }}>Connected Case In Session</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, background: 'rgba(139,92,246,0.15)', color: '#6D28D9', padding: '1px 7px', borderRadius: 999 }}>{importedCase.type || 'Consultation'}</span>
+                    </div>
+                    <strong style={{ fontSize: 14.5, color: '#4C1D95', display: 'block', lineHeight: 1.3 }}>{importedCase.title}</strong>
+                    {importedCase.topConditions && (
+                      <span style={{ fontSize: 12, color: '#6D28D9', display: 'block', marginTop: 2 }}>
+                        Differentials: {importedCase.topConditions}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {importedCase.caseId && (
+                    <button
+                      onClick={() => navigate(`/app/cases/${importedCase.caseId}`)}
+                      style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #C4B5FD',
+                        color: '#6D28D9',
+                        padding: '6px 12px',
+                        borderRadius: 8,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      View Case File
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setImportedCase(null);
+                      try { sessionStorage.removeItem('hc_imported_case_brief'); } catch(e){}
+                    }}
+                    aria-label="Close imported case context"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#8B5CF6',
+                      cursor: 'pointer',
+                      padding: 6,
+                      display: 'grid',
+                      placeItems: 'center'
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             <AnimatePresence initial={false}>
               {messages.map((msg, idx) => (
                 <motion.div
@@ -512,8 +634,8 @@ export default function AvaHealthBuddy() {
 
             <div ref={messagesEndRef} style={{ height: 1 }} />
 
-            {/* Suggestions - Only show after initial message if user hasn't typed yet */}
-            {messages.length === 1 && !isTyping && (
+            {/* Suggestions - Show after initial/imported message if user hasn't typed yet */}
+            {messages.length <= 2 && !isTyping && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -521,36 +643,40 @@ export default function AvaHealthBuddy() {
                 style={{
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: '12px',
-                  paddingLeft: '44px',
-                  marginTop: '-8px',
+                  gap: '10px',
+                  paddingLeft: isMobile ? '0' : '44px',
+                  marginTop: '-4px',
                 }}
               >
-                {SUGGESTIONS.map((s) => (
+                {(importedCase ? CASE_RECHECK_SUGGESTIONS : SUGGESTIONS).map((s) => (
                   <button
                     key={s}
                     onClick={() => handleSend(s)}
                     style={{
                       background: '#FFFFFF',
-                      border: `1px solid ${theme.light}`,
-                      color: theme.primary,
-                      padding: '8px 12px',
+                      border: `1px solid ${importedCase ? '#DDD6FE' : theme.light}`,
+                      color: importedCase ? '#7C3AED' : theme.primary,
+                      padding: '8px 14px',
                       borderRadius: '99px',
-                      fontSize: '12px',
-                      fontWeight: 500,
+                      fontSize: '12.5px',
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                      boxShadow: '0 2px 6px rgba(139,92,246,0.06)',
                       transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.background = theme.light;
-                      e.currentTarget.style.borderColor = theme.primary;
+                      e.currentTarget.style.background = importedCase ? '#EDE9FE' : theme.light;
+                      e.currentTarget.style.borderColor = importedCase ? '#8B5CF6' : theme.primary;
                     }}
                     onMouseOut={(e) => {
                       e.currentTarget.style.background = '#FFFFFF';
-                      e.currentTarget.style.borderColor = theme.light;
+                      e.currentTarget.style.borderColor = importedCase ? '#DDD6FE' : theme.light;
                     }}
                   >
+                    <Sparkles size={12} />
                     {s}
                   </button>
                 ))}
