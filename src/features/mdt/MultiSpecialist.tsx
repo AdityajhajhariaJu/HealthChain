@@ -107,6 +107,12 @@ export default function MultiSpecialist() {
   const consensusInFlightRef = useRef(false);
 
   useEffect(() => {
+    const el = document.getElementById('main-content');
+    if (el) { el.style.backgroundColor = '#FFF7ED'; }
+    return () => { if (el) { el.style.backgroundColor = ''; } };
+  }, []);
+
+  useEffect(() => {
     const stateObj = {
       phase, selected, activeSpecialistId, symptomInput, activeCategory, customSpecialists, completedSpecialists, aiSuggestion, workingCaseId
     };

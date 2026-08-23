@@ -89,6 +89,12 @@ export default function MDTHub() {
 
   
   useEffect(() => {
+    const el = document.getElementById('main-content');
+    if (el) { el.style.backgroundColor = '#FFF7ED'; }
+    return () => { if (el) { el.style.backgroundColor = ''; } };
+  }, []);
+
+  useEffect(() => {
     // If the user navigates away after finishing a case and returns later via the sidebar,
     // automatically reset so they see a fresh intake page instead of being stuck on the 'done' screen.
     if (useMDTStore.getState().phase === 'report') {
