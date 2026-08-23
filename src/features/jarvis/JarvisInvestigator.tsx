@@ -31,7 +31,7 @@ export default function JarvisInvestigator() {
   const [history, setHistory] = useState('');
   const [files, setFiles] = useState<{file: File, base64: string}[]>([]);
   const [report, setReport] = useState<any>(null);
-  const [includeProfile, setIncludeProfile] = useState(false);
+  const [isIsolated, setIsIsolated] = useState(true);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -43,7 +43,7 @@ export default function JarvisInvestigator() {
     setHistory('');
     setFiles([]);
     setReport(null);
-    setIncludeProfile(false);
+    setIsIsolated(true);
     return () => {
       isMounted.current = false;
     };
@@ -138,7 +138,7 @@ export default function JarvisInvestigator() {
     }));
 
     try {
-      const profileToPass = includeProfile ? profile : { demographics: profile?.demographics };
+      const profileToPass = !isIsolated ? profile : { demographics: profile?.demographics };
       const result = await runJarvisInvestigation(history, payloadFiles, profileToPass);
       
       if (!isMounted.current) return; // Prevent memory leak / crash if user navigated away during animation
@@ -414,22 +414,22 @@ export default function JarvisInvestigator() {
           <div style={{ marginBottom: '28px', padding: '16px 20px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
-                Cross-Correlate with Medical Profile
+                Isolated Investigation (New Case)
               </div>
               <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                {includeProfile
-                  ? `Active background conditions (${profile.conditions.slice(0, 2).map((c: string) => c.split(',')[0]).join(', ')}) will be included in the causal analysis.`
-                  : 'Isolated Investigation (Analyzes only the symptoms & records you entered above).'}
+                {isIsolated
+                  ? 'Isolated Investigation (Analyzes only the symptoms & records you entered above).'
+                  : `Cross-Correlating with active background conditions (${profile.conditions.slice(0, 2).map((c: string) => c.split(',')[0]).join(', ')}).`}
               </div>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: includeProfile ? '#EA580C' : '#64748B' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: isIsolated ? '#EA580C' : '#64748B' }}>
               <input
                 type="checkbox"
-                checked={includeProfile}
-                onChange={(e) => setIncludeProfile(e.target.checked)}
+                checked={isIsolated}
+                onChange={(e) => setIsIsolated(e.target.checked)}
                 style={{ width: '18px', height: '18px', accentColor: '#EA580C', cursor: 'pointer' }}
               />
-              {includeProfile ? 'Profile Included' : 'Isolated (New Case)'}
+              {isIsolated ? 'Isolated (New Case)' : 'Include Profile'}
             </label>
           </div>
         )}
