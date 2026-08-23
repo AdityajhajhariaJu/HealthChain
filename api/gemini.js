@@ -27,7 +27,12 @@ HEALTHCHAIN SAFETY GATE:
 
 export default async function handler(req, res) {
   const origin = req.headers.origin;
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  const isAllowed = origin && (
+    ALLOWED_ORIGINS.includes(origin) ||
+    origin.endsWith('.vercel.app') ||
+    origin.endsWith('healthchain360.com')
+  );
+  if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Vary', 'Origin');
