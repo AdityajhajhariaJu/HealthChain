@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
@@ -266,6 +266,30 @@ export default function CaseDashboard() {
             </button>
           </section>
       </div>
+
+      {isMobile && (
+        <div style={{ marginTop: 28, textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 12, fontSize: 12, color: '#64748B' }}>
+            <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</Link>
+            <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</Link>
+          </div>
+          <div
+            style={{
+              padding: '14px 18px',
+              borderRadius: '16px',
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              fontSize: '12px',
+              lineHeight: '1.5',
+              color: '#64748B',
+              textAlign: 'center',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+            }}
+          >
+            <strong style={{ color: '#334155' }}>Disclaimer:</strong> HealthChain is an AI Navigational and Researcher tool, not a doctor. It is not a substitute for professional medical advice.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
