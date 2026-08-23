@@ -366,8 +366,9 @@ function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navi
       {/* Navigation Tabs */}
       <div style={{ display: 'flex', gap: 16, borderBottom: '1px solid #E2E8F0', paddingBottom: 10, marginBottom: 24, overflowX: 'auto' }}>
         {[
-          { id: 'report', label: 'Investigation Report & Evidence' },
-          { id: 'timeline', label: 'Clinical Timeline' }
+          { id: 'report', label: 'Investigation Report' },
+          { id: 'intake', label: 'Intake & Records' },
+          { id: 'timeline', label: 'Timeline' }
         ].map(tab => (
           <button 
             key={tab.id}
@@ -473,31 +474,32 @@ function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navi
               </ul>
             </Accordion>
           )}
+        </div>
+      )}
 
-          {/* Uploaded Records & Submitted Notes in Unified View */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-            <div className="card" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '10px' }}>Clinical Intake & Notes</h3>
-              <p style={{ margin: 0, color: '#475569', lineHeight: 1.5, fontSize: '13.5px', whiteSpace: 'pre-wrap' }}>
-                {item.intakeData?.chiefComplaint || 'No raw intake notes.'}
-              </p>
-            </div>
+      {activeTab === 'intake' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>Submitted Clinical Timeline & Notes</h3>
+            <p style={{ margin: 0, color: '#334155', lineHeight: 1.6, fontSize: '14.5px', whiteSpace: 'pre-wrap' }}>
+              {item.intakeData?.chiefComplaint || 'No raw notes provided.'}
+            </p>
+          </div>
 
-            <div className="card" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '10px' }}>Attached Supporting Records</h3>
-              {records.length > 0 ? (
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {records.map((r: any) => (
-                    <div key={r.id} style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
-                      <strong style={{ fontSize: '13.5px' }}>{r.filename}</strong>
-                      <p style={{ margin: '2px 0 0', color: '#64748B', fontSize: '12.5px' }}>{r.findings}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ margin: 0, color: '#64748B', fontSize: '13.5px' }}>No supporting files attached.</p>
-              )}
-            </div>
+          <div className="card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>Uploaded Records & Evidence</h3>
+            {records.length > 0 ? (
+              <div style={{ display: 'grid', gap: 12 }}>
+                {records.map((r: any) => (
+                  <div key={r.id} style={{ padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+                    <strong>{r.filename}</strong>
+                    <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '13px' }}>{r.findings}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, color: '#64748B', fontSize: '14px' }}>No files attached to this investigation.</p>
+            )}
           </div>
         </div>
       )}
