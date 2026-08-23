@@ -366,9 +366,8 @@ function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navi
       {/* Navigation Tabs */}
       <div style={{ display: 'flex', gap: 16, borderBottom: '1px solid #E2E8F0', paddingBottom: 10, marginBottom: 24, overflowX: 'auto' }}>
         {[
-          { id: 'report', label: 'Investigation Report' },
-          { id: 'intake', label: 'Intake & Records' },
-          { id: 'timeline', label: 'Timeline' }
+          { id: 'report', label: 'Investigation Report & Evidence' },
+          { id: 'timeline', label: 'Clinical Timeline' }
         ].map(tab => (
           <button 
             key={tab.id}
@@ -474,32 +473,31 @@ function JarvisCaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navi
               </ul>
             </Accordion>
           )}
-        </div>
-      )}
 
-      {activeTab === 'intake' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div className="card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>Submitted Clinical Timeline & Notes</h3>
-            <p style={{ margin: 0, color: '#334155', lineHeight: 1.6, fontSize: '14.5px', whiteSpace: 'pre-wrap' }}>
-              {item.intakeData?.chiefComplaint || 'No raw notes provided.'}
-            </p>
-          </div>
+          {/* Uploaded Records & Submitted Notes in Unified View */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+            <div className="card" style={{ padding: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '10px' }}>Clinical Intake & Notes</h3>
+              <p style={{ margin: 0, color: '#475569', lineHeight: 1.5, fontSize: '13.5px', whiteSpace: 'pre-wrap' }}>
+                {item.intakeData?.chiefComplaint || 'No raw intake notes.'}
+              </p>
+            </div>
 
-          <div className="card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>Uploaded Records & Evidence</h3>
-            {records.length > 0 ? (
-              <div style={{ display: 'grid', gap: 12 }}>
-                {records.map((r: any) => (
-                  <div key={r.id} style={{ padding: '14px', borderRadius: '12px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
-                    <strong>{r.filename}</strong>
-                    <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '13px' }}>{r.findings}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p style={{ margin: 0, color: '#64748B', fontSize: '14px' }}>No files attached to this investigation.</p>
-            )}
+            <div className="card" style={{ padding: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '10px' }}>Attached Supporting Records</h3>
+              {records.length > 0 ? (
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {records.map((r: any) => (
+                    <div key={r.id} style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+                      <strong style={{ fontSize: '13.5px' }}>{r.filename}</strong>
+                      <p style={{ margin: '2px 0 0', color: '#64748B', fontSize: '12.5px' }}>{r.findings}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: '#64748B', fontSize: '13.5px' }}>No supporting files attached.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -923,63 +921,106 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
 
               {/* 2. Differential Diagnoses & Clinical Evidence */}
               <section className="card" style={{ padding: 24 }}>
-                <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Possible pathways to discuss</h2>
-                <div style={{ display: 'grid', gap: 12 }}>
-                  {(Array.isArray(report.topDiagnoses) ? report.topDiagnoses : []).map((d: any, i: number) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: 16,
-                        borderRadius: 14,
-                        background: '#f8fafc',
-                        borderLeft: '4px solid #10B981',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                        <strong>{d.condition}</strong>
-                      </div>
-                      <p
-                        style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <h2 style={{ fontSize: 20, margin: '0 0 4px', color: '#0F172A' }}>Possible Pathways to Discuss</h2>
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 13.5 }}>
+                      Ranked differential diagnoses based on clinical presentation & guidelines.
+                    </p>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, background: '#ECFDF5', color: '#059669', padding: '4px 10px', borderRadius: 999, border: '1px solid #A7F3D0' }}>
+                    {(Array.isArray(report.topDiagnoses) ? report.topDiagnoses : []).length} Pathways Identified
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gap: 14 }}>
+                  {(Array.isArray(report.topDiagnoses) ? report.topDiagnoses : []).map((d: any, i: number) => {
+                    const rawCondition = d.condition || 'Clinical Condition';
+                    const pctMatch = d.confidence || (rawCondition.match(/\((\d+)%\)/)?.[1]);
+                    const cleanCondition = rawCondition.replace(/\s*\(\d+%\)\s*/, '').trim();
+                    const numPct = pctMatch ? parseInt(pctMatch) : 0;
+                    
+                    const badgeBg = numPct >= 50 ? '#ECFDF5' : numPct >= 20 ? '#EFF6FF' : '#F8FAFC';
+                    const badgeColor = numPct >= 50 ? '#059669' : numPct >= 20 ? '#2563EB' : '#64748B';
+                    const badgeBorder = numPct >= 50 ? '#A7F3D0' : numPct >= 20 ? '#BFDBFE' : '#E2E8F0';
+
+                    return (
+                      <div
+                        key={i}
+                        style={{
+                          padding: 18,
+                          borderRadius: 16,
+                          background: '#FFFFFF',
+                          border: '1px solid #E2E8F0',
+                          borderLeft: `5px solid ${numPct >= 50 ? '#10B981' : numPct >= 20 ? '#3B82F6' : '#94A3B8'}`,
+                          boxShadow: '0 2px 10px rgba(15,23,42,0.02)'
+                        }}
                       >
-                        {d.rationale}
-                      </p>
-                      {d.citations && d.citations.length > 0 && (
-                        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
-                          <strong style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Clinical Evidence</strong>
-                          <ul style={{ margin: '8px 0 0', paddingLeft: 16, fontSize: 13, color: '#475569' }}>
-                            {d.citations.map((cit: any, citIdx: number) => (
-                              <li key={citIdx} style={{ marginBottom: 4 }}>
-                                {(() => {
-                                  const isSafeUrl = /^https?:\/\//i.test(cit.link);
-                                  return (
-                                    <a href={isSafeUrl ? cit.link : '#'} target="_blank" rel="noreferrer" style={{ color: '#10B981', textDecoration: 'none' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                          <strong style={{ fontSize: 16, color: '#0F172A' }}>{cleanCondition}</strong>
+                          {pctMatch && (
+                            <span style={{ background: badgeBg, color: badgeColor, border: `1px solid ${badgeBorder}`, padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 800 }}>
+                              {pctMatch}% Match
+                            </span>
+                          )}
+                        </div>
+
+                        <p style={{ margin: '0 0 10px', color: '#475569', fontSize: 14, lineHeight: 1.55 }}>
+                          {d.rationale}
+                        </p>
+
+                        {d.citations && d.citations.length > 0 && (
+                          <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #F1F5F9' }}>
+                            <strong style={{ fontSize: 11.5, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                              📚 Medical Evidence & Literature
+                            </strong>
+                            <ul style={{ margin: '6px 0 0', paddingLeft: 16, fontSize: 13, color: '#475569' }}>
+                              {d.citations.map((cit: any, citIdx: number) => {
+                                const isSafeUrl = /^https?:\/\//i.test(cit.link);
+                                return (
+                                  <li key={citIdx} style={{ marginBottom: 4 }}>
+                                    <a href={isSafeUrl ? cit.link : '#'} target="_blank" rel="noreferrer" style={{ color: '#059669', fontWeight: 600, textDecoration: 'none' }}>
                                       {cit.title}
                                     </a>
-                                  );
-                                })()} – <i>{cit.journal} ({cit.year})</i>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )) || <p>No pathways yet.</p>}
+                                    {cit.journal ? ` – ${cit.journal} (${cit.year || 'Recent'})` : ''}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }) || <p style={{ color: '#64748B', margin: 0 }}>No differential pathways recorded.</p>}
                 </div>
               </section>
 
               {/* 3. Interactive Biomarker & Differential Connections Map */}
               <section className="card" style={{ padding: 24 }}>
-                <h2 style={{ fontSize: 20, margin: '0 0 16px' }}>Differential & Biomarker Connections</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div>
+                    <h2 style={{ fontSize: 20, margin: '0 0 4px', color: '#0F172A' }}>Differential & Biomarker Connections</h2>
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 13.5 }}>
+                      Interactive visual network linking symptoms, organ systems, and clinical mechanisms.
+                    </p>
+                  </div>
+                </div>
                 <DDxBoard item={item} profile={profile} />
               </section>
 
               {/* 4. Evidence & Supporting Records */}
               <section className="card" style={{ padding: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h2 style={{ fontSize: 20, margin: 0 }}>Evidence & Supporting Records</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+                  <div>
+                    <h2 style={{ fontSize: 20, margin: '0 0 4px', color: '#0F172A' }}>Evidence & Supporting Records</h2>
+                    <p style={{ margin: 0, color: '#64748B', fontSize: 13.5 }}>
+                      Uploaded lab reports, biomarkers, and diagnostic extracts.
+                    </p>
+                  </div>
                   <button
                     className="btn btn-outline btn-sm"
                     onClick={() => navigate(`/app/reports?returnTo=/app/cases/${item.id}`)}
+                    style={{ borderRadius: 10, fontSize: 13, fontWeight: 700 }}
                   >
                     <FileText size={14} /> Add new evidence
                   </button>
@@ -989,19 +1030,24 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                     {records.map((record) => (
                       <div
                         key={record.id}
-                        style={{ padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}
+                        style={{ padding: 16, borderRadius: 14, border: '1px solid #E2E8F0', background: '#F8FAFC' }}
                       >
-                        <strong style={{ fontSize: 14 }}>{record.filename}</strong>
-                        <p style={{ color: '#64748b', fontSize: 13, margin: '6px 0 0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <FileText size={16} color="#059669" />
+                          <strong style={{ fontSize: 14.5, color: '#0F172A' }}>{record.filename}</strong>
+                        </div>
+                        <p style={{ color: '#475569', fontSize: 13.5, margin: 0, lineHeight: 1.45 }}>
                           {record.findings}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p style={{ color: '#64748b', margin: 0 }}>
-                    No supporting records were attached to this case yet.
-                  </p>
+                  <div style={{ padding: '24px', textAlign: 'center', background: '#F8FAFC', borderRadius: 14, border: '1px dashed #CBD5E1' }}>
+                    <p style={{ color: '#64748B', margin: 0, fontSize: 13.5 }}>
+                      No supporting lab reports or records were attached to this case yet.
+                    </p>
+                  </div>
                 )}
               </section>
 
@@ -1009,7 +1055,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
               <section className="card" style={{ padding: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
                   <div>
-                    <h2 style={{ fontSize: 20, margin: '0 0 4px' }}>Recommended Next Steps</h2>
+                    <h2 style={{ fontSize: 20, margin: '0 0 4px', color: '#0F172A' }}>Recommended Next Steps</h2>
                     <p style={{ margin: 0, color: '#64748B', fontSize: 13.5 }}>
                       Clear, practical action items prioritized from your consultations.
                     </p>
@@ -1149,17 +1195,42 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
               </section>
             </div>
 
+            {/* Right Side Rail */}
             <aside style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
-              <section className="card" style={{ padding: 20 }}>
-                <h2 style={{ fontSize: 18, margin: '0 0 14px' }}>Case Status</h2>
+              <section className="card" style={{ padding: 22, borderRadius: 20 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 14px', color: '#0F172A' }}>Case Overview</h3>
+                
+                <div style={{ marginBottom: 14 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>Consultation Type</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, background: isQuickConsult ? '#EFF6FF' : '#ECFDF5', color: isQuickConsult ? '#1D4ED8' : '#059669', fontSize: 12.5, fontWeight: 700, border: `1px solid ${isQuickConsult ? '#BFDBFE' : '#A7F3D0'}` }}>
+                    {isQuickConsult ? '⚡ Quick Consult' : '🧠 Deep Collab Board'}
+                  </span>
+                </div>
+
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
-                   <Archive size={16} color="#64748b"/> 
-                   <span style={{ fontSize: 14, textTransform: 'capitalize' }}>{item.status}</span>
+                   <Archive size={16} color="#64748B"/> 
+                   <span style={{ fontSize: 13.5, color: '#334155', textTransform: 'capitalize', fontWeight: 600 }}>Status: {item.status}</span>
                 </div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                   <Clock size={16} color="#64748b"/> 
-                   <span style={{ fontSize: 14 }}>Last updated: {formatDate(item.updatedAt)}</span>
+
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
+                   <Clock size={16} color="#64748B"/> 
+                   <span style={{ fontSize: 13.5, color: '#64748B' }}>Updated: {formatDate(item.updatedAt)}</span>
                 </div>
+
+                {item.reviews?.[0]?.specialists && item.reviews[0].specialists.length > 0 && (
+                  <div style={{ paddingTop: 14, borderTop: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                      Specialists Involved
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {item.reviews[0].specialists.map((spec: string, sIdx: number) => (
+                        <span key={sIdx} style={{ fontSize: 11.5, fontWeight: 600, background: '#F1F5F9', color: '#334155', padding: '3px 8px', borderRadius: 6 }}>
+                          🩺 {spec}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
             </aside>
           </div>
