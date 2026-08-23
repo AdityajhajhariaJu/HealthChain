@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Edit3, HeartPulse, Sparkles, Zap, Trophy, Award } from 'lucide-react';
+import { Flame, Edit3, HeartPulse, Sparkles, Zap, Trophy, Award, CheckCircle2, Activity, AlertCircle, AlertTriangle } from 'lucide-react';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -12,10 +12,10 @@ interface DailySymptomCheckinWidgetProps {
 const DEFAULT_SYMPTOMS = ['Headache', 'Dizziness', 'Fatigue', 'Neck / Muscle Pain', 'Overall Energy'];
 
 const SEVERITY_OPTIONS = [
-  { label: 'None', score: 0, desc: 'Zero discomfort', color: '#059669', bg: '#F0FDF4', border: '#BBF7D0', activeBg: '#DCFCE7', emoji: '🟢' },
-  { label: 'Mild', score: 1, desc: 'Slight / manageable', color: '#0284C7', bg: '#F0F9FF', border: '#BAE6FD', activeBg: '#E0F2FE', emoji: '🟡' },
-  { label: 'Moderate', score: 2, desc: 'Noticeable / limiting', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', activeBg: '#FEF3C7', emoji: '🟠' },
-  { label: 'Severe', score: 3, desc: 'Intense / disruptive', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA', activeBg: '#FEE2E2', emoji: '🔴' },
+  { label: 'None', score: 0, desc: 'Zero discomfort', color: '#059669', bg: '#F0FDF4', border: '#BBF7D0', activeBg: '#DCFCE7', iconBg: '#DCFCE7', icon: CheckCircle2 },
+  { label: 'Mild', score: 1, desc: 'Slight / manageable', color: '#0284C7', bg: '#F0F9FF', border: '#BAE6FD', activeBg: '#E0F2FE', iconBg: '#E0F2FE', icon: Activity },
+  { label: 'Moderate', score: 2, desc: 'Noticeable / limiting', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', activeBg: '#FEF3C7', iconBg: '#FEF3C7', icon: AlertCircle },
+  { label: 'Severe', score: 3, desc: 'Intense / disruptive', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA', activeBg: '#FEE2E2', iconBg: '#FEE2E2', icon: AlertTriangle },
 ];
 
 export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySymptomCheckinWidgetProps) {
@@ -280,22 +280,28 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div
-                  style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '50%',
-                    background: SEVERITY_OPTIONS.find(o => o.label === todayCheckin.severity)?.bg || '#F0FDF4',
-                    border: `1.5px solid ${SEVERITY_OPTIONS.find(o => o.label === todayCheckin.severity)?.border || '#BBF7D0'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                  }}
-                >
-                  {SEVERITY_OPTIONS.find(o => o.label === todayCheckin.severity)?.emoji || '🟢'}
-                </div>
+                {(() => {
+                  const opt = SEVERITY_OPTIONS.find(o => o.label === todayCheckin.severity) || SEVERITY_OPTIONS[0];
+                  const Icon = opt.icon;
+                  return (
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        background: opt.iconBg || '#DCFCE7',
+                        border: `1.5px solid ${opt.border || '#BBF7D0'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: opt.color || '#059669',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      <Icon size={18} strokeWidth={2.5} />
+                    </div>
+                  );
+                })()}
                 <div>
                   <div style={{ fontSize: '15.5px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{todayCheckin.severity} {todayCheckin.symptom}</span>
@@ -504,44 +510,61 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                 gap: '10px',
               }}
             >
-              {SEVERITY_OPTIONS.map((option) => (
-                <button
-                  key={option.label}
-                  onClick={() => handleSelectSeverity(option)}
-                  style={{
-                    padding: '16px 10px',
-                    background: option.bg,
-                    border: `1.5px solid ${option.border}`,
-                    borderRadius: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.06)';
-                    e.currentTarget.style.background = option.activeBg;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
-                    e.currentTarget.style.background = option.bg;
-                  }}
-                >
-                  <span style={{ fontSize: '22px', marginBottom: '2px' }}>{option.emoji}</span>
-                  <span style={{ fontSize: '13.5px', fontWeight: 800, color: option.color }}>
-                    {option.label}
-                  </span>
-                  <span style={{ fontSize: '11px', color: '#64748B', textAlign: 'center', lineHeight: 1.2 }}>
-                    {option.desc}
-                  </span>
-                </button>
-              ))}
+              {SEVERITY_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <button
+                    key={option.label}
+                    onClick={() => handleSelectSeverity(option)}
+                    style={{
+                      padding: '10px 8px',
+                      background: option.bg,
+                      border: `1.5px solid ${option.border}`,
+                      borderRadius: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '3px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.06)';
+                      e.currentTarget.style.background = option.activeBg;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
+                      e.currentTarget.style.background = option.bg;
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        background: option.iconBg,
+                        color: option.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1px',
+                      }}
+                    >
+                      <Icon size={15} strokeWidth={2.5} />
+                    </div>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: option.color }}>
+                      {option.label}
+                    </span>
+                    <span style={{ fontSize: '10.5px', color: '#64748B', textAlign: 'center', lineHeight: 1.15 }}>
+                      {option.desc}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Optional Trigger Note */}
