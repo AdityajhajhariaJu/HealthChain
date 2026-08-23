@@ -106,11 +106,7 @@ export default function MultiSpecialist() {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const consensusInFlightRef = useRef(false);
 
-  useEffect(() => {
-    const el = document.getElementById('main-content');
-    if (el) { el.style.backgroundColor = '#FFF7ED'; }
-    return () => { if (el) { el.style.backgroundColor = ''; } };
-  }, []);
+
 
   useEffect(() => {
     const stateObj = {

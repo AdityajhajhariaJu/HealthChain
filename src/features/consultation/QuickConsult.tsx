@@ -71,11 +71,7 @@ export default function QuickConsult() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  useEffect(() => {
-    const el = document.getElementById('main-content');
-    if (el) { el.style.backgroundColor = '#FFF7ED'; }
-    return () => { if (el) { el.style.backgroundColor = ''; } };
-  }, []);
+
 
   useEffect(() => () => {
     if (completionTimerRef.current) clearTimeout(completionTimerRef.current);

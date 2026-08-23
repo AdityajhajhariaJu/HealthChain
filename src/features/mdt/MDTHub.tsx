@@ -88,11 +88,7 @@ export default function MDTHub() {
   const fileInputRef = React.useRef<any>(null);
 
   
-  useEffect(() => {
-    const el = document.getElementById('main-content');
-    if (el) { el.style.backgroundColor = '#FFF7ED'; }
-    return () => { if (el) { el.style.backgroundColor = ''; } };
-  }, []);
+
 
   useEffect(() => {
     // If the user navigates away after finishing a case and returns later via the sidebar,
@@ -590,17 +586,27 @@ useEffect(() => {
       />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-
+        {/* Header & Stepper Card */}
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: isMobile ? '24px' : '32px',
+            padding: isMobile ? '24px 20px 20px' : '32px 40px 24px',
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+            marginBottom: '24px',
+            textAlign: 'center',
+            position: 'relative'
+          }}
+        >
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
               marginBottom: '12px',
-              padding: '6px 12px',
-              background: '#FFFFFF',
+              padding: '6px 14px',
+              background: '#F8FAFC',
               borderRadius: '999px',
               border: '1px solid #E2E8F0',
               boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
@@ -623,11 +629,11 @@ useEffect(() => {
           </div>
           <h1
             style={{
-              fontSize: isMobile ? '28px' : '36px',
+              fontSize: isMobile ? '26px' : '34px',
               fontWeight: 900,
               color: '#0F172A',
               margin: '0 0 4px 0',
-              letterSpacing: '-1px',
+              letterSpacing: '-0.8px',
               position: 'relative',
               zIndex: 1
             }}
@@ -638,8 +644,8 @@ useEffect(() => {
             fontStyle: 'italic', 
             color: '#10B981', 
             fontWeight: 700, 
-            fontSize: '15px', 
-            marginBottom: '16px',
+            fontSize: '14px', 
+            marginBottom: '12px',
             position: 'relative',
             zIndex: 1
           }}>
@@ -649,8 +655,8 @@ useEffect(() => {
             style={{
               color: '#64748B',
               fontSize: '14px',
-              margin: '0 auto',
-              maxWidth: '600px',
+              margin: '0 auto 20px',
+              maxWidth: '620px',
               fontWeight: 500,
               lineHeight: 1.5,
             }}
@@ -659,62 +665,60 @@ useEffect(() => {
                 ? 'Collaborative Specialists decode your unique chain of symptoms like clinical DNA—cross-referencing perspectives to find agreement, resolve conflict, and map your next steps.'
               : 'Our AI will automatically select a team of specialists to deeply investigate your case from multiple angles.'}
           </p>
-        </div>
 
-        {/* Progress Stepper (Pill Style) */}
-        <div 
-          className="hide-scrollbar"
-          style={{ 
-            display: 'flex', 
-            justifyContent: 'flex-start', 
-            marginBottom: '24px',
-            width: '100%',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            paddingBottom: '4px', // avoid scrollbar clipping on some browsers
-            paddingLeft: '1px' // ensure shadow isn't clipped
-          }}
-        >
-          <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content', zoom: 0.65 }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                background: 'rgba(255, 255, 255, 0.25)',
-                padding: '6px',
-                borderRadius: '999px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-              }}
-            >
-              <Step
-                icon={Activity}
-                label="Case context"
-                active={phase === 'intake'}
-                completed={phase !== 'intake'}
-              />
-              <StepDivider />
-              <Step
-                icon={Users}
-                label="Collaboration Board"
-                active={phase === 'dashboard'}
-                completed={phase === 'compiling' || phase === 'conference' || phase === 'assessment' || phase === 'report' || false}
-              />
-              <StepDivider />
-              <Step
-                icon={BrainCircuit}
-                label="Expert Correlation"
-                active={phase === 'compiling' || phase === 'conference' || phase === 'assessment'}
-                completed={phase === 'report' || false}
-              />
-              <StepDivider />
-              <Step
-                icon={FileText}
-                label="Consensus Report"
-                active={phase === 'report' || false}
-                completed={false}
-              />
-          </div>
+          {/* Progress Stepper (Pill Style) */}
+          <div 
+            className="hide-scrollbar"
+            style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              width: '100%',
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              paddingBottom: '4px',
+            }}
+          >
+            <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content', zoom: 0.65 }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  background: '#F8FAFC',
+                  padding: '6px',
+                  borderRadius: '999px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                <Step
+                  icon={Activity}
+                  label="Case context"
+                  active={phase === 'intake'}
+                  completed={phase !== 'intake'}
+                />
+                <StepDivider />
+                <Step
+                  icon={Users}
+                  label="Collaboration Board"
+                  active={phase === 'dashboard'}
+                  completed={phase === 'compiling' || phase === 'conference' || phase === 'assessment' || phase === 'report' || false}
+                />
+                <StepDivider />
+                <Step
+                  icon={BrainCircuit}
+                  label="Expert Correlation"
+                  active={phase === 'compiling' || phase === 'conference' || phase === 'assessment'}
+                  completed={phase === 'report' || false}
+                />
+                <StepDivider />
+                <Step
+                  icon={FileText}
+                  label="Consensus Report"
+                  active={phase === 'report' || false}
+                  completed={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
