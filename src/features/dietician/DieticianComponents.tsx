@@ -3,25 +3,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Apple, Utensils, Target, CheckCircle2, ChevronRight, ArrowRight } from 'lucide-react';
 import { GOALS, ACTIVITY_LEVELS, RESTRICTIONS, MEDICAL_CONDITIONS, CUISINES, MEAL_SCHEDULES } from './Dietician';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
 
-
-export function OnboardingWizard({ onComplete }) {
+export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => void }) {
   const isMobile = useIsMobile();
   const [step, setStep] = useState(1);
-  const [data, setData] = useState({
-    weight: '',
-    targetWeight: '',
-    targetDays: '',
-    height: '',
-    age: '',
-    gender: 'male',
-    goal: 'Lose weight',
-    activityLevel: 'moderate',
-    restrictions: [] as string[],
-    medicalConditions: [] as string[],
-    cuisine: '',
-    mealSchedule: '',
-  } as any);
+  const coreProfile = getCoreProfile();
+
+  const [data, setData] = useState(() => {
+    const rawConds = (coreProfile?.conditions || []).map((c: any) => typeof c === 'string' ? c : c.name || '');
+    const matchedConds = MEDICAL_CONDITIONS.filter(mc => rawConds.some((rc: string) => rc.toLowerCase().includes(mc.toLowerCase())));
+    const allergies = coreProfile?.allergies || [];
+    const matchedRestrictions = RESTRICTIONS.filter(r => allergies.some((a: string) => a.toLowerCase().includes(r.toLowerCase())));
+
+    return {
+      weight: coreProfile?.weight ? String(coreProfile.weight) : '',
+      targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
+      targetDays: '90',
+      height: coreProfile?.height ? String(coreProfile.height) : '',
+      age: coreProfile?.age ? String(coreProfile.age) : '',
+      gender: coreProfile?.gender?.toLowerCase() === 'female' ? 'female' : 'male',
+      goal: 'Lose weight',
+      activityLevel: 'moderate',
+      restrictions: matchedRestrictions.length > 0 ? matchedRestrictions : ['None'],
+      medicalConditions: matchedConds.length > 0 ? matchedConds : ['None'],
+      cuisine: 'North Indian',
+      mealSchedule: '3 Meals + 1 Snack',
+    };
+  });
 
   const next = () => setStep((s) => s + 1);
 
@@ -38,7 +47,7 @@ export function OnboardingWizard({ onComplete }) {
         style={{
           background: '#FFFFFF',
           borderRadius: '32px',
-          padding: '48px',
+          padding: isMobile ? '28px 20px' : '48px',
           maxWidth: '540px',
           width: '100%',
           boxShadow: '0 24px 48px rgba(0,0,0,0.04)',
@@ -92,7 +101,7 @@ export function OnboardingWizard({ onComplete }) {
           >
             <Apple size={20} />
           </div>
-          Dietician Setup
+          Clinical Dietician Setup
         </div>
 
         {step === 1 && (
@@ -365,7 +374,7 @@ export function OnboardingWizard({ onComplete }) {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
                 gap: '16px',
                 marginBottom: '24px',
               }}
@@ -437,8 +446,8 @@ export function OnboardingWizard({ onComplete }) {
                         setTimeout(next, 150);
                       } else {
                         const newRest = isSelected
-                          ? data.restrictions.filter((x) => x !== r)
-                          : [...data.restrictions.filter((x) => x !== 'None'), r];
+                          ? data.restrictions.filter((x: string) => x !== r)
+                          : [...data.restrictions.filter((x: string) => x !== 'None'), r];
                         setData({ ...data, restrictions: newRest });
                       }
                     }}
@@ -509,8 +518,8 @@ export function OnboardingWizard({ onComplete }) {
                         setTimeout(next, 150);
                       } else {
                         const newCond = isSelected
-                          ? data.medicalConditions.filter((x) => x !== c)
-                          : [...data.medicalConditions.filter((x) => x !== 'None'), c];
+                          ? data.medicalConditions.filter((x: string) => x !== c)
+                          : [...data.medicalConditions.filter((x: string) => x !== 'None'), c];
                         setData({ ...data, medicalConditions: newCond });
                       }
                     }}
