@@ -8,14 +8,12 @@ import {
   GitBranch,
   Search,
   MessageSquare,
-  Pill,
   ChevronRight,
   ChevronLeft,
   ChevronDown,
   ChevronUp,
   Star,
-  CheckCircle2,
-  Loader2
+  CheckCircle2
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
@@ -23,9 +21,7 @@ import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
 import { getActiveSession } from '../../services/authSession';
 
-// --- Sub-components for dynamic elements ---
-
-const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number, to: number, duration?: number, suffix?: string }) => {
+const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number; to: number; duration?: number; suffix?: string }) => {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
 
@@ -65,8 +61,6 @@ const landingFaqs = [
   }
 ];
 
-// --- Main Landing Component ---
-
 export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -76,6 +70,7 @@ export default function Landing() {
   const [hasSession, setHasSession] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
   const isLoggedOut = !hasSession && !guestMode;
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,10 +93,9 @@ export default function Landing() {
     }
 
     setTimeout(() => {
-      navigate('/app/collab?new=true');
-    }, 1200);
+      navigate('/app/today');
+    }, 1100);
   };
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Scroll listener for navbar glass effect
   useEffect(() => {
@@ -237,12 +231,12 @@ export default function Landing() {
               Log In
             </button>
           ) : (
-            <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/app')}>
-              Dashboard
+            <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/app/today')}>
+              Health Today
             </button>
           )}
           <button className={`btn btn-primary ${styles.navButton}`} onClick={handleStartInvestigation}>
-            Start Investigation
+            Get Started
           </button>
         </div>
       </nav>
@@ -285,47 +279,47 @@ export default function Landing() {
             </motion.p>
             
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
-                <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={handleStartInvestigation}>
-                  Start Your Assessment <ArrowRight size={18} />
-                </button>
-                <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
-                  View Pricing
-                </button>
-              </motion.div>
+              <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={handleStartInvestigation}>
+                Get Started <ArrowRight size={18} />
+              </button>
+              <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
+                View Pricing
+              </button>
+            </motion.div>
 
-              <motion.div variants={itemVariants} className={styles.storeBadges}>
-                <button className={styles.storeBadge} onClick={(e) => {
-                  const badge = e.currentTarget;
-                  const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
-                  if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
-                }}>
-                  <svg viewBox="0 0 24 24" width="22" height="22">
-                    <path fill="#4caf50" d="M3.5,2.1C3.2,2.4,3,2.9,3,3.6v16.8c0,0.7,0.2,1.2,0.5,1.5l0.1,0.1l8.4-8.4v-0.2L3.6,2L3.5,2.1z"/>
-                    <path fill="#ffeb3b" d="M15.4,14.6l-3.3-3.3l-0.2-0.2l3.5-3.5l0.1,0.1l3.9,2.2c1.1,0.6,1.1,1.7,0,2.3L15.4,14.6z"/>
-                    <path fill="#f44336" d="M15.5,14.5l-3.4-3.4L3.6,22.1c0.4,0.4,1,0.5,1.6,0.1l10.3-5.9L15.5,14.5z"/>
-                    <path fill="#2196f3" d="M15.5,9.5L5.2,3.6C4.6,3.3,4,3.4,3.6,3.8L12.1,13L15.5,9.5z"/>
-                  </svg>
-                  <div className={styles.storeBadgeText}>
-                    <span className={styles.storeBadgeSmall}>GET IT ON</span>
-                    <span className={styles.storeBadgeName}>Google Play</span>
-                  </div>
-                  <span className={styles.comingSoonTag}>Coming Soon</span>
-                  <span className="coming-soon-flash">Coming Soon</span>
-                </button>
-                <button className={styles.storeBadge} onClick={(e) => {
-                  const badge = e.currentTarget;
-                  const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
-                  if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
-                }}>
-                  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                  <div className={styles.storeBadgeText}>
-                    <span className={styles.storeBadgeSmall}>Download on the</span>
-                    <span className={styles.storeBadgeName}>App Store</span>
-                  </div>
-                  <span className={styles.comingSoonTag}>Coming Soon</span>
-                  <span className="coming-soon-flash">Coming Soon</span>
-                </button>
-              </motion.div>
+            <motion.div variants={itemVariants} className={styles.storeBadges}>
+              <button className={styles.storeBadge} onClick={(e) => {
+                const badge = e.currentTarget;
+                const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
+                if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
+              }}>
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path fill="#4caf50" d="M3.5,2.1C3.2,2.4,3,2.9,3,3.6v16.8c0,0.7,0.2,1.2,0.5,1.5l0.1,0.1l8.4-8.4v-0.2L3.6,2L3.5,2.1z"/>
+                  <path fill="#ffeb3b" d="M15.4,14.6l-3.3-3.3l-0.2-0.2l3.5-3.5l0.1,0.1l3.9,2.2c1.1,0.6,1.1,1.7,0,2.3L15.4,14.6z"/>
+                  <path fill="#f44336" d="M15.5,14.5l-3.4-3.4L3.6,22.1c0.4,0.4,1,0.5,1.6,0.1l10.3-5.9L15.5,14.5z"/>
+                  <path fill="#2196f3" d="M15.5,9.5L5.2,3.6C4.6,3.3,4,3.4,3.6,3.8L12.1,13L15.5,9.5z"/>
+                </svg>
+                <div className={styles.storeBadgeText}>
+                  <span className={styles.storeBadgeSmall}>GET IT ON</span>
+                  <span className={styles.storeBadgeName}>Google Play</span>
+                </div>
+                <span className={styles.comingSoonTag}>Coming Soon</span>
+                <span className="coming-soon-flash">Coming Soon</span>
+              </button>
+              <button className={styles.storeBadge} onClick={(e) => {
+                const badge = e.currentTarget;
+                const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
+                if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
+              }}>
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                <div className={styles.storeBadgeText}>
+                  <span className={styles.storeBadgeSmall}>Download on the</span>
+                  <span className={styles.storeBadgeName}>App Store</span>
+                </div>
+                <span className={styles.comingSoonTag}>Coming Soon</span>
+                <span className="coming-soon-flash">Coming Soon</span>
+              </button>
+            </motion.div>
 
           </motion.div>
         </div>
@@ -341,7 +335,6 @@ export default function Landing() {
             <span className={styles.textLogo}>ClinicalTrials.gov</span>
             <span className={styles.textLogo}>OMIM</span>
             <span className={styles.textLogo}>Cochrane Library</span>
-            {/* Duplicate for infinite scroll */}
             <span className={styles.textLogo} aria-hidden="true">PubMed</span>
             <span className={styles.textLogo} aria-hidden="true">NIH</span>
             <span className={styles.textLogo} aria-hidden="true">ClinicalTrials.gov</span>
@@ -368,7 +361,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. The Problem (Emotional Hook) */}
+      {/* 4. The Problem */}
       <section className={styles.problemSection}>
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
@@ -438,7 +431,7 @@ export default function Landing() {
               <MessageSquare size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Ava Health Buddy</h3>
-            <p className={styles.bentoDesc}>A supportive companion for organizing questions, tracking your case, and preparing for next steps””not a replacement for urgent or professional care.</p>
+            <p className={styles.bentoDesc}>A supportive companion for organizing questions, tracking your case, and preparing for next steps—not a replacement for urgent or professional care.</p>
           </motion.div>
         </div>
       </section>
@@ -451,7 +444,6 @@ export default function Landing() {
             <p>HealthChain organizes your case through multiple AI perspectives to surface questions, evidence gaps, and topics that may be useful to discuss with your clinician.</p>
           </div>
           <div className={styles.aiBrainVisual}>
-             {/* Abstract Node Network */}
              <div className={styles.nodeNetwork}>
                 <div className={`${styles.node} ${styles.nodeCenter}`}></div>
                 {[...Array(6)].map((_, i) => (
@@ -466,7 +458,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 7. How It Works (Timeline) */}
+      {/* 7. How It Works */}
       <section id="how-it-works" className={styles.timelineSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>The Path to a Better Visit</h2>
@@ -541,54 +533,54 @@ export default function Landing() {
         </div>
       </section>
 
-        {/* FAQ Section */}
-        <section className={styles.faqSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
-            <p className={styles.sectionSubtitle}>Everything you need to know about the platform and your privacy.</p>
-          </div>
-          <div className={styles.faqList}>
-            {landingFaqs.map((faq, i) => (
-              <div 
-                key={i} 
-                className={`${styles.faqItem} ${openFaq === i ? styles.faqItemOpen : ''}`}
+      {/* FAQ Section */}
+      <section className={styles.faqSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
+          <p className={styles.sectionSubtitle}>Everything you need to know about the platform and your privacy.</p>
+        </div>
+        <div className={styles.faqList}>
+          {landingFaqs.map((faq, i) => (
+            <div 
+              key={i} 
+              className={`${styles.faqItem} ${openFaq === i ? styles.faqItemOpen : ''}`}
+            >
+              <button
+                aria-expanded={openFaq === i}
+                className={styles.faqButton}
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
               >
-                <button
-                  aria-expanded={openFaq === i}
-                  className={styles.faqButton}
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                >
-                  <span className={styles.faqQuestion}>{faq.question}</span>
-                  {openFaq === i ? <ChevronUp size={20} className={styles.faqIcon} /> : <ChevronDown size={20} className={styles.faqIcon} />}
-                </button>
-                {openFaq === i && (
-                  <div className={styles.faqAnswer}>
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 9. Final CTA */}
-        <section className={styles.finalCtaSection}>
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className={styles.finalCtaBox}
-          >
-            <div className={styles.finalCtaMesh}></div>
-            <div className={styles.finalCtaContent}>
-              <h2 className={styles.finalCtaTitle}>Ready to organize your health story?</h2>
-              <p className={styles.finalCtaDesc}>Create a private case, prepare your questions, and take a clearer summary into your next clinician conversation.</p>
-              <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={() => navigate('/signup')}>
-                Create Free Account <ArrowRight size={18} />
+                <span className={styles.faqQuestion}>{faq.question}</span>
+                {openFaq === i ? <ChevronUp size={20} className={styles.faqIcon} /> : <ChevronDown size={20} className={styles.faqIcon} />}
               </button>
+              {openFaq === i && (
+                <div className={styles.faqAnswer}>
+                  {faq.answer}
+                </div>
+              )}
             </div>
-          </motion.div>
-        </section>
+          ))}
+        </div>
+      </section>
+
+      {/* 9. Final CTA */}
+      <section className={styles.finalCtaSection}>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className={styles.finalCtaBox}
+        >
+          <div className={styles.finalCtaMesh}></div>
+          <div className={styles.finalCtaContent}>
+            <h2 className={styles.finalCtaTitle}>Ready to organize your health story?</h2>
+            <p className={styles.finalCtaDesc}>Create a private case, prepare your questions, and take a clearer summary into your next clinician conversation.</p>
+            <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={handleStartInvestigation}>
+              Get Started <ArrowRight size={18} />
+            </button>
+          </div>
+        </motion.div>
+      </section>
       </main>
 
       {/* 10. Footer */}
@@ -602,7 +594,7 @@ export default function Landing() {
           </div>
           <div className={styles.footerLinks}>
             <h4>Product</h4>
-            <Link to="/login">AI Engine</Link>
+            <Link to="/app/today">Health Today</Link>
             <Link to="/pricing">Pricing</Link>
             <Link to="/changelog">Changelog</Link>
           </div>
