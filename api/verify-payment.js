@@ -10,7 +10,7 @@ const ALLOWED_PLANS = {
     type: 'subscription'
   },
   pro_90_days: {
-    amount: 79900,
+    amount: 89900,
     days: 90,
     type: 'subscription'
   },

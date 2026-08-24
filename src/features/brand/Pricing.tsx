@@ -452,11 +452,11 @@ export default function Pricing() {
 
           <div style={{ margin: '14px 0 20px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹799</span>
+              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹899</span>
               <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>/ 90 Days</span>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#DCFCE7', color: '#166534', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, marginTop: '6px' }}>
-              🔥 Just ₹8.8 / day · 47% Multi-Month Savings
+              🔥 Just ₹9.9 / day · 40% Monthly Savings
             </div>
           </div>
 
