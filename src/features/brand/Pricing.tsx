@@ -166,12 +166,17 @@ export default function Pricing() {
         return;
       }
 
+      const isTopup = planId.startsWith('topup_');
+      const planTitle = isTopup 
+        ? TOPUP_PLANS.find(t => t.id === planId)?.name || 'Feature Top-Up' 
+        : `Upgrade to Pro (${planId === 'pro_30_days' ? '30' : '90'} Days)`;
+
       const options = {
         key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'HealthChain Pro',
-        description: `Upgrade to Pro (${planId === 'pro_30_days' ? '30' : '90'} Days)`,
+        name: isTopup ? 'HealthChain Top-Up' : 'HealthChain Pro',
+        description: planTitle,
         order_id: orderData.id,
         handler: async function (response: any) {
           try {
@@ -190,13 +195,17 @@ export default function Pricing() {
 
             if (verifyData.success) {
               trackPurchase(orderData.amount / 100, planId);
-              alert('Welcome to HealthChain Pro! Your features and quotas are now unlocked.');
+              if (isTopup) {
+                alert('Top-Up successfully activated and credited to your account!');
+              } else {
+                alert('Welcome to HealthChain Pro! Your features and quotas are now unlocked.');
+              }
               window.location.href = '/app';
             } else {
               alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
             }
           } catch (err: any) {
-            alert('Payment verification encountered a network error. If you were charged, please contact support.');
+            alert('Payment verification encountered a network error. If you were charged, please contact support at healthchain360@gmail.com.');
           } finally {
             setIsProcessing(null);
           }

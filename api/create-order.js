@@ -108,7 +108,7 @@ export default async function handler(req, res) {
       id: order.id,
       currency: order.currency,
       amount: order.amount,
-      plan_id
+      plan_id: resolvedPlanId
     });
   } catch (error) {
     console.error("Error creating Razorpay order:", error);

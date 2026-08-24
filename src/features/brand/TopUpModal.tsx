@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Loader2, X } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
+import { trackPurchase } from '../../services/analytics';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'pharmacy_hub' | 'lab_report';
@@ -63,6 +64,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
             });
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
+              trackPurchase(orderData.amount / 100, plan.id);
               onSuccess();
             } else {
               alert('Verification failed: ' + verifyData.error);
