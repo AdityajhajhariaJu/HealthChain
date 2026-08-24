@@ -73,6 +73,15 @@ const PRO_90_FEATURES: FeatureItem[] = [
   { name: 'Vitality Points & Rewards System', desc: 'Full arcade access & tier progression', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
+const TOPUP_PLANS = [
+  { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '+10 Replies', desc: 'Instant AI Chief of Staff consultation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
+  { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '+1 Session', desc: 'Single-specialist acute review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
+  { id: 'topup_deep_collab', name: 'Deep Collab Board', price: 149, qty: '+1 Session', desc: '4-Specialist clinical debate & consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
+  { id: 'topup_jarvis', name: 'J.A.R.V.I.S. Root-Cause', price: 169, qty: '+1 Session', desc: 'Autonomous biomarker pattern scan', icon: Sparkles, color: '#7C3AED', bg: '#F5F3FF' },
+  { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Real-time drug clash & safety checks', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
+  { id: 'topup_lab_report', name: 'Lab Report Analyzer', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+];
+
 const FAQS = [
   {
     q: 'How do J.A.R.V.I.S. Investigations and Deep Collab Boards work?',
@@ -502,6 +511,78 @@ export default function Pricing() {
           </div>
         </div>
 
+      </div>
+
+      {/* FEATURE TOP-UPS SECTION */}
+      <div style={{ maxWidth: '1100px', margin: '0 auto 60px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#EDE9FE', color: '#6D28D9', padding: '4px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, marginBottom: '10px' }}>
+            <Sparkles size={13} fill="#6D28D9" /> FLEXIBLE POWER-UPS
+          </div>
+          <h2 style={{ fontSize: isMobile ? '24px' : '30px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 8px' }}>
+            Need Extra Quota? Add Top-Ups Anytime
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '14px', maxWidth: '600px', margin: '0 auto' }}>
+            Active Pro members can top-up specific specialist features on demand without upgrading their entire plan.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '16px',
+          }}
+        >
+          {TOPUP_PLANS.map((topup) => (
+            <div
+              key={topup.id}
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '20px',
+                border: '1.5px solid #E2E8F0',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: topup.bg, color: topup.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <topup.icon size={18} strokeWidth={2.2} />
+                  </div>
+                  <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>₹{topup.price}</span>
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '2px' }}>{topup.name}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#059669', marginBottom: '6px' }}>{topup.qty}</div>
+                <p style={{ fontSize: '12.5px', color: '#64748B', margin: '0 0 16px', lineHeight: 1.4 }}>{topup.desc}</p>
+              </div>
+
+              <button
+                onClick={() => handleCheckout(topup.id)}
+                disabled={isProcessing !== null}
+                className="btn btn-outline"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                {isProcessing === topup.id ? <Loader2 size={15} className="spin" /> : null}
+                {isProcessing === topup.id ? 'Processing...' : `Buy Top-Up (₹${topup.price})`}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Trust & Guarantee Grid */}
