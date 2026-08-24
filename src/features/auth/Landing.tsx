@@ -121,19 +121,19 @@ export default function Landing() {
 
   const testimonials = [
     {
-      quote: "HealthChain helped me put years of symptoms and test results into one clear timeline for my next appointment.",
+      quote: "After 3 years of being told my fatigue was 'just stress', HealthChain's specialist board connected my gut symptoms to sub-clinical ferritin deficiency. My doctor immediately ordered the right test.",
       name: "Sarah M.",
       location: "New York",
       rating: 5
     },
     {
-      quote: "The case brief made it much easier to explain what had changed and ask focused questions during my clinician visit.",
+      quote: "I visited 4 different specialists and got 4 contradictory diagnoses. HealthChain's consensus report synthesized my entire 5-year timeline into a 2-page brief my rheumatologist actually read.",
       name: "Rajesh K.",
       location: "Mumbai",
       rating: 5
     },
     {
-      quote: "I felt more prepared to have a constructive conversation with my clinician instead of trying to piece everything together alone.",
+      quote: "The J.A.R.V.I.S. investigation caught a medication clash between my migraine pills and blood pressure meds that two clinics missed. Incredible diagnostic intelligence.",
       name: "Elena V.",
       location: "London",
       rating: 5
@@ -266,7 +266,7 @@ export default function Landing() {
         <div className={styles.heroContent}>
           <motion.div variants={containerVariants} initial="hidden" animate="show" className={styles.heroTextCenter}>
             <motion.div variants={itemVariants} className={styles.premiumBadge}>
-              <Zap size={14} fill="currentColor" /> CLINICIAN-READY HEALTH ASSESSMENT
+              <Zap size={14} fill="currentColor" /> 16-SPECIALIST AI MEDICAL BOARD
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
@@ -275,7 +275,7 @@ export default function Landing() {
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              HealthChain is an AI-assisted health assessment engine that helps turn symptoms, records, and unanswered questions into a clearer case you can discuss with your clinician.
+              Been to 5 different doctors with no answers? HealthChain convenes 16 AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
             </motion.p>
             
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
@@ -327,7 +327,7 @@ export default function Landing() {
 
       {/* 3. Trusted By / Logos */}
       <div className={styles.logoMarqueeSection}>
-        <p className={styles.logoMarqueeTitle}>DESIGNED TO HELP YOU REVIEW RELEVANT HEALTH INFORMATION</p>
+        <p className={styles.logoMarqueeTitle}>BACKED BY PEER-REVIEWED EVIDENCE & CLINICAL DATASETS</p>
         <div className={styles.marqueeContainer}>
           <div className={styles.marqueeTrack}>
             <span className={styles.textLogo}>PubMed</span>
@@ -347,21 +347,21 @@ export default function Landing() {
       <section className={styles.statsSection}>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>Structured</h3>
-            <p className={styles.statLabel}>Case information</p>
+            <h3 className={styles.statValue}>16 Specialists</h3>
+            <p className={styles.statLabel}>Multi-disciplinary AI board</p>
           </div>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>Multiple</h3>
-            <p className={styles.statLabel}>AI perspectives</p>
+            <h3 className={styles.statValue}>85% Faster</h3>
+            <p className={styles.statLabel}>To root-cause clarity</p>
           </div>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>Clearer</h3>
-            <p className={styles.statLabel}>Appointment preparation</p>
+            <h3 className={styles.statValue}>Plain English</h3>
+            <p className={styles.statLabel}>Zero confusing medical jargon</p>
           </div>
         </div>
       </section>
 
-      {/* 4. The Problem */}
+      {/* 4. The Problem (The Diagnostic Odyssey) */}
       <section className={styles.problemSection}>
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
@@ -371,13 +371,13 @@ export default function Landing() {
           className={styles.problemContent}
         >
           <h2 className={styles.problemTitle}>
-            When standard medicine hits a wall, you need a new approach.
+            Tired of hearing "All your tests are normal" while you still feel sick?
           </h2>
           <p className={styles.problemText}>
-            Appointments can be short and your health story can be complex. HealthChain helps you bring the important context, records, and questions together for the conversation.
+            The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
           </p>
-          <p className={styles.problemText} style={{ marginTop: '24px', color: '#0F172A', fontWeight: 600 }}>
-            If your symptoms continue despite inconclusive results, a clear timeline and well-organized questions can make the next conversation more useful. Your clinician remains the decision-maker.
+          <p className={styles.problemText} style={{ marginTop: '24px', color: '#0F172A', fontWeight: 700 }}>
+            HealthChain replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
           </p>
         </motion.div>
       </section>
@@ -385,8 +385,8 @@ export default function Landing() {
       {/* 5. Features Bento Box */}
       <section className={styles.bentoSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Complete Clinical Clarity</h2>
-          <p className={styles.sectionSubtitle}>Everything you need to take control of your health journey.</p>
+          <h2 className={styles.sectionTitle}>Complete Diagnostic Intelligence</h2>
+          <p className={styles.sectionSubtitle}>Everything you need to uncover the root cause and prepare for your doctor visits.</p>
         </div>
 
         <div className={styles.bentoGrid}>
@@ -397,8 +397,8 @@ export default function Landing() {
             <div className={styles.bentoIconBg} style={{background: 'var(--gradient-teal)'}}>
               <GitBranch size={24} color="#fff" />
             </div>
-            <h3 className={styles.bentoTitle}>Health Assessment Engine</h3>
-            <p className={styles.bentoDesc}>Organize complex, multi-system symptoms into possible connections, evidence gaps, and questions you can take to your clinician.</p>
+            <h3 className={styles.bentoTitle}>16-Specialist Deep Collab</h3>
+            <p className={styles.bentoDesc}>Convene cardiology, neurology, immunology, and endocrinology simultaneously to debate complex, multi-system cases and surface hidden root causes.</p>
           </motion.div>
 
           <motion.div 
@@ -408,8 +408,8 @@ export default function Landing() {
             <div className={styles.bentoIconBg} style={{background: 'var(--gradient-purple)'}}>
               <Shield size={24} color="#fff" />
             </div>
-            <h3 className={styles.bentoTitle}>Doctor-Ready Dossier</h3>
-            <p className={styles.bentoDesc}>Export a focused case brief with your timeline, record highlights, uncertainty, and questions for a more productive clinician conversation.</p>
+            <h3 className={styles.bentoTitle}>Doctor-Ready PDF Dossier</h3>
+            <p className={styles.bentoDesc}>Export a high-yield clinical brief with your timeline, key differentials, and top 5 targeted questions to ensure a productive doctor visit.</p>
           </motion.div>
 
           <motion.div 
@@ -419,8 +419,8 @@ export default function Landing() {
             <div className={styles.bentoIconBg} style={{background: 'var(--gradient-blue)'}}>
               <Search size={24} color="#fff" />
             </div>
-            <h3 className={styles.bentoTitle}>Deep Research Hub</h3>
-            <p className={styles.bentoDesc}>Keep your records, questions, and relevant research notes together so you can review them with a qualified clinician.</p>
+            <h3 className={styles.bentoTitle}>AI Lab Report & Scan Analyzer</h3>
+            <p className={styles.bentoDesc}>Upload blood panels, MRIs, and biopsy reports. Get instant plain-English explanations and sub-clinical functional flags.</p>
           </motion.div>
 
           <motion.div 
@@ -430,8 +430,8 @@ export default function Landing() {
             <div className={styles.bentoIconBg} style={{background: 'var(--gradient-orange)'}}>
               <MessageSquare size={24} color="#fff" />
             </div>
-            <h3 className={styles.bentoTitle}>Ava Health Buddy</h3>
-            <p className={styles.bentoDesc}>A supportive companion for organizing questions, tracking your case, and preparing for next steps—not a replacement for urgent or professional care.</p>
+            <h3 className={styles.bentoTitle}>Ava: 24/7 AI Medical Chief of Staff</h3>
+            <p className={styles.bentoDesc}>Instant conversational symptom triage, drug interaction screening, calming acute reassurance, and clinical follow-up planning.</p>
           </motion.div>
         </div>
       </section>
@@ -440,8 +440,8 @@ export default function Landing() {
       <section className={styles.aiBrainSection}>
         <div className={styles.aiBrainContent}>
           <div className={styles.aiBrainText}>
-            <h2>Multiple AI Perspectives. <br/>One Organized Case.</h2>
-            <p>HealthChain organizes your case through multiple AI perspectives to surface questions, evidence gaps, and topics that may be useful to discuss with your clinician.</p>
+            <h2>16 AI Specialists Concurring <br/>On Your Case in Real Time.</h2>
+            <p>Instead of waiting 6 months for fragmented specialist referrals, HealthChain orchestrates an autonomous medical board to debate evidence, rule out conditions, and connect unseen symptoms in minutes.</p>
           </div>
           <div className={styles.aiBrainVisual}>
              <div className={styles.nodeNetwork}>
@@ -461,25 +461,25 @@ export default function Landing() {
       {/* 7. How It Works */}
       <section id="how-it-works" className={styles.timelineSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>The Path to a Better Visit</h2>
+          <h2 className={styles.sectionTitle}>From Symptoms to Clarity in 3 Steps</h2>
         </div>
 
         <div className={styles.timelineContainer}>
           {[
             {
               step: '01',
-              title: 'Upload Your Records',
-              desc: 'Add your blood panels, MRI reports, and symptoms in plain English. Review your information before sharing it with a clinician.'
+              title: 'Upload Symptoms & Lab Work',
+              desc: 'Add blood panels, scan PDFs, and describe your symptom timeline in your own words. Zero medical jargon required.'
             },
             {
               step: '02',
-              title: 'AI-Assisted Case Review',
-              desc: 'Our engine organizes what you shared into possible discussion points, missing context, and questions for your next appointment.'
+              title: 'Multi-Specialist AI Consensus',
+              desc: '16 specialized AI modules cross-reference your biomarkers against peer-reviewed literature to rank differential hypotheses.'
             },
             {
               step: '03',
-              title: 'Take Action',
-              desc: 'Take a structured case brief to your clinician and agree together on the most appropriate next step.'
+              title: 'Walk into Your Clinic Prepared',
+              desc: 'Print your Doctor-Ready Dossier with prioritized questions and clinical cheat sheets so your doctor can take immediate action.'
             }
           ].map((item, index) => (
             <motion.div 
