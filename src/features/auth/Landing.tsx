@@ -602,7 +602,7 @@ export default function Landing() {
             <h4>Company</h4>
             <Link to="/terms">Terms of Service</Link>
             <Link to="/privacy">Privacy Policy</Link>
-            <a href="mailto:support@healthchain360.com">Contact Us</a>
+            <a href="mailto:healthchain360@gmail.com">Contact Us</a>
           </div>
         </div>
         <div className={styles.footerBottom}>

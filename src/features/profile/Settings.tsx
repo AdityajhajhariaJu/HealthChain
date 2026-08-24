@@ -583,6 +583,36 @@ export default function Settings() {
           </label>
         </div>
 
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            justifyContent: 'space-between',
+            gap: isMobile ? 12 : 0,
+            padding: '16px',
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
+            marginBottom: '20px',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
+              Help & User Feedback
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              Share feature ideas, report issues, or contact support directly at healthchain360@gmail.com.
+            </div>
+          </div>
+          <button
+            className="btn btn-outline"
+            onClick={() => navigate('/help')}
+          >
+            Help & Feedback Center
+          </button>
+        </div>
+
         {/* Danger Zone */}
         {isAuthenticated && (
           <>
