@@ -10,7 +10,7 @@ const ALLOWED_PLANS = {
     type: 'subscription'
   },
   pro_90_days: {
-    amount: 89900,
+    amount: 79900,
     currency: 'INR',
     description: 'Pro Access (90 Days)',
     type: 'subscription'
