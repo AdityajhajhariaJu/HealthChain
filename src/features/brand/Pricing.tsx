@@ -247,16 +247,13 @@ export default function Pricing() {
       </button>
 
       {/* Hero Header */}
-      <div style={{ textAlign: 'center', marginBottom: isMobile ? '32px' : '48px' }}>
+      <div style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', color: '#059669', padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px', border: '1px solid #A7F3D0' }}>
           <Sparkles size={14} /> Clinical AI Diagnostic Power
         </div>
-        <h1 style={{ fontSize: isMobile ? '30px' : '46px', fontWeight: 900, color: '#0F172A', marginBottom: '14px', letterSpacing: '-1.5px', lineHeight: 1.15 }}>
+        <h1 style={{ fontSize: isMobile ? '28px' : '44px', fontWeight: 900, color: '#0F172A', marginBottom: '14px', letterSpacing: '-1px', lineHeight: 1.15 }}>
           Invest in Clarity. Resolve Medical Ambiguity.
         </h1>
-        <p style={{ fontSize: isMobile ? '15px' : '17px', color: '#64748B', maxWidth: '780px', margin: '0 auto 16px', lineHeight: 1.5 }}>
-          Equip yourself with parallel AI specialist evaluations, autonomous J.A.R.V.I.S. biomarker cross-correlation, and structured clinical dossiers before your next doctor appointment. Burn through your limits early? You can always buy top-ups individually later.
-        </p>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#F8FAFC', borderRadius: '20px', fontSize: '13px', color: '#475569', border: '1px solid #E2E8F0' }}>
           <Info size={15} color="#059669" /> Any purchased top-ups expire when your base subscription expires.
         </div>
