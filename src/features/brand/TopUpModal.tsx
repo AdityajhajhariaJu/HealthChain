@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Loader2, X } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
+import { useToast } from '../../components/ui/ToastProvider';
 import { trackPurchase } from '../../services/analytics';
 
 interface TopUpModalProps {
@@ -19,6 +20,7 @@ const TOPUPS = {
 };
 
 export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalProps) {
+  const toast = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const plan = TOPUPS[feature];
 
@@ -40,11 +42,16 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         body: JSON.stringify({ plan_id: plan.id })
       });
 
-      if (!orderRes.ok) throw new Error('Failed to create order');
+      if (!orderRes.ok) {
+        const errData = await orderRes.json();
+        throw new Error(errData.error || 'Failed to create top-up order');
+      }
+
       const orderData = await orderRes.json();
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
       
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'HealthChain Top-Up',
@@ -65,12 +72,13 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               trackPurchase(orderData.amount / 100, plan.id);
+              toast.success('Top-Up Activated!', `${plan.name} credit added successfully.`);
               onSuccess();
             } else {
-              alert('Verification failed: ' + verifyData.error);
+              toast.error('Verification Failed', verifyData.error || 'Unable to verify payment.');
             }
           } catch (err) {
-            alert('Verification encountered an error.');
+            toast.error('Network Issue', 'Payment verification encountered a network error.');
           } finally {
             setIsProcessing(false);
             onClose();
@@ -85,7 +93,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
       paymentObject.open();
 
     } catch (err: any) {
-      alert('Checkout Error: ' + err.message);
+      toast.error('Checkout Error', err.message || 'Unable to start checkout.');
       setIsProcessing(false);
     }
   };

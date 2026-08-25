@@ -367,8 +367,7 @@ export async function saveProfile(profile) {
       }
     }
   } catch (e) {
-    console.error('Failed to save unified profile', e);
-    alert('Storage Full: Unable to save profile changes. Please clear browser storage or delete older data.');
+    console.warn('Failed to save unified profile to cloud/local:', e);
     window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: e }));
   }
 }

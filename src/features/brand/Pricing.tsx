@@ -28,6 +28,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';
+import { useToast } from '../../components/ui/ToastProvider';
 import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
 
 interface FeatureItem {
@@ -106,6 +107,7 @@ const FAQS = [
 export default function Pricing() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -137,7 +139,7 @@ export default function Pricing() {
 
       const res = await loadRazorpayScript();
       if (!res) {
-        alert('Razorpay SDK failed to load. Please check your connection.');
+        toast.error('Payment Error', 'Razorpay SDK failed to load. Please check your internet connection.');
         setIsProcessing(null);
         return;
       }
@@ -163,7 +165,7 @@ export default function Pricing() {
 
       const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!razorpayKey) {
-        alert('Payment system is being configured. Please try again shortly.');
+        toast.error('Payment Configuration', 'Payment gateway is being updated. Please try again shortly.');
         setIsProcessing(null);
         return;
       }
@@ -198,16 +200,18 @@ export default function Pricing() {
             if (verifyData.success) {
               trackPurchase(orderData.amount / 100, planId);
               if (isTopup) {
-                alert('Top-Up successfully activated and credited to your account!');
+                toast.success('Top-Up Activated!', 'Your feature credit has been added to your account.');
               } else {
-                alert('Welcome to HealthChain Pro! Your features and quotas are now unlocked.');
+                toast.success('Welcome to Pro!', 'All 16 specialists & diagnostic tools are unlocked.');
               }
-              window.location.href = '/app';
+              setTimeout(() => {
+                window.location.href = '/app';
+              }, 800);
             } else {
-              alert('Payment verification failed: ' + (verifyData.error || 'Unknown error'));
+              toast.error('Verification Failed', verifyData.error || 'Payment could not be verified.');
             }
           } catch (err: any) {
-            alert('Payment verification encountered a network error. If you were charged, please contact support at healthchain360@gmail.com.');
+            toast.error('Network Issue', 'Payment verification network error. Please contact healthchain360@gmail.com.');
           } finally {
             setIsProcessing(null);
           }
@@ -227,14 +231,14 @@ export default function Pricing() {
 
       const paymentObject = new (window as any).Razorpay(options);
       paymentObject.on('payment.failed', function (response: any) {
-        alert(response.error.description);
+        toast.error('Payment Failed', response.error.description || 'Transaction could not be completed.');
         setIsProcessing(null);
       });
       paymentObject.open();
 
     } catch (err: any) {
       console.error(err);
-      alert('Checkout Error: ' + err.message);
+      toast.error('Checkout Error', err.message || 'Unable to initiate checkout.');
       setIsProcessing(null);
     }
   };

@@ -21,6 +21,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { getRunScope } from '../../services/RunContext';
 import { getActiveSession } from '../../services/authSession';
 import { openTrialModal } from '../../services/TrialEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 
 const cachedReportAnalyzerState: Record<string, any> = {};
 const fileReportCache: Record<string, any> = {};
@@ -29,6 +30,7 @@ export default function ClinicalReportAnalyzer() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
+  const toast = useToast();
   const activeCase = getActiveCase();
   const returnTo = new URLSearchParams(location.search).get('returnTo');
   const reportCacheKey = getRunScope('lab', 'draft', 'ui');
@@ -47,21 +49,18 @@ export default function ClinicalReportAnalyzer() {
   const handleFileChange = async (e) => {
     if (loading) return;
     if (!(await getActiveSession())) {
-      const currentCount = parseInt(localStorage.getItem('hc_guest_report_count') || '0', 10) || 0;
-      if (currentCount >= 3) {
-        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-          detail: { 
-            title: 'Guest Limit Reached', 
-            message: 'You have reached the guest limit of 3 lab reports. Please log in or sign up to analyze more reports.' 
-          } 
-        }));
-        return;
-      }
-      try { localStorage.setItem('hc_guest_report_count', (currentCount + 1).toString()); } catch(e) {}
+      navigate('/login');
+      return;
     }
 
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
+
+    if (selectedFile.size === 0) {
+      toast.error('Invalid File', 'The selected file is empty (0 bytes).');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     const profile = getProfile();
     const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
@@ -74,11 +73,11 @@ export default function ClinicalReportAnalyzer() {
     // Check size limit (e.g. 3MB)
     const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
     if (!ALLOWED.includes(selectedFile.type)) {
-      alert('Unsupported file format. Please upload PDF or images.');
+      toast.error('Unsupported Format', 'Please upload a PDF or image (JPEG/PNG/WEBP).');
       return;
     }
     if (selectedFile.size > 3 * 1024 * 1024) {
-      alert('File size must be less than 3MB.');
+      toast.error('File Too Large', 'Maximum allowed file size is 3MB.');
       return;
     }
 
@@ -103,7 +102,7 @@ export default function ClinicalReportAnalyzer() {
         const result = event.target?.result;
         if (typeof result !== 'string') {
           setLoading(false);
-          alert('Failed to process file format.');
+          toast.error('Processing Failed', 'Failed to process file format.');
           return;
         }
         const base64Data = result.split(',')[1];
@@ -184,7 +183,7 @@ export default function ClinicalReportAnalyzer() {
     };
     reader.onerror = () => {
       setLoading(false);
-      alert('Failed to read file.');
+      toast.error('File Error', 'Failed to read file from your device.');
     };
 
     reader.readAsDataURL(selectedFile);

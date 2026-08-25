@@ -7,6 +7,7 @@ import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiSe
 import { addEvent } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
+import { useToast } from '../../components/ui/ToastProvider';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 
 const SUGGESTIONS = [
@@ -92,6 +93,7 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
 
 export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const sessionId = useRef(crypto.randomUUID()).current;
@@ -235,15 +237,15 @@ export default function AvaHealthBuddy() {
     if (!file) return;
 
     if (file.size > 3 * 1024 * 1024) {
-      alert("File is too large. Maximum size is 3MB.");
+      toast.error("File Too Large", "Maximum file size is 3MB.");
       return;
     }
     if (file.size === 0) {
-      alert("The uploaded file is empty (0 bytes).");
+      toast.error("Invalid File", "The uploaded file is empty (0 bytes).");
       return;
     }
     if (file.type.includes('heic') || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-      alert("HEIC/HEIF images from Apple devices are not supported. Please export as JPG.");
+      toast.error("Format Not Supported", "HEIC/HEIF images from Apple devices are not supported. Please export as JPG.");
       return;
     }
 

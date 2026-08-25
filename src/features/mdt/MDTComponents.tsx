@@ -28,7 +28,7 @@ export function StreamingMarkdown({ text, isNew, inline = false }: { text: strin
     return () => { isMounted = false; };
   }, [text, isNew]);
 
-  return <span dangerouslySetInnerHTML={{ __html: displayed.replace(/\n/g, '<br/>') }} style={{ display: inline ? 'inline' : 'block' }} />;
+  return <span style={{ display: inline ? 'inline' : 'block', whiteSpace: 'pre-wrap' }}>{displayed}</span>;
 }
 
 import { generateCaseConnectionMap } from '../../services/geminiService';
