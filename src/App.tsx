@@ -14,6 +14,7 @@ import { flushSyncOutbox } from './services/SyncOutbox';
 
 import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
+import AuthCallback from './features/auth/AuthCallback';
 import AppShell from './components/layout/AppShell';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ProfileOnboarding from './features/profile/ProfileOnboarding';
@@ -319,7 +320,7 @@ export default function App() {
             }
 
             const path = window.location.pathname;
-            if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
+            if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding' || path === '/auth/callback') {
               const profileStr = localStorage.getItem(getProfileKey());
               let hasCompletedOnboarding = false;
               if (profileStr) {
@@ -435,6 +436,7 @@ export default function App() {
             </SafeRoute>
           }
         />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route
           path="/login"
           element={
