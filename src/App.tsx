@@ -321,9 +321,18 @@ export default function App() {
                   const profileData = JSON.parse(profileStr);
                   if (profileData.profiles && profileData.activeId) {
                     const activeProfile = profileData.profiles[profileData.activeId];
-                    hasCompletedOnboarding = !!(activeProfile?.onboardingCompletedAt || activeProfile?.demographics?.onboardingCompletedAt);
+                    hasCompletedOnboarding = !!(
+                      activeProfile?.onboardingCompletedAt || 
+                      activeProfile?.demographics?.onboardingCompletedAt ||
+                      activeProfile?.demographics?.age ||
+                      activeProfile?.demographics?.gender
+                    );
                   } else {
-                    hasCompletedOnboarding = !!(profileData.onboardingCompletedAt || profileData.demographics?.onboardingCompletedAt);
+                    hasCompletedOnboarding = !!(
+                      profileData.onboardingCompletedAt || 
+                      profileData.demographics?.onboardingCompletedAt || 
+                      profileData.demographics?.age
+                    );
                   }
                 } catch (e) {
                   console.error(e);

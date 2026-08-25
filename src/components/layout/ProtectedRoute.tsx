@@ -67,7 +67,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       } catch (err) {
         if (!isMounted) return;
         // On network error or offline, preserve session if previously logged in
-        if (localStorage.getItem('isAuthenticated') === 'true' || safariSafeAuthStorage.getItem('healthchain_auth_token')) {
+        const stored = await safariSafeAuthStorage.getItem('healthchain_auth_token');
+        if (localStorage.getItem('isAuthenticated') === 'true' || stored) {
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);

@@ -787,7 +787,7 @@ export async function syncProfileFromSupabase() {
           ...(state.profiles.profile_1 || DEFAULT_PROFILE), id: 'profile_1',
           profileName: data.full_name || 'My Profile', isPro: data.is_pro || false,
           proExpiresAt: data.pro_expires_at || null, demographics: data.demographics || {},
-          onboardingCompletedAt: data.demographics?.onboardingCompletedAt || null,
+          onboardingCompletedAt: data.demographics?.onboardingCompletedAt || (data.demographics?.age ? new Date().toISOString() : null),
           conditions: data.conditions || [], medications: data.medications || [],
           allergies: data.allergies || [], familyHistory: data.family_history || [],
           timeline: data.timeline || [], vitals: data.vitals || { latestLabValues: {}, historicalLabs: [] },
