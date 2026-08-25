@@ -27,6 +27,16 @@ export default function AuthCallback() {
       }
     }, 10000);
 
+    // Check if session is already active immediately
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && !handled.current) {
+        handled.current = true;
+        clearTimeout(timeout);
+        console.log('[AuthCallback] Session already active, redirecting to /app');
+        window.location.replace('/app');
+      }
+    }).catch(() => {});
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (handled.current) return;
 
