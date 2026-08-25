@@ -97,6 +97,10 @@ export default function ClinicalReportAnalyzer() {
     }
 
     const reader = new FileReader();
+    reader.onerror = () => {
+      setLoading(false);
+      toast.error('File Error', 'Failed to read document from disk.');
+    };
     reader.onload = async (event) => {
       try {
         const result = event.target?.result;

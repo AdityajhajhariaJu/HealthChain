@@ -5,17 +5,22 @@ import { Capacitor } from '@capacitor/core';
 export const registerPushNotifications = async () => {
   if (Capacitor.getPlatform() === 'web') return;
 
-  let permStatus = await PushNotifications.checkPermissions();
+  try {
+    let permStatus = await PushNotifications.checkPermissions();
 
-  if (permStatus.receive === 'prompt') {
-    permStatus = await PushNotifications.requestPermissions();
+    if (permStatus.receive === 'prompt') {
+      permStatus = await PushNotifications.requestPermissions();
+    }
+
+    if (permStatus.receive !== 'granted') {
+      if (import.meta.env.DEV) console.log('Push notification permissions not granted');
+      return;
+    }
+
+    await PushNotifications.register();
+  } catch (e) {
+    console.warn('Push notification registration failed', e);
   }
-
-  if (permStatus.receive !== 'granted') {
-    throw new Error('User denied permissions!');
-  }
-
-  await PushNotifications.register();
 };
 
 export const setupPushListeners = () => {

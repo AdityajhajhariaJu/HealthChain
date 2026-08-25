@@ -155,7 +155,11 @@ export async function flushSyncOutbox(userId?: string) {
         const { error } = await send(entry);
         if (error) throw error;
       } catch (error: any) {
-        remaining.push({ ...entry, attempts: entry.attempts + 1, lastError: error?.message || 'Sync failed' });
+        if (entry.attempts + 1 <= 25) {
+          remaining.push({ ...entry, attempts: entry.attempts + 1, lastError: error?.message || 'Sync failed' });
+        } else {
+          console.error(`[SyncOutbox] Dropping unrecoverable outbox entry after 25 attempts: ${entry.id} (${entry.kind})`, error);
+        }
       }
     }
     await writeQueue(accountId, remaining);

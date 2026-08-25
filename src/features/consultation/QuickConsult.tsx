@@ -294,7 +294,7 @@ export default function QuickConsult() {
         type: 'parallel',
         report: reportData,
         transcripts: { [id]: messages },
-        specialists: [selectedSpecialist.label],
+        specialists: [selectedSpecialist?.label || 'General'],
         basedOnEvidenceIds: []
       });
       // Keep the workflow view aligned with the canonical My Cases object;

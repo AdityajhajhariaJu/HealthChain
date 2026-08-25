@@ -164,10 +164,12 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
       
       const displayMessage = { role: 'user', text }; // What UI shows
       const apiMessages = compactMessages([...messages, { role: 'user', text: contextualText }]).map((msg: any) => {
-        if (msg.role === 'ai' && msg.text && msg.text.startsWith('{')) {
+        if (msg.role === 'ai' && msg.text) {
           try {
-            const parsed = JSON.parse(msg.text);
-            return { ...msg, text: parsed.response || msg.text };
+            const parsed = parseModelJson<any>(msg.text);
+            if (parsed && typeof parsed === 'object' && parsed.response) {
+              return { ...msg, text: parsed.response };
+            }
           } catch(e) {}
         }
         return msg;

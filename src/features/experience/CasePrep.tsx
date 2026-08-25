@@ -157,39 +157,39 @@ export default function CasePrep() {
           <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: '#64748b', marginBottom: 8, fontWeight: 600 }}>HealthChain Appointment Brief</div>
           <h1 style={{ margin: 0, fontSize: 24, color: '#0f172a' }}>Prepared for clinician discussion</h1>
           <div style={{ marginTop: 12, fontSize: 14, color: '#475569', display: 'flex', gap: 16 }}>
-            <span><strong>Case:</strong> {selectedCase!.title}</span>
-            <span><strong>Updated:</strong> {new Date(brief.generatedAt).toLocaleDateString()}</span>
+            <span><strong>Case:</strong> {selectedCase?.title || 'Case'}</span>
+            <span><strong>Updated:</strong> {brief.generatedAt ? new Date(brief.generatedAt).toLocaleDateString() : 'Recent'}</span>
           </div>
         </header>
 
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>1. What I need help with</h2>
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: '#0f172a', margin: 0 }}>{brief.mainConcern.text}</p>
+          <p style={{ fontSize: 15, lineHeight: 1.6, color: '#0f172a', margin: 0 }}>{brief.mainConcern?.text || 'No specific concern specified.'}</p>
         </section>
 
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>2. What changed and when</h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
-            {brief.timeline.map((t, i) => (
+            {(brief.timeline || []).map((t, i) => (
               <li key={i}><strong>{t.date}:</strong> {t.event}</li>
             ))}
-            {brief.timeline.length === 0 && <li>No timeline events recorded.</li>}
+            {(!brief.timeline || brief.timeline.length === 0) && <li>No timeline events recorded.</li>}
           </ul>
         </section>
 
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>3. Important context to review</h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
-            {brief.knownFacts.map((f, i) => <li key={i}>{f.text}</li>)}
-            {brief.missingInformation.map((m, i) => <li key={i} style={{ color: '#b45309' }}>Missing: {m.missingText}</li>)}
-            {brief.knownFacts.length === 0 && brief.missingInformation.length === 0 && <li>No relevant medical context recorded.</li>}
+            {(brief.knownFacts || []).map((f, i) => <li key={i}>{f.text}</li>)}
+            {(brief.missingInformation || []).map((m, i) => <li key={i} style={{ color: '#b45309' }}>Missing: {m.missingText}</li>)}
+            {(!brief.knownFacts || brief.knownFacts.length === 0) && (!brief.missingInformation || brief.missingInformation.length === 0) && <li>No relevant medical context recorded.</li>}
           </ul>
         </section>
 
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>4. Questions worth asking</h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
-            {brief.questionsForClinician.map((q, i) => <li key={i}>{q.question}</li>)}
+            {(brief.questionsForClinician || []).map((q, i) => <li key={i}>{q.question}</li>)}
           </ul>
         </section>
         

@@ -154,18 +154,20 @@ export default function ClinicalTrialsMatcher() {
     }
   }, [loading]);
 
-  const diagnoses = activeCase?.reviews
-    ?.flatMap((r: any) => 
-       (r.report?.topDiagnoses || [])
-         .filter((d: any) => d.confidence > 25)
-         .map((d: any) => d.condition)
+  const diagnoses = (activeCase?.reviews || [])
+    .flatMap((r: any) => 
+       (r?.report?.topDiagnoses || [])
+         .filter((d: any) => d && (typeof d.confidence === 'number' ? d.confidence > 25 : true))
+         .map((d: any) => (typeof d === 'string' ? d : d?.condition))
+         .filter(Boolean)
     )
-    .filter((v: any, i: any, a: any) => a.indexOf(v) === i) || [];
+    .filter((v: any, i: any, a: any) => a.indexOf(v) === i);
     
   if (diagnoses.length === 0 && activeCase?.differentials) {
-    const diffs = activeCase.differentials
-      .filter((d: any) => d.probability > 25)
-      .map((d: any) => d.condition)
+    const diffs = (activeCase.differentials || [])
+      .filter((d: any) => d && (typeof d.probability === 'number' ? d.probability > 25 : true))
+      .map((d: any) => (typeof d === 'string' ? d : d?.condition))
+      .filter(Boolean)
       .slice(0, 2);
     diagnoses.push(...diffs);
   }
