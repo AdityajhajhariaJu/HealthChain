@@ -91,8 +91,8 @@ export default function CaseDashboard() {
     () =>
       cases
         .flatMap((c) =>
-          c.actions
-            .filter((a) => a.status !== 'completed')
+          (c.actions || [])
+            .filter((a) => a && a.status !== 'completed')
             .slice(0, 2)
             .map((a) => ({ ...a, caseId: c.id, caseTitle: c.title }))
         )
@@ -101,7 +101,7 @@ export default function CaseDashboard() {
   );
 
   const completed = useMemo(() => cases.reduce(
-    (sum, c) => sum + c.actions.filter((a) => a.status === 'completed').length,
+    (sum, c) => sum + (c.actions || []).filter((a) => a && a.status === 'completed').length,
     0
   ), [cases]);
 

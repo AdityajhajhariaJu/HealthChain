@@ -120,13 +120,16 @@ export default function MedicalProfile() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Compute longitudinal data from actual history
-  const computedLongitudinalData = (profile.vitals.historicalLabs || []).map(entry => {
-    const dateObj = new Date(entry.date);
-    const month = `${dateObj.toLocaleString('default', { month: 'short' })} ${dateObj.getDate()}`;
-    const eGFR = entry.biomarkers?.eGFR?.value || null;
-    const weight = entry.biomarkers?.Weight?.value || null;
-    const bpSystolic = entry.biomarkers?.['Blood Pressure']?.value 
-      ? parseInt(String(entry.biomarkers['Blood Pressure'].value).split('/')[0]) 
+  const computedLongitudinalData = (profile?.vitals?.historicalLabs || []).map(entry => {
+    const dateObj = new Date(entry?.date || Date.now());
+    const month = isNaN(dateObj.getTime())
+      ? 'Lab'
+      : `${dateObj.toLocaleString('default', { month: 'short' })} ${dateObj.getDate()}`;
+    const eGFR = entry?.biomarkers?.eGFR?.value || null;
+    const weight = entry?.biomarkers?.Weight?.value || null;
+    const bpRaw = entry?.biomarkers?.['Blood Pressure']?.value;
+    const bpSystolic = bpRaw
+      ? parseInt(String(bpRaw).split('/')[0], 10) || null
       : null;
     return { month, eGFR, weight, bpSystolic };
   }).filter(d => d.eGFR !== null || d.weight !== null || d.bpSystolic !== null);
@@ -186,22 +189,26 @@ export default function MedicalProfile() {
       (el as HTMLElement).style.display = 'none';
     });
 
-    const opt = {
-      margin: [15, 10, 15, 10] as [number, number, number, number], // top, left, bottom, right
-      filename: `HealthChain_Profile_${profile.demographics.name || 'Patient'}.pdf`,
-      image: { type: 'jpeg' as const, quality: 1 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1200 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    };
-    
-    const html2pdf = (await import('html2pdf.js')).default;
-    await html2pdf().set(opt).from(container).save();
-    
-    // Restore interactive elements
-    interactiveElements.forEach((el) => {
-      (el as HTMLElement).style.display = originalDisplays.get(el);
-    });
-    container.classList.remove('pdf-exporting');
+    try {
+      const opt = {
+        margin: [15, 10, 15, 10] as [number, number, number, number], // top, left, bottom, right
+        filename: `HealthChain_Profile_${profile?.demographics?.name || 'Patient'}.pdf`,
+        image: { type: 'jpeg' as const, quality: 1 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1200 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+      };
+      
+      const html2pdf = (await import('html2pdf.js')).default;
+      await html2pdf().set(opt).from(container).save();
+    } catch (e) {
+      console.warn('PDF export failed:', e);
+    } finally {
+      // Restore interactive elements
+      interactiveElements.forEach((el) => {
+        (el as HTMLElement).style.display = originalDisplays.get(el);
+      });
+      container.classList.remove('pdf-exporting');
+    }
   };
 
   const executeClearData = () => {

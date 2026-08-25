@@ -100,8 +100,11 @@ export default function JarvisInvestigator() {
           img.onerror = () => {
             URL.revokeObjectURL(objectUrl);
             const reader = new FileReader();
+            reader.onerror = () => {
+              resolve({ file: f, base64: '', size: 0 });
+            };
             reader.onload = (ev) => {
-              const base64 = (ev.target?.result as string).split(',')[1];
+              const base64 = (ev.target?.result as string)?.split(',')[1] || '';
               resolve({ file: f, base64, size: f.size });
             };
             reader.readAsDataURL(f);

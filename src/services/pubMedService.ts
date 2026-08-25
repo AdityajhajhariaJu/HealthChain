@@ -18,14 +18,14 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(id);
     return response;
   } catch (err: any) {
-    clearTimeout(id);
     if (err.name === 'AbortError') {
       throw new Error('Timeout');
     }
     throw err;
+  } finally {
+    clearTimeout(id);
   }
 };
 

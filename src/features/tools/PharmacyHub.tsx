@@ -59,7 +59,8 @@ export default function PharmacyHub() {
     };
   }, [query, loading, result, searched]);
 
-  const handleSearch = async (e) => {
+  const handleSearch = async (e?: any) => {
+    e?.preventDefault?.();
     if (!(await getActiveSession())) {
       const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10) || 0;
       if (currentCount >= 5) {
@@ -73,8 +74,6 @@ export default function PharmacyHub() {
       }
       try { localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString()); } catch(e) {}
     }
-
-    e.preventDefault();
     if (!query.trim()) return;
 
     setLoading(true);

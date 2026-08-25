@@ -605,6 +605,7 @@ export default function App() {
             }
           />
 
+          <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
         </Route>
         <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
       </Routes>

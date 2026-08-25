@@ -35,7 +35,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
     };
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      html2pdf().set(opt).from(reportRef.current).save();
+      await html2pdf().set(opt).from(reportRef.current).save();
     } catch (e) {
       console.error('Failed to load PDF library:', e);
       toast.error('Export Error', 'Could not generate PDF. Please check your network connection.');

@@ -25,10 +25,20 @@ export function compilePatientContext(options = {}) {
     profileStr += `- Known Conditions: ${cleanConditions.join(', ')}\n`;
   }
   if (profile?.medications && profile.medications.length > 0) {
-    profileStr += `- Meds: ${profile.medications.map((m) => m.name).join(', ')}\n`;
+    const medNames = profile.medications
+      .map((m) => (typeof m === 'string' ? m : m?.name || ''))
+      .filter(Boolean);
+    if (medNames.length > 0) {
+      profileStr += `- Meds: ${medNames.join(', ')}\n`;
+    }
   }
   if (profile?.familyHistory && profile.familyHistory.length > 0) {
-    profileStr += `- Family Hx: ${profile.familyHistory.join(', ')}\n`;
+    const famHistory = profile.familyHistory
+      .map((f) => (typeof f === 'string' ? f : f?.relation ? `${f.relation}: ${f.condition}` : ''))
+      .filter(Boolean);
+    if (famHistory.length > 0) {
+      profileStr += `- Family Hx: ${famHistory.join(', ')}\n`;
+    }
   }
 
   if (profileStr !== `PATIENT PROFILE:\n`) {
@@ -40,7 +50,11 @@ export function compilePatientContext(options = {}) {
   if (labEntries.length > 0) {
     let vitalsStr = `LABS:\n`;
     labEntries.slice(0, 6).forEach(([key, data]) => {
-      vitalsStr += `- ${key}: ${data.value} ${data.unit} (${data.status})\n`;
+      if (data && typeof data === 'object') {
+        vitalsStr += `- ${key}: ${data.value || ''} ${data.unit || ''} ${data.status ? `(${data.status})` : ''}\n`.replace(/\s+/g, ' ');
+      } else if (data !== undefined && data !== null) {
+        vitalsStr += `- ${key}: ${data}\n`;
+      }
     });
     contextParts.push(vitalsStr);
   }

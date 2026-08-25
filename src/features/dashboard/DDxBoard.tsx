@@ -20,7 +20,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
   // Auto-generate on mount if we have pathways but no connection map
   useEffect(() => {
     if (hasAutoRun.current) return;
-    const topDiagnoses = item.currentSummary?.topDiagnoses || [];
+    const topDiagnoses = item.currentSummary?.topDiagnoses || item.reviews?.[0]?.report?.topDiagnoses || [];
     const requestKey = getRunScope('mdt', item.id, 'connection-map');
     let alreadyRequested = false;
     try { alreadyRequested = sessionStorage.getItem(requestKey) === 'done'; } catch {}

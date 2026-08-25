@@ -22,50 +22,50 @@ export default function MindfulHRVCard() {
     }
   });
 
-  // Breathwork timer loop
+  // Breathwork timer interval
   useEffect(() => {
     if (!breathActive) return;
-
     const timer = setInterval(() => {
-      setSecondsRemaining((prev) => {
-        if (prev <= 1) {
-          if (breathPhase === 'Inhale') {
-            setBreathPhase('Hold');
-            triggerHapticLight();
-            return 4;
-          } else if (breathPhase === 'Hold') {
-            setBreathPhase('Exhale');
-            triggerHapticLight();
-            return 4;
-          } else if (breathPhase === 'Exhale') {
-            setBreathPhase('Rest');
-            triggerHapticLight();
-            return 4;
-          } else {
-            const nextCycle = cycleCount + 1;
-            setCycleCount(nextCycle);
-            if (nextCycle >= 3) {
-              setBreathActive(false);
-              setBreathCompletedToday(true);
-              try {
-                localStorage.setItem(breathKey, 'true');
-              } catch {}
-              awardMindfulPoints();
-              triggerHapticSuccess();
-              return 4;
-            } else {
-              setBreathPhase('Inhale');
-              triggerHapticLight();
-              return 4;
-            }
-          }
-        }
-        return prev - 1;
-      });
+      setSecondsRemaining((prev) => Math.max(0, prev - 1));
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [breathActive, breathPhase, cycleCount]);
+  }, [breathActive]);
+
+  // Handle phase transitions cleanly
+  useEffect(() => {
+    if (!breathActive || secondsRemaining > 0) return;
+
+    if (breathPhase === 'Inhale') {
+      setBreathPhase('Hold');
+      setSecondsRemaining(4);
+      triggerHapticLight();
+    } else if (breathPhase === 'Hold') {
+      setBreathPhase('Exhale');
+      setSecondsRemaining(4);
+      triggerHapticLight();
+    } else if (breathPhase === 'Exhale') {
+      setBreathPhase('Rest');
+      setSecondsRemaining(4);
+      triggerHapticLight();
+    } else {
+      const nextCycle = cycleCount + 1;
+      setCycleCount(nextCycle);
+      if (nextCycle >= 3) {
+        setBreathActive(false);
+        setBreathCompletedToday(true);
+        try {
+          localStorage.setItem(breathKey, 'true');
+        } catch {}
+        awardMindfulPoints();
+        triggerHapticSuccess();
+        setSecondsRemaining(4);
+      } else {
+        setBreathPhase('Inhale');
+        setSecondsRemaining(4);
+        triggerHapticLight();
+      }
+    }
+  }, [secondsRemaining, breathActive, breathPhase, cycleCount, breathKey]);
 
   const startBreathwork = () => {
     triggerHapticLight();

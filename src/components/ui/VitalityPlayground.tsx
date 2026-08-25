@@ -352,8 +352,9 @@ export default function VitalityPlayground() {
 
   // Day indexing
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
-  const currentTrivia = TRIVIA_BANK[dayOfYear % TRIVIA_BANK.length];
-  const currentMyth = MYTH_BANK[dayOfYear % MYTH_BANK.length];
+  const safeDayIndex = Math.max(0, Math.abs(dayOfYear));
+  const currentTrivia = TRIVIA_BANK[safeDayIndex % TRIVIA_BANK.length] || TRIVIA_BANK[0];
+  const currentMyth = MYTH_BANK[safeDayIndex % MYTH_BANK.length] || MYTH_BANK[0];
 
   const handleRevealMystery = () => {
     if (mysteryClaimed !== null || isRevealingMystery) return;

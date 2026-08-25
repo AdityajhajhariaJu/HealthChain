@@ -17,4 +17,10 @@ describe('parseModelJson', () => {
   it('returns the fallback for malformed output', () => {
     expect(parseModelJson('not json', { safe: true })).toEqual({ safe: true });
   });
+
+  it('handles trailing commas in objects and arrays produced by LLMs', () => {
+    const jsonWithTrailingComma = '```json\n{"conditions": ["asthma", "rhinitis",], "severity": "mild",}\n```';
+    const result = parseModelJson(jsonWithTrailingComma);
+    expect(result).toEqual({ conditions: ['asthma', 'rhinitis'], severity: 'mild' });
+  });
 });

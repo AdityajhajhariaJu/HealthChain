@@ -221,30 +221,11 @@ export default function LongevityBioStackCard() {
     } catch {}
   };
 
-  // Movement timer effect
+  // Movement timer interval
   useEffect(() => {
     if (isMovementActive) {
       movementTimerRef.current = setInterval(() => {
-        setMovementTimeLeft((prev) => {
-          if (prev <= 1) {
-            triggerHapticMedium();
-            if (movementStepIndex < MOVEMENT_STEPS.length - 1) {
-              setMovementStepIndex((s) => s + 1);
-              return MOVEMENT_STEPS[movementStepIndex + 1].duration;
-            } else {
-              // Completed all 3 steps!
-              setIsMovementActive(false);
-              setMovementDone(true);
-              try {
-                localStorage.setItem(movementKey, 'true');
-              } catch {}
-              awardMicroMovementPoints();
-              triggerHapticSuccess();
-              return 0;
-            }
-          }
-          return prev - 1;
-        });
+        setMovementTimeLeft((prev) => Math.max(0, prev - 1));
       }, 1000);
     } else if (movementTimerRef.current) {
       clearInterval(movementTimerRef.current);
@@ -253,7 +234,27 @@ export default function LongevityBioStackCard() {
     return () => {
       if (movementTimerRef.current) clearInterval(movementTimerRef.current);
     };
-  }, [isMovementActive, movementStepIndex, movementDone]);
+  }, [isMovementActive]);
+
+  // Handle step transition and completion cleanly
+  useEffect(() => {
+    if (isMovementActive && movementTimeLeft === 0) {
+      triggerHapticMedium();
+      if (movementStepIndex < MOVEMENT_STEPS.length - 1) {
+        const nextStep = movementStepIndex + 1;
+        setMovementStepIndex(nextStep);
+        setMovementTimeLeft(MOVEMENT_STEPS[nextStep].duration);
+      } else {
+        setIsMovementActive(false);
+        setMovementDone(true);
+        try {
+          localStorage.setItem(movementKey, 'true');
+        } catch {}
+        awardMicroMovementPoints();
+        triggerHapticSuccess();
+      }
+    }
+  }, [movementTimeLeft, isMovementActive, movementStepIndex, movementKey]);
 
   const toggleMovementTimer = () => {
     triggerHapticLight();

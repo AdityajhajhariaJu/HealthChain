@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const addToast = useCallback((title: string, message?: string, type: ToastType = 'info') => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, title, message, type }]);
+    setToasts((prev) => [...prev.slice(-3), { id, title, message, type }]);
 
     setTimeout(() => {
       removeToast(id);

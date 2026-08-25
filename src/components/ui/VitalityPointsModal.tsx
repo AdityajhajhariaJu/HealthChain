@@ -133,7 +133,7 @@ export default function VitalityPointsModal() {
               {state.tierLevel < 4 && (
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ fontSize: '11.5px', color: '#A7F3D0', fontWeight: 600 }}>
-                    {state.pointsToNextTier} PTS to {TIERS[state.tierLevel].name}
+                    {state.pointsToNextTier} PTS to {TIERS[state.tierLevel]?.name || 'Next Tier'}
                   </span>
                   <div style={{ width: '130px', height: '6px', background: 'rgba(255,255,255,0.2)', borderRadius: '999px', marginTop: '6px', overflow: 'hidden' }}>
                     <div style={{ width: `${state.tierProgress}%`, height: '100%', background: '#34D399', borderRadius: '999px', transition: 'width 0.5s ease' }} />

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Sparkles } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -6,18 +6,26 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 export default function PointsAwardedToast() {
   const [toastData, setToastData] = useState<{ amount: number; reason: string; id: number } | null>(null);
   const isMobile = useIsMobile();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleAwarded = (event: Event) => {
       const custom = event as CustomEvent;
       if (custom.detail && custom.detail.amount > 0) {
+        if (timerRef.current) clearTimeout(timerRef.current);
         setToastData({
           amount: custom.detail.amount,
           reason: custom.detail.reason || 'Health Points Earned',
           id: Date.now(),
         });
 
-        setTimeout(() => {
+        timerRef.current = setTimeout(() => {
           setToastData(null);
         }, 4000);
       }
