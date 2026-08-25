@@ -26,8 +26,9 @@ import {
   Flame,
   Bell,
   Stethoscope,
-  ClipboardList
-  ,Brain
+  ClipboardList,
+  Brain,
+  Home
 } from 'lucide-react';
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -290,6 +291,31 @@ export default function AppShell() {
                           {profile?.isPro ? '✨ Pro Member' : 'Free Starter'}
                         </div>
                       </div>
+
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/app/today');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#0F172A',
+                          fontSize: '13.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <Home size={16} color="#059669" />
+                        <span>Health Today</span>
+                      </button>
 
                       <button
                         onClick={() => {
