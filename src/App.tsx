@@ -393,9 +393,9 @@ export default function App() {
         
         const path = window.location.pathname;
         if (path.startsWith('/app')) {
-          info('Session ended', 'You have been logged out.');
+          info('Session ended', 'Please sign in to continue.');
           setTimeout(() => {
-            navigate('/', { replace: true });
+            navigate('/login', { replace: true });
           }, 300);
         }
       }
