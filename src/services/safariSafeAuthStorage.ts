@@ -13,60 +13,8 @@ import { get, set, del } from 'idb-keyval';
 const memoryCache = new Map<string, string>();
 const IDB_PREFIX = 'hc_auth_idb_';
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  try {
-    const nameEQ = name + '=';
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) === 0) {
-        const raw = c.substring(nameEQ.length, c.length);
-        return decodeURIComponent(raw);
-      }
-    }
-  } catch (e) {
-    console.warn('[SafariSafeAuthStorage] Cookie read error:', e);
-  }
-  return null;
-}
-
-function setCookie(name: string, value: string, days = 365) {
-  if (typeof document === 'undefined') return;
-  try {
-    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const secureFlag = isSecure ? ' Secure;' : '';
-    document.cookie =
-      name +
-      '=' +
-      encodeURIComponent(value) +
-      '; expires=' +
-      expires +
-      '; path=/; max-age=' +
-      days * 24 * 60 * 60 +
-      '; SameSite=Lax;' +
-      secureFlag;
-  } catch (e) {
-    console.warn('[SafariSafeAuthStorage] Cookie write error:', e);
-  }
-}
-
-function removeCookie(name: string) {
-  if (typeof document === 'undefined') return;
-  try {
-    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const secureFlag = isSecure ? ' Secure;' : '';
-    document.cookie =
-      name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; max-age=0; SameSite=Lax;' + secureFlag;
-  } catch (e) {
-    console.warn('[SafariSafeAuthStorage] Cookie remove error:', e);
-  }
-}
-
 export const safariSafeAuthStorage = {
-  getItem(key: string): string | null {
+  async getItem(key: string): Promise<string | null> {
     // 1. In-memory check
     if (memoryCache.has(key)) {
       const val = memoryCache.get(key);
@@ -85,24 +33,10 @@ export const safariSafeAuthStorage = {
 
     if (localVal) {
       memoryCache.set(key, localVal);
-      // Ensure cookie is in sync
-      setCookie(key, localVal, 365);
       return localVal;
     }
 
-    // 3. Cookie fallback (Safari tab close / ITP recovery)
-    const cookieVal = getCookie(key);
-    if (cookieVal) {
-      memoryCache.set(key, cookieVal);
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem(key, cookieVal);
-        }
-      } catch {}
-      return cookieVal;
-    }
-
-    // 4. Backward compatibility: check if there is an old sb-*-auth-token key in localStorage
+    // 3. Backward compatibility: check if there is an old sb-*-auth-token key in localStorage
     if (key === 'healthchain_auth_token' && typeof window !== 'undefined' && window.localStorage) {
       try {
         for (let i = 0; i < window.localStorage.length; i++) {
@@ -112,12 +46,31 @@ export const safariSafeAuthStorage = {
             if (legacyVal) {
               memoryCache.set(key, legacyVal);
               window.localStorage.setItem(key, legacyVal);
-              setCookie(key, legacyVal, 365);
               return legacyVal;
             }
           }
         }
       } catch {}
+    }
+
+    // 4. IndexedDB fallback (durable async storage for Safari PWA/Private/ITP evictions)
+    try {
+      const idbVal = await get<string>(IDB_PREFIX + key);
+      if (idbVal) {
+        memoryCache.set(key, idbVal);
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem(key, idbVal);
+          }
+        } catch {}
+        // Notify Supabase/App if it was initialized before IDB resolved
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('hc_auth_storage_restored'));
+        }
+        return idbVal;
+      }
+    } catch (e) {
+      console.warn('[SafariSafeAuthStorage] IndexedDB read error:', e);
     }
 
     return null;
@@ -136,10 +89,7 @@ export const safariSafeAuthStorage = {
       console.warn('[SafariSafeAuthStorage] localStorage write error:', e);
     }
 
-    // 3. Update persistent cookie (1 year lifespan)
-    setCookie(key, value, 365);
-
-    // 4. Update IndexedDB asynchronously for robust offline/PWA backup
+    // 3. Update IndexedDB asynchronously for robust offline/PWA backup
     try {
       set(IDB_PREFIX + key, value).catch(() => {});
     } catch {}
@@ -158,31 +108,10 @@ export const safariSafeAuthStorage = {
       console.warn('[SafariSafeAuthStorage] localStorage remove error:', e);
     }
 
-    // 3. Remove from cookie
-    removeCookie(key);
-
-    // 4. Remove from IndexedDB
+    // 3. Remove from IndexedDB
     try {
       del(IDB_PREFIX + key).catch(() => {});
     } catch {}
   },
 };
-
-// Asynchronous hydration from IndexedDB on startup if localStorage & cookie were wiped
-if (typeof window !== 'undefined') {
-  void (async () => {
-    try {
-      const key = 'healthchain_auth_token';
-      const existing = safariSafeAuthStorage.getItem(key);
-      if (!existing) {
-        const idbVal = await get<string>(IDB_PREFIX + key);
-        if (idbVal) {
-          safariSafeAuthStorage.setItem(key, idbVal);
-          // Notify Supabase if it was initialized before IDB resolved
-          window.dispatchEvent(new CustomEvent('hc_auth_storage_restored'));
-        }
-      }
-    } catch {}
-  })();
-}
 

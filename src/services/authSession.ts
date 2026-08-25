@@ -11,8 +11,9 @@ export async function getActiveSession() {
     if (!error && data?.session) return data.session;
     
     // If session was momentarily lost during Safari tab wake-up, attempt auto-refresh
+    const storedToken = await safariSafeAuthStorage.getItem('healthchain_auth_token');
     const hasStoredToken = Boolean(
-      safariSafeAuthStorage.getItem('healthchain_auth_token') ||
+      storedToken ||
       (typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true')
     );
 

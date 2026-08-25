@@ -8,6 +8,9 @@ if (supabaseUrl === 'https://placeholder-project.supabase.co') {
   console.error('CRITICAL: VITE_SUPABASE_URL is not set. Supabase features will fail.');
 }
 
+// In-memory lock to prevent intra-tab race conditions while bypassing the buggy navigator.locks on Safari.
+const memoryLocks = new Map<string, Promise<void>>();
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -17,10 +20,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: typeof window !== 'undefined' ? safariSafeAuthStorage : undefined,
     flowType: 'pkce',
     // Safari / WebKit tab close deadlock mitigation:
-    // WebKit frequently deadlocks navigator.locks when a tab is closed or backgrounded.
-    // Providing a direct pass-through lock prevents getSession() hangs on Safari tab reopen.
-    lock: (async (_name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
-      return await fn();
+    lock: (async (name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
+      while (memoryLocks.get(name)) {
+        await memoryLocks.get(name);
+      }
+      let resolveLock!: () => void;
+      memoryLocks.set(name, new Promise((resolve) => { resolveLock = resolve; }));
+      try {
+        return await fn();
+      } finally {
+        resolveLock();
+        memoryLocks.delete(name);
+      }
     }) as any,
   },
 });

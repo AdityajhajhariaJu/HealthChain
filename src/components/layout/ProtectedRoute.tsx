@@ -8,7 +8,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     try {
       if (localStorage.getItem('hc_guest_mode') === 'true') return true;
       if (localStorage.getItem('isAuthenticated') === 'true') return true;
-      if (safariSafeAuthStorage.getItem('healthchain_auth_token')) return true;
     } catch {}
     return null;
   });
@@ -33,8 +32,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         }
 
         // Check if there is an auth token in multi-tier storage (localStorage, cookie, memory)
+        const storedToken = await safariSafeAuthStorage.getItem('healthchain_auth_token');
         const hasStoredToken = Boolean(
-          safariSafeAuthStorage.getItem('healthchain_auth_token') ||
+          storedToken ||
           (typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true')
         );
 
