@@ -147,7 +147,7 @@ export default function Pricing() {
       }).finally(() => clearTimeout(orderTimeout));
 
       if (!orderRes.ok) {
-        const errData = await orderRes.json();
+        const errData = await orderRes.json().catch(() => ({ error: `Failed to create order (${orderRes.status})` }));
         throw new Error(errData.error || 'Failed to create order');
       }
 
@@ -190,7 +190,7 @@ export default function Pricing() {
               signal: verifyController.signal
             }).finally(() => clearTimeout(verifyTimeout));
 
-            const verifyData = await verifyRes.json();
+            const verifyData = await verifyRes.json().catch(() => ({ success: false, error: `Payment verification failed (${verifyRes.status})` }));
 
             if (verifyData.success) {
               trackPurchase(orderData.amount / 100, planId);

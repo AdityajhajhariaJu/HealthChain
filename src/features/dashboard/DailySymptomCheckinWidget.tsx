@@ -93,8 +93,12 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
     for (let i = 0; i < 30; i++) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      const dStr = d.toISOString().split('T')[0];
-      const found = profile.dailyCheckins.some((c: any) => c.date && c.date.startsWith(dStr));
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dLocalStr = `${year}-${month}-${day}`;
+      const dIsoStr = d.toISOString().split('T')[0];
+      const found = profile.dailyCheckins.some((c: any) => c?.date && (c.date.startsWith(dLocalStr) || c.date.startsWith(dIsoStr)));
       if (found) streak++;
       else if (i > 0) break;
     }

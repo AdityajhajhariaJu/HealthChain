@@ -55,7 +55,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
       }).finally(() => clearTimeout(orderTimeout));
 
       if (!orderRes.ok) {
-        const errData = await orderRes.json();
+        const errData = await orderRes.json().catch(() => ({ error: `Failed to create top-up order (${orderRes.status})` }));
         throw new Error(errData.error || 'Failed to create top-up order');
       }
 
@@ -85,7 +85,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
               }),
               signal: verifyController.signal
             }).finally(() => clearTimeout(verifyTimeout));
-            const verifyData = await verifyRes.json();
+            const verifyData = await verifyRes.json().catch(() => ({ success: false, error: `Verification failed (${verifyRes.status})` }));
             if (verifyData.success) {
               trackPurchase(orderData.amount / 100, plan.id);
               toast.success('Top-Up Activated!', `${plan.name} credit added successfully.`);

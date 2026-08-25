@@ -130,7 +130,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#b91c1c', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
                       <AlertTriangle size={14} /> RISKS
                     </div>
-                    <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#b91c1c' }}>{simulation.risks.length}</div>
+                    <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#b91c1c' }}>{(simulation.risks || []).length}</div>
                   </div>
                 </div>
 
@@ -138,11 +138,11 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                 <h4 style={{ margin: '0 0 16px', fontSize: 15, color: '#334155' }}>Topics to discuss</h4>
                 <div style={{ position: 'relative', paddingLeft: 24, marginBottom: 20 }}>
                   <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: 2, background: '#e2e8f0', borderRadius: 2 }} />
-                  {simulation.milestones.map((ms, i) => (
-                    <div key={i} style={{ position: 'relative', marginBottom: i === simulation.milestones.length - 1 ? 0 : 24 }}>
+                  {(simulation.milestones || []).map((ms: any, i: number) => (
+                    <div key={i} style={{ position: 'relative', marginBottom: i === (simulation.milestones || []).length - 1 ? 0 : 24 }}>
                       <div style={{ position: 'absolute', left: -24, top: 4, width: 12, height: 12, background: '#3b82f6', borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 0 0 1px #e2e8f0' }} />
                       <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: 16, borderRadius: 12 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#3b82f6', marginBottom: 4 }}>DAY {ms.day}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#3b82f6', marginBottom: 4 }}>DAY {ms.day || i + 1}</div>
                         <div style={{ color: '#0f172a', fontSize: 14 }}>{ms.description}</div>
                       </div>
                     </div>
@@ -154,7 +154,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 16 }}>
                     <h4 style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> IDENTIFIED RISKS</h4>
                     <ul style={{ margin: 0, paddingLeft: 16, color: '#334155', fontSize: 14, lineHeight: 1.6 }}>
-                      {simulation.risks.map((r, i) => <li key={i}>{r}</li>)}
+                      {(simulation.risks || []).map((r: any, i: number) => <li key={i}>{typeof r === 'string' ? r : r?.risk || JSON.stringify(r)}</li>)}
                     </ul>
                   </div>
                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 16 }}>
