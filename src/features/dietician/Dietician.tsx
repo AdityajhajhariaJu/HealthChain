@@ -147,33 +147,38 @@ export const DEFAULT_GROCERY_CATEGORIES = [
 ];
 
 function calculateTargets(p: any) {
-  // Mifflin-St Jeor Equation
-  let bmr = 10 * Math.max(20, parseFloat(p.weight || '70')) + 6.25 * Math.max(50, parseFloat(p.height || '170')) - 5 * Math.max(1, parseInt(p.age || '30'));
-  bmr = p.gender === 'female' ? bmr - 161 : bmr + 5;
+  const safeWeight = (!p?.weight || Number.isNaN(parseFloat(p.weight))) ? 70 : Math.max(20, parseFloat(p.weight));
+  const safeHeight = (!p?.height || Number.isNaN(parseFloat(p.height))) ? 170 : Math.max(50, parseFloat(p.height));
+  const safeAge = (!p?.age || Number.isNaN(parseInt(p.age, 10))) ? 30 : Math.max(1, parseInt(p.age, 10));
+
+  let bmr = 10 * safeWeight + 6.25 * safeHeight - 5 * safeAge;
+  bmr = p?.gender === 'female' ? bmr - 161 : bmr + 5;
 
   let multiplier = 1.2;
-  if (p.activityLevel === 'light') multiplier = 1.375;
-  if (p.activityLevel === 'moderate') multiplier = 1.55;
-  if (p.activityLevel === 'active') multiplier = 1.725;
+  if (p?.activityLevel === 'light') multiplier = 1.375;
+  if (p?.activityLevel === 'moderate') multiplier = 1.55;
+  if (p?.activityLevel === 'active') multiplier = 1.725;
 
   let tdee = bmr * multiplier;
   let targetCalories = Math.round(tdee);
 
-  if (p.targetDays && parseInt(p.targetDays) > 0 && p.goal !== 'Maintain') {
-    const weightDiff = Math.abs(Math.max(20, parseFloat(p.weight || '70')) - parseFloat(p.targetWeight || '65'));
+  const targetDays = parseInt(p?.targetDays, 10);
+  if (!Number.isNaN(targetDays) && targetDays > 0 && p?.goal !== 'Maintain') {
+    const targetWeight = (!p?.targetWeight || Number.isNaN(parseFloat(p.targetWeight))) ? 65 : parseFloat(p.targetWeight);
+    const weightDiff = Math.abs(safeWeight - targetWeight);
     const totalCalorieChange = weightDiff * 7700; // ~7700 kcal per kg
-    const dailyChange = totalCalorieChange / (parseInt(p.targetDays) || 1);
+    const dailyChange = totalCalorieChange / targetDays;
     const safeDailyChange = Math.min(dailyChange, 1000);
 
-    if (p.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
-    if (p.goal === 'Gain muscle') targetCalories = Math.round(tdee + safeDailyChange);
+    if (p?.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
+    if (p?.goal === 'Gain muscle') targetCalories = Math.round(tdee + safeDailyChange);
   } else {
-    if (p.goal === 'Lose weight') targetCalories -= 500;
-    if (p.goal === 'Gain muscle') targetCalories += 500;
+    if (p?.goal === 'Lose weight') targetCalories -= 500;
+    if (p?.goal === 'Gain muscle') targetCalories += 500;
   }
 
   // Safe floor
-  targetCalories = Math.max(1200, targetCalories);
+  targetCalories = Math.max(1200, Number.isNaN(targetCalories) ? 2000 : targetCalories);
 
   // Practical split: 25% Protein, 45% Carbs, 30% Fat
   const targetProtein = Math.round((targetCalories * 0.25) / 4);
