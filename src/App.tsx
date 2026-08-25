@@ -255,9 +255,11 @@ export default function App() {
     // callback: Supabase serializes auth events and a nested getSession() can
     // otherwise stall sign-in or device-switch transitions.
     let authBootstrapTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastSignedInAt = 0; // Timestamp of last SIGNED_IN to debounce false SIGNED_OUT races
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session) {
           if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
+          lastSignedInAt = Date.now();
           setItemSync('isAuthenticated', 'true');
           
           if (localStorage.getItem('hc_guest_mode') === 'true') {
@@ -298,11 +300,12 @@ export default function App() {
           })
         );
         
+        // Use the session from the event directly — do NOT re-call getSession()
+        // inside this callback. Re-calling getSession() acquires the internal
+        // Supabase lock, which is already held during onAuthStateChange dispatch,
+        // causing a deadlock or returning stale data from async storage.
         authBootstrapTimer = setTimeout(() => {
           void (async () => {
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            if (!currentSession || currentSession.user.id !== session.user.id) return;
-
             // Sync user data only after the auth callback has returned.
             await syncProfileFromSupabase();
             await initCaseEngine();
@@ -345,6 +348,15 @@ export default function App() {
           })().catch((error) => console.error('Authenticated bootstrap failed', error));
         }, 0);
       } else if (event === 'SIGNED_OUT') {
+        // Debounce false SIGNED_OUT events that race with a fresh SIGNED_IN.
+        // Supabase's internal _recoverAndRefresh can fire SIGNED_OUT on stale
+        // storage before our async IndexedDB write from a fresh login has
+        // committed. If a SIGNED_IN occurred within the last 5 seconds, this
+        // SIGNED_OUT is a false positive — ignore it.
+        if (Date.now() - lastSignedInAt < 5000) {
+          console.warn('[Auth] Ignoring SIGNED_OUT that raced with recent SIGNED_IN (debounce window)');
+          return;
+        }
         if (authBootstrapTimer) {
           clearTimeout(authBootstrapTimer);
           authBootstrapTimer = null;
