@@ -32,6 +32,7 @@ export default function AuthCallback() {
       if (session && !handled.current) {
         handled.current = true;
         clearTimeout(timeout);
+        try { localStorage.setItem('isAuthenticated', 'true'); } catch(e) {}
         console.log('[AuthCallback] Session already active, redirecting to /app');
         window.location.replace('/app');
       }
@@ -43,6 +44,7 @@ export default function AuthCallback() {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) && session) {
         handled.current = true;
         clearTimeout(timeout);
+        try { localStorage.setItem('isAuthenticated', 'true'); } catch(e) {}
         console.log('[AuthCallback] Session established, redirecting to /app');
         // Hard redirect — cannot be swallowed by React lifecycle
         window.location.replace('/app');

@@ -21,6 +21,15 @@ export default function Auth() {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const { toast, success, error: toastError } = useToast();
 
+  // If already authenticated when visiting /login or /signup, immediately redirect to /app
+  useState(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        window.location.replace('/app');
+      }
+    }).catch(() => {});
+  });
+
   const handleOAuth = async (provider: 'google' | 'apple') => {
     try {
       setLoading(true);
@@ -82,13 +91,16 @@ export default function Auth() {
         }
         
         success('Welcome back!');
+        try { localStorage.setItem('isAuthenticated', 'true'); } catch(e) {}
         if (rememberMe) {
           try { localStorage.setItem('hc_remember', 'true'); } catch(e) {}
         } else {
           try { localStorage.removeItem('hc_remember'); } catch(e) {}
         }
 
-        // Navigation is handled by App.tsx onAuthStateChange listener
+        // Instant redirect to /app
+        window.location.replace('/app');
+        return;
       } else {
         const passwordVal = formData.password;
         if (passwordVal.length < 8) {
