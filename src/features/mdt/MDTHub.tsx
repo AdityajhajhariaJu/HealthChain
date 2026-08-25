@@ -206,12 +206,19 @@ useEffect(() => {
         if (data.files && data.files.length > 0) {
         const profile = getProfile() || {};
         for (const file of data.files) {
+          if (!file || file.size === 0 || file.size > 5 * 1024 * 1024) continue;
           const reader = new FileReader();
           const base64Data = await new Promise<string>((resolve) => {
-            reader.onload = (e) => resolve((e.target?.result as string).split(',')[1]);
+            reader.onerror = () => resolve('');
+            reader.onload = (e) => {
+              const res = e.target?.result as string;
+              resolve(res?.split(',')[1] || '');
+            };
             reader.readAsDataURL(file);
           });
           
+          if (!base64Data) continue;
+
           const result = await analyzeLabReport(base64Data, file.type, profile);
           if (result) {
               enhancedComplaint += `\n\n--- Document: ${file.name} ---\n`;
@@ -417,6 +424,9 @@ useEffect(() => {
     const file = e.target?.files?.[0];
     if (!file) return;
     const reader = new FileReader();
+    reader.onerror = () => {
+      toast.error('File Error', 'Failed to read the uploaded report file.');
+    };
     reader.onload = (event) => {
       try {
         const result = event.target?.result as string;
@@ -433,6 +443,7 @@ useEffect(() => {
       }
     };
     reader.readAsText(file);
+    if (e.target) e.target.value = '';
   };
 
   // Dynamic Background styling based on phase

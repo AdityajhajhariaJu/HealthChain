@@ -24,11 +24,15 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
   }
 
   // 2. Meta Pixel
-  if (typeof window !== 'undefined' && window.fbq) {
-    if (['Lead', 'Purchase', 'CompleteRegistration'].includes(eventName)) {
-      window.fbq('track', eventName, payload);
-    } else {
-      window.fbq('trackCustom', eventName, payload);
+  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+    try {
+      if (['Lead', 'Purchase', 'CompleteRegistration'].includes(eventName)) {
+        window.fbq('track', eventName, payload);
+      } else {
+        window.fbq('trackCustom', eventName, payload);
+      }
+    } catch (e) {
+      console.warn('fbq dispatch error:', e);
     }
   }
 

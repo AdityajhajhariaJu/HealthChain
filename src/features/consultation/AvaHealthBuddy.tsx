@@ -249,9 +249,12 @@ export default function AvaHealthBuddy() {
     }
 
     const reader = new FileReader();
+    reader.onerror = () => {
+      toast.error("Upload Error", "Failed to read the file. Please try another.");
+    };
     reader.onload = async (event) => {
       const base64Data = event.target?.result as string;
-      const cleanBase64 = base64Data.split(',')[1];
+      const cleanBase64 = base64Data?.split(',')[1] || '';
       const attachmentItem: { name: string; data: string; findings?: string } = { name: file.name, data: base64Data };
 
       // Pre-extract document findings so Ava understands exact lab values

@@ -1,4 +1,23 @@
 const rateLimitCache = new Map();
+const MAX_CACHE_SIZE = 3000;
+
+function pruneCache(now) {
+  if (rateLimitCache.size > MAX_CACHE_SIZE) {
+    for (const [k, v] of rateLimitCache.entries()) {
+      if (now > v.resetTime) {
+        rateLimitCache.delete(k);
+      }
+    }
+    if (rateLimitCache.size > MAX_CACHE_SIZE) {
+      let removed = 0;
+      for (const k of rateLimitCache.keys()) {
+        rateLimitCache.delete(k);
+        removed++;
+        if (removed >= 500) break;
+      }
+    }
+  }
+}
 
 /**
  * Basic in-memory rate limiter for Vercel Serverless Functions.
@@ -9,13 +28,15 @@ const rateLimitCache = new Map();
  * @param {object} req - Express/Node request object
  * @param {number} limit - Max requests allowed
  * @param {number} windowMs - Time window in milliseconds
+ * @param {string} [identity] - Optional user ID
  * @returns {boolean} True if allowed, false if rate limited
  */
 export function checkRateLimit(req, limit = 10, windowMs = 60000, identity) {
-  // Try to get IP from Vercel headers, fallback to socket
-  const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || 'unknown';
+  const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
   const key = identity ? `${identity}:${ip}` : ip;
   const now = Date.now();
+
+  pruneCache(now);
   
   if (!rateLimitCache.has(key)) {
     rateLimitCache.set(key, { count: 1, resetTime: now + windowMs });

@@ -134,8 +134,8 @@ export function awardPoints(amount: number, reason: string, category: PointsTran
   };
 
   profile.pointsHistory.unshift(transaction);
-  if (profile.pointsHistory.length > 50) {
-    profile.pointsHistory = profile.pointsHistory.slice(0, 50);
+  if (profile.pointsHistory.length > 100) {
+    profile.pointsHistory = profile.pointsHistory.slice(0, 100);
   }
 
   saveProfile(profile);

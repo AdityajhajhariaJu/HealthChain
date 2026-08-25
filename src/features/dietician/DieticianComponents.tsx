@@ -11,9 +11,14 @@ import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 function computeTargets(p: any) {
-  const w = Math.max(20, parseFloat(p.weight || '70'));
-  const h = Math.max(50, parseFloat(p.height || '170'));
-  const age = Math.max(1, parseInt(p.age || '30'));
+  const parsedWeight = parseFloat(p.weight);
+  const w = Math.max(20, !Number.isNaN(parsedWeight) ? parsedWeight : 70);
+
+  const parsedHeight = parseFloat(p.height);
+  const h = Math.max(50, !Number.isNaN(parsedHeight) ? parsedHeight : 170);
+
+  const parsedAge = parseInt(p.age, 10);
+  const age = Math.max(1, !Number.isNaN(parsedAge) ? parsedAge : 30);
   
   let bmr = 10 * w + 6.25 * h - 5 * age;
   bmr = p.gender === 'female' ? bmr - 161 : bmr + 5;
@@ -26,11 +31,13 @@ function computeTargets(p: any) {
   let tdee = bmr * multiplier;
   let targetCalories = Math.round(tdee);
 
-  if (p.targetDays && parseInt(p.targetDays) > 0 && p.goal !== 'Maintain') {
-    const targetW = parseFloat(p.targetWeight || String(w));
+  const parsedDays = parseInt(p.targetDays, 10);
+  if (!Number.isNaN(parsedDays) && parsedDays > 0 && p.goal !== 'Maintain') {
+    const parsedTargetW = parseFloat(p.targetWeight);
+    const targetW = !Number.isNaN(parsedTargetW) ? parsedTargetW : w;
     const weightDiff = Math.abs(w - targetW);
     const totalCalorieChange = weightDiff * 7700;
-    const dailyChange = totalCalorieChange / (parseInt(p.targetDays) || 1);
+    const dailyChange = totalCalorieChange / (parsedDays || 1);
     const safeDailyChange = Math.min(dailyChange, 1000);
 
     if (p.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
@@ -40,7 +47,7 @@ function computeTargets(p: any) {
     if (p.goal === 'Gain muscle') targetCalories += 500;
   }
 
-  targetCalories = Math.max(1200, targetCalories);
+  targetCalories = Math.max(1200, Number.isNaN(targetCalories) ? 2000 : targetCalories);
   const targetProtein = Math.round((targetCalories * 0.25) / 4);
   const targetCarbs = Math.round((targetCalories * 0.45) / 4);
   const targetFat = Math.round((targetCalories * 0.3) / 9);

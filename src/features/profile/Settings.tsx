@@ -558,6 +558,9 @@ export default function Settings() {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
+                reader.onerror = () => {
+                  toastError('Import Failed', 'Failed to read the backup file.');
+                };
                 reader.onload = (ev) => {
                   try {
                     const parsed = JSON.parse(ev.target?.result as string);
@@ -584,8 +587,8 @@ export default function Settings() {
                     toastError('Import Failed', 'Invalid or unverified JSON file.');
                   }
                 };
-                reader.onerror = () => toastError('Import Failed', 'Failed to read file.');
                 reader.readAsText(file);
+                if (e.target) e.target.value = '';
               }}
             />
           </label>

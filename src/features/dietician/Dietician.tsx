@@ -1,20 +1,28 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 export function formatLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const validDate = (date instanceof Date && !Number.isNaN(date.getTime())) ? date : new Date();
+  const year = validDate.getFullYear();
+  const month = String(validDate.getMonth() + 1).padStart(2, '0');
+  const day = String(validDate.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
-export function parseLocalDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split('-').map(Number);
+export function parseLocalDate(dateStr?: string): Date {
+  if (!dateStr || typeof dateStr !== 'string' || !dateStr.includes('-')) {
+    return new Date();
+  }
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length < 3 || Number.isNaN(parts[0]) || Number.isNaN(parts[1]) || Number.isNaN(parts[2])) {
+    return new Date();
+  }
+  const [year, month, day] = parts;
   return new Date(year, month - 1, day, 12, 0, 0); 
 }
 
 export function shiftDateString(dateStr: string, deltaDays: number): string {
   const d = parseLocalDate(dateStr);
-  d.setDate(d.getDate() + deltaDays);
+  d.setDate(d.getDate() + (Number.isNaN(deltaDays) ? 0 : deltaDays));
   return formatLocalDate(d);
 }
 

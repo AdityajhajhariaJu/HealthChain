@@ -55,7 +55,7 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
           const { data, error } = await supabase.auth.refreshSession();
           if (!error && data?.session) {
             secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
-            return await fetch(url, { ...secureOptions, signal: controller.signal });
+            return executeFetch(retryCount + 1);
           }
           throw new Error('Session expired or unauthorized. Please verify your login.');
         } else if (response.status === 402) {
