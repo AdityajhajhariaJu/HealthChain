@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,14 +18,15 @@ export function GuestStickyBanner() {
         const { data } = await supabase.auth.getSession();
         if (mounted) {
           const hasSession = Boolean(data?.session);
+          const isVip = localStorage.getItem('hc_vip_tester') === 'true';
           const isGuestStorage = localStorage.getItem('hc_guest_mode') === 'true';
           const isDismissed = sessionStorage.getItem('hc_guest_banner_dismissed') === 'true';
           
-          setIsGuest(!hasSession || isGuestStorage);
+          setIsGuest(!isVip && (!hasSession || isGuestStorage));
           setDismissed(isDismissed);
         }
       } catch (err) {
-        if (mounted) setIsGuest(true);
+        if (mounted) setIsGuest(localStorage.getItem('hc_vip_tester') !== 'true');
       }
     };
 

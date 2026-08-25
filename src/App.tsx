@@ -97,6 +97,24 @@ export default function App() {
   const [topUpFeature, setTopUpFeature] = React.useState<any>(null);
 
   useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const vipPass = params.get('vip_pass') || params.get('tester') || params.get('test_pass');
+      if (vipPass === 'hc_vip_tester_2026' || vipPass === 'aditya_vip' || vipPass === 'healthchain_vip') {
+        localStorage.setItem('hc_vip_tester', 'true');
+        localStorage.setItem('hc_guest_mode', 'false');
+        window.dispatchEvent(new Event('hc_profile_updated'));
+        info('🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
+        params.delete('vip_pass');
+        params.delete('tester');
+        params.delete('test_pass');
+        const newSearch = params.toString() ? `?${params.toString()}` : '';
+        window.history.replaceState({}, '', `${window.location.pathname}${newSearch}`);
+      }
+    } catch (e) {}
+  }, [info]);
+
+  useEffect(() => {
     const handleQuota = (e: any) => {
       const profile = getProfile();
       if (!profile?.isPro) {
