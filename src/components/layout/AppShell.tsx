@@ -57,8 +57,8 @@ function AnimatedOutlet() {
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
-  { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain },
-  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: NetworkHubIcon },
+  { to: '/app/collab', label: 'Collaborative Specialists', icon: NetworkHubIcon },
+  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: Brain },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
@@ -72,8 +72,8 @@ const links: any[] = [
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick', icon: Stethoscope },
-  { to: '/app/collab', label: 'Deep', icon: Brain },
-  { to: '/app/jarvis', label: 'JARVIS', icon: NetworkHubIcon },
+  { to: '/app/collab', label: 'Deep', icon: NetworkHubIcon },
+  { to: '/app/jarvis', label: 'JARVIS', icon: Brain },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 

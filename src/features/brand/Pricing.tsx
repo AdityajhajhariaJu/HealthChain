@@ -51,8 +51,8 @@ const BASIC_FEATURES: FeatureItem[] = [
 
 const PRO_30_FEATURES: FeatureItem[] = [
   { name: '3 Quick Consult Sessions', desc: 'Instant single-specialist reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
-  { name: '2 Deep Collab Specialist Boards', desc: 'Multi-specialist clinical consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '1 J.A.R.V.I.S. Investigation', desc: 'Full-body autonomous biomarker correlation', icon: Sparkles, color: '#7C3AED', bg: '#F5F3FF', highlight: true },
+  { name: '2 Deep Collab Specialist Boards', desc: 'Multi-specialist clinical consensus', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
+  { name: '1 J.A.R.V.I.S. Investigation', desc: 'Full-body autonomous biomarker correlation', icon: Brain, color: '#7C3AED', bg: '#F5F3FF', highlight: true },
   { name: 'Ava Health Buddy (30 Replies)', desc: 'AI Chief of Staff assistance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Doctor dossiers & trial matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Clinical Dietician (Unlimited)', desc: 'Precision metabolic meal plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
@@ -64,8 +64,8 @@ const PRO_30_FEATURES: FeatureItem[] = [
 
 const PRO_90_FEATURES: FeatureItem[] = [
   { name: '10 Quick Consult Sessions', desc: 'Continuous specialist evaluation', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
-  { name: '8 Deep Collab Specialist Boards', desc: 'Complex multi-system case reviews', icon: Brain, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '3 J.A.R.V.I.S. Investigations', desc: 'Deep systemic pattern discovery', icon: Sparkles, color: '#7C3AED', bg: '#F5F3FF', highlight: true },
+  { name: '8 Deep Collab Specialist Boards', desc: 'Complex multi-system case reviews', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
+  { name: '3 J.A.R.V.I.S. Investigations', desc: 'Deep systemic pattern discovery', icon: Brain, color: '#7C3AED', bg: '#F5F3FF', highlight: true },
   { name: 'Ava Health Buddy (120 Replies)', desc: 'Extended longitudinal health guidance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable dossiers & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Clinical Dietician (Unlimited)', desc: 'Condition-specific Indian nutritional plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
