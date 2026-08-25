@@ -363,9 +363,22 @@ export default function App() {
       }
     });
 
+    const handleWake = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setItemSync('isAuthenticated', 'true');
+        }
+      }).catch(() => {});
+    };
+
+    window.addEventListener('pageshow', handleWake);
+    document.addEventListener('visibilitychange', handleWake);
+
     return () => {
       if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
       subscription.unsubscribe();
+      window.removeEventListener('pageshow', handleWake);
+      document.removeEventListener('visibilitychange', handleWake);
     };
   }, [navigate, info]);
 

@@ -1,12 +1,14 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
+import { safariSafeAuthStorage } from '../../services/safariSafeAuthStorage';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(() => {
     try {
       if (localStorage.getItem('hc_guest_mode') === 'true') return true;
       if (localStorage.getItem('isAuthenticated') === 'true') return true;
+      if (safariSafeAuthStorage.getItem('healthchain_auth_token')) return true;
     } catch {}
     return null;
   });
@@ -30,23 +32,42 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           return;
         }
 
-        // If no session but local storage had authenticated flag, attempt auto-refresh
-        if (localStorage.getItem('isAuthenticated') === 'true') {
+        // Check if there is an auth token in multi-tier storage (localStorage, cookie, memory)
+        const hasStoredToken = Boolean(
+          safariSafeAuthStorage.getItem('healthchain_auth_token') ||
+          (typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true')
+        );
+
+        if (hasStoredToken) {
           const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
           if (!isMounted) return;
           if (!refreshError && refreshData?.session) {
+            setIsAuthenticated(true);
+            try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
+            return;
+          }
+
+          // If refresh failed due to network / sleeping tab (not an explicit invalid token rejection),
+          // preserve authenticated state so Safari reopening a background tab doesn't kick the user out!
+          const isExplicitAuthRejection =
+            refreshError?.message?.includes('invalid_grant') ||
+            refreshError?.message?.includes('refresh_token_not_found') ||
+            refreshError?.message?.includes('User from sub claim in JWT does not exist');
+
+          if (!isExplicitAuthRejection) {
+            // Transient offline / sleep-wake state -> preserve access
             setIsAuthenticated(true);
             return;
           }
         }
 
-        // Definitely unauthenticated
+        // Definitely unauthenticated & explicitly rejected by auth server
         try { localStorage.removeItem('isAuthenticated'); } catch {}
         setIsAuthenticated(false);
       } catch (err) {
         if (!isMounted) return;
         // On network error or offline, preserve session if previously logged in
-        if (localStorage.getItem('isAuthenticated') === 'true') {
+        if (localStorage.getItem('isAuthenticated') === 'true' || safariSafeAuthStorage.getItem('healthchain_auth_token')) {
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
@@ -68,8 +89,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       }
     });
 
-    // Re-validate when window regains focus without abruptly kicking out
-    const onFocus = () => {
+    // Re-validate when window regains focus or tab is reopened without abruptly kicking out
+    const onWake = () => {
       if (isGuest || !isMounted) return;
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (!isMounted) return;
@@ -78,18 +99,22 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
         }
       }).catch(() => {
-        // Do not kick out on focus error - allow background auto-refresh
+        // Do not kick out on wake error - allow background auto-refresh
       });
     };
 
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
+    window.addEventListener('focus', onWake);
+    window.addEventListener('pageshow', onWake);
+    window.addEventListener('hc_auth_storage_restored', onWake);
+    document.addEventListener('visibilitychange', onWake);
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
+      window.removeEventListener('focus', onWake);
+      window.removeEventListener('pageshow', onWake);
+      window.removeEventListener('hc_auth_storage_restored', onWake);
+      document.removeEventListener('visibilitychange', onWake);
     };
   }, []);
 
