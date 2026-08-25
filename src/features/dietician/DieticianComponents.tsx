@@ -93,8 +93,10 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
   };
 
   // Live Metrics
-  const w = parseFloat(data.weight);
-  const h = parseFloat(data.height) / 100;
+  const parsedW = parseFloat(data.weight);
+  const parsedH = parseFloat(data.height) / 100;
+  const w = !Number.isNaN(parsedW) ? parsedW : 0;
+  const h = !Number.isNaN(parsedH) ? parsedH : 0;
   const targetW = parseFloat(data.targetWeight);
   const bmi = (w > 0 && h > 0) ? (w / (h * h)).toFixed(1) : null;
   

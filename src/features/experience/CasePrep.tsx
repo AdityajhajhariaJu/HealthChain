@@ -180,8 +180,8 @@ export default function CasePrep() {
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>3. Important context to review</h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
-            {(brief.knownFacts || []).map((f, i) => <li key={i}>{f.text}</li>)}
-            {(brief.missingInformation || []).map((m, i) => <li key={i} style={{ color: '#b45309' }}>Missing: {m.missingText}</li>)}
+            {(brief.knownFacts || []).map((f: any, i: number) => <li key={i}>{typeof f === 'string' ? f : f?.text || 'Fact'}</li>)}
+            {(brief.missingInformation || []).map((m: any, i: number) => <li key={i} style={{ color: '#b45309' }}>Missing: {typeof m === 'string' ? m : m?.missingText || 'Information'}</li>)}
             {(!brief.knownFacts || brief.knownFacts.length === 0) && (!brief.missingInformation || brief.missingInformation.length === 0) && <li>No relevant medical context recorded.</li>}
           </ul>
         </section>
@@ -189,13 +189,14 @@ export default function CasePrep() {
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>4. Questions worth asking</h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
-            {(brief.questionsForClinician || []).map((q, i) => <li key={i}>{q.question}</li>)}
+            {(brief.questionsForClinician || []).map((q: any, i: number) => <li key={i}>{typeof q === 'string' ? q : q?.question || 'Question'}</li>)}
+            {(!brief.questionsForClinician || brief.questionsForClinician.length === 0) && <li>No questions recorded.</li>}
           </ul>
         </section>
         
         <section style={{ background: '#fff7ed', border: '1px solid #fed7aa', padding: 16, borderRadius: 12, display: 'flex', gap: 12, fontSize: 13, color: '#9a3412', lineHeight: 1.5 }}>
           <AlertCircle size={20} style={{ flexShrink: 0 }} />
-          <div>{brief.safetyNotice}</div>
+          <div>{brief.safetyNotice || 'This brief is prepared for educational and doctor-discussion purposes only.'}</div>
         </section>
       </div>
 
@@ -222,13 +223,13 @@ export default function CasePrep() {
                   This brief was deterministically generated without inventing new facts. Here are the perspectives mapped into your brief:
                 </p>
                 <div style={{ display: 'grid', gap: 16 }}>
-                  {brief.priorPerspectives.map((p, i) => (
+                  {(brief.priorPerspectives || []).map((p: any, i: number) => (
                     <div key={i} style={{ padding: 16, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>{p.title}</div>
-                      <div style={{ fontSize: 14, color: '#0f172a', lineHeight: 1.5 }}>{p.summary}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>{p?.title || 'Perspective'}</div>
+                      <div style={{ fontSize: 14, color: '#0f172a', lineHeight: 1.5 }}>{p?.summary || ''}</div>
                     </div>
                   ))}
-                  {brief.priorPerspectives.length === 0 && <div style={{ fontSize: 14, color: '#64748b' }}>No prior perspectives found for this case.</div>}
+                  {(!brief.priorPerspectives || brief.priorPerspectives.length === 0) && <div style={{ fontSize: 14, color: '#64748b' }}>No prior perspectives found for this case.</div>}
                 </div>
               </div>
             </motion.div>

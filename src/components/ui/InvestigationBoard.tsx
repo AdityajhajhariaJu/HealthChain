@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Activity, GitBranch } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-export default function InvestigationBoard({ analysis }) {
+export default function InvestigationBoard({ analysis }: { analysis: any }) {
   const isMobile = useIsMobile();
   if (!analysis) return null;
 
@@ -221,34 +221,40 @@ export default function InvestigationBoard({ analysis }) {
                 padding: '0 20px',
               }}
             >
-              {(analysis.flowchart.symptoms || []).map((s, i) => (
-                <motion.div
-                  key={s.name || i}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ type: 'spring', bounce: 0.4, delay: 2.5 + i * 0.1 }}
-                  style={{
-                    padding: '14px 16px',
-                    border: '1px solid #fca5a5',
-                    borderRadius: 'var(--radius-lg)',
-                    background: 'rgba(220, 38, 38, 0.05)',
-                    textAlign: 'center',
-                    minWidth: '130px',
-                    flex: 1,
-                    maxWidth: '200px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                  }}
-                >
-                  <div style={{ fontWeight: '600', color: 'var(--red)', fontSize: '15px' }}>
-                    {s.name}
-                  </div>
-                  <div
-                    style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', opacity: 0.8 }}
+              {(analysis.flowchart.symptoms || []).map((s: any, i: number) => {
+                const name = typeof s === 'string' ? s : s?.name || 'Symptom';
+                const sub = typeof s === 'string' ? '' : s?.sub || '';
+                return (
+                  <motion.div
+                    key={name + i}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ type: 'spring', bounce: 0.4, delay: 2.5 + i * 0.1 }}
+                    style={{
+                      padding: '14px 16px',
+                      border: '1px solid #fca5a5',
+                      borderRadius: 'var(--radius-lg)',
+                      background: 'rgba(220, 38, 38, 0.05)',
+                      textAlign: 'center',
+                      minWidth: '130px',
+                      flex: 1,
+                      maxWidth: '200px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    }}
                   >
-                    {s.sub}
-                  </div>
-                </motion.div>
-              ))}
+                    <div style={{ fontWeight: '600', color: 'var(--red)', fontSize: '15px' }}>
+                      {name}
+                    </div>
+                    {sub && (
+                      <div
+                        style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', opacity: 0.8 }}
+                      >
+                        {sub}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
