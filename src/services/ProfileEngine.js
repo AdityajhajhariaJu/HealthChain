@@ -187,12 +187,12 @@ export function switchActiveProfile(id) {
 
 export function createNewProfile(name) {
   if (!CAREGIVER_MODE_ENABLED) {
-    alert('Caregiver Mode is temporarily unavailable. Your existing profiles are preserved.');
+    window.dispatchEvent(new CustomEvent('hc_toast', { detail: { type: 'error', title: 'Caregiver Mode', message: 'Caregiver Mode is temporarily unavailable.' } }));
     return false;
   }
   const state = getProfileEngineState();
   if (Object.keys(state.profiles).length >= 3) {
-    alert("Maximum of 3 profiles allowed (Caregiver Mode Limit).");
+    window.dispatchEvent(new CustomEvent('hc_toast', { detail: { type: 'error', title: 'Profile Limit', message: 'Maximum of 3 profiles allowed (Caregiver Mode Limit).' } }));
     return false;
   }
   const newId = generateId();

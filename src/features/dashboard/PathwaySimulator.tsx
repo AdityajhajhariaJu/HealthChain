@@ -5,9 +5,11 @@ import { simulatePathway } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export default function PathwaySimulator({ actionItem, onClose }: { actionItem: any, onClose: () => void }) {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulation, setSimulation] = useState<any>(null);
   const isMounted = useRef(true);
@@ -38,7 +40,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
       }
     } catch (err) {
       console.error('Simulation failed:', err);
-      alert('Failed to run simulation. Please try again.');
+      toast.error('Simulation Error', 'Failed to run pathway simulation. Please try again.');
     } finally {
       if (isMounted.current) {
         setIsSimulating(false);
@@ -136,7 +138,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                 <h4 style={{ margin: '0 0 16px', fontSize: 15, color: '#334155' }}>Topics to discuss</h4>
                 <div style={{ position: 'relative', paddingLeft: 24, marginBottom: 20 }}>
                   <div style={{ position: 'absolute', left: 5, top: 8, bottom: 8, width: 2, background: '#e2e8f0', borderRadius: 2 }} />
-                  {simulation.milestones.map((ms: any, i: number) => (
+                  {simulation.milestones.map((ms, i) => (
                     <div key={i} style={{ position: 'relative', marginBottom: i === simulation.milestones.length - 1 ? 0 : 24 }}>
                       <div style={{ position: 'absolute', left: -24, top: 4, width: 12, height: 12, background: '#3b82f6', borderRadius: '50%', border: '3px solid #fff', boxShadow: '0 0 0 1px #e2e8f0' }} />
                       <div style={{ background: '#fff', border: '1px solid #e2e8f0', padding: 16, borderRadius: 12 }}>
@@ -152,7 +154,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 16 }}>
                     <h4 style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> IDENTIFIED RISKS</h4>
                     <ul style={{ margin: 0, paddingLeft: 16, color: '#334155', fontSize: 14, lineHeight: 1.6 }}>
-                      {simulation.risks.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                      {simulation.risks.map((r, i) => <li key={i}>{r}</li>)}
                     </ul>
                   </div>
                   <div style={{ background: '#f8fafc', padding: 20, borderRadius: 16 }}>

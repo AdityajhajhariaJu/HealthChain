@@ -59,6 +59,7 @@ import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { addEvent, addActionItems, addCondition } from '../../services/ProfileEngine';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export function Step({ icon: Icon, label, active, completed, isMobile }: any) {
   const isHighlighted = active || completed;
@@ -333,6 +334,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
 
 export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing, onElevateParallel, onReviewPastMDT, onResumeActiveCase }: any) {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [complaint, setComplaint] = useState(() => { try { return sessionStorage.getItem('hc_mdt_intake_draft') || ''; } catch { return ''; } });
   useEffect(() => { try { if (complaint.trim()) sessionStorage.setItem('hc_mdt_intake_draft', complaint); else sessionStorage.removeItem('hc_mdt_intake_draft'); } catch(e){} }, [complaint]);
   const [parallelCases, setParallelCases] = useState<any[]>([]);
@@ -389,17 +391,17 @@ New Information / Changes in Symptoms since last evaluation:
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (selectedFiles.length + files.length > 7) {
-      alert('You can only upload up to 7 documents.');
+      toast.error('Upload Limit', 'You can only upload up to 7 documents.');
       return;
     }
     for (let f of files) {
       const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
       if (!ALLOWED.includes(f.type)) {
-        alert('Unsupported file format. Please upload PDF or images.');
+        toast.error('Unsupported Format', 'Please upload a PDF or image (JPEG/PNG/WEBP).');
         return;
       }
       if (f.size > 3 * 1024 * 1024) {
-        alert(`${f.name} is too large (Max 3MB per file).`);
+        toast.error('File Too Large', `${f.name} exceeds 3MB limit.`);
         return;
       }
     }

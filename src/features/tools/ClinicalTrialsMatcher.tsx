@@ -399,7 +399,7 @@ export default function ClinicalTrialsMatcher() {
               </div>
               <div style={{ padding: '20px 24px', background: '#F8FAFC', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button className="btn btn-outline" onClick={() => setSelectedItem(null)}>Close</button>
-                <button className="btn btn-primary" onClick={() => window.open(selectedItem.journal ? selectedItem.url : `https://clinicaltrials.gov/study/${selectedItem.id}`, '_blank')}>
+                <button className="btn btn-primary" onClick={() => window.open(selectedItem.journal ? selectedItem.url : `https://clinicaltrials.gov/study/${selectedItem.id}`, '_blank', 'noopener,noreferrer')}>
                   View Full Source <ExternalLink size={16} />
                 </button>
               </div>

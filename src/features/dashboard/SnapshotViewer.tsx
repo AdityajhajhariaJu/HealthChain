@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, FileText } from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useToast } from '../../components/ui/ToastProvider';
 
 const formatDate = (value: string) => {
   try {
@@ -15,6 +16,7 @@ const formatDate = (value: string) => {
 
 export default function SnapshotViewer({ item }: { item: CaseItem }) {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const reviews = item.reviews || [];
   const [activeReviewId, setActiveReviewId] = useState<string | null>(
     reviews.length > 0 ? reviews[reviews.length - 1].id : null
@@ -36,7 +38,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
       html2pdf().set(opt).from(reportRef.current).save();
     } catch (e) {
       console.error('Failed to load PDF library:', e);
-      alert('Could not generate PDF. Check your network connection.');
+      toast.error('Export Error', 'Could not generate PDF. Please check your network connection.');
     }
   };
 

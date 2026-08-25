@@ -54,6 +54,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel, SpecialistPill } from './MultiSpecialistComponents';
 import { getRunScope, readRunJson, clearRunStorage } from '../../services/RunContext';
+import { useToast } from '../../components/ui/ToastProvider';
 
 // Global cache
 let cachedMultiSpecialistState: any = null;
@@ -76,6 +77,7 @@ const CATEGORIES = ['Structural', 'Neurological', 'ENT & Head', 'Internal', 'Oth
 
 export default function MultiSpecialist() {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [mobileActiveTab, setMobileActiveTab] = useState(0);
   const navigate = useNavigate();
   const searchInputRef = useRef<any>(null);
@@ -249,7 +251,7 @@ export default function MultiSpecialist() {
     setSelected((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= 5) {
-        alert('You can select up to 5 specialists at a time.');
+        toast.error('Specialist Limit', 'You can select up to 5 specialists at a time.');
         return prev;
       }
       return [...prev, id];
@@ -267,7 +269,7 @@ export default function MultiSpecialist() {
       return;
     }
     if (symptomInput.trim().length < 5) {
-      alert('Please enter at least 5 characters for your symptoms.');
+      toast.error('Input Required', 'Please enter at least 5 characters for your symptoms.');
       return;
     }
     let activeSelected = [...selected];

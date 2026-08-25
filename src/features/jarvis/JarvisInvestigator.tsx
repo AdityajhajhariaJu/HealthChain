@@ -11,6 +11,7 @@ import { createCaseDraft, saveReviewSnapshot, getActiveCase } from '../../servic
 import { getActiveSession } from '../../services/authSession';
 import { getProfile } from '../../services/ProfileEngine';
 import { openTrialModal } from '../../services/TrialEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
@@ -20,6 +21,7 @@ import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const toast = useToast();
   const profile = getProfile();
   
   const [phase, setPhase] = useState<'input' | 'analyzing' | 'done'>('input');
@@ -60,7 +62,7 @@ export default function JarvisInvestigator() {
     
     // Limits: Max 10 files total
     if (files.length + selected.length > 10) {
-      alert("JARVIS is currently limited to processing 10 documents at a time to prevent API overload.");
+      toast.error("Document Limit", "JARVIS is currently limited to processing 10 documents at a time.");
       return;
     }
 
@@ -169,13 +171,13 @@ export default function JarvisInvestigator() {
         setPhase('done');
       } else {
         if (!isMounted.current) return;
-        alert("JARVIS encountered a network disruption or payload limit. Please try again.");
+        toast.error("Analysis Disrupted", "JARVIS encountered a network disruption. Please try again.");
         setPhase('input');
       }
     } catch (e) {
       console.error(e);
       if (isMounted.current) {
-        alert("An error occurred during analysis.");
+        toast.error("Analysis Error", "An error occurred during analysis. Please try again.");
         setPhase('input');
       }
     }

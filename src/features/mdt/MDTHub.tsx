@@ -54,6 +54,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { clearRunStorage } from '../../services/RunContext';
 import { openTrialModal } from '../../services/TrialEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 
 // ─── Phases ─────────────────────────────────────────────────────────────────
 // intake -> select -> assessment -> conference -> report
@@ -62,6 +63,7 @@ import { openTrialModal } from '../../services/TrialEngine';
 
 export default function MDTHub() {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [mobileActiveTab, setMobileActiveTab] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
@@ -424,10 +426,10 @@ useEffect(() => {
           setHistoryReport(data.report);
           setPhase('report');
         } else {
-          alert('Invalid report format. Please upload a valid Collaborative Board JSON export.');
+          toast.error('Invalid Format', 'Please upload a valid Collaborative Board JSON export.');
         }
       } catch (err) {
-        alert('Failed to parse the file.');
+        toast.error('File Error', 'Failed to parse the uploaded file.');
       }
     };
     reader.readAsText(file);
@@ -467,7 +469,7 @@ useEffect(() => {
           }
     } catch (e) {
       console.error('Failed to generate MDT report', e);
-      alert('Failed to generate consensus report. Please try again.');
+      toast.error('Generation Failed', 'Failed to generate consensus report. Please try again.');
     }
   };
 

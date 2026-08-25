@@ -48,6 +48,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const error = useCallback((title: string, message?: string) => addToast(title, message, 'error'), [addToast]);
   const info = useCallback((title: string, message?: string) => addToast(title, message, 'info'), [addToast]);
 
+  React.useEffect(() => {
+    const handleCustomToast = (e: any) => {
+      const { title, message, type } = e.detail || {};
+      if (title) {
+        addToast(title, message, type || 'info');
+      }
+    };
+    window.addEventListener('hc_toast', handleCustomToast);
+    return () => window.removeEventListener('hc_toast', handleCustomToast);
+  }, [addToast]);
+
   const contextValue = React.useMemo(() => ({ toast: addToast, success, error, info }), [addToast, success, error, info]);
   return (
     <ToastContext.Provider value={contextValue}>

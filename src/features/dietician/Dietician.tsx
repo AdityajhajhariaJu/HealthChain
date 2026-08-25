@@ -61,6 +61,7 @@ import FocusTrap from '../../components/ui/FocusTrap';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Gain muscle'];
@@ -177,6 +178,7 @@ function calculateTargets(p: any) {
 // --- Main Component ---
 export default function Dietician() {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'grocery' | 'guardrails'>('dashboard');
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
@@ -360,7 +362,7 @@ export default function Dietician() {
       }
     } catch (err) {
       console.error('Failed to analyze food:', err);
-      alert('Failed to analyze food entry. Please try again.');
+      toast.error('Analysis Failed', 'Failed to analyze food entry. Please try again.');
     } finally {
       if (isMounted.current) setIsAnalyzingFood(false);
     }
@@ -426,7 +428,7 @@ export default function Dietician() {
       }
     } catch (err) {
       console.error('Failed to generate meal plan:', err);
-      alert('Failed to generate meal plan. Please try again.');
+      toast.error('Generation Failed', 'Failed to generate meal plan. Please try again.');
     } finally {
       if (isMounted.current) setIsGeneratingPlan(false);
     }
@@ -1485,7 +1487,7 @@ export default function Dietician() {
                             });
                             setFoodLogs(updatedLogs);
                             awardPoints(2, '🍏 Logged Full Meal Plan Day', 'lifestyle', `diet_day_${currentDate}`);
-                            alert(`Day ${currentSelectedDayObj.day || selectedPlanDay} meals added to today's food log!`);
+                            toast.success('Meals Logged', `Day ${currentSelectedDayObj.day || selectedPlanDay} meals added to today's food log!`);
                           }}
                           style={{
                             background: '#F0FDF4',

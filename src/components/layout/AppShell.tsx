@@ -48,6 +48,7 @@ import { TrialFeaturesModal } from '../ui/TrialFeaturesModal';
 import { openTrialModal } from '../../services/TrialEngine';
 import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
+import { useToast } from '../ui/ToastProvider';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -82,6 +83,7 @@ export default function AppShell() {
   const [history, setHistory] = useState<any[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const isMobile = useIsMobile();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -189,7 +191,7 @@ export default function AppShell() {
                 onClick={(e) => {
                   if (isLocked) {
                     e.preventDefault();
-                    alert(l.label + ' is coming soon!');
+                    toast.info('Coming Soon', `${l.label} is currently in development.`);
                   }
                 }}
                 className={({ isActive }) => `sidebar__link ${isActive && !isLocked ? 'active' : ''}`}
@@ -475,7 +477,7 @@ export default function AppShell() {
                       key={l.to}
                       onClick={() => {
                         if (isLocked) {
-                          alert(l.label + ' is coming soon!');
+                          toast.info('Coming Soon', `${l.label} is currently in development.`);
                           return;
                         }
                         navigate(l.to);
