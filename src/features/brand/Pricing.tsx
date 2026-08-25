@@ -270,53 +270,53 @@ export default function Pricing() {
             background: '#FFFFFF',
             borderRadius: '24px',
             border: '1px solid #E2E8F0',
-            padding: isMobile ? '24px 20px' : '30px 24px',
+            padding: isMobile ? '20px 16px' : '22px 20px',
             display: 'flex',
             flexDirection: 'column',
             boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
             position: 'relative',
           }}
         >
-          <div style={{ marginBottom: '16px' }}>
-            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <div style={{ marginBottom: '6px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
               Free Starter
             </span>
-            <h3 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '4px 0' }}>Basic</h3>
-            <p style={{ color: '#64748B', fontSize: '13px', margin: 0, minHeight: '36px', lineHeight: 1.4 }}>
+            <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#0F172A', margin: '2px 0 4px 0' }}>Basic</h3>
+            <p style={{ color: '#64748B', fontSize: '12.5px', margin: 0, lineHeight: 1.35 }}>
               Essential baseline health tracking and preliminary AI assistance.
             </p>
           </div>
 
-          <div style={{ margin: '14px 0 20px' }}>
+          <div style={{ margin: '8px 0 10px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-              <span style={{ fontSize: '42px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px' }}>₹0</span>
-              <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>/ Free Forever</span>
+              <span style={{ fontSize: '38px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1 }}>₹0</span>
+              <span style={{ fontSize: '14px', color: '#64748B', fontWeight: 600 }}>/ Free Forever</span>
             </div>
-            <div style={{ fontSize: '12px', color: '#059669', fontWeight: 700, marginTop: '4px' }}>
+            <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 700, marginTop: '3px' }}>
               ✓ No credit card required
             </div>
           </div>
 
           <button
             className="btn btn-outline"
-            style={{ width: '100%', marginBottom: '24px', padding: '12px', borderRadius: '12px', fontWeight: 700, fontSize: '14px' }}
+            style={{ width: '100%', marginBottom: '14px', padding: '9px 12px', borderRadius: '12px', fontWeight: 700, fontSize: '13.5px' }}
             disabled
           >
             Current Active Plan
           </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, borderTop: '1px solid #F1F5F9', paddingTop: '20px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+            <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '2px' }}>
               Included Features:
             </div>
             {BASIC_FEATURES.map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={15} strokeWidth={2.2} />
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <item.icon size={14} strokeWidth={2.2} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.3 }}>{item.name}</div>
-                  {item.desc && <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.2 }}>{item.desc}</div>}
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', lineHeight: 1.25 }}>{item.name}</div>
+                  {item.desc && <div style={{ fontSize: '11px', color: '#64748B', lineHeight: 1.2 }}>{item.desc}</div>}
                 </div>
               </div>
             ))}
