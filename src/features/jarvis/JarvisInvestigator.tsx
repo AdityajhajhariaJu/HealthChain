@@ -10,6 +10,7 @@ import { runJarvisInvestigation } from '../../services/geminiService';
 import { createCaseDraft, saveReviewSnapshot, getActiveCase } from '../../services/CaseEngine';
 import { getActiveSession } from '../../services/authSession';
 import { getProfile } from '../../services/ProfileEngine';
+import { openTrialModal } from '../../services/TrialEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
@@ -123,6 +124,12 @@ export default function JarvisInvestigator() {
           message: 'You need to log in or sign up to run a J.A.R.V.I.S. data engine investigation.'
         }
       }));
+      return;
+    }
+
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    if (!profile?.isPro && !isVip) {
+      openTrialModal('J.A.R.V.I.S. Root-Cause Engine');
       return;
     }
 

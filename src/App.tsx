@@ -543,9 +543,9 @@ export default function App() {
           <Route
             path="/app/collab"
             element={
-              <ProRoute featureName="Collaborative Specialists Board">
+              <SafeRoute>
                 <MDTHub />
-              </ProRoute>
+              </SafeRoute>
             }
           />
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
@@ -578,9 +578,9 @@ export default function App() {
           <Route
             path="/app/reports"
             element={
-              <ProRoute featureName="Lab Report & Scan PDF Analyzer">
+              <SafeRoute>
                 <ClinicalReportAnalyzer />
-              </ProRoute>
+              </SafeRoute>
             }
           />
           <Route
@@ -602,9 +602,9 @@ export default function App() {
           <Route
             path="/app/jarvis"
             element={
-              <ProRoute featureName="J.A.R.V.I.S. Root-Cause Engine">
+              <SafeRoute>
                 <JarvisInvestigator />
-              </ProRoute>
+              </SafeRoute>
             }
           />
 

@@ -53,6 +53,7 @@ import { useMDTStore } from '../../stores/useMDTStore';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { clearRunStorage } from '../../services/RunContext';
+import { openTrialModal } from '../../services/TrialEngine';
 
 // ─── Phases ─────────────────────────────────────────────────────────────────
 // intake -> select -> assessment -> conference -> report
@@ -183,6 +184,13 @@ useEffect(() => {
       }));
       return;
     }
+
+    const profile = getProfile();
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    if (!profile?.isPro && !isVip) {
+      openTrialModal('Collaborative Specialists Board (16 Doctors)');
+      return;
+    }
     
     // Clear the current run namespace before starting another case.
     clearRunStorage('mdt');
@@ -275,6 +283,14 @@ useEffect(() => {
       }));
       return;
     }
+
+    const profile = getProfile();
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    if (!profile?.isPro && !isVip) {
+      openTrialModal('Collaborative Specialists Board (16 Doctors)');
+      return;
+    }
+
     if (caseItem?.reviews?.length === 0) {
       setGlobalActiveCase(caseItem.id);
       navigate('/app/multi');

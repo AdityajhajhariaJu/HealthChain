@@ -57,8 +57,8 @@ function AnimatedOutlet() {
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
-  { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain, proOnly: true },
-  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: NetworkHubIcon, proOnly: true },
+  { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain },
+  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: NetworkHubIcon },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
@@ -66,14 +66,14 @@ const links: any[] = [
   { to: '/app/dietician', label: 'Dietician', icon: Apple },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
-  { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText, proOnly: true },
+  { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
 ];
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick', icon: Stethoscope },
-  { to: '/app/collab', label: 'Deep', icon: Brain, proOnly: true },
-  { to: '/app/jarvis', label: 'JARVIS', icon: NetworkHubIcon, proOnly: true },
+  { to: '/app/collab', label: 'Deep', icon: Brain },
+  { to: '/app/jarvis', label: 'JARVIS', icon: NetworkHubIcon },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 
@@ -176,7 +176,7 @@ export default function AppShell() {
 
           <nav className="sidebar__nav" aria-label="Main navigation">
             {links.map((l) => {
-              const isLocked = l.locked || (l.proOnly && !profile?.isPro);
+              const isLocked = l.locked;
               return (
               <NavLink
                 key={l.to}
@@ -185,8 +185,7 @@ export default function AppShell() {
                 onClick={(e) => {
                   if (isLocked) {
                     e.preventDefault();
-                    if (l.proOnly && !profile?.isPro) openTrialModal(l.label);
-                    else alert(l.label + ' is coming soon!');
+                    alert(l.label + ' is coming soon!');
                   }
                 }}
                 className={({ isActive }) => `sidebar__link ${isActive && !isLocked ? 'active' : ''}`}
@@ -286,22 +285,15 @@ export default function AppShell() {
             {mobileTabs.map((tab) => (
               <NavLink
                 key={tab.to}
-                to={tab.proOnly && !profile?.isPro ? '#' : tab.to}
-                className={({ isActive }) => `mobile-tab ${isActive && (!tab.proOnly || profile?.isPro) ? 'active' : ''}`}
-                onClick={(e) => {
+                to={tab.to}
+                className={({ isActive }) => `mobile-tab ${isActive ? 'active' : ''}`}
+                onClick={() => {
                   Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
                   setShowMoreMenu(false);
-                  if (tab.proOnly && !profile?.isPro) {
-                    e.preventDefault();
-                    openTrialModal(tab.label);
-                  }
                 }}
               >
                 <tab.icon size={22} />
                 <span>{tab.label}</span>
-                {tab.proOnly && !profile?.isPro && (
-                  <Lock size={10} style={{ position: 'absolute', top: '4px', right: '16px', opacity: 0.7 }} />
-                )}
               </NavLink>
             ))}
             <button
@@ -351,18 +343,13 @@ export default function AppShell() {
                 </div>
                 <div className="mobile-more-menu__grid">
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map((l) => {
-                    const isLocked = l.locked || (l.proOnly && !profile?.isPro);
+                    const isLocked = l.locked;
                     return (
                     <button
                       key={l.to}
                       onClick={() => {
                         if (isLocked) {
-                          if (l.proOnly && !profile?.isPro) {
-                            setShowMoreMenu(false);
-                            openTrialModal(l.label);
-                          } else {
-                            alert(l.label + ' is coming soon!');
-                          }
+                          alert(l.label + ' is coming soon!');
                           return;
                         }
                         navigate(l.to);

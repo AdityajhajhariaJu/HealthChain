@@ -20,6 +20,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { getRunScope } from '../../services/RunContext';
 import { getActiveSession } from '../../services/authSession';
+import { openTrialModal } from '../../services/TrialEngine';
 
 const cachedReportAnalyzerState: Record<string, any> = {};
 const fileReportCache: Record<string, any> = {};
@@ -61,6 +62,14 @@ export default function ClinicalReportAnalyzer() {
 
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
+
+    const profile = getProfile();
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    if (!profile?.isPro && !isVip) {
+      openTrialModal('Lab Report & Scan PDF Analyzer');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     // Check size limit (e.g. 3MB)
     const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
@@ -183,6 +192,14 @@ export default function ClinicalReportAnalyzer() {
 
   const captureLabReport = async () => {
     if (loading) return;
+
+    const profile = getProfile();
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    if (!profile?.isPro && !isVip) {
+      openTrialModal('Lab Report & Scan PDF Analyzer');
+      return;
+    }
+
     try {
       const photo = await Camera.getPhoto({
         quality: 90,
