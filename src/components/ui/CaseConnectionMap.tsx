@@ -161,15 +161,17 @@ export function CaseConnectionMap({ data, isMobile = false }: CaseConnectionMapP
               );
             }
 
-            const color = node.confidence > 70 ? '#10B981' : node.confidence > 30 ? '#F59E0B' : '#EF4444';
-            const bgColor = node.confidence > 70 ? '#ECFDF5' : node.confidence > 30 ? '#FEF3C7' : '#FEF2F2';
-            const hasPrecaution = data.precautions?.some((p: any) => p.relatedConditions?.includes(node.id));
+            const confidence = typeof node.confidence === 'number' ? node.confidence : 50;
+            const color = confidence > 70 ? '#10B981' : confidence > 30 ? '#F59E0B' : '#EF4444';
+            const bgColor = confidence > 70 ? '#ECFDF5' : confidence > 30 ? '#FEF3C7' : '#FEF2F2';
+            const hasPrecaution = (data.precautions || []).some((p: any) => p?.relatedConditions?.includes(node.id));
+            const nodeLabel = node.label || node.name || 'Condition';
 
             return (
               <g key={node.id} transform={`translate(${node.x}, ${node.y})`} onMouseEnter={() => setHoveredNode(node.id)} onMouseLeave={() => setHoveredNode(null)} style={{ cursor: 'pointer', transition: 'all 0.3s' }} opacity={isFaded ? 0.2 : 1}>
                 <motion.rect x="-85" y="-25" width="170" height="50" rx="12" fill={bgColor} stroke={color} strokeWidth="2" initial={{ scale: 0 }} animate={{ scale: isActive && hoveredNode === node.id ? 1.05 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }} />
-                <text y="-5" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0F172A">{node.label.length > 22 ? node.label.substring(0, 20) + '...' : node.label}</text>
-                <text y="12" textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{node.confidence}% | {node.specialty}</text>
+                <text y="-5" textAnchor="middle" fontSize="12" fontWeight="800" fill="#0F172A">{nodeLabel.length > 22 ? nodeLabel.substring(0, 20) + '...' : nodeLabel}</text>
+                <text y="12" textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{confidence}% | {node.specialty || 'General'}</text>
                 {hasPrecaution && (
                   <motion.g transform="translate(70, -25)" animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
                     <circle r="10" fill="#EF4444" />
@@ -190,21 +192,21 @@ export function CaseConnectionMap({ data, isMobile = false }: CaseConnectionMapP
         </div>
       </div>
 
-      {(data.precautions?.length > 0 || data.missingEvidence?.length > 0) && (
+      {((data.precautions || []).length > 0 || (data.missingEvidence || []).length > 0) && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-          {data.precautions?.length > 0 && (
+          {(data.precautions || []).length > 0 && (
             <div style={{ padding: '16px', background: '#FEF2F2', borderRadius: '16px', border: '1px solid #FECACA' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#B91C1C', fontWeight: 700, marginBottom: '12px' }}><AlertTriangle size={18} /> Red Flags & Precautions</div>
               <ul style={{ margin: 0, paddingLeft: '20px', color: '#991B1B', fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {data.precautions.map((p: any, i: number) => <li key={i}>{p.text}</li>)}
+                {(data.precautions || []).map((p: any, i: number) => <li key={i}>{typeof p === 'string' ? p : p?.text || JSON.stringify(p)}</li>)}
               </ul>
             </div>
           )}
-          {data.missingEvidence?.length > 0 && (
+          {(data.missingEvidence || []).length > 0 && (
             <div style={{ padding: '16px', background: '#F0FDF4', borderRadius: '16px', border: '1px solid #BBF7D0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803D', fontWeight: 700, marginBottom: '12px' }}><HelpCircle size={18} /> Ask your Doctor</div>
               <ul style={{ margin: 0, paddingLeft: '20px', color: '#166534', fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {data.missingEvidence.map((e: any, i: number) => <li key={i}><strong>{e.test}</strong> <span style={{ color: '#15803D', opacity: 0.8, fontSize: '12px', marginLeft: '4px' }}>(Urgency: {e.urgency})</span></li>)}
+                {(data.missingEvidence || []).map((e: any, i: number) => <li key={i}><strong>{typeof e === 'string' ? e : e?.test}</strong> {e?.urgency && <span style={{ color: '#15803D', opacity: 0.8, fontSize: '12px', marginLeft: '4px' }}>(Urgency: {e.urgency})</span>}</li>)}
               </ul>
             </div>
           )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PlusCircle,
@@ -126,18 +126,27 @@ export default function PharmacyHub() {
     } finally {
       setIsCheckingInteraction(false);
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setShowToast(false), 3000);
     }
   };
+
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const profile = getProfile();
   
   // Dynamically group medications into morning/afternoon/evening 
   // (In a real app, this would use the dosage schedule. Here we loosely group for UI demonstration)
   const dynamicRegimen = [
-    { time: 'Morning', icon: Sunrise, color: '#F59E0B', meds: (profile?.medications || []).filter((_: any, i: number) => i % 3 === 0).map((m: any) => m.name) },
-    { time: 'Afternoon', icon: Sun, color: '#3B82F6', meds: (profile?.medications || []).filter((_: any, i: number) => i % 3 === 1).map((m: any) => m.name) },
-    { time: 'Evening', icon: Moon, color: '#8B5CF6', meds: (profile?.medications || []).filter((_: any, i: number) => i % 3 === 2).map((m: any) => m.name) },
+    { time: 'Morning', icon: Sunrise, color: '#F59E0B', meds: (profile?.medications || []).filter((_: any, i: number) => i % 3 === 0).map((m: any) => m?.name || (typeof m === 'string' ? m : '')).filter(Boolean) },
+    { time: 'Afternoon', icon: Sun, color: '#3B82F6', meds: (profile?.medications || []).filter((_: any, i: number) => i % 3 === 1).map((m: any) => m?.name || (typeof m === 'string' ? m : '')).filter(Boolean) },
+    { time: 'Evening', icon: Moon, color: '#8B5CF6', meds: (profile?.medications || []).filter((_: any, i: number) => i % 3 === 2).map((m: any) => m?.name || (typeof m === 'string' ? m : '')).filter(Boolean) },
   ].filter(group => group.meds.length > 0);
 
   return (
