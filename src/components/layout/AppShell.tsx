@@ -83,6 +83,7 @@ export default function AppShell() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profile, setProfile] = useState(getProfile());
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
@@ -93,11 +94,13 @@ export default function AppShell() {
     trackButtonClick(label || path, 'navigation');
     navigate(path);
     setShowMoreMenu(false);
+    setShowProfileMenu(false);
   };
 
   // Scroll to top on route change & track page view
   useEffect(() => {
     setShowMoreMenu(false);
+    setShowProfileMenu(false);
     trackPageView(location.pathname);
     const scrollContainer = document.querySelector('.app-shell__content');
     if (scrollContainer) {
@@ -239,12 +242,109 @@ export default function AppShell() {
       {isMobile && (
         <>
           <div className="mobile-top-bar">
-            <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
-              alt="Profile" 
-              className="mobile-top-bar__profile" 
-              onClick={() => navigate('/app/today')} 
-            />
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
+                alt="Profile" 
+                className="mobile-top-bar__profile" 
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowProfileMenu(!showProfileMenu);
+                }} 
+                style={{ cursor: 'pointer', display: 'block' }}
+              />
+
+              <AnimatePresence>
+                {showProfileMenu && (
+                  <>
+                    <div
+                      style={{ position: 'fixed', inset: 0, zIndex: 998, background: 'transparent' }}
+                      onClick={() => setShowProfileMenu(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        left: '0',
+                        zIndex: 999,
+                        background: '#FFFFFF',
+                        borderRadius: '16px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.04)',
+                        padding: '6px',
+                        minWidth: '190px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                      }}
+                    >
+                      <div style={{ padding: '8px 12px 6px', borderBottom: '1px solid #F1F5F9', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {profile?.demographics?.name || 'My Health'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B' }}>
+                          {profile?.isPro ? '✨ Pro Member' : 'Free Starter'}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/app/profile');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#0F172A',
+                          fontSize: '13.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <FolderHeart size={16} color="#0D9488" />
+                        <span>Medical Profile</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate('/app/settings');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#0F172A',
+                          fontSize: '13.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          width: '100%',
+                        }}
+                      >
+                        <Settings size={16} color="#64748B" />
+                        <span>Settings</span>
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
               <button className="mobile-top-bar__search" onClick={() => navigate('/app/ava')} aria-label="Search or Ask Ava Health Buddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #e2e8f0', color: '#475569' }}>
                   <Heart size={12} />
