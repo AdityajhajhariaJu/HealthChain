@@ -4,10 +4,12 @@ import { get, set, del } from 'idb-keyval';
  * Resilient multi-tier storage adapter for Supabase Auth.
  * Specifically mitigates Safari WebKit ITP, private browsing, and tab-close
  * storage eviction by persisting auth tokens simultaneously across:
- * 1. Synchronous In-Memory Cache
- * 2. Window LocalStorage
- * 3. 1-Year First-Party Cookie (SameSite=Lax)
- * 4. Asynchronous IndexedDB (idb-keyval)
+ * 1. Synchronous In-Memory Cache (fastest, survives SPA navigations)
+ * 2. Window LocalStorage (survives page reloads)
+ * 3. Asynchronous IndexedDB via idb-keyval (survives Safari tab close / ITP evictions)
+ *
+ * All methods are async to guarantee IndexedDB reads complete before Supabase
+ * makes authentication decisions.
  */
 
 const memoryCache = new Map<string, string>();
