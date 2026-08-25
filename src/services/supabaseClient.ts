@@ -7,4 +7,12 @@ if (supabaseUrl === 'https://placeholder-project.supabase.co') {
   console.error('CRITICAL: VITE_SUPABASE_URL is not set. Supabase features will fail.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    flowType: 'pkce',
+  },
+});

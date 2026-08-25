@@ -256,7 +256,7 @@ export default function App() {
     // otherwise stall sign-in or device-switch transitions.
     let authBootstrapTimer: ReturnType<typeof setTimeout> | null = null;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session) {
           if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
           setItemSync('isAuthenticated', 'true');
           
@@ -343,26 +343,23 @@ export default function App() {
         try {
           const theme = localStorage.getItem('hc_theme');
           const consent = localStorage.getItem('hc_consent');
-          window.dispatchEvent(new Event('hc_logout'));
           clearCaseEngineCache();
           sessionStorage.clear();
-          const pendingOutbox: { key: string; value: string | null }[] = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith('hc_sync_outbox_')) pendingOutbox.push({ key, value: localStorage.getItem(key) });
-          }
-          localStorage.clear();
+          localStorage.removeItem('isAuthenticated');
+          localStorage.removeItem('hc_account');
           if (theme) localStorage.setItem('hc_theme', theme);
           if (consent) localStorage.setItem('hc_consent', consent);
-          pendingOutbox.forEach(p => { if (p.value !== null) localStorage.setItem(p.key, p.value); });
         } catch (e) {
-          console.warn('Failed to clear localStorage on sign out', e);
+          console.warn('Failed to cleanup on sign out', e);
         }
         
-        info('Session ended', 'You have been logged out.');
-        setTimeout(() => {
-          navigate('/', { replace: true });
-        }, 500);
+        const path = window.location.pathname;
+        if (path.startsWith('/app')) {
+          info('Session ended', 'You have been logged out.');
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 300);
+        }
       }
     });
 
