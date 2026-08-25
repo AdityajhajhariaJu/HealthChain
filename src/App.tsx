@@ -309,45 +309,56 @@ export default function App() {
           // Do NOT block navigation on network calls (syncProfile, initCaseEngine)
           // because they call supabase.auth.getSession() internally, which can
           // deadlock against the memory lock still held by onAuthStateChange.
-          const path = window.location.pathname;
-          if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
-            const profileStr = localStorage.getItem(getProfileKey());
-            let hasCompletedOnboarding = false;
-            if (profileStr) {
-              try {
-                const profileData = JSON.parse(profileStr);
-                if (profileData.profiles && profileData.activeId) {
-                  const activeProfile = profileData.profiles[profileData.activeId];
-                  hasCompletedOnboarding = !!(
-                    activeProfile?.onboardingCompletedAt || 
-                    activeProfile?.demographics?.onboardingCompletedAt ||
-                    activeProfile?.demographics?.age ||
-                    activeProfile?.demographics?.gender
-                  );
-                } else {
-                  hasCompletedOnboarding = !!(
-                    profileData.onboardingCompletedAt || 
-                    profileData.demographics?.onboardingCompletedAt || 
-                    profileData.demographics?.age
-                  );
-                }
-              } catch (e) {
-                console.error(e);
-              }
+          // UPDATE: We MUST sync the profile first to know if they've onboarded.
+          // By passing session.user.id, we bypass the internal getSession() call!
+          void (async () => {
+            try {
+              await syncProfileFromSupabase(session.user.id);
+            } catch (err) {
+              console.warn('Initial profile sync failed, falling back to local storage', err);
             }
 
-            if (hasCompletedOnboarding) navigate('/app', { replace: true });
-            else navigate('/onboarding', { replace: true });
-          }
+            const path = window.location.pathname;
+            if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
+              const profileStr = localStorage.getItem(getProfileKey());
+              let hasCompletedOnboarding = false;
+              if (profileStr) {
+                try {
+                  const profileData = JSON.parse(profileStr);
+                  if (profileData.profiles && profileData.activeId) {
+                    const activeProfile = profileData.profiles[profileData.activeId];
+                    hasCompletedOnboarding = !!(
+                      activeProfile?.onboardingCompletedAt || 
+                      activeProfile?.demographics?.onboardingCompletedAt ||
+                      activeProfile?.demographics?.age ||
+                      activeProfile?.demographics?.gender
+                    );
+                  } else {
+                    hasCompletedOnboarding = !!(
+                      profileData.onboardingCompletedAt || 
+                      profileData.demographics?.onboardingCompletedAt || 
+                      profileData.demographics?.age
+                    );
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+              }
 
-          // Sync data in the background — fire-and-forget, never blocks navigation
-          void (async () => {
-            await syncProfileFromSupabase();
-            await initCaseEngine();
-            syncHealthMemoryFromSupabase().catch(console.error);
-            backfillHealthMemoryFromProfile();
-            backfillCaseHealthMemory();
-          })().catch((error) => console.error('Authenticated bootstrap sync failed', error));
+              if (hasCompletedOnboarding) navigate('/app', { replace: true });
+              else navigate('/onboarding', { replace: true });
+            }
+
+            // Sync other background data
+            try {
+              await initCaseEngine();
+              syncHealthMemoryFromSupabase().catch(console.error);
+              backfillHealthMemoryFromProfile();
+              backfillCaseHealthMemory();
+            } catch (err) {
+              console.error('Background init failed', err);
+            }
+          })();
         }, 0);
       } else if (event === 'SIGNED_OUT') {
         // Debounce false SIGNED_OUT events that race with a fresh SIGNED_IN.

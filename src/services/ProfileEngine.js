@@ -749,16 +749,20 @@ export function calculateHealthScore(profile) {
   return { score, missing };
 }
 
-export async function syncProfileFromSupabase() {
+export async function syncProfileFromSupabase(overrideUserId = null) {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return;
+    let userId = overrideUserId;
+    if (!userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      userId = session.user.id;
+    }
     
     const [{ data, error: legacyError }, { data: snapshots, error: snapshotError }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('healthchain_profiles')
         .select('profile_id,profile_name,data,updated_at')
-        .eq('user_id', session.user.id)
+        .eq('user_id', userId)
         .order('updated_at', { ascending: false })
     ]);
     const schemaMissing = (error) => error?.code === 'PGRST205' || error?.code === '42P01';
