@@ -56,7 +56,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
   const [data, setData] = useState(() => {
     const rawConds = (coreProfile?.conditions || []).map((c: any) => typeof c === 'string' ? c : c.name || '');
     const matchedConds = MEDICAL_CONDITIONS.filter(mc => rawConds.some((rc: string) => rc.toLowerCase().includes(mc.toLowerCase())));
-    const allergies = coreProfile?.allergies || [];
+    const allergies = (coreProfile?.allergies || []).map((a: any) => typeof a === 'string' ? a : a?.name || '');
     const matchedRestrictions = RESTRICTIONS.filter(r => allergies.some((a: string) => a.toLowerCase().includes(r.toLowerCase())));
 
     return {

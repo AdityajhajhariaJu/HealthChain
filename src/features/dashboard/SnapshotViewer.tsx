@@ -150,15 +150,15 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Executive Summary</h3>
                   <p style={{ margin: 0, lineHeight: 1.6, color: '#334155' }}>
                      {elifMode 
-                        ? (activeReview.report.executiveSummary ? "Basically, the doctors looked at everything and think we have a clear idea of what's going on. Here are the main things you need to know in simple terms." : 'No summary available.') 
-                        : (activeReview.report.executiveSummary || 'No summary available.')}
+                        ? (activeReview.report?.executiveSummary ? "Basically, the doctors looked at everything and think we have a clear idea of what's going on. Here are the main things you need to know in simple terms." : 'No summary available.') 
+                        : (activeReview.report?.executiveSummary || 'No summary available.')}
                   </p>
                </section>
 
                <section>
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Discussion Pathways</h3>
                   <div style={{ display: 'grid', gap: 12 }}>
-                    {(activeReview.report.topDiagnoses || []).map((d: any, i: number) => (
+                    {(activeReview.report?.topDiagnoses || []).map((d: any, i: number) => (
                       <div
                         key={i}
                         style={{
@@ -185,11 +185,11 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                <section>
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Recommended Actions</h3>
                   <div style={{ display: 'grid', gap: 8 }}>
-                     {(activeReview.report.recommendedActionPlan || []).map((action: any, idx: number) => (
+                     {(activeReview.report?.recommendedActionPlan || []).map((action: any, idx: number) => (
                         <div key={idx} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 16px', background: '#f8fafc', borderRadius: 8 }}>
                            <CheckCircle2 size={18} color="#64748b"/>
                            <span style={{ fontSize: 14, color: '#334155' }}>
-                              {typeof action === 'string' ? action : action.step}
+                              {typeof action === 'string' ? action : action?.step || action?.title || 'Action item'}
                            </span>
                         </div>
                      ))}
@@ -199,7 +199,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                <section>
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Participating Specialists</h3>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                     {activeReview.specialists.map(s => (
+                     {(activeReview.specialists || []).map((s: string) => (
                         <span key={s} style={{ background: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: 6, fontSize: 13 }}>
                            {s}
                         </span>

@@ -28,6 +28,7 @@ import { getActiveSession } from '../../services/authSession';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { trackConsultationStarted } from '../../services/analytics';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 
 const cachedQuickConsultStreams: any = {};
 // Resolve these at use-time rather than module import so a profile/account
@@ -40,6 +41,7 @@ const getQuickRunIdKey = () => getRunScope('quick-consult', 'draft', 'run-id');
 export default function QuickConsult() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [phase, setPhase] = useState<'select' | 'upload' | 'chat' | 'compiling' | 'done'>(() => {
     return (sessionStorage.getItem(getQuickPhaseKey()) as any) || 'select';
   });
@@ -175,15 +177,18 @@ export default function QuickConsult() {
         for (const file of uploadedFiles) {
           const reader = new FileReader();
           const base64Data = await new Promise<string>((resolve) => {
-            reader.onload = (e) => resolve((e.target?.result as string).split(',')[1]);
+            reader.onload = (e) => resolve((e.target?.result as string).split(',')[1] || '');
+            reader.onerror = () => resolve('');
             reader.readAsDataURL(file);
           });
-          const result = await analyzeLabReport(base64Data, file.type, profile);
-          if (result) {
-            extractedContext += `\n\n--- Document: ${file.name} ---\n`;
-            extractedContext += `Test/Report Type: ${result.testName || 'Lab Report'}\n`;
-            extractedContext += `Key Findings: ${result.keyFindings || 'Findings extracted'}\n`;
-            if (result.interpretation) extractedContext += `Interpretation: ${result.interpretation}\n`;
+          if (base64Data) {
+            const result = await analyzeLabReport(base64Data, file.type, profile);
+            if (result) {
+              extractedContext += `\n\n--- Document: ${file.name} ---\n`;
+              extractedContext += `Test/Report Type: ${result.testName || 'Lab Report'}\n`;
+              extractedContext += `Key Findings: ${result.keyFindings || 'Findings extracted'}\n`;
+              if (result.interpretation) extractedContext += `Interpretation: ${result.interpretation}\n`;
+            }
           }
         }
         if (extractedContext) {
@@ -206,7 +211,33 @@ export default function QuickConsult() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      const selected = Array.from(e.target.files);
+      const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+      const valid: File[] = [];
+
+      for (const file of selected) {
+        if (file.size === 0) {
+          toast.error('Invalid File', `File "${file.name}" is empty.`);
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error('File Too Large', `"${file.name}" exceeds the 5MB size limit.`);
+          continue;
+        }
+        if (!ALLOWED.includes(file.type)) {
+          toast.error('Unsupported Format', `"${file.name}" must be a PDF or image (JPEG/PNG/WEBP).`);
+          continue;
+        }
+        valid.push(file);
+      }
+
+      if (uploadedFiles.length + valid.length > 5) {
+        toast.error('Limit Exceeded', 'You can upload up to 5 documents per consultation.');
+        return;
+      }
+
+      setUploadedFiles(prev => [...prev, ...valid]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 

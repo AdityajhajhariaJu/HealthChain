@@ -95,8 +95,7 @@ export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const toast = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
-  const sessionId = useRef(crypto.randomUUID()).current;
+  const sessionId = useRef(typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`).current;
   const [messages, setMessages] = useState(getSavedMessages());
   const [input, setInput] = useState(() => { try { return sessionStorage.getItem('hc_ava_draft') || ''; } catch { return ''; } });
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);

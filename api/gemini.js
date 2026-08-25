@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = [
   'capacitor://localhost',
   'http://localhost'
 ];
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const MAX_OUTPUT_TOKENS = 8192;
 const SERVER_SAFETY_INSTRUCTION = `
 HEALTHCHAIN SAFETY GATE:
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
     if (supabaseUrl && supabaseAnonKey) {
       try {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);

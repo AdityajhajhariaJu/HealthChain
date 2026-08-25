@@ -6,9 +6,11 @@ import { getProfile } from '../../services/ProfileEngine';
 import { ArrowRight, Briefcase, ChevronRight, FileText, Loader2, Printer, Sparkles, AlertCircle, Eye, Info, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export default function CasePrep() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseItem | null>(null);
   const [brief, setBrief] = useState<AppointmentBrief | null>(null);
@@ -40,10 +42,19 @@ export default function CasePrep() {
   const handleRefine = async () => {
     if (!brief || !selectedCase) return;
     setIsRefining(true);
-    const refined = await refineAppointmentBrief(brief);
-    saveAppointmentBrief(selectedCase.id, refined);
-    setBrief(refined);
-    setIsRefining(false);
+    try {
+      const refined = await refineAppointmentBrief(brief);
+      if (refined) {
+        saveAppointmentBrief(selectedCase.id, refined);
+        setBrief(refined);
+        toast.success('Brief Refined', 'AI polished your clinical appointment brief.');
+      }
+    } catch (e) {
+      console.error('Failed to refine appointment brief:', e);
+      toast.error('Refinement Failed', 'Could not refine appointment brief. Please try again.');
+    } finally {
+      setIsRefining(false);
+    }
   };
 
   if (!selectedCase && !showPicker) {

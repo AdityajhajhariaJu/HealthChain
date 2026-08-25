@@ -19,9 +19,9 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
   }, []);
 
   const runSimulation = async () => {
-    if (isSimulating) return;
+    if (isSimulating || !actionItem) return;
     // Check sessionStorage cache first
-    const cacheKey = `pathway_sim_${actionItem.step}`;
+    const cacheKey = `pathway_sim_${actionItem.id || actionItem.step || 'default'}`;
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
       try { setSimulation(JSON.parse(cached)); } catch { /* ignore */ }
@@ -35,7 +35,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
         if (result) {
           setSimulation(result);
           try { sessionStorage.setItem(cacheKey, JSON.stringify(result)); } catch(e) {}
-          recordHealthMemory({ kind: 'discussion_guide', source: 'pathway_guide', title: `Discussion guide: ${actionItem.step || 'Appointment topic'}`, occurredAt: new Date().toISOString(), payload: { actionItem, result }, dedupeKey: `discussion-guide:${actionItem.id || actionItem.step}` });
+          recordHealthMemory({ kind: 'discussion_guide', source: 'pathway_guide', title: `Discussion guide: ${actionItem.step || actionItem.title || 'Appointment topic'}`, occurredAt: new Date().toISOString(), payload: { actionItem, result }, dedupeKey: `discussion-guide:${actionItem.id || actionItem.step || 'guide'}` });
         }
       }
     } catch (err) {
@@ -82,7 +82,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
               Appointment Discussion Guide
             </h2>
             <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 14 }}>
-              Questions, cautions, and follow-up topics for: <strong>{actionItem.step}</strong>
+              Questions, cautions, and follow-up topics for: <strong>{actionItem?.step || actionItem?.title || 'Selected Topic'}</strong>
             </p>
           </div>
           <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>

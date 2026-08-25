@@ -81,10 +81,15 @@ const DEFAULT_PROFILE = {
     emergencyContact: '',
     updatedAt: null,
   },
+  /** @type {string[]} */
   conditions: [],
+  /** @type {any[]} */
   medications: [],
+  /** @type {string[]} */
   allergies: [],
+  /** @type {string[]} */
   familyHistory: [],
+  /** @type {any[]} */
   timeline: [],
   vitals: {
     latestLabValues: {},
@@ -97,6 +102,7 @@ const DEFAULT_PROFILE = {
   },
   healthFocus: '',
   onboardingCompletedAt: null,
+  /** @type {any[]} */
   actionItems: [],
 };
 
@@ -379,6 +385,16 @@ export function updateDemographics(data) {
   saveProfile(profile);
 }
 
+/**
+ * @param {{
+ *   demographics?: any,
+ *   conditions?: string[],
+ *   allergies?: string[],
+ *   medications?: string[],
+ *   familyHistory?: string[],
+ *   healthFocus?: string
+ * }} options
+ */
 export function completeProfileOnboarding({
   demographics = {},
   conditions = [],

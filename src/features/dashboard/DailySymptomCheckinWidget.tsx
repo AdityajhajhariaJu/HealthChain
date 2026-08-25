@@ -87,7 +87,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
   }, []);
 
   const streakDays = useMemo(() => {
-    if (!profile.dailyCheckins || profile.dailyCheckins.length === 0) return 0;
+    if (!profile?.dailyCheckins || profile.dailyCheckins.length === 0) return 0;
     let streak = 0;
     const now = new Date();
     for (let i = 0; i < 30; i++) {
@@ -99,7 +99,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
       else if (i > 0) break;
     }
     return streak;
-  }, [profile.dailyCheckins]);
+  }, [profile?.dailyCheckins]);
 
   const handleSelectSeverity = (option: typeof SEVERITY_OPTIONS[0]) => {
     triggerHapticLight();

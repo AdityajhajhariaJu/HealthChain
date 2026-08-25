@@ -13,8 +13,8 @@ import {
 import { completeProfileOnboarding } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-const splitList = (value) =>
-  value
+const splitList = (value?: string) =>
+  (typeof value === 'string' ? value : '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
