@@ -70,7 +70,9 @@ export default function JarvisInvestigator() {
       return new Promise<{file: File, base64: string, size: number}>((resolve) => {
         if (f.type.startsWith('image/')) {
           const img = new Image();
+          const objectUrl = URL.createObjectURL(f);
           img.onload = () => {
+            URL.revokeObjectURL(objectUrl);
             const canvas = document.createElement('canvas');
             const MAX_WIDTH = 1200;
             const MAX_HEIGHT = 1200;
@@ -95,12 +97,24 @@ export default function JarvisInvestigator() {
             const estimatedBytes = Math.round((base64.length * 3) / 4);
             resolve({ file: f, base64, size: estimatedBytes });
           };
-          img.src = URL.createObjectURL(f);
+          img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const base64 = (ev.target?.result as string).split(',')[1];
+              resolve({ file: f, base64, size: f.size });
+            };
+            reader.readAsDataURL(f);
+          };
+          img.src = objectUrl;
         } else {
           const reader = new FileReader();
           reader.onload = (ev) => {
             const base64 = (ev.target?.result as string).split(',')[1];
             resolve({ file: f, base64, size: f.size });
+          };
+          reader.onerror = () => {
+            resolve({ file: f, base64: '', size: 0 });
           };
           reader.readAsDataURL(f);
         }
