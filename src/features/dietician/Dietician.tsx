@@ -445,7 +445,7 @@ export default function Dietician() {
     }
   };
 
-  const copyGroceryListText = () => {
+  const copyGroceryListText = async () => {
     triggerHapticLight();
     let text = `🛒 HealthChain 7-Day Grocery List (${profile?.cuisine || 'Healthy'} Plan)\n\n`;
     groceryList.forEach(cat => {
@@ -455,9 +455,22 @@ export default function Dietician() {
       });
       text += `\n`;
     });
-    navigator.clipboard.writeText(text);
-    setCopiedGrocery(true);
-    setTimeout(() => setCopiedGrocery(false), 2500);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedGrocery(true);
+      setTimeout(() => setCopiedGrocery(false), 2500);
+    } catch (e) {
+      console.warn('Failed to copy grocery list to clipboard:', e);
+    }
   };
 
   const handlePrintDossier = () => {

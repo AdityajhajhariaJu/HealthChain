@@ -53,17 +53,27 @@ export function getItemSync(key: string): string | null {
 }
 
 export function removeItemSync(key: string) {
-  localStorage.removeItem(key);
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.warn(`localStorage removeItem failed for ${key}`, e);
+  }
   if (Capacitor.getPlatform() !== 'web') {
     Preferences.remove({ key }).catch(e => console.warn('Native remove error:', e));
   }
 }
 
 // Ensure clear still clears native
-const originalClear = localStorage.clear.bind(localStorage);
-localStorage.clear = function() {
-  originalClear();
-  if (Capacitor.getPlatform() !== 'web') {
-    Preferences.clear().catch(e => console.warn('Native clear error:', e));
-  }
-};
+if (typeof localStorage !== 'undefined' && localStorage.clear) {
+  const originalClear = localStorage.clear.bind(localStorage);
+  localStorage.clear = function() {
+    try {
+      originalClear();
+    } catch (e) {
+      console.warn('localStorage.clear failed', e);
+    }
+    if (Capacitor.getPlatform() !== 'web') {
+      Preferences.clear().catch(e => console.warn('Native clear error:', e));
+    }
+  };
+}

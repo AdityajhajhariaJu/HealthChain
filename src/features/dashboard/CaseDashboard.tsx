@@ -719,11 +719,24 @@ function ClinicianCheatSheet({ questions, isMobile }: { questions: string[]; isM
   const [copied, setCopied] = useState(false);
   if (!questions || questions.length === 0) return null;
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const text = "Questions for My Doctor:\n" + questions.map((q, i) => `${i + 1}. ${q}`).join('\n');
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (e) {
+      console.warn('Failed to copy questions to clipboard:', e);
+    }
   };
 
   return (

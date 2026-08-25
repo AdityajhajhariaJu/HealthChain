@@ -75,10 +75,23 @@ export default function HelpCenter() {
     }
   };
 
-  const copyEmail = () => {
-    navigator.clipboard.writeText('healthchain360@gmail.com');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyEmail = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText('healthchain360@gmail.com');
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = 'healthchain360@gmail.com';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.warn('Failed to copy email to clipboard:', e);
+    }
   };
 
   return (
