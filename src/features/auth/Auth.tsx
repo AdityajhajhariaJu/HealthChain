@@ -226,9 +226,13 @@ export default function Auth() {
                 <Activity size={32} />
               </div>
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>Check your email</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.5', marginBottom: '24px' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.5', marginBottom: '16px' }}>
                 We've sent a secure verification link to <strong>{formData.email}</strong>. Please click the link to activate your account.
               </p>
+              <div style={{ background: 'var(--bg-card-hover)', padding: '12px', borderRadius: 'var(--radius-sm)', marginBottom: '24px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <strong>Not seeing the email?</strong><br/>
+                If you previously signed in with Google using this email, no new link will be sent. Try clicking "Back to Sign In" and use the <strong>Continue with Google</strong> button.
+              </div>
               <button
                 onClick={() => {
                   setVerificationSent(false);

@@ -305,47 +305,49 @@ export default function App() {
         // Supabase lock, which is already held during onAuthStateChange dispatch,
         // causing a deadlock or returning stale data from async storage.
         authBootstrapTimer = setTimeout(() => {
+          // Navigate FIRST based on what's already in localStorage.
+          // Do NOT block navigation on network calls (syncProfile, initCaseEngine)
+          // because they call supabase.auth.getSession() internally, which can
+          // deadlock against the memory lock still held by onAuthStateChange.
+          const path = window.location.pathname;
+          if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
+            const profileStr = localStorage.getItem(getProfileKey());
+            let hasCompletedOnboarding = false;
+            if (profileStr) {
+              try {
+                const profileData = JSON.parse(profileStr);
+                if (profileData.profiles && profileData.activeId) {
+                  const activeProfile = profileData.profiles[profileData.activeId];
+                  hasCompletedOnboarding = !!(
+                    activeProfile?.onboardingCompletedAt || 
+                    activeProfile?.demographics?.onboardingCompletedAt ||
+                    activeProfile?.demographics?.age ||
+                    activeProfile?.demographics?.gender
+                  );
+                } else {
+                  hasCompletedOnboarding = !!(
+                    profileData.onboardingCompletedAt || 
+                    profileData.demographics?.onboardingCompletedAt || 
+                    profileData.demographics?.age
+                  );
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
+
+            if (hasCompletedOnboarding) navigate('/app', { replace: true });
+            else navigate('/onboarding', { replace: true });
+          }
+
+          // Sync data in the background — fire-and-forget, never blocks navigation
           void (async () => {
-            // Sync user data only after the auth callback has returned.
             await syncProfileFromSupabase();
             await initCaseEngine();
             syncHealthMemoryFromSupabase().catch(console.error);
-            // Existing timeline and case summaries become durable Health Memory automatically on sign-in.
             backfillHealthMemoryFromProfile();
             backfillCaseHealthMemory();
-
-            // Auto-redirect if on a public page.
-            const path = window.location.pathname;
-            if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding') {
-              const profileStr = localStorage.getItem(getProfileKey());
-              let hasCompletedOnboarding = false;
-              if (profileStr) {
-                try {
-                  const profileData = JSON.parse(profileStr);
-                  if (profileData.profiles && profileData.activeId) {
-                    const activeProfile = profileData.profiles[profileData.activeId];
-                    hasCompletedOnboarding = !!(
-                      activeProfile?.onboardingCompletedAt || 
-                      activeProfile?.demographics?.onboardingCompletedAt ||
-                      activeProfile?.demographics?.age ||
-                      activeProfile?.demographics?.gender
-                    );
-                  } else {
-                    hasCompletedOnboarding = !!(
-                      profileData.onboardingCompletedAt || 
-                      profileData.demographics?.onboardingCompletedAt || 
-                      profileData.demographics?.age
-                    );
-                  }
-                } catch (e) {
-                  console.error(e);
-                }
-              }
-
-              if (hasCompletedOnboarding) navigate('/app', { replace: true });
-              else navigate('/onboarding', { replace: true });
-            }
-          })().catch((error) => console.error('Authenticated bootstrap failed', error));
+          })().catch((error) => console.error('Authenticated bootstrap sync failed', error));
         }, 0);
       } else if (event === 'SIGNED_OUT') {
         // Debounce false SIGNED_OUT events that race with a fresh SIGNED_IN.
