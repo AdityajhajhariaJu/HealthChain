@@ -14,12 +14,15 @@ export default function ActionPlan({ analysis }) {
       if (storedTasks) {
         try { setTasks(JSON.parse(storedTasks)); } catch { /* ignore */ }
       } else if (analysis.what_to_do || analysis.this_week_tasks) {
-        const rawTasks =
-          analysis.what_to_do || analysis.this_week_tasks.map((t) => ({ step: t, cost: '' }));
+        const rawTasks = Array.isArray(analysis.what_to_do) 
+          ? analysis.what_to_do 
+          : Array.isArray(analysis.this_week_tasks) 
+            ? analysis.this_week_tasks.map((t) => ({ step: t, cost: '' })) 
+            : [];
         const initialTasks = rawTasks.map((t, idx) => ({
           id: idx,
-          text: t.step || t,
-          cost: t.cost || '',
+          text: typeof t === 'string' ? t : t?.step || t?.title || t?.text || 'Checklist item',
+          cost: typeof t === 'object' && t !== null ? t?.cost || '' : '',
           completed: false,
         }));
         setTasks(initialTasks);
@@ -27,7 +30,6 @@ export default function ActionPlan({ analysis }) {
       }
     }
   }, [analysis, planKey]);
-
   const toggleTask = (id) => {
     const updated = tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
     setTasks(updated);

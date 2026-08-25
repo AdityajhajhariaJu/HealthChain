@@ -5,10 +5,20 @@ import { awardMindfulPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
+function getLocalDateKey(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function MindfulHRVCard() {
   const isMobile = useIsMobile();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateKey();
+  const isoStr = new Date().toISOString().split('T')[0];
   const breathKey = `hc_breath_${todayStr}`;
+  const isoBreathKey = `hc_breath_${isoStr}`;
 
   const [breathActive, setBreathActive] = useState(false);
   const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale' | 'Rest'>('Inhale');
@@ -16,7 +26,7 @@ export default function MindfulHRVCard() {
   const [secondsRemaining, setSecondsRemaining] = useState(4);
   const [breathCompletedToday, setBreathCompletedToday] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(breathKey) === 'true';
+      return localStorage.getItem(breathKey) === 'true' || localStorage.getItem(isoBreathKey) === 'true';
     } catch {
       return false;
     }
