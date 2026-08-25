@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Search, ChevronDown, ChevronUp, Mail, MessageCircle, Phone, Sparkles, Star, Send, CheckCircle2, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';

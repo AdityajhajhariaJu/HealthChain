@@ -57,7 +57,9 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
     });
     
     userEvents.slice(0, 5).forEach(e => {
-      timeline.push({ date: new Date(e.date).toLocaleDateString(), event: e.label, sourceIds: [e.id || 'event'] });
+      const d = new Date(e?.date || Date.now());
+      const dateStr = isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString();
+      timeline.push({ date: dateStr, event: e.label || 'Health event', sourceIds: [e.id || 'event'] });
     });
   }
 
@@ -65,15 +67,23 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
   const knownFacts: BriefFact[] = [];
   if (profile) {
     if (profile.medications && profile.medications.length > 0) {
-      knownFacts.push({ text: `Current medications: ${profile.medications.map((m: any) => m.name).join(', ')}`, sourceIds: ['profile-meds'] });
+      const medList = profile.medications.map((m: any) => m?.name || (typeof m === 'string' ? m : '')).filter(Boolean);
+      if (medList.length > 0) {
+        knownFacts.push({ text: `Current medications: ${medList.join(', ')}`, sourceIds: ['profile-meds'] });
+      }
     }
     if (profile.conditions && profile.conditions.length > 0) {
-      knownFacts.push({ text: `Pre-existing conditions: ${profile.conditions.join(', ')}`, sourceIds: ['profile-conditions'] });
+      const condList = profile.conditions.filter(Boolean);
+      if (condList.length > 0) {
+        knownFacts.push({ text: `Pre-existing conditions: ${condList.join(', ')}`, sourceIds: ['profile-conditions'] });
+      }
     }
   }
   if (caseItem.medicalRecords) {
     caseItem.medicalRecords.forEach(r => {
-      knownFacts.push({ text: `Record attached: ${r.type.toUpperCase()} (${new Date(r.addedAt || r.addedAt || new Date()).toLocaleDateString()})`, sourceIds: [r.id] });
+      const recDate = new Date(r?.addedAt || Date.now());
+      const recDateStr = isNaN(recDate.getTime()) ? 'Recent' : recDate.toLocaleDateString();
+      knownFacts.push({ text: `Record attached: ${(r?.type || 'Record').toUpperCase()} (${recDateStr})`, sourceIds: [r.id || 'record'] });
     });
   }
   
