@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Activity, ArrowRight } from 'lucide-react';
@@ -22,13 +22,13 @@ export default function Auth() {
   const { toast, success, error: toastError } = useToast();
 
   // If already authenticated when visiting /login or /signup, immediately redirect to /app
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         window.location.replace('/app');
       }
     }).catch(() => {});
-  });
+  }, []);
 
   const handleOAuth = async (provider: 'google' | 'apple') => {
     try {
