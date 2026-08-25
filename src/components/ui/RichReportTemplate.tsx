@@ -294,15 +294,21 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
             <div style={{ width: '100%', height: 200 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={Object.entries(report.biomarkers).map(([key, data]) => ({
-                    name: key,
-                    value: data.value,
-                    min: data.min,
-                    max: data.max,
-                    unit: data.unit,
-                    isLow: data.value < data.min,
-                    isHigh: data.value > data.max
-                  }))}
+                  data={Object.entries(report.biomarkers).map(([key, d]) => {
+                    const dataObj: any = (typeof d === 'object' && d !== null) ? d : { value: Number(d) || 0, min: 0, max: 100, unit: '' };
+                    const val = typeof dataObj.value === 'number' ? dataObj.value : Number(dataObj.value) || 0;
+                    const min = typeof dataObj.min === 'number' ? dataObj.min : 0;
+                    const max = typeof dataObj.max === 'number' ? dataObj.max : 100;
+                    return {
+                      name: key,
+                      value: val,
+                      min,
+                      max,
+                      unit: dataObj.unit || '',
+                      isLow: val < min,
+                      isHigh: val > max
+                    };
+                  })}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
@@ -328,9 +334,13 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
                     }}
                   />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {Object.entries(report.biomarkers).map((_, index) => {
-                      const data = Object.values(report.biomarkers!)[index];
-                      return <Cell key={`cell-${index}`} fill={(data.value < data.min || data.value > data.max) ? '#F87171' : '#34D399'} />;
+                    {Object.entries(report.biomarkers).map(([, d], index) => {
+                      const dataObj: any = (typeof d === 'object' && d !== null) ? d : { value: 0, min: 0, max: 100 };
+                      const val = Number(dataObj?.value) || 0;
+                      const min = Number(dataObj?.min) || 0;
+                      const max = Number(dataObj?.max) || 100;
+                      const isOutOfRange = val < min || val > max;
+                      return <Cell key={`cell-${index}`} fill={isOutOfRange ? '#F87171' : '#34D399'} />;
                     })}
                   </Bar>
                 </BarChart>
