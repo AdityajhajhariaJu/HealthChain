@@ -163,15 +163,15 @@ export default function MyCases() {
     };
   }, []);
 
-  const filteredCases = cases.filter(c => c.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredCases = cases.filter(c => (c?.title || 'Untitled Case').toLowerCase().includes(searchTerm.toLowerCase()));
   const totalPages = Math.ceil(filteredCases.length / itemsPerPage);
   const paginatedCases = filteredCases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
-  const openActions = cases.reduce((total, item) => total + item.actions.filter(action => action.status !== 'completed').length, 0);
-  const evidenceItems = cases.reduce((total, item) => total + (item.medicalRecords?.length || 0), 0);
+  const openActions = cases.reduce((total, item) => total + (item?.actions || []).filter(action => action && action.status !== 'completed').length, 0);
+  const evidenceItems = cases.reduce((total, item) => total + (item?.medicalRecords?.length || 0), 0);
 
   const stats = [
     { label: 'Active cases', value: cases.length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },

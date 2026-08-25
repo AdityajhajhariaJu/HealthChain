@@ -75,6 +75,14 @@ export default function HelpCenter() {
     }
   };
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
   const copyEmail = async () => {
     try {
       if (navigator.clipboard?.writeText) {
@@ -88,7 +96,8 @@ export default function HelpCenter() {
         document.body.removeChild(textarea);
       }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (e) {
       console.warn('Failed to copy email to clipboard:', e);
     }
