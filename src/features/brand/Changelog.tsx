@@ -4,6 +4,17 @@ import { useNavigate } from 'react-router-dom';
 
 const log = [
   {
+    version: 'v10.0.0',
+    date: 'August 25, 2026',
+    changes: [
+      { type: 'feature', text: 'Diagnostic Intelligence Engine: Gemini 2.5 Flash with sub-clinical biomarker tracking' },
+      { type: 'feature', text: 'Case Component Connections: Interactive SVG map visualizing symptom-condition causal links' },
+      { type: 'improvement', text: 'Resilient Offline Sync Outbox with automatic background retries and IndexedDB backup' },
+      { type: 'improvement', text: 'Timezone-aware symptom check-in streaks and clinician appointment dossier exporter' },
+      { type: 'fix', text: 'Hardened floating feedback persistence, push notification permissions, and macro calculators' }
+    ]
+  },
+  {
     version: 'v2.1.0',
     date: 'August 15, 2026',
     changes: [

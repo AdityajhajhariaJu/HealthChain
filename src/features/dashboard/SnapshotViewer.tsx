@@ -158,27 +158,32 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                <section>
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Discussion Pathways</h3>
                   <div style={{ display: 'grid', gap: 12 }}>
-                    {(activeReview.report?.topDiagnoses || []).map((d: any, i: number) => (
-                      <div
-                        key={i}
-                        style={{
-                          padding: 16,
-                          borderRadius: 14,
-                          background: '#f8fafc',
-                          borderLeft: '4px solid #10B981',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                          <strong>{d.condition}</strong>
-                          <span className="badge badge-teal">{d.specialty || 'Review'}</span>
-                        </div>
-                        <p
-                          style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
+                    {(activeReview.report?.topDiagnoses || []).map((d: any, i: number) => {
+                      const condition = typeof d === 'string' ? d : d?.condition || 'Diagnosis';
+                      const rationale = typeof d === 'string' ? '' : d?.rationale || '';
+                      const specialty = typeof d === 'string' ? 'Review' : d?.specialty || 'Review';
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            padding: 16,
+                            borderRadius: 14,
+                            background: '#f8fafc',
+                            borderLeft: '4px solid #10B981',
+                          }}
                         >
-                          {elifMode ? `We think it might be ${d.condition}. The doctors discussed this and agree on the next steps.` : d.rationale}
-                        </p>
-                      </div>
-                    ))}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                            <strong>{condition}</strong>
+                            <span className="badge badge-teal">{specialty}</span>
+                          </div>
+                          <p
+                            style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
+                          >
+                            {elifMode ? `We think it might be ${condition}. The doctors discussed this and agree on the next steps.` : rationale}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                </section>
                
@@ -189,7 +194,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                         <div key={idx} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 16px', background: '#f8fafc', borderRadius: 8 }}>
                            <CheckCircle2 size={18} color="#64748b"/>
                            <span style={{ fontSize: 14, color: '#334155' }}>
-                              {typeof action === 'string' ? action : action?.step || action?.title || 'Action item'}
+                              {typeof action === 'string' ? action : action?.step || action?.title || action?.action || 'Action item'}
                            </span>
                         </div>
                      ))}
@@ -199,11 +204,14 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                <section>
                   <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Participating Specialists</h3>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                     {(activeReview.specialists || []).map((s: string) => (
-                        <span key={s} style={{ background: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: 6, fontSize: 13 }}>
-                           {s}
-                        </span>
-                     ))}
+                     {(activeReview.specialists || []).map((s: any, sIdx: number) => {
+                        const label = typeof s === 'string' ? s : s?.label || s?.name || 'Specialist';
+                        return (
+                          <span key={label + sIdx} style={{ background: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: 6, fontSize: 13 }}>
+                             {label}
+                          </span>
+                        );
+                     })}
                   </div>
                </section>
             </div>
