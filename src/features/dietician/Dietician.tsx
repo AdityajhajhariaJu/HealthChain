@@ -60,6 +60,7 @@ import { getActiveSession } from '../../services/authSession';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Gain muscle'];
@@ -390,6 +391,12 @@ export default function Dietician() {
       }));
       return;
     }
+
+    if (!canUseTrial('dietician')) {
+      openTrialModal('Clinical Dietician (1 Free Trial Meal Plan)');
+      return;
+    }
+
     setIsGeneratingPlan(true);
     try {
       const plan = await generateMealPlan(profile, 7);
@@ -398,6 +405,7 @@ export default function Dietician() {
           setMealPlan(plan);
           awardPoints(3, '✨ Generated 7-Day Precision Meal Plan', 'lifestyle', `diet_plan_${Date.now()}`);
           triggerHapticSuccess();
+          recordTrialUsage('dietician');
         }
         addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan });
       }

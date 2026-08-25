@@ -84,9 +84,14 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
   </ErrorBoundary>
 );
 
-const ProRoute = ({ children }: { children: React.ReactNode }) => {
+import { openTrialModal } from './services/TrialEngine';
+
+const ProRoute = ({ children, featureName = 'Premium Specialist Suite' }: { children: React.ReactNode; featureName?: string }) => {
   const profile = getProfile();
-  if (!profile?.isPro) return <Navigate to="/pricing" replace />;
+  if (!profile?.isPro) {
+    setTimeout(() => openTrialModal(featureName), 80);
+    return <Navigate to="/app/today" replace />;
+  }
   return <SafeRoute>{children}</SafeRoute>;
 };
 
@@ -519,9 +524,9 @@ export default function App() {
           <Route
             path="/app/collab"
             element={
-              <SafeRoute>
+              <ProRoute featureName="Collaborative Specialists Board">
                 <MDTHub />
-              </SafeRoute>
+              </ProRoute>
             }
           />
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
@@ -554,9 +559,9 @@ export default function App() {
           <Route
             path="/app/reports"
             element={
-              <SafeRoute>
+              <ProRoute featureName="Lab Report & Scan PDF Analyzer">
                 <ClinicalReportAnalyzer />
-              </SafeRoute>
+              </ProRoute>
             }
           />
           <Route
@@ -578,9 +583,9 @@ export default function App() {
           <Route
             path="/app/jarvis"
             element={
-              <SafeRoute>
+              <ProRoute featureName="J.A.R.V.I.S. Root-Cause Engine">
                 <JarvisInvestigator />
-              </SafeRoute>
+              </ProRoute>
             }
           />
 

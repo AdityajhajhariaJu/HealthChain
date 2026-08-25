@@ -27,6 +27,7 @@ import { getRunScope, clearRunStorage, makeRunId } from '../../services/RunConte
 import { getActiveSession } from '../../services/authSession';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { trackConsultationStarted } from '../../services/analytics';
+import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 
 const cachedQuickConsultStreams: any = {};
 // Resolve these at use-time rather than module import so a profile/account
@@ -149,7 +150,12 @@ export default function QuickConsult() {
       return;
     }
 
-    setPhase('upload'); // Modified to correctly go to upload phase!
+    if (!canUseTrial('quick_consult')) {
+      openTrialModal('Quick Consult (1 Free Trial Session)');
+      return;
+    }
+
+    setPhase('upload');
   };
 
   
@@ -265,6 +271,7 @@ export default function QuickConsult() {
       // case from sessionStorage without its saved review.
       setActiveCase(savedCase);
       awardPoints(5, `Quick Consult: ${selectedSpecialist?.label || 'Specialist'}`, 'consult');
+      recordTrialUsage('quick_consult');
 
       // Fire and forget: Generate connection map
       generateCaseConnectionMap(reportData.topDiagnoses || []).then((mapData) => {

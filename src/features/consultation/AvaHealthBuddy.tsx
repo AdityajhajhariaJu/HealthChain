@@ -7,6 +7,7 @@ import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiSe
 import { addEvent } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
+import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 
 const SUGGESTIONS = [
   "I'm looking for mental peace and a calm space to de-stress.",
@@ -217,6 +218,7 @@ export default function AvaHealthBuddy() {
           lastMessage: response,
           messageCount: newMessages.length + 1,
       }, false, null as any, sessionId as any);
+      recordTrialUsage('ava');
     },
     onError: () => {
       setIsTyping(false);
@@ -286,6 +288,12 @@ export default function AvaHealthBuddy() {
           return;
         }
     }
+
+    if (!canUseTrial('ava')) {
+      openTrialModal('Ava Health Buddy (10 Free Trial Replies)');
+      return;
+    }
+
     if ((!text.trim() && attachments.length === 0) || isTyping || isStreaming) return;
 
     let finalContent = text.trim();

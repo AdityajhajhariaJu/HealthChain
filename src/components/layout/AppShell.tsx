@@ -43,6 +43,8 @@ import { GuestStickyBanner } from '../ui/GuestStickyBanner';
 import VitalityPointsModal from '../ui/VitalityPointsModal';
 import PointsAwardedToast from '../ui/PointsAwardedToast';
 import UpgradeToProCard from '../ui/UpgradeToProCard';
+import { TrialFeaturesModal } from '../ui/TrialFeaturesModal';
+import { openTrialModal } from '../../services/TrialEngine';
 import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
 
@@ -55,8 +57,8 @@ function AnimatedOutlet() {
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick Consult', icon: Stethoscope },
-  { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain },
-  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: NetworkHubIcon },
+  { to: '/app/collab', label: 'Collaborative Specialists', icon: Brain, proOnly: true },
+  { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: NetworkHubIcon, proOnly: true },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
@@ -64,14 +66,14 @@ const links: any[] = [
   { to: '/app/dietician', label: 'Dietician', icon: Apple },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
-  { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
+  { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText, proOnly: true },
 ];
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Quick', icon: Stethoscope },
-  { to: '/app/collab', label: 'Deep', icon: Brain },
-  { to: '/app/jarvis', label: 'JARVIS', icon: NetworkHubIcon },
+  { to: '/app/collab', label: 'Deep', icon: Brain, proOnly: true },
+  { to: '/app/jarvis', label: 'JARVIS', icon: NetworkHubIcon, proOnly: true },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 
@@ -183,7 +185,7 @@ export default function AppShell() {
                 onClick={(e) => {
                   if (isLocked) {
                     e.preventDefault();
-                    if (l.proOnly && !profile?.isPro) navigate('/pricing');
+                    if (l.proOnly && !profile?.isPro) openTrialModal(l.label);
                     else alert(l.label + ' is coming soon!');
                   }
                 }}
@@ -284,15 +286,22 @@ export default function AppShell() {
             {mobileTabs.map((tab) => (
               <NavLink
                 key={tab.to}
-                to={tab.to}
-                className={({ isActive }) => `mobile-tab ${isActive ? 'active' : ''}`}
-                onClick={() => {
+                to={tab.proOnly && !profile?.isPro ? '#' : tab.to}
+                className={({ isActive }) => `mobile-tab ${isActive && (!tab.proOnly || profile?.isPro) ? 'active' : ''}`}
+                onClick={(e) => {
                   Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
                   setShowMoreMenu(false);
+                  if (tab.proOnly && !profile?.isPro) {
+                    e.preventDefault();
+                    openTrialModal(tab.label);
+                  }
                 }}
               >
                 <tab.icon size={22} />
                 <span>{tab.label}</span>
+                {tab.proOnly && !profile?.isPro && (
+                  <Lock size={10} style={{ position: 'absolute', top: '4px', right: '16px', opacity: 0.7 }} />
+                )}
               </NavLink>
             ))}
             <button
@@ -350,7 +359,7 @@ export default function AppShell() {
                         if (isLocked) {
                           if (l.proOnly && !profile?.isPro) {
                             setShowMoreMenu(false);
-                            navigate('/pricing');
+                            openTrialModal(l.label);
                           } else {
                             alert(l.label + ' is coming soon!');
                           }
@@ -404,6 +413,7 @@ export default function AppShell() {
       <AuthModal />
       <VitalityPointsModal />
       <PointsAwardedToast />
+      <TrialFeaturesModal />
     </div>
   );
 }
