@@ -40,10 +40,12 @@ interface FeatureItem {
 }
 
 const BASIC_FEATURES: FeatureItem[] = [
+  { name: '1 Quick Consult Session (Trial)', desc: 'Instant single-specialist review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
+  { name: 'Ava Health Buddy (10 Replies)', desc: 'Concierge medical Q&A & triage', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
+  { name: 'Clinical Dietician (1 Plan Trial)', desc: 'Precision 7-day metabolic meal plan', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
+  { name: 'Clinical Trials Matcher (Unlimited)', desc: 'Global active study matches & eligibility', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
+  { name: 'Pharmacy Hub (Unlimited)', desc: 'Interactions & safe dosage checks', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
   { name: 'Medical Profile & Vault', desc: 'Encrypted personal history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Ava Health Buddy (10 Replies)', desc: 'Concierge medical Q&A', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
-  { name: 'Pharmacy Hub (Unlimited)', desc: 'Interactions & safe dosage', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
-  { name: 'Lab Report PDF Analyzer', desc: 'Basic vital extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Vitality Points & Rewards System', desc: 'Daily arcade, streaks & tier medals', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 

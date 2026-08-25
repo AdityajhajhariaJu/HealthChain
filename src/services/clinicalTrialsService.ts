@@ -36,9 +36,21 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
 export async function fetchLiveTrials(conditions: string[]): Promise<ClinicalTrial[]> {
   if (!conditions || conditions.length === 0) return [];
 
-  // For better matching, we'll query using the primary condition.
-  // ClinicalTrials.gov Essie syntax supports OR, but for simple fetching, we'll use query.cond
   const primaryCondition = conditions[0];
+
+  // Try backend proxy /api/trials first
+  try {
+    const backendRes = await fetchWithTimeout(`/api/trials?condition=${encodeURIComponent(primaryCondition)}&pageSize=6`, {}, 8000);
+    if (backendRes.ok) {
+      const json = await backendRes.json();
+      if (json.studies && Array.isArray(json.studies)) {
+        return json.studies;
+      }
+    }
+  } catch (backendErr) {
+    // Fallback to direct client-side fetch
+  }
+
   const url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(
     primaryCondition
   )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=5&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule`;
