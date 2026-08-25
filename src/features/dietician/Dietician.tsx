@@ -219,12 +219,27 @@ export default function Dietician() {
         const savedAdvice = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
         const savedGrocery = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
 
-        if (savedProfile) setProfile({ ...JSON.parse(savedProfile), ...calculateTargets(JSON.parse(savedProfile)) });
-        if (savedLogs) setFoodLogs(JSON.parse(savedLogs));
-        if (savedHydration) setHydration(JSON.parse(savedHydration));
-        if (savedPlan) setMealPlan(JSON.parse(savedPlan));
+        if (savedProfile) {
+          try {
+            const parsed = JSON.parse(savedProfile);
+            setProfile({ ...parsed, ...calculateTargets(parsed) });
+          } catch (e) {
+            console.warn('Corrupt savedProfile in diet', e);
+          }
+        }
+        if (savedLogs) {
+          try { setFoodLogs(JSON.parse(savedLogs)); } catch (e) {}
+        }
+        if (savedHydration) {
+          try { setHydration(JSON.parse(savedHydration)); } catch (e) {}
+        }
+        if (savedPlan) {
+          try { setMealPlan(JSON.parse(savedPlan)); } catch (e) {}
+        }
         if (savedAdvice) setAdvice(savedAdvice);
-        if (savedGrocery) setGroceryList(JSON.parse(savedGrocery));
+        if (savedGrocery) {
+          try { setGroceryList(JSON.parse(savedGrocery)); } catch (e) {}
+        }
 
         await syncHealthMemoryFromSupabase();
         if (cancelled || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;

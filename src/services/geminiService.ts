@@ -45,30 +45,44 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
       ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}),
     }
   };
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, { ...secureOptions, signal: controller.signal });
-    if (!response.ok) {
-      if (response.status === 401) {
-        const { data, error } = await supabase.auth.refreshSession();
-        if (error || !data.session) {
-          window.dispatchEvent(new Event('hc_logout'));
-          throw new Error('Session expired. Please log in again.');
+  const executeFetch = async (retryCount = 0): Promise<Response> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...secureOptions, signal: controller.signal });
+      if (!response.ok) {
+        if (response.status === 401) {
+          const { data, error } = await supabase.auth.refreshSession();
+          if (!error && data?.session) {
+            secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
+            return await fetch(url, { ...secureOptions, signal: controller.signal });
+          }
+          throw new Error('Session expired or unauthorized. Please verify your login.');
+        } else if (response.status === 402) {
+          window.dispatchEvent(new CustomEvent('hc_quota_exceeded', { 
+            detail: { operation: secureOptions.headers['X-HC-Operation'] } 
+          }));
+          throw new Error('QUOTA_EXCEEDED');
+        } else if ((response.status === 502 || response.status === 503 || response.status === 504 || response.status === 429) && retryCount < 2) {
+          const delay = (retryCount + 1) * 800;
+          await new Promise(res => setTimeout(res, delay));
+          return executeFetch(retryCount + 1);
         }
-        secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
-        return await fetch(url, { ...secureOptions, signal: controller.signal });
-      } else if (response.status === 402) {
-        window.dispatchEvent(new CustomEvent('hc_quota_exceeded', { 
-          detail: { operation: secureOptions.headers['X-HC-Operation'] } 
-        }));
-        throw new Error('QUOTA_EXCEEDED');
       }
+      return response;
+    } catch (err: any) {
+      if (retryCount < 2 && err.name !== 'AbortError' && err.message !== 'QUOTA_EXCEEDED') {
+        const delay = (retryCount + 1) * 800;
+        await new Promise(res => setTimeout(res, delay));
+        return executeFetch(retryCount + 1);
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeout);
     }
-    return response;
-  } finally {
-    clearTimeout(timeout);
-  }
+  };
+
+  return executeFetch(0);
 };
 
 export interface Message {

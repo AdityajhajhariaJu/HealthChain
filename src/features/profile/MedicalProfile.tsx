@@ -77,8 +77,12 @@ export default function MedicalProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [demoForm, setDemoForm] = useState(() => {
-    const saved = sessionStorage.getItem('hc_profile_demo_form');
-    return saved ? JSON.parse(saved) : profile.demographics;
+    try {
+      const saved = sessionStorage.getItem('hc_profile_demo_form');
+      return saved ? JSON.parse(saved) : profile.demographics;
+    } catch {
+      return profile.demographics;
+    }
   });
 
   useEffect(() => {
@@ -86,7 +90,7 @@ export default function MedicalProfile() {
     if (isEditingDemo) {
       try { sessionStorage.setItem('hc_profile_demo_form', JSON.stringify(demoForm)); } catch(e) {}
     } else {
-      sessionStorage.removeItem('hc_profile_demo_form');
+      try { sessionStorage.removeItem('hc_profile_demo_form'); } catch(e) {}
     }
   }, [isEditingDemo, demoForm]);
   const [newAllergy, setNewAllergy] = useState('');
@@ -94,8 +98,12 @@ export default function MedicalProfile() {
   const [activeCase, setActiveCase] = useState(getActiveCase());
   const [chartMetric, setChartMetric] = useState<'eGFR' | 'weight' | 'bpSystolic'>('eGFR');
   const [synthesisData, setSynthesisData] = useState<any>(() => {
-    const cached = sessionStorage.getItem(synthesisKey);
-    return cached ? JSON.parse(cached) : null;
+    try {
+      const cached = sessionStorage.getItem(synthesisKey);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
   });
   const [isGeneratingSynthesis, setIsGeneratingSynthesis] = useState(false);
   const profileRef = useRef<any>(null);
