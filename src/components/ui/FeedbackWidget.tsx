@@ -10,14 +10,34 @@ export default function FeedbackWidget() {
   const { success } = useToast();
   const isMobile = useIsMobile();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!feedback.trim()) return;
     
-    // Simulate sending feedback
-    success('Feedback sent', 'Thank you for helping us improve HealthChain!');
+    const msg = feedback.trim();
     setFeedback('');
     setIsOpen(false);
+    success('Feedback sent', 'Thank you for helping us improve HealthChain!');
+
+    try {
+      const { supabase } = await import('../../services/supabaseClient');
+      const { data: { session } } = await supabase.auth.getSession();
+      await supabase.from('user_feedback').insert({
+        user_id: session?.user?.id || null,
+        user_email: session?.user?.email || 'Anonymous Guest',
+        category: 'widget_feedback',
+        rating: 5,
+        subject: 'Quick Feedback Widget',
+        message: msg,
+        metadata: {
+          submittedAt: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          appVersion: '10.0.0'
+        }
+      });
+    } catch (err) {
+      console.warn('Feedback logging encountered an error:', err);
+    }
   };
 
   return (

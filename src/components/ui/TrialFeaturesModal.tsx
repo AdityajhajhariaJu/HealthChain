@@ -73,7 +73,7 @@ export function TrialFeaturesModal({
   const handleGoToPricing = () => {
     try { triggerHapticLight(); } catch {}
     handleClose();
-    navigate('/pricing');
+    navigate('/app/pricing');
   };
 
   if (!isModalOpen) return null;

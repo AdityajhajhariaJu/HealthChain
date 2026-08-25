@@ -18,7 +18,7 @@ export default function UpgradeToProCard({ isPro = false, compact = false, onNav
   const handleClick = () => {
     try { triggerHapticLight(); } catch {}
     if (onNavigate) onNavigate();
-    navigate('/pricing');
+    navigate('/app/pricing');
   };
 
   if (isPro) {
