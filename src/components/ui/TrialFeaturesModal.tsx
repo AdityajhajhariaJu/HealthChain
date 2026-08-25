@@ -556,12 +556,12 @@ export function TrialFeaturesModal({
             <div style={{ flex: '1 1 280px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <Brain size={16} color="#38BDF8" />
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>
+                <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
                   Ready for the 16-Specialist Board, J.A.R.V.I.S. & All Premium Features?
                 </span>
               </div>
-              <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0, lineHeight: 1.4 }}>
-                Unlock multi-doctor clinical consensus, autonomous root-cause scans, lab report analysis, and all our highly useful premium clinical tools with Pro.
+              <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0, lineHeight: 1.45 }}>
+                Cross-examine complex symptoms across 16 medical specialties, uncover hidden root causes with J.A.R.V.I.S., analyze full lab scans, and unlock all our highly useful clinical tools with Pro.
               </p>
             </div>
 
