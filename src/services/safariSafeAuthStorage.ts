@@ -76,7 +76,7 @@ export const safariSafeAuthStorage = {
     return null;
   },
 
-  setItem(key: string, value: string): void {
+  async setItem(key: string, value: string): Promise<void> {
     // 1. Update memory
     memoryCache.set(key, value);
 
@@ -91,11 +91,13 @@ export const safariSafeAuthStorage = {
 
     // 3. Update IndexedDB asynchronously for robust offline/PWA backup
     try {
-      set(IDB_PREFIX + key, value).catch(() => {});
-    } catch {}
+      await set(IDB_PREFIX + key, value);
+    } catch (e) {
+      console.warn('[SafariSafeAuthStorage] IndexedDB write error:', e);
+    }
   },
 
-  removeItem(key: string): void {
+  async removeItem(key: string): Promise<void> {
     // 1. Remove from memory
     memoryCache.delete(key);
 
@@ -110,8 +112,10 @@ export const safariSafeAuthStorage = {
 
     // 3. Remove from IndexedDB
     try {
-      del(IDB_PREFIX + key).catch(() => {});
-    } catch {}
+      await del(IDB_PREFIX + key);
+    } catch (e) {
+      console.warn('[SafariSafeAuthStorage] IndexedDB remove error:', e);
+    }
   },
 };
 
