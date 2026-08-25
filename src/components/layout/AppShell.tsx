@@ -39,6 +39,7 @@ import { triggerHapticLight } from '../../services/haptics';
 import Breadcrumbs from '../ui/Breadcrumbs';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import { AuthModal } from '../ui/AuthModal';
+import { GuestStickyBanner } from '../ui/GuestStickyBanner';
 import VitalityPointsModal from '../ui/VitalityPointsModal';
 import PointsAwardedToast from '../ui/PointsAwardedToast';
 import UpgradeToProCard from '../ui/UpgradeToProCard';
@@ -219,6 +220,7 @@ export default function AppShell() {
       )}
 
         <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
+          <GuestStickyBanner />
           {!location.pathname.startsWith('/app/jarvis') && (
             <div style={{ display: (isMobile && ['/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
               <BrandPulseBanner />
