@@ -85,7 +85,7 @@ export default function Auth() {
         if (rememberMe) {
           try { localStorage.setItem('hc_remember', 'true'); } catch(e) {}
         } else {
-          localStorage.removeItem('hc_remember');
+          try { localStorage.removeItem('hc_remember'); } catch(e) {}
         }
 
         // Navigation is handled by App.tsx onAuthStateChange listener

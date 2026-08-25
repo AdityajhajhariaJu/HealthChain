@@ -35,15 +35,14 @@ export default async function handler(req, res) {
     queryCondition
   )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=${pageSize}&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule`;
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
 
+  try {
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' },
       signal: controller.signal
-    });
-    clearTimeout(timeoutId);
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       return res.status(response.status).json({ error: `ClinicalTrials API responded with ${response.statusText}` });

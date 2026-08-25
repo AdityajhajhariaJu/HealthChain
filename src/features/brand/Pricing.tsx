@@ -30,6 +30,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
 import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
+import { loadRazorpaySDK } from '../../services/razorpay';
 
 interface FeatureItem {
   name: string;
@@ -111,20 +112,6 @@ export default function Pricing() {
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   const handleCheckout = async (planId: string) => {
     if (isProcessing) return;
     try {
@@ -137,7 +124,7 @@ export default function Pricing() {
         return;
       }
 
-      const res = await loadRazorpayScript();
+      const res = await loadRazorpaySDK();
       if (!res) {
         toast.error('Payment Error', 'Razorpay SDK failed to load. Please check your internet connection.');
         setIsProcessing(null);

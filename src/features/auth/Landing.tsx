@@ -71,6 +71,13 @@ export default function Landing() {
   const [guestMode, setGuestMode] = useState(false);
   const isLoggedOut = !hasSession && !guestMode;
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +99,8 @@ export default function Landing() {
       try { localStorage.setItem('hc_guest_mode', 'true'); } catch(e) {}
     }
 
-    setTimeout(() => {
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    navTimerRef.current = setTimeout(() => {
       navigate('/app/today');
     }, 1100);
   };

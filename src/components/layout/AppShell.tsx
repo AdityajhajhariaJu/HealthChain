@@ -114,7 +114,7 @@ export default function AppShell() {
   useEffect(() => {
     const loadHistory = () => {
       // Load recent cases, sorted by updated date
-      const cases = getCases().sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      const cases = getCases().sort((a, b) => (new Date(b?.updatedAt || 0).getTime() || 0) - (new Date(a?.updatedAt || 0).getTime() || 0));
       setHistory(cases);
     };
     loadHistory();

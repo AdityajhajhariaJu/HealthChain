@@ -3,6 +3,7 @@ import { Sparkles, Loader2, X } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
 import { trackPurchase } from '../../services/analytics';
+import { loadRazorpaySDK } from '../../services/razorpay';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'pharmacy_hub' | 'lab_report';
@@ -30,6 +31,13 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
       setIsProcessing(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
+
+      const sdkLoaded = await loadRazorpaySDK();
+      if (!sdkLoaded) {
+        toast.error('Payment Error', 'Razorpay SDK failed to load. Please check your internet connection.');
+        setIsProcessing(false);
+        return;
+      }
 
       const authHeaders = {
         'Content-Type': 'application/json',
