@@ -36,11 +36,15 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         'Authorization': `Bearer ${session.access_token}`
       };
 
+      const orderController = new AbortController();
+      const orderTimeout = setTimeout(() => orderController.abort(), 20000);
+
       const orderRes = await fetch('/api/create-order', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ plan_id: plan.id })
-      });
+        body: JSON.stringify({ plan_id: plan.id }),
+        signal: orderController.signal
+      }).finally(() => clearTimeout(orderTimeout));
 
       if (!orderRes.ok) {
         const errData = await orderRes.json();
@@ -59,6 +63,9 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         order_id: orderData.id,
         handler: async function (response: any) {
           try {
+            const verifyController = new AbortController();
+            const verifyTimeout = setTimeout(() => verifyController.abort(), 25000);
+
             const verifyRes = await fetch('/api/verify-payment', {
               method: 'POST',
               headers: authHeaders,
@@ -67,8 +74,9 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
                 plan_id: plan.id
-              })
-            });
+              }),
+              signal: verifyController.signal
+            }).finally(() => clearTimeout(verifyTimeout));
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               trackPurchase(orderData.amount / 100, plan.id);

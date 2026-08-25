@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users, AlertTriangle } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useToast } from '../../components/ui/ToastProvider';
 import Skeleton from '../../components/ui/Skeleton';
 
 const formatDate = (value: string) => {
@@ -127,9 +129,11 @@ function CrossCaseInsightBanner({ cases, isMobile }: { cases: CaseItem[]; isMobi
 export default function MyCases() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const toast = useToast();
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [caseToDelete, setCaseToDelete] = useState<CaseItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -317,21 +321,18 @@ export default function MyCases() {
                        )}
                     </div>
                  </div>
-                 <button
-                   aria-label="Delete case"
-                   onClick={(e) => {
-                     e.stopPropagation();
-                     if (window.confirm('Are you sure you want to delete this case?')) {
-                       deleteCase(caseItem.id);
-                       setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
-                     }
-                   }}
-                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px', color: '#ef4444' }}
-                 >
-                   <Trash2 size={20} />
-                 </button>
-                 <ChevronRight size={20} color="#cbd5e1" />
-              </div>
+                  <button
+                    aria-label="Delete case"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseToDelete(caseItem);
+                    }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px', color: '#ef4444' }}
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                  <ChevronRight size={20} color="#cbd5e1" />
+               </div>
             );
           })
         ) : (
@@ -365,6 +366,84 @@ export default function MyCases() {
           </button>
         </div>
       )}
+
+      {/* Custom Delete Confirmation Modal */}
+      <AnimatePresence>
+        {caseToDelete && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+            onClick={() => setCaseToDelete(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: isMobile ? '24px 20px' : '32px 28px',
+                maxWidth: '440px',
+                width: '100%',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                border: '1px solid #F1F5F9'
+              }}
+            >
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <AlertTriangle size={24} />
+              </div>
+              <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>
+                Delete Clinical Case?
+              </h3>
+              <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
+                Are you sure you want to delete <strong style={{ color: '#0F172A' }}>"{caseToDelete.title}"</strong>? This will permanently remove all associated consensus reports and differential notes.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setCaseToDelete(null)}
+                  style={{ flex: 1, padding: '10px 16px', borderRadius: '12px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    deleteCase(caseToDelete.id);
+                    setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
+                    toast.success('Case Deleted', 'The selected case record has been removed.');
+                    setCaseToDelete(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    background: '#EF4444',
+                    color: '#FFF',
+                    border: 'none',
+                    fontWeight: 650,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Delete Case
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

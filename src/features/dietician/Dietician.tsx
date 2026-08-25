@@ -196,6 +196,7 @@ export default function Dietician() {
   const [selectedMealType, setSelectedMealType] = useState('Breakfast');
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
 
   // Hydrate diet state
   useEffect(() => {
@@ -637,23 +638,7 @@ export default function Dietician() {
             </button>
             <div style={{ width: '1px', height: '22px', background: '#E2E8F0', margin: '6px 2px', flexShrink: 0 }} />
             <button
-              onClick={() => {
-                if (window.confirm('Reset your personalized diet profile and targets?')) {
-                  const pKey = getProfileKey();
-                  localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_diet_profile'));
-                  localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_meal_plan'));
-                  localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_diet_advice'));
-                  localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_food_logs'));
-                  localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_hydration'));
-                  localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_grocery_list'));
-                  setProfile(null);
-                  setAdvice(null);
-                  setMealPlan(null);
-                  setFoodLogs({});
-                  setHydration({});
-                  setGroceryList(DEFAULT_GROCERY_CATEGORIES);
-                }
-              }}
+              onClick={() => setShowResetDietConfirm(true)}
               style={{
                 padding: '8px',
                 background: 'transparent',
@@ -1987,6 +1972,95 @@ export default function Dietician() {
                   </button>
                 </motion.div>
               </FocusTrap>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Custom Reset Diet Profile Confirmation Modal */}
+        <AnimatePresence>
+          {showResetDietConfirm && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(15, 23, 42, 0.65)',
+                backdropFilter: 'blur(6px)',
+                zIndex: 99999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px'
+              }}
+              onClick={() => setShowResetDietConfirm(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 16 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: '24px',
+                  padding: isMobile ? '24px 20px' : '32px 28px',
+                  maxWidth: '440px',
+                  width: '100%',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                  border: '1px solid #F1F5F9'
+                }}
+              >
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <Trash2 size={24} />
+                </div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>
+                  Reset Diet Profile & Plan?
+                </h3>
+                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
+                  This will reset your personalized diet profile, active meal plans, grocery checklist, and food logs for this profile.
+                </p>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button
+                    className="btn btn-outline"
+                    onClick={() => setShowResetDietConfirm(false)}
+                    style={{ flex: 1, padding: '10px 16px', borderRadius: '12px' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      const pKey = getProfileKey();
+                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_diet_profile'));
+                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_meal_plan'));
+                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_diet_advice'));
+                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_food_logs'));
+                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_hydration'));
+                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_grocery_list'));
+                      setProfile(null);
+                      setAdvice(null);
+                      setMealPlan(null);
+                      setFoodLogs({});
+                      setHydration({});
+                      setGroceryList(DEFAULT_GROCERY_CATEGORIES);
+                      setShowResetDietConfirm(false);
+                      toast.success('Diet Profile Reset', 'Your diet plan and profile targets have been reset.');
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      background: '#EF4444',
+                      color: '#FFF',
+                      border: 'none',
+                      fontWeight: 650,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Reset Diet
+                  </button>
+                </div>
+              </motion.div>
             </div>
           )}
         </AnimatePresence>

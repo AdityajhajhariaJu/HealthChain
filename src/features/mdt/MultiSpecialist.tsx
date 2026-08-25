@@ -348,8 +348,9 @@ export default function MultiSpecialist() {
           if (reportData) {
             setFinalReport(reportData);
             setPhase('report');
-            if (reportData.topDiagnoses && reportData.topDiagnoses.length > 0)
+            if (reportData.topDiagnoses?.[0]?.condition) {
               addCondition(reportData.topDiagnoses[0].condition, 'multi_specialist');
+            }
             addEvent(
               'mdt_report',
               'multi_specialist',

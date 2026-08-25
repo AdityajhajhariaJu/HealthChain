@@ -833,8 +833,8 @@ function resolveCaseReport(item: CaseItem): any {
   let rep = { ...(item.currentSummary || {}) };
   
   // Check if topDiagnoses is missing, empty, or only contains dummy "Pending Further Review"
-  const isDummyDiagnoses = !rep.topDiagnoses || rep.topDiagnoses.length === 0 || 
-    (rep.topDiagnoses.length === 1 && (rep.topDiagnoses[0].condition === 'Pending Further Review' || !rep.topDiagnoses[0].condition));
+  const isDummyDiagnoses = !Array.isArray(rep.topDiagnoses) || rep.topDiagnoses.length === 0 || 
+    (rep.topDiagnoses.length === 1 && (rep.topDiagnoses[0]?.condition === 'Pending Further Review' || !rep.topDiagnoses[0]?.condition));
 
   // If report lacks rich findings or has dummy diagnoses, harvest from transcripts
   if (isDummyDiagnoses || !rep.keyFindings || !rep.interpretation) {
@@ -1362,7 +1362,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                    <span style={{ fontSize: 13.5, color: '#64748B' }}>Updated: {formatDate(item.updatedAt)}</span>
                 </div>
 
-                {item.reviews?.[0]?.specialists && item.reviews[0].specialists.length > 0 && (
+                {Array.isArray(item.reviews?.[0]?.specialists) && item.reviews[0].specialists.length > 0 && (
                   <div style={{ paddingTop: 14, borderTop: '1px solid #F1F5F9', marginBottom: 16 }}>
                     <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                       Specialists Involved

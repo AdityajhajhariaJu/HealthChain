@@ -1745,7 +1745,7 @@ export function MDTReportPanel({
       setReport(data);
 
 
-      if (data.topDiagnoses && data.topDiagnoses.length > 0) {
+      if (data.topDiagnoses?.[0]?.condition) {
         addCondition(data.topDiagnoses[0].condition, 'mdt_hub');
       }
       addEvent('mdt_report', 'mdt_hub', 'Board Conference Complete', data, true);

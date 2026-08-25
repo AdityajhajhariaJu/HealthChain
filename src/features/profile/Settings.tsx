@@ -34,6 +34,7 @@ export default function Settings() {
   const [activeProfileId, setActiveProfileId] = useState<string>('');
   const [isPremium, setIsPremium] = useState(isProUser());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast, success, error: toastError } = useToast();
@@ -73,18 +74,7 @@ export default function Settings() {
     };
   }, []);
 
-  const handleLogout = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.id) {
-      const { getPendingSyncCount } = await import('../../services/SyncOutbox');
-      const pending = await getPendingSyncCount(session.user.id);
-      if (pending > 0) {
-        if (!window.confirm('You have offline work that has not been saved to the cloud yet. Logging out will delete it permanently from this device. Are you sure you want to log out?')) {
-          return;
-        }
-      }
-    }
-
+  const executeLogout = async () => {
     try {
       await supabase.auth.signOut();
     } catch (e) {
@@ -110,6 +100,19 @@ export default function Settings() {
     navigate('/', { replace: true });
   };
 
+  const handleLogout = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.id) {
+      const { getPendingSyncCount } = await import('../../services/SyncOutbox');
+      const pending = await getPendingSyncCount(session.user.id);
+      if (pending > 0) {
+        setShowLogoutConfirm(true);
+        return;
+      }
+    }
+    await executeLogout();
+  };
+
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== 'DELETE') return;
@@ -118,10 +121,15 @@ export default function Settings() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
+        const deleteController = new AbortController();
+        const deleteTimeout = setTimeout(() => deleteController.abort(), 15000);
+
         const response = await fetch('/api/delete-account', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${session?.access_token}` }
-        });
+          headers: { 'Authorization': `Bearer ${session?.access_token}` },
+          signal: deleteController.signal
+        }).finally(() => clearTimeout(deleteTimeout));
+
         const body = await response.json().catch(() => ({}));
         if (!response.ok || !body.success) {
           throw new Error(body.error || 'The secure deletion service could not complete the request. Your data was not cleared locally.');
@@ -771,6 +779,81 @@ export default function Settings() {
               </button>
             </div>
           </div>
+          </FocusTrap>
+        </div>
+      )}
+
+      {/* Offline Unsynced Changes Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            padding: '20px',
+          }}
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <FocusTrap>
+            <div
+              className="card"
+              style={{
+                maxWidth: '440px',
+                width: '100%',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: '24px',
+                padding: '28px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <AlertTriangle size={24} />
+              </div>
+              <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700 }}>
+                Unsynced Offline Changes
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.5, marginBottom: '24px' }}>
+                You have offline consultations or profile updates that have not synced to the cloud yet. Logging out will clear local session storage.
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  className="btn btn-outline"
+                  style={{ flex: 1, padding: '10px 16px', borderRadius: '12px' }}
+                  onClick={() => setShowLogoutConfirm(false)}
+                >
+                  Stay Logged In
+                </button>
+                <button
+                  className="btn"
+                  style={{
+                    flex: 1,
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    background: '#EF4444',
+                    color: 'white',
+                    border: 'none',
+                    fontWeight: 650,
+                    cursor: 'pointer',
+                  }}
+                  onClick={async () => {
+                    setShowLogoutConfirm(false);
+                    await executeLogout();
+                  }}
+                >
+                  Log Out Anyway
+                </button>
+              </div>
+            </div>
           </FocusTrap>
         </div>
       )}

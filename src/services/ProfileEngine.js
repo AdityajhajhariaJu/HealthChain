@@ -288,14 +288,8 @@ export async function saveProfile(profile) {
   try {
     const state = getProfileEngineState();
     
-    // Simple Conflict Resolution: Check if the state in localStorage has a newer updatedAt
-    const currentState = getProfileEngineState();
-    const currentProfile = currentState.profiles[currentState.activeId];
-    if (currentProfile && currentProfile.demographics?.updatedAt && profile.demographics?.updatedAt) {
-      if (new Date(currentProfile.demographics.updatedAt).getTime() > new Date(profile.demographics.updatedAt).getTime()) {
-        const proceed = window.confirm("Conflict detected: This profile was modified in another tab or device. Overwrite?");
-        if (!proceed) return;
-      }
+    if (profile.demographics) {
+      profile.demographics.updatedAt = new Date().toISOString();
     }
 
     state.profiles[state.activeId] = profile;

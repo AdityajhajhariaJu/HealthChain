@@ -106,6 +106,7 @@ export default function MedicalProfile() {
     }
   });
   const [isGeneratingSynthesis, setIsGeneratingSynthesis] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const profileRef = useRef<any>(null);
 
   const account = useMemo(() => {
@@ -203,24 +204,22 @@ export default function MedicalProfile() {
     container.classList.remove('pdf-exporting');
   };
 
-  const handleClearData = () => {
-    if (window.confirm('Are you sure you want to clear all profile data? This cannot be undone.')) {
-      clearProfile();
-      localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
-      localStorage.removeItem('hc_history');
-      
-      const state = getProfileEngineState();
-      const profileKey = getProfileKey();
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_cases') + '_' + state.activeId);
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_active_case') + '_' + state.activeId);
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_ava_vault'));
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
-      localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
-      
-      window.location.reload();
-    }
+  const executeClearData = () => {
+    clearProfile();
+    localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
+    localStorage.removeItem('hc_history');
+    
+    const state = getProfileEngineState();
+    const profileKey = getProfileKey();
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_cases') + '_' + state.activeId);
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_active_case') + '_' + state.activeId);
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_ava_vault'));
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+    
+    window.location.reload();
   };
 
   const handleGenerateSynthesis = async () => {
@@ -414,7 +413,7 @@ export default function MedicalProfile() {
           </div>
           <button
             className="btn btn-ghost btn-sm"
-            onClick={handleClearData}
+            onClick={() => setShowClearConfirm(true)}
             style={{ color: '#EF4444' }}
           >
             <Trash2 size={16} /> Clear Data
@@ -1405,9 +1404,9 @@ export default function MedicalProfile() {
                                     <strong>Hypothesis:</strong> {event.data.chain_name}
                                   </div>
                                 )}
-                                {event.data?.topDiagnoses && event.data.topDiagnoses[0] && (
+                                {event.data?.topDiagnoses && event.data.topDiagnoses[0]?.condition && (
                                   <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    <strong>Consensus:</strong> {event.data.topDiagnoses[0].condition} ({event.data.topDiagnoses[0].confidence}%)
+                                    <strong>Consensus:</strong> {event.data.topDiagnoses[0].condition} ({event.data.topDiagnoses[0].confidence || event.data.topDiagnoses[0].probability || 0}%)
                                   </div>
                                 )}
                               </div>
@@ -1801,6 +1800,79 @@ export default function MedicalProfile() {
         </>
         )}
       </div>
+
+      {/* Custom Clear Data Confirmation Modal */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+            onClick={() => setShowClearConfirm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: isMobile ? '24px 20px' : '32px 28px',
+                maxWidth: '440px',
+                width: '100%',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                border: '1px solid #F1F5F9'
+              }}
+            >
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <Trash2 size={24} />
+              </div>
+              <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>
+                Reset Medical Profile?
+              </h3>
+              <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
+                Are you sure you want to clear all profile data, conditions, medications, and clinical logs? This action cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowClearConfirm(false)}
+                  style={{ flex: 1, padding: '10px 16px', borderRadius: '12px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={executeClearData}
+                  style={{
+                    flex: 1,
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    background: '#EF4444',
+                    color: '#FFF',
+                    border: 'none',
+                    fontWeight: 650,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Clear All Data
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
