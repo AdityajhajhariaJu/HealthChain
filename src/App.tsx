@@ -95,6 +95,18 @@ const ProRoute = ({ children, featureName = 'Premium Specialist Suite' }: { chil
   return <SafeRoute>{children}</SafeRoute>;
 };
 
+const VIP_HASH = 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
+
+async function sha256Hex(str: string): Promise<string> {
+  try {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return '';
+  }
+}
+
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -102,21 +114,28 @@ export default function App() {
   const [topUpFeature, setTopUpFeature] = React.useState<any>(null);
 
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const vipPass = params.get('vip_pass') || params.get('tester') || params.get('test_pass');
-      if (vipPass === 'hc_vip_tester_2026' || vipPass === 'aditya_vip' || vipPass === 'healthchain_vip') {
-        localStorage.setItem('hc_vip_tester', 'true');
-        localStorage.setItem('hc_guest_mode', 'false');
-        window.dispatchEvent(new Event('hc_profile_updated'));
-        info('🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
-        params.delete('vip_pass');
-        params.delete('tester');
-        params.delete('test_pass');
-        const newSearch = params.toString() ? `?${params.toString()}` : '';
-        window.history.replaceState({}, '', `${window.location.pathname}${newSearch}`);
-      }
-    } catch (e) {}
+    const checkVip = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const vipPass = params.get('vip_pass') || params.get('tester') || params.get('test_pass');
+        if (vipPass) {
+          const passHash = await sha256Hex(vipPass);
+          if (passHash === VIP_HASH) {
+            localStorage.setItem('hc_vp_sig', VIP_HASH);
+            localStorage.setItem('hc_vip_tester', 'true');
+            localStorage.setItem('hc_guest_mode', 'false');
+            window.dispatchEvent(new Event('hc_profile_updated'));
+            info('🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
+            params.delete('vip_pass');
+            params.delete('tester');
+            params.delete('test_pass');
+            const newSearch = params.toString() ? `?${params.toString()}` : '';
+            window.history.replaceState({}, '', `${window.location.pathname}${newSearch}`);
+          }
+        }
+      } catch (e) {}
+    };
+    checkVip();
   }, [info]);
 
   useEffect(() => {

@@ -828,8 +828,10 @@ export async function syncProfileFromSupabase() {
   }
 }
 
+const VIP_SIG_HASH = 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
+
 export function isProUser() { 
-  if (typeof localStorage !== 'undefined' && localStorage.getItem('hc_vip_tester') === 'true') {
+  if (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH || localStorage.getItem('hc_vip_tester') === 'true')) {
     return true;
   }
   const state = getProfileEngineState(); 
@@ -840,7 +842,7 @@ export function isProUser() {
 }
 
 export async function verifyProStatus() {
-  if (typeof localStorage !== 'undefined' && localStorage.getItem('hc_vip_tester') === 'true') {
+  if (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH || localStorage.getItem('hc_vip_tester') === 'true')) {
     return true;
   }
   try {
