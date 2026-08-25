@@ -779,8 +779,8 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       const localUpdated = localPrimary?.demographics?.updatedAt || localPrimary?.updatedAt;
       if (localUpdated && data.updated_at && new Date(localUpdated).getTime() > new Date(data.updated_at).getTime()) {
         console.log('Local primary profile is newer than remote. Pushing local changes to cloud.');
-        await enqueueSync('profile_upsert', session.user.id, {
-          id: session.user.id,
+        await enqueueSync('profile_upsert', userId, {
+          id: userId,
           full_name: localPrimary.profileName,
           demographics: { ...localPrimary.demographics, onboardingCompletedAt: localPrimary.onboardingCompletedAt || null },
           conditions: localPrimary.conditions || [], medications: localPrimary.medications || [],
@@ -811,8 +811,8 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       const localUpdated = local?.updatedAt || local?.demographics?.updatedAt;
       const remoteUpdated = row.updated_at || row.data.updatedAt;
       if (localUpdated && remoteUpdated && new Date(localUpdated).getTime() > new Date(remoteUpdated).getTime()) {
-        await enqueueSync('caregiver_profile_upsert', session.user.id, {
-          user_id: session.user.id, profile_id: row.profile_id,
+        await enqueueSync('caregiver_profile_upsert', userId, {
+          user_id: userId, profile_id: row.profile_id,
           profile_name: local.profileName || row.profile_name || 'My Profile',
           data: { ...local, id: row.profile_id }, updated_at: new Date().toISOString()
         });
@@ -834,11 +834,11 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       changed = true;
     }
     if (changed) {
-      setItemSync(getProfileKey(), JSON.stringify(state));
+      localStorage.setItem(getProfileKey(), JSON.stringify(state));
       window.dispatchEvent(new Event('hc_profile_updated'));
+      await flushSyncOutbox(userId);
+      console.log('Profile snapshots synced successfully from Supabase');
     }
-    await flushSyncOutbox(session.user.id);
-    console.log('Profile snapshots synced successfully from Supabase');
   } catch (err) {
     console.error('Failed to sync profile from Supabase:', err);
   }
