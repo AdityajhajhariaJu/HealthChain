@@ -20,6 +20,7 @@ import { setActiveCase } from '../../services/CaseEngine';
 import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
 import { getActiveSession } from '../../services/authSession';
+import { supabase } from '../../services/supabaseClient';
 
 const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number; to: number; duration?: number; suffix?: string }) => {
   const ref = useRef<HTMLSpanElement>(null);
@@ -79,16 +80,43 @@ export default function Landing() {
     };
   }, []);
 
+  // Redirect authenticated users away from landing page.
+  // This catches both: (a) users who navigate to / while logged in, and
+  // (b) OAuth callbacks where the PKCE exchange completes after the page mounts.
   useEffect(() => {
     let cancelled = false;
+    
+    // 1. Initial async check
     getActiveSession().then((session) => {
+      if (!cancelled && session) {
+        setHasSession(true);
+        // Authenticated user should not be on the landing page — redirect to /app
+        navigate('/app', { replace: true });
+        return;
+      }
       if (!cancelled) {
-        setHasSession(Boolean(session));
+        setHasSession(false);
         setGuestMode(localStorage.getItem('hc_guest_mode') === 'true');
       }
     });
-    return () => { cancelled = true; };
-  }, []);
+
+    // 2. Listen for auth state changes (catches PKCE code exchange completing
+    //    after this component has already mounted and rendered)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) && session) {
+        setHasSession(true);
+        // Use hard redirect to guarantee we leave the landing page,
+        // even if React Router's navigate is swallowed by a re-render cycle.
+        window.location.replace('/app');
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const handleStartInvestigation = () => {
     setIsNavigating(true);

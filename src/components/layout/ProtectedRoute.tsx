@@ -12,6 +12,12 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return null;
   });
 
+  // Track the last SIGNED_IN timestamp so we can debounce false SIGNED_OUT events.
+  // This mirrors the same debounce logic in App.tsx.
+  const lastSignedInRef = React.useRef<number>(
+    localStorage.getItem('isAuthenticated') === 'true' ? Date.now() : 0
+  );
+
   React.useEffect(() => {
     let isMounted = true;
     let isGuest = false;
@@ -27,6 +33,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         if (!isMounted) return;
         if (session) {
           setIsAuthenticated(true);
+          lastSignedInRef.current = Date.now();
           try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
           return;
         }
@@ -38,22 +45,20 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           (typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true')
         );
 
-        if (hasStoredToken) {
-          // DO NOT manually call refreshSession() here!
-          // Supabase's client automatically runs _recoverAndRefresh() on initialization.
-          // Calling it manually causes a race condition where two refresh requests are sent simultaneously,
-          // triggering Supabase's "Refresh Token Reuse Detection" which immediately revokes the session
-          // and logs the user out.
-          
-          // If we have a stored token but session is null, it means the initial recovery is still pending
-          // or the token is valid but offline. We assume authenticated for now to prevent flicker,
-          // and the global onAuthStateChange listener in App.tsx will handle the SIGNED_OUT event
-          // if the token is truly invalid.
+        // Also check if there's a PKCE code in the URL — if so, Supabase is about to
+        // exchange it for a session. Do NOT declare unauthenticated yet.
+        const urlHasAuthCode = window.location.search.includes('code=') ||
+          window.location.hash.includes('access_token=');
+
+        if (hasStoredToken || urlHasAuthCode) {
+          // Session recovery or PKCE exchange is still in progress.
+          // Assume authenticated to prevent redirect flicker.
+          // The onAuthStateChange listener below will correct this if the token is truly invalid.
           setIsAuthenticated(true);
           return;
         }
 
-        // Definitely unauthenticated & explicitly rejected by auth server
+        // Definitely unauthenticated & no pending auth flow
         try { localStorage.removeItem('isAuthenticated'); } catch {}
         setIsAuthenticated(false);
       } catch (err) {
@@ -74,9 +79,19 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || (event === 'INITIAL_SESSION' && session)) {
+        lastSignedInRef.current = Date.now();
         setIsAuthenticated(true);
         try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
       } else if (event === 'SIGNED_OUT') {
+        // CRITICAL: Debounce false SIGNED_OUT events that race with a fresh SIGNED_IN.
+        // Supabase can fire a spurious SIGNED_OUT during PKCE exchange or when
+        // _recoverAndRefresh encounters stale storage. If a SIGNED_IN occurred
+        // within the last 8 seconds, this SIGNED_OUT is almost certainly a false
+        // positive — ignore it. The App.tsx global listener has the same debounce.
+        if (Date.now() - lastSignedInRef.current < 8000) {
+          console.warn('[ProtectedRoute] Ignoring SIGNED_OUT that raced with recent SIGNED_IN');
+          return;
+        }
         try { localStorage.removeItem('isAuthenticated'); } catch {}
         setIsAuthenticated(false);
       }

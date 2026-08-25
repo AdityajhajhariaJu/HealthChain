@@ -345,8 +345,11 @@ export default function App() {
                 }
               }
 
-              if (hasCompletedOnboarding) navigate('/app', { replace: true });
-              else navigate('/onboarding', { replace: true });
+              // Use hard redirect (window.location.replace) instead of React Router navigate
+              // to guarantee the redirect can't be swallowed by component re-renders or
+              // unmount/remount cycles during the auth state transition.
+              if (hasCompletedOnboarding) window.location.replace('/app');
+              else window.location.replace('/onboarding');
             }
 
             // Sync other background data
