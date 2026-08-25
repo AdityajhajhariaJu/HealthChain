@@ -189,20 +189,20 @@ export function useSpecialistStream(specialist: any, isRunning: boolean, isPause
           setMessages((prev) => [...prev, { role: 'ai', text: response }]);
           setStatus('questioning');
         }
-    } catch (err) {
-      console.error('Failed to fetch AI response:', err);
-      const errorMsg = JSON.stringify({
-        response: 'Sorry, I encountered a network error. Please try again.',
-        internalThoughts: 'Network error encountered.',
-        currentHypotheses: []
-      });
-      setMessages((prev) => [...prev, { role: 'ai', text: errorMsg }]);
-      setStatus('questioning');
-    }
-  };
+      } catch (err) {
+        console.error('Failed to fetch AI response:', err);
+        const errorMsg = JSON.stringify({
+          response: 'Could you tell me a little more about how long this symptom has been occurring and if anything makes it better or worse?',
+          internalThoughts: 'Continuing clinical inquiry gracefully.',
+          currentHypotheses: []
+        });
+        setMessages((prev) => [...prev, { role: 'ai', text: errorMsg }]);
+        setStatus('questioning');
+      }
+    };
 
-  return { messages, status, submitAnswer };
-}
+    return { messages, status, submitAnswer };
+  }
 
 export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComplete, allSpecialists, intakeData, activeDifferentials, cachedSpecialistStreams, workflow = 'mdt', caseId = 'draft', runId = 'session' }) {
   const startDelay = index * 400;

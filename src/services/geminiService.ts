@@ -477,10 +477,10 @@ Return your response STRICTLY as JSON matching this format:
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     const data = await res.json();
     if (data.candidates?.[0]) return data.candidates[0].content.parts[0].text.trim();
-    return '{"response": "Could you tell me more?", "internalThoughts": "Awaiting more info", "currentHypotheses": []}';
+    return '{"response": "Could you describe your main symptoms and when they began?", "internalThoughts": "Awaiting patient history", "currentHypotheses": []}';
   } catch (err) {
     console.error('Gemini board specialist error:', err);
-    return '{"response": "I am experiencing network issues.", "internalThoughts": "Network error", "currentHypotheses": []}';
+    throw err;
   }
 }
 

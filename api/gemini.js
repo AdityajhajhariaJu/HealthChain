@@ -208,21 +208,48 @@ export default async function handler(req, res) {
       candidateCount: 1,
     };
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bodyPayload),
-    });
+    let response;
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API returned an error:', response.status, errorData.slice(0, 1000));
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bodyPayload),
+        });
+
+        if (response.ok) break;
+
+        // If 503 or 429, wait and retry
+        if ((response.status === 503 || response.status === 429 || response.status === 500) && attempts < maxAttempts) {
+          console.warn(`Gemini API returned ${response.status}. Retrying attempt ${attempts}/${maxAttempts}...`);
+          await new Promise(r => setTimeout(r, attempts * 1000));
+          continue;
+        }
+
+        break;
+      } catch (fetchErr) {
+        if (attempts < maxAttempts) {
+          console.warn(`Gemini fetch error on attempt ${attempts}. Retrying...`, fetchErr);
+          await new Promise(r => setTimeout(r, attempts * 1000));
+          continue;
+        }
+        throw fetchErr;
+      }
+    }
+
+    if (!response || !response.ok) {
+      const errorData = response ? await response.text() : 'No response from AI provider';
+      console.error('Gemini API returned an error:', response?.status, errorData.slice(0, 1000));
       if (adminClient && userId) {
         await adminClient.from('ai_requests').update({
           status: 'failed',
-          error_code: `provider_${response.status}`,
+          error_code: `provider_${response?.status || 500}`,
           finished_at: new Date().toISOString(),
         }).eq('request_id', String(requestId));
       }
