@@ -51,8 +51,10 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 6000
     try {
       const response = await fetch(url, { ...secureOptions, signal: controller.signal });
       if (!response.ok) {
-        if (response.status === 401) {
-          const { data, error } = await supabase.auth.refreshSession();
+        if (response.status === 401 && retryCount < 1) {
+          // getSession() automatically triggers a safe, lock-protected refresh if the token is expired.
+          // Using manual refreshSession() risks token revocation if a background refresh is already running.
+          const { data, error } = await supabase.auth.getSession();
           if (!error && data?.session) {
             secureOptions.headers['Authorization'] = `Bearer ${data.session.access_token}`;
             return executeFetch(retryCount + 1);

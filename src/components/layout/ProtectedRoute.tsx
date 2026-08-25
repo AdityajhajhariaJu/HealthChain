@@ -39,26 +39,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         );
 
         if (hasStoredToken) {
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-          if (!isMounted) return;
-          if (!refreshError && refreshData?.session) {
-            setIsAuthenticated(true);
-            try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
-            return;
-          }
-
-          // If refresh failed due to network / sleeping tab (not an explicit invalid token rejection),
-          // preserve authenticated state so Safari reopening a background tab doesn't kick the user out!
-          const isExplicitAuthRejection =
-            refreshError?.message?.includes('invalid_grant') ||
-            refreshError?.message?.includes('refresh_token_not_found') ||
-            refreshError?.message?.includes('User from sub claim in JWT does not exist');
-
-          if (!isExplicitAuthRejection) {
-            // Transient offline / sleep-wake state -> preserve access
-            setIsAuthenticated(true);
-            return;
-          }
+          // DO NOT manually call refreshSession() here!
+          // Supabase's client automatically runs _recoverAndRefresh() on initialization.
+          // Calling it manually causes a race condition where two refresh requests are sent simultaneously,
+          // triggering Supabase's "Refresh Token Reuse Detection" which immediately revokes the session
+          // and logs the user out.
+          
+          // If we have a stored token but session is null, it means the initial recovery is still pending
+          // or the token is valid but offline. We assume authenticated for now to prevent flicker,
+          // and the global onAuthStateChange listener in App.tsx will handle the SIGNED_OUT event
+          // if the token is truly invalid.
+          setIsAuthenticated(true);
+          return;
         }
 
         // Definitely unauthenticated & explicitly rejected by auth server

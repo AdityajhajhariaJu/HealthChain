@@ -10,19 +10,11 @@ export async function getActiveSession() {
     const { data, error } = await supabase.auth.getSession();
     if (!error && data?.session) return data.session;
     
-    // If session was momentarily lost during Safari tab wake-up, attempt auto-refresh
-    const storedToken = await safariSafeAuthStorage.getItem('healthchain_auth_token');
-    const hasStoredToken = Boolean(
-      storedToken ||
-      (typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true')
-    );
-
-    if (hasStoredToken) {
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-      if (!refreshError && refreshData?.session) {
-        return refreshData.session;
-      }
-    }
+    // DO NOT explicitly call refreshSession() here.
+    // If getSession() didn't return a session, it means the internal recovery process
+    // either hasn't finished or determined the session is invalid.
+    // Calling refreshSession() manually here races with the internal client and causes
+    // token revocation due to reuse detection.
     return null;
   } catch {
     return null;
