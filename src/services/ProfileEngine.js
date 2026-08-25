@@ -749,6 +749,9 @@ export function calculateHealthScore(profile) {
   return { score, missing };
 }
 
+/**
+ * @param {string | null} overrideUserId
+ */
 export async function syncProfileFromSupabase(overrideUserId = null) {
   try {
     let userId = overrideUserId;

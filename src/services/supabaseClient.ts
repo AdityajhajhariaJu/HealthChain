@@ -19,18 +19,22 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: 'healthchain_auth_token',
     storage: typeof window !== 'undefined' ? safariSafeAuthStorage : undefined,
     flowType: 'pkce',
-    // Safari / WebKit tab close deadlock mitigation:
+    // Safari / WebKit tab close deadlock mitigation with proper async mutex chaining:
     lock: (async (name: string, _acquireTimeout: number, fn: () => Promise<any>) => {
-      while (memoryLocks.get(name)) {
-        await memoryLocks.get(name);
-      }
-      let resolveLock!: () => void;
-      memoryLocks.set(name, new Promise((resolve) => { resolveLock = resolve; }));
+      const currentLock = memoryLocks.get(name) || Promise.resolve();
+      let resolveNext!: () => void;
+      const nextLock = new Promise<void>((resolve) => { resolveNext = resolve; });
+      
+      memoryLocks.set(name, currentLock.then(() => nextLock));
+      
+      await currentLock;
       try {
         return await fn();
       } finally {
-        resolveLock();
-        memoryLocks.delete(name);
+        resolveNext();
+        if (memoryLocks.get(name) === nextLock) {
+          memoryLocks.delete(name);
+        }
       }
     }) as any,
   },
