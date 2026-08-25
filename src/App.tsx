@@ -321,36 +321,7 @@ export default function App() {
 
             const path = window.location.pathname;
             if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding' || path === '/auth/callback') {
-              const profileStr = localStorage.getItem(getProfileKey());
-              let hasCompletedOnboarding = false;
-              if (profileStr) {
-                try {
-                  const profileData = JSON.parse(profileStr);
-                  if (profileData.profiles && profileData.activeId) {
-                    const activeProfile = profileData.profiles[profileData.activeId];
-                    hasCompletedOnboarding = !!(
-                      activeProfile?.onboardingCompletedAt || 
-                      activeProfile?.demographics?.onboardingCompletedAt ||
-                      activeProfile?.demographics?.age ||
-                      activeProfile?.demographics?.gender
-                    );
-                  } else {
-                    hasCompletedOnboarding = !!(
-                      profileData.onboardingCompletedAt || 
-                      profileData.demographics?.onboardingCompletedAt || 
-                      profileData.demographics?.age
-                    );
-                  }
-                } catch (e) {
-                  console.error(e);
-                }
-              }
-
-              // Use hard redirect (window.location.replace) instead of React Router navigate
-              // to guarantee the redirect can't be swallowed by component re-renders or
-              // unmount/remount cycles during the auth state transition.
-              if (hasCompletedOnboarding) window.location.replace('/app');
-              else window.location.replace('/onboarding');
+              window.location.replace('/app');
             }
 
             // Sync other background data
