@@ -66,13 +66,26 @@ export const trackSignup = () => trackEvent('sign_up');
 export const trackLabUpload = () => trackEvent('LabReportUploaded', { status: 'success' });
 export const trackCheckoutInitiated = (value: number, planId?: string) => trackEvent('begin_checkout', { value, currency: 'INR', planId });
 export const trackPurchase = (value: number, planId?: string) => {
+  const txId = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   trackEvent('purchase', {
     value,
     currency: 'INR',
-    transaction_id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    plan_id: planId,
-    send_to: 'AW-18407555330'
+    transaction_id: txId,
+    plan_id: planId
   });
+
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    try {
+      window.gtag('event', 'conversion', {
+        send_to: 'AW-18407555330/FYfpCI65uOccEIKCtMlE',
+        value: value,
+        currency: 'INR',
+        transaction_id: txId
+      });
+    } catch (err) {
+      console.warn('Google Ads conversion tag error:', err);
+    }
+  }
 };
 export const trackConsultationStarted = (mode: 'quick' | 'mdt' | 'jarvis' | 'ava', details: any = {}) => trackEvent('consultation_started', { mode, ...details });
 export const trackCaseAction = (action: string, metadata: any = {}) => trackEvent('case_action', { action, ...metadata });
