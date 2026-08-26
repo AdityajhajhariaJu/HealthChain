@@ -116,22 +116,70 @@ export default function QuickConsult() {
     };
   }, []);
 
+  const findSpecialistForSymptom = (text: string) => {
+    const t = text.toLowerCase();
+    if (t.includes('headache') || t.includes('migraine') || t.includes('dizzy') || t.includes('dizziness') || t.includes('brain fog') || t.includes('vertigo') || t.includes('memory') || t.includes('seizure') || t.includes('tingling') || t.includes('numbness')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'neuro');
+    }
+    if (t.includes('heart') || t.includes('palpitation') || t.includes('chest') || t.includes('bp') || t.includes('pressure') || t.includes('pulse') || t.includes('tachycardia') || t.includes('cardio') || t.includes('pots')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'cardio');
+    }
+    if (t.includes('gut') || t.includes('bloat') || t.includes('stomach') || t.includes('bowel') || t.includes('ibs') || t.includes('sibo') || t.includes('acid') || t.includes('reflux') || t.includes('digest') || t.includes('constipat') || t.includes('diarrhea') || t.includes('nausea')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'gastro');
+    }
+    if (t.includes('fatigue') || t.includes('thyroid') || t.includes('hormone') || t.includes('adrenal') || t.includes('t3') || t.includes('t4') || t.includes('tsh') || t.includes('cortisol') || t.includes('glucose') || t.includes('diabetes') || t.includes('weight')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'endo');
+    }
+    if (t.includes('breath') || t.includes('cough') || t.includes('lung') || t.includes('asthma') || t.includes('dyspnea') || t.includes('wheez')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'pulmo');
+    }
+    if (t.includes('joint') || t.includes('arthritis') || t.includes('autoimmun') || t.includes('lupus') || t.includes('inflammation') || t.includes('mcas') || t.includes('ana') || t.includes('esr') || t.includes('crp')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'rheum');
+    }
+    if (t.includes('rash') || t.includes('skin') || t.includes('eczema') || t.includes('hives') || t.includes('acne') || t.includes('itch')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'derm');
+    }
+    if (t.includes('allerg') || t.includes('histamine') || t.includes('sinus') || t.includes('sneez')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'allergy');
+    }
+    if (t.includes('ear') || t.includes('throat') || t.includes('tinnitus') || t.includes('hearing') || t.includes('swallow')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'ent');
+    }
+    if (t.includes('eye') || t.includes('vision') || t.includes('blur') || t.includes('sight')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'ophthal');
+    }
+    if (t.includes('back') || t.includes('neck') || t.includes('spine') || t.includes('posture') || t.includes('muscle')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'physio');
+    }
+    if (t.includes('anxiety') || t.includes('depress') || t.includes('panic') || t.includes('sleep') || t.includes('insomnia') || t.includes('stress')) {
+      return ALL_SPECIALISTS.find(s => s.id === 'psych');
+    }
+    return ALL_SPECIALISTS.find(s => s.id === 'gp') || ALL_SPECIALISTS[0];
+  };
+
   useEffect(() => {
     if (searchParams.get('new') === 'true') {
       resetConsult();
+      let specToUse: any = null;
       const presetSpecId = sessionStorage.getItem('hc_preset_specialist');
       if (presetSpecId) {
-        const found = ALL_SPECIALISTS.find(s => s.id === presetSpecId);
-        if (found) {
-          setSelectedSpecialist(found);
-          setPhase('upload');
-        }
+        specToUse = ALL_SPECIALISTS.find(s => s.id === presetSpecId) || null;
         sessionStorage.removeItem('hc_preset_specialist');
       }
       const preset = sessionStorage.getItem('hc_preset_symptom');
       if (preset) {
         setSymptomInput(preset);
         sessionStorage.removeItem('hc_preset_symptom');
+        if (!specToUse) {
+          specToUse = findSpecialistForSymptom(preset);
+        }
+      }
+
+      if (specToUse) {
+        setSelectedSpecialist(specToUse);
+        setPhase('chat');
+      } else {
+        setPhase('select');
       }
       searchParams.delete('new');
       setSearchParams(searchParams);
