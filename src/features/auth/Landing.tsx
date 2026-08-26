@@ -145,8 +145,8 @@ const LATEST_ACTIVITIES = [
 
 const landingFaqs = [
   {
-    question: "Is HealthChain a replacement for my doctor?",
-    answer: "No. HealthChain is an AI-assisted health assessment and appointment-preparation tool. It helps you organize your history, spot questions and evidence gaps to discuss, and prepare for clinician visits. It does not diagnose, prescribe, or replace professional medical care."
+    question: "Is HealthChain360.ai a replacement for my doctor?",
+    answer: "No. HealthChain360.ai is an AI-assisted health assessment and appointment-preparation tool. It helps you organize your history, spot questions and evidence gaps to discuss, and prepare for clinician visits. It does not diagnose, prescribe, or replace professional medical care."
   },
   {
     question: "How is my medical data secured?",
@@ -158,7 +158,7 @@ const landingFaqs = [
   },
   {
     question: "Are the AI agents trained on real medical literature?",
-    answer: "Yes. HealthChain grounds its reasoning in peer-reviewed clinical guidelines (PubMed, NIH, OMIM, ClinicalTrials.gov). AI output is synthesized for patient clarity and must always be reviewed with your personal physician."
+    answer: "Yes. HealthChain360.ai grounds its reasoning in peer-reviewed clinical guidelines (PubMed, NIH, OMIM, ClinicalTrials.gov). AI output is synthesized for patient clarity and must always be reviewed with your personal physician."
   }
 ];
 
@@ -355,8 +355,8 @@ export default function Landing() {
       {/* 1. Floating Neutral Glass Navbar */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
         <div className={styles.logoContainer}>
-          <img src="/logo.png" alt="HealthChain360" style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'contain' }} />
-          <span className={styles.logoText}>HealthChain360</span>
+          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'contain' }} />
+          <span className={styles.logoText}>HealthChain360.ai</span>
         </div>
         <div className={styles.navActions}>
           {isLoggedOut ? (
@@ -416,7 +416,7 @@ export default function Landing() {
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              Been to 5 different doctors with no answers? HealthChain convenes AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
+              Been to 5 different doctors with no answers? HealthChain360.ai convenes AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
             </motion.p>
 
             {/* Instant Symptom Input Box */}
@@ -627,7 +627,7 @@ export default function Landing() {
           <div className={styles.categoryBadge}>
             🎬 MULTI-SPECIALIST AI DEMO
           </div>
-          <h2 className={styles.sectionTitle}>See HealthChain in Action</h2>
+          <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
           <p className={styles.sectionSubtitle}>
             Watch how our AI clinical specialists cross-analyze contradictory symptoms, lab biomarkers, and medical history.
           </p>
@@ -722,7 +722,7 @@ export default function Landing() {
             The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
           </p>
           <p className={styles.problemText} style={{ marginTop: '20px', color: '#0F172A', fontWeight: 700 }}>
-            HealthChain replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
+            HealthChain360.ai replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
           </p>
         </motion.div>
       </section>
@@ -732,7 +732,7 @@ export default function Landing() {
         <div className={styles.sectionHeader}>
           <div className={styles.categoryBadge}>CLINICAL ARCHITECTURE</div>
           <h2 className={styles.sectionTitle}>Engineered for Complex Cases</h2>
-          <p className={styles.sectionSubtitle}>Why standard medical search engines fail chronic patients and how HealthChain fixes it.</p>
+          <p className={styles.sectionSubtitle}>Why standard medical search engines fail chronic patients and how HealthChain360.ai fixes it.</p>
         </div>
 
         <div className={styles.bentoGrid}>
@@ -817,8 +817,8 @@ export default function Landing() {
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <img src="/logo.png" alt="HealthChain360" style={{ width: '28px', height: '28px', borderRadius: '8px', objectFit: 'contain' }} />
-              <span>HealthChain360</span>
+              <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '28px', height: '28px', borderRadius: '8px', objectFit: 'contain' }} />
+              <span>HealthChain360.ai</span>
             </div>
             <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>
           </div>
@@ -836,7 +836,7 @@ export default function Landing() {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <p>© {new Date().getFullYear()} HealthChain360. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} HealthChain360.ai. All rights reserved.</p>
         </div>
       </footer>
     </div>

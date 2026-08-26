@@ -97,7 +97,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             marginBottom: 28,
           }}
         >
-          <Activity size={23} color="#10B981" /> HealthChain
+          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'contain' }} /> HealthChain360.ai
         </div>
         <main
           style={{

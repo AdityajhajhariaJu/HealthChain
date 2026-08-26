@@ -143,9 +143,9 @@ export default function AppShell() {
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
-            <img src="/logo.png" alt="HealthChain360" style={{ width: '34px', height: '34px', borderRadius: '8px', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '34px', height: '34px', borderRadius: '8px', objectFit: 'contain' }} />
             <div>
-              <span className="sidebar__logo-text">HealthChain360</span>
+              <span className="sidebar__logo-text">HealthChain360.ai</span>
               <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function AppShell() {
               <NavLink to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</NavLink>
             </div>
             <div className="sidebar__footer" style={{ padding: '12px 20px', fontSize: '10px', lineHeight: '1.4', color: 'var(--text-muted)' }}>
-              <strong>Disclaimer:</strong> HealthChain is an AI Navigational and Researcher tool, not a doctor. It is not a substitute for professional medical advice.
+              <strong>Disclaimer:</strong> HealthChain360.ai is an AI Navigational and Researcher tool, not a doctor. It is not a substitute for professional medical advice.
             </div>
           </div>
         </aside>
@@ -599,7 +599,7 @@ function BrandPulseBanner() {
     {
       quote:
         'You’ve explained your symptoms to five different doctors. Your labs come back “normal,” but you still feel terrible.',
-      sub: 'Your experience is real. HealthChain helps you organise the full picture for the next conversation.',
+      sub: 'Your experience is real. HealthChain360.ai helps you organise the full picture for the next conversation.',
     },
     {
       quote: 'When symptoms do not fit neatly into one box, one perspective may not be enough.',
@@ -607,7 +607,7 @@ function BrandPulseBanner() {
     },
     {
       quote: 'Parallel investigation. Connected evidence. Clearer next steps.',
-      sub: 'HealthChain turns your symptoms, records, and answers into one evolving case.',
+      sub: 'HealthChain360.ai turns your symptoms, records, and answers into one evolving case.',
     },
     {
       quote: 'You should not have to repeat your health story from the beginning every time.',
@@ -626,7 +626,7 @@ function BrandPulseBanner() {
       sub: 'Bring an evidence-led brief, the right questions, and your next actions to your clinician.',
     },
     {
-      quote: 'HealthChain isn\'t a one-off search engine.',
+      quote: 'HealthChain360.ai isn\'t a one-off search engine.',
       sub: 'It is a persistent, AI-driven medical detective that stays on the case until the mystery is actually solved.',
     },
   ];
@@ -637,7 +637,7 @@ function BrandPulseBanner() {
   }, []);
   const message = messages[active];
   return (
-    <section className="brand-pulse" aria-label="What makes HealthChain different">
+    <section className="brand-pulse" aria-label="What makes HealthChain360.ai different">
       <div className="brand-pulse__mark">
         <Quote size={20} />
       </div>
@@ -657,7 +657,7 @@ function BrandPulseBanner() {
       </div>
       <div className="brand-pulse__meta">
         <Sparkles size={15} />
-        <span>HEALTHCHAIN METHOD</span>
+        <span>HEALTHCHAIN360.AI METHOD</span>
         <div className="brand-pulse__dots">
           {messages.map((_, index) => (
             <i key={index} className={index === active ? 'active' : ''} />
