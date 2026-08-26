@@ -142,19 +142,22 @@ export default function QuickConsult() {
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
     
-    if (!(await getActiveSession())) {
-      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-        detail: { 
-          title: 'Authentication Required', 
-          message: 'You need to log in or sign up to start a specialized consultation.' 
-        } 
-      }));
-      return;
-    }
-
-    if (!canUseTrial('quick_consult')) {
-      openTrialModal('Quick Consult (1 Free Trial Session)');
-      return;
+    const session = await getActiveSession();
+    if (!session) {
+      if (!canUseTrial('quick_consult')) {
+        window.dispatchEvent(new CustomEvent('hc_require_auth', { 
+          detail: { 
+            title: 'Free Consultation Limit Reached', 
+            message: 'You have used your 1 free guest consultation. Please log in or sign up to continue and save your medical cases.' 
+          } 
+        }));
+        return;
+      }
+    } else {
+      if (!canUseTrial('quick_consult')) {
+        openTrialModal('Quick Consult (1 Free Trial Session)');
+        return;
+      }
     }
 
     setPhase('upload');
@@ -312,10 +315,14 @@ export default function QuickConsult() {
   };
 
   useEffect(() => {
-    // SECURITY: Prevent unauthenticated users from bypassing the auth wall via sessionStorage phase restoring.
+    // SECURITY: Prevent unauthenticated users who already used their trial from bypassing via sessionStorage.
     let cancelled = false;
     getActiveSession().then((session) => {
-      if (!cancelled && phase !== 'select' && !session) setPhase('select');
+      if (!cancelled && phase !== 'select' && !session) {
+        if (!canUseTrial('quick_consult')) {
+          setPhase('select');
+        }
+      }
     });
     return () => { cancelled = true; };
   }, [phase]);
