@@ -346,13 +346,23 @@
 .heroInputField {
   flex: 1;
   background: transparent;
-  border: none;
-  outline: none;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   color: #0F172A;
   font-size: 15px;
   font-weight: 500;
   font-family: inherit;
   min-width: 0;
+  padding: 8px 4px;
+}
+
+.heroInputField:focus,
+.heroInputField:focus-visible,
+.heroInputField:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .heroInputField::placeholder {

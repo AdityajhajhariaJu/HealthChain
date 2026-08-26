@@ -442,6 +442,7 @@ export default function Landing() {
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   className={styles.heroInputField}
+                  style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                 />
                 <button type="submit" className={styles.heroInputBtn}>
                   <span>Analyze →</span>
