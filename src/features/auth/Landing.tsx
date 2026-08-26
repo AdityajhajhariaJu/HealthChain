@@ -69,7 +69,7 @@ const LIVE_NETWORK_UPDATES = [
   'Debating Cases in Real Time',
   '1,420+ Clinical Inquiries Analyzed Today',
   'Resolving Complex & Unexplained Symptoms',
-  'Grounded in 35M+ PubMed & NIH Trials',
+  'Grounded in PubMed & NIH Clinical Trials',
   'Instant Intake • Zero Medical Jargon',
 ];
 
@@ -1169,7 +1169,7 @@ export default function Landing() {
                 <div className={styles.bentoCardBody}>
                   <div className={styles.bentoCardTags}>
                     <span className={styles.bentoCategoryTag}>🔬 Active Research</span>
-                    <span className={styles.bentoStatusTag}>35M+ NIH STUDIES</span>
+                    <span className={styles.bentoStatusTag}>PEER-REVIEWED</span>
                   </div>
                   <h3 className={styles.bentoCardTitle}>
                     Direct Matching to Active Clinical Trials &amp; NIH Research
