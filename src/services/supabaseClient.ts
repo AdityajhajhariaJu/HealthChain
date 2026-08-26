@@ -15,6 +15,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storageKey: 'healthchain_auth_token',
     storage: typeof window !== 'undefined' ? safariSafeAuthStorage : undefined,
-    flowType: 'pkce',
+    flowType: 'implicit',
   },
 });

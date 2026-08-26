@@ -256,8 +256,8 @@ export default function App() {
     // callback: Supabase serializes auth events and a nested getSession() can
     // otherwise stall sign-in or device-switch transitions.
     let authBootstrapTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastSignedInAt = 0; // Timestamp of last SIGNED_IN to debounce false SIGNED_OUT races
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    let lastSignedInAt = localStorage.getItem('isAuthenticated') === 'true' ? Date.now() : 0; // Timestamp of last SIGNED_IN to debounce false SIGNED_OUT races
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session) {
           if (authBootstrapTimer) clearTimeout(authBootstrapTimer);
           lastSignedInAt = Date.now();
