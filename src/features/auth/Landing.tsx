@@ -242,15 +242,15 @@ export default function Landing() {
                 width: '68px',
                 height: '68px',
                 borderRadius: '50%',
-                background: 'rgba(16, 185, 129, 0.15)',
-                border: '1px solid rgba(52, 211, 153, 0.4)',
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 40px rgba(16, 185, 129, 0.35)'
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)'
               }}
             >
-              <Activity size={32} color="#10B981" />
+              <Activity size={32} color="#38BDF8" />
             </motion.div>
             
             <motion.h2 
@@ -283,7 +283,7 @@ export default function Landing() {
                   position: 'absolute',
                   top: 0, bottom: 0, left: 0,
                   width: '50%',
-                  background: '#10B981',
+                  background: '#38BDF8',
                   borderRadius: '3px'
                 }}
               />
