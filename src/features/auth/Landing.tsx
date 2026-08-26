@@ -360,17 +360,19 @@ export default function Landing() {
         </div>
         <div className={styles.navActions}>
           {isLoggedOut ? (
-            <button className={styles.navLoginButton} onClick={() => navigate('/login')}>
-              Log In
-            </button>
+            <>
+              <button className={styles.navLoginButton} onClick={() => navigate('/login')}>
+                Log In
+              </button>
+              <button className={styles.navButton} onClick={() => handleStartInvestigation('landing_nav')}>
+                Get Started
+              </button>
+            </>
           ) : (
-            <button className={styles.navLoginButton} onClick={() => navigate('/app/today')}>
-              Health Today
+            <button className={styles.navButton} onClick={() => navigate('/app/today')}>
+              Health Today →
             </button>
           )}
-          <button className={styles.navButton} onClick={() => handleStartInvestigation('landing_nav')}>
-            Get Started
-          </button>
         </div>
       </nav>
       
