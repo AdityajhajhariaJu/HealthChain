@@ -551,14 +551,31 @@ export default function Landing() {
             className={styles.statItem}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -8, scale: 1.015 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
             <div className={styles.statGraphicWrapper}>
               <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
                 <path d="M 30 105 A 68 68 0 0 1 170 105" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="12" strokeLinecap="round" />
-                <path d="M 30 105 A 68 68 0 0 1 155 48" stroke="#059669" strokeWidth="12" strokeLinecap="round" />
-                <line x1="100" y1="100" x2="146" y2="46" stroke="#475569" strokeWidth="2.5" strokeLinecap="round" />
+                <motion.path 
+                  d="M 30 105 A 68 68 0 0 1 155 48" 
+                  stroke="#059669" 
+                  strokeWidth="12" 
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: false }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+                />
+                <motion.g
+                  initial={{ rotate: -40, originX: '100px', originY: '100px' }}
+                  whileInView={{ rotate: [ -40, 6, -3, 0 ], originX: '100px', originY: '100px' }}
+                  viewport={{ once: false }}
+                  transition={{ duration: 1.5, ease: "easeOut", times: [0, 0.6, 0.85, 1] }}
+                >
+                  <line x1="100" y1="100" x2="146" y2="46" stroke="#334155" strokeWidth="2.8" strokeLinecap="round" />
+                </motion.g>
                 <circle cx="100" cy="100" r="5" fill="#FFFFFF" stroke="#059669" strokeWidth="3" />
               </svg>
             </div>
@@ -580,17 +597,34 @@ export default function Landing() {
             className={styles.statItem}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -8, scale: 1.015 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
           >
             <div className={styles.statGraphicWrapper}>
               <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
-                <rect x="25" y="75" width="16" height="35" rx="8" fill="rgba(16, 185, 129, 0.2)" />
-                <rect x="52" y="60" width="16" height="50" rx="8" fill="rgba(16, 185, 129, 0.3)" />
-                <rect x="79" y="48" width="16" height="62" rx="8" fill="rgba(16, 185, 129, 0.45)" />
-                <rect x="106" y="38" width="16" height="72" rx="8" fill="rgba(16, 185, 129, 0.6)" />
-                <rect x="133" y="24" width="16" height="86" rx="8" fill="rgba(16, 185, 129, 0.75)" />
-                <rect x="160" y="10" width="16" height="100" rx="8" fill="#059669" />
+                {[
+                  { x: 25, y: 75, h: 35, bg: 'rgba(16, 185, 129, 0.2)', delay: 0 },
+                  { x: 52, y: 60, h: 50, bg: 'rgba(16, 185, 129, 0.3)', delay: 0.1 },
+                  { x: 79, y: 48, h: 62, bg: 'rgba(16, 185, 129, 0.45)', delay: 0.2 },
+                  { x: 106, y: 38, h: 72, bg: 'rgba(16, 185, 129, 0.6)', delay: 0.3 },
+                  { x: 133, y: 24, h: 86, bg: 'rgba(16, 185, 129, 0.75)', delay: 0.4 },
+                  { x: 160, y: 10, h: 100, bg: '#059669', delay: 0.5 },
+                ].map((bar, bIdx) => (
+                  <motion.rect
+                    key={bIdx}
+                    x={bar.x}
+                    y={bar.y}
+                    width="16"
+                    height={bar.h}
+                    rx="8"
+                    fill={bar.bg}
+                    initial={{ scaleY: 0, originY: '110px' }}
+                    whileInView={{ scaleY: 1, originY: '110px' }}
+                    viewport={{ once: false }}
+                    transition={{ duration: 0.55, delay: bar.delay, type: 'spring', stiffness: 200, damping: 16 }}
+                  />
+                ))}
               </svg>
             </div>
             <div className={styles.statValueRow}>
@@ -611,13 +645,42 @@ export default function Landing() {
             className={styles.statItem}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -8, scale: 1.015 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
           >
             <div className={styles.statGraphicWrapper}>
               <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
-                <path d="M 20 85 Q 50 82 70 58 T 120 65 T 180 18" stroke="#10B981" strokeWidth="4" strokeLinecap="round" />
-                <circle cx="180" cy="18" r="6" fill="#FFFFFF" stroke="#059669" strokeWidth="3" />
+                <motion.path 
+                  d="M 20 85 Q 50 82 70 58 T 120 65 T 180 18" 
+                  stroke="#10B981" 
+                  strokeWidth="4" 
+                  strokeLinecap="round" 
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: false }}
+                  transition={{ duration: 1.4, ease: "easeInOut" }}
+                />
+                <motion.circle
+                  cx="180"
+                  cy="18"
+                  r="10"
+                  fill="rgba(16, 185, 129, 0.25)"
+                  animate={{ scale: [1, 1.9, 1], opacity: [0.7, 0, 0.7] }}
+                  transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                />
+                <motion.circle 
+                  cx="180" 
+                  cy="18" 
+                  r="6" 
+                  fill="#FFFFFF" 
+                  stroke="#059669" 
+                  strokeWidth="3"
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: false }}
+                  transition={{ delay: 1.1, duration: 0.3, type: 'spring' }}
+                />
               </svg>
             </div>
             <div className={styles.statValueRow}>
