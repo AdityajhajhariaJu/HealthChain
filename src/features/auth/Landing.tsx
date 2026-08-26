@@ -557,18 +557,22 @@ export default function Landing() {
             <div className={`${styles.sourceChip} ${styles.sourceChipBlood}`}>
               <span className={styles.sourceChipIcon}>🩸</span>
               <span className={styles.sourceChipLabel}>Lab &amp; Blood Tests</span>
+              <span className={styles.sourceChipLabelShort}>Labs</span>
             </div>
             <div className={`${styles.sourceChip} ${styles.sourceChipDoctor}`}>
               <span className={styles.sourceChipIcon}>🏥</span>
               <span className={styles.sourceChipLabel}>Doctor &amp; Clinic Notes</span>
+              <span className={styles.sourceChipLabelShort}>Notes</span>
             </div>
             <div className={`${styles.sourceChip} ${styles.sourceChipWearable}`}>
               <span className={styles.sourceChipIcon}>⌚</span>
               <span className={styles.sourceChipLabel}>Wearables &amp; Vitals</span>
+              <span className={styles.sourceChipLabelShort}>Vitals</span>
             </div>
             <div className={`${styles.sourceChip} ${styles.sourceChipGenomic}`}>
               <span className={styles.sourceChipIcon}>🧬</span>
               <span className={styles.sourceChipLabel}>Scans &amp; Genetic PDFs</span>
+              <span className={styles.sourceChipLabelShort}>Scans</span>
             </div>
           </div>
 

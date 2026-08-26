@@ -771,6 +771,10 @@
   transition: all 0.2s ease;
 }
 
+.sourceChipLabelShort {
+  display: none;
+}
+
 .sourceChip:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
@@ -1141,26 +1145,225 @@
     padding: 85px 16px 5px;
   }
   .convergenceSection {
-    padding: 10px 14px 36px;
+    padding: 10px 12px 30px;
+  }
+  .convergenceTopBrand {
+    padding: 4px 10px;
+    font-size: 11px;
+    margin-bottom: 8px;
+    gap: 6px;
   }
   .convergenceHeadline {
-    font-size: 32px;
-    letter-spacing: -1px;
+    font-size: 27px;
+    line-height: 1.15;
+    letter-spacing: -0.8px;
+    margin: 0 0 6px 0;
   }
-  .convergenceKpiGrid,
-  .responseBadgesRow {
-    grid-template-columns: 1fr;
-  }
-  .convergenceCard {
-    padding: 16px;
-    border-radius: 20px;
+  .convergenceSubheadline {
+    font-size: 12px;
+    line-height: 1.35;
+    margin: 0 auto 10px;
+    max-width: 320px;
   }
   .convergenceSourceChips {
-    gap: 8px;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    margin-bottom: 0;
   }
   .sourceChip {
-    padding: 6px 12px;
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 4px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .sourceChipLabel {
+    display: none;
+  }
+  .sourceChipLabelShort {
+    display: inline;
+    font-weight: 700;
+  }
+  .convergenceCablesWrapper {
+    height: 44px;
+    margin-top: -2px;
+    margin-bottom: -6px;
+    max-width: 360px;
+  }
+  .convergenceCard {
+    padding: 12px 10px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  }
+  .convergenceCardHeader {
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .convergenceBrandArea {
+    gap: 6px;
+  }
+  .convergenceBrandName {
+    font-size: 11.5px;
+  }
+  .convergenceNavTabs {
+    padding: 2px;
+    gap: 2px;
+  }
+  .convergenceTab {
+    padding: 2px 7px;
+    font-size: 9.5px;
+  }
+  .convergenceHistoryDropdown {
+    font-size: 9.5px;
+    padding: 2px 5px;
+  }
+  .convergenceLiveDot {
+    width: 6px;
+    height: 6px;
+  }
+  .convergenceNoticeBanner {
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    gap: 6px;
+  }
+  .convergenceNoticeIcon {
     font-size: 12px;
+  }
+  .convergenceNoticeText {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+  .convergenceKpiGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  .convergenceKpiCard {
+    padding: 6px 5px;
+    border-radius: 10px;
+  }
+  .kpiHeader {
+    margin-bottom: 2px;
+  }
+  .kpiLabel {
+    font-size: 7.5px;
+    font-weight: 800;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpiBadge {
+    display: none;
+  }
+  .kpiValue {
+    font-size: 13px;
+    font-weight: 900;
+    margin-bottom: 0px;
+  }
+  .kpiTrend {
+    font-size: 8.5px;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+  .kpiSparkline {
+    height: 12px;
+  }
+  .convergenceAssistantBox {
+    padding: 10px 8px;
+    border-radius: 12px;
+  }
+  .assistantHeader {
+    margin-bottom: 8px;
+    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .assistantHeaderLeft {
+    gap: 6px;
+  }
+  .assistantIconBg {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+  .assistantName {
+    font-size: 11.5px;
+  }
+  .assistantStatus {
+    font-size: 9px;
+    gap: 3px;
+  }
+  .patientQueryBubble {
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    align-self: flex-end;
+    max-width: 95%;
+  }
+  .assistantResponseArea {
+    padding-top: 8px;
+  }
+  .responseMainTitle {
+    font-size: 13.5px;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    letter-spacing: -0.3px;
+  }
+  .responseSubtext {
+    font-size: 10px;
+    margin: 0 0 8px 0;
+    line-height: 1.25;
+  }
+  .responseBadgesRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .resBadge {
+    padding: 4px 5px;
+    border-radius: 6px;
+    gap: 3px;
+  }
+  .resBadgeIcon {
+    font-size: 11px;
+  }
+  .resBadgeLabel {
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .resBadgeSub {
+    display: none;
+  }
+  .assistantRecommendationPill {
+    padding: 5px 8px;
+    font-size: 9.5px;
+    line-height: 1.25;
+    border-radius: 100px;
+    gap: 4px;
+  }
+  .convergenceBottomArea {
+    margin-top: 14px;
+    gap: 6px;
+  }
+  .convergenceCtaBtn {
+    padding: 9px 22px;
+    font-size: 12.5px;
+  }
+  .convergenceMicrocopy {
+    font-size: 10.5px;
   }
 }
 
