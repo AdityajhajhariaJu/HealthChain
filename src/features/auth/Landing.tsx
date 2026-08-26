@@ -18,7 +18,8 @@ import {
   Heart,
   Brain,
   Microscope,
-  ArrowUpRight
+  ArrowUpRight,
+  Filter
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
@@ -29,37 +30,104 @@ import { supabase } from '../../services/supabaseClient';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { triggerHapticLight } from '../../services/haptics';
 
-const SYMPTOM_PRESETS = [
-  { icon: '⚡', label: 'Chronic Fatigue', specialistId: 'endo', symptom: 'Chronic fatigue, low energy, and sluggishness for months' },
-  { icon: '🤕', label: 'Daily Headache', specialistId: 'neuro', symptom: 'Daily headache, eye pressure, and migraine flare-ups' },
-  { icon: '🫀', label: 'Palpitations', specialistId: 'cardio', symptom: 'Unexplained palpitations, racing pulse, and lightheadedness' },
-  { icon: '🧬', label: 'Brain Fog', specialistId: 'neuro', symptom: 'Brain fog, memory lapses, and cognitive sluggishness' },
-  { icon: '🩺', label: 'Gut Issues', specialistId: 'gastro', symptom: 'Chronic gut issues, bloating, and food sensitivity' },
-  { icon: '➕', label: 'Other...', isCustom: true },
+const CATEGORIES = [
+  { id: 'all', label: 'All Specialties', icon: '🌐', count: '1,420 cases', specId: undefined },
+  { id: 'cardio', label: 'Cardiology & Circulation', icon: '🫀', count: '284 cases', specId: 'cardio' },
+  { id: 'neuro', label: 'Neurology & Cognitive', icon: '🧠', count: '312 cases', specId: 'neuro' },
+  { id: 'endo', label: 'Endocrinology & Thyroid', icon: '🔬', count: '245 cases', specId: 'endo' },
+  { id: 'gastro', label: 'Gastroenterology & Gut', icon: '🩺', count: '198 cases', specId: 'gastro' },
+  { id: 'immuno', label: 'Immunology & Mast Cell', icon: '🛡️', count: '142 cases', specId: 'immuno' },
+  { id: 'rheum', label: 'Rheumatology & Autoimmune', icon: '🦴', count: '128 cases', specId: 'rheum' },
+  { id: 'pulmo', label: 'Pulmonology & Vagus Axis', icon: '🌬️', count: '111 cases', specId: 'pulmo' },
 ];
 
-const CONSENSUS_DIALOGUE = [
+const RANKED_CASES = [
   {
-    role: 'Cardiologist',
-    icon: '🩺',
-    color: '#EF4444',
-    bg: 'rgba(239, 68, 68, 0.15)',
-    finding: 'Resting tachycardia noted despite normal ECG.',
-  },
-  {
-    role: 'Neurologist',
-    icon: '🧠',
-    color: '#A78BFA',
-    bg: 'rgba(139, 92, 246, 0.15)',
-    finding: 'Possible autonomic / vagal nerve involvement.',
-  },
-  {
-    role: 'Endocrinologist',
+    id: 'case-1',
+    rank: '#1',
+    category: 'endo',
+    title: 'Subclinical Ferritin Depletion & Post-Viral Autonomic Fatigue',
     icon: '🔬',
-    color: '#60A5FA',
-    bg: 'rgba(59, 130, 246, 0.15)',
-    finding: 'Check ferritin and cortisol before next doctor visit.',
+    specialistTag: 'Endocrinology & Neurology',
+    score: '96% Match',
+    desc: 'Correlated standard "normal" iron (65 μg/dL) with depleted ferritin (18 ng/mL) and blunted morning cortisol curve—explaining severe afternoon brain fog.',
+    meta: '#1 in Endocrinology · 2 days ago · 3,420 matched cases',
+    symptom: 'Chronic fatigue, brain fog, and low ferritin symptoms',
+    specId: 'endo',
   },
+  {
+    id: 'case-2',
+    rank: '#2',
+    category: 'neuro',
+    title: 'Histamine-Mediated Neuro-Vascular Migraine with Morning Spikes',
+    icon: '🧠',
+    specialistTag: 'Neurology & Gastroenterology',
+    score: '94% Match',
+    desc: 'Identified gut-brain axis dysbiosis with histamine sensitivity triggering daily throbbing occipital pressure and morning vasomotor blood pressure spikes.',
+    meta: '#1 in Neurology · 3 days ago · 2,890 matched cases',
+    symptom: 'Daily throbbing headache and occipital pressure',
+    specId: 'neuro',
+  },
+  {
+    id: 'case-3',
+    rank: '#3',
+    category: 'cardio',
+    title: 'Gastrocardiac (Roemheld) Post-Meal Palpitations & Vagal Irritation',
+    icon: '🫀',
+    specialistTag: 'Cardiology & Gastroenterology',
+    score: '93% Match',
+    desc: 'Traced sinus tachycardia and lightheadedness after meals to splanchnic blood pooling and diaphragmatic vagus nerve compression.',
+    meta: '#1 in Cardiology · 4 days ago · 4,110 matched cases',
+    symptom: 'Post-meal palpitations, dizziness, and rapid heart rate',
+    specId: 'cardio',
+  },
+  {
+    id: 'case-4',
+    rank: '#4',
+    category: 'immuno',
+    title: 'Mast Cell Mediator Release & Postural Tachycardia Overlap',
+    icon: '🛡️',
+    specialistTag: 'Immunology & Cardiology',
+    score: '91% Match',
+    desc: 'Identified episodic facial flushing, dermographia, and postural heart rate spikes matching hyperadrenergic POTS / MCAS overlap profile.',
+    meta: '#1 in Immunology · 5 days ago · 1,940 matched cases',
+    symptom: 'Postural tachycardia, flushing, and mast cell triggers',
+    specId: 'immuno',
+  },
+  {
+    id: 'case-5',
+    rank: '#5',
+    category: 'gastro',
+    title: 'Sub-Clinical SIBO with Intestinal Permeability & Brain Sluggishness',
+    icon: '🩺',
+    specialistTag: 'Gastroenterology & Functional',
+    score: '89% Match',
+    desc: 'Correlated persistent bloating and food sensitivities with gut-derived LPS endotoxins crossing the blood-brain barrier.',
+    meta: '#1 in Gastroenterology · 6 days ago · 2,670 matched cases',
+    symptom: 'SIBO, bloating, and post-eating brain sluggishness',
+    specId: 'gastro',
+  },
+  {
+    id: 'case-6',
+    rank: '#6',
+    category: 'rheum',
+    title: 'Seronegative Autoimmune Joint Inflammation & Morning Stiffness',
+    icon: '🦴',
+    specialistTag: 'Rheumatology & Immunology',
+    score: '88% Match',
+    desc: 'Synthesized elevated ANA titers with normal CRP and mitochondrial cofactor depletion to guide targeted rheumatology appointment.',
+    meta: '#1 in Rheumatology · 1 week ago · 1,820 matched cases',
+    symptom: 'Joint inflammation, stiffness, and autoimmune fatigue',
+    specId: 'rheum',
+  },
+];
+
+const LATEST_ACTIVITIES = [
+  { icon: '🧪', text: 'Iron Panel & Ferritin mapped for patient in Chicago', time: '1m ago', specId: 'endo', symptom: 'Iron panel and ferritin check' },
+  { icon: '🧠', text: 'POTS Tilt Correlation for patient in London', time: '4m ago', specId: 'neuro', symptom: 'POTS tilt and autonomic correlation' },
+  { icon: '🔬', text: 'Thyroid Free T3/T4 ratio analyzed', time: '16m ago', specId: 'endo', symptom: 'Thyroid panel Free T3/T4 analysis' },
+  { icon: '🩺', text: 'Histamine elimination brief generated', time: '27m ago', specId: 'gastro', symptom: 'Histamine elimination protocol' },
+  { icon: '🫀', text: 'Resting ECG & Holter cross-analyzed', time: '33m ago', specId: 'cardio', symptom: 'Holter monitor and resting ECG' },
 ];
 
 const landingFaqs = [
@@ -81,28 +149,13 @@ const landingFaqs = [
   }
 ];
 
-const LIVE_NETWORK_UPDATES = [
-  'Debating Cases in Real Time',
-  '1,420+ Clinical Inquiries Analyzed Today',
-  'Resolving Complex & Unexplained Symptoms',
-  'Grounded in 35M+ PubMed & NIH Trials',
-  'Instant Intake • Zero Medical Jargon',
-];
-
 export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [activeTickerIndex, setActiveTickerIndex] = useState(0);
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [selectedSpecialtyFilter, setSelectedSpecialtyFilter] = useState('all');
   const [customInput, setCustomInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTickerIndex((prev) => (prev + 1) % LIVE_NETWORK_UPDATES.length);
-    }, 3600);
-    return () => clearInterval(interval);
-  }, []);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
@@ -164,7 +217,7 @@ export default function Landing() {
     if (presetSymptom) {
       try { sessionStorage.setItem('hc_preset_symptom', presetSymptom); } catch(e) {}
     }
-    if (presetSpecialist) {
+    if (presetSpecialist && presetSpecialist !== 'all') {
       try { sessionStorage.setItem('hc_preset_specialist', presetSpecialist); } catch(e) {}
     }
 
@@ -172,18 +225,6 @@ export default function Landing() {
     navTimerRef.current = setTimeout(() => {
       navigate('/app/consult?new=true');
     }, 900);
-  };
-
-  const handleChipClick = (preset: typeof SYMPTOM_PRESETS[0], idx: number) => {
-    triggerHapticLight();
-    if (preset.isCustom) {
-      if (inputRef.current) {
-        inputRef.current.focus();
-        inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return;
-    }
-    handleStartInvestigation(`landing_chip_${idx}`, preset.symptom, preset.specialistId);
   };
 
   useEffect(() => {
@@ -198,35 +239,18 @@ export default function Landing() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.12 },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
   const itemVariants: any = {
-    hidden: { opacity: 0, y: 24 },
+    hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
   };
 
-  const testimonials = [
-    {
-      quote: "After 3 years of being told my fatigue was 'just stress', HealthChain's specialist board connected my gut symptoms to sub-clinical ferritin deficiency. My doctor immediately ordered the right test.",
-      name: "Sarah M.",
-      location: "New York",
-      rating: 5
-    },
-    {
-      quote: "I visited 4 different specialists and got 4 contradictory diagnoses. HealthChain's consensus report synthesized my entire 5-year timeline into a 2-page brief my rheumatologist actually read.",
-      name: "Rajesh K.",
-      location: "Mumbai",
-      rating: 5
-    },
-    {
-      quote: "The J.A.R.V.I.S. investigation caught a medication clash between my migraine pills and blood pressure meds that two clinics missed. Incredible diagnostic intelligence.",
-      name: "Elena V.",
-      location: "London",
-      rating: 5
-    }
-  ];
+  const filteredCases = activeCategory === 'all'
+    ? RANKED_CASES
+    : RANKED_CASES.filter((c) => c.category === activeCategory);
 
   return (
     <div className={styles.container}>
@@ -332,37 +356,23 @@ export default function Landing() {
       
       <main>
 
-      {/* 2. Vibrant Hero Section */}
+      {/* 2. Outbid-Style Hero Section */}
       <div className={styles.heroWrapper}>
         <div className={styles.heroGradientBg}></div>
 
         <div className={styles.heroContent}>
           <motion.div variants={containerVariants} initial="hidden" animate="show">
-            {/* Unified Sleek Live Hero Badge */}
+            
+            {/* Outbid-Style Top Live Stats Pill */}
             <motion.div 
               variants={itemVariants} 
-              className={styles.unifiedHeroBadge}
-              onClick={() => handleStartInvestigation('landing_hero_badge')}
+              className={styles.topLiveStatPill}
+              onClick={() => handleStartInvestigation('landing_top_pill')}
             >
-              <div className={styles.badgeSpecialistTag}>
-                <Zap size={12} fill="currentColor" />
-                <span>16-Specialist AI Board</span>
-              </div>
-              <div className={styles.badgeTickerArea}>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={activeTickerIndex}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                    className={styles.badgeTickerText}
-                  >
-                    {LIVE_NETWORK_UPDATES[activeTickerIndex]}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <ChevronRight size={14} className={styles.badgeArrow} />
+              <div className={styles.liveStatDot} />
+              <span className={styles.liveStatHighlight}>16 Specialists Active</span>
+              <span>· 1,420+ Inquiries Synthesized ·</span>
+              <span className={styles.liveStatLink}>Start Consultation →</span>
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
@@ -374,140 +384,163 @@ export default function Landing() {
               Been to 5 different doctors with no answers? HealthChain convenes 16 AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
             </motion.p>
 
-            {/* 💡 Idea 3: Instant Symptom Input Box in the Hero */}
-            <motion.div variants={itemVariants} className={styles.heroInputContainer}>
+            {/* Outbid-style Search / Intake Bar */}
+            <motion.div variants={itemVariants} className={styles.heroSearchContainer}>
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (customInput.trim()) {
-                    handleStartInvestigation('landing_hero_input', customInput.trim());
-                  } else {
-                    handleStartInvestigation('landing_hero_input');
-                  }
+                  handleStartInvestigation('landing_search_bar', customInput.trim() || 'General Multi-Specialist Intake', selectedSpecialtyFilter);
                 }}
-                className={styles.heroInputBox}
+                className={styles.heroSearchForm}
               >
-                <Search size={18} className={styles.heroInputIcon} />
+                <Search size={18} style={{ color: '#64748B', marginLeft: '4px' }} />
                 <input 
                   ref={inputRef}
                   type="text" 
-                  placeholder="Type your symptoms or upload a lab report..."
+                  placeholder="Describe symptoms or paste lab biomarkers (e.g., fatigue, post-meal palpitations)..."
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
-                  className={styles.heroInputField}
+                  className={styles.heroSearchInput}
                 />
-                <button type="submit" className={styles.heroInputBtn}>
-                  <span>Analyze →</span>
+                <select 
+                  className={styles.heroCategorySelect}
+                  value={selectedSpecialtyFilter}
+                  onChange={(e) => setSelectedSpecialtyFilter(e.target.value)}
+                >
+                  <option value="all">All 16 Specialists</option>
+                  <option value="cardio">Cardiology</option>
+                  <option value="neuro">Neurology</option>
+                  <option value="endo">Endocrinology</option>
+                  <option value="gastro">Gastroenterology</option>
+                  <option value="immuno">Immunology</option>
+                  <option value="rheum">Rheumatology</option>
+                  <option value="pulmo">Pulmonology</option>
+                </select>
+                <button type="submit" className={styles.heroSearchSubmitBtn}>
+                  <span>Analyze Case →</span>
                 </button>
               </form>
-            </motion.div>
-
-            {/* 💡 Idea 1: 1-Tap Symptom Chips (Direct Intake Hook) */}
-            <motion.div variants={itemVariants} className={styles.symptomChipsSection}>
-              <div className={styles.symptomChipsHeader}>
-                ⚡ 1-Tap Quick Start (Instant Specialist Launch)
-              </div>
-              <div className={styles.symptomChipsGrid}>
-                {SYMPTOM_PRESETS.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    className={styles.symptomChip}
-                    onClick={() => handleChipClick(preset, idx)}
-                  >
-                    <span>{preset.icon}</span>
-                    <span>{preset.label}</span>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* 💡 Idea 2: Interactive "Live Specialist Consensus" Preview Card */}
-            <motion.div 
-              variants={itemVariants} 
-              className={styles.consensusDemoCard}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <div className={styles.demoHeader}>
-                <div className={styles.demoBadge}>
-                  <div className={styles.demoLiveDot} />
-                  <span>Live 16-Specialist AI Medical Board Debate</span>
-                </div>
-              </div>
-
-              <div className={styles.demoChatArea}>
-                {CONSENSUS_DIALOGUE.map((spec, sIdx) => (
-                  <div key={sIdx} className={styles.demoMessage}>
-                    <div className={styles.demoSpecialistIcon} style={{ background: spec.bg, color: spec.color }}>
-                      {spec.icon}
-                    </div>
-                    <div className={styles.demoMessageContent}>
-                      <div className={styles.demoSpecialistName} style={{ color: spec.color }}>
-                        <span>{spec.role}:</span>
-                      </div>
-                      <p className={styles.demoText}>"{spec.finding}"</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className={styles.demoFooter}>
-                <div className={styles.demoConfidenceText}>
-                  <Sparkles size={16} />
-                  <span>Consensus: Root-Cause Synthesis Ready</span>
-                </div>
-                <button 
-                  className={styles.demoCtaMini}
-                  onClick={() => handleStartInvestigation('landing_consensus_card', 'Symptom Cross-Analysis & Lab Investigation')}
-                >
-                  Try with your symptoms →
-                </button>
-              </div>
             </motion.div>
 
           </motion.div>
         </div>
       </div>
 
-      {/* 3. Trusted By / Logos */}
-      <div className={styles.logoMarqueeSection}>
-        <p className={styles.logoMarqueeTitle}>BACKED BY PEER-REVIEWED EVIDENCE & CLINICAL DATASETS</p>
-        <div className={styles.marqueeContainer}>
-          <div className={styles.marqueeTrack}>
-            <span className={styles.textLogo}>PubMed</span>
-            <span className={styles.textLogo}>NIH</span>
-            <span className={styles.textLogo}>ClinicalTrials.gov</span>
-            <span className={styles.textLogo}>OMIM</span>
-            <span className={styles.textLogo}>Cochrane Library</span>
-            <span className={styles.textLogo} aria-hidden="true">PubMed</span>
-            <span className={styles.textLogo} aria-hidden="true">NIH</span>
-            <span className={styles.textLogo} aria-hidden="true">ClinicalTrials.gov</span>
-            <span className={styles.textLogo} aria-hidden="true">OMIM</span>
-            <span className={styles.textLogo} aria-hidden="true">Cochrane Library</span>
+      {/* 3. Outbid-Style 2-Column Medical Board Directory */}
+      <section className={styles.directorySection}>
+        <div className={styles.directoryGrid}>
+          
+          {/* Left Category Sidebar */}
+          <div className={styles.directorySidebar}>
+            <div className={styles.sidebarHeader}>Specialties & Case Volumes</div>
+            <div className={styles.categoryList}>
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  className={`${styles.categoryItem} ${activeCategory === cat.id ? styles.categoryItemActive : ''}`}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveCategory(cat.id);
+                  }}
+                >
+                  <div className={styles.categoryLeft}>
+                    <span className={styles.categoryIcon}>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </div>
+                  <span className={styles.categoryCount}>{cat.count}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Stats Section */}
-      <section className={styles.statsSection}>
-        <div className={styles.statsGrid}>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}>16 Specialists</h3>
-            <p className={styles.statLabel}>Multi-disciplinary AI board</p>
-          </div>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}>85% Faster</h3>
-            <p className={styles.statLabel}>To root-cause clarity</p>
-          </div>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}>Plain English</h3>
-            <p className={styles.statLabel}>Zero confusing medical jargon</p>
+          {/* Right Main Feed of Ranked Cases */}
+          <div className={styles.directoryMain}>
+            
+            {/* Top 3 Ranked Cases */}
+            {filteredCases.slice(0, 3).map((item, idx) => (
+              <div 
+                key={item.id}
+                className={`${styles.rankedCard} ${idx === 0 ? styles.rankedCardTop1 : idx === 1 ? styles.rankedCardTop2 : styles.rankedCardTop3}`}
+                onClick={() => handleStartInvestigation(`directory_case_${item.id}`, item.symptom, item.specId)}
+              >
+                <div className={`${styles.rankBadge} ${idx === 0 ? styles.rankBadge1 : idx === 1 ? styles.rankBadge2 : styles.rankBadge3}`}>
+                  {item.rank}
+                </div>
+                <div className={styles.rankedCardBody}>
+                  <div className={styles.rankedCardHeader}>
+                    <div className={styles.rankedTitleArea}>
+                      <span className={styles.rankedSpecialistAvatar}>{item.icon}</span>
+                      <span className={styles.rankedTitle}>{item.title}</span>
+                    </div>
+                    <span className={styles.rankedConfidenceScore}>{item.score}</span>
+                  </div>
+                  <p className={styles.rankedDesc}>{item.desc}</p>
+                  <div className={styles.rankedFooter}>
+                    <div className={styles.rankedFooterTags}>
+                      <span className={styles.rankedSpecialistTag}>🔬 {item.specialistTag}</span>
+                      <span>{item.meta}</span>
+                    </div>
+                    <span className={styles.rankedFooterAction}>See Clinical Brief →</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Outbid-style Horizontal Latest Activity Strip */}
+            <div className={styles.latestActivitySection}>
+              <div className={styles.latestActivityHeader}>
+                <span>● Latest Clinical Consensus Activity</span>
+              </div>
+              <div className={styles.latestActivityPills}>
+                {LATEST_ACTIVITIES.map((act, aIdx) => (
+                  <div 
+                    key={aIdx} 
+                    className={styles.activityPill}
+                    onClick={() => handleStartInvestigation(`activity_pill_${aIdx}`, act.symptom, act.specId)}
+                  >
+                    <span>{act.icon}</span>
+                    <span>{act.text}</span>
+                    <span className={styles.activityPillTime}>· {act.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Remaining Ranked Cases (#4, #5, #6...) */}
+            {filteredCases.slice(3).map((item, idx) => (
+              <div 
+                key={item.id}
+                className={styles.rankedCard}
+                onClick={() => handleStartInvestigation(`directory_case_${item.id}`, item.symptom, item.specId)}
+              >
+                <div className={styles.rankBadge}>
+                  {item.rank}
+                </div>
+                <div className={styles.rankedCardBody}>
+                  <div className={styles.rankedCardHeader}>
+                    <div className={styles.rankedTitleArea}>
+                      <span className={styles.rankedSpecialistAvatar}>{item.icon}</span>
+                      <span className={styles.rankedTitle}>{item.title}</span>
+                    </div>
+                    <span className={styles.rankedConfidenceScore}>{item.score}</span>
+                  </div>
+                  <p className={styles.rankedDesc}>{item.desc}</p>
+                  <div className={styles.rankedFooter}>
+                    <div className={styles.rankedFooterTags}>
+                      <span className={styles.rankedSpecialistTag}>🔬 {item.specialistTag}</span>
+                      <span>{item.meta}</span>
+                    </div>
+                    <span className={styles.rankedFooterAction}>See Clinical Brief →</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
           </div>
         </div>
       </section>
 
-      {/* 3.5 Product Video Demos */}
+      {/* 4. Product Video Demos */}
       <section className={styles.videoShowcaseSection}>
         <div className={styles.sectionHeader}>
           <div className={styles.premiumBadge} style={{ marginBottom: '12px' }}>
@@ -592,179 +625,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. The Problem (The Diagnostic Odyssey) */}
-      <section className={styles.problemSection}>
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }} 
-          whileInView={{ opacity: 1, y: 0 }} 
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className={styles.problemContent}
-        >
-          <h2 className={styles.problemTitle}>
-            Tired of hearing "All your tests are normal" while you still feel sick?
-          </h2>
-          <p className={styles.problemText}>
-            The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
-          </p>
-          <p className={styles.problemText} style={{ marginTop: '20px', color: '#FFFFFF', fontWeight: 700 }}>
-            HealthChain replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
-          </p>
-        </motion.div>
-      </section>
-
-      {/* 5. Features Bento Box */}
-      <section className={styles.bentoSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Complete Diagnostic Intelligence</h2>
-          <p className={styles.sectionSubtitle}>Everything you need to uncover the root cause and prepare for your doctor visits.</p>
-        </div>
-
-        <div className={styles.bentoGrid}>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className={`${styles.bentoCard} ${styles.bentoLarge}`}
-          >
-            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
-              <GitBranch size={24} color="#fff" />
-            </div>
-            <h3 className={styles.bentoTitle}>16-Specialist Deep Collab</h3>
-            <p className={styles.bentoDesc}>Convene cardiology, neurology, immunology, and endocrinology simultaneously to debate complex, multi-system cases and surface hidden root causes.</p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
-            className={styles.bentoCard}
-          >
-            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)' }}>
-              <Shield size={24} color="#fff" />
-            </div>
-            <h3 className={styles.bentoTitle}>Doctor-Ready PDF Dossier</h3>
-            <p className={styles.bentoDesc}>Export a high-yield clinical brief with your timeline, key differentials, and top 5 targeted questions to ensure a productive doctor visit.</p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
-            className={styles.bentoCard}
-          >
-            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' }}>
-              <Search size={24} color="#fff" />
-            </div>
-            <h3 className={styles.bentoTitle}>AI Lab Report & Scan Analyzer</h3>
-            <p className={styles.bentoDesc}>Upload blood panels, MRIs, and biopsy reports. Get instant plain-English explanations and sub-clinical functional flags.</p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
-            className={`${styles.bentoCard} ${styles.bentoWide}`}
-          >
-            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)' }}>
-              <MessageSquare size={24} color="#fff" />
-            </div>
-            <h3 className={styles.bentoTitle}>Ava: 24/7 AI Medical Chief of Staff</h3>
-            <p className={styles.bentoDesc}>Instant conversational symptom triage, drug interaction screening, calming acute reassurance, and clinical follow-up planning.</p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 6. AI Brain Simulation */}
-      <section className={styles.aiBrainSection}>
-        <div className={styles.aiBrainContent}>
-          <div className={styles.aiBrainText}>
-            <h2>16 AI Specialists Concurring <br/>On Your Case in Real Time.</h2>
-            <p>Instead of waiting 6 months for fragmented specialist referrals, HealthChain orchestrates an autonomous medical board to debate evidence, rule out conditions, and connect unseen symptoms in minutes.</p>
-          </div>
-          <div className={styles.aiBrainVisual}>
-             <div className={styles.nodeNetwork}>
-                <div className={`${styles.node} ${styles.nodeCenter}`}></div>
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className={`${styles.node} ${styles.nodeOrbit}`} style={{ '--i': i } as React.CSSProperties}></div>
-                ))}
-                <svg className={styles.nodeLines}>
-                   <circle cx="140" cy="140" r="90" stroke="rgba(0,212,178,0.25)" strokeWidth="1" fill="none" strokeDasharray="4 4" />
-                   <circle cx="140" cy="140" r="130" stroke="rgba(0,212,178,0.12)" strokeWidth="1" fill="none" />
-                </svg>
-             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. How It Works */}
-      <section id="how-it-works" className={styles.timelineSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>From Symptoms to Clarity in 3 Steps</h2>
-        </div>
-
-        <div className={styles.timelineContainer}>
-          {[
-            {
-              step: '01',
-              title: 'Upload Symptoms & Lab Work',
-              desc: 'Add blood panels, scan PDFs, or select your symptom timeline in your own words. Zero medical jargon required.'
-            },
-            {
-              step: '02',
-              title: 'Multi-Specialist AI Consensus',
-              desc: '16 specialized AI modules cross-reference your biomarkers against peer-reviewed literature to rank differential hypotheses.'
-            },
-            {
-              step: '03',
-              title: 'Walk into Your Clinic Prepared',
-              desc: 'Print your Doctor-Ready Dossier with prioritized questions and clinical cheat sheets so your doctor can take immediate action.'
-            }
-          ].map((item, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.5, delay: index * 0.15 }}
-              className={styles.timelineItem}
-            >
-              <div className={styles.timelineStep}>{item.step}</div>
-              <div className={styles.timelineContent}>
-                <h3 className={styles.timelineItemTitle}>{item.title}</h3>
-                <p className={styles.timelineItemDesc}>{item.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* 8. Testimonials */}
-      <section className={styles.testimonialSection}>
-        <div className={styles.testimonialContainer}>
-          <div className={styles.quoteMark}>"</div>
-          <motion.div 
-            key={activeTestimonial}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className={styles.testimonialContent}
-          >
-            <p className={styles.testimonialQuote}>{testimonials[activeTestimonial].quote}</p>
-            <div className={styles.testimonialAuthor}>
-              <div className={styles.testimonialStars}>
-                {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => <Star key={i} size={15} fill="currentColor" />)}
-              </div>
-              <h4>{testimonials[activeTestimonial].name}</h4>
-              <span>{testimonials[activeTestimonial].location}</span>
-            </div>
-          </motion.div>
-          
-          <div className={styles.testimonialControls}>
-            <button aria-label="Previous testimonial" onClick={() => setActiveTestimonial(p => (p === 0 ? testimonials.length - 1 : p - 1))} className={styles.controlBtn}><ChevronLeft size={20}/></button>
-            <div className={styles.testimonialDots} role="tablist">
-              {testimonials.map((_, i) => (
-                <button key={i} aria-label={`Go to testimonial ${i + 1}`} role="tab" aria-selected={i === activeTestimonial} className={`${styles.dot} ${i === activeTestimonial ? styles.activeDot : ''}`} onClick={() => setActiveTestimonial(i)} />
-              ))}
-            </div>
-            <button aria-label="Next testimonial" onClick={() => setActiveTestimonial(p => (p === testimonials.length - 1 ? 0 : p + 1))} className={styles.controlBtn}><ChevronRight size={20}/></button>
-          </div>
-        </div>
-      </section>
-
-      {/* 9. FAQ Section */}
+      {/* 5. FAQ Section */}
       <section className={styles.faqSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
@@ -794,7 +655,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 10. Final CTA */}
+      {/* 6. Final CTA */}
       <section className={styles.finalCtaSection}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.96 }}
@@ -814,7 +675,7 @@ export default function Landing() {
       </section>
       </main>
 
-      {/* 11. Footer */}
+      {/* 7. Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
