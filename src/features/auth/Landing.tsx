@@ -154,7 +154,7 @@ const landingFaqs = [
   },
   {
     question: "How do the Deep Collaborative Specialists work?",
-    answer: "The Deep Collaborative Specialists feature coordinates 16 AI perspective modules (such as cardiology, neurology, endocrinology, and immunology) to organize your information, surface evidence gaps, and prepare prioritized discussion points for a qualified clinician."
+    answer: "The Deep Collaborative Specialists feature coordinates AI perspective modules (such as cardiology, neurology, endocrinology, and immunology) to organize your information, surface evidence gaps, and prepare prioritized discussion points for a qualified clinician."
   },
   {
     question: "Are the AI agents trained on real medical literature?",
@@ -319,7 +319,7 @@ export default function Landing() {
               transition={{ delay: 0.2 }}
               style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}
             >
-              Convening 16 AI Medical Specialists...
+              Convening AI Medical Specialists...
             </motion.h2>
 
             <motion.div
@@ -519,7 +519,7 @@ export default function Landing() {
       <section className={styles.statsSection}>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>Multi-Specialist</h3>
+            <h3 className={styles.statValue}>AI Specialists</h3>
             <p className={styles.statLabel}>Autonomous multi-disciplinary AI board</p>
           </div>
           <div className={styles.statItem}>
@@ -655,7 +655,7 @@ export default function Landing() {
             </div>
             <div className={styles.videoMeta}>
               <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
-              <h3 className={styles.videoTitle}>Specialist AI Medical Board Debate</h3>
+              <h3 className={styles.videoTitle}>AI Medical Board Debate</h3>
               <p className={styles.videoDesc}>
                 Watch how cardiology, neurology, endocrinology, and immunology correlate multi-system symptoms to uncover missed root causes.
               </p>
@@ -803,7 +803,7 @@ export default function Landing() {
           <div className={styles.finalCtaMesh}></div>
           <div className={styles.finalCtaContent}>
             <h2 className={styles.finalCtaTitle}>Ready to uncover your root cause?</h2>
-            <p className={styles.finalCtaDesc}>Convene 16 AI specialists, organize your biomarkers, and prepare prioritized discussion questions for your next clinician visit.</p>
+            <p className={styles.finalCtaDesc}>Convene AI specialists, organize your biomarkers, and prepare prioritized discussion questions for your next clinician visit.</p>
             <button className={styles.finalCtaBtn} onClick={() => handleStartInvestigation('landing_bottom_cta')}>
               Start Free Consultation <ArrowRight size={18} />
             </button>
