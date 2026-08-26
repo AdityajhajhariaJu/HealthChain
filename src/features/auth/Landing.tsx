@@ -135,6 +135,21 @@ const RANKED_CASES = [
   },
 ];
 
+const SPECIALIST_TICKER = [
+  { name: 'Cardiology', icon: '🫀', tag: 'Arrhythmia & POTS' },
+  { name: 'Neurology', icon: '🧠', tag: 'Migraine & Vagus Tone' },
+  { name: 'Endocrinology', icon: '🔬', tag: 'Thyroid & Adrenals' },
+  { name: 'Immunology', icon: '🧬', tag: 'Autoimmune & MCAS' },
+  { name: 'Gastroenterology', icon: '🧪', tag: 'Gut-Brain Axis & SIBO' },
+  { name: 'Rheumatology', icon: '🦴', tag: 'Connective Tissue' },
+  { name: 'Pulmonology', icon: '🫁', tag: 'Dyspnea & Airway' },
+  { name: 'Hematology', icon: '🩸', tag: 'Ferritin & Clotting' },
+  { name: 'Nephrology', icon: '⚕️', tag: 'Electrolytes & Renal' },
+  { name: 'Infectious Disease', icon: '🦠', tag: 'Post-Viral Fatigue' },
+  { name: 'Pharmacology', icon: '💊', tag: 'Drug-Nutrient Interplay' },
+  { name: 'Functional Medicine', icon: '🥗', tag: 'Mitochondrial Health' },
+];
+
 const LATEST_ACTIVITIES = [
   { icon: '🧪', text: 'Iron Panel & Ferritin mapped for patient in Chicago', time: '1m ago', specId: 'endo', symptom: 'Iron panel and ferritin check' },
   { icon: '🧠', text: 'POTS Tilt Correlation for patient in London', time: '4m ago', specId: 'neuro', symptom: 'POTS tilt and autonomic correlation' },
@@ -385,6 +400,20 @@ export default function Landing() {
         <div className={styles.heroContent}>
           <motion.div variants={containerVariants} initial="hidden" animate="show">
             
+            {/* Continuous Specialist Stock-Market Running Ticker */}
+            <motion.div variants={itemVariants} className={styles.specialistStockTicker}>
+              <div className={styles.stockTickerTrack}>
+                {[...SPECIALIST_TICKER, ...SPECIALIST_TICKER].map((spec, i) => (
+                  <div key={i} className={styles.stockTickerItem}>
+                    <span className={styles.stockTickerIcon}>{spec.icon}</span>
+                    <span className={styles.stockTickerName}>{spec.name}</span>
+                    <span className={styles.stockTickerTag}>{spec.tag}</span>
+                    <span className={styles.stockTickerDot}>•</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
             {/* Unified Sleek Live Hero Badge */}
             <motion.div 
               variants={itemVariants} 
