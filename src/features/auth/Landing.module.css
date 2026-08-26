@@ -175,6 +175,96 @@
   text-align: center;
 }
 
+/* Live Telemetry Ticker between Navbar & Badge */
+.liveTelemetryBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 6px 16px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.liveTelemetryBar:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(56, 189, 248, 0.3);
+  transform: translateY(-1px);
+}
+
+.liveBeaconContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.liveBeaconDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+  position: relative;
+}
+
+.liveBeaconPing {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.5);
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.liveBeaconLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #34D399;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.liveTelemetryDivider {
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.liveTickerText {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #CBD5E1;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .liveTelemetryBar {
+    max-width: 90%;
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  .liveTickerText {
+    font-size: 11.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 .premiumBadge {
   display: inline-flex;
   align-items: center;

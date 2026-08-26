@@ -81,12 +81,28 @@ const landingFaqs = [
   }
 ];
 
+const LIVE_NETWORK_UPDATES = [
+  '16 AI Specialist Modules Online & Concurring',
+  '1,420+ Clinical Inquiries Synthesized Today',
+  'Cardiology & Neurology Concurring on Autonomic Case (2m ago)',
+  'Grounded in 35M+ PubMed & NIH Clinical Trials',
+  'Instant Intake Active • Zero Medical Jargon Required',
+];
+
 export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [activeTickerIndex, setActiveTickerIndex] = useState(0);
   const [customInput, setCustomInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTickerIndex((prev) => (prev + 1) % LIVE_NETWORK_UPDATES.length);
+    }, 3600);
+    return () => clearInterval(interval);
+  }, []);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
@@ -322,7 +338,35 @@ export default function Landing() {
 
         <div className={styles.heroContent}>
           <motion.div variants={containerVariants} initial="hidden" animate="show">
-            
+            {/* Live Network Activity Beacon */}
+            <motion.div 
+              variants={itemVariants} 
+              className={styles.liveTelemetryBar}
+              onClick={() => handleStartInvestigation('landing_live_beacon')}
+            >
+              <div className={styles.liveBeaconContainer}>
+                <div className={styles.liveBeaconDot}>
+                  <div className={styles.liveBeaconPing} />
+                </div>
+                <span className={styles.liveBeaconLabel}>LIVE NETWORK</span>
+              </div>
+              <div className={styles.liveTelemetryDivider} />
+              <div style={{ overflow: 'hidden', height: '20px', display: 'flex', alignItems: 'center' }}>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={activeTickerIndex}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className={styles.liveTickerText}
+                  >
+                    {LIVE_NETWORK_UPDATES[activeTickerIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
             <motion.div variants={itemVariants} className={styles.premiumBadge}>
               <Zap size={13} fill="currentColor" /> 16-SPECIALIST AI MEDICAL BOARD
             </motion.div>
