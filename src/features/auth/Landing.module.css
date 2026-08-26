@@ -1476,10 +1476,75 @@
 
 @media (max-width: 900px) {
   .statsGrid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    max-width: 480px;
-    margin: 0 auto;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .statsSection {
+    padding: 10px 0 24px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .statsGrid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 10px;
+    padding: 4px 16px 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .statsGrid::-webkit-scrollbar {
+    display: none;
+  }
+  .statItem {
+    flex: 0 0 215px;
+    scroll-snap-align: center;
+    padding: 14px 12px 12px;
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.06);
+  }
+  .statGraphicWrapper {
+    height: 65px;
+    margin-bottom: 6px;
+  }
+  .statSvg {
+    max-width: 95px;
+    height: 60px;
+  }
+  .statValueRow {
+    margin-bottom: 2px;
+    gap: 4px;
+  }
+  .statNumber {
+    font-size: 26px;
+    letter-spacing: -0.8px;
+  }
+  .statTrend {
+    font-size: 14px;
+    transform: translateY(-2px);
+  }
+  .statTitle {
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 3px;
+    line-height: 1.25;
+  }
+  .statDesc {
+    font-size: 10px;
+    line-height: 1.35;
+    margin: 0 0 8px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .statCtaLink {
+    font-size: 11px;
+    padding: 2px 4px;
   }
 }
 
