@@ -856,6 +856,91 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* 2.5 Product Video Demos */}
+      <section className={styles.videoShowcaseSection}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.categoryBadge}>
+            🎬 MULTI-SPECIALIST AI DEMO
+          </div>
+          <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
+          <p className={styles.sectionSubtitle}>
+            Watch how our AI clinical specialists cross-analyze contradictory symptoms, lab biomarkers, and medical history.
+          </p>
+        </div>
+
+        <div className={styles.videoGrid}>
+          {/* Video 1 */}
+          <motion.div 
+            className={styles.videoCard}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={styles.videoWrapper}>
+              <video 
+                src="/videos/healthchain-overview.mp4" 
+                controls 
+                preload="metadata"
+                playsInline 
+                loop 
+                muted
+                className={styles.videoPlayer}
+              />
+            </div>
+            <div className={styles.videoMeta}>
+              <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
+              <h3 className={styles.videoTitle}>AI Medical Board Debate</h3>
+              <p className={styles.videoDesc}>
+                Watch how cardiology, neurology, endocrinology, and immunology correlate multi-system symptoms to uncover missed root causes.
+              </p>
+              <button 
+                className={styles.videoCta}
+                onClick={() => handleStartInvestigation('landing_video_1', 'AI Medical Board Consultation')}
+              >
+                <span>Try this with your symptoms</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Video 2 */}
+          <motion.div 
+            className={styles.videoCard}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+          >
+            <div className={styles.videoWrapper}>
+              <video 
+                src="/videos/specialist-board-demo.mp4" 
+                controls 
+                preload="metadata"
+                playsInline 
+                loop 
+                muted
+                className={styles.videoPlayer}
+              />
+            </div>
+            <div className={styles.videoMeta}>
+              <div className={styles.videoBadge}>DEMO 2 • WORKFLOW</div>
+              <h3 className={styles.videoTitle}>From Symptoms to Doctor-Ready Dossier</h3>
+              <p className={styles.videoDesc}>
+                See how blood panels and symptoms synthesize into ranked differentials and doctor-ready discussion points in minutes.
+              </p>
+              <button 
+                className={styles.videoCta}
+                onClick={() => handleStartInvestigation('landing_video_2', 'Full Lab & Symptom Dossier')}
+              >
+                <span>Generate your clinical brief</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* 3. Illustrated Clinical Results (FameHero Style) */}
       <section className={styles.statsSection}>
         <div className={styles.sectionHeader} style={{ marginBottom: '32px' }}>
@@ -1206,91 +1291,6 @@ export default function Landing() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 4. Product Video Demos */}
-      <section className={styles.videoShowcaseSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.categoryBadge}>
-            🎬 MULTI-SPECIALIST AI DEMO
-          </div>
-          <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
-          <p className={styles.sectionSubtitle}>
-            Watch how our AI clinical specialists cross-analyze contradictory symptoms, lab biomarkers, and medical history.
-          </p>
-        </div>
-
-        <div className={styles.videoGrid}>
-          {/* Video 1 */}
-          <motion.div 
-            className={styles.videoCard}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className={styles.videoWrapper}>
-              <video 
-                src="/videos/healthchain-overview.mp4" 
-                controls 
-                preload="metadata"
-                playsInline 
-                loop 
-                muted
-                className={styles.videoPlayer}
-              />
-            </div>
-            <div className={styles.videoMeta}>
-              <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
-              <h3 className={styles.videoTitle}>AI Medical Board Debate</h3>
-              <p className={styles.videoDesc}>
-                Watch how cardiology, neurology, endocrinology, and immunology correlate multi-system symptoms to uncover missed root causes.
-              </p>
-              <button 
-                className={styles.videoCta}
-                onClick={() => handleStartInvestigation('landing_video_1', 'AI Medical Board Consultation')}
-              >
-                <span>Try this with your symptoms</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Video 2 */}
-          <motion.div 
-            className={styles.videoCard}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >
-            <div className={styles.videoWrapper}>
-              <video 
-                src="/videos/specialist-board-demo.mp4" 
-                controls 
-                preload="metadata"
-                playsInline 
-                loop 
-                muted
-                className={styles.videoPlayer}
-              />
-            </div>
-            <div className={styles.videoMeta}>
-              <div className={styles.videoBadge}>DEMO 2 • WORKFLOW</div>
-              <h3 className={styles.videoTitle}>From Symptoms to Doctor-Ready Dossier</h3>
-              <p className={styles.videoDesc}>
-                See how blood panels and symptoms synthesize into ranked differentials and doctor-ready discussion points in minutes.
-              </p>
-              <button 
-                className={styles.videoCta}
-                onClick={() => handleStartInvestigation('landing_video_2', 'Full Lab & Symptom Dossier')}
-              >
-                <span>Generate your clinical brief</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </motion.div>
         </div>
       </section>
 

@@ -2365,6 +2365,43 @@
   gap: 9px;
 }
 
+@media (max-width: 768px) {
+  .videoShowcaseSection {
+    padding: 24px 14px 28px;
+  }
+  .videoGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .videoCard {
+    padding: 14px;
+    border-radius: 18px;
+  }
+  .videoWrapper {
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  .videoBadge {
+    font-size: 9px;
+    padding: 2px 7px;
+    margin-bottom: 6px;
+  }
+  .videoTitle {
+    font-size: 14.5px;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+  .videoDesc {
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+  .videoCta {
+    font-size: 11.5px;
+  }
+}
+
 /* ==========================================================================
    5. The Problem (Diagnostic Odyssey)
    ========================================================================== */
