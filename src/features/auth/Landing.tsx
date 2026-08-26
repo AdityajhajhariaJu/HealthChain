@@ -943,12 +943,12 @@ export default function Landing() {
 
       {/* 3. Illustrated Clinical Results (FameHero Style) */}
       <section className={styles.statsSection}>
-        <div className={styles.sectionHeader} style={{ marginBottom: '32px' }}>
-          <h2 className={styles.sectionTitle} style={{ fontSize: '36px', marginBottom: '8px' }}>
+        <div className={styles.sectionHeader} style={{ marginBottom: '24px' }}>
+          <h2 className={styles.statsMainTitle}>
             Results You Can Measure <br/>
             <span className={styles.heroHighlight}>Clinical Clarity That Delivers</span>
           </h2>
-          <p className={styles.sectionSubtitle} style={{ maxWidth: '680px' }}>
+          <p className={styles.statsMainSubtitle}>
             Patients don't just get answers — they get clarity. HealthChain360.ai drives measurable improvements across root-cause discovery, lab synthesis, and clinician appointment preparation.
           </p>
         </div>

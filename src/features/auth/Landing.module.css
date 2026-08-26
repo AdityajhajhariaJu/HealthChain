@@ -1376,6 +1376,23 @@
   margin: 0 auto;
 }
 
+.statsMainTitle {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: #0F172A;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.statsMainSubtitle {
+  font-size: 14.5px;
+  color: #64748B;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1483,9 +1500,20 @@
 
 @media (max-width: 768px) {
   .statsSection {
-    padding: 10px 0 24px;
+    padding: 10px 14px 24px;
     max-width: 100%;
     overflow: hidden;
+  }
+  .statsMainTitle {
+    font-size: 21px;
+    letter-spacing: -0.4px;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .statsMainSubtitle {
+    font-size: 11.5px;
+    line-height: 1.4;
+    max-width: 320px;
   }
   .statsGrid {
     display: flex;
