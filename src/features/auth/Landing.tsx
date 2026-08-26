@@ -65,6 +65,65 @@ const CONSENSUS_DIALOGUE = [
   },
 ];
 
+const BENTO_COL_LEFT = [
+  {
+    id: 'bento_left_1',
+    type: 'img',
+    img: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
+    tag: '📖 Patient Guide',
+    status: 'NEWS',
+    title: 'What is HealthChain and How Can It Improve Your Doctor Visits?',
+    desc: 'Confused about managing your health records? HealthChain provides a clear, unified timeline so you never repeat your story.'
+  },
+  {
+    id: 'bento_left_2',
+    type: 'img',
+    img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80',
+    tag: '📊 Professional Report',
+    status: 'NEWS',
+    title: "HealthChain's Integrated Approach to Patient Data Management",
+    desc: 'Explore how HealthChain centralizes patient health stories, records, and identifies multi-organ correlations standard visits miss.'
+  },
+  {
+    id: 'bento_left_3',
+    type: 'img',
+    img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80',
+    tag: '🧬 Biomarker Matrix',
+    status: 'LAB',
+    title: 'When Standard Blood Work Shows "Normal", AI Examines the Gaps',
+    desc: 'Cross-checks subclinical ferritin, Free T3/T4 conversion ratios, and electrolyte variances against comprehensive clinical reference ranges.'
+  }
+];
+
+const BENTO_COL_RIGHT = [
+  {
+    id: 'bento_right_1',
+    type: 'img',
+    img: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=800&q=80',
+    tag: '📄 Trade Publication',
+    status: 'NEWS',
+    title: 'How HealthChain Helps Bridge Communication Gaps with Your...',
+    desc: 'Ever felt unheard by your doctor? HealthChain equips you with organized health summaries and differential discussion points.'
+  },
+  {
+    id: 'bento_right_2',
+    type: 'privacy',
+    tag: '🛡️ Encrypted Vault',
+    status: '100% PRIVATE',
+    title: 'Reviewed & Encrypted Before It Goes Live',
+    desc: 'Every piece is checked and verified client-side so nothing leaves your device without explicit permission.'
+  },
+  {
+    id: 'bento_right_3',
+    type: 'img',
+    img: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=800&q=80',
+    tag: '🔬 Clinical Trials',
+    status: 'PEER-REVIEWED',
+    title: 'Direct Matching to Active Clinical Trials & NIH Studies',
+    desc: 'Instantly correlates unresolved symptom clusters with current recruiting trials and published landmark breakthroughs.'
+  }
+];
+
 const LIVE_NETWORK_UPDATES = [
   'Debating Cases in Real Time',
   '1,420+ Clinical Inquiries Analyzed Today',
@@ -981,211 +1040,72 @@ export default function Landing() {
             </p>
           </div>
 
-          {/* 6-Card Staggered Vertical Masonry Layout */}
-          <div className={styles.bentoMasonryLayout}>
-            
-            {/* Column 1 (Left Vertical Stack) */}
-            <div className={styles.bentoColumn}>
+          {/* 2-Column Continuous Vertical Auto-Scroller Window */}
+          <div className={styles.bentoScrollWindow}>
+            <div className={styles.bentoMasonryLayout}>
               
-              {/* Card 1: Patient Guide */}
-              <motion.div 
-                className={styles.bentoCard}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3 }}
-                onClick={() => handleStartInvestigation('bento_card_1', 'Chronological symptom timeline')}
-              >
-                <div className={styles.bentoImgWrapper}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80" 
-                    alt="Doctor and patient reviewing records" 
-                    className={styles.bentoImg}
-                    loading="lazy"
-                  />
-                  <div className={styles.bentoImgOverlay} />
+              {/* Column 1 Track (Left Infinite Loop) */}
+              <div className={styles.bentoColumnScroll}>
+                <div className={styles.bentoColumnTrackLeft}>
+                  {[...BENTO_COL_LEFT, ...BENTO_COL_LEFT].map((card, idx) => (
+                    <div 
+                      key={`left_${idx}`}
+                      className={styles.bentoCard}
+                      onClick={() => handleStartInvestigation(`bento_card_left_${idx}`, card.title)}
+                    >
+                      {card.type === 'img' && card.img && (
+                        <div className={styles.bentoImgWrapper}>
+                          <img src={card.img} alt={card.title} className={styles.bentoImg} loading="lazy" />
+                          <div className={styles.bentoImgOverlay} />
+                        </div>
+                      )}
+                      <div className={styles.bentoCardBody}>
+                        <div className={styles.bentoCardTags}>
+                          <span className={styles.bentoCategoryTag}>{card.tag}</span>
+                          <span className={styles.bentoStatusTag}>{card.status}</span>
+                        </div>
+                        <h3 className={styles.bentoCardTitle}>{card.title}</h3>
+                        <p className={styles.bentoCardDesc}>{card.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className={styles.bentoCardBody}>
-                  <div className={styles.bentoCardTags}>
-                    <span className={styles.bentoCategoryTag}>📖 Patient Guide</span>
-                    <span className={styles.bentoStatusTag}>VERIFIED</span>
-                  </div>
-                  <h3 className={styles.bentoCardTitle}>
-                    What is HealthChain360.ai and How Does It Improve Your Doctor Visits?
-                  </h3>
-                  <p className={styles.bentoCardDesc}>
-                    Confused about managing scattered health records? HealthChain360.ai provides a unified chronological timeline so you never repeat your medical story from scratch.
-                  </p>
-                </div>
-              </motion.div>
+              </div>
 
-              {/* Card 3: Integrated Data Management */}
-              <motion.div 
-                className={styles.bentoCard}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                onClick={() => handleStartInvestigation('bento_card_3', 'Multi-organ biomarker correlation')}
-              >
-                <div className={styles.bentoImgWrapper}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80" 
-                    alt="Physician examining clinical brief" 
-                    className={styles.bentoImg}
-                    loading="lazy"
-                  />
-                  <div className={styles.bentoImgOverlay} />
+              {/* Column 2 Track (Right Infinite Loop) */}
+              <div className={styles.bentoColumnScroll}>
+                <div className={styles.bentoColumnTrackRight}>
+                  {[...BENTO_COL_RIGHT, ...BENTO_COL_RIGHT].map((card, idx) => (
+                    <div 
+                      key={`right_${idx}`}
+                      className={`${styles.bentoCard} ${card.type === 'privacy' ? styles.bentoCardPrivacy : ''}`}
+                      onClick={() => handleStartInvestigation(`bento_card_right_${idx}`, card.title)}
+                    >
+                      {card.type === 'img' && card.img && (
+                        <div className={styles.bentoImgWrapper}>
+                          <img src={card.img} alt={card.title} className={styles.bentoImg} loading="lazy" />
+                          <div className={styles.bentoImgOverlay} />
+                        </div>
+                      )}
+                      {card.type === 'privacy' && (
+                        <div className={styles.bentoPrivacyIconBg}>
+                          <ShieldCheck size={28} color="#059669" />
+                        </div>
+                      )}
+                      <div className={styles.bentoCardBody} style={card.type === 'privacy' ? { padding: 0 } : undefined}>
+                        <div className={styles.bentoCardTags}>
+                          <span className={styles.bentoCategoryTag}>{card.tag}</span>
+                          <span className={styles.bentoStatusTag}>{card.status}</span>
+                        </div>
+                        <h3 className={styles.bentoCardTitle}>{card.title}</h3>
+                        <p className={styles.bentoCardDesc}>{card.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className={styles.bentoCardBody}>
-                  <div className={styles.bentoCardTags}>
-                    <span className={styles.bentoCategoryTag}>📊 Professional Report</span>
-                    <span className={styles.bentoStatusTag}>CLINICAL BRIEF</span>
-                  </div>
-                  <h3 className={styles.bentoCardTitle}>
-                    HealthChain's Integrated Approach to Patient Data Management &amp; Synthesis
-                  </h3>
-                  <p className={styles.bentoCardDesc}>
-                    Explore how HealthChain360.ai centralizes patient health stories, records, and identifies multi-organ correlations standard 15-minute visits miss.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Card 5: Biomarker Gap Analysis */}
-              <motion.div 
-                className={styles.bentoCard}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                onClick={() => handleStartInvestigation('bento_card_5', 'Lab biomarker gap analysis')}
-              >
-                <div className={styles.bentoImgWrapper}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80" 
-                    alt="Biochemical blood biomarker analysis" 
-                    className={styles.bentoImg}
-                    loading="lazy"
-                  />
-                  <div className={styles.bentoImgOverlay} />
-                </div>
-                <div className={styles.bentoCardBody}>
-                  <div className={styles.bentoCardTags}>
-                    <span className={styles.bentoCategoryTag}>🧬 Biomarker Matrix</span>
-                    <span className={styles.bentoStatusTag}>LAB GROUNDED</span>
-                  </div>
-                  <h3 className={styles.bentoCardTitle}>
-                    When Standard Blood Work Shows "Normal", AI Examines the Gaps
-                  </h3>
-                  <p className={styles.bentoCardDesc}>
-                    Cross-checks subclinical ferritin, Free T3/T4 conversion ratios, and electrolyte variances against comprehensive clinical reference ranges.
-                  </p>
-                </div>
-              </motion.div>
+              </div>
 
             </div>
-
-            {/* Column 2 (Right Vertical Stack) */}
-            <div className={styles.bentoColumn}>
-              
-              {/* Card 2: Trade Publication */}
-              <motion.div 
-                className={styles.bentoCard}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3, delay: 0.05 }}
-                onClick={() => handleStartInvestigation('bento_card_2', 'Specialist communication preparation')}
-              >
-                <div className={styles.bentoImgWrapper}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=800&q=80" 
-                    alt="Multi-specialist clinical collaboration" 
-                    className={styles.bentoImg}
-                    loading="lazy"
-                  />
-                  <div className={styles.bentoImgOverlay} />
-                </div>
-                <div className={styles.bentoCardBody}>
-                  <div className={styles.bentoCardTags}>
-                    <span className={styles.bentoCategoryTag}>📄 Trade Publication</span>
-                    <span className={styles.bentoStatusTag}>SPECIALIST NEWS</span>
-                  </div>
-                  <h3 className={styles.bentoCardTitle}>
-                    How HealthChain Helps Bridge Communication Gaps With Your Clinicians
-                  </h3>
-                  <p className={styles.bentoCardDesc}>
-                    Ever felt unheard by your doctor? HealthChain equips you with organized clinical questions, evidence rationales, and ICD-10 differential trees.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Card 4: Verified Security & Privacy Vault */}
-              <motion.div 
-                className={`${styles.bentoCard} ${styles.bentoCardPrivacy}`}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3, delay: 0.15 }}
-                onClick={() => handleStartInvestigation('bento_card_4')}
-              >
-                <div className={styles.bentoPrivacyIconBg}>
-                  <ShieldCheck size={28} color="#059669" />
-                </div>
-                <div className={styles.bentoCardBody} style={{ padding: 0 }}>
-                  <div className={styles.bentoCardTags}>
-                    <span className={styles.bentoCategoryTag}>🛡️ Client-Side Vault</span>
-                    <span className={styles.bentoStatusTag}>100% PRIVATE</span>
-                  </div>
-                  <h3 className={styles.bentoCardTitle}>
-                    Reviewed &amp; Encrypted Before It Ever Goes Live
-                  </h3>
-                  <p className={styles.bentoCardDesc}>
-                    Every piece of data is checked, verified, and client-side encrypted so nothing leaves your device without your explicit permission.
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Card 6: Clinical Trials & NIH Research */}
-              <motion.div 
-                className={styles.bentoCard}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.3, delay: 0.25 }}
-                onClick={() => handleStartInvestigation('bento_card_6', 'Active clinical trials and NIH research')}
-              >
-                <div className={styles.bentoImgWrapper}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=800&q=80" 
-                    alt="Clinical trials and molecular medicine" 
-                    className={styles.bentoImg}
-                    loading="lazy"
-                  />
-                  <div className={styles.bentoImgOverlay} />
-                </div>
-                <div className={styles.bentoCardBody}>
-                  <div className={styles.bentoCardTags}>
-                    <span className={styles.bentoCategoryTag}>🔬 Active Research</span>
-                    <span className={styles.bentoStatusTag}>PEER-REVIEWED</span>
-                  </div>
-                  <h3 className={styles.bentoCardTitle}>
-                    Direct Matching to Active Clinical Trials &amp; NIH Research
-                  </h3>
-                  <p className={styles.bentoCardDesc}>
-                    Instantly correlates unexplained symptom clusters with current recruiting trials and published landmark breakthroughs across PubMed.
-                  </p>
-                </div>
-              </motion.div>
-
-            </div>
-
           </div>
 
           {/* Bottom Primary Action Button */}
