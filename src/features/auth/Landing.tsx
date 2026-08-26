@@ -21,7 +21,8 @@ import {
   ArrowUpRight,
   FileText,
   Eye,
-  ShieldCheck
+  ShieldCheck,
+  Play
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
@@ -237,6 +238,52 @@ const landingFaqs = [
     answer: "Yes. HealthChain360.ai grounds its reasoning in peer-reviewed clinical guidelines (PubMed, NIH, OMIM, ClinicalTrials.gov). AI output is synthesized for patient clarity and must always be reviewed with your personal physician."
   }
 ];
+
+interface DemoVideoPlayerProps {
+  src: string;
+  poster: string;
+  alt: string;
+}
+
+const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
+    }, 60);
+  };
+
+  return (
+    <div className={styles.videoWrapper} onClick={!isPlaying ? handlePlay : undefined}>
+      {isPlaying ? (
+        <video
+          ref={videoRef}
+          src={src}
+          controls
+          autoPlay
+          playsInline
+          className={styles.videoPlayer}
+          onEnded={() => setIsPlaying(false)}
+        />
+      ) : (
+        <div className={styles.videoPosterContainer}>
+          <img src={poster} alt={alt} className={styles.videoPosterImg} loading="eager" />
+          <div className={styles.videoPlayOverlay}>
+            <button className={styles.videoPlayBtn} aria-label={`Play ${alt}`} onClick={handlePlay}>
+              <Play size={24} fill="#FFFFFF" color="#FFFFFF" style={{ marginLeft: '3px' }} />
+            </button>
+            <span className={styles.videoPlayBadge}>▶ Watch Demo</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -877,19 +924,11 @@ export default function Landing() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <div className={styles.videoWrapper}>
-              <video 
-                src="/videos/healthchain-overview.mp4" 
-                poster="/videos/healthchain-overview-poster.webp"
-                controls 
-                autoPlay
-                muted
-                playsInline 
-                loop 
-                preload="metadata"
-                className={styles.videoPlayer}
-              />
-            </div>
+            <DemoVideoPlayer 
+              src="/videos/healthchain-overview.mp4" 
+              poster="/videos/healthchain-overview-poster.jpg"
+              alt="AI Medical Board Debate Demo"
+            />
             <div className={styles.videoMeta}>
               <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
               <h3 className={styles.videoTitle}>AI Medical Board Debate</h3>
@@ -914,19 +953,11 @@ export default function Landing() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <div className={styles.videoWrapper}>
-              <video 
-                src="/videos/specialist-board-demo.mp4" 
-                poster="/videos/specialist-board-demo-poster.webp"
-                controls 
-                autoPlay
-                muted
-                playsInline 
-                loop 
-                preload="metadata"
-                className={styles.videoPlayer}
-              />
-            </div>
+            <DemoVideoPlayer 
+              src="/videos/specialist-board-demo.mp4" 
+              poster="/videos/specialist-board-demo-poster.jpg"
+              alt="From Symptoms to Doctor-Ready Dossier Demo"
+            />
             <div className={styles.videoMeta}>
               <div className={styles.videoBadge}>DEMO 2 • WORKFLOW</div>
               <h3 className={styles.videoTitle}>From Symptoms to Doctor-Ready Dossier</h3>
