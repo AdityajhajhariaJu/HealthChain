@@ -21,6 +21,7 @@ import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
 import { getActiveSession } from '../../services/authSession';
 import { supabase } from '../../services/supabaseClient';
+import { trackPageView, trackButtonClick } from '../../services/analytics';
 
 const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number; to: number; duration?: number; suffix?: string }) => {
   const ref = useRef<HTMLSpanElement>(null);
@@ -75,6 +76,10 @@ export default function Landing() {
   const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    trackPageView('/');
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (navTimerRef.current) clearTimeout(navTimerRef.current);
     };
@@ -118,7 +123,8 @@ export default function Landing() {
     };
   }, [navigate]);
 
-  const handleStartInvestigation = () => {
+  const handleStartInvestigation = (context: string = 'landing_hero') => {
+    trackButtonClick('Get Started', context);
     setIsNavigating(true);
     setActiveCase(null);
     useMDTStore.getState().reset();
@@ -129,7 +135,7 @@ export default function Landing() {
 
     if (navTimerRef.current) clearTimeout(navTimerRef.current);
     navTimerRef.current = setTimeout(() => {
-      navigate('/app/today');
+      navigate('/app/consult?new=true');
     }, 1100);
   };
 
@@ -271,7 +277,7 @@ export default function Landing() {
               Health Today
             </button>
           )}
-          <button className={`btn btn-primary ${styles.navButton}`} onClick={handleStartInvestigation}>
+          <button className={`btn btn-primary ${styles.navButton}`} onClick={() => handleStartInvestigation('landing_nav')}>
             Get Started
           </button>
         </div>
@@ -315,7 +321,7 @@ export default function Landing() {
             </motion.p>
             
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
-              <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={handleStartInvestigation}>
+              <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={() => handleStartInvestigation('landing_hero')}>
                 Get Started <ArrowRight size={18} />
               </button>
               <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
@@ -611,7 +617,7 @@ export default function Landing() {
           <div className={styles.finalCtaContent}>
             <h2 className={styles.finalCtaTitle}>Ready to organize your health story?</h2>
             <p className={styles.finalCtaDesc}>Create a private case, prepare your questions, and take a clearer summary into your next clinician conversation.</p>
-            <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={handleStartInvestigation}>
+            <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={() => handleStartInvestigation('landing_bottom_cta')}>
               Get Started <ArrowRight size={18} />
             </button>
           </div>
