@@ -533,6 +533,266 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* 2.5 Multi-Stream Data Convergence Showcase (Brandstack Style) */}
+      <section className={styles.convergenceSection}>
+        <div className={styles.convergenceContainer}>
+          
+          {/* Top Brand Pill */}
+          <div className={styles.convergenceTopBrand}>
+            <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+            <span>HealthChain360.ai</span>
+          </div>
+
+          {/* Main Headline */}
+          <h2 className={styles.convergenceHeadline}>
+            Your entire health history. <br />
+            <span className={styles.convergenceItalicText}>One intelligent view.</span>
+          </h2>
+          <p className={styles.convergenceSubheadline}>
+            Blood tests, doctor notes, wearable vitals, and scans—connected to one AI clinical board.
+          </p>
+
+          {/* 4 Data Source Pill Chips */}
+          <div className={styles.convergenceSourceChips}>
+            <div className={`${styles.sourceChip} ${styles.sourceChipBlood}`}>
+              <span className={styles.sourceChipIcon}>🩸</span>
+              <span className={styles.sourceChipLabel}>Lab &amp; Blood Tests</span>
+            </div>
+            <div className={`${styles.sourceChip} ${styles.sourceChipDoctor}`}>
+              <span className={styles.sourceChipIcon}>🏥</span>
+              <span className={styles.sourceChipLabel}>Doctor &amp; Clinic Notes</span>
+            </div>
+            <div className={`${styles.sourceChip} ${styles.sourceChipWearable}`}>
+              <span className={styles.sourceChipIcon}>⌚</span>
+              <span className={styles.sourceChipLabel}>Wearables &amp; Vitals</span>
+            </div>
+            <div className={`${styles.sourceChip} ${styles.sourceChipGenomic}`}>
+              <span className={styles.sourceChipIcon}>🧬</span>
+              <span className={styles.sourceChipLabel}>Scans &amp; Genetic PDFs</span>
+            </div>
+          </div>
+
+          {/* SVG Animated Converging Conduit Cables */}
+          <div className={styles.convergenceCablesWrapper}>
+            <svg viewBox="0 0 800 90" className={styles.convergenceSvg} fill="none">
+              {/* Cable 1: Blood (Rose/Red) */}
+              <motion.path
+                d="M 120 0 C 120 45, 380 50, 400 90"
+                stroke="#F43F5E"
+                strokeWidth="2.5"
+                strokeDasharray="4 4"
+                initial={{ strokeDashoffset: 40 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              />
+              {/* Cable 2: Doctor (Sky Blue) */}
+              <motion.path
+                d="M 300 0 C 300 40, 390 55, 400 90"
+                stroke="#0284C7"
+                strokeWidth="2.5"
+                strokeDasharray="4 4"
+                initial={{ strokeDashoffset: 40 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              />
+              {/* Cable 3: Wearables (Emerald Green) */}
+              <motion.path
+                d="M 500 0 C 500 40, 410 55, 400 90"
+                stroke="#10B981"
+                strokeWidth="2.5"
+                strokeDasharray="4 4"
+                initial={{ strokeDashoffset: 40 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              />
+              {/* Cable 4: Scans/Genomics (Violet Purple) */}
+              <motion.path
+                d="M 680 0 C 680 45, 420 50, 400 90"
+                stroke="#8B5CF6"
+                strokeWidth="2.5"
+                strokeDasharray="4 4"
+                initial={{ strokeDashoffset: 40 }}
+                animate={{ strokeDashoffset: 0 }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              />
+              {/* Center converging hub pin */}
+              <circle cx="400" cy="86" r="5" fill="#059669" />
+              <circle cx="400" cy="86" r="8" stroke="#10B981" strokeWidth="2" fill="none" opacity="0.6" />
+            </svg>
+          </div>
+
+          {/* Elevated Unified Intelligence Dashboard Card */}
+          <motion.div 
+            className={styles.convergenceCard}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Dashboard Top Header */}
+            <div className={styles.convergenceCardHeader}>
+              <div className={styles.convergenceBrandArea}>
+                <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                <span className={styles.convergenceBrandName}>HealthChain360.ai</span>
+              </div>
+              <div className={styles.convergenceNavTabs}>
+                <span className={`${styles.convergenceTab} ${styles.convergenceTabActive}`}>Dashboard</span>
+                <span className={styles.convergenceTab}>✨ Multi-Specialist AI</span>
+              </div>
+              <div className={styles.convergenceHeaderRight}>
+                <div className={styles.convergenceHistoryDropdown}>
+                  <span>📅 Full Case History ▾</span>
+                </div>
+                <div className={styles.convergenceLiveDot} />
+              </div>
+            </div>
+
+            {/* Notification Banner */}
+            <div className={styles.convergenceNoticeBanner}>
+              <div className={styles.convergenceNoticeIcon}>📈</div>
+              <span className={styles.convergenceNoticeText}>
+                <strong>Cross-System Insight Identified:</strong> Autonomic dysfunction and subclinical ferritin lag correlated across 14 lab flags.
+              </span>
+            </div>
+
+            {/* 3 Top Metric KPI Cards with Mini Sparklines */}
+            <div className={styles.convergenceKpiGrid}>
+              
+              {/* KPI 1: Lab Biomarkers */}
+              <div className={styles.convergenceKpiCard}>
+                <div className={styles.kpiHeader}>
+                  <span className={styles.kpiLabel}>LAB BIOMARKERS</span>
+                  <span className={styles.kpiBadge}>48 Synced</span>
+                </div>
+                <div className={styles.kpiValue}>48 Markers</div>
+                <div className={styles.kpiTrend}>
+                  <span className={styles.kpiTrendIcon}>🟢</span>
+                  <span>14 Correlated</span>
+                </div>
+                <div className={styles.kpiSparkline}>
+                  <svg viewBox="0 0 100 20" width="100%" height="20">
+                    <path d="M 0 14 Q 25 18 50 8 T 100 4" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* KPI 2: Specialist Consensus */}
+              <div className={styles.convergenceKpiCard}>
+                <div className={styles.kpiHeader}>
+                  <span className={styles.kpiLabel}>SPECIALIST CONSENSUS</span>
+                  <span className={styles.kpiBadge}>12 Boards</span>
+                </div>
+                <div className={styles.kpiValue}>94% Match</div>
+                <div className={styles.kpiTrend}>
+                  <span className={styles.kpiTrendIcon}>🟢</span>
+                  <span>Board Aligned</span>
+                </div>
+                <div className={styles.kpiSparkline}>
+                  <svg viewBox="0 0 100 20" width="100%" height="20">
+                    <path d="M 0 16 Q 30 6 60 12 T 100 3" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* KPI 3: Clinician Dossier */}
+              <div className={styles.convergenceKpiCard}>
+                <div className={styles.kpiHeader}>
+                  <span className={styles.kpiLabel}>APPOINTMENT READY</span>
+                  <span className={styles.kpiBadge}>Doctor Brief</span>
+                </div>
+                <div className={styles.kpiValue}>&lt; 60s Brief</div>
+                <div className={styles.kpiTrend}>
+                  <span className={styles.kpiTrendIcon}>🟢</span>
+                  <span>ICD-10 &amp; NIH Cited</span>
+                </div>
+                <div className={styles.kpiSparkline}>
+                  <svg viewBox="0 0 100 20" width="100%" height="20">
+                    <path d="M 0 12 Q 20 18 50 10 T 100 2" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Ava AI Assistant Active Case Investigation Card */}
+            <div className={styles.convergenceAssistantBox}>
+              <div className={styles.assistantHeader}>
+                <div className={styles.assistantHeaderLeft}>
+                  <div className={styles.assistantIconBg}>
+                    <Sparkles size={16} color="#FFFFFF" />
+                  </div>
+                  <div>
+                    <div className={styles.assistantName}>Ava Clinical AI Assistant</div>
+                    <div className={styles.assistantStatus}>
+                      <span className={styles.assistantLivePulse}>●</span>
+                      <span>Connected to your encrypted health history</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.patientQueryBubble}>
+                  "Why do my standard blood tests look normal while my fatigue &amp; heart rate spike?"
+                </div>
+              </div>
+
+              {/* AI Response Output Block */}
+              <div className={styles.assistantResponseArea}>
+                <div className={styles.responseMainTitle}>
+                  Hyperadrenergic POTS &amp; Subclinical Iron Depletion
+                </div>
+                <p className={styles.responseSubtext}>
+                  Cross-analyzed across 14 biomarker flags, sleep history, and postural heart-rate telemetry.
+                </p>
+
+                <div className={styles.responseBadgesRow}>
+                  <div className={styles.resBadge}>
+                    <span className={styles.resBadgeIcon}>🩸</span>
+                    <div>
+                      <div className={styles.resBadgeLabel}>Ferritin: 14 ng/mL</div>
+                      <div className={styles.resBadgeSub}>Subclinical depletion</div>
+                    </div>
+                  </div>
+                  <div className={styles.resBadge}>
+                    <span className={styles.resBadgeIcon}>🫀</span>
+                    <div>
+                      <div className={styles.resBadgeLabel}>Orthostatic HR: +38 bpm</div>
+                      <div className={styles.resBadgeSub}>Autonomic shift</div>
+                    </div>
+                  </div>
+                  <div className={`${styles.resBadge} ${styles.resBadgeAlert}`}>
+                    <span className={styles.resBadgeIcon}>⚠️</span>
+                    <div>
+                      <div className={styles.resBadgeLabel}>Free T3/T4 Ratio</div>
+                      <div className={styles.resBadgeSub}>Conversion lag</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.assistantRecommendationPill}>
+                  <span className={styles.recIcon}>🟢</span>
+                  <span><strong>Prioritized Action:</strong> Request morning serum ferritin panel &amp; orthostatic tilt-table review at your next GP visit.</span>
+                </div>
+              </div>
+            </div>
+
+          </motion.div>
+
+          {/* Bottom Live Demo CTA Button & Microcopy */}
+          <div className={styles.convergenceBottomArea}>
+            <button 
+              className={styles.convergenceCtaBtn}
+              onClick={() => handleStartInvestigation('convergence_demo')}
+            >
+              <span>Check Live Demo →</span>
+            </button>
+            <div className={styles.convergenceMicrocopy}>
+              Live in seconds • Client-side encrypted • No credit card required
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       {/* 3. Illustrated Clinical Results (FameHero Style) */}
       <section className={styles.statsSection}>
         <div className={styles.sectionHeader} style={{ marginBottom: '32px' }}>
