@@ -880,11 +880,13 @@ export default function Landing() {
             <div className={styles.videoWrapper}>
               <video 
                 src="/videos/healthchain-overview.mp4" 
+                poster="/videos/healthchain-overview-poster.webp"
                 controls 
-                preload="metadata"
+                autoPlay
+                muted
                 playsInline 
                 loop 
-                muted
+                preload="metadata"
                 className={styles.videoPlayer}
               />
             </div>
@@ -915,11 +917,13 @@ export default function Landing() {
             <div className={styles.videoWrapper}>
               <video 
                 src="/videos/specialist-board-demo.mp4" 
+                poster="/videos/specialist-board-demo-poster.webp"
                 controls 
-                preload="metadata"
+                autoPlay
+                muted
                 playsInline 
                 loop 
-                muted
+                preload="metadata"
                 className={styles.videoPlayer}
               />
             </div>
