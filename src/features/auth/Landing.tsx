@@ -285,7 +285,7 @@ export default function Landing() {
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              background: '#09090B',
+              background: '#F4FBF7',
               zIndex: 9999,
               display: 'flex',
               flexDirection: 'column',
@@ -302,22 +302,22 @@ export default function Landing() {
                 width: '68px',
                 height: '68px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                background: '#ECFDF5',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
+                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
               }}
             >
-              <Activity size={32} color="#FFFFFF" />
+              <Activity size={32} color="#059669" />
             </motion.div>
             
             <motion.h2 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}
+              style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}
             >
               Convening 16 AI Medical Specialists...
             </motion.h2>
@@ -328,12 +328,12 @@ export default function Landing() {
               transition={{ delay: 0.4 }}
               style={{
                 width: '140px',
-                height: '3px',
-                background: 'rgba(255,255,255,0.1)',
+                height: '4px',
+                background: '#E2E8F0',
                 marginTop: '12px',
                 position: 'relative',
                 overflow: 'hidden',
-                borderRadius: '3px'
+                borderRadius: '4px'
               }}
             >
               <motion.div
@@ -343,8 +343,8 @@ export default function Landing() {
                   position: 'absolute',
                   top: 0, bottom: 0, left: 0,
                   width: '50%',
-                  background: '#FFFFFF',
-                  borderRadius: '3px'
+                  background: '#059669',
+                  borderRadius: '4px'
                 }}
               />
             </motion.div>
