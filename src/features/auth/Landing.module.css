@@ -175,110 +175,81 @@
   text-align: center;
 }
 
-/* Live Telemetry Ticker between Navbar & Badge */
-.liveTelemetryBar {
+/* Unified Sleek Live Hero Badge */
+.unifiedHeroBadge {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  padding: 6px 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 12px 4px 5px;
   border-radius: 100px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   backdrop-filter: blur(12px);
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  max-width: 90%;
 }
 
-.liveTelemetryBar:hover {
+.unifiedHeroBadge:hover {
   background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(56, 189, 248, 0.3);
+  border-color: rgba(56, 189, 248, 0.35);
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-.liveBeaconContainer {
+.badgeSpecialistTag {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.liveBeaconDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10B981;
-  box-shadow: 0 0 8px #10B981;
-  position: relative;
-}
-
-.liveBeaconPing {
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: rgba(16, 185, 129, 0.5);
-  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.liveBeaconLabel {
-  font-size: 11px;
-  font-weight: 800;
-  color: #34D399;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-}
-
-.liveTelemetryDivider {
-  width: 1px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.liveTickerText {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #CBD5E1;
-  letter-spacing: -0.1px;
-  white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-  .liveTelemetryBar {
-    max-width: 90%;
-    padding: 6px 12px;
-    gap: 8px;
-  }
-  .liveTickerText {
-    font-size: 11.5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-.premiumBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #94A3B8;
-  padding: 6px 16px;
+  gap: 5px;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 4px 10px;
   border-radius: 100px;
   font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  margin-bottom: 24px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.badgeTickerArea {
+  overflow: hidden;
+  height: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.badgeTickerText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #CBD5E1;
+  white-space: nowrap;
+}
+
+.badgeArrow {
+  color: #64748B;
+  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.unifiedHeroBadge:hover .badgeArrow {
+  color: #38BDF8;
+  transform: translateX(2px);
+}
+
+@media (max-width: 600px) {
+  .unifiedHeroBadge {
+    padding: 4px 10px 4px 4px;
+    gap: 8px;
+  }
+  .badgeTickerText {
+    font-size: 11px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .heroTitle {
