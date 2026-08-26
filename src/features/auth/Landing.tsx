@@ -518,21 +518,105 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* 3. Stats Grid */}
+      {/* 3. Illustrated Clinical Results (FameHero Style) */}
       <section className={styles.statsSection}>
+        <div className={styles.sectionHeader} style={{ marginBottom: '32px' }}>
+          <h2 className={styles.sectionTitle} style={{ fontSize: '36px', marginBottom: '8px' }}>
+            Results You Can Measure <br/>
+            <span className={styles.heroHighlight}>Clinical Clarity That Delivers</span>
+          </h2>
+          <p className={styles.sectionSubtitle} style={{ maxWidth: '680px' }}>
+            Patients don't just get answers — they get clarity. HealthChain360.ai drives measurable improvements across root-cause discovery, lab synthesis, and clinician appointment preparation.
+          </p>
+        </div>
+
         <div className={styles.statsGrid}>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}>AI Specialists</h3>
-            <p className={styles.statLabel}>Autonomous multi-disciplinary AI board</p>
-          </div>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}>35M+ Studies</h3>
-            <p className={styles.statLabel}>PubMed & NIH clinical trials grounded</p>
-          </div>
-          <div className={styles.statItem}>
-            <h3 className={styles.statValue}>Plain English</h3>
-            <p className={styles.statLabel}>Zero confusing medical jargon</p>
-          </div>
+          {/* Metric Card 1: Speedometer Gauge */}
+          <motion.div 
+            className={styles.statItem}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className={styles.statGraphicWrapper}>
+              <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
+                <path d="M 30 105 A 68 68 0 0 1 170 105" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="12" strokeLinecap="round" />
+                <path d="M 30 105 A 68 68 0 0 1 155 48" stroke="#059669" strokeWidth="12" strokeLinecap="round" />
+                <line x1="100" y1="100" x2="146" y2="46" stroke="#475569" strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="100" cy="100" r="5" fill="#FFFFFF" stroke="#059669" strokeWidth="3" />
+              </svg>
+            </div>
+            <div className={styles.statValueRow}>
+              <span className={styles.statNumber}>94%</span>
+              <span className={styles.statTrend}>↗</span>
+            </div>
+            <h4 className={styles.statTitle}>Diagnostic Consensus</h4>
+            <p className={styles.statDesc}>
+              Multi-specialist AI agreement rate on complex cross-system differential diagnoses and root causes.
+            </p>
+            <button className={styles.statCtaLink} onClick={() => handleStartInvestigation('stats_card_1')}>
+              Start Free Review →
+            </button>
+          </motion.div>
+
+          {/* Metric Card 2: Ascending Bar Chart */}
+          <motion.div 
+            className={styles.statItem}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className={styles.statGraphicWrapper}>
+              <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
+                <rect x="25" y="75" width="16" height="35" rx="8" fill="rgba(16, 185, 129, 0.2)" />
+                <rect x="52" y="60" width="16" height="50" rx="8" fill="rgba(16, 185, 129, 0.3)" />
+                <rect x="79" y="48" width="16" height="62" rx="8" fill="rgba(16, 185, 129, 0.45)" />
+                <rect x="106" y="38" width="16" height="72" rx="8" fill="rgba(16, 185, 129, 0.6)" />
+                <rect x="133" y="24" width="16" height="86" rx="8" fill="rgba(16, 185, 129, 0.75)" />
+                <rect x="160" y="10" width="16" height="100" rx="8" fill="#059669" />
+              </svg>
+            </div>
+            <div className={styles.statValueRow}>
+              <span className={styles.statNumber}>4.8x</span>
+              <span className={styles.statTrend}>↗</span>
+            </div>
+            <h4 className={styles.statTitle}>Evidence Breadth</h4>
+            <p className={styles.statDesc}>
+              Evaluates 4.8x more multi-system biomarker correlations than standard 15-minute primary care visits.
+            </p>
+            <button className={styles.statCtaLink} onClick={() => handleStartInvestigation('stats_card_2')}>
+              Start Free Review →
+            </button>
+          </motion.div>
+
+          {/* Metric Card 3: Smooth Spline Trend Line */}
+          <motion.div 
+            className={styles.statItem}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className={styles.statGraphicWrapper}>
+              <svg viewBox="0 0 200 120" className={styles.statSvg} fill="none">
+                <path d="M 20 85 Q 50 82 70 58 T 120 65 T 180 18" stroke="#10B981" strokeWidth="4" strokeLinecap="round" />
+                <circle cx="180" cy="18" r="6" fill="#FFFFFF" stroke="#059669" strokeWidth="3" />
+              </svg>
+            </div>
+            <div className={styles.statValueRow}>
+              <span className={styles.statNumber}>&lt; 60s</span>
+              <span className={styles.statTrend}>↗</span>
+            </div>
+            <h4 className={styles.statTitle}>Synthesized Dossier</h4>
+            <p className={styles.statDesc}>
+              Transforms years of fragmented blood tests and symptoms into an actionable clinician brief in seconds.
+            </p>
+            <button className={styles.statCtaLink} onClick={() => handleStartInvestigation('stats_card_3')}>
+              Start Free Review →
+            </button>
+          </motion.div>
         </div>
       </section>
 
