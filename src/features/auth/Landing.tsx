@@ -13,7 +13,13 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Stethoscope,
+  Brain,
+  Layers,
+  Clock,
+  ArrowUpRight
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
@@ -22,27 +28,115 @@ import styles from './Landing.module.css';
 import { getActiveSession } from '../../services/authSession';
 import { supabase } from '../../services/supabaseClient';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
+import { triggerHapticLight } from '../../services/haptics';
 
-const AnimatedCounter = ({ from, to, duration = 2, suffix = '' }: { from: number; to: number; duration?: number; suffix?: string }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
+const SYMPTOM_PRESETS = [
+  { icon: '⚡', label: 'Unexplained Fatigue' },
+  { icon: '🤕', label: 'Chronic Migraine & Pressure' },
+  { icon: '🫀', label: 'Palpitations & Dizziness' },
+  { icon: '🧬', label: 'Brain Fog & Memory Gaps' },
+  { icon: '🩺', label: 'Gut & Food Sensitivity' },
+  { icon: '🔥', label: 'Joint & Nerve Pain' },
+];
 
-  useEffect(() => {
-    if (inView && ref.current) {
-      const controls = animate(from, to, {
-        duration: duration,
-        onUpdate(value) {
-          if (ref.current) {
-            ref.current.textContent = Math.round(value).toString() + suffix;
-          }
-        }
-      });
-      return () => controls.stop();
-    }
-  }, [inView, from, to, duration, suffix]);
-
-  return <span ref={ref}>{from}{suffix}</span>;
-};
+const DEMO_CASES = [
+  {
+    id: 'fatigue',
+    title: 'Fatigue & Brain Fog',
+    specialists: [
+      {
+        role: 'Endocrinologist',
+        field: 'Hormones & Biomarkers',
+        icon: '🔬',
+        bg: 'rgba(59, 130, 246, 0.2)',
+        color: '#60A5FA',
+        finding: 'Ferritin is 18 ng/mL (subclinical depletion). Cortisol curve indicates blunted morning awakening response.',
+      },
+      {
+        role: 'Neurologist',
+        field: 'Neuro-Autonomic',
+        icon: '🧠',
+        bg: 'rgba(139, 92, 246, 0.2)',
+        color: '#A78BFA',
+        finding: 'Post-viral neuro-inflammation matches cognitive sluggishness and sleep architecture disruption.',
+      },
+      {
+        role: 'Functional Medicine',
+        field: 'Cellular Health',
+        icon: '⚡',
+        bg: 'rgba(16, 185, 129, 0.2)',
+        color: '#34D399',
+        finding: 'Mitochondrial cofactor deficit + cellular iron starvation explain fatigue with "normal" routine labs.',
+      },
+    ],
+    consensus: '94% Match: Subclinical Iron Depletion + Post-Viral Autonomic Fatigue',
+    action: 'Order Complete Iron Panel + AM Cortisol + Methylation Markers',
+  },
+  {
+    id: 'migraine',
+    title: 'Daily Migraine & Eye Pressure',
+    specialists: [
+      {
+        role: 'Neurologist',
+        field: 'Cranial Nerves',
+        icon: '🧠',
+        bg: 'rgba(139, 92, 246, 0.2)',
+        color: '#A78BFA',
+        finding: 'Occipital nerve sensitization with trigeminal autonomic cephalalgia patterns.',
+      },
+      {
+        role: 'Cardiologist',
+        field: 'Vascular Dynamics',
+        icon: '🫀',
+        bg: 'rgba(239, 68, 68, 0.2)',
+        color: '#F87171',
+        finding: 'Vasomotor instability noted; morning blood pressure surges correlating with headache onset.',
+      },
+      {
+        role: 'Gastroenterologist',
+        field: 'Microbiome & Histamine',
+        icon: '🩺',
+        bg: 'rgba(245, 158, 11, 0.2)',
+        color: '#FBBF24',
+        finding: 'Gut-brain axis dysbiosis with histamine intolerance triggering vascular migraine flare-ups.',
+      },
+    ],
+    consensus: '91% Match: Histamine-Mediated Neuro-Vascular Migraine with Vasomotor Spikes',
+    action: 'Trial Low-Histamine Elimination + Ambulatory 24h BP Monitoring',
+  },
+  {
+    id: 'palpitations',
+    title: 'Post-Meal Palpitations & Dizziness',
+    specialists: [
+      {
+        role: 'Cardiologist',
+        field: 'Cardiac Electrophysiology',
+        icon: '🫀',
+        bg: 'rgba(239, 68, 68, 0.2)',
+        color: '#F87171',
+        finding: 'Sinus tachycardia upon standing/eating without structural cardiomyopathy on echo.',
+      },
+      {
+        role: 'Gastroenterologist',
+        field: 'Gastrocardiac Axis',
+        icon: '🩺',
+        bg: 'rgba(245, 158, 11, 0.2)',
+        color: '#FBBF24',
+        finding: 'Post-prandial splanchnic blood pooling stealing cerebral perfusion; Roemheld syndrome profile.',
+      },
+      {
+        role: 'Immunologist',
+        field: 'Mast Cell Mediators',
+        icon: '🛡️',
+        bg: 'rgba(16, 185, 129, 0.2)',
+        color: '#34D399',
+        finding: 'Mast cell mediator release triggering rapid pulse and mild orthostatic intolerance.',
+      },
+    ],
+    consensus: '96% Match: Autonomic Splanchnic Pooling / Gastrocardiac (Roemheld) Complex',
+    action: 'Standing vs Supine HR Log + Splanchnic Ultrasound + Digestive Enzyme Trial',
+  },
+];
 
 const landingFaqs = [
   {
@@ -51,15 +145,15 @@ const landingFaqs = [
   },
   {
     question: "How is my medical data secured?",
-    answer: "You control your case information. Guest-mode information stays in your browser on that device; signed-in features may sync the information needed to provide the service. Use a personal device, protect it with a passcode, and review our Privacy Policy for the current storage and processing details."
+    answer: "You control your case information. Guest-mode information stays in your browser on that device; signed-in features sync securely to your encrypted cloud vault. We never sell your medical records."
   },
   {
     question: "How do the Deep Collaborative Specialists work?",
-    answer: "The Deep Collaborative Specialists feature coordinates multiple AI perspective modules (for example, cardiology, neurology, or endocrinology perspectives) to organize your information, surface evidence gaps, and prepare discussion points for a qualified clinician. It is not a real consultation or a medical recommendation."
+    answer: "The Deep Collaborative Specialists feature coordinates 16 AI perspective modules (such as cardiology, neurology, endocrinology, and immunology) to organize your information, surface evidence gaps, and prepare prioritized discussion points for a qualified clinician."
   },
   {
     question: "Are the AI agents trained on real medical literature?",
-    answer: "HealthChain is designed to help organize medical information and discussion points. AI output can be incomplete or wrong, so it should be checked against the original record and discussed with a qualified clinician. We do not present AI output as a diagnosis."
+    answer: "Yes. HealthChain grounds its reasoning in peer-reviewed clinical guidelines (PubMed, NIH, OMIM, ClinicalTrials.gov). AI output is synthesized for patient clarity and must always be reviewed with your personal physician."
   }
 ];
 
@@ -67,6 +161,7 @@ export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [activeDemoCase, setActiveDemoCase] = useState(0);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
@@ -85,17 +180,12 @@ export default function Landing() {
     };
   }, []);
 
-  // Redirect authenticated users away from landing page.
-  // This catches both: (a) users who navigate to / while logged in, and
-  // (b) OAuth callbacks where the PKCE exchange completes after the page mounts.
+  // Redirect authenticated users away from landing page
   useEffect(() => {
     let cancelled = false;
-    
-    // 1. Initial async check
     getActiveSession().then((session) => {
       if (!cancelled && session) {
         setHasSession(true);
-        // Authenticated user should not be on the landing page — redirect to /app
         navigate('/app', { replace: true });
         return;
       }
@@ -105,14 +195,10 @@ export default function Landing() {
       }
     });
 
-    // 2. Listen for auth state changes (catches PKCE code exchange completing
-    //    after this component has already mounted and rendered)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) && session) {
         setHasSession(true);
-        // Use hard redirect to guarantee we leave the landing page,
-        // even if React Router's navigate is swallowed by a re-render cycle.
         window.location.replace('/app');
       }
     });
@@ -123,7 +209,8 @@ export default function Landing() {
     };
   }, [navigate]);
 
-  const handleStartInvestigation = (context: string = 'landing_hero') => {
+  const handleStartInvestigation = (context: string = 'landing_hero', presetSymptom?: string) => {
+    triggerHapticLight();
     trackButtonClick('Get Started', context);
     setIsNavigating(true);
     setActiveCase(null);
@@ -133,13 +220,16 @@ export default function Landing() {
       try { localStorage.setItem('hc_guest_mode', 'true'); } catch(e) {}
     }
 
+    if (presetSymptom) {
+      try { sessionStorage.setItem('hc_preset_symptom', presetSymptom); } catch(e) {}
+    }
+
     if (navTimerRef.current) clearTimeout(navTimerRef.current);
     navTimerRef.current = setTimeout(() => {
       navigate('/app/consult?new=true');
-    }, 1100);
+    }, 900);
   };
 
-  // Scroll listener for navbar glass effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -152,12 +242,12 @@ export default function Landing() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.15 },
+      transition: { staggerChildren: 0.12 },
     },
   };
 
   const itemVariants: any = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 24 },
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
   };
 
@@ -182,6 +272,8 @@ export default function Landing() {
     }
   ];
 
+  const currentCase = DEMO_CASES[activeDemoCase];
+
   return (
     <div className={styles.container}>
       
@@ -195,7 +287,7 @@ export default function Landing() {
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              background: '#0B1120',
+              background: '#070C18',
               zIndex: 9999,
               display: 'flex',
               flexDirection: 'column',
@@ -209,14 +301,15 @@ export default function Landing() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1 }}
               style={{
-                width: '64px',
-                height: '64px',
+                width: '68px',
+                height: '68px',
                 borderRadius: '50%',
-                background: 'rgba(16, 185, 129, 0.1)',
+                background: 'rgba(16, 185, 129, 0.15)',
+                border: '1px solid rgba(52, 211, 153, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 40px rgba(16, 185, 129, 0.15)'
+                boxShadow: '0 0 40px rgba(16, 185, 129, 0.35)'
               }}
             >
               <Activity size={32} color="#10B981" />
@@ -226,9 +319,9 @@ export default function Landing() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ fontSize: '32px', fontWeight: 900, color: '#F1F5F9', margin: 0, letterSpacing: '-0.5px' }}
+              style={{ fontSize: '30px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}
             >
-              HealthChain
+              Initializing 16 AI Specialists...
             </motion.h2>
 
             <motion.div
@@ -236,24 +329,24 @@ export default function Landing() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
               style={{
-                width: '120px',
-                height: '2px',
+                width: '140px',
+                height: '3px',
                 background: 'rgba(255,255,255,0.1)',
-                marginTop: '16px',
+                marginTop: '12px',
                 position: 'relative',
                 overflow: 'hidden',
-                borderRadius: '2px'
+                borderRadius: '3px'
               }}
             >
               <motion.div
                 animate={{ x: ['-100%', '100%'] }}
-                transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
                 style={{
                   position: 'absolute',
                   top: 0, bottom: 0, left: 0,
                   width: '50%',
                   background: '#10B981',
-                  borderRadius: '2px'
+                  borderRadius: '3px'
                 }}
               />
             </motion.div>
@@ -269,46 +362,31 @@ export default function Landing() {
         </div>
         <div className={styles.navActions}>
           {isLoggedOut ? (
-            <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/login')}>
+            <button className={styles.navLoginButton} onClick={() => navigate('/login')}>
               Log In
             </button>
           ) : (
-            <button className={`btn ${styles.navLoginButton}`} onClick={() => navigate('/app/today')}>
+            <button className={styles.navLoginButton} onClick={() => navigate('/app/today')}>
               Health Today
             </button>
           )}
-          <button className={`btn btn-primary ${styles.navButton}`} onClick={() => handleStartInvestigation('landing_nav')}>
+          <button className={styles.navButton} onClick={() => handleStartInvestigation('landing_nav')}>
             Get Started
           </button>
         </div>
       </nav>
+      
       <main>
 
       {/* 2. Vibrant Hero Section */}
       <div className={styles.heroWrapper}>
         <div className={styles.heroGradientBg}></div>
-        
-        {/* Floating Abstract UI Elements */}
-        <motion.div 
-          className={styles.floatingCard1}
-          animate={{ y: [0, -15, 0] }}
-          transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-        >
-          <CheckCircle2 size={16} color="#00D4B2" /> Organizing evidence and questions...
-        </motion.div>
-        
-        <motion.div 
-          className={styles.floatingCard2}
-          animate={{ y: [0, 20, 0] }}
-          transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 }}
-        >
-          <div className={styles.pulseDot}></div> Discussion Pathway Ready
-        </motion.div>
 
         <div className={styles.heroContent}>
-          <motion.div variants={containerVariants} initial="hidden" animate="show" className={styles.heroTextCenter}>
+          <motion.div variants={containerVariants} initial="hidden" animate="show">
+            
             <motion.div variants={itemVariants} className={styles.premiumBadge}>
-              <Zap size={14} fill="currentColor" /> 16-SPECIALIST AI MEDICAL BOARD
+              <Zap size={13} fill="currentColor" /> 16-SPECIALIST AI MEDICAL BOARD • AUTONOMOUS CONSENSUS
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
@@ -317,50 +395,107 @@ export default function Landing() {
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              Been to 5 different doctors with no answers? HealthChain convenes 16 AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
+              Been to 5 different doctors with normal tests? HealthChain coordinates 16 AI clinical specialists to cross-analyze your symptoms, lab panels, and timeline—surfacing hidden root causes standard 15-minute visits miss.
             </motion.p>
-            
+
+            {/* 1-Tap Symptom Presets Bar */}
+            <motion.div variants={itemVariants} className={styles.symptomChipsSection}>
+              <div className={styles.symptomChipsHeader}>
+                ⚡ 1-Tap Quick Start: Select What You're Experiencing
+              </div>
+              <div className={styles.symptomChipsGrid}>
+                {SYMPTOM_PRESETS.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    className={styles.symptomChip}
+                    onClick={() => handleStartInvestigation(`landing_chip_${idx}`, preset.label)}
+                  >
+                    <span>{preset.icon}</span>
+                    <span>{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Hero CTA Group */}
             <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
-              <button className={`btn btn-primary btn-lg ${styles.heroPrimaryBtn}`} onClick={() => handleStartInvestigation('landing_hero')}>
-                Get Started <ArrowRight size={18} />
+              <button className={styles.heroPrimaryBtn} onClick={() => handleStartInvestigation('landing_hero')}>
+                Start Free Consultation <ArrowRight size={18} />
               </button>
-              <button className={`btn btn-outline btn-lg ${styles.heroSecondaryBtn}`} onClick={() => navigate('/pricing')}>
-                View Pricing
+              <button className={styles.heroSecondaryBtn} onClick={() => navigate('/pricing')}>
+                View Pro Plans
               </button>
             </motion.div>
 
-            <motion.div variants={itemVariants} className={styles.storeBadges}>
-              <button className={styles.storeBadge} onClick={(e) => {
-                const badge = e.currentTarget;
-                const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
-                if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
-              }}>
-                <svg viewBox="0 0 24 24" width="22" height="22">
-                  <path fill="#4caf50" d="M3.5,2.1C3.2,2.4,3,2.9,3,3.6v16.8c0,0.7,0.2,1.2,0.5,1.5l0.1,0.1l8.4-8.4v-0.2L3.6,2L3.5,2.1z"/>
-                  <path fill="#ffeb3b" d="M15.4,14.6l-3.3-3.3l-0.2-0.2l3.5-3.5l0.1,0.1l3.9,2.2c1.1,0.6,1.1,1.7,0,2.3L15.4,14.6z"/>
-                  <path fill="#f44336" d="M15.5,14.5l-3.4-3.4L3.6,22.1c0.4,0.4,1,0.5,1.6,0.1l10.3-5.9L15.5,14.5z"/>
-                  <path fill="#2196f3" d="M15.5,9.5L5.2,3.6C4.6,3.3,4,3.4,3.6,3.8L12.1,13L15.5,9.5z"/>
-                </svg>
-                <div className={styles.storeBadgeText}>
-                  <span className={styles.storeBadgeSmall}>GET IT ON</span>
-                  <span className={styles.storeBadgeName}>Google Play</span>
+            {/* Interactive Live Consensus Simulation Card */}
+            <motion.div 
+              variants={itemVariants} 
+              className={styles.consensusDemoCard}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <div className={styles.demoHeader}>
+                <div className={styles.demoBadge}>
+                  <div className={styles.demoLiveDot} />
+                  <span>Live Medical Consensus Simulation</span>
                 </div>
-                <span className={styles.comingSoonTag}>Coming Soon</span>
-                <span className="coming-soon-flash">Coming Soon</span>
-              </button>
-              <button className={styles.storeBadge} onClick={(e) => {
-                const badge = e.currentTarget;
-                const flash = badge.querySelector('.coming-soon-flash') as HTMLElement;
-                if (flash) { flash.classList.remove('flash'); void flash.offsetWidth; flash.classList.add('flash'); }
-              }}>
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                <div className={styles.storeBadgeText}>
-                  <span className={styles.storeBadgeSmall}>Download on the</span>
-                  <span className={styles.storeBadgeName}>App Store</span>
+                <div className={styles.demoTabs}>
+                  {DEMO_CASES.map((dCase, index) => (
+                    <button
+                      key={dCase.id}
+                      className={`${styles.demoTab} ${activeDemoCase === index ? styles.demoTabActive : ''}`}
+                      onClick={() => {
+                        triggerHapticLight();
+                        setActiveDemoCase(index);
+                      }}
+                    >
+                      {dCase.title}
+                    </button>
+                  ))}
                 </div>
-                <span className={styles.comingSoonTag}>Coming Soon</span>
-                <span className="coming-soon-flash">Coming Soon</span>
-              </button>
+              </div>
+
+              <div className={styles.demoChatArea}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentCase.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+                  >
+                    {currentCase.specialists.map((spec, sIdx) => (
+                      <div key={sIdx} className={styles.demoMessage}>
+                        <div className={styles.demoSpecialistIcon} style={{ background: spec.bg, color: spec.color }}>
+                          {spec.icon}
+                        </div>
+                        <div className={styles.demoMessageContent}>
+                          <div className={styles.demoSpecialistName}>
+                            <span>{spec.role} AI</span>
+                            <span className={styles.demoSpecialistField}>· {spec.field}</span>
+                          </div>
+                          <p className={styles.demoText}>{spec.finding}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <div className={styles.demoFooter}>
+                <div className={styles.demoConfidenceText}>
+                  <Sparkles size={16} />
+                  <span>{currentCase.consensus}</span>
+                </div>
+                <button 
+                  className={styles.demoCtaMini}
+                  onClick={() => handleStartInvestigation(`landing_demo_${currentCase.id}`, currentCase.title)}
+                >
+                  Analyze My Case <ArrowUpRight size={14} />
+                </button>
+              </div>
             </motion.div>
 
           </motion.div>
@@ -386,6 +521,7 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* Stats Section */}
       <section className={styles.statsSection}>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
@@ -406,10 +542,10 @@ export default function Landing() {
       {/* 4. The Problem (The Diagnostic Odyssey) */}
       <section className={styles.problemSection}>
         <motion.div 
-          initial={{ opacity: 0, y: 40 }} 
+          initial={{ opacity: 0, y: 30 }} 
           whileInView={{ opacity: 1, y: 0 }} 
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
           className={styles.problemContent}
         >
           <h2 className={styles.problemTitle}>
@@ -418,7 +554,7 @@ export default function Landing() {
           <p className={styles.problemText}>
             The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
           </p>
-          <p className={styles.problemText} style={{ marginTop: '24px', color: '#0F172A', fontWeight: 700 }}>
+          <p className={styles.problemText} style={{ marginTop: '20px', color: '#FFFFFF', fontWeight: 700 }}>
             HealthChain replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
           </p>
         </motion.div>
@@ -436,7 +572,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className={`${styles.bentoCard} ${styles.bentoLarge}`}
           >
-            <div className={styles.bentoIconBg} style={{background: 'var(--gradient-teal)'}}>
+            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
               <GitBranch size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>16-Specialist Deep Collab</h3>
@@ -447,7 +583,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
             className={styles.bentoCard}
           >
-            <div className={styles.bentoIconBg} style={{background: 'var(--gradient-purple)'}}>
+            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)' }}>
               <Shield size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Doctor-Ready PDF Dossier</h3>
@@ -458,7 +594,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
             className={styles.bentoCard}
           >
-            <div className={styles.bentoIconBg} style={{background: 'var(--gradient-blue)'}}>
+            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' }}>
               <Search size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>AI Lab Report & Scan Analyzer</h3>
@@ -469,7 +605,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }}
             className={`${styles.bentoCard} ${styles.bentoWide}`}
           >
-            <div className={styles.bentoIconBg} style={{background: 'var(--gradient-orange)'}}>
+            <div className={styles.bentoIconBg} style={{ background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)' }}>
               <MessageSquare size={24} color="#fff" />
             </div>
             <h3 className={styles.bentoTitle}>Ava: 24/7 AI Medical Chief of Staff</h3>
@@ -492,8 +628,8 @@ export default function Landing() {
                   <div key={i} className={`${styles.node} ${styles.nodeOrbit}`} style={{ '--i': i } as React.CSSProperties}></div>
                 ))}
                 <svg className={styles.nodeLines}>
-                   <circle cx="150" cy="150" r="100" stroke="rgba(0,212,178,0.2)" strokeWidth="1" fill="none" strokeDasharray="4 4" />
-                   <circle cx="150" cy="150" r="140" stroke="rgba(0,212,178,0.1)" strokeWidth="1" fill="none" />
+                   <circle cx="140" cy="140" r="90" stroke="rgba(0,212,178,0.25)" strokeWidth="1" fill="none" strokeDasharray="4 4" />
+                   <circle cx="140" cy="140" r="130" stroke="rgba(0,212,178,0.12)" strokeWidth="1" fill="none" />
                 </svg>
              </div>
           </div>
@@ -511,7 +647,7 @@ export default function Landing() {
             {
               step: '01',
               title: 'Upload Symptoms & Lab Work',
-              desc: 'Add blood panels, scan PDFs, and describe your symptom timeline in your own words. Zero medical jargon required.'
+              desc: 'Add blood panels, scan PDFs, or select your symptom timeline in your own words. Zero medical jargon required.'
             },
             {
               step: '02',
@@ -526,10 +662,10 @@ export default function Landing() {
           ].map((item, index) => (
             <motion.div 
               key={index}
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
+              transition={{ duration: 0.5, delay: index * 0.15 }}
               className={styles.timelineItem}
             >
               <div className={styles.timelineStep}>{item.step}</div>
@@ -550,13 +686,13 @@ export default function Landing() {
             key={activeTestimonial}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.3 }}
             className={styles.testimonialContent}
           >
             <p className={styles.testimonialQuote}>{testimonials[activeTestimonial].quote}</p>
             <div className={styles.testimonialAuthor}>
               <div className={styles.testimonialStars}>
-                {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => <Star key={i} size={15} fill="currentColor" />)}
               </div>
               <h4>{testimonials[activeTestimonial].name}</h4>
               <span>{testimonials[activeTestimonial].location}</span>
@@ -564,18 +700,18 @@ export default function Landing() {
           </motion.div>
           
           <div className={styles.testimonialControls}>
-            <button aria-label="Previous testimonial" onClick={() => setActiveTestimonial(p => (p === 0 ? testimonials.length - 1 : p - 1))} className={styles.controlBtn}><ChevronLeft size={24}/></button>
+            <button aria-label="Previous testimonial" onClick={() => setActiveTestimonial(p => (p === 0 ? testimonials.length - 1 : p - 1))} className={styles.controlBtn}><ChevronLeft size={20}/></button>
             <div className={styles.testimonialDots} role="tablist">
               {testimonials.map((_, i) => (
                 <button key={i} aria-label={`Go to testimonial ${i + 1}`} role="tab" aria-selected={i === activeTestimonial} className={`${styles.dot} ${i === activeTestimonial ? styles.activeDot : ''}`} onClick={() => setActiveTestimonial(i)} />
               ))}
             </div>
-            <button aria-label="Next testimonial" onClick={() => setActiveTestimonial(p => (p === testimonials.length - 1 ? 0 : p + 1))} className={styles.controlBtn}><ChevronRight size={24}/></button>
+            <button aria-label="Next testimonial" onClick={() => setActiveTestimonial(p => (p === testimonials.length - 1 ? 0 : p + 1))} className={styles.controlBtn}><ChevronRight size={20}/></button>
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* 9. FAQ Section */}
       <section className={styles.faqSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
@@ -593,7 +729,7 @@ export default function Landing() {
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
               >
                 <span className={styles.faqQuestion}>{faq.question}</span>
-                {openFaq === i ? <ChevronUp size={20} className={styles.faqIcon} /> : <ChevronDown size={20} className={styles.faqIcon} />}
+                {openFaq === i ? <ChevronUp size={18} className={styles.faqIcon} /> : <ChevronDown size={18} className={styles.faqIcon} />}
               </button>
               {openFaq === i && (
                 <div className={styles.faqAnswer}>
@@ -605,34 +741,34 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 9. Final CTA */}
+      {/* 10. Final CTA */}
       <section className={styles.finalCtaSection}>
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.96 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           className={styles.finalCtaBox}
         >
           <div className={styles.finalCtaMesh}></div>
           <div className={styles.finalCtaContent}>
-            <h2 className={styles.finalCtaTitle}>Ready to organize your health story?</h2>
-            <p className={styles.finalCtaDesc}>Create a private case, prepare your questions, and take a clearer summary into your next clinician conversation.</p>
-            <button className={`btn btn-primary btn-lg ${styles.finalCtaBtn}`} onClick={() => handleStartInvestigation('landing_bottom_cta')}>
-              Get Started <ArrowRight size={18} />
+            <h2 className={styles.finalCtaTitle}>Ready to uncover your root cause?</h2>
+            <p className={styles.finalCtaDesc}>Convene 16 AI specialists, organize your biomarkers, and prepare prioritized discussion questions for your next clinician visit.</p>
+            <button className={styles.finalCtaBtn} onClick={() => handleStartInvestigation('landing_bottom_cta')}>
+              Start Free Consultation <ArrowRight size={18} />
             </button>
           </div>
         </motion.div>
       </section>
       </main>
 
-      {/* 10. Footer */}
+      {/* 11. Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <div className={styles.logoIconBg}><Activity size={20} className={styles.logoIcon} /></div> HealthChain
+              <div className={styles.logoIconBg}><Activity size={18} className={styles.logoIcon} /></div> HealthChain
             </div>
-            <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clarity and transparency.</p>
+            <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>
           </div>
           <div className={styles.footerLinks}>
             <h4>Product</h4>

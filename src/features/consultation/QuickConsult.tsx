@@ -119,6 +119,11 @@ export default function QuickConsult() {
   useEffect(() => {
     if (searchParams.get('new') === 'true') {
       resetConsult();
+      const preset = sessionStorage.getItem('hc_preset_symptom');
+      if (preset) {
+        setSymptomInput(preset);
+        sessionStorage.removeItem('hc_preset_symptom');
+      }
       searchParams.delete('new');
       setSearchParams(searchParams);
     }
