@@ -2301,29 +2301,29 @@
 .videoCard {
   background: #FFFFFF;
   border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 28px;
-  padding: 24px;
+  border-radius: 22px;
+  padding: 16px 16px 18px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.08);
+  box-shadow: 0 8px 24px -5px rgba(16, 185, 129, 0.08);
   transition: all 0.3s ease;
 }
 
 .videoCard:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: #059669;
-  box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.16);
+  box-shadow: 0 16px 36px -8px rgba(16, 185, 129, 0.16);
 }
 
 .videoWrapper {
   width: 100%;
   position: relative;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   background: #000000;
   aspect-ratio: 16 / 9;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .videoPlayer {
@@ -2344,42 +2344,42 @@
 .videoBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: #ECFDF5;
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #059669;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   width: fit-content;
 }
 
 .videoTitle {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 800;
   color: #0F172A;
-  margin-bottom: 8px;
-  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
 }
 
 .videoDesc {
-  font-size: 14.5px;
+  font-size: 13px;
   color: #475569;
-  line-height: 1.55;
-  margin-bottom: 18px;
+  line-height: 1.45;
+  margin-bottom: 12px;
 }
 
 .videoCta {
   margin-top: auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   color: #059669;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 800;
   background: transparent;
   border: none;
@@ -2390,43 +2390,52 @@
 
 .videoCta:hover {
   color: #047857;
-  gap: 9px;
+  gap: 8px;
 }
 
 @media (max-width: 768px) {
   .videoShowcaseSection {
-    padding: 24px 14px 28px;
+    padding: 16px 14px 20px;
   }
   .videoGrid {
     grid-template-columns: 1fr;
-    gap: 14px;
-    margin-top: 18px;
+    gap: 12px;
+    margin-top: 14px;
   }
   .videoCard {
-    padding: 14px;
-    border-radius: 18px;
+    padding: 10px 10px 12px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.05);
   }
   .videoWrapper {
-    border-radius: 12px;
-    margin-bottom: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    aspect-ratio: 16 / 9;
+  }
+  .videoMeta {
+    padding: 0 2px;
   }
   .videoBadge {
-    font-size: 9px;
-    padding: 2px 7px;
-    margin-bottom: 6px;
+    font-size: 8px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    margin-bottom: 4px;
   }
   .videoTitle {
-    font-size: 14.5px;
-    margin-bottom: 4px;
-    line-height: 1.25;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 2px;
+    line-height: 1.2;
   }
   .videoDesc {
-    font-size: 11px;
-    line-height: 1.4;
-    margin-bottom: 10px;
+    font-size: 10.5px;
+    line-height: 1.35;
+    margin-bottom: 6px;
+    color: #475569;
   }
   .videoCta {
-    font-size: 11.5px;
+    font-size: 11px;
+    font-weight: 800;
   }
 }
 
