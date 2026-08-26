@@ -2496,83 +2496,109 @@
    6. Bento Box Features
    ========================================================================== */
 .bentoSection {
-  padding: 60px 20px 100px;
+  padding: 32px 20px 40px;
 }
 
 .sectionHeader {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .categoryBadge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: #ECFDF5;
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #059669;
-  padding: 6px 16px;
+  padding: 4px 12px;
   border-radius: 100px;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .sectionTitle {
-  font-size: 38px;
+  font-size: 30px;
   font-weight: 900;
-  letter-spacing: -1.2px;
+  letter-spacing: -0.8px;
   color: #0F172A;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 @media (max-width: 768px) {
+  .bentoSection {
+    padding: 16px 14px 20px;
+  }
+  .sectionHeader {
+    margin-bottom: 14px;
+  }
+  .categoryBadge {
+    font-size: 9px;
+    padding: 3px 9px;
+    margin-bottom: 5px;
+  }
   .sectionTitle {
-    font-size: 28px;
+    font-size: 20px;
+    letter-spacing: -0.4px;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+  .sectionSubtitle {
+    font-size: 11px;
+    line-height: 1.35;
+    max-width: 320px;
   }
 }
 
 .sectionSubtitle {
-  font-size: 16.5px;
-  color: #475569;
-  max-width: 640px;
+  font-size: 13.5px;
+  color: #64748B;
+  max-width: 600px;
   margin: 0 auto;
+  line-height: 1.5;
 }
 
 .bentoGrid {
-  max-width: 1200px;
+  max-width: 1050px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(260px, auto);
-  gap: 20px;
+  grid-auto-rows: auto;
+  gap: 14px;
 }
 
 @media (max-width: 900px) {
-  .bentoGrid { grid-template-columns: repeat(2, 1fr); }
+  .bentoGrid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 12px;
+  }
 }
 
 @media (max-width: 600px) {
-  .bentoGrid { grid-template-columns: 1fr; }
+  .bentoGrid { 
+    grid-template-columns: 1fr; 
+    gap: 8px;
+  }
 }
 
 .bentoCard {
   background: #FFFFFF;
   border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 28px;
-  padding: 32px;
-  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.08);
-  transition: all 0.35s ease;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 20px -5px rgba(16, 185, 129, 0.06);
+  transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
 }
 
 .bentoCard:hover {
-  transform: translateY(-6px);
+  transform: translateY(-3px);
   border-color: #059669;
-  box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.16);
+  box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.14);
 }
 
 .bentoLarge {
@@ -2581,6 +2607,27 @@
 
 @media (max-width: 600px) {
   .bentoLarge { grid-column: span 1; }
+  .bentoCard {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+  .bentoIconBg {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+  .bentoTitle {
+    font-size: 13.5px;
+    font-weight: 800;
+    margin-bottom: 3px;
+    line-height: 1.25;
+  }
+  .bentoDesc {
+    font-size: 10.5px;
+    line-height: 1.35;
+    margin: 0;
+  }
 }
 
 .bentoWide {
@@ -2588,51 +2635,57 @@
 }
 
 .bentoIconBg {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .bentoTitle {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: #0F172A;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 .bentoDesc {
-  font-size: 15px;
+  font-size: 12.5px;
   color: #475569;
-  line-height: 1.6;
-  margin-top: auto;
+  line-height: 1.45;
+  margin-top: 0;
 }
 
 /* ==========================================================================
    7. FAQ Section
    ========================================================================== */
 .faqSection {
-  padding: 80px 20px;
+  padding: 36px 20px 60px;
   max-width: 800px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .faqSection {
+    padding: 18px 14px 36px;
+  }
 }
 
 .faqList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-top: 36px;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .faqItem {
   background: #FFFFFF;
   border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0,0,0,0.02);
@@ -2648,7 +2701,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 14px 18px;
   background: transparent;
   border: none;
   text-align: left;
@@ -2656,7 +2709,7 @@
 }
 
 .faqQuestion {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #0F172A;
 }
