@@ -286,7 +286,7 @@
   align-items: center;
   gap: 16px;
   white-space: nowrap;
-  animation: stockTickerScroll 34s linear infinite;
+  animation: stockTickerScroll 80s linear infinite;
   will-change: transform;
 }
 
