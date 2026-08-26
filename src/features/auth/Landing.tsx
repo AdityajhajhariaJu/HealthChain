@@ -1290,7 +1290,7 @@ export default function Landing() {
           <p className={styles.problemText}>
             The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
           </p>
-          <p className={styles.problemText} style={{ marginTop: '20px', color: '#0F172A', fontWeight: 700 }}>
+          <p className={styles.problemText} style={{ marginTop: '10px', color: '#0F172A', fontWeight: 700 }}>
             HealthChain360.ai replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
           </p>
         </motion.div>

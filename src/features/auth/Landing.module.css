@@ -2443,39 +2443,53 @@
    5. The Problem (Diagnostic Odyssey)
    ========================================================================== */
 .problemSection {
-  padding: 60px 20px 100px;
+  padding: 24px 20px 32px;
   text-align: center;
 }
 
 .problemContent {
-  max-width: 840px;
+  max-width: 740px;
   margin: 0 auto;
   background: #FFFFFF;
   border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 28px;
-  padding: 48px 36px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
 }
 
 .problemTitle {
-  font-size: 36px;
+  font-size: 22px;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
   color: #0F172A;
-  margin-bottom: 20px;
-  line-height: 1.2;
-}
-
-@media (max-width: 768px) {
-  .problemTitle {
-    font-size: 26px;
-  }
+  margin-bottom: 10px;
+  line-height: 1.25;
 }
 
 .problemText {
-  font-size: 17px;
+  font-size: 13px;
   color: #475569;
-  line-height: 1.7;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .problemSection {
+    padding: 12px 14px 18px;
+  }
+  .problemContent {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+  .problemTitle {
+    font-size: 16px;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+  }
+  .problemText {
+    font-size: 11px;
+    line-height: 1.4;
+  }
 }
 
 /* ==========================================================================
