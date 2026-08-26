@@ -1707,14 +1707,14 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
+  cursor: default;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
 .bentoCard:hover {
-  border-color: #059669;
-  box-shadow: 0 12px 30px -6px rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 8px 24px -6px rgba(16, 185, 129, 0.12);
 }
 
 .bentoImgWrapper {

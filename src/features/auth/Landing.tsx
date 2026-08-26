@@ -1136,7 +1136,6 @@ export default function Landing() {
                     <div 
                       key={`left_${idx}`}
                       className={styles.bentoCard}
-                      onClick={() => handleStartInvestigation(`bento_card_left_${idx}`, card.title)}
                     >
                       {card.type === 'img' && card.img && (
                         <div className={styles.bentoImgWrapper}>
@@ -1164,7 +1163,6 @@ export default function Landing() {
                     <div 
                       key={`right_${idx}`}
                       className={`${styles.bentoCard} ${card.type === 'privacy' ? styles.bentoCardPrivacy : ''}`}
-                      onClick={() => handleStartInvestigation(`bento_card_right_${idx}`, card.title)}
                     >
                       {card.type === 'img' && card.img && (
                         <div className={styles.bentoImgWrapper}>
