@@ -2343,55 +2343,7 @@
 }
 
 .videoWrapper:hover .videoPosterImg {
-  transform: scale(1.03);
-}
-
-.videoPlayOverlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.5) 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.25s ease;
-}
-
-.videoWrapper:hover .videoPlayOverlay {
-  background: radial-gradient(circle at center, rgba(5, 150, 105, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
-}
-
-.videoPlayBtn {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  border: 2px solid rgba(255, 255, 255, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.5), 0 0 0 5px rgba(16, 185, 129, 0.25);
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.videoWrapper:hover .videoPlayBtn {
-  transform: scale(1.08);
-  box-shadow: 0 10px 30px rgba(5, 150, 105, 0.7), 0 0 0 8px rgba(16, 185, 129, 0.35);
-}
-
-.videoPlayBadge {
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #FFFFFF;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  padding: 3px 10px;
-  border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
 }
 
 .videoPlayer {
@@ -2479,15 +2431,6 @@
     border-radius: 10px;
     margin-bottom: 8px;
     aspect-ratio: 16 / 9;
-  }
-  .videoPlayBtn {
-    width: 42px;
-    height: 42px;
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4), 0 0 0 4px rgba(16, 185, 129, 0.2);
-  }
-  .videoPlayBadge {
-    font-size: 9.5px;
-    padding: 2px 7px;
   }
   .videoMeta {
     padding: 0 2px;

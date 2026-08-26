@@ -273,12 +273,6 @@ const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) =
       ) : (
         <div className={styles.videoPosterContainer}>
           <img src={poster} alt={alt} className={styles.videoPosterImg} loading="eager" />
-          <div className={styles.videoPlayOverlay}>
-            <button className={styles.videoPlayBtn} aria-label={`Play ${alt}`} onClick={handlePlay}>
-              <Play size={24} fill="#FFFFFF" color="#FFFFFF" style={{ marginLeft: '3px' }} />
-            </button>
-            <span className={styles.videoPlayBadge}>▶ Watch Demo</span>
-          </div>
         </div>
       )}
     </div>
