@@ -143,7 +143,7 @@ export default function AppShell() {
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
-            <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '34px', height: '34px', borderRadius: '8px', objectFit: 'contain' }} />
+            <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             <div>
               <span className="sidebar__logo-text">HealthChain360.ai</span>
               <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>

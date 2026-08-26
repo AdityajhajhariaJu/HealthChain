@@ -355,7 +355,7 @@ export default function Landing() {
       {/* 1. Floating Neutral Glass Navbar */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
         <div className={styles.logoContainer}>
-          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
           <span className={styles.logoText}>HealthChain360.ai</span>
         </div>
         <div className={styles.navActions}>
@@ -817,7 +817,7 @@ export default function Landing() {
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '28px', height: '28px', borderRadius: '8px', objectFit: 'contain' }} />
+              <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
               <span>HealthChain360.ai</span>
             </div>
             <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>

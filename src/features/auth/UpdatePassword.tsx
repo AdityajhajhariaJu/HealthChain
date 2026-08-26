@@ -80,7 +80,7 @@ export default function UpdatePassword() {
       {/* Nav */}
       <nav style={{ padding: '24px 40px', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>HealthChain360.ai</span>
         </div>
       </nav>
