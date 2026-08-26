@@ -391,7 +391,7 @@ export default function Landing() {
             >
               <div className={styles.badgeSpecialistTag}>
                 <Zap size={12} fill="currentColor" />
-                <span>16-Specialist AI Board</span>
+                <span>Specialist AI Board</span>
               </div>
               <div className={styles.badgeTickerArea}>
                 <AnimatePresence mode="wait">
@@ -416,7 +416,7 @@ export default function Landing() {
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              Been to 5 different doctors with no answers? HealthChain convenes 16 AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
+              Been to 5 different doctors with no answers? HealthChain convenes AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
             </motion.p>
 
             {/* Instant Symptom Input Box */}
@@ -473,7 +473,7 @@ export default function Landing() {
               <div className={styles.demoHeader}>
                 <div className={styles.demoBadge}>
                   <div className={styles.demoLiveDot} />
-                  <span>16-SPECIALIST MULTI-DISCIPLINARY CONSENSUS ACTIVE</span>
+                  <span>MULTI-DISCIPLINARY SPECIALIST CONSENSUS ACTIVE</span>
                 </div>
                 <div style={{ fontSize: '11.5px', color: '#71717A', fontWeight: 600 }}>
                   Case #4120 • 35-yo Female (Post-Viral Fatigue)
@@ -519,7 +519,7 @@ export default function Landing() {
       <section className={styles.statsSection}>
         <div className={styles.statsGrid}>
           <div className={styles.statItem}>
-            <h3 className={styles.statValue}>16 Specialists</h3>
+            <h3 className={styles.statValue}>Multi-Specialist</h3>
             <p className={styles.statLabel}>Autonomous multi-disciplinary AI board</p>
           </div>
           <div className={styles.statItem}>
@@ -541,7 +541,7 @@ export default function Landing() {
           </div>
           <h2 className={styles.sectionTitle}>When Tests Look Normal, Specialists Connect the Dots</h2>
           <p className={styles.sectionSubtitle}>
-            Explore real multi-system cases where standard 15-minute visits stalled, but our 16 AI clinical specialists uncovered hidden root causes.
+            Explore real multi-system cases where standard 15-minute visits stalled, but our AI clinical specialists uncovered hidden root causes.
           </p>
         </div>
 
@@ -629,7 +629,7 @@ export default function Landing() {
           </div>
           <h2 className={styles.sectionTitle}>See HealthChain in Action</h2>
           <p className={styles.sectionSubtitle}>
-            Watch how our 16 AI clinical specialists cross-analyze contradictory symptoms, lab biomarkers, and medical history.
+            Watch how our AI clinical specialists cross-analyze contradictory symptoms, lab biomarkers, and medical history.
           </p>
         </div>
 
@@ -655,7 +655,7 @@ export default function Landing() {
             </div>
             <div className={styles.videoMeta}>
               <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
-              <h3 className={styles.videoTitle}>16-Specialist AI Medical Board Debate</h3>
+              <h3 className={styles.videoTitle}>Specialist AI Medical Board Debate</h3>
               <p className={styles.videoDesc}>
                 Watch how cardiology, neurology, endocrinology, and immunology correlate multi-system symptoms to uncover missed root causes.
               </p>
@@ -721,7 +721,7 @@ export default function Landing() {
           <p className={styles.problemText}>
             The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
           </p>
-          <p className={styles.problemText} style={{ marginTop: '20px', color: '#FFFFFF', fontWeight: 700 }}>
+          <p className={styles.problemText} style={{ marginTop: '20px', color: '#0F172A', fontWeight: 700 }}>
             HealthChain replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
           </p>
         </motion.div>
@@ -737,9 +737,9 @@ export default function Landing() {
 
         <div className={styles.bentoGrid}>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={`${styles.bentoCard} ${styles.bentoLarge}`}>
-            <div className={styles.bentoIconBg} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38BDF8' }}><Brain size={24} /></div>
-            <h3 className={styles.bentoTitle}>16 Autonomous AI Perspectives</h3>
-            <p className={styles.bentoDesc}>Instead of a single AI giving a generic answer, 16 clinical specialists evaluate your case independently, then debate and cross-examine evidence to uncover multi-system interactions.</p>
+            <div className={styles.bentoIconBg} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#0284C7' }}><Brain size={24} /></div>
+            <h3 className={styles.bentoTitle}>Multi-Specialist AI Perspectives</h3>
+            <p className={styles.bentoDesc}>Instead of a single AI giving a generic answer, clinical specialists evaluate your case independently, then debate and cross-examine evidence to uncover multi-system interactions.</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={styles.bentoCard}>
