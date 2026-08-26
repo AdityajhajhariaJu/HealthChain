@@ -400,45 +400,29 @@ export default function Landing() {
         <div className={styles.heroContent}>
           <motion.div variants={containerVariants} initial="hidden" animate="show">
             
-            {/* Continuous Specialist Stock-Market Running Ticker */}
-            <motion.div variants={itemVariants} className={styles.specialistStockTicker}>
-              <div className={styles.stockTickerTrack}>
-                {[...SPECIALIST_TICKER, ...SPECIALIST_TICKER].map((spec, i) => (
-                  <div key={i} className={styles.stockTickerItem}>
-                    <span className={styles.stockTickerIcon}>{spec.icon}</span>
-                    <span className={styles.stockTickerName}>{spec.name}</span>
-                    <span className={styles.stockTickerTag}>{spec.tag}</span>
-                    <span className={styles.stockTickerDot}>•</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Unified Sleek Live Hero Badge */}
+            {/* High-Tech Black Look Window Card with Continuous Specialist Ticker */}
             <motion.div 
               variants={itemVariants} 
-              className={styles.unifiedHeroBadge}
-              onClick={() => handleStartInvestigation('landing_hero_badge')}
+              className={styles.darkTickerWindowCard}
+              onClick={() => handleStartInvestigation('landing_ticker_window')}
             >
-              <div className={styles.badgeSpecialistTag}>
-                <Zap size={12} fill="currentColor" />
-                <span>Specialist AI Board</span>
+              <div className={styles.darkTickerPrefix}>
+                <div className={styles.darkTickerLiveDot} />
+                <span className={styles.darkTickerPrefixLabel}>LIVE AI BOARD</span>
               </div>
-              <div className={styles.badgeTickerArea}>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={activeTickerIndex}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                    className={styles.badgeTickerText}
-                  >
-                    {LIVE_NETWORK_UPDATES[activeTickerIndex]}
-                  </motion.span>
-                </AnimatePresence>
+              <div className={styles.darkTickerDivider} />
+              <div className={styles.darkTickerViewport}>
+                <div className={styles.stockTickerTrack}>
+                  {[...SPECIALIST_TICKER, ...SPECIALIST_TICKER].map((spec, i) => (
+                    <div key={i} className={styles.darkTickerItem}>
+                      <span className={styles.darkTickerIcon}>{spec.icon}</span>
+                      <span className={styles.darkTickerName}>{spec.name}</span>
+                      <span className={styles.darkTickerTag}>{spec.tag}</span>
+                      <span className={styles.darkTickerDot}>•</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <ChevronRight size={14} className={styles.badgeArrow} />
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
