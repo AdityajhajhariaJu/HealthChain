@@ -16,28 +16,28 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://*.googletagmanager.com https://www.googletagmanager.com https://*.googleadservices.com https://www.googleadservices.com https://*.doubleclick.net https://googleads.g.doubleclick.net https://tagassistant.google.com https://*.google.com https://*.google.co.in; connect-src 'self' https://cikikocfvfshloqwnyfe.supabase.co wss://cikikocfvfshloqwnyfe.supabase.co https://generativelanguage.googleapis.com https://clinicaltrials.gov https://www.ebi.ac.uk https://api.razorpay.com https://lumberjack.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://*.g.doubleclick.net https://googleads.g.doubleclick.net https://*.google.com https://*.google.co.in https://*.googleadservices.com https://tagassistant.google.com wss://tagassistant.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; media-src 'self' https:; frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://tagassistant.google.com https://*.googletagmanager.com https://*.google.com https://*.doubleclick.net https://*.googleadservices.com;" />
-    <meta name="theme-color" content="#14b8a6" />
+    <meta name="theme-color" content="#059669" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="canonical" href="https://www.healthchain360.com" />
-    <title>HealthChain — Health Assessment &amp; Case Prep</title>
+    <title>HealthChain360 — Multi-Specialist AI Medical Board &amp; Health Assessment</title>
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="HealthChain — Health Assessment &amp; Case Prep" />
-    <meta property="og:description" content="Organize your health story, records, evidence gaps, and questions for a better clinician conversation." />
+    <meta property="og:title" content="HealthChain360 — Multi-Specialist AI Medical Board &amp; Health Assessment" />
+    <meta property="og:description" content="Organize your complex symptoms, lab records, evidence gaps, and questions for doctor-ready consultations." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.healthchain360.com" />
-    <meta property="og:site_name" content="HealthChain" />
+    <meta property="og:site_name" content="HealthChain360" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://www.healthchain360.com/social-preview.jpg" />
+    <meta property="og:image" content="https://www.healthchain360.com/logo.png" />
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@healthchain" />
-    <meta name="twitter:creator" content="@healthchain" />
-    <meta name="twitter:title" content="HealthChain — Health Assessment &amp; Case Prep" />
-    <meta name="twitter:description" content="Organize your health story, records, evidence gaps, and questions for a better clinician conversation." />
-    <meta name="twitter:image" content="https://www.healthchain360.com/social-preview.jpg" />
+    <meta name="twitter:site" content="@healthchain360" />
+    <meta name="twitter:creator" content="@healthchain360" />
+    <meta name="twitter:title" content="HealthChain360 — Multi-Specialist AI Medical Board &amp; Health Assessment" />
+    <meta name="twitter:description" content="Organize your complex symptoms, lab records, evidence gaps, and questions for doctor-ready consultations." />
+    <meta name="twitter:image" content="https://www.healthchain360.com/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
       #hc-splash {
         position: fixed;
@@ -46,7 +46,7 @@
         width: 100%;
         height: 100vh;
         height: 100dvh;
-        background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+        background: #F4FBF7;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -59,42 +59,41 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
       }
       .hc-splash-logo-bg {
         position: absolute;
-        width: 120px;
-        height: 120px;
-        background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, rgba(20, 184, 166, 0) 70%);
+        width: 110px;
+        height: 110px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%);
         border-radius: 50%;
         animation: pulseBg 2.5s infinite ease-in-out;
       }
       .hc-splash-logo {
-        width: 80px;
-        height: 80px;
+        width: 72px;
+        height: 72px;
         position: relative;
         z-index: 2;
-        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+        border-radius: 16px;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15));
         animation: float 3s infinite ease-in-out;
       }
       .hc-splash-text {
-        color: #FFFFFF;
+        color: #0F172A;
         font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 32px;
+        font-weight: 900;
+        font-size: 28px;
         letter-spacing: -0.5px;
-        background: linear-gradient(to right, #ffffff, #94a3b8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
         animation: fadeInUp 0.8s ease-out forwards;
         opacity: 0;
         transform: translateY(10px);
       }
       .hc-splash-loader {
-        margin-top: 40px;
+        margin-top: 32px;
         width: 140px;
-        height: 3px;
-        background: rgba(255,255,255,0.08);
+        height: 4px;
+        background: #E2E8F0;
         border-radius: 4px;
         overflow: hidden;
         position: relative;
@@ -108,13 +107,13 @@
         left: 0;
         height: 100%;
         width: 40%;
-        background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+        background: linear-gradient(90deg, transparent, #059669, transparent);
         border-radius: 4px;
         animation: slide 1.5s infinite ease-in-out;
       }
       @keyframes float {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-12px); }
+        50% { transform: translateY(-8px); }
       }
       @keyframes pulseBg {
         0% { transform: scale(0.8); opacity: 0.5; }
@@ -134,9 +133,9 @@
     <div id="hc-splash">
       <div class="hc-splash-logo-container">
         <div class="hc-splash-logo-bg"></div>
-        <img src="/logo.svg" alt="HealthChain Logo" class="hc-splash-logo" />
+        <img src="/logo.png" alt="HealthChain360 Logo" class="hc-splash-logo" />
       </div>
-      <div class="hc-splash-text">HealthChain</div>
+      <div class="hc-splash-text">HealthChain360</div>
       <div class="hc-splash-loader"></div>
     </div>
     <div id="root"></div>

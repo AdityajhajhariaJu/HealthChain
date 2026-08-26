@@ -187,9 +187,9 @@ export default function Auth() {
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
           onClick={() => navigate('/')}
         >
-          <Activity size={24} color="var(--teal)" />
+          <img src="/logo.png" alt="HealthChain360" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'contain' }} />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>
-            HealthChain
+            HealthChain360
           </span>
         </div>
       </nav>

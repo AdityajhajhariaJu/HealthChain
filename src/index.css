@@ -141,24 +141,20 @@ textarea {
   padding: 0 8px 12px 8px;
   border-bottom: 1px solid var(--border);
 }
-.sidebar__logo-icon {
+.sidebar__logo-icon, .sidebar__logo-img {
   width: 36px;
   height: 36px;
-  background: var(--teal-light);
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--teal);
-  box-shadow: var(--shadow-neon);
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .sidebar__logo-text {
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: -0.5px;
+  font-weight: 800;
+  font-size: 16.5px;
+  letter-spacing: -0.4px;
 }
 .sidebar__logo-sub {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
   display: block;
 }

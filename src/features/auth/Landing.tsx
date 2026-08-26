@@ -355,8 +355,8 @@ export default function Landing() {
       {/* 1. Floating Neutral Glass Navbar */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
         <div className={styles.logoContainer}>
-          <div className={styles.logoIconBg}><Activity size={20} className={styles.logoIcon} /></div>
-          <span className={styles.logoText}>HealthChain</span>
+          <img src="/logo.png" alt="HealthChain360" style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'contain' }} />
+          <span className={styles.logoText}>HealthChain360</span>
         </div>
         <div className={styles.navActions}>
           {isLoggedOut ? (
@@ -817,7 +817,8 @@ export default function Landing() {
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <div className={styles.logoIconBg}><Activity size={18} className={styles.logoIcon} /></div> HealthChain
+              <img src="/logo.png" alt="HealthChain360" style={{ width: '28px', height: '28px', borderRadius: '8px', objectFit: 'contain' }} />
+              <span>HealthChain360</span>
             </div>
             <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>
           </div>
@@ -835,7 +836,7 @@ export default function Landing() {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <p>© {new Date().getFullYear()} HealthChain. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} HealthChain360. All rights reserved.</p>
         </div>
       </footer>
     </div>
