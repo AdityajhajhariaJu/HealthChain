@@ -467,7 +467,8 @@ export default function Pricing() {
           </div>
 
           <div style={{ margin: '14px 0 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '20px', fontWeight: 700, color: '#94A3B8', textDecoration: 'line-through', textDecorationColor: '#EF4444', textDecorationThickness: '2px' }}>₹1,499</span>
               <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹899</span>
               <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>/ 90 Days</span>
             </div>
