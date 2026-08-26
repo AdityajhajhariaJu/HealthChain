@@ -179,14 +179,13 @@
    2. FameHero-Style Hero Section
    ========================================================================== */
 .heroWrapper {
-  min-height: 90vh;
-  min-height: 90dvh;
+  min-height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 130px 20px 60px;
+  padding: 110px 20px 10px;
 }
 
 .heroGradientBg {
@@ -497,36 +496,36 @@
 
 /* 1-Tap Symptom Presets Bar */
 .symptomChipsSection {
-  margin: 0 auto 28px;
+  margin: 0 auto 16px;
   max-width: 780px;
 }
 
 .symptomChipsHeader {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #059669;
   letter-spacing: 1px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .symptomChipsGrid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .symptomChip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: 999px;
   background: #FFFFFF;
   border: 1px solid rgba(16, 185, 129, 0.2);
   color: #1E293B;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -545,9 +544,9 @@
 .consensusDemoCard {
   background: #FFFFFF;
   border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 24px;
-  padding: 24px;
-  margin: 10px auto 0;
+  border-radius: 20px;
+  padding: 16px 18px;
+  margin: 4px auto 0;
   max-width: 760px;
   text-align: left;
   box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.1);
@@ -559,18 +558,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #F1F5F9;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .demoBadge {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #059669;
   text-transform: uppercase;
@@ -594,28 +593,28 @@
 .demoChatArea {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .demoMessage {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
   background: #F8FAFC;
-  padding: 12px 16px;
-  border-radius: 14px;
+  padding: 9px 13px;
+  border-radius: 12px;
   border: 1px solid #E2E8F0;
 }
 
 .demoSpecialistIcon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -624,41 +623,41 @@
 }
 
 .demoSpecialistName {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   color: #0F172A;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .demoSpecialistField {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   color: #64748B;
   text-transform: uppercase;
 }
 
 .demoText {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #334155;
-  line-height: 1.45;
+  line-height: 1.4;
   margin: 0;
 }
 
 .demoFooter {
-  padding-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid #F1F5F9;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .demoConfidenceText {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #059669;
   display: flex;
@@ -670,9 +669,9 @@
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   border: none;
   color: #FFFFFF;
-  padding: 8px 18px;
+  padding: 7px 16px;
   border-radius: 100px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -692,7 +691,7 @@
    Multi-Stream Data Convergence Showcase (Brandstack Style)
    ========================================================================== */
 .convergenceSection {
-  padding: 40px 20px 70px;
+  padding: 15px 20px 50px;
   max-width: 1080px;
   margin: 0 auto;
   position: relative;
@@ -712,22 +711,22 @@
   gap: 8px;
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 100px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   color: #0F172A;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .convergenceHeadline {
-  font-size: 52px;
+  font-size: 48px;
   font-weight: 900;
   color: #0F172A;
   line-height: 1.1;
-  letter-spacing: -1.8px;
-  margin: 0 0 16px 0;
+  letter-spacing: -1.6px;
+  margin: 0 0 12px 0;
 }
 
 .convergenceItalicText {
@@ -739,11 +738,11 @@
 }
 
 .convergenceSubheadline {
-  font-size: 17px;
+  font-size: 16px;
   color: #475569;
   max-width: 680px;
-  margin: 0 auto 36px;
-  line-height: 1.5;
+  margin: 0 auto 24px;
+  line-height: 1.45;
 }
 
 .convergenceSourceChips {
@@ -1138,8 +1137,14 @@
 }
 
 @media (max-width: 768px) {
+  .heroWrapper {
+    padding: 85px 16px 5px;
+  }
+  .convergenceSection {
+    padding: 10px 14px 36px;
+  }
   .convergenceHeadline {
-    font-size: 34px;
+    font-size: 32px;
     letter-spacing: -1px;
   }
   .convergenceKpiGrid,
