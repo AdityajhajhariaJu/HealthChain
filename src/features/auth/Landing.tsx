@@ -1216,23 +1216,6 @@ export default function Landing() {
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className={styles.caseFilterTabs}>
-          {CASE_TABS.map((tab) => (
-            <button 
-              key={tab.id}
-              className={`${styles.caseFilterTab} ${selectedCaseFilter === tab.id ? styles.caseFilterTabActive : ''}`}
-              onClick={() => {
-                triggerHapticLight();
-                setSelectedCaseFilter(tab.id);
-              }}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-
         {/* Case Cards Grid / Feed */}
         <div className={styles.casesFeed}>
           {filteredCaseCards.map((item, idx) => (
