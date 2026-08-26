@@ -119,6 +119,15 @@ export default function QuickConsult() {
   useEffect(() => {
     if (searchParams.get('new') === 'true') {
       resetConsult();
+      const presetSpecId = sessionStorage.getItem('hc_preset_specialist');
+      if (presetSpecId) {
+        const found = ALL_SPECIALISTS.find(s => s.id === presetSpecId);
+        if (found) {
+          setSelectedSpecialist(found);
+          setPhase('upload');
+        }
+        sessionStorage.removeItem('hc_preset_specialist');
+      }
       const preset = sessionStorage.getItem('hc_preset_symptom');
       if (preset) {
         setSymptomInput(preset);

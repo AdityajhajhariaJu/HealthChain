@@ -15,10 +15,9 @@ import {
   Star,
   CheckCircle2,
   Sparkles,
-  Stethoscope,
+  Heart,
   Brain,
-  Layers,
-  Clock,
+  Microscope,
   ArrowUpRight
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
@@ -31,110 +30,35 @@ import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { triggerHapticLight } from '../../services/haptics';
 
 const SYMPTOM_PRESETS = [
-  { icon: '⚡', label: 'Unexplained Fatigue' },
-  { icon: '🤕', label: 'Chronic Migraine & Pressure' },
-  { icon: '🫀', label: 'Palpitations & Dizziness' },
-  { icon: '🧬', label: 'Brain Fog & Memory Gaps' },
-  { icon: '🩺', label: 'Gut & Food Sensitivity' },
-  { icon: '🔥', label: 'Joint & Nerve Pain' },
+  { icon: '⚡', label: 'Chronic Fatigue', specialistId: 'endo', symptom: 'Chronic fatigue, low energy, and sluggishness for months' },
+  { icon: '🤕', label: 'Daily Headache', specialistId: 'neuro', symptom: 'Daily headache, eye pressure, and migraine flare-ups' },
+  { icon: '🫀', label: 'Palpitations', specialistId: 'cardio', symptom: 'Unexplained palpitations, racing pulse, and lightheadedness' },
+  { icon: '🧬', label: 'Brain Fog', specialistId: 'neuro', symptom: 'Brain fog, memory lapses, and cognitive sluggishness' },
+  { icon: '🩺', label: 'Gut Issues', specialistId: 'gastro', symptom: 'Chronic gut issues, bloating, and food sensitivity' },
+  { icon: '➕', label: 'Other...', isCustom: true },
 ];
 
-const DEMO_CASES = [
+const CONSENSUS_DIALOGUE = [
   {
-    id: 'fatigue',
-    title: 'Fatigue & Brain Fog',
-    specialists: [
-      {
-        role: 'Endocrinologist',
-        field: 'Hormones & Biomarkers',
-        icon: '🔬',
-        bg: 'rgba(59, 130, 246, 0.2)',
-        color: '#60A5FA',
-        finding: 'Ferritin is 18 ng/mL (subclinical depletion). Cortisol curve indicates blunted morning awakening response.',
-      },
-      {
-        role: 'Neurologist',
-        field: 'Neuro-Autonomic',
-        icon: '🧠',
-        bg: 'rgba(139, 92, 246, 0.2)',
-        color: '#A78BFA',
-        finding: 'Post-viral neuro-inflammation matches cognitive sluggishness and sleep architecture disruption.',
-      },
-      {
-        role: 'Functional Medicine',
-        field: 'Cellular Health',
-        icon: '⚡',
-        bg: 'rgba(16, 185, 129, 0.2)',
-        color: '#34D399',
-        finding: 'Mitochondrial cofactor deficit + cellular iron starvation explain fatigue with "normal" routine labs.',
-      },
-    ],
-    consensus: '94% Match: Subclinical Iron Depletion + Post-Viral Autonomic Fatigue',
-    action: 'Order Complete Iron Panel + AM Cortisol + Methylation Markers',
+    role: 'Cardiologist',
+    icon: '🩺',
+    color: '#EF4444',
+    bg: 'rgba(239, 68, 68, 0.15)',
+    finding: 'Resting tachycardia noted despite normal ECG.',
   },
   {
-    id: 'migraine',
-    title: 'Daily Migraine & Eye Pressure',
-    specialists: [
-      {
-        role: 'Neurologist',
-        field: 'Cranial Nerves',
-        icon: '🧠',
-        bg: 'rgba(139, 92, 246, 0.2)',
-        color: '#A78BFA',
-        finding: 'Occipital nerve sensitization with trigeminal autonomic cephalalgia patterns.',
-      },
-      {
-        role: 'Cardiologist',
-        field: 'Vascular Dynamics',
-        icon: '🫀',
-        bg: 'rgba(239, 68, 68, 0.2)',
-        color: '#F87171',
-        finding: 'Vasomotor instability noted; morning blood pressure surges correlating with headache onset.',
-      },
-      {
-        role: 'Gastroenterologist',
-        field: 'Microbiome & Histamine',
-        icon: '🩺',
-        bg: 'rgba(245, 158, 11, 0.2)',
-        color: '#FBBF24',
-        finding: 'Gut-brain axis dysbiosis with histamine intolerance triggering vascular migraine flare-ups.',
-      },
-    ],
-    consensus: '91% Match: Histamine-Mediated Neuro-Vascular Migraine with Vasomotor Spikes',
-    action: 'Trial Low-Histamine Elimination + Ambulatory 24h BP Monitoring',
+    role: 'Neurologist',
+    icon: '🧠',
+    color: '#A78BFA',
+    bg: 'rgba(139, 92, 246, 0.15)',
+    finding: 'Possible autonomic / vagal nerve involvement.',
   },
   {
-    id: 'palpitations',
-    title: 'Post-Meal Palpitations & Dizziness',
-    specialists: [
-      {
-        role: 'Cardiologist',
-        field: 'Cardiac Electrophysiology',
-        icon: '🫀',
-        bg: 'rgba(239, 68, 68, 0.2)',
-        color: '#F87171',
-        finding: 'Sinus tachycardia upon standing/eating without structural cardiomyopathy on echo.',
-      },
-      {
-        role: 'Gastroenterologist',
-        field: 'Gastrocardiac Axis',
-        icon: '🩺',
-        bg: 'rgba(245, 158, 11, 0.2)',
-        color: '#FBBF24',
-        finding: 'Post-prandial splanchnic blood pooling stealing cerebral perfusion; Roemheld syndrome profile.',
-      },
-      {
-        role: 'Immunologist',
-        field: 'Mast Cell Mediators',
-        icon: '🛡️',
-        bg: 'rgba(16, 185, 129, 0.2)',
-        color: '#34D399',
-        finding: 'Mast cell mediator release triggering rapid pulse and mild orthostatic intolerance.',
-      },
-    ],
-    consensus: '96% Match: Autonomic Splanchnic Pooling / Gastrocardiac (Roemheld) Complex',
-    action: 'Standing vs Supine HR Log + Splanchnic Ultrasound + Digestive Enzyme Trial',
+    role: 'Endocrinologist',
+    icon: '🔬',
+    color: '#60A5FA',
+    bg: 'rgba(59, 130, 246, 0.15)',
+    finding: 'Check ferritin and cortisol before next doctor visit.',
   },
 ];
 
@@ -161,7 +85,8 @@ export default function Landing() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [activeDemoCase, setActiveDemoCase] = useState(0);
+  const [customInput, setCustomInput] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
@@ -209,7 +134,7 @@ export default function Landing() {
     };
   }, [navigate]);
 
-  const handleStartInvestigation = (context: string = 'landing_hero', presetSymptom?: string) => {
+  const handleStartInvestigation = (context: string = 'landing_hero', presetSymptom?: string, presetSpecialist?: string) => {
     triggerHapticLight();
     trackButtonClick('Get Started', context);
     setIsNavigating(true);
@@ -223,11 +148,26 @@ export default function Landing() {
     if (presetSymptom) {
       try { sessionStorage.setItem('hc_preset_symptom', presetSymptom); } catch(e) {}
     }
+    if (presetSpecialist) {
+      try { sessionStorage.setItem('hc_preset_specialist', presetSpecialist); } catch(e) {}
+    }
 
     if (navTimerRef.current) clearTimeout(navTimerRef.current);
     navTimerRef.current = setTimeout(() => {
       navigate('/app/consult?new=true');
     }, 900);
+  };
+
+  const handleChipClick = (preset: typeof SYMPTOM_PRESETS[0], idx: number) => {
+    triggerHapticLight();
+    if (preset.isCustom) {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    handleStartInvestigation(`landing_chip_${idx}`, preset.symptom, preset.specialistId);
   };
 
   useEffect(() => {
@@ -271,8 +211,6 @@ export default function Landing() {
       rating: 5
     }
   ];
-
-  const currentCase = DEMO_CASES[activeDemoCase];
 
   return (
     <div className={styles.container}>
@@ -319,9 +257,9 @@ export default function Landing() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ fontSize: '30px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}
+              style={{ fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.5px' }}
             >
-              Initializing 16 AI Specialists...
+              Convening 16 AI Medical Specialists...
             </motion.h2>
 
             <motion.div
@@ -386,7 +324,7 @@ export default function Landing() {
           <motion.div variants={containerVariants} initial="hidden" animate="show">
             
             <motion.div variants={itemVariants} className={styles.premiumBadge}>
-              <Zap size={13} fill="currentColor" /> 16-SPECIALIST AI MEDICAL BOARD • AUTONOMOUS CONSENSUS
+              <Zap size={13} fill="currentColor" /> 16-SPECIALIST AI MEDICAL BOARD
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
@@ -395,20 +333,48 @@ export default function Landing() {
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              Been to 5 different doctors with normal tests? HealthChain coordinates 16 AI clinical specialists to cross-analyze your symptoms, lab panels, and timeline—surfacing hidden root causes standard 15-minute visits miss.
+              Been to 5 different doctors with no answers? HealthChain convenes 16 AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
             </motion.p>
 
-            {/* 1-Tap Symptom Presets Bar */}
+            {/* 💡 Idea 3: Instant Symptom Input Box in the Hero */}
+            <motion.div variants={itemVariants} className={styles.heroInputContainer}>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (customInput.trim()) {
+                    handleStartInvestigation('landing_hero_input', customInput.trim());
+                  } else {
+                    handleStartInvestigation('landing_hero_input');
+                  }
+                }}
+                className={styles.heroInputBox}
+              >
+                <Search size={18} className={styles.heroInputIcon} />
+                <input 
+                  ref={inputRef}
+                  type="text" 
+                  placeholder="Type your symptoms or upload a lab report..."
+                  value={customInput}
+                  onChange={(e) => setCustomInput(e.target.value)}
+                  className={styles.heroInputField}
+                />
+                <button type="submit" className={styles.heroInputBtn}>
+                  <span>Analyze →</span>
+                </button>
+              </form>
+            </motion.div>
+
+            {/* 💡 Idea 1: 1-Tap Symptom Chips (Direct Intake Hook) */}
             <motion.div variants={itemVariants} className={styles.symptomChipsSection}>
               <div className={styles.symptomChipsHeader}>
-                ⚡ 1-Tap Quick Start: Select What You're Experiencing
+                ⚡ 1-Tap Quick Start (Instant Specialist Launch)
               </div>
               <div className={styles.symptomChipsGrid}>
                 {SYMPTOM_PRESETS.map((preset, idx) => (
                   <button
                     key={idx}
                     className={styles.symptomChip}
-                    onClick={() => handleStartInvestigation(`landing_chip_${idx}`, preset.label)}
+                    onClick={() => handleChipClick(preset, idx)}
                   >
                     <span>{preset.icon}</span>
                     <span>{preset.label}</span>
@@ -417,17 +383,7 @@ export default function Landing() {
               </div>
             </motion.div>
 
-            {/* Hero CTA Group */}
-            <motion.div variants={itemVariants} className={styles.heroCtaGroup}>
-              <button className={styles.heroPrimaryBtn} onClick={() => handleStartInvestigation('landing_hero')}>
-                Start Free Consultation <ArrowRight size={18} />
-              </button>
-              <button className={styles.heroSecondaryBtn} onClick={() => navigate('/pricing')}>
-                View Pro Plans
-              </button>
-            </motion.div>
-
-            {/* Interactive Live Consensus Simulation Card */}
+            {/* 💡 Idea 2: Interactive "Live Specialist Consensus" Preview Card */}
             <motion.div 
               variants={itemVariants} 
               className={styles.consensusDemoCard}
@@ -438,62 +394,36 @@ export default function Landing() {
               <div className={styles.demoHeader}>
                 <div className={styles.demoBadge}>
                   <div className={styles.demoLiveDot} />
-                  <span>Live Medical Consensus Simulation</span>
-                </div>
-                <div className={styles.demoTabs}>
-                  {DEMO_CASES.map((dCase, index) => (
-                    <button
-                      key={dCase.id}
-                      className={`${styles.demoTab} ${activeDemoCase === index ? styles.demoTabActive : ''}`}
-                      onClick={() => {
-                        triggerHapticLight();
-                        setActiveDemoCase(index);
-                      }}
-                    >
-                      {dCase.title}
-                    </button>
-                  ))}
+                  <span>Live 16-Specialist AI Medical Board Debate</span>
                 </div>
               </div>
 
               <div className={styles.demoChatArea}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentCase.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.25 }}
-                    style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-                  >
-                    {currentCase.specialists.map((spec, sIdx) => (
-                      <div key={sIdx} className={styles.demoMessage}>
-                        <div className={styles.demoSpecialistIcon} style={{ background: spec.bg, color: spec.color }}>
-                          {spec.icon}
-                        </div>
-                        <div className={styles.demoMessageContent}>
-                          <div className={styles.demoSpecialistName}>
-                            <span>{spec.role} AI</span>
-                            <span className={styles.demoSpecialistField}>· {spec.field}</span>
-                          </div>
-                          <p className={styles.demoText}>{spec.finding}</p>
-                        </div>
+                {CONSENSUS_DIALOGUE.map((spec, sIdx) => (
+                  <div key={sIdx} className={styles.demoMessage}>
+                    <div className={styles.demoSpecialistIcon} style={{ background: spec.bg, color: spec.color }}>
+                      {spec.icon}
+                    </div>
+                    <div className={styles.demoMessageContent}>
+                      <div className={styles.demoSpecialistName} style={{ color: spec.color }}>
+                        <span>{spec.role}:</span>
                       </div>
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
+                      <p className={styles.demoText}>"{spec.finding}"</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className={styles.demoFooter}>
                 <div className={styles.demoConfidenceText}>
                   <Sparkles size={16} />
-                  <span>{currentCase.consensus}</span>
+                  <span>Consensus: Root-Cause Synthesis Ready</span>
                 </div>
                 <button 
                   className={styles.demoCtaMini}
-                  onClick={() => handleStartInvestigation(`landing_demo_${currentCase.id}`, currentCase.title)}
+                  onClick={() => handleStartInvestigation('landing_consensus_card', 'Symptom Cross-Analysis & Lab Investigation')}
                 >
-                  Analyze My Case <ArrowUpRight size={14} />
+                  Try with your symptoms →
                 </button>
               </div>
             </motion.div>
