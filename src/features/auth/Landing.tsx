@@ -19,7 +19,9 @@ import {
   Brain,
   Microscope,
   ArrowUpRight,
-  FileText
+  FileText,
+  Eye,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
@@ -633,7 +635,156 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 3.5 Meaningfully Added: Real-Time Diagnostic Intelligence Board */}
+      {/* 3.5 FameHero-Style Bento Clinical Intelligence Showcase */}
+      <section className={styles.bentoShowcaseSection}>
+        <div className={styles.bentoContainerCard}>
+          <div className={styles.bentoTopBadgeRow}>
+            <span className={styles.bentoTopBadge}>AUTOMATED CLINICAL INTELLIGENCE</span>
+          </div>
+
+          <div className={styles.bentoHeaderRow}>
+            <div className={styles.bentoHeaderTitleArea}>
+              <div className={styles.bentoHeaderIcon}>
+                <Eye size={20} color="#059669" />
+              </div>
+              <h2 className={styles.bentoHeaderTitle}>Clinical Campaign &amp; Dossier Preview</h2>
+            </div>
+            <p className={styles.bentoHeaderSubtitle}>
+              <strong style={{ color: '#059669' }}>Real-World Intelligence.</strong> See how HealthChain360.ai structures your scattered medical records into doctor-ready, multi-specialist briefs that get taken seriously.
+            </p>
+          </div>
+
+          {/* Masonry / Bento 4-Card Grid */}
+          <div className={styles.bentoGrid}>
+            {/* Card 1: Patient Guide */}
+            <motion.div 
+              className={styles.bentoCard}
+              whileHover={{ y: -6 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => handleStartInvestigation('bento_card_1', 'Chronological symptom timeline')}
+            >
+              <div className={styles.bentoImgWrapper}>
+                <img 
+                  src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80" 
+                  alt="Doctor consultation" 
+                  className={styles.bentoImg}
+                  loading="lazy"
+                />
+                <div className={styles.bentoImgOverlay} />
+              </div>
+              <div className={styles.bentoCardBody}>
+                <div className={styles.bentoCardTags}>
+                  <span className={styles.bentoCategoryTag}>📖 Patient Guide</span>
+                  <span className={styles.bentoStatusTag}>VERIFIED</span>
+                </div>
+                <h3 className={styles.bentoCardTitle}>
+                  What is HealthChain360.ai and How Does It Connect 5+ Doctor Visits?
+                </h3>
+                <p className={styles.bentoCardDesc}>
+                  Confused about managing scattered PDFs and blood tests? HealthChain360.ai centralizes your health timeline so you never repeat your story from scratch.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Card 2: Multi-Specialist Board */}
+            <motion.div 
+              className={styles.bentoCard}
+              whileHover={{ y: -6 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => handleStartInvestigation('bento_card_2', 'Multi-specialist clinical review')}
+            >
+              <div className={styles.bentoImgWrapper}>
+                <img 
+                  src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=800&q=80" 
+                  alt="Specialist clinical board" 
+                  className={styles.bentoImg}
+                  loading="lazy"
+                />
+                <div className={styles.bentoImgOverlay} />
+              </div>
+              <div className={styles.bentoCardBody}>
+                <div className={styles.bentoCardTags}>
+                  <span className={styles.bentoCategoryTag}>🔬 Multi-Specialist Board</span>
+                  <span className={styles.bentoStatusTag}>LIVE CONSENSUS</span>
+                </div>
+                <h3 className={styles.bentoCardTitle}>
+                  How HealthChain360.ai Bridges Communication Gaps With Your Doctors
+                </h3>
+                <p className={styles.bentoCardDesc}>
+                  Ever felt unheard during a 15-minute visit? Equip yourself with prioritized differential questions and evidence flags that clinicians immediately respect.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Card 3: PubMed & Lab Biomarkers */}
+            <motion.div 
+              className={styles.bentoCard}
+              whileHover={{ y: -6 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => handleStartInvestigation('bento_card_3', 'Lab biomarkers and PubMed evidence')}
+            >
+              <div className={styles.bentoImgWrapper}>
+                <img 
+                  src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80" 
+                  alt="Doctor with medical brief" 
+                  className={styles.bentoImg}
+                  loading="lazy"
+                />
+                <div className={styles.bentoImgOverlay} />
+              </div>
+              <div className={styles.bentoCardBody}>
+                <div className={styles.bentoCardTags}>
+                  <span className={styles.bentoCategoryTag}>📊 Integrated Data Management</span>
+                  <span className={styles.bentoStatusTag}>NIH GROUNDED</span>
+                </div>
+                <h3 className={styles.bentoCardTitle}>
+                  Real-Time Lab Synthesis &amp; 35M+ NIH Clinical Trial Matching
+                </h3>
+                <p className={styles.bentoCardDesc}>
+                  Automatically cross-references subtle anomalies in thyroid ratios, ferritin, and autonomic markers with latest peer-reviewed clinical studies.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Card 4: Verified Privacy Vault */}
+            <motion.div 
+              className={`${styles.bentoCard} ${styles.bentoCardPrivacy}`}
+              whileHover={{ y: -6 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => handleStartInvestigation('bento_card_4')}
+            >
+              <div className={styles.bentoPrivacyIconBg}>
+                <ShieldCheck size={28} color="#059669" />
+              </div>
+              <div className={styles.bentoCardBody}>
+                <div className={styles.bentoCardTags}>
+                  <span className={styles.bentoCategoryTag}>🛡️ Encrypted Vault</span>
+                  <span className={styles.bentoStatusTag}>ZERO-KNOWLEDGE</span>
+                </div>
+                <h3 className={styles.bentoCardTitle}>
+                  Reviewed &amp; Encrypted Before It Reaches Your Doctor
+                </h3>
+                <p className={styles.bentoCardDesc}>
+                  Every assessment runs through client-side encryption. We never sell, monetize, or train third-party public models on your personal health records.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Bottom Primary Action Button */}
+          <div className={styles.bentoBottomCta}>
+            <button 
+              className={styles.bentoCtaButton}
+              onClick={() => handleStartInvestigation('bento_bottom_cta')}
+            >
+              <span>Start Your Free Case Dossier</span>
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Real-Time Diagnostic Intelligence Board */}
       <section className={styles.casesSection}>
         <div className={styles.sectionHeader}>
           <div className={styles.categoryBadge}>
