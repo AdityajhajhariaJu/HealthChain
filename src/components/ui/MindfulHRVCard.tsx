@@ -291,8 +291,11 @@ export default function MindfulHRVCard() {
               }}
             />
 
-            {/* Main Interactive Core Orb */}
-            <motion.div
+            {/* Main Interactive Core Orb Button */}
+            <motion.button
+              onClick={breathActive ? resetBreathwork : startBreathwork}
+              whileHover={{ scale: breathActive ? 1.05 : 1.08 }}
+              whileTap={{ scale: 0.94 }}
               animate={{
                 scale: breathActive
                   ? breathPhase === 'Inhale'
@@ -304,7 +307,8 @@ export default function MindfulHRVCard() {
                     : 0.8
                   : 1,
               }}
-              transition={{ duration: 4, ease: 'easeInOut' }}
+              transition={{ duration: breathActive ? 4 : 0.2, ease: 'easeInOut' }}
+              title={breathActive ? 'Click to stop / reset' : 'Click to begin 60s HRV reset'}
               style={{
                 width: '100px',
                 height: '100px',
@@ -320,15 +324,19 @@ export default function MindfulHRVCard() {
                   : 'radial-gradient(circle, rgba(52, 211, 153, 0.5) 0%, rgba(5, 150, 105, 0.25) 85%)',
                 boxShadow: breathActive
                   ? '0 0 35px rgba(52, 211, 153, 0.55)'
-                  : '0 0 18px rgba(52, 211, 153, 0.2)',
+                  : '0 0 22px rgba(52, 211, 153, 0.35)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#FFFFFF',
                 textAlign: 'center',
-                border: '2px solid rgba(255, 255, 255, 0.35)',
+                border: '2px solid rgba(255, 255, 255, 0.45)',
                 zIndex: 2,
+                cursor: 'pointer',
+                outline: 'none',
+                padding: 0,
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
               <span style={{ fontSize: '11.5px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
@@ -339,9 +347,9 @@ export default function MindfulHRVCard() {
                   {secondsRemaining}s
                 </span>
               ) : (
-                <Heart size={18} style={{ marginTop: '3px' }} fill="rgba(255,255,255,0.7)" />
+                <Heart size={18} style={{ marginTop: '3px' }} fill="rgba(255,255,255,0.85)" />
               )}
-            </motion.div>
+            </motion.button>
           </div>
         </div>
       </div>

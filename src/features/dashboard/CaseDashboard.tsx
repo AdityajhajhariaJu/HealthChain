@@ -188,8 +188,8 @@ export default function CaseDashboard() {
       {/* Premium Section */}
       <UpgradeToProCard isPro={isPremium} style={{ marginBottom: '28px' }} />
 
-      <DailySymptomCheckinWidget />
       <MindfulHRVCard />
+      <DailySymptomCheckinWidget />
       <VitalityPlayground />
       <LongevityBioStackCard />
 
