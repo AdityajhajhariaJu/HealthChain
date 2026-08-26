@@ -1379,25 +1379,6 @@ export default function Landing() {
           ))}
         </div>
       </section>
-
-      {/* 8. Final CTA */}
-      <section className={styles.finalCtaSection}>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.96 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className={styles.finalCtaBox}
-        >
-          <div className={styles.finalCtaMesh}></div>
-          <div className={styles.finalCtaContent}>
-            <h2 className={styles.finalCtaTitle}>Ready to uncover your root cause?</h2>
-            <p className={styles.finalCtaDesc}>Convene AI specialists, organize your biomarkers, and prepare prioritized discussion questions for your next clinician visit.</p>
-            <button className={styles.finalCtaBtn} onClick={() => handleStartInvestigation('landing_bottom_cta')}>
-              Start Free Consultation <ArrowRight size={18} />
-            </button>
-          </div>
-        </motion.div>
-      </section>
       </main>
 
       {/* 9. Footer */}
