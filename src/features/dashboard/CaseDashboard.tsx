@@ -134,7 +134,7 @@ export default function CaseDashboard() {
           borderRadius: 28,
           padding: isMobile ? '26px 24px' : '38px',
           color: '#fff',
-          background: 'linear-gradient(135deg, rgba(15,23,42,0.85), rgba(21,61,69,0.85) 65%, rgba(5,150,105,0.85))',
+          background: 'linear-gradient(135deg, #0f172a, #153d45 65%, #059669)',
           backdropFilter: 'blur(24px)',
           boxShadow: '0 8px 32px rgba(15,23,42,0.1)',
           border: '1px solid rgba(255,255,255,0.15)',
