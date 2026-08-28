@@ -335,6 +335,7 @@ export default function AvaHealthBuddy() {
     <div
       style={{
         padding: isMobile ? '0' : '0 24px',
+        minHeight: 0,
         flex: 1,
         width: '100%',
         display: 'flex',
@@ -351,8 +352,8 @@ export default function AvaHealthBuddy() {
         style={{
           flex: 1,
           minHeight: 0,
-          height: isMobile ? 'calc(100% - 16px)' : 'calc(100dvh - 150px)',
-          maxHeight: isMobile ? 'calc(100% - 16px)' : 'calc(100dvh - 150px)',
+          height: isMobile ? 'auto' : 'calc(100dvh - 150px)',
+          maxHeight: isMobile ? 'none' : 'calc(100dvh - 150px)',
           background: 'rgba(255, 255, 255, 0.45)',
           backdropFilter: 'blur(32px)', 
           WebkitBackdropFilter: 'blur(32px)',
@@ -369,6 +370,7 @@ export default function AvaHealthBuddy() {
         }}
       >
         {/* Header */}
+        {!isMobile && (
         <div
           style={{
             display: 'flex',
@@ -431,6 +433,8 @@ export default function AvaHealthBuddy() {
             </p>
           </div>
         </div>
+
+        )}
 
         {/* Chat Area */}
         <div
