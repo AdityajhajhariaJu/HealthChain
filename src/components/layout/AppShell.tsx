@@ -267,7 +267,7 @@ export default function AppShell() {
         </aside>
       )}
 
-        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ paddingTop: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? 'var(--safe-area-bottom, 12px)' : undefined }} onScroll={handleMainScroll}>
+        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? 'var(--safe-area-bottom, 12px)' : undefined }} onScroll={handleMainScroll}>
           <GuestStickyBanner />
           {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
             <div style={{ display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
