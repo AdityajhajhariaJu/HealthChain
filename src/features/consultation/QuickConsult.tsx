@@ -550,7 +550,7 @@ export default function QuickConsult() {
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center', 
-                            background: isSelected ? 'linear-gradient(135deg, #FDBA74 0%, #FED7AA 100%)' : `linear-gradient(135deg, ${s.bg} 0%, ${s.bg}80 100%)`, 
+                            background: isSelected ? 'linear-gradient(135deg, #FDBA74 0%, #FED7AA 100%)' : s.bg, 
                             color: isSelected ? '#9A3412' : s.color,
                             boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0,0,0,0.04)'
                           }}
