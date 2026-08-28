@@ -201,24 +201,24 @@ export default function CaseDashboard() {
           alignItems: 'stretch',
         }}
       >
-        <section className="card" style={{ padding: isMobile ? '16px 14px' : '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: isMobile ? '18px' : '22px' }}>
+        <section className="card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: isMobile ? '20px' : '24px' }}>
           <div>
             <div style={{ display: 'flex', gap: isMobile ? 6 : 10, color: '#10B981', alignItems: 'center' }}>
-              <Activity size={isMobile ? 16 : 19} />
-              <strong style={{ fontSize: isMobile ? '13px' : '15px' }}>Care momentum</strong>
+              <Activity size={isMobile ? 18 : 20} />
+              <strong style={{ fontSize: isMobile ? '14px' : '16px' }}>Care momentum</strong>
             </div>
-            <div style={{ fontSize: isMobile ? 28 : 38, fontWeight: 850, marginTop: isMobile ? 10 : 16, color: '#0F172A' }}>{completed}</div>
-            <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: isMobile ? 11 : 13, lineHeight: 1.3 }}>
+            <div style={{ fontSize: isMobile ? 32 : 40, fontWeight: 850, marginTop: isMobile ? 10 : 16, color: '#0F172A' }}>{completed}</div>
+            <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: isMobile ? 12 : 14, lineHeight: 1.3 }}>
               case actions completed
             </p>
           </div>
         </section>
 
-        <section className="card" style={{ padding: isMobile ? '16px 14px' : '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: isMobile ? '18px' : '22px' }}>
+        <section className="card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: isMobile ? '20px' : '24px' }}>
           <div>
             <div style={{ display: 'flex', gap: isMobile ? 6 : 10, color: '#10B981', alignItems: 'center' }}>
               <FileText size={isMobile ? 16 : 19} />
-              <strong style={{ fontSize: isMobile ? '13px' : '15px' }}>Health record</strong>
+              <strong style={{ fontSize: isMobile ? '14px' : '16px' }}>Health record</strong>
             </div>
             <div
               style={{
@@ -230,48 +230,48 @@ export default function CaseDashboard() {
             >
               <div
                 style={{
-                  padding: isMobile ? '6px 2px' : '10px 6px',
+                  padding: isMobile ? '8px 4px' : '10px 8px',
                   background: '#F0FDFA',
                   borderRadius: 10,
                   textAlign: 'center',
                 }}
               >
-                <strong style={{ display: 'block', fontSize: isMobile ? 14 : 18, color: '#0F766E' }}>
+                <strong style={{ display: 'block', fontSize: isMobile ? 16 : 20, color: '#0F766E' }}>
                   {profile.conditions.length}
                 </strong>
-                <small style={{ color: '#64748B', fontSize: isMobile ? 8 : 10, fontWeight: 700 }}>COND</small>
+                <small style={{ color: '#64748B', fontSize: isMobile ? 10 : 12, fontWeight: 700 }}>COND</small>
               </div>
               <div
                 style={{
-                  padding: isMobile ? '6px 2px' : '10px 6px',
+                  padding: isMobile ? '8px 4px' : '10px 8px',
                   background: '#F0FDFA',
                   borderRadius: 10,
                   textAlign: 'center',
                 }}
               >
-                <strong style={{ display: 'block', fontSize: isMobile ? 14 : 18, color: '#0F766E' }}>
+                <strong style={{ display: 'block', fontSize: isMobile ? 16 : 20, color: '#0F766E' }}>
                   {profile.medications.length}
                 </strong>
-                <small style={{ color: '#64748B', fontSize: isMobile ? 8 : 10, fontWeight: 700 }}>MEDS</small>
+                <small style={{ color: '#64748B', fontSize: isMobile ? 10 : 12, fontWeight: 700 }}>MEDS</small>
               </div>
               <div
                 style={{
-                  padding: isMobile ? '6px 2px' : '10px 6px',
+                  padding: isMobile ? '8px 4px' : '10px 8px',
                   background: '#F0FDFA',
                   borderRadius: 10,
                   textAlign: 'center',
                 }}
               >
-                <strong style={{ display: 'block', fontSize: isMobile ? 14 : 18, color: '#0F766E' }}>
+                <strong style={{ display: 'block', fontSize: isMobile ? 16 : 20, color: '#0F766E' }}>
                   {profile.allergies.length}
                 </strong>
-                <small style={{ color: '#64748B', fontSize: isMobile ? 8 : 10, fontWeight: 700 }}>ALLERGY</small>
+                <small style={{ color: '#64748B', fontSize: isMobile ? 10 : 12, fontWeight: 700 }}>ALLERGY</small>
               </div>
             </div>
           </div>
           <button
             className="btn btn-outline btn-sm"
-            style={{ width: '100%', padding: isMobile ? '6px 8px' : '8px 12px', fontSize: isMobile ? '11px' : '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+            style={{ width: '100%', padding: '8px 12px', fontSize: isMobile ? '13px' : '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
             onClick={() => navigate('/app/profile')}
           >
             {isMobile ? 'Profile' : 'Open Medical Profile'} <ArrowRight size={13} />
