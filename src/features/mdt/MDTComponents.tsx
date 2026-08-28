@@ -453,11 +453,8 @@ New Information / Changes in Symptoms since last evaluation:
             <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
             <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
             <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
-            <p style={{ color: '#475569', fontSize: '12px', margin: '8px 0 0 0', fontWeight: 500, lineHeight: 1.5, maxWidth: '80%' }}>
-              <strong>Previous explanations have not resolved the picture?</strong> Have new lab results or changing symptoms? Import your existing case below and ask the AI to compare its earlier discussion pathways with the new information.
-            </p>
+            </div>
           </div>
-        </div>
 
         {/* Start Fresh Case (Now Primary) */}
         <div style={{ marginBottom: '40px' }}>
