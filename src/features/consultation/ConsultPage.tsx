@@ -2,6 +2,7 @@ import React from 'react';
 import QuickConsult from './QuickConsult';
 import MDTHub from '../mdt/MDTHub';
 import { motion } from 'framer-motion';
+import { Network } from 'lucide-react';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 
 export default function ConsultPage() {
@@ -38,36 +39,41 @@ export default function ConsultPage() {
           viewport={{ once: true }}
           style={{ 
             display: 'flex', 
-            flexDirection: 'column', 
             alignItems: 'center',
-            gap: '12px'
+            width: '100%',
+            gap: '16px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '24px' }}>
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.15))' }} />
-            
-            <div 
-              style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '16px', 
-                background: '#FFFFFF',
-                boxShadow: '0 4px 12px rgba(15, 139, 126, 0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.15))' }} />
+          
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '8px 20px',
+              background: '#F8FAFC',
+              borderRadius: '999px',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+              flexShrink: 0
+            }}
+          >
+            <Network size={16} color="#10B981" />
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#334155',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
               }}
             >
-              <NetworkHubIcon size={24} color="var(--teal)" />
-            </div>
-            
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
+              Collaborative Board
+            </span>
           </div>
           
-          <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Deep Collaborative Review
-          </span>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
         </motion.div>
       </div>
 

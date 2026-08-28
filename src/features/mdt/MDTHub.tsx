@@ -634,34 +634,6 @@ useEffect(() => {
             position: 'relative'
           }}
         >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px',
-              padding: '6px 14px',
-              background: '#F8FAFC',
-              borderRadius: '999px',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-              position: 'relative',
-              zIndex: 1
-            }}
-          >
-            <Network size={14} color="#10B981" />
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#334155',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-              }}
-            >
-              Collaborative Board
-            </span>
-          </div>
           <h1
             style={{
               fontSize: isMobile ? '26px' : '34px',
