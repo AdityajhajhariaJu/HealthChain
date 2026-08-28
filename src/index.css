@@ -885,7 +885,7 @@ html.dark-theme body {
 
   .app-shell__content.mobile {
     padding-top: 64px;
-    padding-bottom: calc(var(--bottom-tab-height) + var(--safe-area-bottom));
+    padding-bottom: calc(var(--bottom-tab-height) + var(--safe-area-bottom) + 24px);
   }
 
   .mobile-top-bar {
@@ -968,34 +968,32 @@ html.dark-theme body {
   
   .mobile-tab-bar {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(var(--bottom-tab-height) + var(--safe-area-bottom));
-    padding-bottom: var(--safe-area-bottom);
-    background: rgba(255, 255, 255, 0.85);
+    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    left: 16px;
+    right: 16px;
+    height: var(--bottom-tab-height);
+    padding-bottom: 0;
+    background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-top: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 32px 32px 0 0;
-    box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 99px;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 100;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
                 opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                 box-shadow 0.3s ease;
-    transform-origin: bottom center;
-    will-change: transform, opacity, border-radius;
+    transform-origin: center;
+    will-change: transform, opacity;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
   
   .mobile-tab-bar.scrolling {
-    transform: translateY(12px) scale(0.85);
-    border-radius: 40px;
+    transform: translateY(100px) scale(0.85);
     opacity: 0;
     pointer-events: none;
     box-shadow: 0 0 0 rgba(15, 23, 42, 0);
