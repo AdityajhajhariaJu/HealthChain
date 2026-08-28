@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 import {
   Network,
   Activity,
@@ -634,7 +635,7 @@ useEffect(() => {
             position: 'relative'
           }}
         >
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '12px', padding: '6px 14px', background: '#FFF9F0', borderRadius: '999px', border: '1px solid #FED7AA', boxShadow: '0 2px 6px rgba(253, 186, 116, 0.1)', position: 'relative', zIndex: 1 }}><Network size={14} color="#EA580C" /><span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>Collaborative Board</span></div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '12px', padding: '6px 14px', background: '#FFF9F0', borderRadius: '999px', border: '1px solid #FED7AA', boxShadow: '0 2px 6px rgba(253, 186, 116, 0.1)', position: 'relative', zIndex: 1 }}><NetworkHubIcon size={16} color="#EA580C" /><span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>Collaborative Board</span></div>
           <h1
             style={{
               fontSize: isMobile ? '26px' : '34px',
