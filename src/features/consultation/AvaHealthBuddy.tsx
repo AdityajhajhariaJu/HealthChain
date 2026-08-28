@@ -544,11 +544,11 @@ export default function AvaHealthBuddy() {
                     style={{
                       background: msg.role === 'user' ? theme.primary : '#FFFFFF',
                       color: msg.role === 'user' ? '#FFFFFF' : '#334155',
-                      padding: isMobile ? '12px 16px' : '16px 20px',
+                      padding: isMobile ? '10px 14px' : '12px 18px',
                       borderRadius:
                         msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                      fontSize: '15px',
-                      lineHeight: 1.6,
+                      fontSize: isMobile ? '14px' : '15px',
+                      lineHeight: 1.45,
                       boxShadow: msg.role === 'user' ? '0 4px 12px rgba(234,88,12,0.15)' : '0 4px 12px rgba(0,0,0,0.03)',
                       border: msg.role === 'user' ? 'none' : '1px solid #E2E8F0',
                       maxWidth: '85%',
@@ -789,11 +789,11 @@ export default function AvaHealthBuddy() {
               placeholder="Share what's on your mind..."
               style={{
                 width: '100%',
-                padding: '18px 24px 18px 56px',
+                padding: isMobile ? '12px 46px 12px 44px' : '16px 56px 16px 52px',
                 borderRadius: '99px',
                 border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
-                fontSize: '15px',
+                fontSize: isMobile ? '14px' : '15px',
                 outline: 'none',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
                 color: '#0F172A',
