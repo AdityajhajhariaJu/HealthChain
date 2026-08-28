@@ -1004,7 +1004,7 @@ html.dark-theme body {
   .mobile-more-menu-backdrop {
     position: fixed;
     inset: 0;
-    background: transparent;
+    background: rgba(15, 23, 42, 0.15);
     z-index: 999;
   }
 
@@ -1015,13 +1015,11 @@ html.dark-theme body {
     right: 0;
     height: 70vh;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    background: #FFF9F0;
+    border-top: 1px solid #FFEDD5;
     border-top-left-radius: 28px;
     border-top-right-radius: 28px;
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.08);
+    box-shadow: 0 -10px 40px rgba(234, 88, 12, 0.08);
     display: flex;
     flex-direction: column;
     padding-bottom: var(--safe-area-bottom);
@@ -1043,15 +1041,15 @@ html.dark-theme body {
   }
   
   .mobile-more-menu__header .close-btn {
-    background: #f1f5f9;
+    background: #FFEDD5;
     border-radius: 50%;
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    color: var(--text-muted);
+    border: 1px solid #FED7AA;
+    color: #EA580C;
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -1072,13 +1070,13 @@ html.dark-theme body {
     color: var(--text-main);
     text-decoration: none;
     padding: 16px 8px;
-    background: rgba(255, 255, 255, 0.7);
+    background: #FFFFFF;
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    border: 1px solid #FFEDD5;
+    box-shadow: 0 4px 20px rgba(234, 88, 12, 0.04);
     text-align: center;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
@@ -1091,17 +1089,17 @@ html.dark-theme body {
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: #EFF6FF;
+    background: #FFF7ED;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--teal);
+    color: #EA580C;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
     flex-shrink: 0;
   }
 
   .more-menu-icon svg {
-    color: var(--teal);
+    color: #EA580C;
     width: 22px;
     height: 22px;
     stroke-width: 2.2px;
@@ -1112,7 +1110,7 @@ html.dark-theme body {
 
   .more-menu-item:active .more-menu-icon {
     transform: scale(1.1);
-    background: #DBEAFE;
+    background: #FFEDD5;
   }
 }
 
