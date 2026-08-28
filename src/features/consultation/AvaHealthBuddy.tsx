@@ -335,7 +335,8 @@ export default function AvaHealthBuddy() {
     <div
       style={{
         padding: isMobile ? '0' : '0 24px',
-        height: isMobile ? 'calc(100dvh - 128px)' : '100%',
+        flex: 1,
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -350,8 +351,8 @@ export default function AvaHealthBuddy() {
         style={{
           flex: 1,
           minHeight: 0,
-          height: isMobile ? 'calc(100% - 16px)' : 'calc(100dvh - 150px)',
-          maxHeight: isMobile ? 'calc(100dvh - 128px - 16px)' : 'calc(100dvh - 150px)',
+          height: isMobile ? 'auto' : 'calc(100dvh - 150px)',
+          maxHeight: isMobile ? 'none' : 'calc(100dvh - 150px)',
           background: 'rgba(255, 255, 255, 0.45)',
           backdropFilter: 'blur(32px)', 
           WebkitBackdropFilter: 'blur(32px)',
@@ -720,7 +721,7 @@ export default function AvaHealthBuddy() {
         {/* Input Area */}
         <div
           style={{
-            padding: isMobile ? '10px 14px 76px 14px' : '24px 32px',
+            padding: isMobile ? '12px 14px 16px 14px' : '24px 32px',
             background: 'transparent',
             display: 'flex',
             flexDirection: 'column',
