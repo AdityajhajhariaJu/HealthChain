@@ -30,8 +30,7 @@ import TopUpModal from './features/brand/TopUpModal';
 
 // Lazy load heavy components
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
-const QuickConsult = React.lazy(() => import('./features/consultation/QuickConsult'));
-const MDTHub = React.lazy(() => import('./features/mdt/MDTHub'));
+const ConsultPage = React.lazy(() => import('./features/consultation/ConsultPage'));
 const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
 const PharmacyHub = React.lazy(() => import('./features/tools/PharmacyHub'));
 const AvaHealthBuddy = React.lazy(() => import('./features/consultation/AvaHealthBuddy'));
@@ -556,18 +555,11 @@ export default function App() {
             path="/app/consult"
             element={
               <SafeRoute>
-                <QuickConsult />
+                <ConsultPage />
               </SafeRoute>
             }
           />
-          <Route
-            path="/app/collab"
-            element={
-              <SafeRoute>
-                <MDTHub />
-              </SafeRoute>
-            }
-          />
+          <Route path="/app/collab" element={<Navigate to="/app/consult" replace />} />
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
           <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
           <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
