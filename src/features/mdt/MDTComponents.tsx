@@ -450,10 +450,6 @@ New Information / Changes in Symptoms since last evaluation:
             <AgentOrbit size={isMobile ? 140 : 180} />
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#E8F7F4', color: '#0F8B7E' }}><Network size={18} /></div>
-              <span style={{ color: '#0F8B7E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>COLLABORATIVE SPECIALISTS</span>
-            </div>
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
             <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
             <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
