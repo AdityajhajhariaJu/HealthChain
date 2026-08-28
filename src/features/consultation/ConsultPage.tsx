@@ -27,7 +27,7 @@ export default function ConsultPage() {
         style={{ 
           maxWidth: '800px', 
           margin: '-16px auto 0 auto', 
-          padding: '0 20px 40px',
+          padding: '0 20px 12px',
           textAlign: 'center',
           position: 'relative',
           zIndex: 2
