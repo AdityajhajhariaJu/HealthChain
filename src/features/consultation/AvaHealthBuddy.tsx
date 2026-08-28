@@ -177,12 +177,12 @@ export default function AvaHealthBuddy() {
     }
   }, [messages]);
 
-  // Theme colors - Soothing Purple
+  // Theme colors - Serene Spa Teal
   const theme = {
-    primary: '#EA580C', // Violet 500
-    light: '#FFF7ED', // Violet 50
-    text: '#9A3412', // Violet 900
-    bg: '#FAFAFA', // Keep it neutral/clean slate
+    primary: '#0D9488', // Teal 600 - Calm & Peaceful
+    light: '#F0FDFA', // Teal 50
+    text: '#115E59', // Teal 800
+    bg: '#F8FAFC', // Slate 50
   };
 
   const isMounted = useRef(true);
@@ -337,7 +337,7 @@ export default function AvaHealthBuddy() {
           minHeight: 0,
           height: isMobile ? '100%' : 'calc(100dvh - 150px)',
           maxHeight: isMobile ? 'calc(100dvh - 128px)' : 'calc(100dvh - 150px)',
-          background: '#FFF9F0',
+          background: '#F8FAFC',
           borderRadius: isMobile ? '0' : '32px',
           boxShadow: isMobile ? 'none' : '0 8px 32px rgba(0,0,0,0.04)',
           maxWidth: isMobile ? '100%' : '1000px',
@@ -396,7 +396,7 @@ export default function AvaHealthBuddy() {
             <h1
               style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 2px 0', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              Ava Pro <span style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Plus</span>
+              Ava Pro <span style={{ background: 'linear-gradient(135deg, #14B8A6, #0D9488)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Plus</span>
             </h1>
             <p
               style={{
@@ -439,12 +439,12 @@ export default function AvaHealthBuddy() {
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 style={{
-                  background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
-                  border: '1.5px solid #DDD6FE',
+                  background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                  border: '1.5px solid #99F6E4',
                   borderRadius: 20,
                   padding: isMobile ? '14px 16px' : '16px 20px',
                   marginBottom: 8,
-                  boxShadow: '0 4px 16px rgba(234,88,12,0.08)',
+                  boxShadow: '0 4px 16px rgba(13,148,136,0.08)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -453,17 +453,17 @@ export default function AvaHealthBuddy() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 220 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#EA580C', color: '#FFF', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: '#0D9488', color: '#FFF', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                     <Sparkles size={20} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: 0.6 }}>Connected Case In Session</span>
-                      <span style={{ fontSize: 10.5, fontWeight: 700, background: 'rgba(234,88,12,0.15)', color: '#C2410C', padding: '1px 7px', borderRadius: 999 }}>{importedCase.type || 'Consultation'}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: 0.6 }}>Connected Case In Session</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, background: 'rgba(13,148,136,0.15)', color: '#0F766E', padding: '1px 7px', borderRadius: 999 }}>{importedCase.type || 'Consultation'}</span>
                     </div>
-                    <strong style={{ fontSize: 14.5, color: '#9A3412', display: 'block', lineHeight: 1.3 }}>{importedCase.title}</strong>
+                    <strong style={{ fontSize: 14.5, color: '#115E59', display: 'block', lineHeight: 1.3 }}>{importedCase.title}</strong>
                     {importedCase.topConditions && (
-                      <span style={{ fontSize: 12, color: '#C2410C', display: 'block', marginTop: 2 }}>
+                      <span style={{ fontSize: 12, color: '#0F766E', display: 'block', marginTop: 2 }}>
                         Differentials: {importedCase.topConditions}
                       </span>
                     )}
@@ -475,8 +475,8 @@ export default function AvaHealthBuddy() {
                       onClick={() => navigate(`/app/cases/${importedCase.caseId}`)}
                       style={{
                         background: '#FFFFFF',
-                        border: '1px solid #C4B5FD',
-                        color: '#C2410C',
+                        border: '1px solid #99F6E4',
+                        color: '#0F766E',
                         padding: '6px 12px',
                         borderRadius: 8,
                         fontSize: 12,
@@ -496,7 +496,7 @@ export default function AvaHealthBuddy() {
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#EA580C',
+                      color: '#0D9488',
                       cursor: 'pointer',
                       padding: 6,
                       display: 'grid',
@@ -667,8 +667,8 @@ export default function AvaHealthBuddy() {
                     onClick={() => handleSend(s)}
                     style={{
                       background: '#FFFFFF',
-                      border: `1px solid ${importedCase ? '#FED7AA' : theme.light}`,
-                      color: importedCase ? '#EA580C' : theme.primary,
+                      border: `1px solid ${importedCase ? '#99F6E4' : theme.light}`,
+                      color: importedCase ? '#0D9488' : theme.primary,
                       padding: '8px 14px',
                       borderRadius: '99px',
                       fontSize: '12.5px',
@@ -681,12 +681,12 @@ export default function AvaHealthBuddy() {
                       gap: 6
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.background = importedCase ? '#EDE9FE' : theme.light;
-                      e.currentTarget.style.borderColor = importedCase ? '#EA580C' : theme.primary;
+                      e.currentTarget.style.background = importedCase ? '#CCFBF1' : theme.light;
+                      e.currentTarget.style.borderColor = importedCase ? '#0D9488' : theme.primary;
                     }}
                     onMouseOut={(e) => {
                       e.currentTarget.style.background = '#FFFFFF';
-                      e.currentTarget.style.borderColor = importedCase ? '#FED7AA' : theme.light;
+                      e.currentTarget.style.borderColor = importedCase ? '#99F6E4' : theme.light;
                     }}
                   >
                     <Sparkles size={12} />
