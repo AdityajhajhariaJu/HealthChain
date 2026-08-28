@@ -645,7 +645,7 @@ function BrandPulseBanner() {
     },
     {
       quote:
-        'Youâ€™ve explained your symptoms to five different doctors. Your labs come back â€œnormal,â€ but you still feel terrible.',
+        'You've explained your symptoms to five different doctors. Your labs come back "normal," but you still feel terrible.',
       sub: 'Your experience is real. HealthChain360.ai helps you organise the full picture for the next conversation.',
     },
     {
@@ -697,7 +697,7 @@ function BrandPulseBanner() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.32 }}
           >
-            <strong>â€œ{message.quote}â€</strong>
+            <strong>"{message.quote}"</strong>
             <span>{message.sub}</span>
           </motion.div>
         </AnimatePresence>
