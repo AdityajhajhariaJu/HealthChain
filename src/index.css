@@ -151,9 +151,7 @@ textarea {
 }
 
 .sidebar {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #FFFFFF;
   color: var(--text-main);
   display: flex;
   flex-direction: column;
@@ -615,9 +613,7 @@ textarea {
   margin-bottom: 8px;
   border: 1px solid rgba(13, 148, 136, 0.18);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #FFFFFF;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 .brand-pulse__mark {

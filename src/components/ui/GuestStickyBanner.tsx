@@ -76,7 +76,7 @@ export function GuestStickyBanner() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -12 }}
         style={{
-          background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.75) 0%, rgba(15, 118, 110, 0.75) 100%)',
+          background: 'linear-gradient(90deg, #0F172A 0%, #0F766E 100%)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(45, 212, 191, 0.25)',
@@ -116,7 +116,7 @@ export function GuestStickyBanner() {
           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             <span style={{ fontWeight: 600, color: '#F1F5F9' }}>Guest Mode:</span>{' '}
             <span style={{ color: '#CBD5E1' }}>
-              Your case data is stored on this browser only.
+              Data saved to this browser.
             </span>
           </div>
         </div>
