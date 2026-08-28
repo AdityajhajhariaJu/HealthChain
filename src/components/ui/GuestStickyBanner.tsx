@@ -81,19 +81,19 @@ export function GuestStickyBanner() {
           WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(45, 212, 191, 0.25)',
           borderRadius: '24px',
-          margin: '12px 16px',
+          margin: '6px 16px',
           alignSelf: 'center',
           width: 'calc(100% - 32px)',
           maxWidth: '800px',
           color: '#ffffff',
-          padding: '10px 16px',
+          padding: '6px 12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           fontSize: '12.5px',
           zIndex: 40,
           position: 'sticky',
-          top: '12px',
+          top: '6px',
           boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05) inset',
         }}
       >
@@ -121,7 +121,7 @@ export function GuestStickyBanner() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: '8px' }}>
           <button
             onClick={handleAuth}
             style={{
@@ -132,9 +132,9 @@ export function GuestStickyBanner() {
               border: 'none',
               borderRadius: '20px',
               color: '#ffffff',
-              fontSize: '11.5px',
+              fontSize: '11px',
               fontWeight: 700,
-              padding: '5px 12px',
+              padding: '4px 10px',
               cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(0, 212, 178, 0.3)',
               transition: 'transform 0.15s ease',
@@ -142,7 +142,7 @@ export function GuestStickyBanner() {
             onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.03)')}
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1.0)')}
           >
-            <span>Save Case & Sign In</span>
+            <span>Save & Sign In</span>
             <ArrowRight size={12} />
           </button>
 
