@@ -92,17 +92,22 @@ export default function AppShell() {
 
   const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
-    if (currentScrollY > 50 && currentScrollY > lastScrollY.current + 10) {
-      setIsScrolling(true);
-    } else if (currentScrollY < lastScrollY.current - 10) {
+    
+    // Always show if at the very top
+    if (currentScrollY < 50) {
       setIsScrolling(false);
+      lastScrollY.current = currentScrollY;
+      return;
     }
-    lastScrollY.current = currentScrollY;
 
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => {
+    // Hide on scroll down, show on scroll up
+    if (currentScrollY > lastScrollY.current + 12) {
+      setIsScrolling(true);
+      lastScrollY.current = currentScrollY;
+    } else if (currentScrollY < lastScrollY.current - 12) {
       setIsScrolling(false);
-    }, 200);
+      lastScrollY.current = currentScrollY;
+    }
   };
 
   const [points, setPoints] = useState(getVitalityPoints());
@@ -557,17 +562,22 @@ export function ActiveCaseBar({ navigate }: any) {
 
   const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
-    if (currentScrollY > 50 && currentScrollY > lastScrollY.current + 10) {
-      setIsScrolling(true);
-    } else if (currentScrollY < lastScrollY.current - 10) {
+    
+    // Always show if at the very top
+    if (currentScrollY < 50) {
       setIsScrolling(false);
+      lastScrollY.current = currentScrollY;
+      return;
     }
-    lastScrollY.current = currentScrollY;
 
-    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => {
+    // Hide on scroll down, show on scroll up
+    if (currentScrollY > lastScrollY.current + 12) {
+      setIsScrolling(true);
+      lastScrollY.current = currentScrollY;
+    } else if (currentScrollY < lastScrollY.current - 12) {
       setIsScrolling(false);
-    }, 200);
+      lastScrollY.current = currentScrollY;
+    }
   };
 
   useEffect(() => {
