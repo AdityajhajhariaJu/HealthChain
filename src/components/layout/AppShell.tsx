@@ -102,7 +102,7 @@ export default function AppShell() {
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     scrollTimeout.current = setTimeout(() => {
       setIsScrolling(false);
-    }, 1500);
+    }, 200);
   };
 
   const [points, setPoints] = useState(getVitalityPoints());
@@ -567,7 +567,7 @@ export function ActiveCaseBar({ navigate }: any) {
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     scrollTimeout.current = setTimeout(() => {
       setIsScrolling(false);
-    }, 1500);
+    }, 200);
   };
 
   useEffect(() => {
