@@ -925,9 +925,10 @@ html.dark-theme body {
     left: 0;
     right: 0;
     height: 64px;
-    background: rgba(240, 253, 244, 0.95); /* Extremely subtle hint of green */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.45); /* Theme agnostic frosted glass */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
     display: flex;
     align-items: center;
     justify-content: space-between;
