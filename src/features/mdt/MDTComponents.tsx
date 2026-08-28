@@ -152,7 +152,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           <h2 style={{ margin: 0, color: '#0F172A', fontSize: isMobile ? '24px' : '30px', letterSpacing: '-0.7px' }}>
             Correlate, don’t start over.
           </h2>
-          <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '16px', lineHeight: 1.6 }}>
+          <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '14px', lineHeight: 1.6 }}>
             The collaborative board will use your Parallel Specialists findings and saved evidence as one case file. It
             will focus on agreements, disagreements, evidence gaps, and the clearest next clinical
             questions.
@@ -570,13 +570,13 @@ New Information / Changes in Symptoms since last evaluation:
                 style={{
                   width: isMobile ? '100%' : 'auto',
                   justifyContent: 'center',
-                  padding: isMobile ? '14px 24px' : '16px 32px',
+                  padding: '12px 24px',
                   background: complaint.trim() && !isPreparing ? '#0F172A' : '#E2E8F0',
                   color: '#FFF',
                   border: 'none',
                   borderRadius: '999px',
                   fontWeight: 700,
-                  fontSize: '16px',
+                  fontSize: '14px',
                   cursor: complaint.trim() && !isPreparing ? 'pointer' : 'not-allowed',
                   display: 'flex',
                   alignItems: 'center',
@@ -585,7 +585,7 @@ New Information / Changes in Symptoms since last evaluation:
                   boxShadow: complaint.trim() && !isPreparing ? '0 4px 14px rgba(15, 23, 42, 0.2)' : 'none',
                 }}
               >
-                {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={18} />
+                {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -1651,7 +1651,7 @@ export function MDTConferencePanel({
                   fontWeight: 700,
                   color: '#1E293B',
                   marginBottom: '12px',
-                  fontSize: '16px',
+                  fontSize: '14px',
                 }}
               >
                 {q}
@@ -1880,7 +1880,7 @@ export function MDTReportPanel({
               color: '#64748B',
               maxWidth: '500px',
               margin: '0 auto',
-              fontSize: '16px',
+              fontSize: '14px',
               lineHeight: 1.6,
             }}
           >
@@ -2199,7 +2199,7 @@ export function MDTReportPanel({
         >
           <ShieldCheck size={28} style={{ flexShrink: 0, marginTop: '2px' }} />
           <div style={{ lineHeight: 1.6 }}>
-            <strong style={{ display: 'block', fontSize: '16px', marginBottom: '4px' }}>
+            <strong style={{ display: 'block', fontSize: '14px', marginBottom: '4px' }}>
               Important Disclaimer
             </strong>
             This is an AI-generated synthesis based on your provided information. It is not a formal
@@ -2262,7 +2262,7 @@ export function MDTReportPanel({
                 <label
                   style={{
                     display: 'block',
-                    fontSize: '16px',
+                    fontSize: '14px',
                     fontWeight: 800,
                     color: '#1E293B',
                     marginBottom: '12px',
