@@ -2,6 +2,7 @@ import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
+import { initGlobalHaptics } from './services/haptics';
 import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory } from './services/CaseEngine';
 import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -238,6 +239,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    initGlobalHaptics();
     registerPushNotifications().catch(console.error);
     setupPushListeners();
 
