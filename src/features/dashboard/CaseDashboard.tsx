@@ -125,8 +125,8 @@ export default function CaseDashboard() {
   }
 
   // General dashboard (Health Today)
+  return (
     <div style={{ maxWidth: 1120, margin: '0 auto', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      
       {/* 1. Hero Full Width Bento */}
       <section
         style={{
@@ -139,65 +139,30 @@ export default function CaseDashboard() {
           border: '1px solid rgba(255,255,255,0.15)',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            color: '#99f6e4',
-            fontSize: 12,
-            fontWeight: 800,
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            marginBottom: isMobile ? 12 : 16,
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#99f6e4', fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', marginBottom: isMobile ? 12 : 16 }}>
           <Sparkles size={15} /> Your health command centre
         </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: isMobile ? 18 : 24,
-            flexWrap: 'wrap',
-            alignItems: 'end',
-          }}
-        >
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: isMobile ? 18 : 24, flexWrap: 'wrap', alignItems: 'end' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 38, letterSpacing: -1.2, lineHeight: 1.1 }}>
               Good to see you
               {profile?.demographics?.name ? ', ' + (profile.demographics.name.split(' ')[0] || 'User') : ''}.
             </h1>
             <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
-              Start with parallel AI specialist perspectives, then bring their findings into a Deep
-              Collaborative Specialist review for consensus when your case needs deeper correlation.
+              Start with parallel AI specialist perspectives, then bring their findings into a Deep Collaborative Specialist review for consensus.
             </p>
           </div>
-          <button
-            className="btn"
-            onClick={() => navigate('/app/consult?new=true')}
-            style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center', borderRadius: 99 }}
-          >
+          <button className="btn" onClick={() => navigate('/app/consult?new=true')} style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center', borderRadius: 99 }}>
             <Stethoscope size={18} /> Start Quick Consult
           </button>
         </div>
       </section>
 
-      {/* 2. Active Case Full Width Bento */}
       <div>
         <ActiveCaseBar navigate={navigate} />
       </div>
 
-      {/* 3. The Core Bento Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(12, 1fr)',
-          gap: 16,
-          alignItems: 'stretch',
-        }}
-      >
-        {/* Row 1: Daily Checkin (8 cols) + Mindful HRV (4 cols) */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(12, 1fr)', gap: 16, alignItems: 'stretch' }}>
         <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 8', display: 'flex', flexDirection: 'column' }}>
           <DailySymptomCheckinWidget />
         </div>
@@ -205,7 +170,6 @@ export default function CaseDashboard() {
           <MindfulHRVCard />
         </div>
 
-        {/* Row 2: Vitality (8 cols) + Pro Upgrade (4 cols) */}
         <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 8', display: 'flex', flexDirection: 'column' }}>
           <VitalityPlayground />
         </div>
@@ -213,12 +177,10 @@ export default function CaseDashboard() {
           <UpgradeToProCard isPro={isPremium} />
         </div>
 
-        {/* Row 3: BioStack Full Width */}
         <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column' }}>
           <LongevityBioStackCard />
         </div>
 
-        {/* Row 4: Momentum & Record */}
         <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 6', display: 'flex', flexDirection: 'column' }}>
           <section className="card bento-card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: 28, flex: 1, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 8px 32px rgba(15,23,42,0.04)' }}>
             <div>
@@ -241,14 +203,7 @@ export default function CaseDashboard() {
                 <FileText size={isMobile ? 16 : 19} />
                 <strong style={{ fontSize: isMobile ? '14px' : '16px' }}>Health record</strong>
               </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: isMobile ? 4 : 8,
-                  margin: isMobile ? '10px 0' : '16px 0',
-                }}
-              >
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? 4 : 8, margin: isMobile ? '10px 0' : '16px 0' }}>
                 {[1, 2, 3].map((_, i) => (
                   <div key={i} style={{ height: 4, borderRadius: 2, background: i === 0 ? '#0D9488' : 'rgba(13,148,136,0.2)' }} />
                 ))}
@@ -267,19 +222,7 @@ export default function CaseDashboard() {
             <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</Link>
             <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</Link>
           </div>
-          <div
-            style={{
-              padding: '14px 18px',
-              borderRadius: '16px',
-              background: '#F8FAFC',
-              border: '1px solid #E2E8F0',
-              fontSize: '12px',
-              lineHeight: '1.5',
-              color: '#64748B',
-              textAlign: 'center',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-            }}
-          >
+          <div style={{ padding: '14px 18px', borderRadius: '16px', background: '#F8FAFC', border: '1px solid #E2E8F0', fontSize: '12px', lineHeight: '1.5', color: '#64748B', textAlign: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
             <strong style={{ color: '#334155' }}>Disclaimer:</strong> HealthChain is an AI Navigational and Researcher tool, not a doctor. It is not a substitute for professional medical advice.
           </div>
         </div>
@@ -602,8 +545,8 @@ function cleanActionItem(action: any): { title: string; subtitle?: string; type:
   let title = rawStep;
   let subtitle = '';
 
-  if (rawStep.includes('·') || rawStep.includes(' - ') || rawStep.includes(':') || rawStep.length > 70) {
-    const parts = rawStep.split(/[·\n:\.]/);
+  if (rawStep.includes('┬╖') || rawStep.includes(' - ') || rawStep.includes(':') || rawStep.length > 70) {
+    const parts = rawStep.split(/[┬╖\n:\.]/);
     if (parts.length > 0 && parts[0].trim().length > 3 && parts[0].trim().length < 75) {
       title = parts[0].trim();
     } else {
@@ -657,9 +600,9 @@ function VisualRootChain({ root, mechanism, trigger, isMobile }: { root: string;
   if (!root && !mechanism && !trigger) return null;
 
   const items = [
-    { label: 'Root Factor', value: root || 'Primary Trigger Factor', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A', icon: '🔍' },
-    { label: 'Biological Mechanism', value: mechanism || 'Systemic Mechanism', color: '#4338CA', bg: '#EEF2FF', border: '#C7D2FE', icon: '⚙️' },
-    { label: 'Symptom Trigger', value: trigger || 'Target Symptoms', color: '#047857', bg: '#ECFDF5', border: '#A7F3D0', icon: '⚡' }
+    { label: 'Root Factor', value: root || 'Primary Trigger Factor', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A', icon: '≡ƒöì' },
+    { label: 'Biological Mechanism', value: mechanism || 'Systemic Mechanism', color: '#4338CA', bg: '#EEF2FF', border: '#C7D2FE', icon: 'ΓÜÖ∩╕Å' },
+    { label: 'Symptom Trigger', value: trigger || 'Target Symptoms', color: '#047857', bg: '#ECFDF5', border: '#A7F3D0', icon: 'ΓÜí' }
   ];
 
   return (
@@ -977,7 +920,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                 <ClinicianCheatSheet questions={report.questionsForClinician} isMobile={isMobile} />
               )}
               
-              {/* 🌟 Pinned #1 Immediate Priority Step For Today */}
+              {/* ≡ƒîƒ Pinned #1 Immediate Priority Step For Today */}
               {(() => {
                 const pendingActions = (item.actions || []).filter(a => a.status !== 'completed');
                 if (!pendingActions.length) return null;
@@ -1009,9 +952,9 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                       </div>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 11, fontWeight: 800, color: '#34D399', letterSpacing: '0.8px', textTransform: 'uppercase' }}>🌟 Priority Step For Today</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: 999 }}>📅 {timeline}</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.12)', padding: '2px 8px', borderRadius: 999 }}>📋 {type}</span>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: '#34D399', letterSpacing: '0.8px', textTransform: 'uppercase' }}>≡ƒîƒ Priority Step For Today</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: 999 }}>≡ƒôà {timeline}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(255,255,255,0.12)', padding: '2px 8px', borderRadius: 999 }}>≡ƒôï {type}</span>
                         </div>
                         <strong style={{ fontSize: isMobile ? 15.5 : 17, color: '#F8FAFC', display: 'block', lineHeight: 1.35 }}>{title}</strong>
                         {subtitle && <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: 13.5, lineHeight: 1.4 }}>{subtitle}</p>}
@@ -1073,7 +1016,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                     const cleanCondition = rawCondition.replace(/\s*\(\d+%\)\s*/, '').trim();
                     const numPct = pctMatch ? parseInt(pctMatch) : 0;
                     
-                    const tierLabel = numPct >= 50 ? 'Tier 1 • High Clinical Corroboration (Primary Pathway)' : numPct >= 25 ? 'Tier 2 • Moderate Consideration (Secondary Differential)' : 'Tier 3 • Low Probability / For Clinician Ruling-Out Only';
+                    const tierLabel = numPct >= 50 ? 'Tier 1 ΓÇó High Clinical Corroboration (Primary Pathway)' : numPct >= 25 ? 'Tier 2 ΓÇó Moderate Consideration (Secondary Differential)' : 'Tier 3 ΓÇó Low Probability / For Clinician Ruling-Out Only';
                     const badgeBg = numPct >= 50 ? '#ECFDF5' : numPct >= 25 ? '#EFF6FF' : '#F8FAFC';
                     const badgeColor = numPct >= 50 ? '#059669' : numPct >= 25 ? '#2563EB' : '#64748B';
                     const badgeBorder = numPct >= 50 ? '#A7F3D0' : numPct >= 25 ? '#BFDBFE' : '#E2E8F0';
@@ -1112,7 +1055,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                         {d.citations && d.citations.length > 0 && (
                           <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #F1F5F9' }}>
                             <strong style={{ fontSize: 11.5, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                              📚 Medical Evidence & Literature
+                              ≡ƒôÜ Medical Evidence & Literature
                             </strong>
                             <ul style={{ margin: '6px 0 0', paddingLeft: 16, fontSize: 13, color: '#475569' }}>
                               {d.citations.map((cit: any, citIdx: number) => {
@@ -1122,7 +1065,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                                     <a href={isSafeUrl ? cit.link : '#'} target="_blank" rel="noreferrer" style={{ color: '#059669', fontWeight: 600, textDecoration: 'none' }}>
                                       {cit.title}
                                     </a>
-                                    {cit.journal ? ` – ${cit.journal} (${cit.year || 'Recent'})` : ''}
+                                    {cit.journal ? ` ΓÇô ${cit.journal} (${cit.year || 'Recent'})` : ''}
                                   </li>
                                 );
                               })}
@@ -1291,10 +1234,10 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
 
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                                 <span style={{ fontSize: 11, fontWeight: 700, background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 999 }}>
-                                  📋 {type}
+                                  ≡ƒôï {type}
                                 </span>
                                 <span style={{ fontSize: 11, fontWeight: 700, background: '#EFF6FF', color: '#1D4ED8', padding: '2px 8px', borderRadius: 999 }}>
-                                  📅 {timeline}
+                                  ≡ƒôà {timeline}
                                 </span>
                               </div>
                             </div>
@@ -1343,7 +1286,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                 <div style={{ marginBottom: 14 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>Consultation Type</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, background: isQuickConsult ? '#EFF6FF' : '#ECFDF5', color: isQuickConsult ? '#1D4ED8' : '#059669', fontSize: 12.5, fontWeight: 700, border: `1px solid ${isQuickConsult ? '#BFDBFE' : '#A7F3D0'}` }}>
-                    {isQuickConsult ? '⚡ Quick Consult' : '🧠 Deep Collab Board'}
+                    {isQuickConsult ? 'ΓÜí Quick Consult' : '≡ƒºá Deep Collab Board'}
                   </span>
                 </div>
 
@@ -1365,7 +1308,7 @@ function CaseWorkspace({ item, navigate, refresh }: { item: CaseItem, navigate: 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {item.reviews[0].specialists.map((spec: string, sIdx: number) => (
                         <span key={sIdx} style={{ fontSize: 11.5, fontWeight: 600, background: '#F1F5F9', color: '#334155', padding: '3px 8px', borderRadius: 6 }}>
-                          🩺 {spec}
+                          ≡ƒ⌐║ {spec}
                         </span>
                       ))}
                     </div>
@@ -1580,12 +1523,12 @@ function CaseCard({ item, navigate }: { item: CaseItem, navigate: any }) {
           </div>
           <p style={{ margin: '5px 0', color: '#64748b', fontSize: 13, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             {primary?.condition
-              ? <>Leading pathway: <strong>{primary.condition}</strong> {primary.definition && <span style={{ opacity: 0.8 }}>”” {primary.definition}</span>}</>
+              ? <>Leading pathway: <strong>{primary.condition}</strong> {primary.definition && <span style={{ opacity: 0.8 }}>ΓÇ¥ΓÇ¥ {primary.definition}</span>}</>
               : 'Awaiting evidence synthesis'}
           </p>
           <small style={{ color: '#94a3b8', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
             <CalendarClock size={12} style={{ verticalAlign: 'middle' }} /> Updated{' '}
-            {formatDate(item.updatedAt)} · {pending} actions open
+            {formatDate(item.updatedAt)} ┬╖ {pending} actions open
           </small>
         </div>
       </div>
@@ -1656,7 +1599,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.demographics.name}</div>
             <div style={{ color: '#4b5563', fontSize: 14 }}>
-              DOB: {profile.demographics.dob || 'N/A'} ”¢ {profile.demographics.gender || 'N/A'}
+              DOB: {profile.demographics.dob || 'N/A'} ΓÇ¥┬ó {profile.demographics.gender || 'N/A'}
             </div>
             <div style={{ color: '#4b5563', fontSize: 14 }}>
               Blood Group: {profile.demographics.bloodGroup || 'N/A'}
@@ -1780,7 +1723,7 @@ function PrintableDossier({ item, profile }: { item: CaseItem; profile: any }) {
 
       {/* Footer */}
       <div style={{ marginTop: 50, paddingTop: 20, borderTop: '1px solid #e5e7eb', textAlign: 'center', fontSize: 12, color: '#9ca3af' }}>
-        <strong>HealthChain AI</strong> ”” Not medical advice. This document is intended to facilitate discussion with a qualified healthcare professional.
+        <strong>HealthChain AI</strong> ΓÇ¥ΓÇ¥ Not medical advice. This document is intended to facilitate discussion with a qualified healthcare professional.
       </div>
     </div>
   );
