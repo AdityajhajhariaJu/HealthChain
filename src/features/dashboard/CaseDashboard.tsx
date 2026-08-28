@@ -126,7 +126,8 @@ export default function CaseDashboard() {
 
   // General dashboard (Health Today)
   return (
-    <div style={{ maxWidth: 1120, margin: '0 auto', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="aurora-bg" style={{ maxWidth: 1120, margin: '0 auto', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="aurora-mesh" />
       {/* 1. Hero Full Width Bento */}
       <section
         style={{
