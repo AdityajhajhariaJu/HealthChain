@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import {
   BrainCircuit, Activity,
@@ -86,6 +86,25 @@ export default function AppShell() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profile, setProfile] = useState(getProfile());
+  const [isScrolling, setIsScrolling] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollTimeout = useRef<any>(null);
+
+  const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    if (currentScrollY > 50 && currentScrollY > lastScrollY.current + 10) {
+      setIsScrolling(true);
+    } else if (currentScrollY < lastScrollY.current - 10) {
+      setIsScrolling(false);
+    }
+    lastScrollY.current = currentScrollY;
+
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1500);
+  };
+
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
   const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
@@ -222,7 +241,7 @@ export default function AppShell() {
         </aside>
       )}
 
-        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content">
+        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" onScroll={handleMainScroll}>
           <GuestStickyBanner />
           {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
             <div style={{ display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
@@ -405,7 +424,7 @@ export default function AppShell() {
                 </button>
               </div>
           </div>
-          <nav className="mobile-tab-bar">
+          <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
             {mobileTabs.map((tab) => (
               <NavLink
                 key={tab.to}
@@ -532,6 +551,25 @@ export default function AppShell() {
 export function ActiveCaseBar({ navigate }: any) {
   const [activeCase, setActiveCase] = useState(getActiveCase());
   const [profile, setProfile] = useState(getProfile());
+  const [isScrolling, setIsScrolling] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollTimeout = useRef<any>(null);
+
+  const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    if (currentScrollY > 50 && currentScrollY > lastScrollY.current + 10) {
+      setIsScrolling(true);
+    } else if (currentScrollY < lastScrollY.current - 10) {
+      setIsScrolling(false);
+    }
+    lastScrollY.current = currentScrollY;
+
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1500);
+  };
+
   useEffect(() => {
     const refresh = () => {
       setActiveCase(getActiveCase());
