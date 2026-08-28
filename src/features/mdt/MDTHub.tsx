@@ -584,7 +584,7 @@ useEffect(() => {
         minHeight: '100%',
         background: 'transparent', zIndex: 1,
         transition: 'background 1.5s ease',
-        padding: isMobile ? '16px 16px' : '0px 20px 40px 20px',
+        padding: isMobile ? '16px 0' : '0px 0px 40px 0px',
         position: 'relative',
         overflow: 'hidden',
       }}
