@@ -435,28 +435,31 @@ export default function QuickConsult() {
                     padding: '6px 12px',
                     background: 'rgba(255, 255, 255, 0.25)',
                     backdropFilter: 'blur(10px)',
-            <div style={{ marginBottom: '24px' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F1F5F9', padding: '6px 12px', borderRadius: '20px', marginBottom: '16px' }}>
-                    <Stethoscope size={14} color="#0F8B7E" />
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: '#0F8B7E',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Quick Consult
-                    </span>
-                  </div>
-                  <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
-                    Which AI clinical perspective would you like to explore?
-                  </h2>
-                  <p style={{ color: '#64748B', fontSize: '14px', margin: 0, fontWeight: 500 }}>
-                    Choose an AI perspective to help organize questions for your clinician—not a consultation with a licensed professional.
-                  </p>
+                    borderRadius: '999px',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <Stethoscope size={14} color="#3B82F6" />
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: '#334155',
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                    }}
+                  >
+                    Quick Consult
+                  </span>
                 </div>
+                <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
+                  Which AI clinical perspective would you like to explore?
+                </h2>
+                <p style={{ color: '#64748B', fontSize: '14px', margin: 0, fontWeight: 500 }}>
+                  Choose an AI perspective to help organize questions for your clinician—not a consultation with a licensed professional.
+                </p>
+              </div>
 
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
