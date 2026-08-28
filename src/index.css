@@ -1089,17 +1089,17 @@ html.dark-theme body {
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: #FFF7ED;
+    background: #F0FDFA;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #EA580C;
+    color: #0F766E;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
     flex-shrink: 0;
   }
 
   .more-menu-icon svg {
-    color: #EA580C;
+    color: #0F766E;
     width: 22px;
     height: 22px;
     stroke-width: 2.2px;
@@ -1110,7 +1110,7 @@ html.dark-theme body {
 
   .more-menu-item:active .more-menu-icon {
     transform: scale(1.1);
-    background: #FFEDD5;
+    background: #CCFBF1;
   }
 }
 
