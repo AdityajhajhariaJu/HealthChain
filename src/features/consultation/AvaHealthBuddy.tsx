@@ -179,8 +179,8 @@ export default function AvaHealthBuddy() {
 
   // Theme colors - Serene Spa Teal
   const theme = {
-    primary: '#0D9488', // Teal 600 - Calm & Peaceful
-    light: '#F0FDFA', // Teal 50
+    primary: '#F43F5E', // Rose 500 - Calm & Peaceful
+    light: '#FFE4E6', // Rose 50
     text: '#115E59', // Teal 800
     bg: '#F8FAFC', // Slate 50
   };
@@ -327,7 +327,7 @@ export default function AvaHealthBuddy() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: isMobile ? 'flex-start' : 'center',
-        background: 'transparent',
+        background: 'radial-gradient(circle at 10% 0%, #FFF0F5 0%, transparent 60%), radial-gradient(circle at 90% 100%, #FFE4E6 0%, transparent 60%), radial-gradient(circle at 10% 100%, #FFDAB9 0%, transparent 60%), #FFF5F7',
       }}
     >
       {/* Outer White Card Container */}
@@ -337,16 +337,16 @@ export default function AvaHealthBuddy() {
           minHeight: 0,
           height: isMobile ? '100%' : 'calc(100dvh - 150px)',
           maxHeight: isMobile ? 'calc(100dvh - 128px)' : 'calc(100dvh - 150px)',
-          background: '#F8FAFC',
+          background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
           borderRadius: isMobile ? '0' : '32px',
-          boxShadow: isMobile ? 'none' : '0 8px 32px rgba(0,0,0,0.04)',
+          boxShadow: isMobile ? 'none' : '0 24px 64px rgba(244, 63, 94, 0.08)',
           maxWidth: isMobile ? '100%' : '1000px',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          border: '1px solid rgba(0,0,0,0.04)',
+          border: '1px solid rgba(255, 255, 255, 0.7)',
         }}
       >
         {/* Header */}
@@ -355,8 +355,8 @@ export default function AvaHealthBuddy() {
             display: 'flex',
             alignItems: 'center',
             padding: isMobile ? '16px 20px' : '20px 32px',
-            background: '#FFFFFF',
-            borderBottom: '1px solid #E2E8F0',
+            background: 'transparent',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
           }}
         >
           <button
@@ -475,7 +475,7 @@ export default function AvaHealthBuddy() {
                     <button
                       onClick={() => navigate(`/app/cases/${importedCase.caseId}`)}
                       style={{
-                        background: '#FFFFFF',
+                        background: 'transparent',
                         border: '1px solid #99F6E4',
                         color: '#0F766E',
                         padding: '6px 12px',
@@ -495,7 +495,7 @@ export default function AvaHealthBuddy() {
                     }}
                     aria-label="Close imported case context"
                     style={{
-                      background: 'transparent',
+                      background: 'radial-gradient(circle at 10% 0%, #FFF0F5 0%, transparent 60%), radial-gradient(circle at 90% 100%, #FFE4E6 0%, transparent 60%), radial-gradient(circle at 10% 100%, #FFDAB9 0%, transparent 60%), #FFF5F7',
                       border: 'none',
                       color: '#0D9488',
                       cursor: 'pointer',
@@ -543,15 +543,15 @@ export default function AvaHealthBuddy() {
 
                   <div
                     style={{
-                      background: msg.role === 'user' ? theme.primary : '#FFFFFF',
+                      background: msg.role === 'user' ? 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)' : 'rgba(255, 255, 255, 0.85)', backdropFilter: msg.role === 'user' ? 'none' : 'blur(16px)', WebkitBackdropFilter: msg.role === 'user' ? 'none' : 'blur(16px)',
                       color: msg.role === 'user' ? '#FFFFFF' : '#334155',
                       padding: isMobile ? '10px 14px' : '12px 18px',
                       borderRadius:
                         msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                       fontSize: isMobile ? '14px' : '15px',
                       lineHeight: 1.45,
-                      boxShadow: msg.role === 'user' ? '0 4px 12px rgba(234,88,12,0.15)' : '0 4px 12px rgba(0,0,0,0.03)',
-                      border: msg.role === 'user' ? 'none' : '1px solid #E2E8F0',
+                      boxShadow: msg.role === 'user' ? '0 12px 32px rgba(244, 63, 94, 0.35)' : '0 16px 40px rgba(244, 63, 94, 0.1)',
+                      border: msg.role === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
                       maxWidth: '85%',
                     }}
                   >
@@ -601,10 +601,10 @@ export default function AvaHealthBuddy() {
                 </div>
                 <div
                   style={{
-                    background: '#FFFFFF',
+                    background: 'transparent',
                     padding: isMobile ? '12px 16px' : '16px',
                     borderRadius: '20px 20px 20px 4px',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
                     display: 'flex',
                     gap: '4px',
                     alignItems: 'center',
@@ -667,7 +667,7 @@ export default function AvaHealthBuddy() {
                     key={s}
                     onClick={() => handleSend(s)}
                     style={{
-                      background: '#FFFFFF',
+                      background: 'transparent',
                       border: `1px solid ${importedCase ? '#99F6E4' : theme.light}`,
                       color: importedCase ? '#0D9488' : theme.primary,
                       padding: '8px 14px',
@@ -703,7 +703,7 @@ export default function AvaHealthBuddy() {
         <div
           style={{
             padding: isMobile ? '10px 14px 76px 14px' : '24px 32px',
-            background: '#FFFFFF',
+            background: 'transparent',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -718,19 +718,21 @@ export default function AvaHealthBuddy() {
             <div style={{ width: '100%', maxWidth: '720px', display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
               {attachments.map((att, idx) => (
                 <div key={idx} style={{
-                  background: '#F1F5F9',
+                  background: 'rgba(255, 255, 255, 0.65)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
                   padding: '6px 12px',
-                  borderRadius: 'var(--radius-lg)',
+                  borderRadius: '99px',
                   fontSize: '13px',
-                  color: '#475569',
+                  color: '#1E293B',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  border: '1px solid #E2E8F0'
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
+                  boxShadow: '0 4px 12px rgba(244, 63, 94, 0.05)'
                 }}>
                   <FileIcon size={14} color="#64748b" />
-                  <span style={{ maxWidth: '120px', overflow: 'hidden',
-          border: '1px solid rgba(0,0,0,0.04)', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.name}</span>
+                  <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.name}</span>
                   <button aria-label="Remove attachment" onClick={() => removeAttachment(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#94A3B8', marginLeft: '4px' }}>
                     <X size={14} />
                   </button>
@@ -769,7 +771,7 @@ export default function AvaHealthBuddy() {
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'transparent',
+                background: 'radial-gradient(circle at 10% 0%, #FFF0F5 0%, transparent 60%), radial-gradient(circle at 90% 100%, #FFE4E6 0%, transparent 60%), radial-gradient(circle at 10% 100%, #FFDAB9 0%, transparent 60%), #FFF5F7',
                 color: '#64748B',
                 border: 'none',
                 display: 'flex',
@@ -792,16 +794,19 @@ export default function AvaHealthBuddy() {
                 width: '100%',
                 padding: isMobile ? '12px 46px 12px 44px' : '16px 56px 16px 52px',
                 borderRadius: '99px',
-                border: '1px solid #E2E8F0',
-                background: '#FFFFFF',
+                border: '1px solid rgba(255, 255, 255, 0.8)',
+                background: 'rgba(255, 255, 255, 0.65)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
                 fontSize: isMobile ? '14px' : '15px',
                 outline: 'none',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-                color: '#0F172A',
+                boxShadow: '0 8px 32px rgba(244, 63, 94, 0.12)',
+                color: '#1E293B',
                 paddingRight: '60px',
+                transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = theme.primary)}
-              onBlur={(e) => (e.target.style.borderColor = '#E2E8F0')}
+              onFocus={(e) => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.25)'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.12)'; }}
             />
             <button
               aria-label="Send message"
