@@ -440,12 +440,12 @@ export default function QuickConsult() {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
                   }}
                 >
-                  <Stethoscope size={14} color="#3B82F6" />
+                  <Stethoscope size={14} color="#EA580C" />
                   <span
                     style={{
                       fontSize: '11px',
                       fontWeight: 800,
-                      color: '#334155',
+                      color: '#EA580C',
                       textTransform: 'uppercase',
                       letterSpacing: '1px',
                     }}
