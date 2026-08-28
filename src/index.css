@@ -1279,20 +1279,17 @@ html.dark-theme body {
     justify-content: center;
   }
 }
-@keyframes goldShimmer {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+/* Elegant Premium Gold Pill */
 .sparkly-gold-pill {
-  background: linear-gradient(135deg, #FEF08A 0%, #F59E0B 25%, #92400E 50%, #F59E0B 75%, #FEF08A 100%);
-  background-size: 200% 200%;
-  animation: goldShimmer 3s ease infinite;
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.8), inset 0 -2px 6px rgba(146, 64, 14, 0.6);
-  border: 1px solid #FEF08A;
-  color: #FFFFFF !important;
-  text-shadow: 0 1px 3px rgba(113, 63, 18, 0.9), 0 0 12px rgba(253, 224, 71, 0.9);
+  background: linear-gradient(135deg, rgba(254, 240, 138, 0.95) 0%, rgba(245, 158, 11, 0.8) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  color: #78350F !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
 }
 .sparkly-gold-pill svg {
-  filter: drop-shadow(0 0 8px rgba(253, 224, 71, 0.8));
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.5));
 }
