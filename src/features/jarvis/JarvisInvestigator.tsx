@@ -391,7 +391,7 @@ export default function JarvisInvestigator() {
               <span style={{ color: '#EA580C', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
             </div>
             
-            <h2 style={{ fontSize: isMobile ? '30px' : '40px', fontWeight: 900, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
+            <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
               Uncover the missing link.
             </h2>
             

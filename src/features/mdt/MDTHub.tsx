@@ -638,8 +638,8 @@ useEffect(() => {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '12px', padding: '6px 14px', background: '#FFF9F0', borderRadius: '999px', border: '1px solid #FED7AA', boxShadow: '0 2px 6px rgba(253, 186, 116, 0.1)', position: 'relative', zIndex: 1 }}><NetworkHubIcon size={16} color="#EA580C" /><span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>Collaborative Board</span></div>
           <h1
             style={{
-              fontSize: isMobile ? '26px' : '34px',
-              fontWeight: 900,
+              fontSize: isMobile ? '20px' : '24px',
+              fontWeight: 800,
               color: '#0F172A',
               margin: '0 0 4px 0',
               letterSpacing: '-0.8px',
@@ -893,7 +893,7 @@ useEffect(() => {
                         <h2
                           style={{
                             fontSize: isMobile ? '26px' : '32px',
-                            fontWeight: 900,
+                            fontWeight: 800,
                             color: '#0F172A',
                             marginBottom: '12px',
                             letterSpacing: '-0.5px',
@@ -1063,7 +1063,7 @@ useEffect(() => {
                 <div style={{ width: 64, height: 64, background: '#DCFCE7', color: '#16A34A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
                 </div>
-                <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
                 <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px auto' }}>
                   The Multi-Disciplinary Board has finalized your case and generated the consensus report.
                 </p>
