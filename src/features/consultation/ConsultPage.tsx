@@ -39,7 +39,6 @@ export default function ConsultPage() {
           viewport={{ once: true }}
           style={{ 
             display: 'flex', 
-            alignItems: 'center',
             width: '100%',
             gap: '16px'
           }}
@@ -50,33 +49,32 @@ export default function ConsultPage() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '8px 20px',
-              background: '#F8FAFC',
-              borderRadius: '999px',
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              background: '#FFF9F0',
+              borderRadius: '50%',
+              border: '1px solid #FED7AA',
+              boxShadow: '0 2px 6px rgba(253, 186, 116, 0.15)',
               flexShrink: 0
             }}
           >
-            <Network size={16} color="#10B981" />
             <span
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: 800,
-                color: '#334155',
+                color: '#EA580C',
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
+                letterSpacing: '0.5px',
               }}
             >
-              Collaborative Board
+              OR
             </span>
           </div>
           
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
         </motion.div>
       </div>
-
       {/* Deep Consult Section */}
       <section style={{ position: 'relative', zIndex: 1 }}>
         <MDTHub />
