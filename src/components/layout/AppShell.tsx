@@ -181,6 +181,7 @@ export default function AppShell() {
 
   return (
     <div className="app-shell">
+      <div className="app-shell-mesh" />
       <a href="#main-content" className="skip-link">Skip to main content</a>
       {!isMobile && (
         <aside className="sidebar">
