@@ -449,6 +449,7 @@ export default function AppShell() {
                 </button>
               </div>
           </div>
+            )}
           {!location.pathname.startsWith('/app/ava') && (
           <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
             {mobileTabs.map((tab) => (
