@@ -511,7 +511,7 @@ export default function QuickConsult() {
                         width: '120px',
                         padding: '12px',
                         borderRadius: '16px',
-                        border: `1.5px solid ${isSelected ? '#FDBA74' : '#E2E8F0'}`,
+                        border: `1.5px solid ${isSelected ? '#FED7AA' : '#E2E8F0'}`,
                         background: isSelected 
                           ? '#FFF9F0' 
                           : '#FFFFFF',
