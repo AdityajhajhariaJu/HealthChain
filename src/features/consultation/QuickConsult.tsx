@@ -507,9 +507,9 @@ export default function QuickConsult() {
                         width: '120px',
                         padding: '12px',
                         borderRadius: '16px',
-                        border: `1.5px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
+                        border: `1.5px solid ${isSelected ? '#FDBA74' : '#E2E8F0'}`,
                         background: isSelected 
-                          ? '#EFF6FF' 
+                          ? '#FFF9F0' 
                           : '#FFFFFF',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -517,7 +517,7 @@ export default function QuickConsult() {
                         flexDirection: 'column',
                         alignItems: 'flex-start',
                         boxShadow: isSelected 
-                          ? '0 8px 16px rgba(59, 130, 246, 0.12)' 
+                          ? '0 8px 16px rgba(253, 186, 116, 0.15)' 
                           : '0 2px 6px rgba(0,0,0,0.02)'
                       }}
                       onMouseOver={(e) => { 
