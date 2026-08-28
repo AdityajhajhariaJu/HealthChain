@@ -428,9 +428,10 @@ New Information / Changes in Symptoms since last evaluation:
         style={{
           background: '#FFFFFF',
           padding: isMobile ? '20px' : '48px',
-          borderRadius: '32px',
+          borderRadius: isMobile ? '0 0 24px 24px' : '0 0 32px 32px',
           boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
           border: '1px solid #E2E8F0',
+          borderTop: 'none'
         }}
       >
         <div style={{ position: 'relative', marginBottom: '32px' }}>

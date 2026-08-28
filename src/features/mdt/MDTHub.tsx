@@ -622,11 +622,14 @@ useEffect(() => {
         <div
           style={{
             background: '#FFFFFF',
-            borderRadius: isMobile ? '24px' : '32px',
+            borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
             padding: isMobile ? '24px 20px 20px' : '32px 40px 24px',
             border: '1px solid #E2E8F0',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
-            marginBottom: '24px',
+            borderBottom: phase === 'intake' ? 'none' : '1px solid #E2E8F0',
+            boxShadow: phase === 'intake' ? 'none' : '0 10px 30px rgba(0,0,0,0.03)',
+            marginBottom: phase === 'intake' ? '0px' : '24px',
+            maxWidth: phase === 'intake' ? '800px' : '100%',
+            margin: phase === 'intake' ? '0 auto' : '0',
             textAlign: 'center',
             position: 'relative'
           }}
