@@ -96,6 +96,19 @@ export default function AvaHealthBuddy() {
   const toast = useToast();
   const navigate = useNavigate();
   const sessionId = useRef(typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`).current;
+  useEffect(() => {
+    const main = document.getElementById('main-content');
+    if (main) {
+      main.style.background = 'url(/ava-floral-bg.jpg) center/cover no-repeat';
+      main.style.backgroundAttachment = 'fixed';
+    }
+    return () => {
+      if (main) {
+        main.style.background = '';
+        main.style.backgroundAttachment = '';
+      }
+    };
+  }, []);
   const [messages, setMessages] = useState(getSavedMessages());
   const [input, setInput] = useState(() => { try { return sessionStorage.getItem('hc_ava_draft') || ''; } catch { return ''; } });
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
@@ -327,9 +340,11 @@ export default function AvaHealthBuddy() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: isMobile ? 'flex-start' : 'center',
-        background: 'radial-gradient(circle at 10% 0%, #FFF0F5 0%, transparent 60%), radial-gradient(circle at 90% 100%, #FFE4E6 0%, transparent 60%), radial-gradient(circle at 10% 100%, #FFDAB9 0%, transparent 60%), #FFF5F7',
+        background: 'transparent',
+        position: 'relative',
       }}
     >
+      
       {/* Outer White Card Container */}
       <div
         style={{
@@ -495,7 +510,7 @@ export default function AvaHealthBuddy() {
                     }}
                     aria-label="Close imported case context"
                     style={{
-                      background: 'radial-gradient(circle at 10% 0%, #FFF0F5 0%, transparent 60%), radial-gradient(circle at 90% 100%, #FFE4E6 0%, transparent 60%), radial-gradient(circle at 10% 100%, #FFDAB9 0%, transparent 60%), #FFF5F7',
+                      background: 'transparent',
                       border: 'none',
                       color: '#0D9488',
                       cursor: 'pointer',
@@ -771,7 +786,7 @@ export default function AvaHealthBuddy() {
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle at 10% 0%, #FFF0F5 0%, transparent 60%), radial-gradient(circle at 90% 100%, #FFE4E6 0%, transparent 60%), radial-gradient(circle at 10% 100%, #FFDAB9 0%, transparent 60%), #FFF5F7',
+                background: 'transparent',
                 color: '#64748B',
                 border: 'none',
                 display: 'flex',
