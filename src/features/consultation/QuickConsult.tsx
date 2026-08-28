@@ -397,7 +397,7 @@ export default function QuickConsult() {
   }, [phase, selectedSpecialist, searchQuery]);
 
   return (
-    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px', marginTop: isMobile ? '0' : '-8px', position: 'relative', zIndex: 1 }}>
+    <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '0px', marginTop: isMobile ? '0' : '-8px', position: 'relative', zIndex: 1 }}>
       
       <AnimatePresence mode="wait">
         {phase === 'select' && (
