@@ -435,38 +435,34 @@ export default function QuickConsult() {
                     padding: '6px 12px',
                     background: 'rgba(255, 255, 255, 0.25)',
                     backdropFilter: 'blur(10px)',
-                    borderRadius: '999px',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
-                  }}
-                >
-                  <Stethoscope size={14} color="#3B82F6" />
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      color: '#334155',
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
-                    }}
-                  >
-                    Quick Consult
-                  </span>
+            <div style={{ marginBottom: '24px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F1F5F9', padding: '6px 12px', borderRadius: '20px', marginBottom: '16px' }}>
+                    <Stethoscope size={14} color="#0F8B7E" />
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#0F8B7E',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Quick Consult
+                    </span>
+                  </div>
+                  <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
+                    Which AI clinical perspective would you like to explore?
+                  </h2>
+                  <p style={{ color: '#64748B', fontSize: '14px', margin: 0, fontWeight: 500 }}>
+                    Choose an AI perspective to help organize questions for your clinician—not a consultation with a licensed professional.
+                  </p>
                 </div>
-                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
-                  Which AI clinical perspective would you like to explore?
-                </h2>
-                <p style={{ color: '#64748B', fontSize: '15px', margin: 0, fontWeight: 500 }}>
-                  Choose an AI perspective to help organize questions for your clinician””not a consultation with a licensed professional.
-                </p>
-              </div>
-            </div>
 
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                  Choose an AI Perspective
-                </h3>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                    Choose an AI Perspective
+                  </h3>
                 <div style={{ position: 'relative' }}>
                   <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                   <input
@@ -508,8 +504,8 @@ export default function QuickConsult() {
                       onClick={() => setSelectedSpecialist(s)}
                       style={{
                         flexShrink: 0,
-                        width: '140px',
-                        padding: '16px',
+                        width: '120px',
+                        padding: '12px',
                         borderRadius: '16px',
                         border: `1.5px solid ${isSelected ? '#3B82F6' : '#E2E8F0'}`,
                         background: isSelected 
@@ -544,9 +540,9 @@ export default function QuickConsult() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: '12px' }}>
                         <div 
                           style={{ 
-                            width: '40px', 
-                            height: '40px', 
-                            borderRadius: '12px', 
+                            width: '32px', 
+                            height: '32px', 
+                            borderRadius: '10px', 
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center', 
@@ -555,7 +551,7 @@ export default function QuickConsult() {
                             boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0,0,0,0.04)'
                           }}
                         >
-                          <Icon size={20} />
+                          <Icon size={16} />
                         </div>
                         {/* Sparkle Indicator */}
                         <div style={{ 
@@ -567,8 +563,8 @@ export default function QuickConsult() {
                            <Sparkles size={14} color="#A855F7" />
                         </div>
                       </div>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>{s.label}</h4>
+                      <p style={{ margin: 0, fontSize: '10px', color: '#64748B', lineHeight: 1.3 }}>{s.desc}</p>
                     </div>
                   );
                 })}
@@ -579,13 +575,13 @@ export default function QuickConsult() {
                   onClick={handleStartConsult}
                   disabled={!selectedSpecialist}
                   style={{
-                    padding: '16px 32px',
+                    padding: '12px 24px',
                     background: selectedSpecialist ? '#0F172A' : '#E2E8F0',
                     color: '#FFF',
                     border: 'none',
-                    borderRadius: '999px',
+                    borderRadius: '99px',
                     fontWeight: 700,
-                    fontSize: '16px',
+                    fontSize: '14px',
                     cursor: selectedSpecialist ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',
@@ -593,7 +589,7 @@ export default function QuickConsult() {
                     transition: 'all 0.2s',
                   }}
                 >
-                  Start Consult <ArrowRight size={18} />
+                  Start Consult <ArrowRight size={16} />
                 </button>
               </div>
             </div>
