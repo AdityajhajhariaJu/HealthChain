@@ -416,6 +416,7 @@ export default function AvaHealthBuddy() {
         {/* Chat Area */}
         <div
           ref={chatContainerRef}
+            onScroll={(e) => window.dispatchEvent(new CustomEvent('hc_scroll_intent', { detail: { scrollTop: e.currentTarget.scrollTop } }))}
           style={{
             flex: 1,
             overflowY: 'auto',

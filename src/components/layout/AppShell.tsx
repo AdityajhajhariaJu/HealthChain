@@ -110,6 +110,26 @@ export default function AppShell() {
     }
   };
 
+  useEffect(() => {
+    const onCustomScroll = (e: any) => {
+      const currentScrollY = e.detail.scrollTop;
+      if (currentScrollY < 50) {
+        setIsScrolling(false);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+      if (currentScrollY > lastScrollY.current + 12) {
+        setIsScrolling(true);
+        lastScrollY.current = currentScrollY;
+      } else if (currentScrollY < lastScrollY.current - 12) {
+        setIsScrolling(false);
+        lastScrollY.current = currentScrollY;
+      }
+    };
+    window.addEventListener('hc_scroll_intent', onCustomScroll);
+    return () => window.removeEventListener('hc_scroll_intent', onCustomScroll);
+  }, []);
+
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
   const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
@@ -556,29 +576,7 @@ export default function AppShell() {
 export function ActiveCaseBar({ navigate }: any) {
   const [activeCase, setActiveCase] = useState(getActiveCase());
   const [profile, setProfile] = useState(getProfile());
-  const [isScrolling, setIsScrolling] = useState(false);
-  const lastScrollY = useRef(0);
-  const scrollTimeout = useRef<any>(null);
 
-  const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
-    const currentScrollY = e.currentTarget.scrollTop;
-    
-    // Always show if at the very top
-    if (currentScrollY < 50) {
-      setIsScrolling(false);
-      lastScrollY.current = currentScrollY;
-      return;
-    }
-
-    // Hide on scroll down, show on scroll up
-    if (currentScrollY > lastScrollY.current + 12) {
-      setIsScrolling(true);
-      lastScrollY.current = currentScrollY;
-    } else if (currentScrollY < lastScrollY.current - 12) {
-      setIsScrolling(false);
-      lastScrollY.current = currentScrollY;
-    }
-  };
 
   useEffect(() => {
     const refresh = () => {
