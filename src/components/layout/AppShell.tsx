@@ -14,6 +14,7 @@ import {
   Apple,
   Network,
   LayoutDashboard,
+  ArrowLeft,
   Quote,
   Sparkles,
   BriefcaseBusiness,
@@ -267,7 +268,7 @@ export default function AppShell() {
         </aside>
       )}
 
-        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? 'var(--safe-area-bottom, 12px)' : undefined }} onScroll={handleMainScroll}>
+        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? 'var(--safe-area-bottom, 12px)' : undefined }} onScroll={handleMainScroll}>
           <GuestStickyBanner />
           {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
             <div style={{ display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
@@ -285,8 +286,29 @@ export default function AppShell() {
 
       {isMobile && (
         <>
-          {!location.pathname.startsWith('/app/ava') && (
             <div className="mobile-top-bar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {location.pathname.startsWith('/app/ava') && (
+                <button
+                  onClick={() => window.history.back()}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: '1px solid rgba(244, 63, 94, 0.2)',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(244, 63, 94, 0.15)',
+                    color: '#F43F5E',
+                  }}
+                  aria-label="Go back"
+                >
+                  <ArrowLeft size={20} strokeWidth={2.5} />
+                </button>
+              )}
             <div style={{ position: 'relative' }}>
               <img 
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
@@ -415,6 +437,7 @@ export default function AppShell() {
                 )}
               </AnimatePresence>
             </div>
+            </div>
               <button className="mobile-top-bar__search" onClick={() => navigate('/app/ava')} aria-label="Search or Ask Ava Health Buddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #FFE4E6', color: '#F43F5E' }}>
                   <Heart size={12} fill="#F43F5E" color="#F43F5E" />
@@ -449,7 +472,6 @@ export default function AppShell() {
                 </button>
               </div>
           </div>
-            )}
           {!location.pathname.startsWith('/app/ava') && (
           <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
             {mobileTabs.map((tab) => (
@@ -645,7 +667,7 @@ function BrandPulseBanner() {
     },
     {
       quote:
-        'You've explained your symptoms to five different doctors. Your labs come back "normal," but you still feel terrible.',
+        "You've explained your symptoms to five different doctors. Your labs come back 'normal,' but you still feel terrible.",
       sub: 'Your experience is real. HealthChain360.ai helps you organise the full picture for the next conversation.',
     },
     {
