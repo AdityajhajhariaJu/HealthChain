@@ -373,7 +373,7 @@ export default function AvaHealthBuddy() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: isMobile ? '16px 20px' : '20px 32px',
+            padding: isMobile ? 'calc(var(--safe-area-top, 44px) + 16px) 20px 16px 20px' : '20px 32px',
             background: 'transparent',
             borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
           }}

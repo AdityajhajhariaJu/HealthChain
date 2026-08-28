@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import {
   BrainCircuit, Activity,
@@ -132,7 +132,7 @@ export default function AppShell() {
 
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
-  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
+  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || 'ðŸ¥‰';
 
   const handleNavClick = (path: string, label?: string) => {
     triggerHapticLight();
@@ -218,7 +218,7 @@ export default function AppShell() {
               <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
               <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards â†’</span>
           </button>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
@@ -267,7 +267,7 @@ export default function AppShell() {
         </aside>
       )}
 
-        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" onScroll={handleMainScroll}>
+        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ paddingTop: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? 'var(--safe-area-bottom, 12px)' : undefined }} onScroll={handleMainScroll}>
           <GuestStickyBanner />
           {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
             <div style={{ display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
@@ -285,7 +285,8 @@ export default function AppShell() {
 
       {isMobile && (
         <>
-          <div className="mobile-top-bar">
+          {!location.pathname.startsWith('/app/ava') && (
+            <div className="mobile-top-bar">
             <div style={{ position: 'relative' }}>
               <img 
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
@@ -331,7 +332,7 @@ export default function AppShell() {
                           {profile?.demographics?.name || 'My Health'}
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748B' }}>
-                          {profile?.isPro ? '✨ Pro Member' : 'Free Starter'}
+                          {profile?.isPro ? 'âœ¨ Pro Member' : 'Free Starter'}
                         </div>
                       </div>
 
@@ -454,6 +455,7 @@ export default function AppShell() {
                 </button>
               </div>
           </div>
+          {!location.pathname.startsWith('/app/ava') && (
           <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
             {mobileTabs.map((tab) => (
               <NavLink
@@ -481,7 +483,8 @@ export default function AppShell() {
               <Grid size={22} />
               <span>More</span>
             </button>
-          </nav>
+            </nav>
+          )}
 
           <AnimatePresence>
             {showMoreMenu && (
@@ -622,10 +625,10 @@ export function ActiveCaseBar({ navigate }: any) {
         <BriefcaseBusiness size={18} />
       </div>
       <div className="active-case-bar__copy">
-        <span>ACTIVE CASE · {profile?.demographics?.name || 'Your health record'}</span>
+        <span>ACTIVE CASE Â· {profile?.demographics?.name || 'Your health record'}</span>
         <strong>{activeCase.title}</strong>
         <small>
-          {(activeCase.medicalRecords || []).length} evidence items · {pending} open actions ·
+          {(activeCase.medicalRecords || []).length} evidence items Â· {pending} open actions Â·
           Updated {new Date(activeCase.updatedAt).toLocaleDateString()}
         </small>
       </div>
@@ -647,7 +650,7 @@ function BrandPulseBanner() {
     },
     {
       quote:
-        'You’ve explained your symptoms to five different doctors. Your labs come back “normal,” but you still feel terrible.',
+        'Youâ€™ve explained your symptoms to five different doctors. Your labs come back â€œnormal,â€ but you still feel terrible.',
       sub: 'Your experience is real. HealthChain360.ai helps you organise the full picture for the next conversation.',
     },
     {
@@ -699,7 +702,7 @@ function BrandPulseBanner() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.32 }}
           >
-            <strong>“{message.quote}”</strong>
+            <strong>â€œ{message.quote}â€</strong>
             <span>{message.sub}</span>
           </motion.div>
         </AnimatePresence>
@@ -716,4 +719,5 @@ function BrandPulseBanner() {
     </section>
   );
 }
+
 
