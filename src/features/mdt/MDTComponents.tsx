@@ -117,7 +117,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
   return (
     <div
       style={{
-        padding: isMobile ? '20px' : '48px',
+        padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
         background: '#FFFFFF',
         borderRadius: '32px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
@@ -427,7 +427,7 @@ New Information / Changes in Symptoms since last evaluation:
         }}
         style={{
           background: '#FFFFFF',
-          padding: isMobile ? '20px' : '48px',
+          padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
           borderRadius: isMobile ? '0 0 24px 24px' : '0 0 32px 32px',
           boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
           border: '1px solid #E2E8F0',
@@ -1455,7 +1455,7 @@ export function MDTConferencePanel({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, type: 'spring' }}
       style={{
-        padding: isMobile ? '20px' : '48px',
+        padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
         background: 'rgba(255,255,255,0.9)',
         backdropFilter: 'blur(24px)',
         borderRadius: '32px',
@@ -1897,7 +1897,7 @@ export function MDTReportPanel({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        padding: isMobile ? '20px' : '48px',
+        padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
         background: '#FFF',
         borderRadius: '32px',
         boxShadow: '0 20px 50px rgba(0,0,0,0.06)',

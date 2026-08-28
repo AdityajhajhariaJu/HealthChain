@@ -624,7 +624,7 @@ useEffect(() => {
           style={{
             background: '#FFFFFF',
             borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
-            padding: isMobile ? '24px 20px 20px' : '32px 40px 24px',
+            padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
             border: '1px solid #E2E8F0',
             borderBottom: phase === 'intake' ? 'none' : '1px solid #E2E8F0',
             boxShadow: phase === 'intake' ? 'none' : '0 10px 30px rgba(0,0,0,0.03)',
