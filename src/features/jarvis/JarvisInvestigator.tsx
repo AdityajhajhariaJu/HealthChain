@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileUp, Sparkles, Activity, Search, ArrowRight, ShieldCheck, 
-  X, CheckCircle2, ChevronDown, ListChecks, HelpCircle 
+  X, CheckCircle2, ChevronDown, ListChecks, HelpCircle, BrainCircuit 
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
@@ -386,7 +386,7 @@ export default function JarvisInvestigator() {
           <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#FFEDD5', color: '#EA580C' }}>
-                <NetworkHubIcon size={18} />
+                <BrainCircuit size={18} />
               </div>
               <span style={{ color: '#EA580C', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
             </div>
