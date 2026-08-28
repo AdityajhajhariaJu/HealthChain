@@ -352,7 +352,9 @@ export default function AvaHealthBuddy() {
           minHeight: 0,
           height: isMobile ? '100%' : 'calc(100dvh - 150px)',
           maxHeight: isMobile ? 'calc(100dvh - 128px)' : 'calc(100dvh - 150px)',
-          background: 'rgba(255, 255, 255, 0.45)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+          background: isMobile ? 'linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)' : 'rgba(255, 255, 255, 0.45)',
+          backdropFilter: isMobile ? 'none' : 'blur(32px)', 
+          WebkitBackdropFilter: isMobile ? 'none' : 'blur(32px)',
           borderRadius: isMobile ? '0' : '32px',
           boxShadow: isMobile ? 'none' : '0 24px 64px rgba(244, 63, 94, 0.08)',
           maxWidth: isMobile ? '100%' : '1000px',
@@ -361,7 +363,7 @@ export default function AvaHealthBuddy() {
           flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
+          border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.7)',
         }}
       >
         {/* Header */}
@@ -371,7 +373,7 @@ export default function AvaHealthBuddy() {
             alignItems: 'center',
             padding: isMobile ? '16px 20px' : '20px 32px',
             background: 'transparent',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
+            borderBottom: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.4)',
           }}
         >
           <button
@@ -722,7 +724,7 @@ export default function AvaHealthBuddy() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            borderTop: '1px solid #E2E8F0',
+            borderTop: isMobile ? 'none' : '1px solid rgba(255,255,255,0.4)',
             marginTop: 'auto',
             width: '100%',
             flexShrink: 0,
