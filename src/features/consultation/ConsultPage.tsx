@@ -32,19 +32,20 @@ export default function ConsultPage() {
           zIndex: 2
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.15))' }} />
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '24px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.15))' }} />
+            
             <div 
               style={{ 
                 width: '48px', 
@@ -54,17 +55,20 @@ export default function ConsultPage() {
                 boxShadow: '0 4px 12px rgba(15, 139, 126, 0.08)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
               <NetworkHubIcon size={24} color="var(--teal)" />
             </div>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Deep Collaborative Review
-            </span>
-          </motion.div>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
-        </div>
+            
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
+          </div>
+          
+          <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Deep Collaborative Review
+          </span>
+        </motion.div>
       </div>
 
       {/* Deep Consult Section */}
