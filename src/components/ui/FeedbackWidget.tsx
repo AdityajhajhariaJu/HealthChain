@@ -46,7 +46,7 @@ export default function FeedbackWidget() {
         onClick={() => setIsOpen(true)}
         style={{
           position: 'fixed',
-          bottom: isMobile ? 80 : 32, // Above mobile nav if mobile
+          bottom: isMobile ? 110 : 32, // Above mobile nav if mobile
           right: isMobile ? 16 : 32,
           width: 48,
           height: 48,
@@ -77,7 +77,7 @@ export default function FeedbackWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             style={{
               position: 'fixed',
-              bottom: isMobile ? 80 : 96,
+              bottom: isMobile ? 110 : 96,
               right: isMobile ? 16 : 32,
               width: isMobile ? 'calc(100vw - 32px)' : 340,
               backgroundColor: 'var(--surface)',

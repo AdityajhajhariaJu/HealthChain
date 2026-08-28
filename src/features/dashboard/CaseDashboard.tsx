@@ -126,7 +126,7 @@ export default function CaseDashboard() {
 
   // General dashboard (Health Today)
   return (
-    <div className="aurora-bg" style={{ maxWidth: 1120, margin: '0 auto', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="aurora-bg" style={{ maxWidth: 1120, margin: '0 auto', padding: isMobile ? '16px' : '0 24px', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div className="aurora-mesh" />
       {/* 1. Hero Full Width Bento */}
       <section
@@ -163,26 +163,26 @@ export default function CaseDashboard() {
         <ActiveCaseBar navigate={navigate} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(12, 1fr)', gap: 16, alignItems: 'stretch' }}>
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 8', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 16, alignItems: 'stretch' }}>
+        <div style={{ gridColumn: isMobile ? 'span 12' : 'span 8', display: 'flex', flexDirection: 'column' }}>
           <DailySymptomCheckinWidget />
         </div>
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 4', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ gridColumn: isMobile ? 'span 12' : 'span 4', display: 'flex', flexDirection: 'column' }}>
           <MindfulHRVCard />
         </div>
 
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 8', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ gridColumn: isMobile ? 'span 12' : 'span 8', display: 'flex', flexDirection: 'column' }}>
           <VitalityPlayground />
         </div>
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 4', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ gridColumn: isMobile ? 'span 12' : 'span 4', display: 'flex', flexDirection: 'column' }}>
           <UpgradeToProCard isPro={isPremium} />
         </div>
 
-        <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ gridColumn: 'span 12', display: 'flex', flexDirection: 'column' }}>
           <LongevityBioStackCard />
         </div>
 
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 6', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ gridColumn: isMobile ? 'span 6' : 'span 6', display: 'flex', flexDirection: 'column' }}>
           <section className="card bento-card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: 28, flex: 1, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 8px 32px rgba(15,23,42,0.04)' }}>
             <div>
               <div style={{ display: 'flex', gap: isMobile ? 6 : 10, color: '#0D9488', alignItems: 'center' }}>
@@ -197,7 +197,7 @@ export default function CaseDashboard() {
           </section>
         </div>
 
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'span 6', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ gridColumn: isMobile ? 'span 6' : 'span 6', display: 'flex', flexDirection: 'column' }}>
           <section className="card bento-card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: 28, flex: 1, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.8)', boxShadow: '0 8px 32px rgba(15,23,42,0.04)' }}>
             <div>
               <div style={{ display: 'flex', gap: isMobile ? 6 : 10, color: '#0D9488', alignItems: 'center' }}>
