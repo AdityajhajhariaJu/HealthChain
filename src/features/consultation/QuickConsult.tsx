@@ -460,8 +460,9 @@ export default function QuickConsult() {
                   Choose an AI perspective to help organize questions for your clinician—not a consultation with a licensed professional.
                 </p>
               </div>
+            </div>
 
-              <div>
+            <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
                     Choose an AI Perspective
