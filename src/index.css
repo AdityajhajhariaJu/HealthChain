@@ -1021,11 +1021,14 @@ html.dark-theme body {
   .mobile-tab svg {
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), stroke-width 0.2s;
     stroke-width: 2px;
-    transform-origin: bottom center;
+    transform-origin: center;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
   
   .mobile-tab:active svg {
-    transform: scale(0.85);
+    transform: scale(0.85) translateZ(0);
   }
   
   .mobile-tab.active {
@@ -1033,8 +1036,8 @@ html.dark-theme body {
   }
   
   .mobile-tab.active svg {
-    transform: scale(1.15) translateY(-2px);
-    stroke-width: 2.8px;
+    transform: scale(1.14) translateY(-1.5px) translateZ(0);
+    stroke-width: 2.6px;
   }
   
   .mobile-more-menu-backdrop {
