@@ -37,7 +37,7 @@ export default function Breadcrumbs() {
 
   return (
     <nav aria-label="breadcrumb" style={{ 
-      padding: '10px 16px', 
+      maxWidth: 1120, margin: '0 auto', width: '100%', padding: '10px 16px', 
       backgroundColor: 'var(--surface)', 
       border: '1px solid var(--border)', 
       borderRadius: '12px',

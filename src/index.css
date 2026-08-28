@@ -112,33 +112,13 @@ textarea {
   position: relative;
 }
 
-.aurora-bg::before,
-.aurora-bg::after,
-.aurora-mesh {
-  content: '';
-  position: fixed;
-  top: -50%; left: -50%; width: 200%; height: 200%;
-  z-index: -1;
-  pointer-events: none;
-  mix-blend-mode: normal;
-  opacity: 0.8;
-  filter: blur(60px);
-}
 
-.aurora-bg::before {
-  background: radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.25) 0%, transparent 45%);
-  animation: aurora-1 28s infinite linear;
-}
 
-.aurora-bg::after {
-  background: radial-gradient(circle at 70% 60%, rgba(34, 197, 94, 0.25) 0%, transparent 50%);
-  animation: aurora-2 35s infinite linear reverse;
-}
 
-.aurora-mesh {
-  background: radial-gradient(circle at 40% 80%, rgba(20, 184, 166, 0.25) 0%, transparent 45%);
-  animation: aurora-3 32s infinite linear;
-}
+
+
+
+
 
 /* Ensure children sit above the absolute background */
 .app-shell > * {
@@ -625,6 +605,8 @@ textarea {
 .brand-pulse {
   min-height: 82px;
   width: 100%;
+  max-width: 1120px;
+  margin: 0 auto 8px auto;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -723,6 +705,8 @@ textarea {
 /* ===== ACTIVE CASE CONTEXT ===== */
 .active-case-bar {
   width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   gap: 13px;
