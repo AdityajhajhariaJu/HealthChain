@@ -968,7 +968,7 @@ html.dark-theme body {
   
   .mobile-tab-bar {
     position: fixed;
-    bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    bottom: max(8px, env(safe-area-inset-bottom, 8px));
     left: 16px;
     right: 16px;
     height: var(--bottom-tab-height);
