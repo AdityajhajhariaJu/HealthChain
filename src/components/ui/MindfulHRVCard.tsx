@@ -104,6 +104,7 @@ export default function MindfulHRVCard() {
 
   return (
     <div
+        className="bento-card"
       style={{
         borderRadius: isMobile ? '20px' : '24px',
         background: 'linear-gradient(135deg, #0B132B 0%, #1C2541 60%, #0F3B36 100%)',
@@ -111,7 +112,7 @@ export default function MindfulHRVCard() {
         boxShadow: '0 12px 36px -8px rgba(11, 19, 43, 0.35)',
         padding: isMobile ? '20px 16px' : '26px 28px',
         color: '#FFFFFF',
-        marginBottom: '20px',
+        
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -141,7 +142,7 @@ export default function MindfulHRVCard() {
       >
         {/* Left Side: Info & Controls */}
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px',  flexWrap: 'wrap' }}>
             <span
               style={{
                 fontSize: '11px',

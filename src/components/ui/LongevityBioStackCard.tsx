@@ -624,7 +624,7 @@ export default function LongevityBioStackCard() {
                 borderRadius: '16px',
                 padding: isMobile ? '16px' : '20px',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
-                marginBottom: '12px',
+                
               }}
             >
               <div
@@ -634,7 +634,7 @@ export default function LongevityBioStackCard() {
                   justifyContent: 'space-between',
                   alignItems: isMobile ? 'flex-start' : 'center',
                   gap: '16px',
-                  marginBottom: '18px',
+                  
                 }}
               >
                 <div>
@@ -678,7 +678,7 @@ export default function LongevityBioStackCard() {
                   borderRadius: '999px',
                   background: 'rgba(255, 255, 255, 0.08)',
                   overflow: 'hidden',
-                  marginBottom: '18px',
+                  
                   position: 'relative',
                 }}
               >
@@ -801,7 +801,7 @@ export default function LongevityBioStackCard() {
                 borderRadius: '16px',
                 padding: isMobile ? '16px' : '20px',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
-                marginBottom: '12px',
+                
               }}
             >
               <div
@@ -811,7 +811,7 @@ export default function LongevityBioStackCard() {
                   justifyContent: 'space-between',
                   alignItems: isMobile ? 'flex-start' : 'center',
                   gap: '16px',
-                  marginBottom: '16px',
+                  
                 }}
               >
                 <div>

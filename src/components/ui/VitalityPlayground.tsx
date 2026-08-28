@@ -791,7 +791,7 @@ export default function VitalityPlayground() {
                 padding: isMobile ? '16px' : '20px 24px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',  flexWrap: 'wrap', gap: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#F472B6', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <HelpCircle size={13} color="#F472B6" /> {currentMyth.category} · Myth vs Fact
                 </span>
@@ -805,7 +805,7 @@ export default function VitalityPlayground() {
               </h4>
 
               {/* 2 Big Action Buttons: Myth vs Fact */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px',  }}>
                 <button
                   onClick={() => handleMythChoice(false)}
                   disabled={mythAnswered}
