@@ -33,7 +33,13 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
               triggerHapticLight();
               onClose();
             }}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 60,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(4px)'
+            }}
           />
 
           <motion.div
@@ -41,13 +47,39 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-x-0 bottom-0 z-[61] h-[92vh] flex flex-col bg-[#0F0F11] rounded-t-[32px] overflow-hidden shadow-2xl border-t border-white/10"
+            style={{
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 61,
+              height: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: '#0F0F11',
+              borderTopLeftRadius: '32px',
+              borderTopRightRadius: '32px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
           >
             <div 
-              className="absolute top-0 left-0 right-0 h-12 flex justify-center items-center z-10 cursor-pointer"
               onClick={onClose}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '48px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 10,
+                cursor: 'pointer'
+              }}
             >
-              <div className="w-12 h-1.5 bg-white/20 rounded-full mt-2" />
+              <div style={{ width: '48px', height: '6px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '9999px', marginTop: '8px' }} />
             </div>
 
             <button 
@@ -55,26 +87,51 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
                 triggerHapticLight();
                 onClose();
               }}
-              className="absolute top-4 right-4 z-20 bg-black/40 backdrop-blur-md p-2 rounded-full text-white/80 hover:text-white"
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                zIndex: 20,
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(12px)',
+                padding: '8px',
+                borderRadius: '9999px',
+                color: 'rgba(255,255,255,0.8)',
+                border: 'none',
+                cursor: 'pointer'
+              }}
             >
               <X size={20} />
             </button>
 
             {bgImage && (
               <div 
-                className="relative h-64 w-full flex-shrink-0"
                 style={{
+                  position: 'relative',
+                  height: '256px',
+                  width: '100%',
+                  flexShrink: 0,
                   backgroundImage: `url(${bgImage})`,
                   backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  backgroundPosition: 'center'
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-[#0F0F11]" />
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.2), #0F0F11)'
+                }} />
               </div>
             )}
 
-            <div className="flex-1 overflow-y-auto px-6 py-6 pb-24 text-white relative">
-               {!bgImage && <div className="mt-8" />}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '24px 24px 96px',
+              color: 'white',
+              position: 'relative'
+            }}>
+               {!bgImage && <div style={{ marginTop: '32px' }} />}
                {children}
             </div>
           </motion.div>

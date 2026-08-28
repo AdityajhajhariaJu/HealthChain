@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Lock, Flame } from 'lucide-react';
 import { getCases } from '../../services/CaseEngine';
 import { getProfile, isProUser, verifyProStatus } from '../../services/ProfileEngine';
@@ -55,25 +54,25 @@ export default function CaseDashboard() {
 
   if (id) {
     const item = cases.find((c: any) => c.id === id);
-    if (!item) return <div className="p-8 text-center text-white">Case not found.</div>;
+    if (!item) return <div style={{ padding: '32px', textAlign: 'center', color: 'white' }}>Case not found.</div>;
     return (
-      <div className="pt-20 px-4 text-white">
-        <button onClick={() => navigate('/app/today')} className="text-blue-500 mb-4">&larr; Back to Today</button>
-        <h1 className="text-2xl font-bold">{item.title}</h1>
-        <p className="text-gray-400">Clinical details view is preserved.</p>
+      <div style={{ paddingTop: '80px', paddingLeft: '16px', paddingRight: '16px', color: 'white' }}>
+        <button onClick={() => navigate('/app/today')} style={{ color: '#3b82f6', marginBottom: '16px', background: 'none', border: 'none', cursor: 'pointer' }}>&larr; Back to Today</button>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>{item.title}</h1>
+        <p style={{ color: '#9ca3af' }}>Clinical details view is preserved.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-32 pt-16 font-sans selection:bg-white/20">
+    <div style={{ minHeight: '100vh', backgroundColor: 'black', color: 'white', paddingBottom: '128px', paddingTop: '64px', fontFamily: 'sans-serif' }}>
       
-      <div className="px-4 mb-6">
-        <h1 className="text-3xl font-extrabold tracking-tight">Today</h1>
-        <p className="text-gray-400 font-medium">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+      <div style={{ padding: '0 16px', marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 4px' }}>Today</h1>
+        <p style={{ color: '#9ca3af', fontWeight: 500, margin: 0 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
       </div>
 
-      <div className="px-4 mb-8">
+      <div style={{ padding: '0 16px', marginBottom: '32px' }}>
         <ActiveCaseBar navigate={navigate} />
       </div>
 
@@ -93,17 +92,26 @@ export default function CaseDashboard() {
       </SwimlaneCarousel>
 
       <SwimlaneCarousel title="Activity Types">
-         <div className="flex flex-col gap-2 w-32 h-40 bg-white rounded-3xl overflow-hidden cursor-pointer hover:scale-95 transition-transform" onClick={() => setSelectedContent(workouts[4])}>
-            <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?auto=format&fit=crop&q=80" className="w-full h-24 object-cover" />
-            <span className="text-black font-bold text-center mt-2">Yoga</span>
+         <div 
+           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }} 
+           onClick={() => setSelectedContent(workouts[4])}
+         >
+            <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?auto=format&fit=crop&q=80" style={{ width: '100%', height: '96px', objectFit: 'cover' }} />
+            <span style={{ color: 'black', fontWeight: 'bold', textAlign: 'center', marginTop: '8px' }}>Yoga</span>
          </div>
-         <div className="flex flex-col gap-2 w-32 h-40 bg-white rounded-3xl overflow-hidden cursor-pointer hover:scale-95 transition-transform" onClick={() => setSelectedContent(workouts[3])}>
-            <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80" className="w-full h-24 object-cover" />
-            <span className="text-black font-bold text-center mt-2">Strength</span>
+         <div 
+           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }} 
+           onClick={() => setSelectedContent(workouts[3])}
+         >
+            <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80" style={{ width: '100%', height: '96px', objectFit: 'cover' }} />
+            <span style={{ color: 'black', fontWeight: 'bold', textAlign: 'center', marginTop: '8px' }}>Strength</span>
          </div>
-         <div className="flex flex-col gap-2 w-32 h-40 bg-white rounded-3xl overflow-hidden cursor-pointer hover:scale-95 transition-transform" onClick={() => setShowBreathing(true)}>
-            <img src="https://images.unsplash.com/photo-1518085250985-78e7bbdf6a62?auto=format&fit=crop&q=80" className="w-full h-24 object-cover" />
-            <span className="text-black font-bold text-center mt-2">Meditation</span>
+         <div 
+           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }} 
+           onClick={() => setShowBreathing(true)}
+         >
+            <img src="https://images.unsplash.com/photo-1518085250985-78e7bbdf6a62?auto=format&fit=crop&q=80" style={{ width: '100%', height: '96px', objectFit: 'cover' }} />
+            <span style={{ color: 'black', fontWeight: 'bold', textAlign: 'center', marginTop: '8px' }}>Meditation</span>
          </div>
       </SwimlaneCarousel>
 
@@ -139,7 +147,7 @@ export default function CaseDashboard() {
             isPremium={track.isPremium}
             onClick={() => setSelectedContent(track)}
           >
-             <div className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2">
+             <div style={{ position: 'absolute', bottom: '16px', right: '16px', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)', borderRadius: '9999px', padding: '8px' }}>
                 <Play size={16} fill="white" />
              </div>
           </ImmersiveMediaCard>
@@ -148,17 +156,21 @@ export default function CaseDashboard() {
 
       <SwimlaneCarousel title="Articles for you" subtitle="Editor's Picks">
         {articles.map(article => (
-          <div key={article.id} className="w-[300px] bg-white rounded-[32px] overflow-hidden cursor-pointer shadow-lg" onClick={() => setSelectedContent(article)}>
-             <div className="h-40 relative">
-                <img src={article.coverImage} className="w-full h-full object-cover" />
-                <div className="absolute bottom-3 left-3 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1">
+          <div 
+            key={article.id} 
+            style={{ width: '300px', backgroundColor: 'white', borderRadius: '32px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }} 
+            onClick={() => setSelectedContent(article)}
+          >
+             <div style={{ height: '160px', position: 'relative' }}>
+                <img src={article.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', bottom: '12px', left: '12px', backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(12px)', padding: '4px 12px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                    <Flame size={12} color="#DC2626" />
-                   <span className="text-xs font-bold text-black uppercase tracking-wider">Popular</span>
+                   <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'black', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Popular</span>
                 </div>
              </div>
-             <div className="p-5">
-                <h3 className="text-black font-bold text-lg leading-tight mb-2">{article.title}</h3>
-                <p className="text-gray-500 text-sm font-medium">{article.readTime} min read</p>
+             <div style={{ padding: '20px' }}>
+                <h3 style={{ color: 'black', fontWeight: 'bold', fontSize: '18px', lineHeight: 1.2, margin: '0 0 8px' }}>{article.title}</h3>
+                <p style={{ color: '#6b7280', fontSize: '14px', fontWeight: 500, margin: 0 }}>{article.readTime} min read</p>
              </div>
           </div>
         ))}
@@ -170,18 +182,18 @@ export default function CaseDashboard() {
         bgImage={selectedContent?.coverImage}
       >
          {selectedContent && (
-            <div className="flex flex-col h-full bg-[#0F0F11] -mx-6 -mt-16 px-6 pt-10 rounded-t-[32px] text-white">
-                <h1 className="text-3xl font-extrabold mb-1">{selectedContent.title}</h1>
-                <p className="text-gray-400 font-medium mb-6">
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#0F0F11', margin: '-64px -24px 0', padding: '40px 24px 0', borderTopLeftRadius: '32px', borderTopRightRadius: '32px', color: 'white' }}>
+                <h1 style={{ fontSize: '30px', fontWeight: 800, margin: '0 0 4px' }}>{selectedContent.title}</h1>
+                <p style={{ color: '#9ca3af', fontWeight: 500, margin: '0 0 24px' }}>
                     {selectedContent.duration ? `${selectedContent.duration} min` : ''} 
                     {selectedContent.subtitle ? ` • ${selectedContent.subtitle}` : ''}
                 </p>
-                <p className="text-gray-300 leading-relaxed text-lg mb-8">
+                <p style={{ color: '#d1d5db', lineHeight: 1.6, fontSize: '18px', margin: '0 0 32px' }}>
                     Feel the beauty of the surroundings, relax your mind, imagine being in nature, and soothe your spirit with rhythmic and harmonious breathing.
                 </p>
-                <div className="mt-auto pb-8">
+                <div style={{ marginTop: 'auto', paddingBottom: '32px' }}>
                     <button 
-                        className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold text-lg py-4 rounded-full shadow-lg transition-transform active:scale-95"
+                        style={{ width: '100%', backgroundColor: '#10B981', color: 'white', fontWeight: 'bold', fontSize: '18px', padding: '16px', borderRadius: '9999px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', border: 'none', cursor: 'pointer' }}
                         onClick={() => {
                             triggerHapticLight();
                             setSelectedContent(null);

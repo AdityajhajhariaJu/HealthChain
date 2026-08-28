@@ -38,57 +38,81 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex flex-col justify-between items-center text-white font-sans bg-black"
         style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: 'white',
+          fontFamily: 'sans-serif',
+          backgroundColor: 'black',
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
 
-        <div className="w-full flex justify-between items-center p-6 z-10 pt-12">
-          <button onClick={onClose} className="p-2 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-colors">
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', zIndex: 10, paddingTop: '48px' }}>
+          <button 
+            onClick={onClose} 
+            style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}
+          >
             <X size={24} color="white" />
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center z-10 relative w-full">
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, position: 'relative', width: '100%' }}>
             <motion.div 
-                className="absolute w-64 h-64 border-[1px] border-white/20 rounded-full"
+                style={{ position: 'absolute', width: '256px', height: '256px', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '9999px' }}
                 animate={{ scale: isPlaying ? (phase === 'Inhale' ? 1.5 : phase === 'Exhale' ? 1 : 1.5) : 1 }}
                 transition={{ duration: 4, ease: "easeInOut" }}
             />
             <motion.div 
-                className="absolute w-48 h-48 border-[1px] border-white/30 rounded-full"
+                style={{ position: 'absolute', width: '192px', height: '192px', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9999px' }}
                 animate={{ scale: isPlaying ? (phase === 'Inhale' ? 1.4 : phase === 'Exhale' ? 1 : 1.4) : 1 }}
                 transition={{ duration: 4, ease: "easeInOut", delay: 0.1 }}
             />
             <motion.div 
-                className="absolute w-32 h-32 border-[1px] border-white/50 rounded-full flex items-center justify-center bg-white/5 backdrop-blur-sm"
+                style={{ position: 'absolute', width: '128px', height: '128px', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(4px)' }}
                 animate={{ scale: isPlaying ? (phase === 'Inhale' ? 1.2 : phase === 'Exhale' ? 1 : 1.2) : 1 }}
                 transition={{ duration: 4, ease: "easeInOut", delay: 0.2 }}
             >
-                <span className="text-xl font-light tracking-widest uppercase">{isPlaying ? phase : 'Ready'}</span>
+                <span style={{ fontSize: '20px', fontWeight: 300, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isPlaying ? phase : 'Ready'}</span>
             </motion.div>
         </div>
 
-        <div className="w-full p-8 z-10 flex flex-col items-center gap-8 mb-8">
+        <div style={{ width: '100%', padding: '32px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', marginBottom: '32px' }}>
             <button 
                 onClick={() => {
                     triggerHapticLight();
                     setIsPlaying(!isPlaying);
                 }}
-                className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-full flex justify-center items-center hover:bg-white/30 transition-all border border-white/30 shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  backdropFilter: 'blur(24px)',
+                  borderRadius: '9999px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  boxShadow: '0 0 40px rgba(255,255,255,0.1)',
+                  cursor: 'pointer'
+                }}
             >
-                {isPlaying ? <Pause size={32} fill="white" /> : <Play size={32} fill="white" className="ml-2" />}
+                {isPlaying ? <Pause size={32} fill="white" /> : <Play size={32} fill="white" style={{ marginLeft: '8px' }} />}
             </button>
-            <div className="w-full flex justify-between text-white/50 text-sm font-medium px-4">
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.5)', fontSize: '14px', fontWeight: 500, padding: '0 16px' }}>
                 <span>00:00</span>
                 <span>10:00</span>
             </div>
-            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden px-4">
-                <div className="h-full bg-white w-0" />
+            <div style={{ width: '100%', height: '4px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '9999px', overflow: 'hidden', margin: '0 16px' }}>
+                <div style={{ height: '100%', backgroundColor: 'white', width: '0' }} />
             </div>
         </div>
       </motion.div>

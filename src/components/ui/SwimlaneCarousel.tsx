@@ -12,16 +12,16 @@ export function SwimlaneCarousel({ title, subtitle, onSeeAll, children }: Swimla
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex flex-col py-2 w-full">
-      <div className="flex justify-between items-end px-4 mb-3">
+    <div style={{ display: 'flex', flexDirection: 'column', padding: '8px 0', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 16px', marginBottom: '12px' }}>
         <div>
-          {subtitle && <p className="text-gray-400 text-xs uppercase tracking-wider font-semibold mb-0.5">{subtitle}</p>}
-          <h2 className="text-white text-xl font-bold">{title}</h2>
+          {subtitle && <p style={{ color: '#9ca3af', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, margin: '0 0 2px' }}>{subtitle}</p>}
+          <h2 style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>{title}</h2>
         </div>
         {onSeeAll && (
           <button 
             onClick={onSeeAll}
-            className="text-gray-400 hover:text-white flex items-center text-sm font-medium transition-colors"
+            style={{ color: '#9ca3af', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
           >
             See All <ChevronRight size={16} />
           </button>
@@ -30,20 +30,22 @@ export function SwimlaneCarousel({ title, subtitle, onSeeAll, children }: Swimla
 
       <div 
         ref={scrollRef}
-        className="flex gap-4 px-4 pb-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        style={{
+          display: 'flex',
+          gap: '16px',
+          padding: '0 16px 16px',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
       >
         {React.Children.map(children, (child) => (
-          <div className="snap-start flex-shrink-0">
+          <div style={{ scrollSnapAlign: 'start', flexShrink: 0 }}>
             {child}
           </div>
         ))}
       </div>
-      <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 }
