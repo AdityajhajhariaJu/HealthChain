@@ -65,9 +65,9 @@ const links: any[] = [
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
-  { to: '/app/dietician', label: 'Dietician', icon: Apple },
+  { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
-  { to: '/app/pharmacy', label: 'Pharmacy Hub', icon: Pill },
+  { to: '/app/pharmacy', label: 'Medicine Hub', icon: Pill },
   { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
 ];
 
@@ -75,6 +75,8 @@ const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
   { to: '/app/jarvis', label: 'JARVIS', icon: Brain },
+  { to: '/app/ava', label: 'Ava', icon: Heart },
+  { to: '/app/dietician', label: 'Diet', icon: Apple },
   { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 
