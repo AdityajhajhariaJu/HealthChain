@@ -357,10 +357,10 @@ export default function AvaHealthBuddy() {
           background: 'rgba(255, 255, 255, 0.45)',
           backdropFilter: 'blur(32px)', 
           WebkitBackdropFilter: 'blur(32px)',
-          borderRadius: '32px',
-          margin: isMobile ? '8px' : '0',
+          borderRadius: isMobile ? '32px 32px 0 0' : '32px',
+          margin: isMobile ? '8px 0 0 0' : '0',
           boxShadow: '0 24px 64px rgba(244, 63, 94, 0.08)',
-          maxWidth: isMobile ? 'calc(100% - 16px)' : '1000px',
+          maxWidth: isMobile ? '100%' : '1000px',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -734,7 +734,7 @@ export default function AvaHealthBuddy() {
             marginTop: 'auto',
             width: '100%',
             flexShrink: 0,
-            marginBottom: isMobile ? '6px' : '0',
+            marginBottom: '0',
           }}
         >
           {attachments.length > 0 && (
