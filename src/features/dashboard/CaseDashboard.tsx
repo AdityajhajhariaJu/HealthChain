@@ -1,6 +1,8 @@
 ﻿import { FitnessNav } from '../../components/ui/FitnessNav';
+import { Activity, Clock, Flame, Heart, HeartPulse, Moon, MoreHorizontal, Play, Settings2, Sparkles, Target, Zap } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Settings2, Sparkles, Flame, Clock, HeartPulse, MoreHorizontal } from 'lucide-react';
+
+
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SwimlaneCarousel } from '../../components/ui/SwimlaneCarousel';
 import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
