@@ -1,5 +1,5 @@
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, Bike, Clock, Dumbbell, Flame, Footprints, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
+import {Activity, Bike, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 
@@ -345,6 +345,32 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 ].map(item => (
                   <VerticalWorkoutRow key={item.id} item={item as any} getFallbackImage={() => item.cover_image_url} onClick={() => {}} />
                 ))}
+              </div>
+            </section>
+
+            {/* STEP 4: SPECIALTY & GAMING */}
+            <section style={{ padding: '0 24px', marginBottom: '40px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Specialty & Gaming</h2>
+                <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Interactive fitness experiences</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* Activity Games */}
+                <div style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80" alt="Activity Games" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
+                    <Gamepad2 size={24} color="#10B981" style={{ marginBottom: '8px' }} />
+                    <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Activity<br/>Games</h3>
+                  </div>
+                </div>
+                {/* Hand-Eye Coordination */}
+                <div style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80" alt="Hand-Eye Coordination" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
+                    <Crosshair size={24} color="#3b82f6" style={{ marginBottom: '8px' }} />
+                    <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Hand-Eye<br/>Coordination</h3>
+                  </div>
+                </div>
               </div>
             </section>
 
