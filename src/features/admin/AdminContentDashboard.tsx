@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../../admin.css';
 import { Plus, Edit2, Trash2, UploadCloud, Save, X, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
