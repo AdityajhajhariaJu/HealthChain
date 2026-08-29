@@ -4,7 +4,6 @@ import { Play, Lock, Flame } from 'lucide-react';
 import { getCases } from '../../services/CaseEngine';
 import { getProfile, isProUser, verifyProStatus } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { ActiveCaseBar } from '../../components/layout/AppShell';
 import { SwimlaneCarousel } from '../../components/ui/SwimlaneCarousel';
 import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
 import { BottomSheetOverlay } from '../../components/ui/BottomSheetOverlay';
@@ -70,10 +69,6 @@ export default function CaseDashboard() {
       <div style={{ padding: '0 16px', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 4px' }}>Today</h1>
         <p style={{ color: '#9ca3af', fontWeight: 500, margin: 0 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-      </div>
-
-      <div style={{ padding: '0 16px', marginBottom: '32px' }}>
-        <ActiveCaseBar navigate={navigate} />
       </div>
 
       <SwimlaneCarousel title="Top Programs" subtitle="Most popular picks right now">
