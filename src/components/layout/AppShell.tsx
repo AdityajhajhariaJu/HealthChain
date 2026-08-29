@@ -264,7 +264,7 @@ export default function AppShell() {
             <ActiveCaseBar navigate={navigate} />
           )}
           {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
-        <div style={{ minHeight: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'calc(100% - 104px)', height: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'auto' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'calc(100% - 104px)', height: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'auto' }}>
           <Outlet />
         </div>
       </main>
