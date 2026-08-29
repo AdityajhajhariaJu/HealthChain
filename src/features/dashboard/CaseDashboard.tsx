@@ -241,10 +241,10 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   { name: 'HIIT', icon: <Zap size={20} />, img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80', color: '#FF4B2B' },
                   { name: 'Pilates', icon: <Sparkles size={20} />, img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80', color: '#4A00E0' },
                   { name: 'Dance', icon: <Music size={20} />, img: 'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=400&q=80', color: '#fecfef' },
-                  { name: 'Kickboxing', icon: <Swords size={20} />, img: 'https://images.unsplash.com/photo-1549719386-74dfc47db431?w=400&q=80', color: '#f12711' },
+                  { name: 'Kickboxing', icon: <Swords size={20} />, img: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=400&q=80', color: '#f12711' },
                   { name: 'Treadmill', icon: <Footprints size={20} />, img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80', color: '#00C9FF' },
                   { name: 'Cycling', icon: <Bike size={20} />, img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80', color: '#11998e' },
-                  { name: 'Rowing', icon: <Waves size={20} />, img: 'https://images.unsplash.com/photo-1543162791-c91836585148?w=400&q=80', color: '#3b82f6' },
+                  { name: 'Rowing', icon: <Waves size={20} />, img: 'https://images.unsplash.com/photo-1519962551779-514d1565cb23?w=400&q=80', color: '#3b82f6' },
                   { name: 'Cooldown', icon: <Moon size={20} />, img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', color: '#66a6ff' }
                 ].map((type, i) => (
                   <button 
@@ -339,7 +339,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {[
-                  { id: 'a1', title: '30-Min AMRAP Crusher', difficulty: 'Advanced', duration_minutes: 30, type: 'HIIT', cover_image_url: 'https://images.unsplash.com/photo-1549719386-74dfc47db431?w=800&q=80' },
+                  { id: 'a1', title: '30-Min AMRAP Crusher', difficulty: 'Advanced', duration_minutes: 30, type: 'HIIT', cover_image_url: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=800&q=80' },
                   { id: 'a2', title: 'Heavy Kettlebell Power', difficulty: 'Advanced', duration_minutes: 45, type: 'Strength', cover_image_url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80' },
                   { id: 'a3', title: 'Pro Runner Intervals', difficulty: 'Advanced', duration_minutes: 40, type: 'Treadmill', cover_image_url: 'https://images.unsplash.com/photo-1506509971987-1335b0e8b15d?w=800&q=80' }
                 ].map(item => (
