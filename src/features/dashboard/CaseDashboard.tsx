@@ -11,12 +11,14 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 
 
-export const CaseDashboard: React.FC = () => {
+export default function CaseDashboard() {
   const isMobile = useIsMobile();
   const [categories, setCategories] = useState<FitnessCategory[]>([]);
   const [featured, setFeatured] = useState<FitnessContent[]>([]);
   const [contentMap, setContentMap] = useState<Record<string, FitnessContent[]>>({});
   const [loading, setLoading] = useState(true);
+  const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
+
 
   const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
@@ -86,14 +88,101 @@ export const CaseDashboard: React.FC = () => {
     }
   };
 
+  
+
+
+// Premium Apple-Style Components
+const ProgramCard = ({ title, subtitle, gradient, icon, onClick }: any) => (
+  <div onClick={onClick} style={{
+    minWidth: '240px', height: '140px', borderRadius: '24px', background: gradient,
+    padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    cursor: 'pointer', boxShadow: '0 10px 20px -5px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden', flexShrink: 0
+  }}>
+    <div>
+      <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px' }}>{title}</h3>
+      <p style={{ color: 'rgba(255,255,255,0.8)', margin: '4px 0 0', fontSize: '13px', fontWeight: 500 }}>{subtitle}</p>
+    </div>
+    <div style={{ alignSelf: 'flex-end', color: 'rgba(255,255,255,0.9)' }}>
+      {icon}
+    </div>
+  </div>
+);
+
+const VerticalWorkoutRow = ({ item, onClick, getFallbackImage }: any) => (
+  <div onClick={onClick} style={{ display: 'flex', gap: '16px', alignItems: 'center', cursor: 'pointer', padding: '8px 0' }}>
+    <div style={{ position: 'relative', width: '120px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
+      <img src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {item.is_featured && (
+        <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(255,255,255,0.9)', color: '#000', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.5px' }}>
+          NEW
+        </div>
+      )}
+    </div>
+    <div style={{ flex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{item.title}</h4>
+      <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
+        {item.duration_minutes}min • {item.difficulty ? item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1) : 'Open'}
+      </p>
+    </div>
+  </div>
+);
+
+const MeditationHeroCard = ({ item, onClick, getFallbackImage }: any) => (
+  <div onClick={onClick} style={{
+    minWidth: '300px', height: '220px', borderRadius: '24px', overflow: 'hidden', position: 'relative', cursor: 'pointer', flexShrink: 0,
+    boxShadow: '0 12px 24px -8px rgba(0,0,0,0.15)'
+  }}>
+    <img src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)' }} />
+    <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div>
+        <h3 style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: 700, letterSpacing: '-0.5px' }}>{item.title}</h3>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '8px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+            <div style={{ width: '2px', height: '8px', background: 'white', borderRadius: '1px' }} />
+            <div style={{ width: '2px', height: '12px', background: 'white', borderRadius: '1px' }} />
+            <div style={{ width: '2px', height: '8px', background: 'white', borderRadius: '1px' }} />
+          </div>
+          <span style={{ color: 'white', fontSize: '12px', fontWeight: 600 }}>Ambient</span>
+        </div>
+      </div>
+      <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.8)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+        <Play size={20} fill="#0F172A" color="#0F172A" style={{ marginLeft: '3px' }} />
+      </button>
+    </div>
+  </div>
+);
+
+const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
+  <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer' }}>
+    <div style={{ aspectRatio: '1', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 8px 16px -6px rgba(0,0,0,0.08)' }}>
+      <img src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    </div>
+    <div>
+      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{item.title}</h4>
+      <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#94A3B8' }}>{item.duration_minutes} min</p>
+    </div>
+  </div>
+);
+
+
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#10B981' }}>Loading Health Today...</div>;
   }
 
+  // Group content for the new Apple-style layout
+  const allWorkouts = Object.values(contentMap).flat().filter(c => ['workout', 'hiit', 'strength', 'yoga'].includes(c.type));
+  const beginnerWorkouts = allWorkouts.filter(w => w.difficulty === 'Beginner').slice(0, 4);
+  const intermediateWorkouts = allWorkouts.filter(w => w.difficulty === 'Intermediate').slice(0, 4);
+  
+  const allMeditations = Object.values(contentMap).flat().filter(c => ['meditation', 'breathwork', 'soundscape'].includes(c.type));
+  const heroMeditations = allMeditations.slice(0, 3);
+  const gridMeditations = allMeditations.slice(3, 7);
+
   return (
     <div style={{
       width: '100%',
-      backgroundColor: '#F0FDFA', 
+      backgroundColor: '#FFFFFF', // Clean white background for Apple style
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -101,174 +190,114 @@ export const CaseDashboard: React.FC = () => {
       overflowX: 'hidden'
     }}>
       <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
-      <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
-        <section
-          style={{
-            position: 'relative',
-            borderRadius: isMobile ? '20px' : '24px',
-            padding: isMobile ? '20px 20px' : '32px',
-            overflow: 'hidden',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            marginBottom: '8px'
-          }}
-        >
-          <div style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            background: 'linear-gradient(135deg, rgba(16,185,129,0.95) 0%, rgba(4,120,87,0.95) 100%)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)'
-          }} />
-          <div style={{
-            position: 'absolute', top: '-10%', right: '-5%', width: '150px', height: '150px',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)',
-            borderRadius: '50%', zIndex: 0, filter: 'blur(20px)'
-          }} />
-
-          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                background: 'rgba(255,255,255,0.2)', padding: '4px 8px', borderRadius: '12px',
-                display: 'flex', alignItems: 'center', gap: '4px', backdropFilter: 'blur(4px)'
-              }}>
-                <Sparkles size={12} color="white" />
-                <span style={{ color: 'white', fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px' }}>HEALTH COMMAND CENTRE</span>
-              </div>
-            </div>
-
-            <h1 style={{
-              margin: '0', color: 'white', fontWeight: '800', lineHeight: 1.1,
-              fontSize: isMobile ? '26px' : '34px', letterSpacing: '-0.5px'
-            }}>
-              Good to see you, <span style={{ color: '#A7F3D0' }}>Aditya.</span>
-            </h1>
-
-            <p style={{
-              color: 'rgba(255,255,255,0.9)', fontSize: '14px', lineHeight: 1.4,
-              margin: 0, maxWidth: '280px', fontWeight: 500
-            }}>
-              Your daily health insights and active plans are looking excellent today.
-            </p>
-
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-              <button 
-                style={{
-                  background: 'white', color: '#047857', border: 'none',
-                  padding: '10px 20px', borderRadius: '14px', fontWeight: '700',
-                  fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', cursor: 'pointer',
-                  whiteSpace: 'nowrap', flexShrink: 0
-                }}
-                onClick={triggerHapticLight}
-              >
-                <Play size={14} fill="#047857" /> Quick Consult
-              </button>
-              <button 
-                style={{
-                  background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.2)',
-                  padding: '10px', borderRadius: '14px', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)', flexShrink: 0
-                }}
-                onClick={triggerHapticLight}
-              >
-                <Settings2 size={16} />
-              </button>
-            </div>
-          </div>
-        </section>
+      
+      {/* Premium Toggle */}
+      <div style={{ display: 'flex', gap: '24px', padding: '0 24px', borderBottom: '1px solid rgba(0,0,0,0.05)', marginBottom: '24px' }}>
+        <button 
+          onClick={() => { triggerHapticLight(); setDashboardTab('fitness'); }}
+          style={{ background: 'none', border: 'none', padding: '12px 0', fontSize: '17px', fontWeight: 600, color: dashboardTab === 'fitness' ? '#0F172A' : '#94A3B8', borderBottom: dashboardTab === 'fitness' ? '2px solid #10B981' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+          Fitness programme
+        </button>
+        <button 
+          onClick={() => { triggerHapticLight(); setDashboardTab('meditation'); }}
+          style={{ background: 'none', border: 'none', padding: '12px 0', fontSize: '17px', fontWeight: 600, color: dashboardTab === 'meditation' ? '#0F172A' : '#94A3B8', borderBottom: dashboardTab === 'meditation' ? '2px solid #10B981' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
+          Meditation training
+        </button>
       </div>
 
-      
-      {/* 1. Top Programs (Most Popular) */}
-      <SwimlaneCarousel title="Top Programs" subtitle="Most popular picks right now">
-        {featured.length > 0 ? featured.map(item => (
-          <ImmersiveMediaCard
-            key={item.id}
-            title={item.title}
-            subtitle={item.subtitle || `DESIGNED FOR ${item.difficulty.toUpperCase()}`}
-            bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
-            aspectRatio="video"
-            duration={item.type === 'workout' ? `${item.duration_minutes} MIN` : '12 EPISODES'}
-            isPremium={item.is_premium}
-            onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
-          />
-        )) : (
-          <ImmersiveMediaCard
-            title="12 Stretchy Yoga Flows"
-            subtitle="DESIGNED FOR RELAXATION"
-            bgImage="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80"
-            aspectRatio="video"
-            duration="12 EPISODES"
-            isPremium={false}
-            onClick={() => { triggerHapticLight(); }}
-          />
-        )}
-      </SwimlaneCarousel>
+      {dashboardTab === 'fitness' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          
+          {/* 1. Browse Programs (Gradients) */}
+          <section>
+            <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A' }}>Browse Programs</h2>
+              <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px' }}>
+              <ProgramCard title="Strength" subtitle="BUILD MUSCLE & POWER" gradient="linear-gradient(135deg, #FF4B2B 0%, #FF416C 100%)" icon={<Flame size={28} />} onClick={() => {}} />
+              <ProgramCard title="Pilates & Core" subtitle="STABILITY & CONTROL" gradient="linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%)" icon={<Sparkles size={28} />} onClick={() => {}} />
+              <ProgramCard title="HIIT" subtitle="BURN CALORIES FAST" gradient="linear-gradient(135deg, #FDB99B 0%, #CF8BF3 100%, #A770EF 100%)" icon={<HeartPulse size={28} />} onClick={() => {}} />
+            </div>
+          </section>
 
-      {/* 2. Activity Types (Bento Grid) */}
-      <SwimlaneCarousel title="Activity Types">
-        {categories.map((cat, i) => (
-          <div 
-            key={cat.id}
-            style={{ 
-              display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', 
-              backgroundColor: 'white', borderRadius: '24px', 
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', 
-              border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden', cursor: 'pointer', flexShrink: 0 
-            }} 
-            onClick={() => {
-              triggerHapticLight();
-              const catItems = contentMap[cat.id];
-              if (catItems && catItems.length > 0) setSelectedContent(catItems[0]);
-            }}
-          >
-            <img 
-              src={getFallbackImage(cat.slug, cat.id)} 
-              style={{ width: '100%', height: '96px', objectFit: 'cover' }} 
-              alt={cat.label} 
-            />
-            <span style={{ color: '#0F172A', fontWeight: '700', textAlign: 'center', marginTop: '8px', fontSize: '14px' }}>
-              {cat.label}
-            </span>
-          </div>
-        ))}
-      </SwimlaneCarousel>
+          {/* 2. Vertical Workout List - Beginner */}
+          <section style={{ padding: '0 24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Workouts</h2>
+            <p style={{ fontSize: '14px', color: '#64748B', margin: '0 0 16px' }}>Beginner friendly, new and picked for you</p>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {beginnerWorkouts.map(item => (
+                <VerticalWorkoutRow key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
+              ))}
+            </div>
+          </section>
 
-      {/* 3. Free Workouts @ Home */}
-      <SwimlaneCarousel title="Free Workouts @ Home">
-        {categories.filter(c => ['hiit', 'strength', 'running'].includes(c.slug)).map(cat => 
-          (contentMap[cat.id] || []).map(item => (
-            <ImmersiveMediaCard
-              key={item.id}
-              title={item.title}
-              subtitle={`${item.duration_minutes} Min ${item.calories_estimate ? ' • ' + item.calories_estimate + ' Cal' : ''}`}
-              bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
-              aspectRatio="wide"
-              tags={[cat.label.toUpperCase()]}
-              isPremium={item.is_premium}
-              onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
-            />
-          ))
-        ).flat()}
-      </SwimlaneCarousel>
+          {/* 3. Stacked Difficulty Hubs */}
+          <section style={{ padding: '0 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ height: '100px', borderRadius: '16px', background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4)), url(https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80) center/cover', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Intermediate Workouts</h3>
+              </div>
+              <div style={{ height: '100px', borderRadius: '16px', background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4)), url(https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80) center/cover', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Advanced Workouts</h3>
+              </div>
+            </div>
+          </section>
 
-      {/* 4. Mental Wellness & Focus */}
-      <SwimlaneCarousel title="Mental Wellness & Focus">
-        {categories.filter(c => ['meditation', 'yoga'].includes(c.slug)).map(cat => 
-          (contentMap[cat.id] || []).map(item => (
-            <ImmersiveMediaCard
-              key={item.id}
-              title={item.title}
-              subtitle={`${item.duration_minutes} Min`}
-              bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
-              aspectRatio="square"
-              tags={['MINDFULNESS']}
-              isPremium={item.is_premium}
-              onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
-            />
-          ))
-        ).flat()}
-      </SwimlaneCarousel>
+        </div>
+      )}
 
+      {dashboardTab === 'meditation' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* 1. Ambient Hero Cards */}
+          <section>
+            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px' }}>
+              {heroMeditations.map(item => (
+                <MeditationHeroCard key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
+              ))}
+              {heroMeditations.length === 0 && (
+                <MeditationHeroCard item={{ title: 'Stressed', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
+              )}
+            </div>
+          </section>
+
+          {/* 2. Mindfulness Grid */}
+          <section style={{ padding: '0 24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A' }}>Mindfulness</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              {gridMeditations.length > 0 ? gridMeditations.map(item => (
+                <MindfulnessGridItem key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
+              )) : (
+                <>
+                  <MindfulnessGridItem item={{ title: 'Mindful Breathing', duration_minutes: 10, type: 'meditation', id: '1' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
+                  <MindfulnessGridItem item={{ title: 'Gratitude Guide', duration_minutes: 5, type: 'meditation', id: '2' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
+                </>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* Shared Knowledge Base (Articles) */}
+      <section style={{ padding: '32px 24px 100px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A' }}>Knowledge Base</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {[
+            { title: 'The Science of Sleep', subtitle: 'Read • 5 min', img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&q=80' },
+            { title: 'Nutrition for Recovery', subtitle: 'Read • 8 min', img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80' }
+          ].map((art, i) => (
+            <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden' }}>
+                <img src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>{art.title}</h4>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>{art.subtitle}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <ContentDetailPage 
         content={selectedContent}
@@ -292,8 +321,5 @@ export const CaseDashboard: React.FC = () => {
       )}
     </div>
   );
-}
-
-export default CaseDashboard;
-
+};
 

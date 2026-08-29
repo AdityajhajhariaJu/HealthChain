@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import { ChevronDown, Pause, Play, RotateCcw, RotateCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Pause, Play } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
@@ -14,10 +14,9 @@ interface MeditationPlayerProps {
 export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onClose }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [phase, setPhase] = useState<'Prepare' | 'Inhale' | 'Hold' | 'Exhale' | 'Rest'>('Prepare');
+  const [phase, setPhase] = useState<"Prepare" | "Inhale" | "Hold" | "Exhale" | "Rest">("Prepare");
   const [isCompleted, setIsCompleted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  
   
   const pattern = content?.breathwork_pattern || { inhale: 4, hold: 4, exhale: 4, rest: 0 };
   const totalDuration = (content?.duration_minutes || 5) * 60;
@@ -27,18 +26,18 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       setTimeRemaining(totalDuration);
       setIsPlaying(true);
       setIsCompleted(false);
-      setPhase('Prepare');
+      setPhase("Prepare");
     }
   }, [content, totalDuration]);
 
-    // Timer Countdown
+  // Timer Countdown
   useEffect(() => {
     if (!isPlaying || isCompleted || timeRemaining <= 0) return;
     const timer = setInterval(() => {
       setTimeRemaining(prev => Math.max(0, prev - 1));
     }, 1000);
     return () => clearInterval(timer);
-  }, [isPlaying, isCompleted]); // Removed timeRemaining from deps to prevent re-creation every second
+  }, [isPlaying, isCompleted]);
 
   useEffect(() => {
     if (timeRemaining === 0 && isPlaying && !isCompleted) {
@@ -52,29 +51,28 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     
     // Auto-hide controls after 3 seconds of playing
     const hideTimer = setTimeout(() => setShowControls(false), 3000);
-
     let timeoutId: NodeJS.Timeout;
     
     const nextPhase = () => {
       triggerHapticLight();
       setPhase(current => {
         switch (current) {
-          case 'Prepare': return 'Inhale';
-          case 'Inhale': return pattern.hold > 0 ? 'Hold' : 'Exhale';
-          case 'Hold': return 'Exhale';
-          case 'Exhale': return pattern.rest > 0 ? 'Rest' : 'Inhale';
-          case 'Rest': return 'Inhale';
-          default: return 'Inhale';
+          case "Prepare": return "Inhale";
+          case "Inhale": return pattern.hold > 0 ? "Hold" : "Exhale";
+          case "Hold": return "Exhale";
+          case "Exhale": return pattern.rest > 0 ? "Rest" : "Inhale";
+          case "Rest": return "Inhale";
+          default: return "Inhale";
         }
       });
     };
 
     const getPhaseDuration = (p: string) => {
-      if (p === 'Prepare') return 3000;
-      if (p === 'Inhale') return pattern.inhale * 1000;
-      if (p === 'Hold') return pattern.hold * 1000;
-      if (p === 'Exhale') return pattern.exhale * 1000;
-      if (p === 'Rest') return pattern.rest * 1000;
+      if (p === "Prepare") return 3000;
+      if (p === "Inhale") return pattern.inhale * 1000;
+      if (p === "Hold") return pattern.hold * 1000;
+      if (p === "Exhale") return pattern.exhale * 1000;
+      if (p === "Rest") return pattern.rest * 1000;
       return 4000;
     };
 
@@ -106,186 +104,150 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     }
   };
 
-  if (!content) return null;
-
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  const getRingScale = () => {
-    if (phase === 'Prepare') return 0.8;
-    if (phase === 'Inhale') return 1.5;
-    if (phase === 'Hold') return 1.5;
-    if (phase === 'Exhale') return 0.8;
-    if (phase === 'Rest') return 0.8;
-    return 1;
-  };
-
-  const getRingTransition = () => {
-    if (phase === 'Inhale') return { duration: pattern.inhale, ease: "linear" as any };
-    if (phase === 'Exhale') return { duration: pattern.exhale, ease: "linear" as any };
-    return { duration: 0.5 };
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   return (
     <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-        onClick={() => setShowControls(true)}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          backgroundColor: '#000',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          fontFamily: 'sans-serif'
-        }}
-      >
-        {/* Ken Burns Background */}
-        <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+      {content && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           style={{
-            position: 'absolute',
-            inset: -20,
-            backgroundImage: `url(${content.cover_image_url || 'https://images.unsplash.com/photo-1518085250985-78e7bbdf6a62?auto=format&fit=crop&q=80'})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            opacity: 0.6,
-            filter: 'brightness(0.7) blur(2px)'
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: "#000",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden"
           }}
-        />
-
-        {/* Top Bar */}
-        <AnimatePresence>
-          {showControls && (
+          onClick={() => setShowControls(true)}
+        >
+          {isCompleted ? (
             <motion.div 
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -50, opacity: 0 }}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'env(safe-area-inset-top, 24px) 24px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={{ zIndex: 10, textAlign: "center", color: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}
             >
+              <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} colors={["#10B981", "#ffffff"]} />
+              <h2 style={{ fontSize: "32px", fontWeight: 800 }}>Session Complete</h2>
+              <p style={{ opacity: 0.8, marginTop: "8px" }}>Your mindful minutes have been logged.</p>
               <button 
                 onClick={onClose}
-                style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                style={{ marginTop: "32px", padding: "16px 32px", borderRadius: "30px", background: "white", color: "black", fontSize: "18px", fontWeight: 700, border: "none" }}
               >
-                <ChevronDown size={24} color="white" />
+                Done
               </button>
-              <div style={{ color: 'white', fontWeight: 600, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                {content.title}
-              </div>
-              <div style={{ width: '40px' }} /> {/* Spacer */}
             </motion.div>
-          )}
-        </AnimatePresence>
+          ) : (
+            <>
+              {/* Premium Ambient Background */}
+              <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+                <img 
+                  src={content.cover_image_url || "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80"} 
+                  alt="Ambient" 
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                />
+                {/* Heavy Apple-style overlay for contrast */}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.6) 100%)" }} />
+                <div style={{ position: "absolute", inset: 0, backdropFilter: "blur(2px)" }} />
+              </div>
 
-        {isCompleted ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={{ zIndex: 10, textAlign: 'center', color: 'white' }}
-          >
-            <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} colors={['#10B981', '#34D399', '#A7F3D0', '#ffffff']} />
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', border: '2px solid #10B981' }}>
-              <Play size={32} color="#10B981" />
-            </div>
-            <h2 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 16px' }}>Session Complete</h2>
-            <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', marginBottom: '32px' }}>
-              You completed {content.duration_minutes} mindful minutes.
-            </p>
-            <button
-              onClick={onClose}
-              style={{ padding: '16px 32px', backgroundColor: 'white', color: '#0F172A', borderRadius: '24px', fontWeight: 700, fontSize: '16px', border: 'none', cursor: 'pointer' }}
-            >
-              Return Home
-            </button>
-          </motion.div>
-        ) : (
-          <>
-            {/* Cinematic Breathing Rings */}
-            <div style={{ position: 'relative', width: '280px', height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-              <motion.div
-                animate={{ scale: getRingScale() }}
-                transition={getRingTransition()}
-                style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', boxShadow: '0 0 40px rgba(255,255,255,0.1)' }}
-              />
-              <motion.div
-                animate={{ scale: getRingScale() }}
-                transition={getRingTransition()}
-                style={{ position: 'absolute', inset: 20, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 0 30px rgba(255,255,255,0.15)' }}
-              />
-              <motion.div
-                animate={{ scale: getRingScale() }}
-                transition={getRingTransition()}
-                style={{ position: 'absolute', inset: 40, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', boxShadow: '0 0 20px rgba(255,255,255,0.2)' }}
-              />
-              
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={phase}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.5 }}
-                  style={{ color: 'white', fontSize: '24px', fontWeight: 300, letterSpacing: '2px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
-                >
-                  {phase}
-                </motion.div>
+              {/* Top Bar (Close button) */}
+              <AnimatePresence>
+                {showControls && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "env(safe-area-inset-top, 24px) 24px 24px", zIndex: 20 }}
+                  >
+                    <button 
+                      onClick={onClose}
+                      style={{ width: "40px", height: "40px", background: "transparent", border: "none", display: "flex", alignItems: "center", cursor: "pointer", padding: 0 }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </motion.div>
+                )}
               </AnimatePresence>
-            </div>
 
-            {/* Bottom Controls */}
-            <AnimatePresence>
-              {showControls && (
+              {/* Center Breathing Rings */}
+              <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
                 <motion.div
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 50, opacity: 0 }}
-                  style={{ position: 'absolute', bottom: 'env(safe-area-inset-bottom, 32px)', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10 }}
+                  animate={{ scale: phase === "Inhale" || phase === "Hold" ? 2.5 : 1 }}
+                  transition={{ 
+                    duration: phase === "Inhale" ? pattern.inhale : phase === "Exhale" ? pattern.exhale : 2, 
+                    ease: "easeInOut" 
+                  }}
+                  style={{ position: "relative", width: "120px", height: "120px" }}
                 >
-                  <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '18px', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
-                    {formatTime(timeRemaining)}
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setTimeRemaining(p => Math.max(0, p - 15)); triggerHapticLight(); }}
-                      style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.8 }}
-                    >
-                      <RotateCcw size={28} />
-                    </button>
-                    
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); triggerHapticLight(); }}
-                      style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}
-                    >
-                      {isPlaying ? <Pause size={28} color="#0F172A" /> : <Play size={28} color="#0F172A" style={{ marginLeft: '4px' }} />}
-                    </button>
-                    
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setTimeRemaining(p => Math.min(totalDuration, p + 15)); triggerHapticLight(); }}
-                      style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.8 }}
-                    >
-                      <RotateCw size={28} />
-                    </button>
-                  </div>
+                  {/* Concentric rings */}
+                  <div style={{ position: "absolute", inset: "-60px", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "50%" }} />
+                  <div style={{ position: "absolute", inset: "-20px", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "50%" }} />
+                  <div style={{ position: "absolute", inset: "20px", border: "1px solid rgba(255,255,255,0.4)", borderRadius: "50%" }} />
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </>
-        )}
-      </motion.div>
+              </div>
+
+              {/* Bottom Controls */}
+              <AnimatePresence>
+                {showControls && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    style={{ position: "absolute", bottom: "env(safe-area-inset-bottom, 32px)", left: "24px", right: "24px", zIndex: 20 }}
+                  >
+                    
+                    {/* Media Buttons */}
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "32px", marginBottom: "32px" }}>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setTimeRemaining(prev => Math.min(totalDuration, prev + 15)); }}
+                        style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+                      >
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
+                      </button>
+                      
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setIsPlaying(!isPlaying); }}
+                        style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                      >
+                        {isPlaying ? <Pause size={28} fill="#000" color="#000" /> : <Play size={28} fill="#000" color="#000" style={{ marginLeft: "3px" }} />}
+                      </button>
+
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setTimeRemaining(prev => Math.max(0, prev - 15)); }}
+                        style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+                      >
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
+                      </button>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px", fontVariantNumeric: "tabular-nums", fontWeight: 500, letterSpacing: "0.5px" }}>
+                        {formatTime(totalDuration - timeRemaining)}
+                      </span>
+                      <div style={{ flex: 1, height: "3px", background: "rgba(255,255,255,0.2)", borderRadius: "1.5px", position: "relative" }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${((totalDuration - timeRemaining) / totalDuration) * 100}%`, background: "white", borderRadius: "1.5px" }} />
+                      </div>
+                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px", fontVariantNumeric: "tabular-nums", fontWeight: 500, letterSpacing: "0.5px" }}>
+                        {formatTime(timeRemaining)}
+                      </span>
+                    </div>
+
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
+          )}
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 };
-
-
