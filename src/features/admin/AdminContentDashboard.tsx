@@ -192,6 +192,16 @@ export const AdminContentDashboard: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Media URL (Video/Audio)</label>
+                  <input 
+                    type="text" 
+                    value={editForm.video_url || editForm.audio_url || ''}
+                    onChange={e => setEditForm({...editForm, video_url: e.target.value, audio_url: e.target.value})}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Duration (min)</label>
                   <input 
                     type="number" 
