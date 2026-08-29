@@ -352,8 +352,8 @@ export default function AvaHealthBuddy() {
         style={{
           flex: 1,
           minHeight: 0,
-          height: isMobile ? 'auto' : 'calc(100dvh - 150px)',
-          maxHeight: isMobile ? 'none' : 'calc(100dvh - 150px)',
+          height: isMobile ? '100%' : 'calc(100dvh - 150px)',
+          maxHeight: isMobile ? '100%' : 'calc(100dvh - 150px)',
           background: 'rgba(255, 255, 255, 0.45)',
           backdropFilter: 'blur(32px)', 
           WebkitBackdropFilter: 'blur(32px)',
