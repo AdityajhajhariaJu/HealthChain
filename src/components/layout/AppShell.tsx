@@ -145,8 +145,21 @@ export default function AppShell() {
     setShowProfileMenu(false);
   };
 
+
   // Scroll to top on route change & track page view
   useEffect(() => {
+    // Dynamic Theme Color for Android/PWA Status Bar
+    const metaThemeColor = document.getElementById('theme-color-meta') || document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      if (location.pathname.startsWith('/app/ava')) {
+        metaThemeColor.setAttribute('content', '#FDE4D3'); // Soft sunset peach
+      } else if (location.pathname.startsWith('/app/jarvis')) {
+        metaThemeColor.setAttribute('content', '#F1F5F9'); // Slate
+      } else {
+        metaThemeColor.setAttribute('content', '#F0FDFA'); // Light teal default
+      }
+    }
+
     setShowMoreMenu(false);
     setShowProfileMenu(false);
     trackPageView(location.pathname);
