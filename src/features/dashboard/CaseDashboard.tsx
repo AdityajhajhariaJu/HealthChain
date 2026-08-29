@@ -46,6 +46,29 @@ export const CaseDashboard: React.FC = () => {
     }
   };
 
+    const getFallbackImage = (type: string, id: string) => {
+    const num = id.charCodeAt(0) % 3;
+    if (type === 'meditation' || type === 'breathwork' || type === 'soundscape') {
+      return [
+        'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=800&q=80'
+      ][num];
+    }
+    if (type === 'yoga') {
+      return [
+        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?auto=format&fit=crop&w=800&q=80'
+      ][num];
+    }
+    return [
+      'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80'
+    ][num];
+  };
+
   const handleStartContent = (content: FitnessContent) => {
     setSelectedContent(null);
     if (content.type === 'meditation' || content.type === 'breathwork' || content.type === 'soundscape') {
@@ -159,7 +182,7 @@ export const CaseDashboard: React.FC = () => {
               key={item.id}
               title={item.title}
               subtitle={item.subtitle || `${item.difficulty} • ${item.duration_minutes} min`}
-              bgImage={item.cover_image_url || 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?auto=format&fit=crop&q=80'}
+              bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
               aspectRatio="video"
               isPremium={item.is_premium}
               onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
@@ -179,7 +202,7 @@ export const CaseDashboard: React.FC = () => {
                 key={item.id}
                 title={item.title}
                 subtitle={`${item.duration_minutes} Min ${item.calories_estimate ? '• ' + item.calories_estimate + ' Cal' : ''}`}
-                bgImage={item.cover_image_url || 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80'}
+                bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
                 aspectRatio={item.type === 'meditation' ? 'square' : 'wide'}
                 isPremium={item.is_premium}
                 onClick={() => {
@@ -217,4 +240,5 @@ export const CaseDashboard: React.FC = () => {
 }
 
 export default CaseDashboard;
+
 
