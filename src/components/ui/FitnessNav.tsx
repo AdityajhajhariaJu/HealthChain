@@ -44,11 +44,11 @@ export function FitnessNav() {
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                backgroundColor: isActive ? '#0F172A' : 'rgba(15, 23, 42, 0.04)',
+                backgroundColor: isActive ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.5)',
                 color: isActive ? 'white' : '#475569',
-                boxShadow: isActive ? '0 4px 12px rgba(15, 23, 42, 0.15)' : 'none',
-                border: isActive ? '1px solid #0F172A' : '1px solid rgba(15, 23, 42, 0.05)',
-                backdropFilter: 'blur(8px)'
+                boxShadow: isActive ? '0 4px 12px rgba(15, 23, 42, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
+                border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)'
               }}
             >
               {tab.label}
