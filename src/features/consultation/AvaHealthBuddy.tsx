@@ -334,7 +334,7 @@ export default function AvaHealthBuddy() {
   return (
     <div
       style={{
-        padding: isMobile ? '0' : '0 24px',
+        padding: isMobile ? '8px 0 0 0' : '0 24px',
         minHeight: 0,
         flex: 1,
         width: '100%',
@@ -358,7 +358,7 @@ export default function AvaHealthBuddy() {
           backdropFilter: 'blur(32px)', 
           WebkitBackdropFilter: 'blur(32px)',
           borderRadius: isMobile ? '32px 32px 0 0' : '32px',
-          margin: isMobile ? '8px 0 0 0' : '0',
+          margin: '0',
           boxShadow: '0 24px 64px rgba(244, 63, 94, 0.08)',
           maxWidth: isMobile ? '100%' : '1000px',
           width: '100%',
@@ -725,7 +725,7 @@ export default function AvaHealthBuddy() {
         {/* Input Area */}
         <div
           style={{
-            padding: isMobile ? '12px 14px 16px 14px' : '24px 32px',
+            padding: isMobile ? '12px 14px calc(16px + env(safe-area-inset-bottom, 12px)) 14px' : '24px 32px',
             background: 'transparent',
             display: 'flex',
             flexDirection: 'column',
