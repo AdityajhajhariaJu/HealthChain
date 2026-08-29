@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pause, Play } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import Confetti from 'react-confetti';

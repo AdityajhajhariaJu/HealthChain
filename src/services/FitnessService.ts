@@ -43,6 +43,17 @@ export interface FitnessContent {
   is_featured: boolean;
 }
 
+
+interface FitnessCache {
+  categories?: FitnessCategory[];
+  programs?: FitnessProgram[];
+  activeContent?: FitnessContent[];
+  specialtyContent?: FitnessContent[];
+  timestamp?: number;
+}
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+let memoryCache: FitnessCache = {};
+
 export const FitnessService = {
   async getProgramEpisodes(programId: string) {
     const { data, error } = await supabase
@@ -56,6 +67,9 @@ export const FitnessService = {
   },
 
   async getAllActiveContent() {
+    if (memoryCache.activeContent && memoryCache.timestamp && Date.now() - memoryCache.timestamp < CACHE_TTL) {
+      return memoryCache.activeContent;
+    }
     const { data, error } = await supabase
       .from('fitness_content')
       .select('*')
@@ -63,10 +77,15 @@ export const FitnessService = {
       .order('sort_order', { ascending: true });
       
     if (error) throw error;
-    return data as FitnessContent[];
+    memoryCache.activeContent = data as FitnessContent[];
+    memoryCache.timestamp = Date.now();
+    return memoryCache.activeContent;
   },
 
   async getPrograms() {
+    if (memoryCache.programs && memoryCache.timestamp && Date.now() - memoryCache.timestamp < CACHE_TTL) {
+      return memoryCache.programs;
+    }
     const { data, error } = await supabase
       .from('fitness_programs')
       .select('*')
@@ -74,7 +93,9 @@ export const FitnessService = {
       .order('sort_order', { ascending: true });
     
     if (error) throw error;
-    return data as FitnessProgram[];
+    memoryCache.programs = data as FitnessProgram[];
+    memoryCache.timestamp = Date.now();
+    return memoryCache.programs;
   },
 
   async getContentByDifficulty(difficulty: string) {

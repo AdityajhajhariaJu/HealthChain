@@ -24,6 +24,7 @@ export default function CaseDashboard() {
   const [specialtyContent, setSpecialtyContent] = useState<FitnessContent[]>([]);
   const [activeCollection, setActiveCollection] = useState<{title: string, items: FitnessContent[]} | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
 
 
@@ -82,8 +83,10 @@ export default function CaseDashboard() {
         'Advanced': advanced
       });
       setSpecialtyContent(specialty);
+      setError(null);
     } catch (err) {
       console.error('Failed to load fitness data', err);
+      setError('Unable to load fitness data. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -206,6 +209,17 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 );
 
 
+  if (error) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBF9F6', padding: '24px' }}>
+        <p style={{ color: '#64748B', marginBottom: '16px', textAlign: 'center' }}>{error}</p>
+        <button onClick={loadFitnessData} style={{ padding: '12px 24px', backgroundColor: '#10B981', color: 'white', borderRadius: '99px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#10B981' }}>Loading Health Today...</div>;
   }
@@ -252,7 +266,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             <section>
               <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>Browse Programs <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
-                <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
+                <span onClick={() => { triggerHapticLight(); setActiveCollection({title: "All Programs", items: featured}); }} style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
               </div>
               <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
                 {programs.map((prog) => {

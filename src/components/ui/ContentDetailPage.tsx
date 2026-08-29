@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Share, Play, Lock, Clock, Flame, Dumbbell } from 'lucide-react';
 import { FitnessContent } from '../../services/FitnessService';
 import { triggerHapticLight } from '../../services/haptics';
+import { openTrialModal } from '../../services/TrialEngine';
 
 interface Props {
   content: FitnessContent | null;
@@ -13,9 +14,23 @@ interface Props {
 export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }) => {
   // Prevent body scroll when open
   useEffect(() => {
-    if (content) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = 'unset';
-    return () => { document.body.style.overflow = 'unset'; };
+    if (content) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      const main = document.getElementById('main-content');
+      if (main) main.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      const main = document.getElementById('main-content');
+      if (main) main.style.overflow = '';
+    }
+    return () => { 
+      document.body.style.overflow = ''; 
+      document.body.style.touchAction = '';
+      const main = document.getElementById('main-content');
+      if (main) main.style.overflow = '';
+    };
   }, [content]);
 
   if (!content) return null;
@@ -155,7 +170,11 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
           <button
             onClick={() => {
               triggerHapticLight();
-              onStart(content);
+              if (content.is_premium) {
+                openTrialModal(content.title);
+              } else {
+                onStart(content);
+              }
             }}
             style={{
               width: '100%',

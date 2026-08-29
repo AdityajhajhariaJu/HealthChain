@@ -227,13 +227,38 @@ export default function Dietician() {
           if (gl) setGroceryList(gl);
           return;
         }
-        const profileKey = getProfileKey();
-        const savedProfile = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
-        const savedLogs = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
-        const savedHydration = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
-        const savedPlan = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
-        const savedAdvice = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
-        const savedGrocery = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
+        const unified = getCoreProfile() || {};
+          const profileKey = getProfileKey();
+          
+          if (localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'))) {
+             unified.dietProfile = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile')) || '{}');
+             unified.dietFoodLogs = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs')) || '{}');
+             unified.dietHydration = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration')) || '{}');
+             unified.dietMealPlan = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan')) || '{}');
+             unified.dietAdvice = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+             unified.dietGrocery = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list')) || '{}');
+             
+             updateProfileFeatureData('dietProfile', unified.dietProfile);
+             updateProfileFeatureData('dietFoodLogs', unified.dietFoodLogs);
+             updateProfileFeatureData('dietHydration', unified.dietHydration);
+             updateProfileFeatureData('dietMealPlan', unified.dietMealPlan);
+             updateProfileFeatureData('dietAdvice', unified.dietAdvice);
+             updateProfileFeatureData('dietGrocery', unified.dietGrocery);
+             
+             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
+             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
+          }
+  
+          const savedProfile = unified.dietProfile ? JSON.stringify(unified.dietProfile) : null;
+          const savedLogs = unified.dietFoodLogs ? JSON.stringify(unified.dietFoodLogs) : null;
+          const savedHydration = unified.dietHydration ? JSON.stringify(unified.dietHydration) : null;
+          const savedPlan = unified.dietMealPlan ? JSON.stringify(unified.dietMealPlan) : null;
+          const savedAdvice = unified.dietAdvice || null;
+          const savedGrocery = unified.dietGrocery ? JSON.stringify(unified.dietGrocery) : null;
 
         if (savedProfile) {
           try {
@@ -281,13 +306,12 @@ export default function Dietician() {
       const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList };
       updateProfileFeatureData('dietician', data);
       
-      const pKey = getProfileKey();
-      if (profile) localStorage.setItem(pKey.replace('hc_unified_profile', 'hc_diet_profile'), JSON.stringify(profile));
-      localStorage.setItem(pKey.replace('hc_unified_profile', 'hc_food_logs'), JSON.stringify(foodLogs));
-      localStorage.setItem(pKey.replace('hc_unified_profile', 'hc_hydration'), JSON.stringify(hydration));
-      if (mealPlan) localStorage.setItem(pKey.replace('hc_unified_profile', 'hc_meal_plan'), JSON.stringify(mealPlan));
-      if (advice) localStorage.setItem(pKey.replace('hc_unified_profile', 'hc_diet_advice'), advice);
-      if (groceryList) localStorage.setItem(pKey.replace('hc_unified_profile', 'hc_grocery_list'), JSON.stringify(groceryList));
+      if (profile) updateProfileFeatureData('dietProfile', profile);
+        updateProfileFeatureData('dietFoodLogs', foodLogs);
+        updateProfileFeatureData('dietHydration', hydration);
+        if (mealPlan) updateProfileFeatureData('dietMealPlan', mealPlan);
+        if (advice) updateProfileFeatureData('dietAdvice', advice);
+        if (groceryList) updateProfileFeatureData('dietGrocery', groceryList);
     } catch(e) {}
   }, [profile, foodLogs, hydration, mealPlan, advice, groceryList]);
 
@@ -2056,13 +2080,12 @@ export default function Dietician() {
                   </button>
                   <button
                     onClick={() => {
-                      const pKey = getProfileKey();
-                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_diet_profile'));
-                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_meal_plan'));
-                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_diet_advice'));
-                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_food_logs'));
-                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_hydration'));
-                      localStorage.removeItem(pKey.replace('hc_unified_profile', 'hc_grocery_list'));
+                      updateProfileFeatureData('dietProfile', null);
+                          updateProfileFeatureData('dietFoodLogs', null);
+                          updateProfileFeatureData('dietHydration', null);
+                          updateProfileFeatureData('dietMealPlan', null);
+                          updateProfileFeatureData('dietAdvice', null);
+                          updateProfileFeatureData('dietGrocery', null);
                       setProfile(null);
                       setAdvice(null);
                       setMealPlan(null);
