@@ -208,18 +208,22 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       {dashboardTab === 'fitness' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
-          {/* 1. Browse Programs (Gradients) */}
-          <section>
-            <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A' }}>Browse Programs</h2>
-              <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
-            </div>
-            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px' }}>
-              <ProgramCard title="Strength" subtitle="BUILD MUSCLE & POWER" gradient="linear-gradient(135deg, #FF4B2B 0%, #FF416C 100%)" icon={<Flame size={28} />} onClick={() => {}} />
-              <ProgramCard title="Pilates & Core" subtitle="STABILITY & CONTROL" gradient="linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%)" icon={<Sparkles size={28} />} onClick={() => {}} />
-              <ProgramCard title="HIIT" subtitle="BURN CALORIES FAST" gradient="linear-gradient(135deg, #FDB99B 0%, #CF8BF3 100%, #A770EF 100%)" icon={<HeartPulse size={28} />} onClick={() => {}} />
-            </div>
-          </section>
+                      {/* STEP 1: BROWSE PROGRAMS (The 7 Curated Collections) */}
+            <section>
+              <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Browse Programs</h2>
+                <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
+              </div>
+              <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+                <ProgramCard title="Strength" subtitle="BUILD POWER" gradient="linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)" icon={<Flame size={28} />} onClick={() => {}} />
+                <ProgramCard title="Pilates & Yoga" subtitle="FLEXIBILITY & CORE" gradient="linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%)" icon={<Sparkles size={28} />} onClick={() => {}} />
+                <ProgramCard title="For Runners" subtitle="STAMINA & SPEED" gradient="linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%)" icon={<Activity size={28} />} onClick={() => {}} />
+                <ProgramCard title="Getting Started" subtitle="BEGINNER FRIENDLY" gradient="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)" icon={<Zap size={28} />} onClick={() => {}} />
+                <ProgramCard title="Mindful & Relaxation" subtitle="RECOVER & BREATHE" gradient="linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)" icon={<Moon size={28} />} onClick={() => {}} />
+                <ProgramCard title="For Outdoor Sports" subtitle="AGILITY & ARMOR" gradient="linear-gradient(135deg, #f12711 0%, #f5af19 100%)" icon={<Target size={28} />} onClick={() => {}} />
+                <ProgramCard title="Women's Health" subtitle="EMPOWER & THRIVE" gradient="linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)" icon={<Heart size={28} />} onClick={() => {}} />
+              </div>
+            </section>
 
           {/* 2. Vertical Workout List - Beginner */}
           <section style={{ padding: '0 24px' }}>
