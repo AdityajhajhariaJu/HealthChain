@@ -244,7 +244,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   { name: 'Kickboxing', icon: <Swords size={20} />, img: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=400&q=80', color: '#f12711' },
                   { name: 'Treadmill', icon: <Footprints size={20} />, img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80', color: '#00C9FF' },
                   { name: 'Cycling', icon: <Bike size={20} />, img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80', color: '#11998e' },
-                  { name: 'Rowing', icon: <Waves size={20} />, img: 'https://images.unsplash.com/photo-1519962551779-514d1565cb23?w=400&q=80', color: '#3b82f6' },
+                  { name: 'Rowing', icon: <Waves size={20} />, img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=80', color: '#3b82f6' },
                   { name: 'Cooldown', icon: <Moon size={20} />, img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', color: '#66a6ff' }
                 ].map((type, i) => (
                   <button 
