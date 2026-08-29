@@ -288,105 +288,65 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
             </section>
 
-            {/* 3. Vertical Workout List - Beginner */}
-          <section style={{ padding: '0 24px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Workouts</h2>
-            <p style={{ fontSize: '14px', color: '#64748B', margin: '0 0 16px' }}>Beginner friendly, new and picked for you</p>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {beginnerWorkouts.map(item => (
-                <VerticalWorkoutRow key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
-              ))}
-            </div>
-          </section>
-
-          {/* 3. Stacked Difficulty Hubs */}
-          <section style={{ padding: '0 24px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ height: '100px', borderRadius: '16px', background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4)), url(https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80) center/cover', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Intermediate Workouts</h3>
+                        {/* STEP 3: DIFFICULTY STACKS */}
+            
+            {/* Beginner Stack */}
+            <section style={{ padding: '0 24px', marginBottom: '32px' }}>
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Beginner Workouts</h2>
+                  <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Start your journey safely</p>
+                </div>
+                <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
               </div>
-              <div style={{ height: '100px', borderRadius: '16px', background: 'linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4)), url(https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80) center/cover', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600 }}>Advanced Workouts</h3>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {[
+                  { id: 'b1', title: '15-Min Mobility Flow', difficulty: 'Beginner', duration_minutes: 15, type: 'Yoga', cover_image_url: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80' },
+                  { id: 'b2', title: 'Gentle Core Activation', difficulty: 'Beginner', duration_minutes: 10, type: 'Core', cover_image_url: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80' },
+                  { id: 'b3', title: 'First Steps Cardio', difficulty: 'Beginner', duration_minutes: 20, type: 'HIIT', cover_image_url: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80' }
+                ].map(item => (
+                  <VerticalWorkoutRow key={item.id} item={item as any} getFallbackImage={() => item.cover_image_url} onClick={() => {}} />
+                ))}
               </div>
-            </div>
-          </section>
+            </section>
 
-        </div>
-      )}
-
-      {dashboardTab === 'meditation' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* 1. Ambient Hero Cards */}
-          <section>
-            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px' }}>
-              {heroMeditations.map(item => (
-                <MeditationHeroCard key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
-              ))}
-              {heroMeditations.length === 0 && (
-                <MeditationHeroCard item={{ title: 'Stressed', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
-              )}
-            </div>
-          </section>
-
-          {/* 2. Mindfulness Grid */}
-          <section style={{ padding: '0 24px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A' }}>Mindfulness</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              {gridMeditations.length > 0 ? gridMeditations.map(item => (
-                <MindfulnessGridItem key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
-              )) : (
-                <>
-                  <MindfulnessGridItem item={{ title: 'Mindful Breathing', duration_minutes: 10, type: 'meditation', id: '1' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
-                  <MindfulnessGridItem item={{ title: 'Gratitude Guide', duration_minutes: 5, type: 'meditation', id: '2' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
-                </>
-              )}
-            </div>
-          </section>
-        </div>
-      )}
-
-      {/* Shared Knowledge Base (Articles) */}
-      <section style={{ padding: '32px 24px 100px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A' }}>Knowledge Base</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {[
-            { title: 'The Science of Sleep', subtitle: 'Read • 5 min', img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&q=80' },
-            { title: 'Nutrition for Recovery', subtitle: 'Read • 8 min', img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80' }
-          ].map((art, i) => (
-            <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden' }}>
-                <img src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {/* Intermediate Stack */}
+            <section style={{ padding: '0 24px', marginBottom: '32px' }}>
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Intermediate Workouts</h2>
+                  <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Push your limits further</p>
+                </div>
+                <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
               </div>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>{art.title}</h4>
-                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>{art.subtitle}</p>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {[
+                  { id: 'i1', title: 'Dumbbell Full Body', difficulty: 'Intermediate', duration_minutes: 30, type: 'Strength', cover_image_url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80' },
+                  { id: 'i2', title: '20-Min Sweat Sesh', difficulty: 'Intermediate', duration_minutes: 20, type: 'HIIT', cover_image_url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80' },
+                  { id: 'i3', title: 'Dynamic Pilates', difficulty: 'Intermediate', duration_minutes: 25, type: 'Pilates', cover_image_url: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800&q=80' }
+                ].map(item => (
+                  <VerticalWorkoutRow key={item.id} item={item as any} getFallbackImage={() => item.cover_image_url} onClick={() => {}} />
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            </section>
 
-      <ContentDetailPage 
-        content={selectedContent}
-        onClose={() => setSelectedContent(null)}
-        onStart={handleStartContent}
-      />
-
-      {activeMeditation && (
-        <MeditationPlayer 
-          content={activeMeditation} 
-          onClose={() => setActiveMeditation(null)} 
-        />
-      )}
-
-      {activeWorkout && (
-        <WorkoutPlayer 
-          isOpen={!!activeWorkout} 
-          onClose={() => setActiveWorkout(null)}
-          workout={activeWorkout}
-        />
-      )}
-    </div>
-  );
-};
+            {/* Advanced Stack */}
+            <section style={{ padding: '0 24px', marginBottom: '32px' }}>
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Advanced Workouts</h2>
+                  <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Elite athletic conditioning</p>
+                </div>
+                <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {[
+                  { id: 'a1', title: '30-Min AMRAP Crusher', difficulty: 'Advanced', duration_minutes: 30, type: 'HIIT', cover_image_url: 'https://images.unsplash.com/photo-1549719386-74dfc47db431?w=800&q=80' },
+                  { id: 'a2', title: 'Heavy Kettlebell Power', difficulty: 'Advanced', duration_minutes: 45, type: 'Strength', cover_image_url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80' },
+                  { id: 'a3', title: 'Pro Runner Intervals', difficulty: 'Advanced', duration_minutes: 40, type: 'Treadmill', cover_image_url: 'https://images.unsplash.com/photo-1506509971987-1335b0e8b15d?w=800&q=80' }
+                ].map(item => (
+                  <VerticalWorkoutRow key={item.id} item={item as any} getFallbackImage={() => item.cover_image_url} onClick={() => {}} />
+                ))}
+              </div>
+            </section>
 
