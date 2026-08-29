@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SwimlaneCarousel } from '../../components/ui/SwimlaneCarousel';
+import { BottomSheetOverlay } from '../../components/ui/BottomSheetOverlay';
 import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { WorkoutPlayer } from '../../components/ui/WorkoutPlayer';
@@ -15,9 +16,13 @@ import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 
 export default function CaseDashboard() {
   const isMobile = useIsMobile();
+  const [programs, setPrograms] = useState<any[]>([]);
   const [categories, setCategories] = useState<FitnessCategory[]>([]);
   const [featured, setFeatured] = useState<FitnessContent[]>([]);
   const [contentMap, setContentMap] = useState<Record<string, FitnessContent[]>>({});
+  const [difficultyMap, setDifficultyMap] = useState<Record<string, FitnessContent[]>>({});
+  const [specialtyContent, setSpecialtyContent] = useState<FitnessContent[]>([]);
+  const [activeCollection, setActiveCollection] = useState<{title: string, items: FitnessContent[]} | null>(null);
   const [loading, setLoading] = useState(true);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
 
@@ -33,17 +38,31 @@ export default function CaseDashboard() {
   const loadFitnessData = async () => {
     try {
       setLoading(true);
-      const cats = await FitnessService.getCategories();
-      const feats = await FitnessService.getFeaturedContent();
+      const [cats, feats, progs, beginner, intermediate, advanced, specialty] = await Promise.all([
+        FitnessService.getCategories(),
+        FitnessService.getFeaturedContent(),
+        FitnessService.getPrograms(),
+        FitnessService.getContentByDifficulty('Beginner'),
+        FitnessService.getContentByDifficulty('Intermediate'),
+        FitnessService.getContentByDifficulty('Advanced'),
+        FitnessService.getSpecialtyContent()
+      ]);
       
       const map: Record<string, FitnessContent[]> = {};
       for (const cat of cats) {
         map[cat.id] = await FitnessService.getContentByCategory(cat.id);
       }
       
+      setPrograms(progs);
       setCategories(cats);
       setFeatured(feats);
       setContentMap(map);
+      setDifficultyMap({
+        'Beginner': beginner,
+        'Intermediate': intermediate,
+        'Advanced': advanced
+      });
+      setSpecialtyContent(specialty);
     } catch (err) {
       console.error('Failed to load fitness data', err);
     } finally {
@@ -217,13 +236,26 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
               </div>
               <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
-                <ProgramCard title="Strength" subtitle="BUILD POWER" gradient="linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)" icon={<Flame size={28} />} onClick={() => {}} />
-                <ProgramCard title="Pilates & Yoga" subtitle="FLEXIBILITY & CORE" gradient="linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%)" icon={<Sparkles size={28} />} onClick={() => {}} />
-                <ProgramCard title="For Runners" subtitle="STAMINA & SPEED" gradient="linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%)" icon={<Activity size={28} />} onClick={() => {}} />
-                <ProgramCard title="Getting Started" subtitle="BEGINNER FRIENDLY" gradient="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)" icon={<Zap size={28} />} onClick={() => {}} />
-                <ProgramCard title="Mindful & Relaxation" subtitle="RECOVER & BREATHE" gradient="linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)" icon={<Moon size={28} />} onClick={() => {}} />
-                <ProgramCard title="For Outdoor Sports" subtitle="AGILITY & ARMOR" gradient="linear-gradient(135deg, #f12711 0%, #f5af19 100%)" icon={<Target size={28} />} onClick={() => {}} />
-                <ProgramCard title="Women's Health" subtitle="EMPOWER & THRIVE" gradient="linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)" icon={<Heart size={28} />} onClick={() => {}} />
+                {programs.map((prog) => {
+                  let IconComp = Zap;
+                  if (prog.icon_name === 'Flame') IconComp = Flame;
+                  if (prog.icon_name === 'Sparkles') IconComp = Sparkles;
+                  if (prog.icon_name === 'Activity') IconComp = Activity;
+                  if (prog.icon_name === 'Moon') IconComp = Moon;
+                  if (prog.icon_name === 'Target') IconComp = Target;
+                  if (prog.icon_name === 'Heart') IconComp = Heart;
+                  
+                  return (
+                    <ProgramCard 
+                      key={prog.id} 
+                      title={prog.title} 
+                      subtitle={prog.subtitle} 
+                      gradient={prog.gradient} 
+                      icon={<IconComp size={28} />} 
+                      onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} 
+                    />
+                  );
+                })}
               </div>
             </section>
 
@@ -232,7 +264,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 
                 {/* Beginner Banner */}
-                <div style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Beginner Workouts", items: difficultyMap["Beginner"] || []}); }} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
                   <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Beginner Workouts</h3>
@@ -240,7 +272,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
 
                 {/* Intermediate Banner */}
-                <div style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Intermediate Workouts", items: difficultyMap["Intermediate"] || []}); }} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
                   <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Intermediate Workouts</h3>
@@ -248,7 +280,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
 
                 {/* Advanced Banner */}
-                <div style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Advanced Workouts", items: difficultyMap["Advanced"] || []}); }} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
                   <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80" alt="Advanced Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Advanced Workouts</h3>
@@ -327,7 +359,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {/* Activity Games */}
-                <div style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80" alt="Activity Games" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
                     <Gamepad2 size={24} color="#10B981" style={{ marginBottom: '8px' }} />
@@ -335,7 +367,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   </div>
                 </div>
                 {/* Hand-Eye Coordination */}
-                <div style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80" alt="Hand-Eye Coordination" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
                     <Crosshair size={24} color="#3b82f6" style={{ marginBottom: '8px' }} />
@@ -357,7 +389,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 <MeditationHeroCard key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
               ))}
               {heroMeditations.length === 0 && (
-                <MeditationHeroCard item={{ title: 'Stressed', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
+                <MeditationHeroCard item={{ title: 'Stressed', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation' }} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} />
               )}
             </div>
           </section>
@@ -370,8 +402,8 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 <MindfulnessGridItem key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
               )) : (
                 <>
-                  <MindfulnessGridItem item={{ title: 'Mindful Breathing', duration_minutes: 10, type: 'meditation', id: '1' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
-                  <MindfulnessGridItem item={{ title: 'Gratitude Guide', duration_minutes: 5, type: 'meditation', id: '2' }} getFallbackImage={getFallbackImage} onClick={() => {}} />
+                  <MindfulnessGridItem item={{ title: 'Mindful Breathing', duration_minutes: 10, type: 'meditation', id: '1' }} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} />
+                  <MindfulnessGridItem item={{ title: 'Gratitude Guide', duration_minutes: 5, type: 'meditation', id: '2' }} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} />
                 </>
               )}
             </div>
@@ -420,7 +452,43 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           workout={activeWorkout}
         />
       )}
-    </div>
+    
+      <BottomSheetOverlay isOpen={!!activeCollection} onClose={() => setActiveCollection(null)}>
+        <div style={{ padding: '24px 20px', minHeight: '60vh' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', marginBottom: '24px', letterSpacing: '-0.5px' }}>
+            {activeCollection?.title}
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {activeCollection?.items.length === 0 ? (
+              <p style={{ color: '#64748B', textAlign: 'center', marginTop: '40px' }}>No content available in this collection yet.</p>
+            ) : (
+              activeCollection?.items.map(item => (
+                <div key={item.id} style={{ height: '220px' }}>
+                  <ImmersiveMediaCard
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
+                    duration={`${item.duration_minutes} min`}
+                    tags={[item.difficulty]}
+                    isPremium={item.is_premium}
+                    aspectRatio="wide"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setActiveCollection(null);
+                      if (item.type === 'meditation' || item.type === 'soundscape' || item.type === 'sleep_story') {
+                        setActiveMeditation(item);
+                      } else {
+                        setSelectedContent(item);
+                      }
+                    }}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </BottomSheetOverlay>
+</div>
   );
 };
 

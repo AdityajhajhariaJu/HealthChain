@@ -1,5 +1,16 @@
 ﻿import { supabase } from './supabaseClient';
 
+export interface FitnessProgram {
+  id: string;
+  title: string;
+  subtitle: string;
+  gradient: string;
+  icon_name: string;
+  cover_image_url?: string;
+  total_episodes: number;
+  duration_weeks: number;
+}
+
 export interface FitnessCategory {
   id: string;
   slug: string;
@@ -33,6 +44,42 @@ export interface FitnessContent {
 }
 
 export const FitnessService = {
+  async getPrograms() {
+    const { data, error } = await supabase
+      .from('fitness_programs')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+    
+    if (error) throw error;
+    return data as FitnessProgram[];
+  },
+
+  async getContentByDifficulty(difficulty: string) {
+    const { data, error } = await supabase
+      .from('fitness_content')
+      .select('*')
+      .eq('difficulty', difficulty)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+      
+    if (error) throw error;
+    return data as FitnessContent[];
+  },
+
+  async getSpecialtyContent() {
+    // Activity Games and Hand-Eye
+    const { data, error } = await supabase
+      .from('fitness_content')
+      .select('*, fitness_categories!inner(slug)')
+      .in('fitness_categories.slug', ['activity-games', 'hand-eye'])
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+      
+    if (error) throw error;
+    return data as FitnessContent[];
+  },
+
   async getCategories() {
     const { data, error } = await supabase
       .from('fitness_categories')
