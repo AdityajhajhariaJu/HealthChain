@@ -66,33 +66,33 @@ export default function CaseDashboard() {
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '128px', paddingTop: '16px', fontFamily: 'sans-serif', maxWidth: 1120, margin: '0 auto' }}>
       
-      <div style={{ padding: '0 16px' }}>
+            <div style={{ padding: '0 16px' }}>
         <section
           style={{
-            borderRadius: 28,
-            padding: isMobile ? '26px 24px' : '38px',
+            borderRadius: isMobile ? 20 : 24,
+            padding: isMobile ? '20px 20px' : '32px',
             color: '#fff',
-            background: 'linear-gradient(135deg, #0f172a, #153d45 65%, #059669)',
+            background: 'linear-gradient(135deg, #0f172a, #153d45 75%, #059669)',
             backdropFilter: 'blur(24px)',
             boxShadow: '0 8px 32px rgba(15,23,42,0.1)',
             border: '1px solid rgba(255,255,255,0.15)',
-            marginBottom: '32px'
+            marginBottom: '24px'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#99f6e4', fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', marginBottom: isMobile ? 12 : 16 }}>
-            <Sparkles size={15} /> Your health command centre
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#99f6e4', fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+            <Sparkles size={14} /> Health Command Centre
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: isMobile ? 18 : 24, flexWrap: 'wrap', alignItems: 'end' }}>
-            <div>
-              <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 38, letterSpacing: -1.2, lineHeight: 1.1 }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 24, alignItems: isMobile ? 'stretch' : 'flex-end', justifyContent: 'space-between' }}>
+            <div style={{ flex: 1 }}>
+              <h1 style={{ margin: 0, fontSize: isMobile ? 26 : 34, letterSpacing: -1, lineHeight: 1.15 }}>
                 Good to see you{profile?.demographics?.name ? ', ' + (profile.demographics.name.split(' ')[0] || 'User') : '.'}
               </h1>
-              <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
-                Start with parallel AI specialist perspectives, then bring their findings into a Deep Collaborative Specialist review for consensus when your case needs deeper correlation.
+              <p style={{ color: '#cbd5e1', lineHeight: 1.4, maxWidth: 600, margin: '8px 0 0', fontSize: isMobile ? 13 : 15 }}>
+                Start with parallel AI specialist perspectives, then bring their findings into a Deep Collaborative Specialist review for consensus.
               </p>
             </div>
-            <button onClick={() => navigate('/app/consult?new=true')} style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: '16px' }}>
-              <Stethoscope size={18} /> Start Quick Consult
+            <button onClick={() => navigate('/app/consult?new=true')} style={{ background: '#fff', color: '#0f172a', padding: '12px 16px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: '15px', flexShrink: 0, whiteSpace: 'nowrap' }}>
+              <Stethoscope size={18} /> Quick Consult
             </button>
           </div>
         </section>
