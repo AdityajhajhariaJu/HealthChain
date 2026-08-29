@@ -448,7 +448,7 @@ export default function AppShell() {
                       }}
                       aria-label="View Vitality Points & Daily Rewards"
                     >
-                      <Trophy size={14} color="#78350F" fill="#FDE047" />
+                      <Trophy size={14} color="#78350F" />
                       <span style={{ fontWeight: 900, color: '#78350F' }}>{points} PTS</span>
                       <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
                     </button>
