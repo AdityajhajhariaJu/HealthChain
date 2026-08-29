@@ -114,7 +114,13 @@ export const AdminContentDashboard: React.FC = () => {
     };
 
     return (
-      <div className="max-w-6xl mx-auto p-6 lg:p-10 bg-[#F8FAFC] min-h-screen font-sans pb-24">
+      <div className="relative min-h-screen bg-slate-50 font-sans pb-24 overflow-hidden">
+        {/* Ambient Gradient Background for Glassmorphism */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-200/30 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-200/30 blur-[120px] pointer-events-none" />
+        <div className="absolute top-[40%] left-[60%] w-[30%] h-[30%] rounded-full bg-purple-200/20 blur-[100px] pointer-events-none" />
+        
+        <div className="max-w-6xl mx-auto p-6 lg:p-10 relative z-10">
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Content Studio</h1>
@@ -293,7 +299,7 @@ export const AdminContentDashboard: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5">
             {/* Header Row */}
             <div className="px-6 py-3 flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
                <div className="w-[45%]">Content</div>
@@ -305,14 +311,14 @@ export const AdminContentDashboard: React.FC = () => {
 
             {/* List */}
             {contentList.map(content => (
-              <div key={content.id} className="bg-white rounded-[24px] p-4 flex items-center border border-slate-100 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_8px_30px_rgba(15,23,42,0.06)] hover:border-slate-200 transition-all duration-300 group">
+              <div key={content.id} className="bg-white/40 backdrop-blur-xl rounded-[24px] p-4 flex items-center border border-white/60 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:bg-white/60 transition-all duration-300 group">
                 
                 {/* Content Info */}
                 <div className="w-[45%] flex items-center gap-5">
                   {content.cover_image_url ? (
                     <img src={content.cover_image_url} alt="" className="w-20 h-20 rounded-[18px] object-cover bg-slate-50 shadow-sm" />
                   ) : (
-                    <div className="w-20 h-20 rounded-[18px] bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-100">
+                    <div className="w-20 h-20 rounded-[18px] bg-white/50 backdrop-blur-md flex items-center justify-center text-slate-300 border border-white/50 shadow-sm">
                       <ImageIcon size={28} />
                     </div>
                   )}
@@ -382,6 +388,7 @@ export const AdminContentDashboard: React.FC = () => {
             )}
           </div>
         )}
+        </div>
       </div>
     );
   };
