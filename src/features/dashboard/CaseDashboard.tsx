@@ -96,7 +96,7 @@ export default function CaseDashboard() {
 // Premium Apple-Style Components
 const ProgramCard = ({ title, subtitle, gradient, icon, onClick }: any) => (
   <div onClick={onClick} style={{
-    minWidth: '240px', height: '140px', borderRadius: '24px', background: gradient,
+    minWidth: '240px', height: '115px', borderRadius: '24px', background: gradient,
     padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
     cursor: 'pointer', boxShadow: '0 10px 20px -5px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden', flexShrink: 0
   }}>
@@ -252,7 +252,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                     style={{
                       flexShrink: 0,
                       width: '130px',
-                      height: '140px',
+                      height: '115px',
                       borderRadius: '20px',
                       backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%), url(${type.img})`,
                       backgroundSize: 'cover',
@@ -289,11 +289,11 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </section>
 
             {/* STEP 3: DIFFICULTY HUBS (3 Banners) */}
-            <section style={{ padding: '0 24px', marginBottom: '40px' }}>
+            <section style={{ padding: '0 16px', marginBottom: '40px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 
                 {/* Beginner Banner */}
-                <div style={{ position: 'relative', height: '140px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <div style={{ position: 'relative', height: '115px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
                   <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px' }}>Beginner Workouts</h3>
@@ -301,7 +301,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
 
                 {/* Intermediate Banner */}
-                <div style={{ position: 'relative', height: '140px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <div style={{ position: 'relative', height: '115px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
                   <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px' }}>Intermediate Workouts</h3>
@@ -309,7 +309,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
 
                 {/* Advanced Banner */}
-                <div style={{ position: 'relative', height: '140px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <div style={{ position: 'relative', height: '115px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
                   <img src="https://images.unsplash.com/photo-1549719386-74dfc47db431?w=800&q=80" alt="Advanced Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '22px', fontWeight: 600, letterSpacing: '-0.3px' }}>Advanced Workouts</h3>
@@ -320,7 +320,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </section>
 
             {/* STEP 4: SPECIALTY & GAMING */}
-            <section style={{ padding: '0 24px', marginBottom: '40px' }}>
+            <section style={{ padding: '0 16px', marginBottom: '40px' }}>
               <div style={{ marginBottom: '16px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Specialty & Gaming</h2>
                 <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Interactive fitness experiences</p>
