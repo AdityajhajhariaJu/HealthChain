@@ -82,7 +82,7 @@ export default function CaseDashboard() {
       setActiveWorkout({
         ...content,
         steps: [
-          { name: 'Warm up', duration: 60, image: content.cover_image_url || 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80' },
+          { name: 'Warm up', duration: 60, image: content.cover_image_url || 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80' },
           { name: 'Main Activity', duration: 180, image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80' },
           { name: 'Cool down', duration: 60, image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80' }
         ]
@@ -294,7 +294,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 
                 {/* Beginner Banner */}
                 <div style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Beginner Workouts</h3>
                   </div>
@@ -302,7 +302,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
                 {/* Intermediate Banner */}
                 <div style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Intermediate Workouts</h3>
                   </div>
