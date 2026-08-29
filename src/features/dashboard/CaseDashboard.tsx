@@ -1,5 +1,5 @@
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, Bike, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
+import {Activity, Bike, ChevronRight, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 
@@ -213,7 +213,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                       {/* STEP 1: BROWSE PROGRAMS (The 7 Curated Collections) */}
             <section>
               <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Browse Programs</h2>
+                <h2 style="{{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}">Browse Programs <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
                 <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
               </div>
               <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
@@ -230,7 +230,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             {/* STEP 2: ACTIVITY TYPES (The 11 Modalities with Image Thumbnails) */}
             <section style={{ margin: '8px 0 24px' }}>
               <div style={{ padding: '0 24px', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Activity Types</h2>
+                <h2 style="{{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}">Activity Types <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
               </div>
               <div className="hide-scrollbar" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 8px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
                 
@@ -322,7 +322,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             {/* STEP 4: SPECIALTY & GAMING */}
             <section style={{ padding: '0 16px', marginBottom: '40px' }}>
               <div style={{ marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Specialty & Gaming</h2>
+                <h2 style="{{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}">Specialty & Gaming <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
                 <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Interactive fitness experiences</p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
