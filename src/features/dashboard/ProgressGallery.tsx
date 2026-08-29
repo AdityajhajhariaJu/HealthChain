@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { FitnessNav } from '../../components/ui/FitnessNav';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Flame, Activity, Camera, TrendingDown, Target, ShieldCheck, Plus, ChevronRight } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -78,6 +79,7 @@ export const ProgressGallery: React.FC = () => {
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
       overflowX: 'hidden'
     }}>
+      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
       {/* Header */}
       <div style={{ padding: isMobile ? '16px' : '32px 40px', backgroundColor: 'white', borderBottom: '1px solid #E7E5E4' }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#1C1917', display: 'flex', alignItems: 'center', gap: '8px' }}>

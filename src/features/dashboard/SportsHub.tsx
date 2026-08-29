@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { FitnessNav } from '../../components/ui/FitnessNav';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, ChevronRight, Activity, Calendar, Award, Target, Plus, Zap } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -51,6 +52,7 @@ export const SportsHub: React.FC = () => {
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
       overflowX: 'hidden'
     }}>
+      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
       {/* Hero Header */}
       <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
         <section

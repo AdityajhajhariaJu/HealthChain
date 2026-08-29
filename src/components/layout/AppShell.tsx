@@ -29,9 +29,6 @@ function AnimatedOutlet() {
 
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
-    { to: '/app/sports', label: 'Sports Hub', icon: Dumbbell },
-    { to: '/app/progress', label: 'Progress Gallery', icon: LineChart },
-    { to: '/app/trophies', label: 'Trophy Cabinet', icon: Trophy },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
   { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: Brain },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
@@ -46,9 +43,6 @@ const links: any[] = [
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
-    { to: '/app/sports', label: 'Sports', icon: Dumbbell },
-    { to: '/app/progress', label: 'Progress', icon: LineChart },
-    { to: '/app/trophies', label: 'Trophies', icon: Trophy },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
   { to: '/app/jarvis', label: 'JARVIS', icon: Brain },
   { to: '/app/ava', label: 'Ava', icon: Heart },
@@ -727,6 +721,7 @@ function BrandPulseBanner() {
     </section>
   );
 }
+
 
 
 

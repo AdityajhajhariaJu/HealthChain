@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { FitnessNav } from '../../components/ui/FitnessNav';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Share, X, Award, Star, Zap, Activity } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -70,6 +71,7 @@ export const TrophyCabinet: React.FC = () => {
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
       overflowX: 'hidden'
     }}>
+      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
       {/* Header */}
       <div style={{ padding: isMobile ? '32px 24px 16px' : '48px 40px 24px' }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? '32px' : '42px', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '-0.5px' }}>
@@ -226,11 +228,19 @@ export const TrophyCabinet: React.FC = () => {
                   {selectedBadge.desc}
                 </p>
 
-                <button
-                  onClick={() => {
-                    triggerHapticLight();
-                    alert("Sharing functionality invokes native Web Share API or generates an Instagram Story canvas.");
-                  }}
+                                  <button
+                    onClick={() => {
+                      triggerHapticLight();
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `I unlocked the ${selectedBadge.title} badge!`,
+                          text: `I just earned the ${selectedBadge.title} achievement on HealthChain360!`,
+                          url: window.location.href,
+                        }).catch(console.error);
+                      } else {
+                        alert('Your browser does not support native sharing. Screenshot this card instead!');
+                      }
+                    }}
                   style={{
                     width: '100%',
                     backgroundColor: selectedBadge.color,
@@ -260,3 +270,4 @@ export const TrophyCabinet: React.FC = () => {
 };
 
 export default TrophyCabinet;
+
