@@ -184,7 +184,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
   return (
     <div style={{
       width: '100%',
-      backgroundColor: '#FFFFFF', // Clean white background for Apple style
+      backgroundColor: '#FBF9F6', // Premium creme background for Apple style
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
