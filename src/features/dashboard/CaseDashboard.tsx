@@ -35,23 +35,42 @@ export default function CaseDashboard() {
     loadFitnessData();
   }, []);
 
+  const handleProgramClick = async (prog: any) => {
+    triggerHapticLight();
+    try {
+      const episodes = await FitnessService.getProgramEpisodes(prog.id);
+      setActiveCollection({ title: prog.title, items: episodes.length > 0 ? episodes : featured });
+    } catch (e) {
+      setActiveCollection({ title: prog.title, items: featured });
+    }
+  };
+
   const loadFitnessData = async () => {
     try {
       setLoading(true);
-      const [cats, feats, progs, beginner, intermediate, advanced, specialty] = await Promise.all([
+      const [cats, feats, progs, allContent, specialty] = await Promise.all([
         FitnessService.getCategories(),
         FitnessService.getFeaturedContent(),
         FitnessService.getPrograms(),
-        FitnessService.getContentByDifficulty('Beginner'),
-        FitnessService.getContentByDifficulty('Intermediate'),
-        FitnessService.getContentByDifficulty('Advanced'),
+        FitnessService.getAllActiveContent(),
         FitnessService.getSpecialtyContent()
       ]);
       
       const map: Record<string, FitnessContent[]> = {};
-      for (const cat of cats) {
-        map[cat.id] = await FitnessService.getContentByCategory(cat.id);
-      }
+      const beginner: FitnessContent[] = [];
+      const intermediate: FitnessContent[] = [];
+      const advanced: FitnessContent[] = [];
+      
+      allContent.forEach(item => {
+        // Group by Category
+        if (!map[item.category_id]) map[item.category_id] = [];
+        map[item.category_id].push(item);
+        
+        // Group by Difficulty
+        if (item.difficulty === 'Beginner') beginner.push(item);
+        if (item.difficulty === 'Intermediate') intermediate.push(item);
+        if (item.difficulty === 'Advanced') advanced.push(item);
+      });
       
       setPrograms(progs);
       setCategories(cats);
@@ -132,7 +151,7 @@ const ProgramCard = ({ title, subtitle, gradient, icon, onClick }: any) => (
 const VerticalWorkoutRow = ({ item, onClick, getFallbackImage }: any) => (
   <div onClick={onClick} style={{ display: 'flex', gap: '16px', alignItems: 'center', cursor: 'pointer', padding: '8px 0' }}>
     <div style={{ position: 'relative', width: '120px', height: '80px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
-      <img src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <img loading="lazy" decoding="async" src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       {item.is_featured && (
         <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(255,255,255,0.9)', color: '#000', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', letterSpacing: '0.5px' }}>
           NEW
@@ -153,7 +172,7 @@ const MeditationHeroCard = ({ item, onClick, getFallbackImage }: any) => (
     minWidth: '300px', height: '220px', borderRadius: '24px', overflow: 'hidden', position: 'relative', cursor: 'pointer', flexShrink: 0,
     boxShadow: '0 12px 24px -8px rgba(0,0,0,0.15)'
   }}>
-    <img src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    <img loading="lazy" decoding="async" src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)' }} />
     <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
       <div>
@@ -177,7 +196,7 @@ const MeditationHeroCard = ({ item, onClick, getFallbackImage }: any) => (
 const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
   <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer' }}>
     <div style={{ aspectRatio: '1', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 8px 16px -6px rgba(0,0,0,0.08)' }}>
-      <img src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <img loading="lazy" decoding="async" src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
     </div>
     <div>
       <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{item.title}</h4>
@@ -265,7 +284,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 
                 {/* Beginner Banner */}
                 <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Beginner Workouts", items: difficultyMap["Beginner"] || []}); }} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Beginner Workouts</h3>
                   </div>
@@ -273,7 +292,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
                 {/* Intermediate Banner */}
                 <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Intermediate Workouts", items: difficultyMap["Intermediate"] || []}); }} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Intermediate Workouts</h3>
                   </div>
@@ -281,7 +300,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
                 {/* Advanced Banner */}
                 <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Advanced Workouts", items: difficultyMap["Advanced"] || []}); }} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80" alt="Advanced Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80" alt="Advanced Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
                     <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Advanced Workouts</h3>
                   </div>
@@ -360,7 +379,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {/* Activity Games */}
                 <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80" alt="Activity Games" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80" alt="Activity Games" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
                     <Gamepad2 size={24} color="#10B981" style={{ marginBottom: '8px' }} />
                     <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Activity<br/>Games</h3>
@@ -368,7 +387,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
                 {/* Hand-Eye Coordination */}
                 <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80" alt="Hand-Eye Coordination" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80" alt="Hand-Eye Coordination" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
                     <Crosshair size={24} color="#3b82f6" style={{ marginBottom: '8px' }} />
                     <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Hand-Eye<br/>Coordination</h3>
@@ -421,7 +440,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           ].map((art, i) => (
             <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden' }}>
-                <img src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img loading="lazy" decoding="async" src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div style={{ flex: 1 }}>
                 <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>{art.title}</h4>

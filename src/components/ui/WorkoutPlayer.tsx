@@ -143,11 +143,22 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
           <>
             {/* Visual Background layer */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-              <img 
-                src={currentStep?.image || workout.cover_image_url || 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80'} 
-                alt="Exercise"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }}
-              />
+              {workout.video_url ? (
+                <video 
+                  src={workout.video_url} 
+                  autoPlay 
+                  playsInline 
+                  loop 
+                  muted={!isPlaying}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} 
+                />
+              ) : (
+                <img 
+                  src={currentStep?.image || workout.cover_image_url || 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80'} 
+                  alt="Exercise"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }}
+                />
+              )}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.8) 100%)' }} />
             </div>
 

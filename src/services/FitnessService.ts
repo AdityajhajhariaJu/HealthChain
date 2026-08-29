@@ -44,6 +44,28 @@ export interface FitnessContent {
 }
 
 export const FitnessService = {
+  async getProgramEpisodes(programId: string) {
+    const { data, error } = await supabase
+      .from('fitness_program_episodes')
+      .select('*, fitness_content(*)')
+      .eq('program_id', programId)
+      .order('episode_number', { ascending: true });
+      
+    if (error) throw error;
+    return data.map((d: any) => d.fitness_content) as FitnessContent[];
+  },
+
+  async getAllActiveContent() {
+    const { data, error } = await supabase
+      .from('fitness_content')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+      
+    if (error) throw error;
+    return data as FitnessContent[];
+  },
+
   async getPrograms() {
     const { data, error } = await supabase
       .from('fitness_programs')

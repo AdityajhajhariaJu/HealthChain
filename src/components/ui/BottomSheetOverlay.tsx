@@ -15,10 +15,21 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      const main = document.getElementById('main-content');
+      if (main) main.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      const main = document.getElementById('main-content');
+      if (main) main.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => { 
+      document.body.style.overflow = ''; 
+      document.body.style.touchAction = '';
+      const main = document.getElementById('main-content');
+      if (main) main.style.overflow = '';
+    };
   }, [isOpen]);
 
   return (
