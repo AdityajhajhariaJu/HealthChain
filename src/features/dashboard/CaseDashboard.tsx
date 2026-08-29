@@ -227,48 +227,61 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
             </section>
 
-            {/* STEP 2: ACTIVITY TYPES (The 11 Modalities) */}
-            <section style={{ margin: '8px 0 16px' }}>
-              <div style={{ padding: '0 24px', marginBottom: '12px' }}>
+            {/* STEP 2: ACTIVITY TYPES (The 11 Modalities with Image Thumbnails) */}
+            <section style={{ margin: '8px 0 24px' }}>
+              <div style={{ padding: '0 24px', marginBottom: '16px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Activity Types</h2>
               </div>
               <div className="hide-scrollbar" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 8px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
                 
                 {[
-                  { name: 'Strength', icon: <Dumbbell size={18} />, color: '#FF416C', bg: '#FFF0F3' },
-                  { name: 'Yoga', icon: <Wind size={18} />, color: '#8E2DE2', bg: '#F4F0FF' },
-                  { name: 'Core', icon: <Target size={18} />, color: '#f5af19', bg: '#FFF8E6' },
-                  { name: 'HIIT', icon: <Zap size={18} />, color: '#FF4B2B', bg: '#FFF0F0' },
-                  { name: 'Pilates', icon: <Sparkles size={18} />, color: '#4A00E0', bg: '#EEF0FF' },
-                  { name: 'Dance', icon: <Music size={18} />, color: '#fecfef', bg: '#FFF5FA' },
-                  { name: 'Kickboxing', icon: <Swords size={18} />, color: '#f12711', bg: '#FFEBE8' },
-                  { name: 'Treadmill', icon: <Footprints size={18} />, color: '#00C9FF', bg: '#E5FAFF' },
-                  { name: 'Cycling', icon: <Bike size={18} />, color: '#11998e', bg: '#E6F9F2' },
-                  { name: 'Rowing', icon: <Waves size={18} />, color: '#3b82f6', bg: '#EBF3FF' },
-                  { name: 'Mindful Cooldown', icon: <Moon size={18} />, color: '#66a6ff', bg: '#F0F5FF' }
+                  { name: 'Strength', icon: <Dumbbell size={20} />, img: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=80', color: '#FF416C' },
+                  { name: 'Yoga', icon: <Wind size={20} />, img: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&q=80', color: '#8E2DE2' },
+                  { name: 'Core', icon: <Target size={20} />, img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80', color: '#f5af19' },
+                  { name: 'HIIT', icon: <Zap size={20} />, img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80', color: '#FF4B2B' },
+                  { name: 'Pilates', icon: <Sparkles size={20} />, img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80', color: '#4A00E0' },
+                  { name: 'Dance', icon: <Music size={20} />, img: 'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=400&q=80', color: '#fecfef' },
+                  { name: 'Kickboxing', icon: <Swords size={20} />, img: 'https://images.unsplash.com/photo-1549719386-74dfc47db431?w=400&q=80', color: '#f12711' },
+                  { name: 'Treadmill', icon: <Footprints size={20} />, img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80', color: '#00C9FF' },
+                  { name: 'Cycling', icon: <Bike size={20} />, img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80', color: '#11998e' },
+                  { name: 'Rowing', icon: <Waves size={20} />, img: 'https://images.unsplash.com/photo-1543162791-c91836585148?w=400&q=80', color: '#3b82f6' },
+                  { name: 'Cooldown', icon: <Moon size={20} />, img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', color: '#66a6ff' }
                 ].map((type, i) => (
                   <button 
                     key={i}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      padding: '10px 20px', borderRadius: '100px',
-                      backgroundColor: 'white', border: `1px solid #E2E8F0`,
-                      boxShadow: '0 2px 4px rgba(15,23,42,0.02)',
-                      cursor: 'pointer', whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease',
-                      fontWeight: 600, fontSize: '15px', color: '#334155'
+                      flexShrink: 0,
+                      width: '130px',
+                      height: '140px',
+                      borderRadius: '20px',
+                      backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%), url(${type.img})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      padding: '16px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.borderColor = type.color;
-                      e.currentTarget.style.backgroundColor = type.bg;
+                      e.currentTarget.style.transform = 'scale(1.02) translateY(-2px)';
+                      e.currentTarget.style.boxShadow = `0 8px 20px ${type.color}40`;
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.borderColor = '#E2E8F0';
-                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.transform = 'scale(1) translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                     }}
                   >
-                    <span style={{ color: type.color }}>{type.icon}</span>
-                    {type.name}
+                    <div style={{ color: type.color, background: 'rgba(255,255,255,0.9)', padding: '6px', borderRadius: '50%', display: 'flex' }}>
+                      {type.icon}
+                    </div>
+                    <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '-0.3px', textAlign: 'left', lineHeight: '1.1' }}>
+                      {type.name}
+                    </span>
                   </button>
                 ))}
 
