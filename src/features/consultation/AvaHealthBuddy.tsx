@@ -261,6 +261,12 @@ export default function AvaHealthBuddy() {
       return;
     }
 
+    
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("File Too Large", "Please select an image or document under 4MB. Large camera photos should be compressed.");
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onerror = () => {
       toast.error("Upload Error", "Failed to read the file. Please try another.");

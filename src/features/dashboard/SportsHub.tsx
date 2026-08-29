@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, ChevronRight, Activity, Calendar, Award, Target, Plus, Zap } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
+import { supabase } from '../../services/supabaseClient';
+import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight } from '../../services/haptics';
 
 export const SportsHub: React.FC = () => {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [sports, setSports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSport, setSelectedSport] = useState<any | null>(null);
@@ -238,7 +241,21 @@ export const SportsHub: React.FC = () => {
 
             <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, padding: '16px 24px calc(16px + env(safe-area-inset-bottom, 16px))', background: 'linear-gradient(to top, rgba(255,255,255,1) 80%, rgba(255,255,255,0) 100%)', zIndex: 20 }}>
               <button
-                onClick={() => alert("Enrollment logic will be wired to FitnessService.startProgram()")}
+                onClick={async () => {
+                  triggerHapticLight();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session?.user) {
+                    toast.error("Sign In Required", "You must be signed in to enroll in a program.");
+                    return;
+                  }
+                  try {
+                    await FitnessService.startProgram(session.user.id, selectedSport.id);
+                    toast.success("Enrolled!", `You have successfully enrolled in the ${selectedSport.name} track.`);
+                    setSelectedSport(null);
+                  } catch (e) {
+                    toast.error("Enrollment Failed", "Could not enroll in the program at this time.");
+                  }
+                }}
                 style={{ width: '100%', backgroundColor: '#0F172A', color: 'white', fontSize: '18px', fontWeight: 700, padding: '18px', borderRadius: '24px', border: 'none', boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
               >
                 <Plus size={20} /> Enroll in {selectedSport.name} Track

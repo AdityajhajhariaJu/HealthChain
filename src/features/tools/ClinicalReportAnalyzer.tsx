@@ -96,6 +96,13 @@ export default function ClinicalReportAnalyzer() {
       return;
     }
 
+    
+    if (selectedFile.size > 4 * 1024 * 1024) {
+      setLoading(false);
+      toast.error("File Too Large", "Please select a document under 4MB.");
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onerror = () => {
       setLoading(false);

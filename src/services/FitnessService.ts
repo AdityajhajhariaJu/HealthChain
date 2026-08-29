@@ -55,6 +55,24 @@ const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 let memoryCache: FitnessCache = {};
 
 export const FitnessService = {
+  async startProgram(userId: string, programId: string) {
+    const { data, error } = await supabase
+      .from('user_program_progress')
+      .upsert({
+        user_id: userId,
+        program_id: programId,
+        started_at: new Date().toISOString(),
+        is_active: true,
+        current_episode: 1,
+        completed_episodes: []
+      }, { onConflict: 'user_id,program_id' })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  },
+
   async getProgramEpisodes(programId: string) {
     const { data, error } = await supabase
       .from('fitness_program_episodes')
