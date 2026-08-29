@@ -39,7 +39,6 @@ export function FitnessNav() {
               style={{
                 padding: '8px 20px',
                 borderRadius: '24px',
-                border: 'none',
                 fontSize: '15px',
                 fontWeight: '600',
                 whiteSpace: 'nowrap',
@@ -60,3 +59,4 @@ export function FitnessNav() {
     </div>
   );
 }
+
