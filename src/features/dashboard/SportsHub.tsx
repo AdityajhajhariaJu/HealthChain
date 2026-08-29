@@ -25,13 +25,27 @@ export const SportsHub: React.FC = () => {
     } catch (err) {
       console.error(err);
       // Fallback if the RPC/tables aren't fully populated yet for sports specifically
-      setSports([
+            setSports([
         { id: '1', name: 'Cricket', emoji: '🏏', focus: 'Rotational Power & Speed', image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80', activeUsers: '1.2M' },
         { id: '2', name: 'Tennis', emoji: '🎾', focus: 'Agility & Kinetic Chain', image: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80', activeUsers: '850K' },
         { id: '3', name: 'Football', emoji: '⚽', focus: 'Sprint Stamina & Core', image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&q=80', activeUsers: '2.1M' },
         { id: '4', name: 'Athletics', emoji: '🏃', focus: 'Explosive Jump & Sprint', image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&q=80', activeUsers: '920K' },
         { id: '5', name: 'Basketball', emoji: '🏀', focus: 'Vertical Jump & Agility', image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80', activeUsers: '1.5M' },
-        { id: '6', name: 'Swimming', emoji: '🏊', focus: 'Shoulder Mobility & Core', image: 'https://images.unsplash.com/photo-1519315901367-f34f8589b2cc?auto=format&fit=crop&q=80', activeUsers: '600K' }
+        { id: '6', name: 'Swimming', emoji: '🏊', focus: 'Shoulder Mobility & Core', image: 'https://images.unsplash.com/photo-1519315901367-f34f8589b2cc?auto=format&fit=crop&q=80', activeUsers: '600K' },
+        { id: '7', name: 'Volleyball', emoji: '🏐', focus: 'Vertical Power & Reaction Time', image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&q=80', activeUsers: '750K' },
+        { id: '8', name: 'Boxing', emoji: '🥊', focus: 'Fast-Twitch Core & Shoulder Endurance', image: 'https://images.unsplash.com/photo-1549719386-74dfc47db431?auto=format&fit=crop&q=80', activeUsers: '1.8M' },
+        { id: '9', name: 'Golf', emoji: '⛳', focus: 'Core Stability & Rotational Flexibility', image: 'https://images.unsplash.com/photo-1587223962930-cb7f31384c19?auto=format&fit=crop&q=80', activeUsers: '1.1M' },
+        { id: '10', name: 'Martial Arts', emoji: '🥋', focus: 'Hip Mobility & Explosive Striking', image: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&q=80', activeUsers: '950K' },
+        { id: '11', name: 'Cycling', emoji: '🚴', focus: 'Quad Endurance & Hip Hinge Power', image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&q=80', activeUsers: '2.5M' },
+        { id: '12', name: 'Rowing', emoji: '🚣', focus: 'Posterior Chain & Lactic Threshold', image: 'https://images.unsplash.com/photo-1543162791-c91836585148?auto=format&fit=crop&q=80', activeUsers: '400K' },
+        { id: '13', name: 'Rugby', emoji: '🏉', focus: 'Full Body Armor & Impact Resilience', image: 'https://images.unsplash.com/photo-1506509971987-1335b0e8b15d?auto=format&fit=crop&q=80', activeUsers: '800K' },
+        { id: '14', name: 'Gymnastics', emoji: '🤸', focus: 'Extreme Core Control & Flexibility', image: 'https://images.unsplash.com/photo-1566352932971-f925bba5677c?auto=format&fit=crop&q=80', activeUsers: '550K' },
+        { id: '15', name: 'Badminton', emoji: '🏸', focus: 'Multi-Directional Agility & Wrist Snap', image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80', activeUsers: '1.3M' },
+        { id: '16', name: 'Table Tennis', emoji: '🏓', focus: 'Hand-Eye Coordination & Lateral Quickness', image: 'https://images.unsplash.com/photo-1611250282006-4484dd3fba6b?auto=format&fit=crop&q=80', activeUsers: '1.4M' },
+        { id: '17', name: 'Surfing', emoji: '🏄', focus: 'Balance, Core & Paddling Endurance', image: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&q=80', activeUsers: '650K' },
+        { id: '18', name: 'Wrestling', emoji: '🤼', focus: 'Isometric Strength & Grappling Leverage', image: 'https://images.unsplash.com/photo-1628863673413-5290b224e75d?auto=format&fit=crop&q=80', activeUsers: '350K' },
+        { id: '19', name: 'Rock Climbing', emoji: '🧗', focus: 'Grip Strength & Pulling Power', image: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?auto=format&fit=crop&q=80', activeUsers: '850K' },
+        { id: '20', name: 'Hockey', emoji: '🏒', focus: 'Low-Stance Power & Lateral Agility', image: 'https://images.unsplash.com/photo-1515788349830-79883c076b92?auto=format&fit=crop&q=80', activeUsers: '1.1M' }
       ]);
     } finally {
       setLoading(false);
