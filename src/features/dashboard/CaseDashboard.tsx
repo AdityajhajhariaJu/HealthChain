@@ -1,5 +1,5 @@
 ﻿import { FitnessNav } from '../../components/ui/FitnessNav';
-import { Activity, Clock, Flame, Heart, HeartPulse, Moon, MoreHorizontal, Play, Settings2, Sparkles, Target, Zap } from 'lucide-react';
+import {Activity, Bike, Clock, Dumbbell, Flame, Footprints, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 
@@ -227,7 +227,55 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
             </section>
 
-          {/* 2. Vertical Workout List - Beginner */}
+            {/* STEP 2: ACTIVITY TYPES (The 11 Modalities) */}
+            <section style={{ margin: '8px 0 16px' }}>
+              <div style={{ padding: '0 24px', marginBottom: '12px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Activity Types</h2>
+              </div>
+              <div className="hide-scrollbar" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 8px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+                
+                {[
+                  { name: 'Strength', icon: <Dumbbell size={18} />, color: '#FF416C', bg: '#FFF0F3' },
+                  { name: 'Yoga', icon: <Wind size={18} />, color: '#8E2DE2', bg: '#F4F0FF' },
+                  { name: 'Core', icon: <Target size={18} />, color: '#f5af19', bg: '#FFF8E6' },
+                  { name: 'HIIT', icon: <Zap size={18} />, color: '#FF4B2B', bg: '#FFF0F0' },
+                  { name: 'Pilates', icon: <Sparkles size={18} />, color: '#4A00E0', bg: '#EEF0FF' },
+                  { name: 'Dance', icon: <Music size={18} />, color: '#fecfef', bg: '#FFF5FA' },
+                  { name: 'Kickboxing', icon: <Swords size={18} />, color: '#f12711', bg: '#FFEBE8' },
+                  { name: 'Treadmill', icon: <Footprints size={18} />, color: '#00C9FF', bg: '#E5FAFF' },
+                  { name: 'Cycling', icon: <Bike size={18} />, color: '#11998e', bg: '#E6F9F2' },
+                  { name: 'Rowing', icon: <Waves size={18} />, color: '#3b82f6', bg: '#EBF3FF' },
+                  { name: 'Mindful Cooldown', icon: <Moon size={18} />, color: '#66a6ff', bg: '#F0F5FF' }
+                ].map((type, i) => (
+                  <button 
+                    key={i}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '10px 20px', borderRadius: '100px',
+                      backgroundColor: 'white', border: `1px solid #E2E8F0`,
+                      boxShadow: '0 2px 4px rgba(15,23,42,0.02)',
+                      cursor: 'pointer', whiteSpace: 'nowrap',
+                      transition: 'all 0.2s ease',
+                      fontWeight: 600, fontSize: '15px', color: '#334155'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.borderColor = type.color;
+                      e.currentTarget.style.backgroundColor = type.bg;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.borderColor = '#E2E8F0';
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }}
+                  >
+                    <span style={{ color: type.color }}>{type.icon}</span>
+                    {type.name}
+                  </button>
+                ))}
+
+              </div>
+            </section>
+
+            {/* 3. Vertical Workout List - Beginner */}
           <section style={{ padding: '0 24px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Workouts</h2>
             <p style={{ fontSize: '14px', color: '#64748B', margin: '0 0 16px' }}>Beginner friendly, new and picked for you</p>
