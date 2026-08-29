@@ -175,6 +175,19 @@ export const AdminContentDashboard: React.FC = () => {
                     {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Difficulty</label>
+                  <select 
+                    value={editForm.difficulty || 'Beginner'}
+                    onChange={e => setEditForm({...editForm, difficulty: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white outline-none"
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Athlete">Athlete</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
