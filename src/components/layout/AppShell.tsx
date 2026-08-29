@@ -1,36 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
-import {
-  BrainCircuit, Activity,
-  Target,
-  FolderHeart,
-  MessageCircle,
-  Pill,
-  Archive,
-  Heart,
-  FileText,
-  Settings,
-  Lock,
-  Apple,
-  Network,
-  LayoutDashboard,
-  ArrowLeft,
-  Quote,
-  Sparkles,
-  BriefcaseBusiness,
-  ArrowRight,
-  FlaskConical,
-  Grid,
-  X,
-  Bot,
-  Trophy,
-  Flame,
-  Bell,
-  Stethoscope,
-  ClipboardList,
-  Brain,
-  Home
-} from 'lucide-react';
+import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Pill, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Dumbbell, Home, User } from 'lucide-react';
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
@@ -59,6 +29,9 @@ function AnimatedOutlet() {
 
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
+    { to: '/app/sports', label: 'Sports Hub', icon: Dumbbell },
+    { to: '/app/progress', label: 'Progress Gallery', icon: LineChart },
+    { to: '/app/trophies', label: 'Trophy Cabinet', icon: Trophy },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
   { to: '/app/jarvis', label: 'J.A.R.V.I.S.', icon: Brain },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
@@ -73,6 +46,9 @@ const links: any[] = [
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
+    { to: '/app/sports', label: 'Sports', icon: Dumbbell },
+    { to: '/app/progress', label: 'Progress', icon: LineChart },
+    { to: '/app/trophies', label: 'Trophies', icon: Trophy },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
   { to: '/app/jarvis', label: 'JARVIS', icon: Brain },
   { to: '/app/ava', label: 'Ava', icon: Heart },
@@ -751,5 +727,11 @@ function BrandPulseBanner() {
     </section>
   );
 }
+
+
+
+
+
+
 
 

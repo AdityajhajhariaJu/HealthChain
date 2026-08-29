@@ -2,7 +2,14 @@ import { del, get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
 
-type OutboxKind = 'case_upsert' | 'case_delete' | 'health_memory_upsert' | 'profile_upsert' | 'caregiver_profile_upsert';
+type OutboxKind = 
+  | 'case_upsert' 
+  | 'case_delete' 
+  | 'health_memory_upsert' 
+  | 'profile_upsert' 
+  | 'caregiver_profile_upsert'
+  | 'fitness_history_upsert'
+  | 'body_measurements_upsert';
 
 interface OutboxEntry {
   id: string;
@@ -136,6 +143,12 @@ async function send(entry: OutboxEntry) {
   }
   if (entry.kind === 'profile_upsert') {
     return supabase.from('profiles').upsert(entry.payload, { onConflict: 'id' });
+  }
+  if (entry.kind === 'fitness_history_upsert') {
+    return supabase.from('user_fitness_history').upsert(entry.payload, { onConflict: 'id' });
+  }
+  if (entry.kind === 'body_measurements_upsert') {
+    return supabase.from('user_body_measurements').upsert(entry.payload, { onConflict: 'id' });
   }
   return { error: new Error('Unknown outbox kind') };
 }

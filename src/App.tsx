@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react';
+﻿import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
@@ -17,6 +17,7 @@ import Landing from './features/auth/Landing';
 import Auth from './features/auth/Auth';
 import AuthCallback from './features/auth/AuthCallback';
 import AppShell from './components/layout/AppShell';
+import { AdminContentDashboard } from './features/admin/AdminContentDashboard';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ProfileOnboarding from './features/profile/ProfileOnboarding';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -41,6 +42,9 @@ const JarvisInvestigator = React.lazy(() => import('./features/jarvis/JarvisInve
 const Settings = React.lazy(() => import('./features/profile/Settings'));
 const Dietician = React.lazy(() => import('./features/dietician/Dietician'));
 const CaseDashboard = React.lazy(() => import('./features/dashboard/CaseDashboard'));
+const SportsHub = React.lazy(() => import('./features/dashboard/SportsHub'));
+const ProgressGallery = React.lazy(() => import('./features/dashboard/ProgressGallery'));
+const TrophyCabinet = React.lazy(() => import('./features/dashboard/TrophyCabinet'));
 const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/ClinicalTrialsMatcher'));
 const PrivacyPolicy = React.lazy(() => import('./features/legal/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./features/legal/TermsOfService'));
@@ -126,7 +130,7 @@ export default function App() {
             localStorage.setItem('hc_vip_tester', 'true');
             localStorage.setItem('hc_guest_mode', 'false');
             window.dispatchEvent(new Event('hc_profile_updated'));
-            info('🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
+            info('ðŸŽ‰ VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
             params.delete('vip_pass');
             params.delete('tester');
             params.delete('test_pass');
@@ -302,7 +306,7 @@ export default function App() {
           })
         );
         
-        // Use the session from the event directly — do NOT re-call getSession()
+        // Use the session from the event directly â€” do NOT re-call getSession()
         // inside this callback. Re-calling getSession() acquires the internal
         // Supabase lock, which is already held during onAuthStateChange dispatch,
         // causing a deadlock or returning stale data from async storage.
@@ -341,7 +345,7 @@ export default function App() {
         // Supabase's internal _recoverAndRefresh can fire SIGNED_OUT on stale
         // storage before our async IndexedDB write from a fresh login has
         // committed. If a SIGNED_IN occurred within the last 5 seconds, this
-        // SIGNED_OUT is a false positive — ignore it.
+        // SIGNED_OUT is a false positive â€” ignore it.
         if (Date.now() - lastSignedInAt < 5000) {
           console.warn('[Auth] Ignoring SIGNED_OUT that raced with recent SIGNED_IN (debounce window)');
           return;
@@ -515,6 +519,9 @@ export default function App() {
           }
         >
           <Route path="/app" element={<Navigate to="/app/today" replace />} />
+          <Route path="/app/sports" element={<SafeRoute><SportsHub /></SafeRoute>} />
+          <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
+          <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
           <Route
             path="/app/today"
             element={
@@ -623,8 +630,9 @@ export default function App() {
           />
 
           <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
+          <Route path="/app/admin/content" element={<SafeRoute><AdminContentDashboard /></SafeRoute>} />
         </Route>
-        <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
+        <Route path="\*" element={<SafeRoute><NotFound /></SafeRoute>} />
       </Routes>
       
       {topUpFeature && (
@@ -640,3 +648,8 @@ export default function App() {
     </SafeRoute>
   );
 }
+
+
+
+
+

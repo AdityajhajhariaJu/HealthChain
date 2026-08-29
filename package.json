@@ -43,6 +43,7 @@
     "lucide-react": "^0.513.0",
     "razorpay": "^2.9.8",
     "react": "^19.1.0",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.1.0",
     "react-error-boundary": "^6.1.2",
     "react-markdown": "^10.1.0",

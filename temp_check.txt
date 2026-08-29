@@ -1,0 +1,76 @@
+﻿    </div>
+  );
+}
+
+function BrandPulseBanner() {
+  const messages = [
+    {
+      quote: 'One health story. Multiple specialist perspectives.',
+      sub: 'Multiple-Specialists investigates your case from more than one clinical angle.',
+    },
+    {
+      quote:
+        'Youâ€™ve explained your symptoms to five different doctors. Your labs come back â€œnormal,â€ but you still feel terrible.',
+      sub: 'Your experience is real. HealthChain360.ai helps you organise the full picture for the next conversation.',
+    },
+    {
+      quote: 'When symptoms do not fit neatly into one box, one perspective may not be enough.',
+      sub: 'Bring relevant AI specialist perspectives together before you decide what to ask next.',
+    },
+    {
+      quote: 'Parallel investigation. Connected evidence. Clearer next steps.',
+      sub: 'HealthChain360.ai turns your symptoms, records, and answers into one evolving case.',
+    },
+    {
+      quote: 'You should not have to repeat your health story from the beginning every time.',
+      sub: 'Keep your records, patterns, questions, and next actions connected in one case file.',
+    },
+    {
+      quote: 'Your case should not restart every time new evidence arrives.',
+      sub: 'Reopen your review when a report, appointment, or symptom changes.',
+    },
+    {
+      quote: 'The goal is not more noise. It is better questions for the right clinician.',
+      sub: 'Use your case brief to make the next appointment more focused and productive.',
+    },
+    {
+      quote: 'Better clinical conversations start with a better-organised case.',
+      sub: 'Bring an evidence-led brief, the right questions, and your next actions to your clinician.',
+    },
+    {
+      quote: 'HealthChain360.ai isn\'t a one-off search engine.',
+      sub: 'It is a persistent, AI-driven medical detective that stays on the case until the mystery is actually solved.',
+    },
+  ];
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setActive((current) => (current + 1) % messages.length), 10000);
+    return () => clearInterval(timer);
+  }, []);
+  const message = messages[active];
+  return (
+    <section className="brand-pulse" aria-label="What makes HealthChain360.ai different">
+      <div className="brand-pulse__mark">
+        <Quote size={20} />
+      </div>
+      <div className="brand-pulse__copy">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.32 }}
+          >
+            <strong>â€œ{message.quote}â€</strong>
+            <span>{message.sub}</span>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div className="brand-pulse__meta">
+        <Sparkles size={15} />
+        <span>HEALTHCHAIN360.AI METHOD</span>
+        <div className="brand-pulse__dots">
+          {messages.map((_, index) => (
+            <i key={index} className={index === active ? 'active' : ''} />
+          ))}

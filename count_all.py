@@ -1,0 +1,11 @@
+﻿with open('src/features/dashboard/CaseDashboard.tsx', 'r', encoding='utf-8') as f:
+    lines = f.readlines()
+block = ''.join(lines[127:289])
+print("div open:", block.count('<div'))
+print("div close:", block.count('</div'))
+print("section open:", block.count('<section'))
+print("section close:", block.count('</section'))
+print("open braces:", block.count('{'))
+print("close braces:", block.count('}'))
+print("open parens:", block.count('('))
+print("close parens:", block.count(')'))
