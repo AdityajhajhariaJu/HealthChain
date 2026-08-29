@@ -121,9 +121,7 @@ textarea {
 
 
 /* Ensure children sit above the absolute background */
-.app-shell > * {
-  z-index: 1;
-}
+/* .app-shell > * z-index removed to prevent stacking context trapping */
 .app-shell__content {
   width: 100%;
   flex: 1;

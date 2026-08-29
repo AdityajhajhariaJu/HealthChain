@@ -33,7 +33,7 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 1000,
+          zIndex: 9998,
           backgroundColor: '#fff',
           overflowY: 'auto',
           overflowX: 'hidden'
@@ -186,3 +186,4 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
     </AnimatePresence>
   );
 };
+
