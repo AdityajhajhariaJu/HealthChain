@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Play, Lock, Flame } from 'lucide-react';
+import { Play, Lock, Flame, Sparkles, Stethoscope } from 'lucide-react';
 import { getCases } from '../../services/CaseEngine';
 import { getProfile, isProUser, verifyProStatus } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -64,11 +64,38 @@ export default function CaseDashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'black', color: 'white', paddingBottom: '128px', paddingTop: '64px', fontFamily: 'sans-serif' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '128px', paddingTop: '16px', fontFamily: 'sans-serif', maxWidth: 1120, margin: '0 auto' }}>
       
-      <div style={{ padding: '0 16px', marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '30px', fontWeight: 800, letterSpacing: '-0.025em', margin: '0 0 4px' }}>Today</h1>
-        <p style={{ color: '#9ca3af', fontWeight: 500, margin: 0 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+      <div style={{ padding: '0 16px' }}>
+        <section
+          style={{
+            borderRadius: 28,
+            padding: isMobile ? '26px 24px' : '38px',
+            color: '#fff',
+            background: 'linear-gradient(135deg, #0f172a, #153d45 65%, #059669)',
+            backdropFilter: 'blur(24px)',
+            boxShadow: '0 8px 32px rgba(15,23,42,0.1)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            marginBottom: '32px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#99f6e4', fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', marginBottom: isMobile ? 12 : 16 }}>
+            <Sparkles size={15} /> Your health command centre
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: isMobile ? 18 : 24, flexWrap: 'wrap', alignItems: 'end' }}>
+            <div>
+              <h1 style={{ margin: 0, fontSize: isMobile ? 28 : 38, letterSpacing: -1.2, lineHeight: 1.1 }}>
+                Good to see you{profile?.demographics?.name ? ', ' + (profile.demographics.name.split(' ')[0] || 'User') : '.'}
+              </h1>
+              <p style={{ color: '#cbd5e1', lineHeight: 1.5, maxWidth: 620, margin: '12px 0 0', fontSize: isMobile ? 14 : 16 }}>
+                Start with parallel AI specialist perspectives, then bring their findings into a Deep Collaborative Specialist review for consensus when your case needs deeper correlation.
+              </p>
+            </div>
+            <button onClick={() => navigate('/app/consult?new=true')} style={{ background: '#fff', color: '#0f172a', padding: isMobile ? '12px 16px' : '14px 20px', fontWeight: 800, width: isMobile ? '100%' : 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', borderRadius: 99, border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+              <Stethoscope size={18} /> Start Quick Consult
+            </button>
+          </div>
+        </section>
       </div>
 
       <SwimlaneCarousel title="Top Programs" subtitle="Most popular picks right now">
@@ -88,21 +115,21 @@ export default function CaseDashboard() {
 
       <SwimlaneCarousel title="Activity Types">
          <div 
-           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }} 
+           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden', cursor: 'pointer' }} 
            onClick={() => setSelectedContent(workouts[4])}
          >
             <img src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?auto=format&fit=crop&q=80" style={{ width: '100%', height: '96px', objectFit: 'cover' }} />
             <span style={{ color: 'black', fontWeight: 'bold', textAlign: 'center', marginTop: '8px' }}>Yoga</span>
          </div>
          <div 
-           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }} 
+           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden', cursor: 'pointer' }} 
            onClick={() => setSelectedContent(workouts[3])}
          >
             <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80" style={{ width: '100%', height: '96px', objectFit: 'cover' }} />
             <span style={{ color: 'black', fontWeight: 'bold', textAlign: 'center', marginTop: '8px' }}>Strength</span>
          </div>
          <div 
-           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', overflow: 'hidden', cursor: 'pointer' }} 
+           style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', backgroundColor: 'white', borderRadius: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden', cursor: 'pointer' }} 
            onClick={() => setShowBreathing(true)}
          >
             <img src="https://images.unsplash.com/photo-1518085250985-78e7bbdf6a62?auto=format&fit=crop&q=80" style={{ width: '100%', height: '96px', objectFit: 'cover' }} />
