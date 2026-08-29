@@ -96,7 +96,7 @@ export default function CaseDashboard() {
 // Premium Apple-Style Components
 const ProgramCard = ({ title, subtitle, gradient, icon, onClick }: any) => (
   <div onClick={onClick} style={{
-    minWidth: '240px', height: '115px', borderRadius: '24px', background: gradient,
+    minWidth: '240px', height: '135px', borderRadius: '24px', background: gradient,
     padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
     cursor: 'pointer', boxShadow: '0 10px 20px -5px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden', flexShrink: 0
   }}>
