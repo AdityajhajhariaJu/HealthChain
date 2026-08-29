@@ -175,45 +175,98 @@ export const CaseDashboard: React.FC = () => {
         </section>
       </div>
 
-      {featured.length > 0 && (
-        <SwimlaneCarousel title="Featured For You" subtitle="Editor's picks based on your goals">
-          {featured.map(item => (
+      
+      {/* 1. Top Programs (Most Popular) */}
+      <SwimlaneCarousel title="Top Programs" subtitle="Most popular picks right now">
+        {featured.length > 0 ? featured.map(item => (
+          <ImmersiveMediaCard
+            key={item.id}
+            title={item.title}
+            subtitle={item.subtitle || `DESIGNED FOR ${item.difficulty.toUpperCase()}`}
+            bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
+            aspectRatio="video"
+            duration={item.type === 'workout' ? `${item.duration_minutes} MIN` : '12 EPISODES'}
+            isPremium={item.is_premium}
+            onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
+          />
+        )) : (
+          <ImmersiveMediaCard
+            title="12 Stretchy Yoga Flows"
+            subtitle="DESIGNED FOR RELAXATION"
+            bgImage="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80"
+            aspectRatio="video"
+            duration="12 EPISODES"
+            isPremium={false}
+            onClick={() => { triggerHapticLight(); }}
+          />
+        )}
+      </SwimlaneCarousel>
+
+      {/* 2. Activity Types (Bento Grid) */}
+      <SwimlaneCarousel title="Activity Types">
+        {categories.map((cat, i) => (
+          <div 
+            key={cat.id}
+            style={{ 
+              display: 'flex', flexDirection: 'column', gap: '8px', width: '128px', height: '160px', 
+              backgroundColor: 'white', borderRadius: '24px', 
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', 
+              border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden', cursor: 'pointer', flexShrink: 0 
+            }} 
+            onClick={() => {
+              triggerHapticLight();
+              const catItems = contentMap[cat.id];
+              if (catItems && catItems.length > 0) setSelectedContent(catItems[0]);
+            }}
+          >
+            <img 
+              src={getFallbackImage(cat.slug, cat.id)} 
+              style={{ width: '100%', height: '96px', objectFit: 'cover' }} 
+              alt={cat.label} 
+            />
+            <span style={{ color: '#0F172A', fontWeight: '700', textAlign: 'center', marginTop: '8px', fontSize: '14px' }}>
+              {cat.label}
+            </span>
+          </div>
+        ))}
+      </SwimlaneCarousel>
+
+      {/* 3. Free Workouts @ Home */}
+      <SwimlaneCarousel title="Free Workouts @ Home">
+        {categories.filter(c => ['hiit', 'strength', 'running'].includes(c.slug)).map(cat => 
+          (contentMap[cat.id] || []).map(item => (
             <ImmersiveMediaCard
               key={item.id}
               title={item.title}
-              subtitle={item.subtitle || `${item.difficulty} • ${item.duration_minutes} min`}
+              subtitle={`${item.duration_minutes} Min ${item.calories_estimate ? ' • ' + item.calories_estimate + ' Cal' : ''}`}
               bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
-              aspectRatio="video"
+              aspectRatio="wide"
+              tags={[cat.label.toUpperCase()]}
               isPremium={item.is_premium}
               onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
             />
-          ))}
-        </SwimlaneCarousel>
-      )}
+          ))
+        ).flat()}
+      </SwimlaneCarousel>
 
-      {categories.map(category => {
-        const items = contentMap[category.id] || [];
-        if (items.length === 0) return null;
+      {/* 4. Mental Wellness & Focus */}
+      <SwimlaneCarousel title="Mental Wellness & Focus">
+        {categories.filter(c => ['meditation', 'yoga'].includes(c.slug)).map(cat => 
+          (contentMap[cat.id] || []).map(item => (
+            <ImmersiveMediaCard
+              key={item.id}
+              title={item.title}
+              subtitle={`${item.duration_minutes} Min`}
+              bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
+              aspectRatio="square"
+              tags={['MINDFULNESS']}
+              isPremium={item.is_premium}
+              onClick={() => { triggerHapticLight(); setSelectedContent(item); }}
+            />
+          ))
+        ).flat()}
+      </SwimlaneCarousel>
 
-        return (
-          <SwimlaneCarousel key={category.id} title={category.label} subtitle={category.description}>
-            {items.map(item => (
-              <ImmersiveMediaCard
-                key={item.id}
-                title={item.title}
-                subtitle={`${item.duration_minutes} Min ${item.calories_estimate ? '• ' + item.calories_estimate + ' Cal' : ''}`}
-                bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
-                aspectRatio={item.type === 'meditation' ? 'square' : 'wide'}
-                isPremium={item.is_premium}
-                onClick={() => {
-                  triggerHapticLight();
-                  setSelectedContent(item);
-                }}
-              />
-            ))}
-          </SwimlaneCarousel>
-        );
-      })}
 
       <ContentDetailPage 
         content={selectedContent}
