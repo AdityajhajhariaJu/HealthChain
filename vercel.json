@@ -5,7 +5,12 @@
       "destination": "/index.html"
     }
   ],
-  "crons": [{"path": "/api/cron/revoke-expired", "schedule": "0 0 * * *"}],
+  "crons": [
+    {
+      "path": "/api/cron/revoke-expired",
+      "schedule": "0 0 * * *"
+    }
+  ],
   "functions": {
     "api/*.js": {
       "maxDuration": 60
@@ -17,7 +22,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://www.googletagmanager.com; connect-src 'self' https://cikikocfvfshloqwnyfe.supabase.co wss://cikikocfvfshloqwnyfe.supabase.co https://generativelanguage.googleapis.com https://clinicaltrials.gov https://www.ebi.ac.uk https://api.razorpay.com https://lumberjack.razorpay.com https://*.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; media-src 'self' https:; frame-src https://api.razorpay.com https://checkout.razorpay.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://checkout.razorpay.com https://www.googletagmanager.com; connect-src 'self' https://cikikocfvfshloqwnyfe.supabase.co wss://cikikocfvfshloqwnyfe.supabase.co https://generativelanguage.googleapis.com https://clinicaltrials.gov https://www.ebi.ac.uk https://api.razorpay.com https://lumberjack.razorpay.com https://*.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; media-src 'self' https:; frame-src https://api.razorpay.com https://checkout.razorpay.com;"
         },
         {
           "key": "X-Frame-Options",
@@ -43,6 +48,3 @@
     }
   ]
 }
-
-
-
