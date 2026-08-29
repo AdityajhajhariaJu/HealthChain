@@ -18,7 +18,7 @@ export function GuestStickyBanner() {
         const { data } = await supabase.auth.getSession();
         if (mounted) {
           const hasSession = Boolean(data?.session);
-          const isVip = localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true';
+          const isVip = localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
           const isGuestStorage = localStorage.getItem('hc_guest_mode') === 'true';
           const isDismissed = sessionStorage.getItem('hc_guest_banner_dismissed') === 'true';
           
@@ -26,7 +26,7 @@ export function GuestStickyBanner() {
           setDismissed(isDismissed);
         }
       } catch (err) {
-        if (mounted) setIsGuest(localStorage.getItem('hc_vp_sig') !== 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' && localStorage.getItem('hc_vip_tester') !== 'true');
+        if (mounted) setIsGuest(localStorage.getItem('hc_vp_sig') !== 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
       }
     };
 

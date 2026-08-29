@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from './ToastProvider';
 import { Pause, Play } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -14,6 +15,7 @@ interface MeditationPlayerProps {
 
 export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onClose }) => {
   const [isPlaying, setIsPlaying] = useState(true);
+  const toast = useToast();
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [phase, setPhase] = useState<"Prepare" | "Inhale" | "Hold" | "Exhale" | "Rest">("Prepare");
   const [isCompleted, setIsCompleted] = useState(false);

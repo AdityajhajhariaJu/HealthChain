@@ -104,25 +104,32 @@ export default function PharmacyHub() {
 
   const handleAddMedication = async (medicineName) => {
     setIsCheckingInteraction(true);
-    try {
     const profile = getProfile();
-    const interactionCheck = await checkDrugInteractions(medicineName, profile?.medications || []);
-    trackFeatureUsed('pharmacy_interaction_checked', { drug: medicineName, hasInteraction: Boolean(interactionCheck?.hasInteraction) });
     
-    addMedication({ name: medicineName }, 'pharmacy_hub');
-    const activeCase = getActiveCase();
-    
-    if (interactionCheck?.hasInteraction) {
-      setActiveInteractions(prev => [...prev, interactionCheck]);
-      if (activeCase) {
-        addCaseEvent(
-          activeCase.id,
-          `Interaction identified for ${medicineName}: ${interactionCheck.description}`
-        );
-      }
-    }
+    // Optimistically add medication to profile so offline/AI failures don't block core UX
+    try {
+      addMedication({ name: medicineName }, 'pharmacy_hub');
     } catch (e) {
-      console.error('Failed to add medication:', e);
+      console.error('Failed to add medication locally:', e);
+    }
+
+    try {
+      const interactionCheck = await checkDrugInteractions(medicineName, profile?.medications || []);
+      trackFeatureUsed('pharmacy_interaction_checked', { drug: medicineName, hasInteraction: Boolean(interactionCheck?.hasInteraction) });
+      
+      const activeCase = getActiveCase();
+      if (interactionCheck?.hasInteraction) {
+        setActiveInteractions(prev => [...prev, interactionCheck]);
+        if (activeCase) {
+          addCaseEvent(
+            activeCase.id,
+            `Interaction identified for ${medicineName}: ${interactionCheck.description}`
+          );
+        }
+      }
+    } catch (e) {
+      console.error('Failed to check interactions:', e);
+      // We don't block the user, the medication is already added.
     } finally {
       setIsCheckingInteraction(false);
       setShowToast(true);

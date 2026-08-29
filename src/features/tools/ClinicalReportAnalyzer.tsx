@@ -63,7 +63,7 @@ export default function ClinicalReportAnalyzer() {
     }
 
     const profile = getProfile();
-    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
       openTrialModal('Lab Report & Scan PDF Analyzer');
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -204,7 +204,7 @@ export default function ClinicalReportAnalyzer() {
     if (loading) return;
 
     const profile = getProfile();
-    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
       openTrialModal('Lab Report & Scan PDF Analyzer');
       return;

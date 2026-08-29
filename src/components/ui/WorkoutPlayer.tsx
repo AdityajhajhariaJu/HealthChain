@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from './ToastProvider';
 import { ChevronDown, Pause, Play, FastForward, CheckCircle } from 'lucide-react';
 import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -16,6 +17,7 @@ interface WorkoutPlayerProps {
 export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, workout }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const toast = useToast();
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   

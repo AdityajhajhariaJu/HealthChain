@@ -55,6 +55,29 @@ const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 let memoryCache: FitnessCache = {};
 
 export const FitnessService = {
+  async getUserFitnessHistory(userId: string) {
+    const { data, error } = await supabase
+      .from('user_fitness_history')
+      .select('*, fitness_content(type, difficulty, category_id)')
+      .eq('user_id', userId)
+      .eq('was_completed', true)
+      .order('completed_at', { ascending: true });
+    
+    if (error) throw error;
+    
+    // We'll also fetch categories manually if nested join fails, but let's try to get them
+    const { data: categories } = await supabase.from('fitness_categories').select('id, name, slug');
+    const catMap = (categories || []).reduce((acc: any, curr: any) => {
+      acc[curr.id] = curr;
+      return acc;
+    }, {});
+    
+    return (data || []).map(item => ({
+      ...item,
+      category: item.fitness_content?.category_id ? catMap[item.fitness_content.category_id] : null
+    }));
+  },
+
   async startProgram(userId: string, programId: string) {
     const { data, error } = await supabase
       .from('user_program_progress')

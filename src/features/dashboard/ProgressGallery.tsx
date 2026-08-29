@@ -1,195 +1,279 @@
-﻿import { FitnessNav } from '../../components/ui/FitnessNav';
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Share } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FitnessNav } from '../../components/ui/FitnessNav';
+import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { triggerHapticLight } from '../../services/haptics';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Legend, Cell } from 'recharts';
+import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera } from 'lucide-react';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
-  const [showPolaroidModal, setShowPolaroidModal] = useState(false);
-  
-  // Mock data for transformation
-  const mockBeforeImg = 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80';
-  const mockAfterImg = 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80';
+  const [history, setHistory] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos'>('trends');
 
   useEffect(() => {
-    // Simulate loading
-    const t = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(t);
+    loadData();
   }, []);
 
-  const handleShare = async () => {
-    triggerHapticLight();
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'My Transformation',
-          text: 'Lost 14.2 kg in 4 Months on HealthChain360!',
-          url: window.location.href,
-        });
-        triggerHapticSuccess();
-      } catch (err) {
-        console.error('Share failed', err);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const rawHistory = await FitnessService.getUserFitnessHistory(session.user.id);
+        setHistory(rawHistory || []);
       }
-    } else {
-      alert("Sharing is not supported on this browser.");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // 1. Process data for 7-day Trend Lines
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD
+  });
+
+  const trendsData = last7Days.map(dateStr => {
+    // find all history for this day
+    const dayRecords = history.filter(h => h.completed_at?.startsWith(dateStr));
+    const cals = dayRecords.reduce((sum, r) => sum + (r.calories_burned || 0), 0);
+    const mins = dayRecords.reduce((sum, r) => sum + Math.round((r.duration_seconds || 0) / 60), 0);
+    const dObj = new Date(dateStr);
+    return {
+      date: dateStr,
+      displayDate: dObj.toLocaleDateString('en-US', { weekday: 'short' }),
+      calories: cals,
+      minutes: mins
+    };
+  });
+
+  // 2. Process data for Balance Radar
+  const getBalanceData = () => {
+    let cardio = 0;
+    let strength = 0;
+    let mindfulness = 0;
+    let flexibility = 0;
+    let endurance = 0;
+
+    history.forEach(h => {
+      const type = h.fitness_content?.type || h.content_type || 'unknown';
+      const cat = h.category?.slug || '';
+      const diff = h.fitness_content?.difficulty || 'Beginner';
+
+      if (type === 'meditation' || type === 'soundscape' || type === 'sleep_story') {
+        mindfulness += 10;
+      } else if (type === 'workout') {
+        if (cat.includes('strength') || cat.includes('core')) strength += 10;
+        else if (cat.includes('yoga') || cat.includes('stretch')) flexibility += 10;
+        else cardio += 10;
+        
+        if (diff === 'Advanced') endurance += 5;
+        if (h.duration_seconds > 1800) endurance += 5; // > 30 mins
+      }
+    });
+
+    // Add base scores so chart looks good even if empty
+    return [
+      { subject: 'Cardio', A: cardio + 20, fullMark: 100 },
+      { subject: 'Strength', A: strength + 15, fullMark: 100 },
+      { subject: 'Mindfulness', A: mindfulness + 25, fullMark: 100 },
+      { subject: 'Flexibility', A: flexibility + 10, fullMark: 100 },
+      { subject: 'Endurance', A: endurance + 15, fullMark: 100 },
+    ];
+  };
+
+  const radarData = getBalanceData();
+
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#10B981' }}>Loading Gallery...</div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#10B981' }}>Loading Analytics...</div>;
   }
 
   return (
     <div style={{
-      width: '100%',
-      backgroundColor: '#F8FAFC',
       minHeight: '100vh',
+      backgroundColor: '#F8FAFC',
       display: 'flex',
       flexDirection: 'column',
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
-      overflowX: 'hidden'
     }}>
-      <div style={{ paddingTop: isMobile ? "12px" : "24px", background: 'white' }}>
-        <FitnessNav />
-      </div>
+      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
 
-      <div style={{ padding: '24px' }}>
-        
-        {/* Gallery Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px' }}>Progress</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: '15px' }}>Your transformation journey</p>
-          </div>
-          <button 
-            onClick={() => { triggerHapticLight(); setShowPolaroidModal(true); }}
-            style={{ width: '48px', height: '48px', borderRadius: '24px', background: '#10B981', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
-          >
-            <Camera size={24} />
-          </button>
-        </div>
+      <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
+        <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+          My Analytics
+        </h1>
+        <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '24px' }}>
+          Track your trends, lifestyle balance, and transformation.
+        </p>
 
-        {/* The Premium Transformation Share Card */}
-        <div style={{ background: 'white', borderRadius: '32px', padding: '16px', boxShadow: '0 12px 32px rgba(0,0,0,0.06)' }}>
-          {/* Card Frame */}
-          <div style={{ borderRadius: '24px', overflow: 'hidden', position: 'relative', background: '#111' }}>
-            <div style={{ display: 'flex', height: '400px' }}>
-              <div style={{ flex: 1, position: 'relative' }}>
-                <img src={mockBeforeImg} alt="Before" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', bottom: '80px', left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600, letterSpacing: '1px' }}>
-                  BEFORE
-                </div>
-              </div>
-              <div style={{ width: '2px', background: 'rgba(255,255,255,0.2)', zIndex: 10 }} />
-              <div style={{ flex: 1, position: 'relative' }}>
-                <img src={mockAfterImg} alt="After" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', bottom: '80px', left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600, letterSpacing: '1px' }}>
-                  AFTER
-                </div>
-              </div>
-            </div>
-            
-            {/* Stats Overlay Block */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.8) 100%)', padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', backdropFilter: 'blur(10px)' }}>
-              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500 }}>Aditya J., 24 yrs</span>
-              <h3 style={{ color: 'white', margin: '4px 0 12px', fontSize: '20px', fontWeight: 700 }}>Lost 14.2 kg in 4 Months</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M20 6L9 17l-5-5"></path></svg>
-                </div>
-                <span style={{ color: 'white', fontSize: '14px', fontWeight: 700 }}>HealthChain360</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Stat Pills */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '16px 8px 8px' }}>
-            {['-14.2 kg', '4 months', '24 yrs', 'Weight loss', 'Coach-led'].map(pill => (
-              <span key={pill} style={{ padding: '6px 14px', background: '#F1F5F9', color: '#0F172A', borderRadius: '20px', fontSize: '13px', fontWeight: 600 }}>
-                {pill}
-              </span>
-            ))}
-          </div>
-          
-          <button 
-            onClick={handleShare}
-            style={{ width: '100%', marginTop: '16px', padding: '16px', borderRadius: '16px', background: '#10B981', color: 'white', border: 'none', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-          >
-            <Share size={20} />
-            Share Transformation
-          </button>
-        </div>
-      </div>
-
-      {/* Polaroid Gallery Modal */}
-      <AnimatePresence>
-        {showPolaroidModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)' }}
-              onClick={() => setShowPolaroidModal(false)}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              style={{ position: 'relative', width: '100%', maxWidth: '400px', background: '#F8FAFC', borderRadius: '32px', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}
+        {/* Custom Tab Switcher */}
+        <div style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px' }}>
+          {['trends', 'balance', 'photos'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { triggerHapticLight(); setActiveTab(tab as any); }}
+              style={{
+                flex: 1,
+                padding: '8px',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === tab ? '#FFFFFF' : 'transparent',
+                color: activeTab === tab ? '#0F172A' : '#64748B',
+                fontWeight: activeTab === tab ? 700 : 600,
+                fontSize: '14px',
+                boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                transition: 'all 0.2s',
+                textTransform: 'capitalize'
+              }}
             >
-              <button 
-                onClick={() => setShowPolaroidModal(false)}
-                style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: '#64748B' }}
-              >
-                <X size={24} />
-              </button>
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab 1: Trend Lines */}
+        {activeTab === 'trends' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            {/* Calories Area Chart */}
+            <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                <div style={{ background: '#FEF2F2', padding: '8px', borderRadius: '10px', color: '#EF4444' }}><Flame size={20} /></div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Active Energy</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 Days (kcal)</p>
+                </div>
+              </div>
+              <div style={{ height: '220px', width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trendsData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorCalories" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="displayDate" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                      labelStyle={{ color: '#64748B', fontWeight: 600, marginBottom: '4px' }}
+                      itemStyle={{ color: '#EF4444', fontWeight: 700 }}
+                    />
+                    <Area type="monotone" dataKey="calories" stroke="#EF4444" strokeWidth={3} fillOpacity={1} fill="url(#colorCalories)" activeDot={{ r: 6, strokeWidth: 0, fill: '#EF4444' }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Duration Area Chart */}
+            <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                <div style={{ background: '#ECFEFF', padding: '8px', borderRadius: '10px', color: '#06B6D4' }}><Clock size={20} /></div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Exercise Minutes</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 Days (mins)</p>
+                </div>
+              </div>
+              <div style={{ height: '220px', width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={trendsData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="displayDate" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
+                    <Tooltip 
+                      cursor={{ fill: '#F1F5F9' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                      labelStyle={{ color: '#64748B', fontWeight: 600, marginBottom: '4px' }}
+                      itemStyle={{ color: '#06B6D4', fontWeight: 700 }}
+                    />
+                    <Bar dataKey="minutes" fill="#06B6D4" radius={[6, 6, 0, 0]} barSize={isMobile ? 24 : 32} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Tab 2: Balance Radar */}
+        {activeTab === 'balance' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{ background: '#0F172A', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#38BDF8', filter: 'blur(80px)', opacity: 0.3, borderRadius: '50%' }} />
               
-              <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', textAlign: 'center', margin: '0 0 12px', lineHeight: 1.1 }}>Build Your<br/>Progress Gallery</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', textAlign: 'center', margin: '0 0 40px', lineHeight: 1.4 }}>
-                Add a photo to your recent weight log. Every photo helps you see changes the scale can't.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '10px', color: '#38BDF8' }}><Target size={20} /></div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFF' }}>Lifestyle Balance</h3>
+                </div>
+              </div>
+              <p style={{ color: '#94A3B8', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+                Visual mapping of your comprehensive health routine. Watch this shape expand as you tackle different workout genres.
               </p>
 
-              {/* Fanned Polaroids */}
-              <div style={{ position: 'relative', width: '100%', height: '220px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '40px' }}>
-                <div style={{ position: 'absolute', left: '10%', transform: 'rotate(-12deg)', zIndex: 1, background: 'white', padding: '10px 10px 40px', borderRadius: '12px', boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }}>
-                  <div style={{ width: '120px', height: '140px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                    <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" alt="Day 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div style={{ position: 'absolute', bottom: '10px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '16px', fontWeight: 'bold' }}>Day 1</div>
-                </div>
-                
-                <div style={{ position: 'absolute', right: '10%', transform: 'rotate(12deg)', zIndex: 2, background: 'white', padding: '10px 10px 40px', borderRadius: '12px', boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }}>
-                  <div style={{ width: '120px', height: '140px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                    <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=80" alt="Day X" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div style={{ position: 'absolute', bottom: '10px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '16px', fontWeight: 'bold' }}>Day X</div>
-                </div>
+              <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius={isMobile ? "70%" : "80%"} data={radarData}>
+                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} />
+                    <Radar name="My Routine" dataKey="A" stroke="#38BDF8" strokeWidth={3} fill="#38BDF8" fillOpacity={0.4} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* Pro Tip */}
+              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <Brain color="#F59E0B" size={24} style={{ flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>
+                  <strong style={{ color: '#FFF' }}>Coach's Insight:</strong> Your mindfulness score is growing beautifully, but your flexibility could use some attention. Try a 10-minute Yoga flow tomorrow!
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-                <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
-                  <div style={{ width: '140px', height: '160px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80" alt="Day 15" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '20px', fontWeight: 'bold' }}>Day 15</div>
+        {/* Tab 3: Photos (Existing Mock Gallery) */}
+        {activeTab === 'photos' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+             <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Transformation</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Physical progress log</p>
                 </div>
+                <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer' }}>
+                  <Camera size={18} />
+                </button>
               </div>
 
-              <button 
-                onClick={() => { triggerHapticLight(); setShowPolaroidModal(false); }}
-                style={{ width: '100%', padding: '16px', borderRadius: '16px', background: '#10B981', color: 'white', border: 'none', fontSize: '16px', fontWeight: 700 }}
-              >
-                Add Photo
-              </button>
-            </motion.div>
-          </div>
+              {/* Stacked Polaroids (Mock) */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
+                <div style={{ position: 'relative', zIndex: 1, transform: 'rotate(-5deg) translateY(10px)', background: 'white', padding: '10px 10px 40px', borderRadius: '8px', boxShadow: '0 10px 20px rgba(0,0,0,0.08)' }}>
+                  <div style={{ width: '130px', height: '150px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" alt="Day 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '14px', fontWeight: 'bold' }}>Day 1</div>
+                </div>
+                
+                <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+                  <div style={{ width: '150px', height: '170px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
+                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80" alt="Day 30" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '18px', fontWeight: 'bold' }}>Day 30</div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
-      </AnimatePresence>
+        
+      </div>
     </div>
   );
 };
+
 export default ProgressGallery;

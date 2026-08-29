@@ -30,7 +30,7 @@ export const TRIAL_LIMITS = {
 const VIP_SIG_HASH = 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
 
 export function getTrialStatus(): TrialStatus {
-  const isPro = isProUser() || (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH || localStorage.getItem('hc_vip_tester') === 'true'));
+  const isPro = isProUser() || (typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === VIP_SIG_HASH));
 
   if (isPro) {
     return {

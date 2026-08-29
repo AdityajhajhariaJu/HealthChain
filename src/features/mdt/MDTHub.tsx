@@ -189,7 +189,7 @@ useEffect(() => {
     }
 
     const profile = getProfile();
-    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
       openTrialModal('Collaborative Specialists Board (16 Doctors)');
       return;
@@ -295,7 +295,7 @@ useEffect(() => {
     }
 
     const profile = getProfile();
-    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a' || localStorage.getItem('hc_vip_tester') === 'true');
+    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
       openTrialModal('Collaborative Specialists Board (16 Doctors)');
       return;
