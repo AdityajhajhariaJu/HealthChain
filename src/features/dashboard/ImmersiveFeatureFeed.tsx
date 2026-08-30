@@ -1,147 +1,163 @@
-﻿import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { getProfile } from '../../services/ProfileEngine';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
+
+interface FeedCard {
+  id: string;
+  image: string;
+  title: string;
+  subtitle: string;
+  route: string;
+  priority: number;
+}
 
 export const ImmersiveFeatureFeed: React.FC = () => {
   const navigate = useNavigate();
+  const [cards, setCards] = useState<FeedCard[]>([]);
 
-  const categories = [
-    { name: 'All', image: '/images/rowing-crew.png', active: true },
-    { name: 'High Protein', image: '/images/immersive/personalized-meal.png', active: false },
-    { name: 'Low Carb', image: '/images/immersive/midnight-craving.png', active: false },
-    { name: 'Keto', image: '/images/immersive/grocery-scanner.png', active: false },
-    { name: 'Vegan', image: '/images/immersive/focus-boost.png', active: false },
-  ];
+  useEffect(() => {
+    const profile = getProfile();
+    const hour = new Date().getHours();
+    
+    let feed: FeedCard[] = [
+      {
+        id: 'streak',
+        image: '/images/immersive/streak-rewards.png',
+        title: 'Master your health, one day at a time.',
+        subtitle: 'Answer questions. Build your streak. Unlock rewards.',
+        route: '/app/today',
+        priority: 10,
+      },
+      {
+        id: 'meal-personalized',
+        image: '/images/immersive/personalized-meal.png',
+        title: 'Personalized For You',
+        subtitle: 'Your cortisol is down. I\'ve updated your meal plan.',
+        route: '/app/nutrition',
+        priority: 20,
+      }
+    ];
 
-  const quickActions = [
-    { text: '20-30\ngms', sub: 'Protein', image: '/images/immersive/personalized-meal.png' },
-    { text: '30-40\ngms', sub: 'Protein', image: '/images/immersive/grocery-scanner.png' },
-    { text: '40+\ngms', sub: 'Protein', image: '/images/immersive/focus-boost.png' }
-  ];
+    if (hour >= 13 && hour <= 16) {
+      feed.push({
+        id: 'focus-boost',
+        image: '/images/immersive/focus-boost.png',
+        title: '2 PM Focus Boost',
+        subtitle: 'Add these for cognitive energy.',
+        route: '/app/nutrition',
+        priority: 100, 
+      });
+    } else if (hour >= 21 || hour <= 4) {
+      feed.push({
+        id: 'midnight-craving',
+        image: '/images/immersive/midnight-craving.png',
+        title: 'Craving sugar?',
+        subtitle: 'Your body actually needs sleep. Try this instead.',
+        route: '/app/nutrition', // Route to nutrition for now
+        priority: 100,
+      });
+    } else {
+      feed.push({
+        id: 'grocery-scanner',
+        image: '/images/immersive/grocery-scanner.png',
+        title: 'Grocery Intelligence',
+        subtitle: 'Scan for glycemic spikes and better alternatives.',
+        route: '/app/nutrition',
+        priority: 40,
+      });
+    }
+
+    const hasSevereCondition = profile?.conditions?.some((c: string) => 
+      ['cancer', 'tumor', 'spondylitis', 'autoimmune', 'severe'].some(kw => c.toLowerCase().includes(kw))
+    );
+
+    if (hasSevereCondition || profile?.goal === 'Manage chronic illness') {
+      feed.push({
+        id: 'clinical-trials',
+        image: '/images/immersive/clinical-trials.png',
+        title: 'Standard treatments stopped working?',
+        subtitle: 'Connect with clinical trials worldwide.',
+        route: '/app/trials',
+        priority: 200, 
+      });
+    }
+
+    feed.sort((a, b) => b.priority - a.priority);
+    setCards(feed);
+  }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-      
-      {/* 1. Wide Landscape Hero Banner */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        onClick={() => navigate('/app/nutrition')}
-        style={{
-          background: 'linear-gradient(135deg, #1C2922 0%, #0F1713 100%)',
-          borderRadius: '24px',
-          padding: '24px',
-          position: 'relative',
-          overflow: 'hidden',
-          cursor: 'pointer',
-          boxShadow: '0 20px 40px -15px rgba(0,0,0,0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '160px'
-        }}
-      >
-        <div style={{ position: 'relative', zIndex: 2, width: '65%' }}>
-          <div style={{ color: '#E2E8F0', fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px', marginBottom: '4px' }}>
-            Introducing
-          </div>
-          <div style={{ color: '#A7F3D0', fontSize: '26px', fontWeight: 900, fontStyle: 'italic', letterSpacing: '-0.5px', marginBottom: '8px', lineHeight: '1.1' }}>
-            HEALTHY SCORE
-          </div>
-          <div style={{ color: '#94A3B8', fontSize: '13px', lineHeight: '1.4', marginBottom: '20px', paddingRight: '20px' }}>
-            Your guide to making healthy food choices
-          </div>
+    <div className="hide-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '16px', width: '100vw', padding: '0 24px 24px 24px', marginLeft: '-24px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
+      {cards.map((card, index) => (
+        <motion.div
+          key={card.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: index * 0.1 }}
+          onClick={() => navigate(card.route)}
+          style={{ 
+            position: 'relative',
+            width: '180px',
+            minWidth: '180px',
+            height: '240px',
+            scrollSnapAlign: 'center',
+            borderRadius: '28px',
+            overflow: 'hidden',
+            cursor: 'pointer',
+            backgroundColor: '#0F172A',
+            boxShadow: '0 20px 40px -15px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end'
+          }}
+        >
+          {/* Background Image */}
+          <div 
+            style={{ 
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: "url(" + card.image + ")",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              zIndex: 1
+            }}
+          />
           
-          <button style={{
-            background: '#ECFDF5', color: '#065F46', border: 'none', borderRadius: '20px',
-            padding: '8px 16px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px',
-            cursor: 'pointer'
-          }}>
-            Know more <ChevronRight size={14} />
-          </button>
-        </div>
+          {/* Gradient Overlay for Text Legibility */}
+          <div 
+            style={{
+              position: 'absolute',
+              bottom: 0, left: 0, right: 0, height: '60%',
+              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
+              zIndex: 2
+            }}
+          />
 
-        {/* Right side image */}
-        <div style={{
-          position: 'absolute', right: '-20px', top: '-10px', width: '150px', height: '150px',
-          backgroundImage: 'url(/images/immersive/personalized-meal.png)',
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          borderRadius: '50%', border: '4px solid #1C2922', zIndex: 1
-        }} />
-
-        {/* Bottom Right Stats Box */}
-        <div style={{
-          position: 'absolute', right: '16px', bottom: '16px', zIndex: 3,
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', borderRadius: '12px',
-          padding: '8px 16px', display: 'flex', gap: '16px', border: '1px solid rgba(255,255,255,0.1)'
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ color: '#FFF', fontSize: '13px', fontWeight: 800 }}>15g</span>
-            <span style={{ color: '#94A3B8', fontSize: '10px' }}>protein</span>
-          </div>
-          <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ color: '#FFF', fontSize: '13px', fontWeight: 800 }}>19g</span>
-            <span style={{ color: '#94A3B8', fontSize: '10px' }}>fat</span>
-          </div>
-          <div style={{ width: '1px', background: 'rgba(255,255,255,0.2)' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ color: '#FFF', fontSize: '13px', fontWeight: 800 }}>24g</span>
-            <span style={{ color: '#94A3B8', fontSize: '10px' }}>carbs</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 2. Horizontal Category Pills */}
-      <div className="hide-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '16px', paddingBottom: '8px', margin: '0 -24px', padding: '0 24px' }}>
-        {categories.map((cat, idx) => (
-          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', minWidth: '64px', cursor: 'pointer' }}>
-            <div style={{
-              width: '64px', height: '64px', borderRadius: '50%',
-              backgroundImage: 'url(' + cat.image + ')', backgroundSize: 'cover', backgroundPosition: 'center',
-              boxShadow: cat.active ? '0 0 0 2px #FFF, 0 0 0 4px #10B981' : '0 4px 12px rgba(0,0,0,0.05)',
-              border: '2px solid #FFF'
-            }} />
-            <span style={{ fontSize: '12px', fontWeight: cat.active ? 800 : 600, color: cat.active ? '#0F172A' : '#64748B' }}>
-              {cat.name}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* 3. Circular Action Targets */}
-      <div>
-        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>
-          FIND DISHES BY
-        </div>
-        
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-          <div style={{ padding: '6px 16px', border: '1px solid #E2E8F0', borderRadius: '20px', fontSize: '13px', fontWeight: 600, color: '#0F172A', background: '#F8FAFC' }}>Protein</div>
-          <div style={{ padding: '6px 16px', border: '1px solid #E2E8F0', borderRadius: '20px', fontSize: '13px', fontWeight: 600, color: '#64748B' }}>Calories</div>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          {quickActions.map((action, idx) => (
-            <div key={idx} style={{ flex: 1, position: 'relative', aspectRatio: '1/1', cursor: 'pointer' }}>
-              <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                backgroundImage: 'url(' + action.image + ')', backgroundSize: 'cover', backgroundPosition: 'center',
-                borderRadius: '50%', border: '4px solid #FFF',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
-              }} />
-              <div style={{
-                position: 'absolute', top: '10%', left: '10%', right: '10%', bottom: '10%',
-                background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)',
-                borderRadius: '50%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-                textAlign: 'center', border: '2px solid rgba(255,255,255,0.5)'
-              }}>
-                <span style={{ fontSize: '15px', fontWeight: 900, color: '#B45309', lineHeight: '1.1', whiteSpace: 'pre-line' }}>{action.text}</span>
+          {/* Text Content at Bottom */}
+          <div style={{ position: 'relative', zIndex: 3, padding: '16px', paddingBottom: '20px' }}>
+            <div 
+              style={{
+                padding: '0px 8px',
+              }}
+            >
+              <h2 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: '1.2' }}>
+                {card.title}
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px', fontWeight: 500, margin: '0 0 16px 0', lineHeight: '1.4' }}>
+                {card.subtitle}
+              </p>
+              
+              <div style={{ display: 'flex', alignItems: 'center', color: '#34D399', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', gap: '6px' }}>
+                <Sparkles size={16} />
+                <span>Tap to Explore</span>
+                <ArrowRight size={16} />
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 };
