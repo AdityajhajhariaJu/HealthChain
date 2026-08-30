@@ -37,7 +37,10 @@ export function SwimlaneCarousel({ title, subtitle, onSeeAll, children }: Swimla
           overflowX: 'auto',
           scrollSnapType: 'x mandatory',
           scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-x pan-y',
+          overscrollBehaviorX: 'contain'
         }}
       >
         {React.Children.map(children, (child) => (

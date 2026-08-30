@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { triggerHapticLight } from '../../services/haptics';
 
@@ -21,7 +21,10 @@ export function FitnessNav() {
       padding: '0 24px 16px',
       margin: '0 -24px 8px -24px',
       scrollbarWidth: 'none',
-      msOverflowStyle: 'none'
+      msOverflowStyle: 'none',
+      WebkitOverflowScrolling: 'touch',
+      touchAction: 'pan-x pan-y',
+      overscrollBehaviorX: 'contain'
     }}>
       <style>{`
         .fitness-nav::-webkit-scrollbar { display: none; }
