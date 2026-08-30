@@ -32,8 +32,7 @@ import {
   Dna,
   Camera,
   Mail,
-  Undo2,
-  Redo2,
+
   Lock,
 } from 'lucide-react';
 import {
@@ -49,10 +48,7 @@ import {
   removeActionItem,
   clearProfile,
   calculateHealthScore,
-  undoProfileEdit,
-  redoProfileEdit,
-  canUndo,
-  canRedo,
+
   getProfileEngineState,
   getProfileKey,
 } from '../../services/ProfileEngine';
@@ -398,26 +394,7 @@ export default function MedicalProfile() {
             Your entire health story on one screen — alive, updating, and ready to share.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={!canUndo()}
-              onClick={() => undoProfileEdit()}
-              style={{ padding: '6px' }}
-              title="Undo Edit"
-            >
-              <Undo2 size={16} />
-            </button>
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={!canRedo()}
-              onClick={() => redoProfileEdit()}
-              style={{ padding: '6px' }}
-              title="Redo Edit"
-            >
-              <Redo2 size={16} />
-            </button>
-          </div>
+        
       </div>
 
       <div
