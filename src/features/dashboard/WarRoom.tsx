@@ -21,7 +21,7 @@ export default function WarRoom() {
         borderBottom: '1px solid rgba(0,0,0,0.05)'
       }}>
         <button 
-          onClick={() => { triggerHapticLight(); navigate(-1); }}
+          onClick={() => { triggerHapticLight(); navigate('/app/today'); }}
           style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <ArrowLeft size={20} color="#0F172A" />

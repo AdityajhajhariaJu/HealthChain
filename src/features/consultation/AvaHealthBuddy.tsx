@@ -605,7 +605,7 @@ export default function AvaHealthBuddy() {
                       padding: isMobile ? '10px 14px' : '12px 18px',
                       borderRadius:
                         msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                      fontSize: isMobile ? '14px' : '15px',
+                      fontSize: '16px',
                       lineHeight: 1.45,
                       boxShadow: msg.role === 'user' ? '0 12px 32px rgba(244, 63, 94, 0.35)' : '0 16px 40px rgba(244, 63, 94, 0.1)',
                       border: msg.role === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
@@ -855,7 +855,7 @@ export default function AvaHealthBuddy() {
                 background: 'rgba(255, 255, 255, 0.65)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
-                fontSize: isMobile ? '14px' : '15px',
+                fontSize: '16px',
                 outline: 'none',
                 boxShadow: '0 8px 32px rgba(244, 63, 94, 0.12)',
                 color: '#1E293B',

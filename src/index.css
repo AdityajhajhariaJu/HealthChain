@@ -1367,3 +1367,13 @@ h1, h2, h3, h4, h5, h6, .brand-pulse__copy strong {
   letter-spacing: -0.02em;
 }
 
+
+/* Global Mobile UX Fixes */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], textarea, select {
+  font-size: 16px !important;
+}
+

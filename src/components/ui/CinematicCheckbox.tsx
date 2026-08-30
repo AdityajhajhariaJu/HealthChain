@@ -55,7 +55,8 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
   const [isChecked, setIsChecked] = useState(initialChecked);
   const [showBurst, setShowBurst] = useState(false);
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const next = !isChecked;
     setIsChecked(next);
     if (onToggle) onToggle(next);
