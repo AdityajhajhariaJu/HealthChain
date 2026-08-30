@@ -55,6 +55,7 @@ const HelpCenter = React.lazy(() => import('./features/brand/HelpCenter'));
 const Pricing = React.lazy(() => import('./features/brand/Pricing'));
 const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
 const HealthMemory = React.lazy(() => import('./features/experience/HealthMemory'));
+const OnboardingFlow = React.lazy(() => import('./features/onboarding/OnboardingFlow'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -517,7 +518,8 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/app" element={<Navigate to="/app/today" replace />} />
+                    <Route path="/app" element={<Navigate to="/app/today" replace />} />
+          <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
           <Route path="/app/sports" element={<SafeRoute><SportsHub /></SafeRoute>} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
           <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
