@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Activity, Coffee, AlertCircle } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 

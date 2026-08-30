@@ -1,4 +1,4 @@
-﻿import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 export const triggerHapticLight = async () => {
   try {
@@ -6,6 +6,16 @@ export const triggerHapticLight = async () => {
   } catch (e) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(10); // Very brief, soothing vibration fallback for Android Web
+    }
+  }
+};
+
+export const triggerHapticHeavy = async () => {
+  try {
+    await Haptics.impact({ style: ImpactStyle.Heavy });
+  } catch (e) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(40);
     }
   }
 };
