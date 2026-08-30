@@ -11,7 +11,7 @@ const routeNames: Record<string, string> = {
   pharmacy: 'Pharmacy Hub',
   dietician: 'Dietician',
   ava: 'Ava Health Buddy',
-  reports: 'Lab Report Analyzer',
+  reports: 'Lab Report Interpreter',
   trials: 'Clinical Trials',
   profile: 'Medical Profile',
   settings: 'Settings',

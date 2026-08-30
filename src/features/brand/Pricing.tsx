@@ -83,7 +83,7 @@ const TOPUP_PLANS = [
   { id: 'topup_deep_collab', name: 'Deep Collab Board', price: 149, qty: '+1 Session', desc: '4-Specialist clinical debate & consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
   { id: 'topup_jarvis', name: 'J.A.R.V.I.S. Root-Cause', price: 169, qty: '+1 Session', desc: 'Autonomous biomarker pattern scan', icon: Sparkles, color: '#7C3AED', bg: '#F5F3FF' },
   { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Real-time drug clash & safety checks', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
-  { id: 'topup_lab_report', name: 'Lab Report Analyzer', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
 
 const FAQS = [

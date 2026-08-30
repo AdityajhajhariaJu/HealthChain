@@ -38,7 +38,7 @@ const links: any[] = [
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/pharmacy', label: 'Medicine Hub', icon: Pill },
-  { to: '/app/reports', label: 'Lab Report Analyzer', icon: FileText },
+  { to: '/app/reports', label: 'Lab Report Interpreter', icon: FileText },
 ];
 
 const mobileTabs = [

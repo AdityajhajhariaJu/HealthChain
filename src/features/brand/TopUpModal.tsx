@@ -17,7 +17,7 @@ const TOPUPS = {
   deep_collab: { id: 'topup_deep_collab', name: 'Deep Collab', price: 149, qty: '1 Session' },
   jarvis: { id: 'topup_jarvis', name: 'J.A.R.V.I.S.', price: 169, qty: '1 Session' },
   pharmacy_hub: { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '30 Sessions' },
-  lab_report: { id: 'topup_lab_report', name: 'Lab Report Analyzer', price: 99, qty: '2 Sessions' },
+  lab_report: { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '2 Sessions' },
 };
 
 export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalProps) {

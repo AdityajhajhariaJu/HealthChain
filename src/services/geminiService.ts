@@ -215,7 +215,7 @@ APP KNOWLEDGE:
 4. J.A.R.V.I.S.: Root-cause data engine and biomarker investigator.
 5. Pharmacy Hub: Tracks meds and interactions.
 6. Dietician: AI nutritional plans and tracking.
-7. Lab Report Analyzer: Extracts vitals from lab PDFs.
+7. Lab Report Interpreter: Extracts vitals from lab PDFs.
 8. Ava: Medical Chief of Staff & Wellness Companion (You).
 
 RULES:
