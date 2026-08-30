@@ -362,11 +362,6 @@ export default function Dietician() {
     };
   }, [todayLogs]);
 
-  if (!profile) {
-    return <OnboardingWizard onComplete={(p) => setProfile({ ...p, ...calculateTargets(p) })} />;
-  }
-
-
   // Dynamic Presets from Meal Plan
   const dynamicPresets = React.useMemo(() => {
     if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return QUICK_PRESETS;
@@ -397,6 +392,12 @@ export default function Dietician() {
     
     return meals.length > 0 ? meals : QUICK_PRESETS;
   }, [mealPlan]);
+
+  if (!profile) {
+    return <OnboardingWizard onComplete={(p) => setProfile({ ...p, ...calculateTargets(p) })} />;
+  }
+
+
 
   const waterGlasses = hydration[currentDate] || 0;
 
