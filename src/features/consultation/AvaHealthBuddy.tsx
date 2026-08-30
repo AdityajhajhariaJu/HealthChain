@@ -126,12 +126,14 @@ export default function AvaHealthBuddy() {
     const main = document.getElementById('main-content');
     if (main) {
       main.style.background = 'url(/ava-floral-bg.jpg) center/cover no-repeat';
-      main.style.backgroundAttachment = 'fixed';
+        main.style.overflow = 'hidden';
+      
     }
     return () => {
       if (main) {
         main.style.background = '';
-        main.style.backgroundAttachment = '';
+          main.style.overflow = '';
+        
       }
     };
   }, []);
