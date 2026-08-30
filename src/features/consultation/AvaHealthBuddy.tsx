@@ -475,7 +475,7 @@ export default function AvaHealthBuddy() {
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: isMobile ? '20px 8px' : '32px',
+            padding: isMobile ? '20px 16px' : '32px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -607,7 +607,7 @@ export default function AvaHealthBuddy() {
                       lineHeight: 1.45,
                       boxShadow: msg.role === 'user' ? '0 12px 32px rgba(244, 63, 94, 0.35)' : '0 16px 40px rgba(244, 63, 94, 0.1)',
                       border: msg.role === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
-                      maxWidth: '85%',
+                      maxWidth: '80%',
                     }}
                   >
                     {msg.isStreaming ? (

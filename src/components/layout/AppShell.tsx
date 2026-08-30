@@ -182,7 +182,7 @@ export default function AppShell() {
 
   return (
     <div className="app-shell">
-      <AmbientGyroBackground />
+      
       <MedicalActionIsland />
       <a href="#main-content" className="skip-link">Skip to main content</a>
       {!isMobile && (
