@@ -8,7 +8,7 @@ import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { triggerHapticLight } from '../../services/haptics';
-import FeedbackWidget from '../ui/FeedbackWidget';
+
 import { AuthModal } from '../ui/AuthModal';
 import { GuestStickyBanner } from '../ui/GuestStickyBanner';
 import VitalityPointsModal from '../ui/VitalityPointsModal';
@@ -586,7 +586,7 @@ export default function AppShell() {
       )}
 
       {(location.pathname === '/app/today' || location.pathname === '/app/profile') && (
-        <FeedbackWidget />
+        
       )}
       <AuthModal />
       <VitalityPointsModal />

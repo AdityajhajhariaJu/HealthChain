@@ -42,6 +42,14 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        drag="y"
+        dragConstraints={{ top: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(e, { offset, velocity }) => {
+          if (offset.y > 100 || velocity.y > 500) {
+            onClose();
+          }
+        }}
         style={{
           position: 'fixed',
           top: 0,

@@ -1338,3 +1338,31 @@ html.dark-theme body {
 .scroll-snap-item {
   scroll-snap-align: start;
 }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.mobile-tab-ava {
+  transform: translateY(-16px);
+  background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+  color: white !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 4px solid #F0FDFA;
+}
+.mobile-tab-ava span {
+  display: none;
+}
+.mobile-tab-ava:active {
+  transform: translateY(-16px) scale(0.9);
+}
+h1, h2, h3, h4, h5, h6, .brand-pulse__copy strong {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  letter-spacing: -0.02em;
+}
