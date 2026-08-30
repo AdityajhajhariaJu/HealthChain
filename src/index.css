@@ -1367,14 +1367,3 @@ h1, h2, h3, h4, h5, h6, .brand-pulse__copy strong {
   letter-spacing: -0.02em;
 }
 
-/* Biometric Typography */
-body {
-  font-weight: var(--bio-font-weight, 400);
-  letter-spacing: var(--bio-letter-spacing, 0px);
-  transition: font-weight 2s ease, letter-spacing 2s ease;
-}
-h1, h2, h3, h4, h5, h6 {
-  font-weight: calc(var(--bio-font-weight, 700) + 200);
-  letter-spacing: calc(var(--bio-letter-spacing, -0.5px) - 0.2px);
-  transition: font-weight 2s ease, letter-spacing 2s ease;
-}

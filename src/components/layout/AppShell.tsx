@@ -1,4 +1,3 @@
-import { useBiometricTypography } from '../../hooks/useBiometricTypography';
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Pill, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Dumbbell, Home, User } from 'lucide-react';
@@ -57,8 +56,7 @@ export default function AppShell() {
   useEffect(() => { if (!localStorage.getItem('hc_onboarded') && location.pathname !== '/app/onboarding') { navigate('/app/onboarding'); } }, [location, navigate]);
   const toast = useToast();
   const isMobile = useIsMobile();
-  useBiometricTypography();
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
+    const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [profile, setProfile] = useState(getProfile());
   const [isScrolling, setIsScrolling] = useState(false);
