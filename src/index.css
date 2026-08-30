@@ -1373,6 +1373,12 @@ h1, h2, h3, h4, h5, h6, .brand-pulse__copy strong {
   -webkit-tap-highlight-color: transparent;
 }
 
+img, a, button {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], textarea, select {
   font-size: 16px !important;
 }
