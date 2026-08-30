@@ -31,7 +31,7 @@ export const SensualLineChart = () => {
   const areaData = `${pathData} L ${points[points.length - 1].x},${height} L ${points[0].x},${height} Z`;
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '160px', marginTop: '16px' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100px', marginTop: '8px' }}>
       <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">

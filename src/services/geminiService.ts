@@ -1000,7 +1000,7 @@ export async function generateDieticianAdvice(profile: any): Promise<string> {
           {
             text: `You are a clinical dietician AI. Provide exactly 2 sentences of highly personalized clinical nutritional advice.
 Conditions: ${(profile.medicalConditions || []).join(', ') || 'None'}
-Cuisine: ${profile.cuisine || 'Not specified'}
+Cuisine Preference: . DO NOT SUGGEST WESTERN FOOD IF THIS IS NOT WESTERN.${profile.cuisine || 'Not specified'}
 Goal: ${profile.targetCalories || 2000} kcal/day
 
 Rules:
@@ -1044,14 +1044,14 @@ export async function generateMealPlan(profile: any, days: number = 7): Promise<
           {
             text: `You are an expert clinical dietician AI. Generate a strictly valid JSON ${days}-day meal plan.
 Dietary/Medical Needs: ${dietaryRelevantConditions.join(', ') || 'Standard balanced nutrition'}
-Cuisine: ${profile.cuisine || 'Any'}
+Cuisine Preference: . DO NOT SUGGEST WESTERN FOOD IF THIS IS NOT WESTERN.${profile.cuisine || 'Any'}
 Target: ${profile.targetCalories || 2000} kcal/day
 Schedule: ${profile.mealSchedule || 'Standard 3 meals'}
 
 Rules:
 1. Output ONLY JSON.
 2. Total daily calories should closely match the target (${profile.targetCalories || 2000} kcal).
-3. Cuisine: Strictly follow the '${profile.cuisine}' cuisine preference. Generate authentic, delicious dishes.
+3. Cuisine Preference: . DO NOT SUGGEST WESTERN FOOD IF THIS IS NOT WESTERN.Strictly follow the '${profile.cuisine}' cuisine preference. Generate authentic, delicious dishes.
 4. Dietary Safety: Tailor meals for '${dietaryRelevantConditions.join(', ') || 'general wellness'}'.
 5. Schedule: Strictly follow the '${profile.mealSchedule}' meal schedule.
 6. Format:

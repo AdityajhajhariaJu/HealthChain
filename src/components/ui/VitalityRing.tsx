@@ -2,14 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const VitalityRing = ({ progress = 75 }) => {
-  const size = 180;
-  const strokeWidth = 16;
+  const size = 120;
+  const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '32px 0', position: 'relative' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '16px 0', position: 'relative' }}>
       <div style={{
         position: 'relative',
         width: size,

@@ -2087,6 +2087,7 @@ export default function Dietician() {
                           updateProfileFeatureData('dietAdvice', null);
                           updateProfileFeatureData('dietGrocery', null);
                       setProfile(null);
+                        adviceFetched.current = false;
                       setAdvice(null);
                       setMealPlan(null);
                       setFoodLogs({});
