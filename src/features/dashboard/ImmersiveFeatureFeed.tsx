@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getProfile } from '../../services/ProfileEngine';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Activity, Beaker } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 
 interface FeedCard {
   id: string;
@@ -21,7 +21,6 @@ export const ImmersiveFeatureFeed: React.FC = () => {
     const profile = getProfile();
     const hour = new Date().getHours();
     
-    // Baseline Cards
     let feed: FeedCard[] = [
       {
         id: 'streak',
@@ -41,7 +40,6 @@ export const ImmersiveFeatureFeed: React.FC = () => {
       }
     ];
 
-    // Contextual Injection: Time-based
     if (hour >= 13 && hour <= 16) {
       feed.push({
         id: 'focus-boost',
@@ -57,7 +55,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
         image: '/images/immersive/midnight-craving.png',
         title: 'Craving sugar?',
         subtitle: 'Your body actually needs sleep. Try this instead.',
-        route: '/app/sleep',
+        route: '/app/nutrition', // Route to nutrition for now
         priority: 100,
       });
     } else {
@@ -71,7 +69,6 @@ export const ImmersiveFeatureFeed: React.FC = () => {
       });
     }
 
-    // Contextual Injection: Clinical State
     const hasSevereCondition = profile?.conditions?.some((c: string) => 
       ['cancer', 'tumor', 'spondylitis', 'autoimmune', 'severe'].some(kw => c.toLowerCase().includes(kw))
     );
@@ -80,20 +77,19 @@ export const ImmersiveFeatureFeed: React.FC = () => {
       feed.push({
         id: 'clinical-trials',
         image: '/images/immersive/clinical-trials.png',
-        title: 'When standard treatments stop working...',
+        title: 'Standard treatments stopped working?',
         subtitle: 'Connect with clinical trials worldwide.',
-        route: '/app/clinical-trials',
+        route: '/app/trials',
         priority: 200, 
       });
     }
 
-    // Sort by priority descending
     feed.sort((a, b) => b.priority - a.priority);
     setCards(feed);
   }, []);
 
   return (
-    <div className="w-full flex flex-col gap-6 pb-24 pt-4 px-4 bg-[#020617] min-h-screen">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
       {cards.map((card, index) => (
         <motion.div
           key={card.id}
@@ -101,41 +97,63 @@ export const ImmersiveFeatureFeed: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
           onClick={() => navigate(card.route)}
-          className="relative w-full rounded-[28px] overflow-hidden cursor-pointer shadow-2xl"
           style={{ 
-            aspectRatio: '4/5',
+            position: 'relative',
+            width: '100%',
+            height: '420px',
+            borderRadius: '28px',
+            overflow: 'hidden',
+            cursor: 'pointer',
             backgroundColor: '#0F172A',
-            boxShadow: '0 20px 40px -15px rgba(0,0,0,0.5)'
+            boxShadow: '0 20px 40px -15px rgba(0,0,0,0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end'
           }}
         >
           {/* Background Image */}
           <div 
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
-            style={{ backgroundImage: "url(" + card.image + ")" }}
+            style={{ 
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundImage: "url(" + card.image + ")",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              zIndex: 1
+            }}
           />
           
           {/* Gradient Overlay for Text Legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          <div 
+            style={{
+              position: 'absolute',
+              bottom: 0, left: 0, right: 0, height: '60%',
+              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
+              zIndex: 2
+            }}
+          />
 
           {/* Floating Glass Content at Bottom */}
-          <div className="absolute bottom-6 left-6 right-6">
+          <div style={{ position: 'relative', zIndex: 3, padding: '24px', paddingBottom: '32px' }}>
             <div 
-              className="p-5 rounded-2xl border border-white/10"
               style={{
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                background: 'rgba(255, 255, 255, 0.05)',
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '20px',
+                padding: '20px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
               }}
             >
-              <h2 className="text-white text-2xl font-black tracking-tight leading-tight mb-2">
+              <h2 style={{ color: '#FFFFFF', fontSize: '22px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: '1.2' }}>
                 {card.title}
               </h2>
-              <p className="text-white/80 text-sm font-medium leading-snug mb-4">
+              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px', fontWeight: 500, margin: '0 0 16px 0', lineHeight: '1.4' }}>
                 {card.subtitle}
               </p>
               
-              <div className="flex items-center text-emerald-400 font-bold text-sm tracking-wide uppercase gap-2">
+              <div style={{ display: 'flex', alignItems: 'center', color: '#34D399', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', gap: '6px' }}>
                 <Sparkles size={16} />
                 <span>Tap to Explore</span>
                 <ArrowRight size={16} />
