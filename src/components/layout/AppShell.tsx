@@ -272,7 +272,7 @@ export default function AppShell() {
         <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, transformOrigin: 'top center' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1, borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px', filter: showMoreMenu || showProfileMenu ? 'blur(4px)' : 'blur(0px)' }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           <GuestStickyBanner />
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
             {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
               <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/medicine-lab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
                 <BrandPulseBanner />
@@ -312,7 +312,7 @@ export default function AppShell() {
                   <ArrowLeft size={20} strokeWidth={2.5} />
                 </button>
               )}
-            {!location.pathname.startsWith('/app/ava') && (
+            {!(location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/war-room')) && (
               <div style={{ position: 'relative' }}>
               <img 
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
@@ -485,7 +485,7 @@ export default function AppShell() {
                 </button>
               </div>
           </div>
-          {!location.pathname.startsWith('/app/ava') && (
+          {!(location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/war-room')) && (
           <nav className={`mobile-tab-bar ${isScrolling ? 'scrolling' : ''}`}>
             {mobileTabs.map((tab) => (
               <NavLink
