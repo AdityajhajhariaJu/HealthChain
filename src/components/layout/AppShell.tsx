@@ -309,7 +309,8 @@ export default function AppShell() {
                   <ArrowLeft size={20} strokeWidth={2.5} />
                 </button>
               )}
-            <div style={{ position: 'relative' }}>
+            {!location.pathname.startsWith('/app/ava') && (
+              <div style={{ position: 'relative' }}>
               <img 
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
                 alt="Profile" 
@@ -437,15 +438,24 @@ export default function AppShell() {
                 )}
               </AnimatePresence>
             </div>
+            )}
             </div>
-              <button className="mobile-top-bar__search" onClick={() => navigate('/app/ava')} aria-label="Search or Ask Ava Health Buddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #FFE4E6', color: '#F43F5E' }}>
-                  <Heart size={12} fill="#F43F5E" color="#F43F5E" />
-                  <span style={{ fontWeight: 800, fontSize: '11px' }}>Ava</span>
+              {!location.pathname.startsWith('/app/ava') ? (
+                <button className="mobile-top-bar__search" onClick={() => navigate('/app/ava')} aria-label="Search or Ask Ava Health Buddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #FFE4E6', color: '#F43F5E' }}>
+                    <Heart size={12} fill="#F43F5E" color="#F43F5E" />
+                    <span style={{ fontWeight: 800, fontSize: '11px' }}>Ava</span>
+                  </div>
+                  <Bot size={14} style={{ color: '#F43F5E', flexShrink: 0 }} />
+                  <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
+                </button>
+              ) : (
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    Ava Pro <span style={{ background: 'linear-gradient(135deg, #14B8A6, #0D9488)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, verticalAlign: 'middle', marginLeft: '2px' }}>Plus</span>
+                  </span>
                 </div>
-                <Bot size={14} style={{ color: '#F43F5E', flexShrink: 0 }} />
-                <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
-              </button>
+              )}
               <div className="mobile-top-bar__actions">
                     <button
                       className="mobile-top-bar__points sparkly-gold-pill"

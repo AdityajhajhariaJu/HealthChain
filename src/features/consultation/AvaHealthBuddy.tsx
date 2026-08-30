@@ -365,8 +365,8 @@ export default function AvaHealthBuddy() {
   return (
     <div
       style={{
-        padding: isMobile ? '8px 8px 16px 8px' : '0 24px',
-        minHeight: isMobile ? 'calc(100dvh - 64px - 16px)' : 0,
+        padding: isMobile ? '0' : '0 24px',
+        height: '100%',
         flex: 1,
         width: '100%',
         display: 'flex',
@@ -383,21 +383,21 @@ export default function AvaHealthBuddy() {
         style={{
           flex: 1,
           minHeight: 0,
-          height: isMobile ? '100%' : 'calc(100dvh - 150px)',
-          maxHeight: isMobile ? '100%' : 'calc(100dvh - 150px)',
-          background: 'rgba(255, 255, 255, 0.45)',
-          backdropFilter: 'blur(32px)', 
-          WebkitBackdropFilter: 'blur(32px)',
-          borderRadius: '32px',
+          height: '100%',
+          maxHeight: '100%',
+          background: isMobile ? 'transparent' : 'rgba(255, 255, 255, 0.45)',
+          backdropFilter: isMobile ? 'none' : 'blur(32px)', 
+          WebkitBackdropFilter: isMobile ? 'none' : 'blur(32px)',
+          borderRadius: isMobile ? '0' : '32px',
           margin: '0',
-          boxShadow: '0 24px 64px rgba(244, 63, 94, 0.08)',
+          boxShadow: isMobile ? 'none' : '0 24px 64px rgba(244, 63, 94, 0.08)',
           maxWidth: isMobile ? '100%' : '1000px',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.4)',
+          border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.4)',
         }}
       >
         {/* Header */}
