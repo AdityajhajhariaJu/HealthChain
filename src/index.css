@@ -1176,7 +1176,7 @@ html.dark-theme body {
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: #F0FDFA;
+    background: #FDF6EA;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1197,7 +1197,7 @@ html.dark-theme body {
 
   .more-menu-item:active .more-menu-icon {
     transform: scale(1.1);
-    background: #CCFBF1;
+    background: #F3E7D3;
   }
 }
 
