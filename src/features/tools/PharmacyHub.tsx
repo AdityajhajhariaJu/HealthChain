@@ -22,18 +22,6 @@ import { trackFeatureUsed } from '../../services/analytics';
 
 let cachedPharmacyState: any = null;
 
-const exampleResult = {
-  name: 'Paracetamol (Acetaminophen)',
-  class: 'Analgesic and Antipyretic',
-  uses: 'Paracetamol is used to relieve mild-to-moderate pain, including headaches, muscle aches, toothaches, and backaches. It is also highly effective at reducing fever.',
-  sideEffects:
-    'Common side effects are rare but can include nausea and headache. Serious side effects include severe skin reactions and acute liver damage, which is typically associated with overdose.',
-  alternatives: ['Ibuprofen', 'Naproxen', 'Aspirin'],
-  warnings:
-    'Do not exceed the maximum daily dose of 4,000 mg (or lower in high-risk patients) to avoid severe, potentially fatal liver injury. Ensure no other medications containing acetaminophen are taken concurrently. Avoid heavy alcohol consumption while taking this medication.',
-  interactions: [],
-};
-
 export default function PharmacyHub() {
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -308,42 +296,18 @@ export default function PharmacyHub() {
 
       {/* Results Area */}
       <AnimatePresence mode="wait">
-        {!loading && (result || !searched) && (
+        {!loading && result && (
           <motion.div
-            key={result ? 'result' : 'example'}
+            key="result"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             {(() => {
-              const displayData = result || exampleResult;
+              const displayData = result;
               return (
                 <>
-                  {!searched && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        marginBottom: '-8px',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: '13px',
-                          textTransform: 'uppercase',
-                          color: '#94A3B8',
-                          fontWeight: 800,
-                          letterSpacing: '1.5px',
-                        }}
-                      >
-                        Example Result
-                      </span>
-                      <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
-                    </div>
-                  )}
-
                   {/* Header Info */}
                   <div
                     style={{
