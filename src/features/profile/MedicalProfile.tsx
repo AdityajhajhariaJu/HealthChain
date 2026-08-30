@@ -65,6 +65,7 @@ import { cleanClinicalText } from '../../components/ui/RichReportTemplate';
 
 export default function MedicalProfile() {
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'timeline' | 'insights'>('overview');
   const navigate = useNavigate();
   const synthesisKey = getRunScope('profile', 'draft', 'synthesis');
   const [profile, setProfile] = useState(getProfile());
@@ -614,87 +615,40 @@ export default function MedicalProfile() {
         </div>
       </motion.div>
 
-      {/* NEW: Holistic Health Synthesis */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="card" 
-        style={{ 
-          display: isMobile ? 'flex' : 'grid', 
-          flexDirection: isMobile ? 'column' : 'unset',
-          gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', 
-          gap: '20px', 
-          padding: isMobile ? '24px 16px' : '32px',
-          marginBottom: '20px',
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8fffd 100%)',
-          border: '1px solid var(--teal-light)'
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
-          <div style={{ fontSize: isMobile ? '36px' : '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Overall Health</div>
-          
-          {synthesisData && (
-            <div style={{ width: '100%', height: '180px', marginTop: '16px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={synthesisData.radarData}>
-                  <PolarGrid stroke="#E2E8F0" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Patient" dataKey="A" stroke="var(--teal)" fill="var(--teal)" fillOpacity={0.2} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
-              <Sparkles size={20} />
-              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
-            </div>
-            {!profile?.isPro && (
-              <button 
-                onClick={() => navigate('/pricing')}
-                className="btn btn-primary btn-sm"
-                style={{ 
-                  background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
-                  border: 'none', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
-                }}
-              >
-                <Lock size={14} /> Upgrade to Premium
-              </button>
-            )}
-            {isGeneratingSynthesis && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />
-                Analyzing Profile...
-              </div>
-            )}
-          </div>
-          
-          {synthesisData ? (
-             <motion.div 
-               animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
-               style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
-             >
-              <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
-            </motion.div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
-              <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-                {isGeneratingSynthesis ? 'Your AI Clinical Synthesis is being automatically generated based on your profile...' : 'Add medical conditions, medications, or allergies to unlock your automated AI Clinical Synthesis.'}
-              </p>
-            </div>
-          )}
-        </div>
-      </motion.div>
-
+      {/* TABS NAVIGATION */}
+      <div className="profile-tabs-nav" style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+        {[
+          { id: 'overview', label: 'Overview', icon: <User size={16} /> },
+          { id: 'records', label: 'Records & Vitals', icon: <Activity size={16} /> },
+          { id: 'timeline', label: 'Timeline', icon: <Clock size={16} /> },
+          { id: 'insights', label: 'Insights', icon: <Sparkles size={16} /> }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              background: activeTab === tab.id ? 'var(--teal)' : '#FFFFFF',
+              color: activeTab === tab.id ? '#FFFFFF' : 'var(--text-main)',
+              border: activeTab === tab.id ? '1px solid var(--teal)' : '1px solid var(--border)',
+              fontWeight: 650,
+              fontSize: '14px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: activeTab === tab.id ? '0 4px 12px rgba(15, 139, 126, 0.2)' : '0 2px 4px rgba(0,0,0,0.02)',
+              transition: 'all 0.2s ease',
+              flexShrink: 0
+            }}
+          >
+            {tab.icon} {tab.label}
+          </button>
+        ))}
+      </div>
       <div
         ref={profileRef}
         style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: '20px' }}
@@ -713,8 +667,7 @@ export default function MedicalProfile() {
           </div>
         ) : (
           <>
-            {/* LEFT COLUMN: Hero, Vitals, Timeline */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+<div className={activeTab !== "overview" ? "tab-content-hidden" : ""} style={{ display: activeTab === "overview" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
               {/* 1. Patient Identity Header (Clean Layout) */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -981,53 +934,6 @@ export default function MedicalProfile() {
             </div>
           </div>
 
-          {/* NEW: Smart Auto-Refill Adherence Engine */}
-          {profile.medications.some(med => {
-            const startDate = new Date(med.lastFilledAt || med.addedAt);
-            const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-            const supplyDays = med.supplyDays || 30;
-            return (supplyDays - daysPassed) <= 7 && (supplyDays - daysPassed) >= 0;
-          }) && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="card"
-              style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ background: '#FEF2F2', color: '#EF4444', padding: '8px', borderRadius: '50%' }}>
-                  <AlertTriangle size={20} />
-                </div>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#991B1B' }}>Refill Action Required</h4>
-                  <span style={{ fontSize: '13px', color: '#B91C1C' }}>Ava has detected that you are running low on critical medications.</span>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {profile.medications.map(med => {
-                  const startDate = new Date(med.lastFilledAt || med.addedAt);
-                  const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-                  const supplyDays = med.supplyDays || 30;
-                  const daysLeft = Math.floor(supplyDays - daysPassed);
-                  
-                  if (daysLeft <= 7 && daysLeft >= 0) {
-                    return (
-                      <div key={`refill-${med.name}`} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                        <div>
-                          <strong style={{ fontSize: '15px' }}>{med.name}</strong>
-                          <span style={{ display: 'block', fontSize: '12px', color: '#EF4444', fontWeight: 600 }}>Only {daysLeft} days supply remaining</span>
-                        </div>
-                        <button className="btn btn-primary btn-sm" style={{ background: '#EF4444' }}>Auto-Refill Now</button>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            </motion.div>
-          )}
-
           {/* 2.5 Active Health Conditions */}
           {profile.conditions && profile.conditions.length > 0 && (
             <div className="card" style={{ padding: '16px 20px', borderRadius: '16px', background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
@@ -1086,6 +992,177 @@ export default function MedicalProfile() {
             </div>
           )}
 
+          {/* 5. Action Items */}
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
+            <div className="flex-between mb-4">
+              <h3
+                style={{
+                  fontSize: '16px',
+                  color: 'var(--text-main)',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <ShieldCheck size={18} color="var(--teal)" /> Action Plan
+              </h3>
+              {totalActions > 0 && (
+                <span className="text-xs font-bold" style={{ color: 'var(--teal)' }}>
+                  {completedActions}/{totalActions} Done
+                </span>
+              )}
+            </div>
+
+            {totalActions === 0 ? (
+              <p className="text-sm text-gray m-0">No actions required currently.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {uniqueActionItems.map((item) => {
+                  let extractedDrug: string | null = null;
+                  const rawText = typeof item?.task === 'string' && item.task.length > 0 
+                    ? item.task 
+                    : (typeof item?.step === 'string' && item.step.length > 0 
+                      ? item.step 
+                      : (typeof item?.action === 'string' && item.action.length > 0 
+                        ? item.action 
+                        : (typeof item?.title === 'string' ? item.title : 'Review clinical assessment')));
+                  
+                  const cleanTitle = cleanClinicalText(rawText)
+                    .replace(/\s*·\s*(Immediately|Investigation|Consultation|Routine|Urgent)[\s\S]*/i, '')
+                    .replace(/["'{}]/g, '')
+                    .trim() || 'Review clinical finding';
+
+                  const match = cleanTitle.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
+                  if (match && match[1]) extractedDrug = match[1];
+
+                  const isCompleted = item.status === 'completed';
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => toggleActionItem(item.id)}
+                      style={{
+                        padding: '10px 12px',
+                        background: isCompleted ? '#F0FDF4' : 'var(--surface-hover)',
+                        borderRadius: '12px',
+                        border: `1px solid ${isCompleted ? '#BBF7D0' : 'var(--border)'}`,
+                        display: 'flex',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        alignItems: 'center',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '5px',
+                          border: `2px solid ${isCompleted ? '#16A34A' : 'var(--border-strong)'}`,
+                          background: isCompleted ? '#16A34A' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isCompleted && <Check size={12} color="#FFF" />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: extractedDrug ? '70px' : '8px' }}>
+                        <div
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: isCompleted ? 500 : 650,
+                            color: isCompleted ? '#15803D' : 'var(--text-main)',
+                            textDecoration: isCompleted ? 'line-through' : 'none',
+                            lineHeight: 1.3,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                          title={cleanTitle}
+                        >
+                          {cleanTitle}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--text-muted)',
+                            display: 'flex',
+                            gap: '6px',
+                            marginTop: '2px',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <span style={{ textTransform: 'capitalize' }}>
+                            {item.source ? item.source.replace('_', ' ') : 'MDT Hub'}
+                          </span>
+                          {item.timeline && (
+                            <span>• {item.timeline}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {extractedDrug && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/app/pharmacy', { state: { searchQuery: extractedDrug } });
+                          }}
+                          style={{
+                            background: '#ECFDF5',
+                            color: '#10B981',
+                            border: 'none',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
+                        >
+                          <Search size={11} /> Lookup
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeActionItem(item.id);
+                          setProfile(getProfile());
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '50%',
+                          flexShrink: 0
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; }}
+                        title="Remove Action Item"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+</div>
+<div className={activeTab !== "records" ? "tab-content-hidden" : ""} style={{ display: activeTab === "records" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
           {/* 4. Vitals & Biomarkers Dashboard */}
           <div className="card" style={{ padding: '20px' }}>
             <h3
@@ -1242,6 +1319,189 @@ export default function MedicalProfile() {
             )}
           </div>
 
+          {/* NEW: Smart Auto-Refill Adherence Engine */}
+          {profile.medications.some(med => {
+            const startDate = new Date(med.lastFilledAt || med.addedAt);
+            const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+            const supplyDays = med.supplyDays || 30;
+            return (supplyDays - daysPassed) <= 7 && (supplyDays - daysPassed) >= 0;
+          }) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card"
+              style={{ padding: '24px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: '#FEF2F2', color: '#EF4444', padding: '8px', borderRadius: '50%' }}>
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#991B1B' }}>Refill Action Required</h4>
+                  <span style={{ fontSize: '13px', color: '#B91C1C' }}>Ava has detected that you are running low on critical medications.</span>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {profile.medications.map(med => {
+                  const startDate = new Date(med.lastFilledAt || med.addedAt);
+                  const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+                  const supplyDays = med.supplyDays || 30;
+                  const daysLeft = Math.floor(supplyDays - daysPassed);
+                  
+                  if (daysLeft <= 7 && daysLeft >= 0) {
+                    return (
+                      <div key={`refill-${med.name}`} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#FFFFFF', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                        <div>
+                          <strong style={{ fontSize: '15px' }}>{med.name}</strong>
+                          <span style={{ display: 'block', fontSize: '12px', color: '#EF4444', fontWeight: 600 }}>Only {daysLeft} days supply remaining</span>
+                        </div>
+                        <button className="btn btn-primary btn-sm" style={{ background: '#EF4444' }}>Auto-Refill Now</button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* 3. Active Medications */}
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
+            <h3
+              style={{
+                fontSize: '16px',
+                color: 'var(--text-main)',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <HeartPulse size={18} color="#8B5CF6" /> Active Medications
+            </h3>
+            {profile.medications.length === 0 ? (
+              <p className="text-sm text-gray m-0 mb-4">No active medications.</p>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  marginBottom: '16px',
+                }}
+              >
+                <AnimatePresence>
+                {profile.medications.map((m) => (
+                  <motion.div
+                    key={m.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    style={{
+                      padding: '16px',
+                      background: 'var(--surface-hover)',
+                      borderRadius: 'var(--radius-lg)',
+                      borderLeft: '3px solid #8B5CF6',
+                      position: 'relative',
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: 'var(--text-main)',
+                        fontWeight: 700,
+                        fontSize: '15px',
+                        marginBottom: '4px',
+                        paddingRight: '24px',
+                      }}
+                    >
+                      {m.name}
+                    </div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                      {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : 'Manually added'}
+                    </div>
+                    <button
+                      onClick={() => removeMedication(m.name)}
+                      style={{
+                        position: 'absolute',
+                        top: '16px',
+                        right: '16px',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </motion.div>
+                ))}
+                </AnimatePresence>
+              </div>
+            )}
+            <button
+              className="btn btn-outline btn-sm"
+              style={{ width: '100%', justifyContent: 'center' }}
+              onClick={() => navigate('/app/pharmacy')}
+            >
+              <Plus size={16} /> Add via PharmacyHub
+            </button>
+          </div>
+
+          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
+            <h3
+              style={{
+                fontSize: '16px',
+                color: 'var(--text-main)',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <User size={18} color="#F59E0B" /> Family History
+            </h3>
+            <p className="text-xs text-gray mb-4">
+              Adding family history improves AI investigative accuracy.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+              {profile.familyHistory.length === 0 && (
+                <div style={{ fontSize: '14px', color: '#64748B' }}>No family history recorded.</div>
+              )}
+              {profile.familyHistory.map((hist, i) => (
+                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 16px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                  <span style={{ fontSize: '14px', color: '#0F172A', fontWeight: 500 }}>{hist}</span>
+                  <button onClick={() => removeFamilyHistory(hist)} style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <input
+              type="text"
+              placeholder="e.g. Diabetes (Father)"
+              value={newFamilyHist}
+              onChange={(e) => setNewFamilyHist(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newFamilyHist) {
+                  addFamilyHistory(newFamilyHist);
+                  setNewFamilyHist('');
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                fontSize: '13px',
+                background: 'var(--surface)',
+              }}
+            />
+          </div>
+</div>
+<div className={activeTab !== "timeline" ? "tab-content-hidden" : ""} style={{ display: activeTab === "timeline" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
           {/* 6. Medical Timeline */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -1437,11 +1697,89 @@ export default function MedicalProfile() {
               })()}
             </div>
           </div>
+</div>
+<div className={activeTab !== "insights" ? "tab-content-hidden" : ""} style={{ display: activeTab === "insights" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
+      {/* NEW: Holistic Health Synthesis */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card" 
+        style={{ 
+          display: isMobile ? 'flex' : 'grid', 
+          flexDirection: isMobile ? 'column' : 'unset',
+          gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', 
+          gap: '20px', 
+          padding: isMobile ? '24px 16px' : '32px',
+          marginBottom: '20px',
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8fffd 100%)',
+          border: '1px solid var(--teal-light)'
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
+          <div style={{ fontSize: isMobile ? '36px' : '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Overall Health</div>
+          
+          {synthesisData && (
+            <div style={{ width: '100%', height: '180px', marginTop: '16px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={synthesisData.radarData}>
+                  <PolarGrid stroke="#E2E8F0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Patient" dataKey="A" stroke="var(--teal)" fill="var(--teal)" fillOpacity={0.2} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: Meds, Actions, Family History */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
+              <Sparkles size={20} />
+              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
+            </div>
+            {!profile?.isPro && (
+              <button 
+                onClick={() => navigate('/pricing')}
+                className="btn btn-primary btn-sm"
+                style={{ 
+                  background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
+                  border: 'none', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+                }}
+              >
+                <Lock size={14} /> Upgrade to Premium
+              </button>
+            )}
+            {isGeneratingSynthesis && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />
+                Analyzing Profile...
+              </div>
+            )}
+          </div>
           
+          {synthesisData ? (
+             <motion.div 
+               animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
+               style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
+             >
+              <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
+            </motion.div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
+              <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
+                {isGeneratingSynthesis ? 'Your AI Clinical Synthesis is being automatically generated based on your profile...' : 'Add medical conditions, medications, or allergies to unlock your automated AI Clinical Synthesis.'}
+              </p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
           {/* NEW: Care Team & Document Vault */}
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3
@@ -1500,310 +1838,7 @@ export default function MedicalProfile() {
             </button>
           </div>
 
-          {/* 3. Active Medications */}
-          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
-            <h3
-              style={{
-                fontSize: '16px',
-                color: 'var(--text-main)',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <HeartPulse size={18} color="#8B5CF6" /> Active Medications
-            </h3>
-            {profile.medications.length === 0 ? (
-              <p className="text-sm text-gray m-0 mb-4">No active medications.</p>
-            ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  marginBottom: '16px',
-                }}
-              >
-                <AnimatePresence>
-                {profile.medications.map((m) => (
-                  <motion.div
-                    key={m.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    style={{
-                      padding: '16px',
-                      background: 'var(--surface-hover)',
-                      borderRadius: 'var(--radius-lg)',
-                      borderLeft: '3px solid #8B5CF6',
-                      position: 'relative',
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: 'var(--text-main)',
-                        fontWeight: 700,
-                        fontSize: '15px',
-                        marginBottom: '4px',
-                        paddingRight: '24px',
-                      }}
-                    >
-                      {m.name}
-                    </div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-                      {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : 'Manually added'}
-                    </div>
-                    <button
-                      onClick={() => removeMedication(m.name)}
-                      style={{
-                        position: 'absolute',
-                        top: '16px',
-                        right: '16px',
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </motion.div>
-                ))}
-                </AnimatePresence>
-              </div>
-            )}
-            <button
-              className="btn btn-outline btn-sm"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => navigate('/app/pharmacy')}
-            >
-              <Plus size={16} /> Add via PharmacyHub
-            </button>
-          </div>
-
-          {/* 5. Action Items */}
-          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
-            <div className="flex-between mb-4">
-              <h3
-                style={{
-                  fontSize: '16px',
-                  color: 'var(--text-main)',
-                  margin: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <ShieldCheck size={18} color="var(--teal)" /> Action Plan
-              </h3>
-              {totalActions > 0 && (
-                <span className="text-xs font-bold" style={{ color: 'var(--teal)' }}>
-                  {completedActions}/{totalActions} Done
-                </span>
-              )}
-            </div>
-
-            {totalActions === 0 ? (
-              <p className="text-sm text-gray m-0">No actions required currently.</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {uniqueActionItems.map((item) => {
-                  let extractedDrug: string | null = null;
-                  const rawText = typeof item?.task === 'string' && item.task.length > 0 
-                    ? item.task 
-                    : (typeof item?.step === 'string' && item.step.length > 0 
-                      ? item.step 
-                      : (typeof item?.action === 'string' && item.action.length > 0 
-                        ? item.action 
-                        : (typeof item?.title === 'string' ? item.title : 'Review clinical assessment')));
-                  
-                  const cleanTitle = cleanClinicalText(rawText)
-                    .replace(/\s*·\s*(Immediately|Investigation|Consultation|Routine|Urgent)[\s\S]*/i, '')
-                    .replace(/["'{}]/g, '')
-                    .trim() || 'Review clinical finding';
-
-                  const match = cleanTitle.match(/(?:Take|Start|Prescribe)\s+([A-Za-z0-9\-]+)/i);
-                  if (match && match[1]) extractedDrug = match[1];
-
-                  const isCompleted = item.status === 'completed';
-
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => toggleActionItem(item.id)}
-                      style={{
-                        padding: '10px 12px',
-                        background: isCompleted ? '#F0FDF4' : 'var(--surface-hover)',
-                        borderRadius: '12px',
-                        border: `1px solid ${isCompleted ? '#BBF7D0' : 'var(--border)'}`,
-                        display: 'flex',
-                        gap: '10px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        alignItems: 'center',
-                        position: 'relative',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '5px',
-                          border: `2px solid ${isCompleted ? '#16A34A' : 'var(--border-strong)'}`,
-                          background: isCompleted ? '#16A34A' : 'transparent',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {isCompleted && <Check size={12} color="#FFF" />}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0, paddingRight: extractedDrug ? '70px' : '8px' }}>
-                        <div
-                          style={{
-                            fontSize: '13.5px',
-                            fontWeight: isCompleted ? 500 : 650,
-                            color: isCompleted ? '#15803D' : 'var(--text-main)',
-                            textDecoration: isCompleted ? 'line-through' : 'none',
-                            lineHeight: 1.3,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                          title={cleanTitle}
-                        >
-                          {cleanTitle}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '11px',
-                            color: 'var(--text-muted)',
-                            display: 'flex',
-                            gap: '6px',
-                            marginTop: '2px',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <span style={{ textTransform: 'capitalize' }}>
-                            {item.source ? item.source.replace('_', ' ') : 'MDT Hub'}
-                          </span>
-                          {item.timeline && (
-                            <span>• {item.timeline}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {extractedDrug && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('/app/pharmacy', { state: { searchQuery: extractedDrug } });
-                          }}
-                          style={{
-                            background: '#ECFDF5',
-                            color: '#10B981',
-                            border: 'none',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            cursor: 'pointer',
-                            flexShrink: 0
-                          }}
-                        >
-                          <Search size={11} /> Lookup
-                        </button>
-                      )}
-                      
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeActionItem(item.id);
-                          setProfile(getProfile());
-                        }}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#94A3B8',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: '50%',
-                          flexShrink: 0
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; }}
-                        onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; }}
-                        title="Remove Action Item"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
-            <h3
-              style={{
-                fontSize: '16px',
-                color: 'var(--text-main)',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <User size={18} color="#F59E0B" /> Family History
-            </h3>
-            <p className="text-xs text-gray mb-4">
-              Adding family history improves AI investigative accuracy.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-              {profile.familyHistory.length === 0 && (
-                <div style={{ fontSize: '14px', color: '#64748B' }}>No family history recorded.</div>
-              )}
-              {profile.familyHistory.map((hist, i) => (
-                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 16px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '14px', color: '#0F172A', fontWeight: 500 }}>{hist}</span>
-                  <button onClick={() => removeFamilyHistory(hist)} style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <input
-              type="text"
-              placeholder="e.g. Diabetes (Father)"
-              value={newFamilyHist}
-              onChange={(e) => setNewFamilyHist(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newFamilyHist) {
-                  addFamilyHistory(newFamilyHist);
-                  setNewFamilyHist('');
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                fontSize: '13px',
-                background: 'var(--surface)',
-              }}
-            />
-          </div>
-          </div>
+</div>
         </>
         )}
       </div>

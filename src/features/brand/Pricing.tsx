@@ -24,7 +24,7 @@ import {
   Clock,
   Shield,
   Trophy
-} from 'lucide-react';
+, BrainCircuit} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';

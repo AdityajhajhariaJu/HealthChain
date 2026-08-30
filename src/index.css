@@ -1315,3 +1315,8 @@ html.dark-theme body {
 .sparkly-gold-pill svg {
   filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.5));
 }
+
+.pdf-exporting .tab-content-hidden { display: flex !important; }
+.pdf-exporting .profile-tabs-nav { display: none !important; }
+.profile-tabs-nav::-webkit-scrollbar { display: none; }
+
