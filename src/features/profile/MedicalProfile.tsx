@@ -398,8 +398,7 @@ export default function MedicalProfile() {
             Your entire health story on one screen — alive, updating, and ready to share.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '8px', borderRight: '1px solid var(--border)', paddingRight: '12px', marginRight: '4px' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
             <button
               className="btn btn-ghost btn-sm"
               disabled={!canUndo()}
@@ -419,21 +418,6 @@ export default function MedicalProfile() {
               <Redo2 size={16} />
             </button>
           </div>
-          <button
-            className="btn btn-ghost btn-sm"
-            onClick={() => setShowClearConfirm(true)}
-            style={{ color: '#EF4444' }}
-          >
-            <Trash2 size={16} /> Clear Data
-          </button>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={handleExportPDF}
-            style={{ display: 'flex', gap: '8px' }}
-          >
-            <Download size={16} /> Export PDF
-          </button>
-        </div>
       </div>
 
       <div
@@ -1846,7 +1830,37 @@ export default function MedicalProfile() {
         )}
       </div>
 
-      {/* Custom Clear Data Confirmation Modal */}
+      {/* Data Export & Management */}
+        <div style={{ marginTop: '32px', marginBottom: '24px' }}>
+          <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+            <div>
+              <h3 style={{ margin: '0 0 6px', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: 700 }}>
+                <Lock size={20} color="#64748B" /> Data Management
+              </h3>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', maxWidth: '400px', lineHeight: 1.5 }}>
+                Download a complete PDF report of your unified profile, or permanently delete your local clinical data and records.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-outline"
+                onClick={() => setShowClearConfirm(true)}
+                style={{ color: '#EF4444', borderColor: '#FEE2E2', background: '#FEF2F2', padding: '10px 16px' }}
+              >
+                <Trash2 size={16} /> Clear Data
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleExportPDF}
+                style={{ display: 'flex', gap: '8px', background: 'var(--teal)', border: 'none', color: '#FFF', padding: '10px 16px' }}
+              >
+                <Download size={16} /> Export PDF
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Custom Clear Data Confirmation Modal */}
       <AnimatePresence>
         {showClearConfirm && (
           <div
