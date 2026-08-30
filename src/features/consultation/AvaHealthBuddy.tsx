@@ -731,7 +731,7 @@ export default function AvaHealthBuddy() {
         {/* Input Area */}
         <div
           style={{
-            padding: isMobile ? '12px 14px calc(16px + env(safe-area-inset-bottom, 12px)) 14px' : '24px 32px',
+            padding: isMobile ? '12px 14px calc(32px + env(safe-area-inset-bottom, 24px)) 14px' : '24px 32px',
             background: 'transparent',
             display: 'flex',
             flexDirection: 'column',
