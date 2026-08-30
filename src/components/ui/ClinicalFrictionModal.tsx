@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Fingerprint, Lock, CheckCircle2, Activity } from 'lucide-react';
+import { Shield, Fingerprint, Lock, CheckCircle2, Activity, X } from 'lucide-react';
 import { triggerHapticHeavy, triggerHapticLight } from '../../services/haptics';
 
 interface Props {
@@ -57,6 +57,7 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
               padding: '32px',
               width: '100%',
               maxWidth: '360px',
+              position: 'relative',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -82,7 +83,8 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
               </AnimatePresence>
             </div>
 
-            <h3 style={{ color: '#F8FAFC', fontSize: '18px', fontWeight: 600, margin: '0 0 16px', textAlign: 'center' }}>
+            <button onClick={onComplete} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={20} /></button>
+              <h3 style={{ color: '#F8FAFC', fontSize: '18px', fontWeight: 600, margin: '0 0 16px', textAlign: 'center' }}>
               {title}
             </h3>
 

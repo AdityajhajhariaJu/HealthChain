@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pill, Activity, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Pill, Activity, ShieldCheck, ChevronRight, X } from 'lucide-react';
 import { triggerHapticLight, triggerHapticHeavy } from '../../services/haptics';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 
@@ -88,8 +88,9 @@ export const MedicalActionIsland = () => {
                 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
                 <span style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: 600, letterSpacing: '-0.2px' }}>
-                  {title}
-                </span>
+                    {title}
+                  </span>
+                  <button onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} style={{ background: 'transparent', border: 'none', color: '#94A3B8', padding: '4px', marginLeft: '2px', display: 'flex', cursor: 'pointer' }}><X size={14} /></button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -123,10 +124,11 @@ export const MedicalActionIsland = () => {
               exit={{ opacity: 0, height: 0, marginTop: 0 }}
               style={{ width: '100%', display: 'flex', gap: '8px' }}
             >
-              <button 
-                onClick={handleAction}
-                style={{ 
-                  flex: 1, padding: '12px', borderRadius: '16px', border: 'none',
+              <button onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} style={{ width: '44px', padding: '12px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', border: 'none', cursor: 'pointer' }}><X size={16} /></button>
+                <button 
+                  onClick={handleAction}
+                  style={{ 
+                    flex: 1, padding: '12px', borderRadius: '16px', border: 'none',
                   background: currentState === 'medication' ? '#F43F5E' : '#10B981',
                   color: '#FFFFFF', fontSize: '14px', fontWeight: 700,
                   display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px'
