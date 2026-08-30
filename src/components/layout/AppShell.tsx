@@ -265,7 +265,7 @@ export default function AppShell() {
         </aside>
       )}
 
-        <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined }} onScroll={handleMainScroll}>
+        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, transformOrigin: 'top center' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1, borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px', filter: showMoreMenu || showProfileMenu ? 'blur(4px)' : 'blur(0px)' }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           <GuestStickyBanner />
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
@@ -281,7 +281,7 @@ export default function AppShell() {
               <Outlet />
             </div>
           </div>
-        </main>
+        </motion.main>
 
       {isMobile && (
         <>
