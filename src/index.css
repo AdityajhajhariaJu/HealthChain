@@ -1323,3 +1323,18 @@ html.dark-theme body {
 
 
 
+
+/* ===== JUICE (Micro-interactions) ===== */
+.active-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, opacity 0.2s ease !important;
+}
+.active-scale:active {
+  transform: scale(0.96) !important;
+}
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 24px;
+}
+.scroll-snap-item {
+  scroll-snap-align: start;
+}
