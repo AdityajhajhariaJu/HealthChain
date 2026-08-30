@@ -13,6 +13,7 @@ import { PsychoacousticEngine } from '../../services/PsychoacousticEngine';
 import { AuthModal } from '../ui/AuthModal';
 import { GuestStickyBanner } from '../ui/GuestStickyBanner';
 import { AmbientGyroBackground } from '../ui/AmbientGyroBackground';
+import { MedicalActionIsland } from '../ui/MedicalActionIsland';
 import VitalityPointsModal from '../ui/VitalityPointsModal';
 import PointsAwardedToast from '../ui/PointsAwardedToast';
 import UpgradeToProCard from '../ui/UpgradeToProCard';
@@ -182,6 +183,7 @@ export default function AppShell() {
   return (
     <div className="app-shell">
       <AmbientGyroBackground />
+      <MedicalActionIsland />
       <a href="#main-content" className="skip-link">Skip to main content</a>
       {!isMobile && (
         <aside className="sidebar">

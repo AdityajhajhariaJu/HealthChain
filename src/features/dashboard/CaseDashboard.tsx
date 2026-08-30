@@ -14,6 +14,10 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { VitalityRing } from '../../components/ui/VitalityRing';
+import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
+import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
+import { CinematicCheckbox } from '../../components/ui/CinematicCheckbox';
+import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
 
 
 export default function CaseDashboard() {
@@ -28,6 +32,7 @@ export default function CaseDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
+  const [showFrictionModal, setShowFrictionModal] = useState(false);
 
 
   const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
@@ -253,7 +258,16 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
       overflowX: 'hidden'
     }}>
-      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
+      <FatigueModeToggle />
+        <PredictiveTimeline />
+        <div style={{ padding: '0 24px', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <CinematicCheckbox label="Metformin 500mg" sublabel="Take with breakfast" />
+            <div onClick={() => setShowFrictionModal(true)}><CinematicCheckbox label="Review Oncology AI Report" sublabel="Ready for decryption" /></div>
+          </div>
+        </div>
+        <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
       
       {/* Point 4: Sensual Data Visualization */}
       <section style={{ margin: '8px 0 24px' }}>
@@ -560,6 +574,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
         </div>
       </section>
 
+      <ClinicalFrictionModal isOpen={showFrictionModal} onComplete={() => setShowFrictionModal(false)} />
       <ContentDetailPage 
         content={selectedContent}
         onClose={() => setSelectedContent(null)}
@@ -593,7 +608,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               activeCollection?.items.map(item => (
                 <div key={item.id} style={{ height: '220px' }}>
                   <ImmersiveMediaCard
-                      layoutId={card-}
+                    layoutId={`card-${item.id}`}
                     title={item.title}
                     subtitle={item.subtitle}
                     bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
