@@ -52,6 +52,7 @@
 }
 
 body {
+  -webkit-text-size-adjust: 100%;
   font-family:
     'Inter',
     -apple-system,
@@ -841,6 +842,7 @@ html.dark-theme [style*="background-image"] {
 
 /* Fix background for dark theme body to prevent white flashing on overscroll */
 html.dark-theme body {
+  -webkit-text-size-adjust: 100%;
   background: #FFFFFF; /* Because the invert will flip this to black */
 }
 
@@ -854,6 +856,7 @@ html.dark-theme body {
     background: #FFF;
   }
   html.dark-theme body {
+  -webkit-text-size-adjust: 100%;
     background: #FFF;
   }
   
@@ -892,6 +895,7 @@ html.dark-theme body {
 
   /* Ensure text is completely black and legible */
   body {
+  -webkit-text-size-adjust: 100%;
     background-color: white !important;
     color: black !important;
   }
@@ -1379,7 +1383,12 @@ img, a, button {
   user-select: none;
 }
 
+
+
 input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], textarea, select {
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
   font-size: 16px !important;
 }
 
