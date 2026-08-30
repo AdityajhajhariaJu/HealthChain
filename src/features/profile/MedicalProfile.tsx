@@ -371,31 +371,51 @@ export default function MedicalProfile() {
       transition={{ duration: 0.4, staggerChildren: 0.1 }}
       style={{ paddingBottom: '80px' }}
     >
-      {/* Header */}
-      <div
-        style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '24px', marginBottom: '20px' }}
+      {/* Premium Hero Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '24px',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+          border: '1px solid #f1f5f9',
+          padding: isMobile ? '24px' : '32px',
+          marginBottom: '32px',
+          boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.05)'
+        }}
       >
-        <div style={{ flex: '1 1 300px' }}>
-          <h1
-            style={{
-              fontSize: isMobile ? '24px' : '28px',
-              color: 'var(--text-main)',
-              margin: '0 0 8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
+        {/* Background glowing orbs for depth */}
+        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '200px', height: '200px', background: 'var(--teal)', filter: 'blur(80px)', opacity: 0.1, borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: '-40px', left: '10%', width: '200px', height: '200px', background: '#3b82f6', filter: 'blur(100px)', opacity: 0.05, borderRadius: '50%' }} />
+
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '20px', alignItems: isMobile ? 'flex-start' : 'center', position: 'relative', zIndex: 1 }}>
+          <div style={{
+            width: '64px', height: '64px', borderRadius: '18px', background: '#ffffff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 16px -4px rgba(16, 185, 129, 0.15), inset 0 0 0 1px rgba(16, 185, 129, 0.1)',
+            color: 'var(--teal)', flexShrink: 0
+          }}>
+            <FolderHeart size={32} strokeWidth={2.5} />
+          </div>
+          
+          <div style={{ flex: 1 }}>
+            <h1 style={{
+              fontSize: isMobile ? '26px' : '32px',
               fontWeight: 800,
-              letterSpacing: '-0.5px',
-            }}
-          >
-            <FolderHeart color="var(--teal)" size={32} /> Unified Medical Profile
-          </h1>
-          <p className="text-gray" style={{ margin: 0, fontSize: '15px' }}>
-            Your entire health story on one screen — alive, updating, and ready to share.
-          </p>
+              color: '#0f172a',
+              margin: '0 0 6px 0',
+              letterSpacing: '-0.03em',
+            }}>
+              Unified Medical Profile
+            </h1>
+            <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
+              Your entire health story on one screen — alive, updating, and ready to share.
+            </p>
+          </div>
         </div>
-        
-      </div>
+      </motion.div>
 
       <div
         style={{

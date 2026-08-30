@@ -189,32 +189,51 @@ export default function PharmacyHub() {
           marginBottom: '20px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-          <div
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: 'var(--radius-lg)',
-              background: '#ECFDF5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#10B981',
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              border: '1px solid #f1f5f9',
+              padding: isMobile ? '24px' : '32px',
+              marginBottom: '32px',
+              boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.05)'
             }}
           >
-            <PlusCircle size={24} />
-          </div>
-          <div>
-            <h1
-              style={{ fontSize: '22px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}
-            >
-              HealthChain Pharmacy Assistant
-            </h1>
-            <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>
-              Sourcing clinical drug data from HealthChain Network
-            </p>
-          </div>
-        </div>
+            {/* Background glowing orbs */}
+            <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '200px', height: '200px', background: '#10B981', filter: 'blur(80px)', opacity: 0.1, borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', bottom: '-40px', left: '10%', width: '200px', height: '200px', background: '#0ea5e9', filter: 'blur(100px)', opacity: 0.05, borderRadius: '50%' }} />
+
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '20px', alignItems: isMobile ? 'flex-start' : 'center', position: 'relative', zIndex: 1 }}>
+              <div style={{
+                width: '64px', height: '64px', borderRadius: '18px', background: '#ffffff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 8px 16px -4px rgba(16, 185, 129, 0.15), inset 0 0 0 1px rgba(16, 185, 129, 0.1)',
+                color: '#10B981',
+                flexShrink: 0
+              }}>
+                <PlusCircle size={32} strokeWidth={2.5} />
+              </div>
+              
+              <div style={{ flex: 1 }}>
+                <h1 style={{
+                  fontSize: isMobile ? '26px' : '32px',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  margin: '0 0 6px 0',
+                  letterSpacing: '-0.03em',
+                }}>
+                  HealthChain Pharmacy Assistant
+                </h1>
+                <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
+                  Sourcing clinical drug data from HealthChain Network.
+                </p>
+              </div>
+            </div>
+          </motion.div>
 
         <form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
           <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
