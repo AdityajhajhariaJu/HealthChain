@@ -39,10 +39,22 @@
             <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
             <key>UISceneStoryboardFile</key>
             <string>Main</string>
-        </dict>
+        	<key>NSHealthShareUsageDescription</key>
+	<string>HealthChain needs to read your HealthKit data to provide AI-driven biometric insights and personalized health recommendations.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>HealthChain needs to write health data to Apple Health.</string>
+</dict>
       </array>
-    </dict>
-	</dict>
+    	<key>NSHealthShareUsageDescription</key>
+	<string>HealthChain needs to read your HealthKit data to provide AI-driven biometric insights and personalized health recommendations.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>HealthChain needs to write health data to Apple Health.</string>
+</dict>
+		<key>NSHealthShareUsageDescription</key>
+	<string>HealthChain needs to read your HealthKit data to provide AI-driven biometric insights and personalized health recommendations.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>HealthChain needs to write health data to Apple Health.</string>
+</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -66,5 +78,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>HealthChain needs to read your HealthKit data to provide AI-driven biometric insights and personalized health recommendations.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>HealthChain needs to write health data to Apple Health.</string>
 </dict>
 </plist>
