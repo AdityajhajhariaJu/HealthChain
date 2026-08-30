@@ -415,50 +415,125 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
       {dashboardTab === 'meditation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* 1. Ambient Hero Cards */}
+          
+          {/* Our Own Meditation Hub (Hero) */}
           <section>
-            <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px' }}>
-              {heroMeditations.map(item => (
-                <MeditationHeroCard key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
-              ))}
-              {heroMeditations.length === 0 && (
-                <MeditationHeroCard item={{ title: 'Stressed', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation' }} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} />
-              )}
+            <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Our Own Meditation Hub</h2>
+            </div>
+            <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+              <MeditationHeroCard item={{ title: 'Full Meditation Environment', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation', id: 'm1' }} onClick={() => triggerHapticLight()} getFallbackImage={getFallbackImage} />
+              <MeditationHeroCard item={{ title: 'A Diff Experience', cover_image_url: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80', type: 'meditation', id: 'm2' }} onClick={() => triggerHapticLight()} getFallbackImage={getFallbackImage} />
             </div>
           </section>
 
-          {/* 2. Mindfulness Grid */}
+          {/* The Mindfulness Library */}
+          <section style={{ padding: '0 12px' }}>
+            <div style={{ padding: '0 12px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>The Mindfulness Library</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences for every mood</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Relaxing Sleep Music */}
+              <div onClick={() => triggerHapticLight()} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80" alt="Relaxing Sleep Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(29, 78, 216, 0.8) 0%, rgba(30, 58, 138, 0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Sleep Music</h3>
+                </div>
+              </div>
+              {/* Relaxing Study Music */}
+              <div onClick={() => triggerHapticLight()} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80" alt="Relaxing Study Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(16, 185, 129, 0.8) 0%, rgba(4, 120, 87, 0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Study Music</h3>
+                </div>
+              </div>
+              {/* Power Workout Songs */}
+              <div onClick={() => triggerHapticLight()} style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80" alt="Power Workout Songs" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(239, 68, 68, 0.8) 0%, rgba(185, 28, 28, 0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Power Workout Songs</h3>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Our Own Music Library */}
           <section style={{ padding: '0 24px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A' }}>Mindfulness</h2>
+            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Our Own Music Library <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></h2>
+              <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              {gridMeditations.length > 0 ? gridMeditations.map(item => (
-                <MindfulnessGridItem key={item.id} item={item} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setSelectedContent(item); }} />
-              )) : (
-                <>
-                  <MindfulnessGridItem item={{ title: 'Mindful Breathing', duration_minutes: 10, type: 'meditation', id: '1' }} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} />
-                  <MindfulnessGridItem item={{ title: 'Gratitude Guide', duration_minutes: 5, type: 'meditation', id: '2' }} getFallbackImage={getFallbackImage} onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} />
-                </>
-              )}
+              {[
+                { title: 'Balm Music', duration: '45 min', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=400&q=80' },
+                { title: 'Calm Music', duration: '60 min', img: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80' },
+                { title: 'Calm Songs 1', duration: '30 min', img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80' },
+                { title: 'Calm Songs 2', duration: '20 min', img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80' }
+              ].map((item, i) => (
+                <div key={i} onClick={() => triggerHapticLight()} style={{ display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer' }}>
+                  <div style={{ aspectRatio: '1', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 8px 16px -6px rgba(0,0,0,0.08)' }}>
+                    <img loading="lazy" decoding="async" src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{item.title}</h4>
+                    <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#94A3B8' }}>{item.duration}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Soundscapes */}
+          <section>
+            <div style={{ padding: '0 24px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Soundscapes</h2>
+            </div>
+            <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+              {[
+                { name: 'Rain Sounds', icon: <Waves size={24} />, color: '#3b82f6', img: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80' },
+                { name: 'Focus Frequencies', icon: <Activity size={24} />, color: '#8b5cf6', img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80' },
+                { name: 'Forest Ambience', icon: <Wind size={24} />, color: '#10b981', img: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80' }
+              ].map((type, i) => (
+                <button 
+                  key={i}
+                  style={{
+                    flexShrink: 0, width: '140px', height: '140px', borderRadius: '50%',
+                    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%), url(${type.img})`,
+                    backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', flexDirection: 'column',
+                    justifyContent: 'center', alignItems: 'center', padding: '16px', border: 'none', cursor: 'pointer',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
+                  }}
+                  onClick={() => triggerHapticLight()}
+                >
+                  <div style={{ color: 'white', marginBottom: '8px' }}>{type.icon}</div>
+                  <span style={{ color: 'white', fontWeight: 600, fontSize: '14px', textAlign: 'center', lineHeight: '1.2' }}>{type.name}</span>
+                </button>
+              ))}
             </div>
           </section>
         </div>
       )}
 
-      {/* Shared Knowledge Base (Articles) */}
+      {/* Articles for You */}
       <section style={{ padding: '32px 24px 100px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A' }}>Knowledge Base</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Articles for You</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {[
-            { title: 'The Science of Sleep', subtitle: 'Read • 5 min', img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&q=80' },
-            { title: 'Nutrition for Recovery', subtitle: 'Read • 8 min', img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80' }
+            { title: 'The Science of Sleep', subtitle: 'Understanding REM and Deep Sleep', readTime: '5 min', img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&q=80' },
+            { title: 'Meditation for Beginners', subtitle: 'How to start your journey', readTime: '3 min', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=400&q=80' },
+            { title: 'Nutrition for Recovery', subtitle: 'What to eat after working out', readTime: '8 min', img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80' }
           ].map((art, i) => (
-            <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden' }}>
+            <div key={i} onClick={() => triggerHapticLight()} style={{ display: 'flex', gap: '16px', alignItems: 'center', cursor: 'pointer' }}>
+              <div style={{ width: '90px', height: '90px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <img loading="lazy" decoding="async" src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A' }}>{art.title}</h4>
-                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>{art.subtitle}</p>
+              <div style={{ flex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
+                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{art.title}</h4>
+                <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#64748B' }}>{art.subtitle}</p>
+                <span style={{ display: 'inline-block', marginTop: '8px', fontSize: '12px', fontWeight: 600, color: '#10B981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                  Read • {art.readTime}
+                </span>
               </div>
             </div>
           ))}
