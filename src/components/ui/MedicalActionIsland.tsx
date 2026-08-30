@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Pill, Activity, ShieldCheck, ChevronRight } from 'lucide-react';
 import { triggerHapticLight, triggerHapticHeavy } from '../../services/haptics';
+import { useActionIslandStore } from '../../store/actionIslandStore';
 
 export const MedicalActionIsland = () => {
   const [expanded, setExpanded] = useState(false);
-  const [currentState, setCurrentState] = useState<'idle' | 'medication' | 'lab'>('medication');
+  const { currentState, title, subtitle, actionText, dismissIsland } = useActionIslandStore();
 
   // Auto-collapse after some time
   useEffect(() => {
@@ -25,7 +26,7 @@ export const MedicalActionIsland = () => {
   const handleAction = (e: React.MouseEvent) => {
     e.stopPropagation();
     triggerHapticHeavy();
-    setCurrentState('idle');
+    dismissIsland();
     setExpanded(false);
   };
 
@@ -87,7 +88,7 @@ export const MedicalActionIsland = () => {
                 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
                 <span style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: 600, letterSpacing: '-0.2px' }}>
-                  {currentState === 'medication' ? 'Metformin in 10m' : 'New Lab Results'}
+                  {title}
                 </span>
               </motion.div>
             )}
@@ -103,10 +104,10 @@ export const MedicalActionIsland = () => {
                 style={{ flex: 1 }}
               >
                 <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {currentState === 'medication' ? 'Scheduled Dose' : 'Secure Document'}
+                  {subtitle}
                 </div>
                 <div style={{ color: '#F8FAFC', fontSize: '16px', fontWeight: 700 }}>
-                  {currentState === 'medication' ? 'Metformin 500mg' : 'Complete Blood Count'}
+                  {title}
                 </div>
               </motion.div>
             )}
@@ -131,11 +132,7 @@ export const MedicalActionIsland = () => {
                   display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px'
                 }}
               >
-                {currentState === 'medication' ? (
-                  <>Mark Taken <ShieldCheck size={16} /></>
-                ) : (
-                  <>Decrypt Results <ChevronRight size={16} /></>
-                )}
+                <>{actionText} {currentState === 'medication' ? <ShieldCheck size={16} /> : <ChevronRight size={16} />}</>
               </button>
             </motion.div>
           )}
