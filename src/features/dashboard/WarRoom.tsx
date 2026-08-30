@@ -27,8 +27,8 @@ export default function WarRoom() {
           <ArrowLeft size={20} color="#0F172A" />
         </button>
         <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Medical War Room</h1>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: 500 }}>Collaborative Health Canvas</p>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Collaborative Health Canvas</h1>
+          <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: 500 }}>Multi-agent & Specialist Collaboration</p>
         </div>
       </div>
 

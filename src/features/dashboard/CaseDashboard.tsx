@@ -287,7 +287,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             ))}
             <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '16px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginTop: '8px', boxShadow: '0 12px 32px rgba(15,23,42,0.2)' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>Enter Medical War Room</span>
+                <span style={{ fontSize: '16px', fontWeight: 700 }}>Enter Collaborative Health Canvas</span>
                 <span style={{ fontSize: '13px', color: '#94A3B8' }}>1 new note from Dr. Jenkins</span>
               </div>
               <ChevronRight size={20} color="#FFF" />
