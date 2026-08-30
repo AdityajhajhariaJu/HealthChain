@@ -1,4 +1,4 @@
-﻿import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
@@ -34,9 +34,8 @@ import TopUpModal from './features/brand/TopUpModal';
 const MedicalProfile = React.lazy(() => import('./features/profile/MedicalProfile'));
 const ConsultPage = React.lazy(() => import('./features/consultation/ConsultPage'));
 const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
-const PharmacyHub = React.lazy(() => import('./features/tools/PharmacyHub'));
+const MedicineLabPage = React.lazy(() => import('./features/tools/MedicineLabPage'));
 const AvaHealthBuddy = React.lazy(() => import('./features/consultation/AvaHealthBuddy'));
-const ClinicalReportAnalyzer = React.lazy(() => import('./features/tools/ClinicalReportAnalyzer'));
 const JarvisInvestigator = React.lazy(() => import('./features/jarvis/JarvisInvestigator'));
 
 const Settings = React.lazy(() => import('./features/profile/Settings'));
@@ -573,13 +572,14 @@ export default function App() {
           <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
           <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
           <Route
-            path="/app/pharmacy"
+            path="/app/medicine-lab"
             element={
               <SafeRoute>
-                <PharmacyHub />
+                <MedicineLabPage />
               </SafeRoute>
             }
           />
+          <Route path="/app/pharmacy" element={<Navigate to="/app/medicine-lab" replace />} />
           <Route
             path="/app/dietician"
             element={
@@ -596,14 +596,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route
-            path="/app/reports"
-            element={
-              <SafeRoute>
-                <ClinicalReportAnalyzer />
-              </SafeRoute>
-            }
-          />
+          <Route path="/app/reports" element={<Navigate to="/app/medicine-lab" replace />} />
           <Route
             path="/app/trials"
             element={

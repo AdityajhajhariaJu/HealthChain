@@ -37,8 +37,7 @@ const links: any[] = [
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
-  { to: '/app/pharmacy', label: 'Medicine Hub', icon: Pill },
-  { to: '/app/reports', label: 'Lab Report Interpreter', icon: FileText },
+  { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },
 ];
 
 const mobileTabs = [
@@ -256,11 +255,11 @@ export default function AppShell() {
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
             {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
-              <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
+              <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/medicine-lab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
                 <BrandPulseBanner />
               </div>
             )}
-            {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
+            {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
               <ActiveCaseBar navigate={navigate} />
             )}
             {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
