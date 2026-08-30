@@ -41,7 +41,7 @@ export default function CaseDashboard() {
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
   useEffect(() => {
     const profile = getProfile();
-    const tasks = [];
+    const tasks: any[] = [];
     if (profile?.medications?.length) {
       profile.medications.forEach((m: any, i: number) => tasks.push({ id: 'med_'+i, title: m.name || m, subtitle: 'Scheduled Medication' }));
     }
