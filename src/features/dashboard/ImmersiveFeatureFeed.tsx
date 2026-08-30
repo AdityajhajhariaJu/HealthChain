@@ -89,7 +89,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
+    <div className="hide-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '16px', width: '100vw', padding: '0 24px 24px 24px', marginLeft: '-24px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
       {cards.map((card, index) => (
         <motion.div
           key={card.id}
@@ -99,8 +99,10 @@ export const ImmersiveFeatureFeed: React.FC = () => {
           onClick={() => navigate(card.route)}
           style={{ 
             position: 'relative',
-            width: '100%',
-            height: '420px',
+            width: '280px',
+            minWidth: '280px',
+            height: '340px',
+            scrollSnapAlign: 'center',
             borderRadius: '28px',
             overflow: 'hidden',
             cursor: 'pointer',
@@ -134,7 +136,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
           />
 
           {/* Floating Glass Content at Bottom */}
-          <div style={{ position: 'relative', zIndex: 3, padding: '24px', paddingBottom: '32px' }}>
+          <div style={{ position: 'relative', zIndex: 3, padding: '16px', paddingBottom: '16px' }}>
             <div 
               style={{
                 backdropFilter: 'blur(20px)',
@@ -146,7 +148,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
               }}
             >
-              <h2 style={{ color: '#FFFFFF', fontSize: '22px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: '1.2' }}>
+              <h2 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: '1.2' }}>
                 {card.title}
               </h2>
               <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px', fontWeight: 500, margin: '0 0 16px 0', lineHeight: '1.4' }}>
