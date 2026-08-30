@@ -10,6 +10,7 @@ interface ImmersiveMediaCardProps {
   tags?: string[];
   duration?: string;
   isPremium?: boolean;
+  layoutId?: string;
   aspectRatio?: 'square' | 'video' | 'portrait' | 'wide';
   onClick?: () => void;
   children?: React.ReactNode;
@@ -22,6 +23,7 @@ export function ImmersiveMediaCard({
   tags = [],
   duration,
   isPremium,
+  layoutId,
   aspectRatio = 'square',
   onClick,
   children
@@ -36,6 +38,7 @@ export function ImmersiveMediaCard({
 
   return (
     <motion.div
+      layoutId={layoutId}
       whileTap={{ scale: 0.96 }}
       onClick={() => {
         triggerHapticLight();

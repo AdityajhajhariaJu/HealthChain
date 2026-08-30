@@ -593,6 +593,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               activeCollection?.items.map(item => (
                 <div key={item.id} style={{ height: '220px' }}>
                   <ImmersiveMediaCard
+                      layoutId={card-}
                     title={item.title}
                     subtitle={item.subtitle}
                     bgImage={item.cover_image_url || getFallbackImage(item.type, item.id)}
