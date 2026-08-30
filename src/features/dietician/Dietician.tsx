@@ -366,6 +366,38 @@ export default function Dietician() {
     return <OnboardingWizard onComplete={(p) => setProfile({ ...p, ...calculateTargets(p) })} />;
   }
 
+
+  // Dynamic Presets from Meal Plan
+  const dynamicPresets = React.useMemo(() => {
+    if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return QUICK_PRESETS;
+    
+    // Extract up to 6 unique meals from the generated plan
+    const meals = [];
+    const seen = new Set();
+    
+    for (const day of mealPlan.plan) {
+      if (!day.meals) continue;
+      for (const meal of day.meals) {
+        if (!seen.has(meal.name)) {
+          seen.add(meal.name);
+          meals.push({
+            name: meal.name,
+            portion: meal.portion || '1 serving',
+            calories: meal.calories || 0,
+            protein: meal.protein || 0,
+            carbs: meal.carbs || 0,
+            fat: meal.fat || 0,
+            emoji: '??',
+            type: meal.type || 'Meal'
+          });
+        }
+        if (meals.length >= 6) return meals;
+      }
+    }
+    
+    return meals.length > 0 ? meals : QUICK_PRESETS;
+  }, [mealPlan]);
+
   const waterGlasses = hydration[currentDate] || 0;
 
   const handleAddFood = async () => {
@@ -1860,7 +1892,7 @@ export default function Dietician() {
                     position: 'relative',
                     zIndex: 1001,
                     boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
-                    maxHeight: '90vh',
+                    maxHeight: 'calc(100vh - 140px)',
                     overflowY: 'auto',
                   }}
                 >
@@ -1939,7 +1971,7 @@ export default function Dietician() {
                       ⚡ 1-Tap Quick Nutritious Presets:
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {QUICK_PRESETS.map((preset, pIdx) => (
+                      {dynamicPresets.map((preset, pIdx) => (
                         <button
                           key={pIdx}
                           onClick={() => handleAddPreset(preset)}
