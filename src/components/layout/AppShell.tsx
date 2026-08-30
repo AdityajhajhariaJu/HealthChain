@@ -47,7 +47,6 @@ const mobileTabs = [
   { to: '/app/jarvis', label: 'JARVIS', icon: Brain },
   { to: '/app/ava', label: 'Ava', icon: Heart },
   { to: '/app/dietician', label: 'Diet', icon: Apple },
-  { to: '/app/my-cases', label: 'Cases', icon: Archive },
 ];
 
 export default function AppShell() {
