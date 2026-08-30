@@ -77,8 +77,10 @@ export default function FeedbackWidget() {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             style={{
               position: 'fixed',
-              bottom: isMobile ? 110 : 96,
+              top: isMobile ? '15vh' : 'auto',
+              bottom: isMobile ? 'auto' : 96,
               right: isMobile ? 16 : 32,
+              left: isMobile ? 16 : 'auto',
               width: isMobile ? 'calc(100vw - 32px)' : 340,
               backgroundColor: 'var(--surface)',
               borderRadius: '16px',
