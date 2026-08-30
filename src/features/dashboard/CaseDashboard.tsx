@@ -38,6 +38,11 @@ export default function CaseDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
   const [showFrictionModal, setShowFrictionModal] = useState(false);
+  const [dailyTasks] = useState([
+    { id: 'task_1', title: 'Aspirin 81mg', subtitle: 'Take with dinner' },
+    { id: 'task_2', title: 'Review Oncology AI Report', subtitle: 'Ready for decryption' },
+    { id: 'task_3', title: 'Evening Vitals Check', subtitle: 'Blood pressure & SpO2' }
+  ]);
 
 
   const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
@@ -268,9 +273,18 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
         <div style={{ padding: '0 24px', marginBottom: '32px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <CinematicCheckbox label="Vitamin D3 - 2000 IU" sublabel="Take with breakfast" />
-            <div onClick={() => setShowFrictionModal(true)}><CinematicCheckbox label="Review Oncology AI Report" sublabel="Ready for decryption" /></div>
-            <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '16px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginTop: '8px', boxShadow: '0 12px 32px rgba(15,23,42,0.2)' }}><div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontSize: '16px', fontWeight: 700 }}>Enter Medical War Room</span><span style={{ fontSize: '13px', color: '#94A3B8' }}>1 new note from Dr. Jenkins</span></div><ChevronRight size={20} color="#FFF" /></div>
+            {dailyTasks.map(task => (
+              <div key={task.id} onClick={() => task.id === 'task_2' && setShowFrictionModal(true)}>
+                <CinematicCheckbox label={task.title} sublabel={task.subtitle} />
+              </div>
+            ))}
+            <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '16px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginTop: '8px', boxShadow: '0 12px 32px rgba(15,23,42,0.2)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '16px', fontWeight: 700 }}>Enter Medical War Room</span>
+                <span style={{ fontSize: '13px', color: '#94A3B8' }}>1 new note from Dr. Jenkins</span>
+              </div>
+              <ChevronRight size={20} color="#FFF" />
+            </div>
           </div>
         </div>
         <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>

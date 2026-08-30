@@ -13,7 +13,7 @@ interface CinematicCheckboxProps {
 const ParticleBurst = () => {
   const particles = Array.from({ length: 6 });
   return (
-    <div style={{ position: 'absolute', top: '50%', left: '50%', pointerEvents: 'none' }}>
+    <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation',  position: 'absolute', top: '50%', left: '50%', pointerEvents: 'none' }}>
       {particles.map((_, i) => (
         <motion.div
           key={i}
@@ -25,7 +25,7 @@ const ParticleBurst = () => {
             opacity: [1, 1, 0]
           }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          style={{
+          style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation', 
             position: 'absolute',
             width: '4px', height: '4px',
             borderRadius: '50%',
@@ -43,7 +43,7 @@ const PillDrop = () => (
     initial={{ y: -100, x: -10, rotate: -45, scale: 2 }}
     animate={{ y: 20, x: 0, rotate: 0, scale: 0 }}
     transition={{ type: 'spring', damping: 12, stiffness: 100, mass: 2 }}
-    style={{
+    style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation', 
       position: 'absolute', top: '-20px', right: '-20px', width: '20px', height: '10px',
       borderRadius: '10px', background: 'linear-gradient(90deg, #F43F5E 50%, #FFFFFF 50%)',
       boxShadow: '0 4px 12px rgba(0,0,0,0.2)', pointerEvents: 'none', zIndex: 10
@@ -77,7 +77,7 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
     <motion.button
       whileTap={{ scale: 0.96 }}
       onClick={handleToggle}
-      style={{
+      style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation', 
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
@@ -94,7 +94,7 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
         boxShadow: isChecked ? 'none' : '0 4px 12px rgba(0,0,0,0.02)'
       }}
     >
-      <div style={{ position: 'relative', flexShrink: 0, width: '28px', height: '28px' }}>
+      <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation',  position: 'relative', flexShrink: 0, width: '28px', height: '28px' }}>
         {/* Checkbox border */}
         <motion.div
           animate={{
@@ -103,7 +103,7 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
             scale: isChecked ? [1, 0.8, 1] : 1
           }}
           transition={{ duration: 0.3 }}
-          style={{
+          style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation', 
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,
             borderWidth: '2px',
@@ -115,7 +115,7 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
         {/* Laser-traced checkmark */}
         <svg 
           viewBox="0 0 24 24" 
-          style={{ 
+          style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation',  
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
             padding: '4px', zIndex: 2 
           }}
@@ -142,18 +142,18 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
         {showBurst && <ParticleBurst />} {showBurst && <PillDrop />}
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation',  flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
         <motion.span 
           animate={{ 
             color: isChecked ? '#94A3B8' : '#0F172A',
             textDecoration: isChecked ? 'line-through' : 'none'
           }}
-          style={{ fontSize: '16px', fontWeight: 700 }}
+          style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation',  fontSize: '16px', fontWeight: 700 }}
         >
           {label}
         </motion.span>
         {sublabel && (
-          <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+          <span style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation',  fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
             {sublabel}
           </span>
         )}
