@@ -585,9 +585,7 @@ export default function AppShell() {
         </>
       )}
 
-      {(location.pathname === '/app/today' || location.pathname === '/app/profile') && (
-        
-      )}
+
       <AuthModal />
       <VitalityPointsModal />
       <PointsAwardedToast />
