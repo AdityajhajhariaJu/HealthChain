@@ -17,7 +17,7 @@ import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
-import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
+
 import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
 import { CinematicCheckbox } from '../../components/ui/CinematicCheckbox';
 import { getProfile } from '../../services/ProfileEngine';
@@ -277,7 +277,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       overflowX: 'hidden'
     }}>
       <FatigueModeToggle />
-        <PredictiveTimeline />
+        
           <div style={{ padding: '0 24px', marginBottom: '32px' }}><ImmersiveFeatureFeed /></div>
         <div style={{ padding: '0 24px', marginBottom: '32px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>

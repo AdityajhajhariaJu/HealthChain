@@ -1,5 +1,6 @@
 import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
+import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1387,18 +1388,49 @@ export default function MedicalProfile() {
           </div>
 
           
-      {/* Vitality Score Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="card"
-        style={{ padding: '24px', marginBottom: '32px' }}
-      >
-        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
-        <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '13px' }}>Your 7-day health momentum.</p>
-        <VitalityRing progress={82} />
-        <SensualLineChart />
-      </motion.div>
+      {/* Advanced Clinical Engines Section */}
+      <div style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        
+        {/* Vitality Score */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card"
+          style={{ padding: '24px' }}
+        >
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
+          <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '13px' }}>Your 7-day health momentum.</p>
+          <VitalityRing progress={82} />
+          <SensualLineChart />
+          
+          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)', fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
+            <strong style={{ color: '#0F172A' }}>How it's calculated:</strong> The Vitality Score aggregates your rolling 7-day momentum across three pillars:<br/>
+            &bull; <strong>Clinical Adherence (40%):</strong> Staying within your AI Dietician's medical guardrails (e.g., sodium/calorie targets).<br/>
+            &bull; <strong>Biometric Recovery (40%):</strong> Apple Health / Google Fit passive data (Resting HR, HRV, Sleep Duration).<br/>
+            &bull; <strong>App Engagement (20%):</strong> Consistency in logging meals, check-ins, and symptom tracking.
+          </div>
+        </motion.div>
+
+        {/* Predictive Timeline */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="card"
+          style={{ padding: '24px 0' }}
+        >
+          <PredictiveTimeline />
+          <div style={{ padding: '0 24px', marginTop: '8px' }}>
+            <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)', fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>
+              <strong style={{ color: '#0F172A' }}>How it works:</strong> The Predictive Timeline is a proactive biological forecast.<br/>
+              &bull; It pulls your passive biometric stream (Heart Rate, Glucose, Activity) from wearables.<br/>
+              &bull; It runs the data through the clinical engine to predict upcoming biological states (like a glucose crash or peak metabolic rate).<br/>
+              &bull; It allows you to anticipate your body's needs before you actually feel symptoms like fatigue or cravings.
+            </div>
+          </div>
+        </motion.div>
+
+      </div>
 
       {/* NEW: Smart Auto-Refill Adherence Engine */}
           {profile.medications.some(med => {
