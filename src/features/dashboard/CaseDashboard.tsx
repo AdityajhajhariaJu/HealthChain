@@ -13,7 +13,9 @@ import { triggerHapticLight } from '../../services/haptics';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
+import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
+import { VitalityRing } from '../../components/ui/VitalityRing';
 
 
 export default function CaseDashboard() {
@@ -260,6 +262,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
         <div style={{ padding: '0 24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
           <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '14px' }}>Your 7-day health momentum.</p>
+          <VitalityRing progress={82} />
           <SensualLineChart />
         </div>
       </section>
