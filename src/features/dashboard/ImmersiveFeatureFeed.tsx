@@ -99,9 +99,9 @@ export const ImmersiveFeatureFeed: React.FC = () => {
           onClick={() => navigate(card.route)}
           style={{ 
             position: 'relative',
-            width: '280px',
-            minWidth: '280px',
-            height: '340px',
+            width: '180px',
+            minWidth: '180px',
+            height: '240px',
             scrollSnapAlign: 'center',
             borderRadius: '28px',
             overflow: 'hidden',

@@ -16,15 +16,15 @@ export const PredictiveTimeline = () => {
   const Icon = current.icon;
 
   return (
-    <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  padding: '0 24px', marginBottom: '32px' }}>
+    <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  padding: '0 24px', marginBottom: '16px' }}>
       <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  fontSize: '20px', fontWeight: 700, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Predictive Timeline</h2>
       </div>
 
-      <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9' }}>
+      <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  background: '#FFF', borderRadius: '24px', padding: '16px', boxShadow: '0 12px 32px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9' }}>
         
         {/* The Scrubber */}
-        <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  position: 'relative', height: '4px', background: '#E2E8F0', borderRadius: '2px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  position: 'relative', height: '4px', background: '#E2E8F0', borderRadius: '2px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {[0, 1, 2].map(idx => (
             <div 
               key={idx}
