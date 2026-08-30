@@ -255,19 +255,22 @@ export default function AppShell() {
 
         <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined }} onScroll={handleMainScroll}>
           <GuestStickyBanner />
-          {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
-            <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block' }}>
-              <BrandPulseBanner />
+          {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
+          <div style={{ display: 'block', position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
+            {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
+              <div style={{ display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
+                <BrandPulseBanner />
+              </div>
+            )}
+            {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
+              <ActiveCaseBar navigate={navigate} />
+            )}
+            {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
+            <div style={{ display: 'block', width: '100%', minHeight: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'calc(100% - 104px)', height: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'auto' }}>
+              <Outlet />
             </div>
-          )}
-          {!['/app/today', '/app/consult', '/app/dietician', '/app/pharmacy', '/app/reports', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
-            <ActiveCaseBar navigate={navigate} />
-          )}
-          {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'calc(100% - 104px)', height: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'auto' }}>
-          <Outlet />
-        </div>
-      </main>
+          </div>
+        </main>
 
       {isMobile && (
         <>
