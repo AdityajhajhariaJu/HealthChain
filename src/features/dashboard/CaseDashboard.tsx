@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { FitnessNav } from '../../components/ui/FitnessNav';
 import {Activity, Bike, ChevronRight, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
@@ -21,6 +22,7 @@ import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal
 
 
 export default function CaseDashboard() {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [programs, setPrograms] = useState<any[]>([]);
   const [categories, setCategories] = useState<FitnessCategory[]>([]);
