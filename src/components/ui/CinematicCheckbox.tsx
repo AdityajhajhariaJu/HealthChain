@@ -38,6 +38,19 @@ const ParticleBurst = () => {
   );
 };
 
+const PillDrop = () => (
+  <motion.div
+    initial={{ y: -100, x: -10, rotate: -45, scale: 2 }}
+    animate={{ y: 20, x: 0, rotate: 0, scale: 0 }}
+    transition={{ type: 'spring', damping: 12, stiffness: 100, mass: 2 }}
+    style={{
+      position: 'absolute', top: '-20px', right: '-20px', width: '20px', height: '10px',
+      borderRadius: '10px', background: 'linear-gradient(90deg, #F43F5E 50%, #FFFFFF 50%)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.2)', pointerEvents: 'none', zIndex: 10
+    }}
+  />
+);
+
 export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sublabel, initialChecked = false, onToggle }) => {
   const [isChecked, setIsChecked] = useState(initialChecked);
   const [showBurst, setShowBurst] = useState(false);
@@ -126,7 +139,7 @@ export const CinematicCheckbox: React.FC<CinematicCheckboxProps> = ({ label, sub
           />
         </svg>
 
-        {showBurst && <ParticleBurst />}
+        {showBurst && <ParticleBurst />} {showBurst && <PillDrop />}
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>

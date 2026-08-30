@@ -1,3 +1,4 @@
+import { generateDistilledBiometricContext } from './ContextDistiller';
 import { compilePatientContext } from './MemoryService';
 import { getActiveCase, AppointmentBrief } from './CaseEngine';
 import { supabase } from './supabaseClient';
@@ -234,7 +235,7 @@ export async function chatWithTherapyGemini(messages: Message[]): Promise<string
   }));
 
   const patientContext = compilePatientContext({ includeActiveCase: false, includeDailyCheckins: true });
-  const finalSystemPrompt = AVA_CHIEF_OF_STAFF_PROMPT + patientContext;
+  const finalSystemPrompt = AVA_CHIEF_OF_STAFF_PROMPT + patientContext + "\n\n" + generateDistilledBiometricContext();
 
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: finalSystemPrompt }] },
