@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from './ToastProvider';
 import { ChevronDown, Pause, Play, FastForward, CheckCircle } from 'lucide-react';
@@ -166,7 +166,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
             </div>
 
             {/* Top Bar */}
-            <div style={{ position: 'relative', zIndex: 10, padding: 'env(safe-area-inset-top, 24px) 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ position: 'relative', zIndex: 10, padding: 'max(env(safe-area-inset-top, 20px), 20px) 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <button 
                 onClick={onClose}
                 style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}

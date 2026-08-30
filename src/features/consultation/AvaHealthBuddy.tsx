@@ -381,7 +381,7 @@ export default function AvaHealthBuddy() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: isMobile ? 'calc(var(--safe-area-top, 44px) + 16px) 20px 16px 20px' : '20px 32px',
+            padding: isMobile ? 'calc(max(env(safe-area-inset-top, 20px), 20px) + 16px) 20px 16px 20px' : '20px 32px',
             background: 'rgba(255, 241, 242, 0.65)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
           }}
@@ -731,7 +731,7 @@ export default function AvaHealthBuddy() {
         {/* Input Area */}
         <div
           style={{
-            padding: isMobile ? '12px 14px calc(32px + env(safe-area-inset-bottom, 24px)) 14px' : '24px 32px',
+            padding: isMobile ? '12px 14px calc(16px + env(safe-area-inset-bottom, 16px)) 14px' : '24px 32px',
             background: 'transparent',
             display: 'flex',
             flexDirection: 'column',

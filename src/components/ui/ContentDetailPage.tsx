@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Share, Play, Lock, Clock, Flame, Dumbbell } from 'lucide-react';
 import { FitnessContent } from '../../services/FitnessService';
@@ -75,7 +75,7 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
           />
 
           {/* Floating Actions */}
-          <div style={{ position: 'absolute', top: 'env(safe-area-inset-top, 24px)', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ position: 'absolute', top: 'max(env(safe-area-inset-top, 20px), 20px)', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between' }}>
             <button 
               onClick={() => { triggerHapticLight(); onClose(); }}
               style={{
