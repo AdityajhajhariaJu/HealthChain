@@ -7,7 +7,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import Skeleton from '../../components/ui/Skeleton';
 import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
-import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
+
 
 const formatDate = (value: string) => {
   try {
@@ -187,9 +187,7 @@ export default function MyCases() {
       <header style={{ marginBottom: 16 }}>
         <div style={{ color: '#0f9488', fontWeight: 800, fontSize: 12, letterSpacing: '.9px', marginBottom: 6 }}>YOUR CASEWORK</div>
         <h1 style={{ fontSize: isMobile ? 26 : 32, margin: '0 0 4px', letterSpacing: '-1.2px' }}>My Cases</h1>
-          <div style={{ marginTop: '24px', marginBottom: '24px' }}>
-            <SpatialGalleryCanvas />
-          </div>
+          
         <p style={{ color: '#64748b', fontSize: 15, margin: 0 }}>
           Manage your ongoing medical cases and multi-specialist discussions.
         </p>
