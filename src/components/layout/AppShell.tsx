@@ -49,8 +49,8 @@ const mobileTabs = [
 export default function AppShell() {
   const [history, setHistory] = useState<any[]>([]);
   const location = useLocation();
-  useEffect(() => { if (!localStorage.getItem('hc_onboarded') && location.pathname !== '/app/onboarding') { navigate('/app/onboarding'); } }, [location, navigate]);
   const navigate = useNavigate();
+  useEffect(() => { if (!localStorage.getItem('hc_onboarded') && location.pathname !== '/app/onboarding') { navigate('/app/onboarding'); } }, [location, navigate]);
   const toast = useToast();
   const isMobile = useIsMobile();
   const [showMoreMenu, setShowMoreMenu] = useState(false);

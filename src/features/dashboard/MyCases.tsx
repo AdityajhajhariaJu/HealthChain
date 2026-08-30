@@ -6,6 +6,7 @@ import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import Skeleton from '../../components/ui/Skeleton';
+import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
 
 const formatDate = (value: string) => {
   try {
@@ -135,6 +136,7 @@ export default function MyCases() {
   const [isLoading, setIsLoading] = useState(true);
   const [caseToDelete, setCaseToDelete] = useState<CaseItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+    const [viewMode, setViewMode] = useState<'list' | 'canvas'>('list');
   const itemsPerPage = 5;
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -199,8 +201,20 @@ export default function MyCases() {
         })}
       </section>
 
-      {!isLoading && cases.length >= 2 && (
-        <CrossCaseInsightBanner cases={cases} isMobile={isMobile} />
+      {!isLoading && cases.length >= 2 && (<>
+                <CrossCaseInsightBanner cases={cases} isMobile={isMobile} />
+        
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: '#F1F5F9', padding: '4px', borderRadius: '12px', width: 'fit-content' }}>
+          <button onClick={() => setViewMode('list')} style={{ background: viewMode === 'list' ? '#FFFFFF' : 'transparent', color: viewMode === 'list' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'list' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>List View</button>
+          <button onClick={() => setViewMode('canvas')} style={{ background: viewMode === 'canvas' ? '#FFFFFF' : 'transparent', color: viewMode === 'canvas' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'canvas' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>Journey Canvas</button>
+        </div>
+
+        {viewMode === 'canvas' && (
+          <div style={{ marginBottom: '24px' }}>
+            <InfiniteHealthCanvas cases={cases} />
+          </div>
+        )}
+      </>
       )}
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>

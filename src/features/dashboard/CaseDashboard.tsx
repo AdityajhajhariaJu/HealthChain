@@ -14,8 +14,6 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { VitalityRing } from '../../components/ui/VitalityRing';
-import { SensualLineChart } from '../../components/ui/SensualLineChart';
-import { VitalityRing } from '../../components/ui/VitalityRing';
 
 
 export default function CaseDashboard() {
