@@ -19,12 +19,12 @@ import { VitalityRing } from '../../components/ui/VitalityRing';
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
 import { CinematicCheckbox } from '../../components/ui/CinematicCheckbox';
+import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
 
 
 export default function CaseDashboard() {
-  const triggerIsland = useActionIslandStore(s => s.triggerIsland);
-  useEffect(() => { triggerIsland('medication', 'Vitamin D3 - 2000 IU', 'Scheduled Dose', 'Mark Taken'); }, []);
+  
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [programs, setPrograms] = useState<any[]>([]);
@@ -38,11 +38,18 @@ export default function CaseDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
   const [showFrictionModal, setShowFrictionModal] = useState(false);
-  const [dailyTasks] = useState([
-    { id: 'task_1', title: 'Aspirin 81mg', subtitle: 'Take with dinner' },
-    { id: 'task_2', title: 'Review Oncology AI Report', subtitle: 'Ready for decryption' },
-    { id: 'task_3', title: 'Evening Vitals Check', subtitle: 'Blood pressure & SpO2' }
-  ]);
+  const [dailyTasks, setDailyTasks] = useState<any[]>([]);
+  useEffect(() => {
+    const profile = getProfile();
+    const tasks = [];
+    if (profile?.medications?.length) {
+      profile.medications.forEach((m: any, i: number) => tasks.push({ id: 'med_'+i, title: m.name || m, subtitle: 'Scheduled Medication' }));
+    }
+    if (tasks.length === 0) {
+      tasks.push({ id: 'task_default', title: 'Complete Health Profile', subtitle: 'Takes 2 mins' });
+    }
+    setDailyTasks(tasks);
+  }, []);
 
 
   const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
