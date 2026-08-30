@@ -340,8 +340,8 @@ export default function AvaHealthBuddy() {
   return (
     <div
       style={{
-        padding: isMobile ? '8px 0 0 0' : '0 24px',
-        minHeight: 0,
+        padding: isMobile ? '8px 8px 16px 8px' : '0 24px',
+        minHeight: isMobile ? 'calc(100dvh - 64px - 16px)' : 0,
         flex: 1,
         width: '100%',
         display: 'flex',
@@ -363,7 +363,7 @@ export default function AvaHealthBuddy() {
           background: 'rgba(255, 255, 255, 0.45)',
           backdropFilter: 'blur(32px)', 
           WebkitBackdropFilter: 'blur(32px)',
-          borderRadius: isMobile ? '32px 32px 0 0' : '32px',
+          borderRadius: '32px',
           margin: '0',
           boxShadow: '0 24px 64px rgba(244, 63, 94, 0.08)',
           maxWidth: isMobile ? '100%' : '1000px',
