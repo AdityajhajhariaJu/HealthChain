@@ -4,8 +4,9 @@ import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activ
 import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiService';
+import { chatWithTherapyGemini, analyzeLabReport, extractClinicalMemory } from '../../services/geminiService';
 import { addEvent } from '../../services/ProfileEngine';
+import { recordHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -252,16 +253,37 @@ export default function AvaHealthBuddy() {
     onMutate: () => setIsTyping(true),
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, newMessages: any[]) => {
-      setIsTyping(false); // Stop 'thinking' animation
-      setIsStreaming(true);
-      setMessages([...newMessages, { role: 'model', content: response, isStreaming: true }]);
+        setIsTyping(false);
+        setIsStreaming(true);
+        const finalMessages = [...newMessages, { role: 'model', content: response, isStreaming: true }];
+        
+        if (finalMessages.length >= 10) {
+          extractClinicalMemory(finalMessages).then((facts) => {
+            if (facts && facts.length > 0) {
+              facts.forEach((fact: string) => {
+                recordHealthMemory({
+                  kind: 'health_buddy',
+                  source: 'health_buddy',
+                  title: fact,
+                  occurredAt: new Date().toISOString(),
+                  payload: { extractedFact: fact },
+                  dedupeKey: fact.toLowerCase().substring(0, 50)
+                });
+              });
+            }
+          });
+          const keptMessages = [finalMessages[0], ...finalMessages.slice(-6)];
+          setMessages(keptMessages);
+        } else {
+          setMessages(finalMessages);
+        }
 
-      addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
-          lastMessage: response,
-          messageCount: newMessages.length + 1,
-      }, false, null as any, sessionId as any);
-      recordTrialUsage('ava');
-    },
+        addEvent('mental_health', 'health_buddy', 'Ava Health Buddy Session', {
+            lastMessage: response,
+            messageCount: newMessages.length + 1,
+        }, false, null as any, sessionId as any);
+        recordTrialUsage('ava');
+      },
     onError: () => {
       setIsTyping(false);
       setIsStreaming(false);

@@ -1820,3 +1820,33 @@ Return ONLY a JSON object with this exact structure:
 
 
 
+
+export async function extractClinicalMemory(messages: Message[]): Promise<any> {
+  const transcript = messages.map(m => `: `).join('\n');
+  const prompt = Analyze this chat transcript and extract any NEW, persistent clinical facts about the patient that should be memorized.
+Transcript:
+
+
+Return ONLY a JSON array of strings representing the concise clinical facts. If no new clinical facts are present, return an empty array [].
+Example: ["Patient reported persistent lower back pain starting 2 days ago", "Patient started taking Magnesium 500mg"];
+  
+  const payload = {
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300, temperature: 0.1 },
+  };
+
+  try {
+    const res = await fetchWithTimeout(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'memory_extraction' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    return JSON.parse(text);
+  } catch (err) {
+    console.error('Memory extraction error:', err);
+    return [];
+  }
+}
