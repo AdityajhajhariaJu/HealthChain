@@ -68,7 +68,7 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
         
         // Auto-scroll logic if user is at the bottom
         if (messagesEndRef?.current) {
-          const container = messagesEndRef.current.parentElement;
+          const container = messagesEndRef.current.parentElement?.parentElement;
           if (container) {
             const { scrollTop, scrollHeight, clientHeight } = container;
             if (scrollHeight - scrollTop - clientHeight < 150) {
@@ -391,8 +391,7 @@ export default function AvaHealthBuddy() {
     <div
       style={{
         padding: isMobile ? '0' : '0 24px',
-        height: '100%',
-        flex: 1,
+        position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -497,8 +496,7 @@ export default function AvaHealthBuddy() {
           ref={chatContainerRef}
             onScroll={(e) => window.dispatchEvent(new CustomEvent('hc_scroll_intent', { detail: { scrollTop: e.currentTarget.scrollTop } }))}
           style={{
-            flex: 1,
-            overflowY: 'auto',
+            flex: 1, minHeight: 0, overflowY: 'auto',
             padding: isMobile ? '20px 16px' : '32px',
             display: 'flex',
             flexDirection: 'column',
