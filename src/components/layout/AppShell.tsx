@@ -254,9 +254,9 @@ export default function AppShell() {
         <main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined }} onScroll={handleMainScroll}>
           <GuestStickyBanner />
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
-          <div style={{ display: 'block', position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, position: 'relative', width: '100%', transform: 'translateZ(0)' }}>
             {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) && (
-              <div style={{ display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
+              <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/pharmacy', '/app/reports', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
                 <BrandPulseBanner />
               </div>
             )}
@@ -264,7 +264,7 @@ export default function AppShell() {
               <ActiveCaseBar navigate={navigate} />
             )}
             {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
-            <div style={{ display: 'block', width: '100%', minHeight: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'calc(100% - 104px)', height: isMobile && location.pathname.startsWith('/app/ava') ? '100%' : 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
               <Outlet />
             </div>
           </div>
