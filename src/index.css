@@ -933,7 +933,7 @@ html.dark-theme body {
   }
 
   .app-shell__content.mobile {
-    padding-top: calc(64px + env(safe-area-inset-top, 44px));
+    padding-top: calc(56px + 44px);
     padding-bottom: calc(var(--bottom-tab-height) + var(--safe-area-bottom) + 24px);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
@@ -944,8 +944,8 @@ html.dark-theme body {
     top: 0;
     left: 0;
     right: 0;
-    height: calc(64px + env(safe-area-inset-top, 44px));
-    padding-top: env(safe-area-inset-top, 44px);
+    height: calc(56px + 44px);
+    padding-top: 44px;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.0) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -1320,4 +1320,6 @@ html.dark-theme body {
 .pdf-exporting .tab-content-hidden { display: flex !important; }
 .pdf-exporting .profile-tabs-nav { display: none !important; }
 .profile-tabs-nav::-webkit-scrollbar { display: none; }
+
+
 

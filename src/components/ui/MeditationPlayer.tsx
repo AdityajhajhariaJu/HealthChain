@@ -168,7 +168,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "env(safe-area-inset-top, 44px) 24px 24px", zIndex: 20 }}
+                    style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "var(--safe-area-top, 44px) 24px 24px", zIndex: 20 }}
                   >
                     <button 
                       onClick={onClose}
@@ -254,3 +254,5 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     </AnimatePresence>
   );
 };
+
+

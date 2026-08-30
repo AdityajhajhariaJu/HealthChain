@@ -182,7 +182,7 @@ export const SportsHub: React.FC = () => {
               
               <button 
                 onClick={() => setSelectedSport(null)}
-                style={{ position: 'absolute', top: 'env(safe-area-inset-top, 44px)', left: '16px', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(12px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
+                style={{ position: 'absolute', top: 'var(--safe-area-top, 44px)', left: '16px', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(12px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
               >
                 <ChevronRight size={24} color="#000" style={{ transform: 'rotate(180deg)' }} />
               </button>
@@ -269,3 +269,5 @@ export const SportsHub: React.FC = () => {
 };
 
 export default SportsHub;
+
+

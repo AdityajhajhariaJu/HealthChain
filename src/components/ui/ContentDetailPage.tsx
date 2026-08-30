@@ -75,7 +75,7 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
           />
 
           {/* Floating Actions */}
-          <div style={{ position: 'absolute', top: 'env(safe-area-inset-top, 44px)', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ position: 'absolute', top: 'var(--safe-area-top, 44px)', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between' }}>
             <button 
               onClick={() => { triggerHapticLight(); onClose(); }}
               style={{
@@ -205,4 +205,6 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
     </AnimatePresence>
   );
 };
+
+
 

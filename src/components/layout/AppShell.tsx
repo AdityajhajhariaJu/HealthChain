@@ -161,6 +161,21 @@ export default function AppShell() {
     };
   }, []);
 
+  // Enforce a minimum safe area for Capacitor/WKWebView bugs
+  useEffect(() => {
+    const enforceSafeArea = () => {
+      const div = document.createElement('div');
+      div.style.paddingTop = 'env(safe-area-inset-top)';
+      document.body.appendChild(div);
+      const computedTop = parseInt(getComputedStyle(div).paddingTop, 10) || 0;
+      document.body.removeChild(div);
+      const finalTop = Math.max(computedTop, 44);
+      document.documentElement.style.setProperty('--safe-area-top', `${finalTop}px`);
+    };
+    enforceSafeArea();
+    setTimeout(enforceSafeArea, 150);
+  }, []);
+
   return (
     <div className="app-shell">
       
