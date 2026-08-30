@@ -12,6 +12,8 @@ import { WorkoutPlayer } from '../../components/ui/WorkoutPlayer';
 import { triggerHapticLight } from '../../services/haptics';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
+import { SensualLineChart } from '../../components/ui/SensualLineChart';
+import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 
 export default function CaseDashboard() {
@@ -253,6 +255,15 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
     }}>
       <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
       
+      {/* Point 4: Sensual Data Visualization */}
+      <section style={{ margin: '8px 0 24px' }}>
+        <div style={{ padding: '0 24px' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
+          <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '14px' }}>Your 7-day health momentum.</p>
+          <SensualLineChart />
+        </div>
+      </section>
+
       {/* Premium Toggle */}
       <div style={{ display: 'flex', gap: '24px', padding: '0 24px', borderBottom: '1px solid rgba(0,0,0,0.05)', marginBottom: '24px' }}>
         <button 

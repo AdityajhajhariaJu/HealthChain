@@ -47,6 +47,7 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
         dragElastic={0.2}
         onDragEnd={(e, { offset, velocity }) => {
           if (offset.y > 100 || velocity.y > 500) {
+            triggerHapticLight();
             onClose();
           }
         }}

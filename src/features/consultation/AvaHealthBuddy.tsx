@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play } from 'lucide-react';
+import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { chatWithTherapyGemini, analyzeLabReport } from '../../services/geminiService';
@@ -89,6 +90,30 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   }, [content, messagesEndRef]);
 
   return <span>{displayed}</span>;
+};
+
+const MessageRenderer = ({ content }: { content: string }) => {
+  if (content.includes('[WIDGET:WORKOUT]')) {
+    const parts = content.split('[WIDGET:WORKOUT]');
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {parts[0] && <span>{parts[0]}</span>}
+        <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', borderRadius: '16px', padding: '16px', color: 'white', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10B981' }}>
+            <Activity size={18} />
+            <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.5px' }}>GENERATED WORKOUT</span>
+          </div>
+          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>30-Min Mobility Flow</h4>
+          <p style={{ margin: 0, fontSize: '14px', color: '#94A3B8' }}>Perfect for your back pain recovery.</p>
+          <button onClick={() => triggerHapticLight()} style={{ marginTop: '8px', background: '#10B981', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+            <Play size={16} /> Start Routine
+          </button>
+        </div>
+        {parts[1] && <span>{parts[1]}</span>}
+      </div>
+    );
+  }
+  return <span>{content}</span>;
 };
 
 export default function AvaHealthBuddy() {
@@ -601,7 +626,7 @@ export default function AvaHealthBuddy() {
                         }} 
                       />
                     ) : (
-                      msg.content || <span style={{ opacity: 0.5 }}>...</span>
+                      msg.content ? <MessageRenderer content={msg.content} /> : <span style={{ opacity: 0.5 }}>...</span>
                     )}
                   </div>
                 </motion.div>
