@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, FileText } from 'lucide-react';
+import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText } from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -64,7 +64,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
               const isParallel = review.type === 'parallel';
               const isJarvis = review.type === 'jarvis';
               const isLab = review.type === 'lab_report';
-              const Icon = isJarvis ? Brain : isLab ? FileText : isParallel ? GitMerge : Network;
+              const Icon = isJarvis ? BrainCircuit : isLab ? FileText : isParallel ? GitMerge : Network;
               const label = isJarvis ? 'J.A.R.V.I.S. Analysis' : isLab ? 'Lab Report' : isParallel ? 'Quick Consult' : 'Deep Collab Correlation';
               const summary = review.report?.executiveSummary || 'Review saved to case.';
               const isSelected = activeReviewId === review.id;
