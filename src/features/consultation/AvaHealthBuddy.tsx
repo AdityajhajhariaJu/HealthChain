@@ -868,6 +868,7 @@ export default function AvaHealthBuddy() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+                onFocus={() => { setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300); }}
               placeholder="Share what's on your mind..."
               style={{
                 width: '100%',
