@@ -667,6 +667,90 @@ export default function MedicalProfile() {
           </div>
         ) : (
           <>
+<div className={(activeTab !== "overview" && activeTab !== "insights") ? "tab-content-hidden" : ""} style={{ display: (activeTab === "overview" || activeTab === "insights") ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
+
+      {/* NEW: Holistic Health Synthesis */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card" 
+        style={{ 
+          display: isMobile ? 'flex' : 'grid', 
+          flexDirection: isMobile ? 'column' : 'unset',
+          gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', 
+          gap: '20px', 
+          padding: isMobile ? '24px 16px' : '32px',
+          marginBottom: '20px',
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8fffd 100%)',
+          border: '1px solid var(--teal-light)'
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
+          <div style={{ fontSize: isMobile ? '36px' : '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Overall Health</div>
+          
+          {synthesisData && (
+            <div style={{ width: '100%', height: '180px', marginTop: '16px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={synthesisData.radarData}>
+                  <PolarGrid stroke="#E2E8F0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Patient" dataKey="A" stroke="var(--teal)" fill="var(--teal)" fillOpacity={0.2} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
+              <Sparkles size={20} />
+              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
+            </div>
+            {!profile?.isPro && (
+              <button 
+                onClick={() => navigate('/pricing')}
+                className="btn btn-primary btn-sm"
+                style={{ 
+                  background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
+                  border: 'none', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+                }}
+              >
+                <Lock size={14} /> Upgrade to Premium
+              </button>
+            )}
+            {isGeneratingSynthesis && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />
+                Analyzing Profile...
+              </div>
+            )}
+          </div>
+          
+          {synthesisData ? (
+             <motion.div 
+               animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
+               style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
+             >
+              <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
+            </motion.div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
+              <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
+                {isGeneratingSynthesis ? 'Your AI Clinical Synthesis is being automatically generated based on your profile...' : 'Add medical conditions, medications, or allergies to unlock your automated AI Clinical Synthesis.'}
+              </p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+          </div>
 <div className={activeTab !== "overview" ? "tab-content-hidden" : ""} style={{ display: activeTab === "overview" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
               {/* 1. Patient Identity Header (Clean Layout) */}
               <motion.div
@@ -1699,88 +1783,7 @@ export default function MedicalProfile() {
           </div>
 </div>
 <div className={activeTab !== "insights" ? "tab-content-hidden" : ""} style={{ display: activeTab === "insights" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
-      {/* NEW: Holistic Health Synthesis */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="card" 
-        style={{ 
-          display: isMobile ? 'flex' : 'grid', 
-          flexDirection: isMobile ? 'column' : 'unset',
-          gridTemplateColumns: isMobile ? 'unset' : '250px 1fr', 
-          gap: '20px', 
-          padding: isMobile ? '24px 16px' : '32px',
-          marginBottom: '20px',
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8fffd 100%)',
-          border: '1px solid var(--teal-light)'
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
-          <div style={{ fontSize: isMobile ? '36px' : '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Overall Health</div>
-          
-          {synthesisData && (
-            <div style={{ width: '100%', height: '180px', marginTop: '16px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={synthesisData.radarData}>
-                  <PolarGrid stroke="#E2E8F0" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Patient" dataKey="A" stroke="var(--teal)" fill="var(--teal)" fillOpacity={0.2} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
-              <Sparkles size={20} />
-              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
-            </div>
-            {!profile?.isPro && (
-              <button 
-                onClick={() => navigate('/pricing')}
-                className="btn btn-primary btn-sm"
-                style={{ 
-                  background: 'linear-gradient(135deg, #4F46E5, #3B82F6)', 
-                  border: 'none', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
-                }}
-              >
-                <Lock size={14} /> Upgrade to Premium
-              </button>
-            )}
-            {isGeneratingSynthesis && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
-                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />
-                Analyzing Profile...
-              </div>
-            )}
-          </div>
-          
-          {synthesisData ? (
-             <motion.div 
-               animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
-               style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
-             >
-              <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
-            </motion.div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
-              <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-                {isGeneratingSynthesis ? 'Your AI Clinical Synthesis is being automatically generated based on your profile...' : 'Add medical conditions, medications, or allergies to unlock your automated AI Clinical Synthesis.'}
-              </p>
-            </div>
-          )}
-        </div>
-      </motion.div>
-
-          {/* NEW: Care Team & Document Vault */}
+{/* NEW: Care Team & Document Vault */}
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3
               style={{
