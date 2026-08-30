@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
+import { MDTWarRoom } from '../../components/ui/MDTWarRoom';
 import {
   Network,
   Activity,
