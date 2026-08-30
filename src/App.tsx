@@ -1,5 +1,4 @@
 import WarRoom from './features/dashboard/WarRoom';
-import WarRoom from './features/dashboard/WarRoom';
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
