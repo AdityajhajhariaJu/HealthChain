@@ -398,7 +398,6 @@ export default function AvaHealthBuddy() {
         alignItems: 'center',
         justifyContent: isMobile ? 'flex-start' : 'center',
         background: 'transparent',
-        position: 'relative',
       }}
     >
       
@@ -866,7 +865,7 @@ export default function AvaHealthBuddy() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-                onFocus={() => { setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300); }}
+                
               placeholder="Share what's on your mind..."
               style={{
                 width: '100%',
@@ -883,7 +882,7 @@ export default function AvaHealthBuddy() {
                 paddingRight: '60px',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
-              onFocus={(e) => { e.target.style.borderColor = theme.primary; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.25)'; }}
+              onFocus={(e) => { setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300); e.target.style.borderColor = theme.primary; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.25)'; }}
               onBlur={(e) => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.12)'; }}
             />
             <button

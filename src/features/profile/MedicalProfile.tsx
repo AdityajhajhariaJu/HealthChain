@@ -1,3 +1,5 @@
+import { VitalityRing } from '../../components/ui/VitalityRing';
+import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1384,7 +1386,21 @@ export default function MedicalProfile() {
             )}
           </div>
 
-          {/* NEW: Smart Auto-Refill Adherence Engine */}
+          
+      {/* Vitality Score Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card"
+        style={{ padding: '24px', marginBottom: '32px' }}
+      >
+        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
+        <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '13px' }}>Your 7-day health momentum.</p>
+        <VitalityRing progress={82} />
+        <SensualLineChart />
+      </motion.div>
+
+      {/* NEW: Smart Auto-Refill Adherence Engine */}
           {profile.medications.some(med => {
             const startDate = new Date(med.lastFilledAt || med.addedAt);
             const daysPassed = (new Date().getTime() - startDate.getTime()) / (1000 * 3600 * 24);

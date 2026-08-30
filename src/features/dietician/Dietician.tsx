@@ -372,7 +372,7 @@ export default function Dietician() {
     if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return QUICK_PRESETS;
     
     // Extract up to 6 unique meals from the generated plan
-    const meals = [];
+    const meals: any[] = [];
     const seen = new Set();
     
     for (const day of mealPlan.plan) {
