@@ -27,6 +27,7 @@ const CASE_RECHECK_SUGGESTIONS = [
 ];
 
 import { getProfileEngineState, getProfileKey, getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { GlassBoxExplanation } from '../../components/ui/GlassBoxExplanation';
 
 const getAvaVaultKey = () => {
   const state = getProfileEngineState();
@@ -626,7 +627,7 @@ export default function AvaHealthBuddy() {
                         }} 
                       />
                     ) : (
-                      msg.content ? <MessageRenderer content={msg.content} /> : <span style={{ opacity: 0.5 }}>...</span>
+                      msg.content ? <><MessageRenderer content={msg.content} />{msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}</> : <span style={{ opacity: 0.5 }}>...</span>
                     )}
                   </div>
                 </motion.div>
