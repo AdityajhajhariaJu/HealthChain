@@ -135,17 +135,11 @@ export const ImmersiveFeatureFeed: React.FC = () => {
             }}
           />
 
-          {/* Floating Glass Content at Bottom */}
-          <div style={{ position: 'relative', zIndex: 3, padding: '16px', paddingBottom: '16px' }}>
+          {/* Text Content at Bottom */}
+          <div style={{ position: 'relative', zIndex: 3, padding: '16px', paddingBottom: '20px' }}>
             <div 
               style={{
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '20px',
-                padding: '20px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+                padding: '0px 8px',
               }}
             >
               <h2 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: '1.2' }}>
