@@ -1,3 +1,5 @@
+import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
+import { Scan } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 export function formatLocalDate(date: Date): string {
@@ -205,6 +207,7 @@ export default function Dietician() {
 
   const [currentDate, setCurrentDate] = useState(formatLocalDate(new Date()));
   const [isLoggingFood, setIsLoggingFood] = useState(false);
+  const [showARLens, setShowARLens] = useState(false);
   const [foodInput, setFoodInput] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('Breakfast');
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
@@ -2148,7 +2151,35 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
+
+        {/* AR Lens FAB */}
+        <button
+          onClick={() => { triggerHapticLight(); setShowARLens(true); }}
+          style={{
+            position: 'fixed',
+            bottom: '100px',
+            right: '24px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '28px',
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            boxShadow: '0 12px 24px rgba(16, 185, 129, 0.4)',
+            border: 'none',
+            color: '#FFF',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer',
+            zIndex: 900,
+            transition: 'transform 0.2s'
+          }}
+        >
+          <Scan size={24} />
+        </button>
+
+        {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
       </div>
     </div>
   );
 }
+
