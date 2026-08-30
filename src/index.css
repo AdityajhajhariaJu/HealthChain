@@ -621,6 +621,7 @@ textarea {
   border-radius: 18px;
   background: #FFFFFF;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  flex-shrink: 0;
 }
 .brand-pulse__mark {
   width: 43px;
