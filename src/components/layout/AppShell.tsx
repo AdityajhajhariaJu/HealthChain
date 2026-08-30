@@ -8,7 +8,6 @@ import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { triggerHapticLight } from '../../services/haptics';
-import Breadcrumbs from '../ui/Breadcrumbs';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import { AuthModal } from '../ui/AuthModal';
 import { GuestStickyBanner } from '../ui/GuestStickyBanner';
@@ -262,7 +261,6 @@ export default function AppShell() {
             {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis'].some(p => location.pathname.startsWith(p)) && (
               <ActiveCaseBar navigate={navigate} />
             )}
-            {!location.pathname.startsWith('/app/jarvis') && !(isMobile && location.pathname.startsWith('/app/ava')) && <Breadcrumbs />}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
               <Outlet />
             </div>
