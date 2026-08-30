@@ -35,7 +35,7 @@ export const MedicalActionIsland = () => {
   return (
     <div style={{
       position: 'fixed',
-      top: 'env(safe-area-inset-top, 44px)',
+      top: 'calc(var(--safe-area-top, 44px) + 8px)',
       left: 0,
       right: 0,
       display: 'flex',

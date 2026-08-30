@@ -1,3 +1,5 @@
+import WarRoom from './features/dashboard/WarRoom';
+import WarRoom from './features/dashboard/WarRoom';
 import React, { Suspense, useEffect } from 'react';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
@@ -523,6 +525,7 @@ export default function App() {
           <Route path="/app/sports" element={<SafeRoute><SportsHub /></SafeRoute>} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
           <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
+          <Route path="/app/war-room" element={<SafeRoute><WarRoom /></SafeRoute>} />
           <Route
             path="/app/today"
             element={
