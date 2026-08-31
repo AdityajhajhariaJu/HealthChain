@@ -277,6 +277,52 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       overflowX: 'hidden'
     }}>
       <FatigueModeToggle />
+
+          <div style={{ paddingTop: "12px" }}>
+          {/* Our Own Meditation Hub (Hero) */}
+          <section>
+            <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Our Own Meditation Hub</h2>
+            </div>
+            <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+              <MeditationHeroCard item={{ title: 'Full Meditation Environment', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation', id: 'm1' }} onClick={() => triggerHapticLight()} getFallbackImage={getFallbackImage} />
+              <MeditationHeroCard item={{ title: 'A Diff Experience', cover_image_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80', type: 'meditation', id: 'm2' }} onClick={() => triggerHapticLight()} getFallbackImage={getFallbackImage} />
+            </div>
+          </section>
+
+          {/* The Mindfulness Library */}
+          <section style={{ padding: '0 12px' }}>
+            <div style={{ padding: '0 12px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>The Mindfulness Library</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences for every mood</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Relaxing Sleep Music */}
+              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80" alt="Relaxing Sleep Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Sleep Music</h3>
+                </div>
+              </div>
+              {/* Relaxing Study Music */}
+              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80" alt="Relaxing Study Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Study Music</h3>
+                </div>
+              </div>
+              {/* Power Workout Songs */}
+              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80" alt="Power Workout Songs" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Power Workout Songs</h3>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          </div>
         
           <div style={{ padding: '0 24px', marginBottom: '32px' }}><ImmersiveFeatureFeed /></div>
         <div style={{ padding: '0 24px', marginBottom: '32px' }}>
@@ -427,48 +473,6 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </section>
 
             </>)}
-          {/* Our Own Meditation Hub (Hero) */}
-          <section>
-            <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Our Own Meditation Hub</h2>
-            </div>
-            <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
-              <MeditationHeroCard item={{ title: 'Full Meditation Environment', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation', id: 'm1' }} onClick={() => triggerHapticLight()} getFallbackImage={getFallbackImage} />
-              <MeditationHeroCard item={{ title: 'A Diff Experience', cover_image_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80', type: 'meditation', id: 'm2' }} onClick={() => triggerHapticLight()} getFallbackImage={getFallbackImage} />
-            </div>
-          </section>
-
-          {/* The Mindfulness Library */}
-          <section style={{ padding: '0 12px' }}>
-            <div style={{ padding: '0 12px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>The Mindfulness Library</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences for every mood</p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Relaxing Sleep Music */}
-              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80" alt="Relaxing Sleep Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Sleep Music</h3>
-                </div>
-              </div>
-              {/* Relaxing Study Music */}
-              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80" alt="Relaxing Study Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Study Music</h3>
-                </div>
-              </div>
-              {/* Power Workout Songs */}
-              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80" alt="Power Workout Songs" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Power Workout Songs</h3>
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Our Own Music Library */}
           <section style={{ padding: '0 24px' }}>
             <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
