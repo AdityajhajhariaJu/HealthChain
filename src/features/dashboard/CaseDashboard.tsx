@@ -250,7 +250,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '80px' }}>
         <div style={{ width: '100%', height: '140px', borderRadius: '24px', background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)', backgroundSize: '200% 100%', animation: 'shimmer 2s infinite' }} />
         <div style={{ width: '40%', height: '24px', borderRadius: '8px', background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)', backgroundSize: '200% 100%', animation: 'shimmer 2s infinite' }} />
-        <div style={{ display: 'flex', gap: '16px', overflowX: 'hidden' }}>
+        <div style={{ display: 'flex', gap: '16px', overflowX: 'clip' }}>
           {[1,2,3].map(i => <div key={i} style={{ minWidth: '130px', height: '180px', borderRadius: '24px', background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)', backgroundSize: '200% 100%', animation: 'shimmer 2s infinite' }} />)}
         </div>
       </div>
@@ -274,7 +274,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       display: 'flex',
       flexDirection: 'column',
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
-      overflowX: 'hidden'
+      overflowX: 'clip'
     }}>
       <FatigueModeToggle />
         <div style={{ padding: '24px 24px 0 24px', marginBottom: '32px' }}>

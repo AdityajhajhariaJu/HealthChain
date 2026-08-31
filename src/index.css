@@ -1408,7 +1408,7 @@ input:-webkit-autofill:active{
 .scrollable-row {
   user-select: none;
   -webkit-user-select: none;
-  touch-action: pan-x;
+  touch-action: pan-x pan-y;
   scroll-snap-type: x mandatory;
 }
 .scrollable-row > * {
