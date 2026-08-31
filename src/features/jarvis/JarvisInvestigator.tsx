@@ -375,7 +375,7 @@ export default function JarvisInvestigator() {
         <div style={{ position: 'absolute', inset: 0, opacity: 0.4, backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")', mixBlendMode: 'overlay' }} />
         
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, opacity: 0.2, pointerEvents: 'none' }}>
-          <JarvisCoreOrange size={isMobile ? 240 : 320} color="#AA8C2C" />
+          <JarvisCoreOrange size={isMobile ? 240 : 320} />
         </div>
         
         <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '80%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
