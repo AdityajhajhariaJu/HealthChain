@@ -209,7 +209,7 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
                 <div style={{ background: 'rgba(0,0,0,0.05)', padding: '8px', borderRadius: '10px', color: '#38BDF8' }}><Target size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFF' }}>Lifestyle Balance</h3>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Lifestyle Balance</h3>
                 </div>
               </div>
               <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
@@ -227,10 +227,10 @@ export const ProgressGallery: React.FC = () => {
               </div>
               
               {/* Pro Tip */}
-              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <div style={{ background: '#F1F5F9', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid rgba(0,0,0,0.05)' }}>
                 <Brain color="#F59E0B" size={24} style={{ flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#FFF' }}>Coach's Insight:</strong> Your mindfulness score is growing beautifully, but your flexibility could use some attention. Try a 10-minute Yoga flow tomorrow!
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+                  <strong style={{ color: '#0F172A' }}>Coach's Insight:</strong> Your mindfulness score is growing beautifully, but your flexibility could use some attention. Try a 10-minute Yoga flow tomorrow!
                 </p>
               </div>
             </div>
@@ -246,7 +246,7 @@ export const ProgressGallery: React.FC = () => {
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Transformation</h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Physical progress log</p>
                 </div>
-                <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer' }}>
+                <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}>
                   <Camera size={18} />
                 </button>
               </div>
