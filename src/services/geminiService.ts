@@ -970,7 +970,7 @@ Rules:
         ],
       },
     ],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300 },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1000 },
   };
 
   try {
@@ -1955,7 +1955,7 @@ Example: ["Patient reported persistent lower back pain starting 2 days ago", "Pa
   
   const payload = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 300, temperature: 0.1 },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1000, temperature: 0.1 },
   };
 
   try {
