@@ -52,7 +52,7 @@ export function DieticianDashboardTracker({
     const offset = circumference - percent * circumference;
     
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
         <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
         <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
@@ -121,13 +121,13 @@ export function DieticianDashboardTracker({
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             borderRadius: '32px',
-            padding: '36px 24px',
+            padding: '24px 16px',
             boxShadow: '0 8px 32px rgba(15, 23, 42, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.8)',
             display: 'grid',
             position: 'relative',
             zIndex: 1,
-          gridTemplateColumns: '1fr 1fr',
-          gap: '40px 24px',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '20px 8px',
           justifyItems: 'center'
         }}>
           <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
@@ -140,7 +140,7 @@ export function DieticianDashboardTracker({
         </div>
 
       {/* 3. Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
         <button onClick={onOpenGallery} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
           <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={16} color="#FFF" />
