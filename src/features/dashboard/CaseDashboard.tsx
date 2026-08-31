@@ -290,6 +290,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </div>
           </section>
 
+          <div style={{ padding: '0 24px', marginBottom: '32px' }}><ImmersiveFeatureFeed /></div>
           {/* The Mindfulness Library */}
           <section style={{ padding: '0 12px' }}>
             <div style={{ padding: '0 12px', marginBottom: '16px' }}>
@@ -324,7 +325,6 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
           </div>
         
-          <div style={{ padding: '0 24px', marginBottom: '32px' }}><ImmersiveFeatureFeed /></div>
         <div style={{ padding: '0 24px', marginBottom: '32px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
