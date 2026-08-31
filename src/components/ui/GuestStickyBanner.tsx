@@ -72,28 +72,29 @@ export function GuestStickyBanner() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12 }}
+        initial={{ opacity: 0, y: 20, x: '-50%' }}
+        animate={{ opacity: 1, y: 0, x: '-50%' }}
+        exit={{ opacity: 0, y: 20, x: '-50%' }}
         style={{
           background: 'linear-gradient(90deg, #0F172A 0%, #0F766E 100%)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(45, 212, 191, 0.25)',
           borderRadius: '24px',
-          margin: '0 auto 12px auto',
-          alignSelf: 'center',
-          width: '100%',
-          maxWidth: '1120px',
+          margin: '0',
+          width: 'calc(100% - 24px)',
+          maxWidth: '500px',
+          left: '50%',
+          
           color: '#ffffff',
-          padding: '6px 12px',
+          padding: '10px 14px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          fontSize: '12.5px',
-          zIndex: 40,
-          position: 'sticky',
-          top: 'calc(56px + var(--safe-area-top, 0px))',
+          fontSize: '13px',
+          zIndex: 100,
+          position: 'fixed',
+          bottom: 'calc(100px + env(safe-area-inset-bottom))',
           boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05) inset',
         }}
       >
