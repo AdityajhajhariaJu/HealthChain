@@ -116,26 +116,48 @@ async function sha256Hex(str: string): Promise<string> {
 
 export default function App() {
 
-  // Global User Activity Tracker
+  // Global User Activity Tracker (Clicks & Inputs)
   useEffect(() => {
+    // 1. Track Clicks
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const clickable = target.closest('button, a, [role="button"]') as HTMLElement;
       if (clickable) {
-        // Try to get a meaningful name for the button/link
         let name: string | null = clickable.getAttribute('aria-label') || clickable.innerText;
-        if (!name && clickable.tagName === 'A') {
-          name = clickable.getAttribute('href') || '';
-        }
+        if (!name && clickable.tagName === 'A') name = clickable.getAttribute('href') || '';
         if (name && typeof name === 'string' && name.trim()) {
           trackButtonClick(name.trim().substring(0, 60));
         }
       }
     };
+
+    // 2. Track Searches and Chat Prompts (on Enter key)
+    const handleGlobalInput = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+          if (target.type === 'password') return; // NEVER track passwords
+          const val = target.value.trim();
+          if (val.length > 0) {
+             const isSearch = target.type === 'search' || (target.placeholder && target.placeholder.toLowerCase().includes('search'));
+             import('./services/analytics').then(({ trackEvent }) => {
+               trackEvent(isSearch ? 'search_query' : 'chat_prompt', { 
+                 query: val.substring(0, 150), // Keep it concise
+                 path: window.location.pathname
+               });
+             });
+          }
+        }
+      }
+    };
     
-    // Use passive listener to not impact scrolling/performance
     document.addEventListener('click', handleGlobalClick, { capture: true, passive: true });
-    return () => document.removeEventListener('click', handleGlobalClick, { capture: true });
+    document.addEventListener('keydown', handleGlobalInput, { capture: true, passive: true });
+    
+    return () => {
+      document.removeEventListener('click', handleGlobalClick, { capture: true });
+      document.removeEventListener('keydown', handleGlobalInput, { capture: true });
+    };
   }, []);
 
   const location = useLocation();
