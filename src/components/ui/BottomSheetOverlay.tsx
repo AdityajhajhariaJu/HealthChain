@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
@@ -32,7 +33,7 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
     };
   }, [isOpen]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -148,6 +149,7 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

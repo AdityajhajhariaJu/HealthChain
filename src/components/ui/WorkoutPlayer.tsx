@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from './ToastProvider';
 import { ChevronDown, Pause, Play, FastForward, CheckCircle } from 'lucide-react';
@@ -95,7 +96,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div 
         initial={{ y: '100%' }}
@@ -232,9 +233,10 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
           </>
         )}
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
-};
+}
 
 
 
