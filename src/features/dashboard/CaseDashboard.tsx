@@ -427,34 +427,6 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </section>
 
             </>)}
-            {/* STEP 4: SPECIALTY & GAMING */}
-            <section style={{ padding: '0 16px', marginBottom: '40px' }}>
-              <div style={{ marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>Specialty & Gaming <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
-                <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Interactive fitness experiences</p>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {/* Activity Games */}
-                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80" alt="Activity Games" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
-                    <Gamepad2 size={24} color="#10B981" style={{ marginBottom: '8px' }} />
-                    <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Activity<br/>Games</h3>
-                  </div>
-                </div>
-                {/* Hand-Eye Coordination */}
-                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80" alt="Hand-Eye Coordination" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
-                    <Crosshair size={24} color="#3b82f6" style={{ marginBottom: '8px' }} />
-                    <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Hand-Eye<br/>Coordination</h3>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-
-          
           {/* Our Own Meditation Hub (Hero) */}
           <section>
             <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -553,6 +525,35 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           </section>
         </div>
 
+
+            {/* STEP 4: SPECIALTY & GAMING */}
+            <section style={{ padding: '0 16px', marginBottom: '40px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>Specialty & Gaming <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
+                <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Interactive fitness experiences</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* Activity Games */}
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80" alt="Activity Games" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
+                    <Gamepad2 size={24} color="#10B981" style={{ marginBottom: '8px' }} />
+                    <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Activity<br/>Games</h3>
+                  </div>
+                </div>
+                {/* Hand-Eye Coordination */}
+                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', height: '180px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80" alt="Hand-Eye Coordination" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '16px' }}>
+                    <Crosshair size={24} color="#3b82f6" style={{ marginBottom: '8px' }} />
+                    <h3 style={{ color: 'white', margin: 0, fontSize: '16px', fontWeight: 700, lineHeight: 1.1 }}>Hand-Eye<br/>Coordination</h3>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+
+          
       {/* Articles for You */}
       <section style={{ padding: '32px 24px 100px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Articles for You</h2>
