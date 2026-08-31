@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, Bike, ChevronRight, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap} from 'lucide-react';
+import {Activity, Bike, ChevronRight, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap, Share2, Bookmark} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 
@@ -555,29 +555,74 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
           
       {/* Articles for You */}
-      <section style={{ padding: '32px 24px 100px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Articles for You</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {[
-            { title: 'The Science of Sleep', subtitle: 'Understanding REM and Deep Sleep', readTime: '5 min', img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&q=80' },
-            { title: 'Meditation for Beginners', subtitle: 'How to start your journey', readTime: '3 min', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=400&q=80' },
-            { title: 'Nutrition for Recovery', subtitle: 'What to eat after working out', readTime: '8 min', img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80' }
-          ].map((art, i) => (
-            <div key={i} onClick={() => triggerHapticLight()} style={{ display: 'flex', gap: '16px', alignItems: 'center', cursor: 'pointer' }}>
-              <div style={{ width: '90px', height: '90px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                <img loading="lazy" decoding="async" src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <section style={{ padding: '32px 0 100px' }}>
+          <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#2E2B5F', letterSpacing: '-0.3px' }}>Articles for you</h2>
+            <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500, cursor: 'pointer' }}>View all</span>
+          </div>
+          
+          <div className="hide-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 24px 24px 24px', WebkitOverflowScrolling: 'touch', margin: 0 }}>
+            {[
+              { 
+                title: 'Overcome Overthinking - 10 Simple Tips from a Therapist', 
+                img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=500&q=80',
+                isPopular: true
+              },
+              { 
+                title: 'WANT TO GAIN MUSCLE? THE 6 MOST IMPORTANT RULES', 
+                img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=500&q=80',
+                isPopular: true
+              }
+            ].map((art, i) => (
+              <div key={i} onClick={() => triggerHapticLight()} style={{ 
+                width: '260px', 
+                minWidth: '260px', 
+                background: '#FFFFFF', 
+                borderRadius: '16px', 
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                overflow: 'hidden', 
+                cursor: 'pointer' 
+              }}>
+                {/* Image Section */}
+                <div style={{ position: 'relative', height: '150px', width: '100%' }}>
+                  <img loading="lazy" decoding="async" src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  
+                  {/* Badge */}
+                  {art.isPopular && (
+                    <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(255,255,255,0.85)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(4px)' }}>
+                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#2E2B5F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Flame size={8} color="#FFF" strokeWidth={3} />
+                      </div>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#2E2B5F' }}>Popular</span>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '8px' }}>
+                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0 }}>
+                      <Heart size={16} strokeWidth={1.5} />
+                    </button>
+                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0 }}>
+                      <Share2 size={16} strokeWidth={1.5} />
+                    </button>
+                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0 }}>
+                      <Bookmark size={16} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Text Section */}
+                <div style={{ padding: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#2E2B5F', lineHeight: '1.4' }}>
+                    {art.title}
+                  </h3>
+                </div>
               </div>
-              <div style={{ flex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
-                <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{art.title}</h4>
-                <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#64748B' }}>{art.subtitle}</p>
-                <span style={{ display: 'inline-block', marginTop: '8px', fontSize: '12px', fontWeight: 600, color: '#10B981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
-                  Read • {art.readTime}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
 
       <ClinicalFrictionModal isOpen={showFrictionModal} onComplete={() => setShowFrictionModal(false)} />
       <ContentDetailPage 
