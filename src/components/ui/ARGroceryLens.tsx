@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
+import { analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
 
 export const ARGroceryLens = ({ onClose }: { onClose: () => void }) => {
@@ -10,6 +11,7 @@ export const ARGroceryLens = ({ onClose }: { onClose: () => void }) => {
   const [showResults, setShowResults] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const profile = getProfile();
+  const [analysis, setAnalysis] = useState<any>(null);
 
   useEffect(() => {
     // Start camera
@@ -31,16 +33,37 @@ export const ARGroceryLens = ({ onClose }: { onClose: () => void }) => {
     };
   }, []);
 
-  const handleScan = () => {
+  const handleScan = async () => {
+    if (!videoRef.current) return;
+    
     triggerHapticLight();
     setIsScanning(true);
     
-    // Simulate AI vision analysis delay
-    setTimeout(() => {
-      triggerHapticWarning();
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        
+        const result = await analyzeFoodImage(base64, profile);
+        setAnalysis(result);
+        
+        if (result.warning) {
+          triggerHapticWarning();
+        } else {
+          triggerHapticSuccess();
+        }
+        setShowResults(true);
+      }
+    } catch (e) {
+      console.error(e);
+      // Fallback or handle error
+    } finally {
       setIsScanning(false);
-      setShowResults(true);
-    }, 2500);
+    }
   };
 
   const handleClose = () => {
@@ -113,54 +136,58 @@ export const ARGroceryLens = ({ onClose }: { onClose: () => void }) => {
               display: 'flex', flexDirection: 'column', gap: '12px'
             }}
           >
-            {/* The Warning Card */}
+            {/* The AI Result Card */}
             <div style={{
               background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '20px',
               boxShadow: '0 24px 48px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.5)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FEF2F2', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', marginBottom: '16px' }}>
-                <AlertTriangle size={14} color="#EF4444" />
-                <span style={{ color: '#EF4444', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px' }}>HIGH GLYCEMIC SPIKE</span>
-              </div>
-              
-              <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Sugar Loops Cereal</h3>
-              <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748B' }}>Analyzed against your pre-diabetic profile.</p>
-              
-              {/* Comparative Chart */}
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: '#0F172A', marginBottom: '6px' }}>
-                  <span>Sugar per serving ({scannedSugar}g)</span>
-                  <span style={{ color: '#EF4444' }}>{Math.round(sugarPercentage)}% of daily max</span>
+              {analysis?.warning && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FEF2F2', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', marginBottom: '16px' }}>
+                  <AlertTriangle size={14} color="#EF4444" />
+                  <span style={{ color: '#EF4444', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{analysis.warning}</span>
                 </div>
-                <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: sugarPercentage + '%' }}
-                    transition={{ duration: 1, delay: 0.2, type: 'spring' }}
-                    style={{ height: '100%', background: '#EF4444', borderRadius: '4px' }}
-                  />
+              )}
+              
+              <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>{analysis?.foodName || 'Unknown Food'}</h3>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#64748B' }}>Analyzed against your profile ({analysis?.servingSize}).</p>
+              
+              {/* Macro Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>Calories</div>
+                  <div style={{ fontSize: '16px', color: '#0F172A', fontWeight: 800 }}>{analysis?.calories} kcal</div>
+                </div>
+                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>Protein</div>
+                  <div style={{ fontSize: '16px', color: '#0F172A', fontWeight: 800 }}>{analysis?.protein}g</div>
+                </div>
+                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>Carbs (Sugar: {analysis?.sugar}g)</div>
+                  <div style={{ fontSize: '16px', color: '#0F172A', fontWeight: 800 }}>{analysis?.carbs}g</div>
+                </div>
+                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>Fats</div>
+                  <div style={{ fontSize: '16px', color: '#0F172A', fontWeight: 800 }}>{analysis?.fats}g</div>
                 </div>
               </div>
             </div>
 
             {/* Better Alternative Card */}
-            <div style={{
-              background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '16px',
-              display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #E2E8F0', boxShadow: '0 12px 24px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ width: '48px', height: '64px', background: '#F1F5F9', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '24px' }}>
-                🥣
+            {analysis?.betterAlternative && (
+              <div style={{
+                background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '16px',
+                display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #E2E8F0', boxShadow: '0 12px 24px rgba(0,0,0,0.1)'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', letterSpacing: '0.5px', marginBottom: '4px' }}>BETTER ALTERNATIVE</div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>{analysis.betterAlternative.name}</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{analysis.betterAlternative.reason}</div>
+                </div>
+                <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F1F5F9', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#0F172A' }}>
+                  <ArrowRight size={16} />
+                </div>
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', letterSpacing: '0.5px', marginBottom: '4px' }}>BETTER ALTERNATIVE</div>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>Oat & Seed Fuel</div>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>+20g Protein. 3g Sugar. Aisle 4.</div>
-              </div>
-              <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F1F5F9', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#0F172A' }}>
-                <ArrowRight size={16} />
-              </div>
-            </div>
-
+            )}
           </motion.div>
         )}
       </AnimatePresence>
