@@ -3,6 +3,7 @@ import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
 import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
+import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
 
 
 import { useIsMobile } from '../../hooks/useIsMobile';
