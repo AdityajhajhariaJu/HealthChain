@@ -9,7 +9,8 @@ type OutboxKind =
   | 'profile_upsert' 
   | 'caregiver_profile_upsert'
   | 'fitness_history_upsert'
-  | 'body_measurements_upsert';
+  | 'body_measurements_upsert'
+  | 'health_metrics_upsert';
 
 interface OutboxEntry {
   id: string;
@@ -149,6 +150,9 @@ async function send(entry: OutboxEntry) {
   }
   if (entry.kind === 'body_measurements_upsert') {
     return supabase.from('user_body_measurements').upsert(entry.payload, { onConflict: 'id' });
+  }
+  if (entry.kind === 'health_metrics_upsert') {
+    return supabase.from('user_health_metrics').upsert(entry.payload, { onConflict: 'user_id, metric_type, start_time, end_time' });
   }
   return { error: new Error('Unknown outbox kind') };
 }

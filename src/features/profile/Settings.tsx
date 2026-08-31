@@ -10,6 +10,7 @@ import { clearSyncOutbox } from '../../services/SyncOutbox';
 import FocusTrap from '../../components/ui/FocusTrap';
 import { getActiveSession } from '../../services/authSession';
 import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
+import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_unified_profile',
@@ -465,17 +466,19 @@ export default function Settings() {
           </div>
         )}
 
-        <h2
-          style={{
-            fontSize: '18px',
-            fontWeight: 600,
-            color: 'var(--text-main)',
-            marginBottom: '24px',
-            marginTop: '40px',
-          }}
-        >
+        <HealthDeviceIntegrations />
+          
+          <h2
+            style={{
+              fontSize: '18px',
+              fontWeight: 600,
+              color: 'var(--text-main)',
+              marginBottom: '24px',
+              marginTop: '40px',
+            }}
+          >
           Privacy & Data Handling
-        </h2>
+          </h2>
         
         <div
           style={{
