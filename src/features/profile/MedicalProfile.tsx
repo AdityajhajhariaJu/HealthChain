@@ -171,7 +171,7 @@ export default function MedicalProfile() {
       
       const isComplete = demoForm.dob && demoForm.gender && demoForm.bloodGroup;
       if (isComplete) {
-        awardPoints(10, 'Health Profile Completed', 'platform', 'profile_completion');
+        awardPoints(10, 'Health Profile Completed', 'milestone', 'profile_completion');
       }
 
       setIsSaving(false);
