@@ -98,7 +98,7 @@ export const ProgressGallery: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F8FAFC',
+      backgroundColor: '#FBF9F6',
       display: 'flex',
       flexDirection: 'column',
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
@@ -203,23 +203,23 @@ export const ProgressGallery: React.FC = () => {
         {/* Tab 2: Balance Radar */}
         {activeTab === 'balance' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ background: '#0F172A', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#38BDF8', filter: 'blur(80px)', opacity: 0.3, borderRadius: '50%' }} />
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
-                <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '10px', color: '#38BDF8' }}><Target size={20} /></div>
+                <div style={{ background: 'rgba(0,0,0,0.05)', padding: '8px', borderRadius: '10px', color: '#38BDF8' }}><Target size={20} /></div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFF' }}>Lifestyle Balance</h3>
                 </div>
               </div>
-              <p style={{ color: '#94A3B8', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+              <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
                 Visual mapping of your comprehensive health routine. Watch this shape expand as you tackle different workout genres.
               </p>
 
               <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius={isMobile ? "70%" : "80%"} data={radarData}>
-                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                    <PolarGrid stroke="rgba(0,0,0,0.05)" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} />
                     <Radar name="My Routine" dataKey="A" stroke="#38BDF8" strokeWidth={3} fill="#38BDF8" fillOpacity={0.4} />
                   </RadarChart>
@@ -227,7 +227,7 @@ export const ProgressGallery: React.FC = () => {
               </div>
               
               {/* Pro Tip */}
-              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid rgba(0,0,0,0.05)' }}>
                 <Brain color="#F59E0B" size={24} style={{ flexShrink: 0 }} />
                 <p style={{ margin: 0, fontSize: '13px', color: '#CBD5E1', lineHeight: 1.5 }}>
                   <strong style={{ color: '#FFF' }}>Coach's Insight:</strong> Your mindfulness score is growing beautifully, but your flexibility could use some attention. Try a 10-minute Yoga flow tomorrow!

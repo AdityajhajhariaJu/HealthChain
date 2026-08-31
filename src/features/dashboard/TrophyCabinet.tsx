@@ -64,7 +64,7 @@ export const TrophyCabinet: React.FC = () => {
   return (
     <div style={{
       width: '100%',
-      backgroundColor: '#0F172A', // Dark cinematic theme
+      backgroundColor: '#FBF9F6', // Dark cinematic theme
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -74,33 +74,33 @@ export const TrophyCabinet: React.FC = () => {
       <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
       {/* Header */}
       <div style={{ padding: isMobile ? '32px 24px 16px' : '48px 40px 24px' }}>
-        <h1 style={{ margin: 0, fontSize: isMobile ? '32px' : '42px', fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '-0.5px' }}>
+        <h1 style={{ margin: 0, fontSize: isMobile ? '32px' : '42px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '-0.5px' }}>
           Trophy Cabinet <Trophy size={32} color="#F59E0B" />
         </h1>
-        <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: '16px' }}>Your lifetime achievements and milestones.</p>
+        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>Your lifetime achievements and milestones.</p>
       </div>
 
       <div style={{ padding: isMobile ? '0 24px 24px' : '0 40px 40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
         
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', backgroundColor: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: 'white' }}>{earnedCount}/{totalCount}</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase' }}>Unlocked</div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A' }}>{earnedCount}/{totalCount}</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Unlocked</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderLeft: '1px solid rgba(0,0,0,0.05)', borderRight: '1px solid rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#8B5CF6' }}>Top 5%</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase' }}>Ranking</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Ranking</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#10B981' }}>{earnedCount * 150}</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase' }}>Points</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Points</div>
           </div>
         </div>
 
         {/* Badges Grid */}
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '24px' }}>All Badges</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '24px' }}>All Badges</h2>
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
@@ -121,14 +121,14 @@ export const TrophyCabinet: React.FC = () => {
                     }
                   }}
                   style={{
-                    backgroundColor: isEarned ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.02)',
+                    backgroundColor: isEarned ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.02)',
                     borderRadius: '24px',
                     padding: '24px 16px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    border: `1px solid ${isEarned ? badge.color : 'rgba(255,255,255,0.05)'}`,
+                    border: `1px solid ${isEarned ? badge.color : 'rgba(0,0,0,0.02)'}`,
                     cursor: isEarned ? 'pointer' : 'default',
                     opacity: isEarned ? 1 : 0.4,
                     boxShadow: isEarned ? `0 10px 25px -5px ${badge.color}40` : 'none',
@@ -148,7 +148,7 @@ export const TrophyCabinet: React.FC = () => {
                   }}>
                     {badge.icon}
                   </div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'white', margin: '0 0 4px' }}>{badge.title}</h3>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>{badge.title}</h3>
                   {isEarned ? (
                     <span style={{ fontSize: '11px', color: badge.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{badge.rarity}</span>
                   ) : (
@@ -186,7 +186,7 @@ export const TrophyCabinet: React.FC = () => {
               style={{
                 width: '100%',
                 maxWidth: '360px',
-                background: `linear-gradient(135deg, #1E293B 0%, #0F172A 100%)`,
+                background: `linear-gradient(135deg, #FFFFFF 0%, #FBF9F6 100%)`,
                 borderRadius: '32px',
                 padding: '32px',
                 boxShadow: `0 25px 50px -12px ${selectedBadge.color}60`,
@@ -197,7 +197,7 @@ export const TrophyCabinet: React.FC = () => {
             >
               <button 
                 onClick={() => setSelectedBadge(null)}
-                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer' }}
               >
                 <X size={16} />
               </button>
@@ -221,10 +221,10 @@ export const TrophyCabinet: React.FC = () => {
                   </span>
                 </div>
 
-                <h2 style={{ color: 'white', fontSize: '32px', fontWeight: 900, margin: '0 0 12px', lineHeight: 1.1 }}>
+                <h2 style={{ color: '#0F172A', fontSize: '32px', fontWeight: 900, margin: '0 0 12px', lineHeight: 1.1 }}>
                   {selectedBadge.title}
                 </h2>
-                <p style={{ color: '#94A3B8', fontSize: '16px', lineHeight: 1.5, margin: '0 0 40px' }}>
+                <p style={{ color: '#64748B', fontSize: '16px', lineHeight: 1.5, margin: '0 0 40px' }}>
                   {selectedBadge.desc}
                 </p>
 
@@ -244,7 +244,7 @@ export const TrophyCabinet: React.FC = () => {
                   style={{
                     width: '100%',
                     backgroundColor: selectedBadge.color,
-                    color: 'white',
+                    color: '#0F172A',
                     fontSize: '16px',
                     fontWeight: 700,
                     padding: '16px',
