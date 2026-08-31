@@ -362,10 +362,11 @@ export default function JarvisInvestigator() {
           backgroundSize: '200% 200%',
           backdropFilter: 'blur(24px)',
           padding: isMobile ? '32px 24px' : '48px',
-          borderRadius: isMobile ? '0 0 32px 32px' : '32px',
-          margin: isMobile ? '-16px -16px 10px -16px' : '0 0 10px 0',
-          boxShadow: '0 20px 40px rgba(168,85,247,0.05), 0 1px 3px rgba(168,85,247,0.03), inset 0 1px 0 rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255,255,255,0.5)'
+          borderRadius: '32px 32px 0 0',
+          margin: '0',
+          boxShadow: 'none',
+          border: '1px solid #E2E8F0',
+          borderBottom: 'none'
         }}
       >
         <div style={{ position: 'relative' }}>
@@ -408,7 +409,7 @@ export default function JarvisInvestigator() {
         </div>
       </div>
 
-      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '24px', padding: isMobile ? '24px' : '40px', boxShadow: '0 20px 40px rgba(15,23,42,0.06)' }}>
+      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderTop: '1px solid rgba(15,23,42,0.05)', borderRadius: '0 0 32px 32px', padding: isMobile ? '24px' : '40px', boxShadow: '0 20px 40px rgba(15,23,42,0.06)' }}>
         <div style={{ marginBottom: '28px' }}>
           <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
             <span>Clinical Timeline & Symptoms</span>
