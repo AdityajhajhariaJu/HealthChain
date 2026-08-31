@@ -510,6 +510,8 @@ export default function Dietician() {
           recordTrialUsage('dietician');
         }
         addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan });
+      } else {
+        toast.error('Generation Failed', 'Failed to parse the meal plan from AI. Please try again.');
       }
     } catch (err) {
       console.error('Failed to generate meal plan:', err);
@@ -851,7 +853,7 @@ export default function Dietician() {
                 onLogMeal={(mealName) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
                 onSnap={() => setShowARLens(true)}
                 onOpenSettings={() => toast.success('Coming Soon', 'Fasting & Diet settings will be available in the next update!')}
-                onOpenGallery={() => {}}
+                onOpenGallery={() => setShowARLens(true)}
               />
             </motion.div>
           )}

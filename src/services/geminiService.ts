@@ -703,7 +703,7 @@ Return strictly as JSON:
     contents: [{ role: 'user', parts: [{ text: 'Generate final report.' }] }],
     generationConfig: { 
       responseMimeType: 'application/json',
-      maxOutputTokens: 1800,
+      maxOutputTokens: 4000,
       responseSchema: {
         type: "object",
         properties: {
@@ -900,7 +900,7 @@ Return strictly as JSON matching this exact structure:
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: reportPrompt }] },
     contents: [{ role: 'user', parts: [{ text: 'Generate final parallel report.' }] }],
-      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1800 },
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000 },
   };
 
   try {
@@ -1077,7 +1077,7 @@ Rules:
         ],
       },
     ],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 1800 },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000 },
   };
 
   try {

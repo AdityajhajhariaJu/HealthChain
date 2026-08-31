@@ -1414,3 +1414,10 @@ input:-webkit-autofill:active{
 .scrollable-row > * {
   scroll-snap-align: start;
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
