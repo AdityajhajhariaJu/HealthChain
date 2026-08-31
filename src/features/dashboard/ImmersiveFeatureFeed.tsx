@@ -49,112 +49,120 @@ export const ImmersiveFeatureFeed: React.FC = () => {
         route: '/app/nutrition',
         priority: 100, 
       });
-    } else if (hour >= 21 || hour <= 4) {
-      feed.push({
-        id: 'midnight-craving',
-        image: '/images/immersive/midnight-craving.png',
-        title: 'Craving sugar?',
-        subtitle: 'Your body actually needs sleep. Try this instead.',
-        route: '/app/nutrition', // Route to nutrition for now
-        priority: 100,
-      });
-    } else {
-      feed.push({
-        id: 'grocery-scanner',
-        image: '/images/immersive/grocery-scanner.png',
-        title: 'Grocery Intelligence',
-        subtitle: 'Scan for glycemic spikes and better alternatives.',
-        route: '/app/nutrition',
-        priority: 40,
-      });
     }
 
-    const hasSevereCondition = profile?.conditions?.some((c: string) => 
-      ['cancer', 'tumor', 'spondylitis', 'autoimmune', 'severe'].some(kw => c.toLowerCase().includes(kw))
-    );
-
-    if (hasSevereCondition || profile?.goal === 'Manage chronic illness') {
+    if (profile.medicalConditions?.some(c => c.toLowerCase().includes('diabetes'))) {
       feed.push({
-        id: 'clinical-trials',
-        image: '/images/immersive/clinical-trials.png',
-        title: 'Standard treatments stopped working?',
-        subtitle: 'Connect with clinical trials worldwide.',
-        route: '/app/trials',
-        priority: 200, 
+        id: 'glucose-spike',
+        image: '/images/immersive/doctor-biomarker.png',
+        title: 'Post-Meal Spike Detected',
+        subtitle: 'Let\'s take a 10-minute walk to stabilize glucose.',
+        route: '/app/today',
+        priority: 90, 
       });
     }
-
+    
     feed.sort((a, b) => b.priority - a.priority);
-    setCards(feed);
+    setCards(feed.slice(0, 3)); // Only take top 3 for the fanned layout
   }, []);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-      {cards.map((card, index) => (
-        <motion.div
-          key={card.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
-          onClick={() => navigate(card.route)}
-          style={{ 
-            position: 'relative',
-            width: '100%', height: '320px',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            cursor: 'pointer',
-            backgroundColor: '#0F172A',
-            boxShadow: '0 20px 40px -15px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end'
-          }}
-        >
-          {/* Background Image */}
-          <div 
-            style={{ 
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: "url(" + card.image + ")",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              zIndex: 1
-            }}
-          />
-          
-          {/* Gradient Overlay for Text Legibility */}
-          <div 
-            style={{
-              position: 'absolute',
-              bottom: 0, left: 0, right: 0, height: '60%',
-              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
-              zIndex: 2
-            }}
-          />
+  const getCardStyle = (index: number, total: number) => {
+    if (total === 3) {
+      if (index === 0) return { rotate: -15, x: 40, y: 10, zIndex: 1, scale: 0.9 };
+      if (index === 1) return { rotate: 0, x: 0, y: -10, zIndex: 10, scale: 1.05 };
+      if (index === 2) return { rotate: 15, x: -40, y: 10, zIndex: 1, scale: 0.9 };
+    }
+    if (total === 2) {
+      if (index === 0) return { rotate: -8, x: 20, y: 0, zIndex: 1, scale: 0.95 };
+      if (index === 1) return { rotate: 8, x: -20, y: 0, zIndex: 2, scale: 1.0 };
+    }
+    return { rotate: 0, x: 0, y: 0, zIndex: 1, scale: 1 };
+  };
 
-          {/* Text Content at Bottom */}
-          <div style={{ position: 'relative', zIndex: 3, padding: '16px', paddingBottom: '20px' }}>
-            <div 
-              style={{
-                padding: '0px 8px',
+  if (cards.length === 0) return null;
+
+  return (
+    <div style={{ 
+      background: '#FFFFFF', 
+      borderRadius: '24px', 
+      padding: '32px 16px',
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', height: '220px', width: '100%', marginBottom: '24px' }}>
+        {cards.map((card, index) => {
+          const styleConfig = getCardStyle(index, cards.length);
+          return (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: styleConfig.y, x: styleConfig.x, rotate: styleConfig.rotate, scale: styleConfig.scale }}
+              whileHover={{ scale: styleConfig.scale * 1.05, zIndex: 20, y: styleConfig.y - 10 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              onClick={() => navigate(card.route)}
+              style={{ 
+                position: 'absolute',
+                width: '140px',
+                height: '190px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                backgroundColor: '#0F172A',
+                boxShadow: '0 15px 30px -10px rgba(0,0,0,0.3)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+                zIndex: styleConfig.zIndex
               }}
             >
-              <h2 style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: '1.2' }}>
-                {card.title}
-              </h2>
-              <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '14px', fontWeight: 500, margin: '0 0 16px 0', lineHeight: '1.4' }}>
-                {card.subtitle}
-              </p>
-              
-              <div style={{ display: 'flex', alignItems: 'center', color: '#34D399', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', gap: '6px' }}>
-                <Sparkles size={16} />
-                <span>Tap to Explore</span>
-                <ArrowRight size={16} />
+              <img 
+                src={card.image} 
+                alt={card.title}
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, width: '100%', height: '100%',
+                  objectFit: 'cover',
+                  zIndex: 0
+                }}
+              />
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0, height: '40%',
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%)',
+                  zIndex: 1
+                }}
+              />
+              <div 
+                style={{
+                  position: 'absolute',
+                  bottom: 0, left: 0, right: 0, height: '70%',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)',
+                  zIndex: 2
+                }}
+              />
+
+              <div style={{ position: 'relative', zIndex: 3, padding: '12px' }}>
+                <h2 style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 800, margin: '0 0 4px 0', lineHeight: '1.2' }}>
+                  {card.title}
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', color: '#34D399', fontWeight: 700, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px', gap: '4px' }}>
+                  <Sparkles size={12} />
+                  <span>Explore</span>
+                  <ArrowRight size={12} />
+                </div>
               </div>
-            </div>
-          </div>
-        </motion.div>
-      ))}
+            </motion.div>
+          );
+        })}
+      </div>
+      
+      <div style={{ textAlign: 'center' }}>
+        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>Discover Insights</h3>
+        <p style={{ margin: 0, fontSize: '14px', color: '#64748B', maxWidth: '280px' }}>Tap a card above to uncover personalized AI-driven health discoveries.</p>
+      </div>
     </div>
   );
 };
