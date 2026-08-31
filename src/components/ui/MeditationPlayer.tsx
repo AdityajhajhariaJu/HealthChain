@@ -207,6 +207,19 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     style={{ position: "absolute", bottom: "env(safe-area-inset-bottom, 32px)", left: "24px", right: "24px", zIndex: 20 }}
                   >
                     
+
+                    {/* Content Info */}
+                    <div style={{ marginBottom: "32px", textAlign: "center", textShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
+                      <h3 style={{ margin: "0 0 8px", fontSize: "24px", fontWeight: 700, color: "white", letterSpacing: "-0.5px" }}>
+                        {content.title}
+                      </h3>
+                      {content.description && (
+                        <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.5, maxWidth: "300px", marginLeft: "auto", marginRight: "auto" }}>
+                          {content.description}
+                        </p>
+                      )}
+                    </div>
+
                     {/* Media Buttons */}
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "32px", marginBottom: "32px" }}>
                       <button 
