@@ -172,6 +172,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   >
                     <button 
                       onClick={onClose}
+                      aria-label="Close meditation player"
                       style={{ width: "40px", height: "40px", background: "transparent", border: "none", display: "flex", alignItems: "center", cursor: "pointer", padding: 0 }}
                     >
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -211,6 +212,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "32px", marginBottom: "32px" }}>
                       <button 
                         onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setTimeRemaining(prev => Math.min(totalDuration, prev + 15)); }}
+                        aria-label="Skip backward 15 seconds"
                         style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
                       >
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
@@ -218,6 +220,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       
                       <button 
                         onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setIsPlaying(!isPlaying); }}
+                        aria-label={isPlaying ? "Pause" : "Play"}
                         style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
                       >
                         {isPlaying ? <Pause size={28} fill="#000" color="#000" /> : <Play size={28} fill="#000" color="#000" style={{ marginLeft: "3px" }} />}
@@ -225,6 +228,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                       <button 
                         onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setTimeRemaining(prev => Math.max(0, prev - 15)); }}
+                        aria-label="Skip forward 15 seconds"
                         style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
                       >
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
