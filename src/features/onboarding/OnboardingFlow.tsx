@@ -17,12 +17,12 @@ export default function OnboardingFlow() {
   return (
     <div style={{ 
       position: 'fixed', inset: 0, 
-      background: 'url("https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=1200&q=80") center/cover no-repeat',
+      background: 'url("/ava-floral-bg.jpg") center/cover no-repeat',
       zIndex: 9999, 
       display: 'flex', 
       flexDirection: 'column'
     }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(6,78,59,0.75) 100%)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} />
 
       <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', padding: '32px' }}>
         <AnimatePresence mode="wait">
@@ -31,17 +31,17 @@ export default function OnboardingFlow() {
               key="step0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+              exit={{ opacity: 0, scale: 0.95, filter: 'blur(16px)' }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
             >
-              <div style={{ background: 'rgba(255,255,255,0.1)', padding: '16px', borderRadius: '50%', marginBottom: '32px', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.8)', padding: '16px', borderRadius: '50%', marginBottom: '32px', border: '1px solid rgba(15,23,42,0.1)' }}>
                 <Sparkles size={36} color="#10B981" />
               </div>
-              <h1 style={{ fontSize: '38px', fontWeight: 700, letterSpacing: '-1px', textAlign: 'center', color: '#FFF', margin: '0 0 16px 0', lineHeight: 1.15 }}>
+              <h1 style={{ fontSize: '38px', fontWeight: 700, letterSpacing: '-1px', textAlign: 'center', color: '#0F172A', margin: '0 0 16px 0', lineHeight: 1.15 }}>
                 Let's build your<br/>health story.
               </h1>
-              <p style={{ color: '#E2E8F0', fontSize: '18px', textAlign: 'center', margin: 0, fontWeight: 400, opacity: 0.9 }}>
+              <p style={{ color: '#475569', fontSize: '18px', textAlign: 'center', margin: 0, fontWeight: 400, opacity: 0.9 }}>
                 Clinical precision meets daily wellness.
               </p>
 
@@ -53,11 +53,11 @@ export default function OnboardingFlow() {
                 style={{
                   marginTop: 'auto',
                   marginBottom: '20px',
-                  background: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: 'rgba(255,255,255,0.7)',
+                  border: '1px solid rgba(15,23,42,0.15)',
                   padding: '16px 32px',
                   borderRadius: '99px',
-                  color: '#FFF',
+                  color: '#0F172A',
                   fontSize: '17px',
                   fontWeight: 600,
                   display: 'flex',
@@ -66,7 +66,7 @@ export default function OnboardingFlow() {
                   backdropFilter: 'blur(12px)',
                   cursor: 'pointer'
                 }}
-                whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.25)' }}
+                whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.9)' }}
                 whileTap={{ scale: 0.95 }}
               >
                 Begin Journey <ChevronRight size={20} />
@@ -82,8 +82,8 @@ export default function OnboardingFlow() {
               transition={{ duration: 0.6, ease: 'easeOut' }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
             >
-              <h2 style={{ fontSize: '34px', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '12px', color: '#FFF', lineHeight: 1.2 }}>What brings you to<br/><span style={{ color: '#10B981' }}>HealthChain</span>?</h2>
-              <p style={{ color: '#94A3B8', fontSize: '16px', marginBottom: '40px' }}>Select your primary focus to personalize your experience.</p>
+              <h2 style={{ fontSize: '34px', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '12px', color: '#0F172A', lineHeight: 1.2 }}>What brings you to<br/><span style={{ color: '#10B981' }}>HealthChain</span>?</h2>
+              <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px' }}>Select your primary focus to personalize your experience.</p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[
@@ -96,12 +96,12 @@ export default function OnboardingFlow() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 + 0.2 }}
-                    whileHover={{ scale: 1.02, background: 'rgba(255, 255, 255, 0.15)' }}
+                    whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.7)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSelect}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      background: 'rgba(255,255,255,0.6)',
+                      border: '1px solid rgba(15,23,42,0.12)',
                       borderRadius: '24px',
                       padding: '20px 24px',
                       textAlign: 'left',
@@ -114,12 +114,12 @@ export default function OnboardingFlow() {
                       gap: '20px'
                     }}
                   >
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.5)', padding: '12px', borderRadius: '16px', border: '1px solid rgba(15,23,42,0.05)' }}>
                       {goal.icon}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: 'white', letterSpacing: '-0.3px' }}>{goal.title}</h3>
-                      <p style={{ margin: '4px 0 0 0', color: '#94A3B8', fontSize: '14px' }}>{goal.desc}</p>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#0F172A', letterSpacing: '-0.3px' }}>{goal.title}</h3>
+                      <p style={{ margin: '4px 0 0 0', color: '#64748B', fontSize: '14px' }}>{goal.desc}</p>
                     </div>
                     <ChevronRight size={20} color="#64748B" />
                   </motion.button>
