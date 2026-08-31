@@ -291,208 +291,23 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           </section>
 
           <div style={{ padding: '0 24px', marginBottom: '32px' }}><ImmersiveFeatureFeed /></div>
-          {/* The Mindfulness Library */}
-          <section style={{ padding: '0 12px' }}>
-            <div style={{ padding: '0 12px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>The Mindfulness Library</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences for every mood</p>
+          {/* Audio by Mood */}
+          <section>
+            <div style={{ padding: '0 24px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Audio by Mood</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences to shift your state</p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Relaxing Sleep Music */}
-              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80" alt="Relaxing Sleep Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Sleep Music</h3>
-                </div>
-              </div>
-              {/* Relaxing Study Music */}
-              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80" alt="Relaxing Study Music" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Relaxing Study Music</h3>
-                </div>
-              </div>
-              {/* Power Workout Songs */}
-              <div onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80" alt="Power Workout Songs" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, transparent 80%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Power Workout Songs</h3>
-                </div>
-              </div>
-            </div>
-          </section>
-
-
-          </div>
-        
-        <div style={{ padding: '0 24px', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {dailyTasks.map(task => (
-              <div key={task.id} onClick={() => task.id === 'task_2' && setShowFrictionModal(true)}>
-                <CinematicCheckbox label={task.title} sublabel={task.subtitle} />
-              </div>
-            ))}
-            <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '16px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginTop: '8px', boxShadow: '0 12px 32px rgba(15,23,42,0.2)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>Enter Collaborative Health Canvas</span>
-                <span style={{ fontSize: '13px', color: '#94A3B8' }}>1 new note from Dr. Jenkins</span>
-              </div>
-              <ChevronRight size={20} color="#FFF" />
-            </div>
-          </div>
-        </div>
-        <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
-      
-
-
-      
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-            {false && (<>
-                      {/* STEP 1: BROWSE PROGRAMS (The 7 Curated Collections) */}
-            <section>
-              <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>Browse Programs <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
-                <span onClick={() => { triggerHapticLight(); setActiveCollection({title: "All Programs", items: featured}); }} style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
-              </div>
-              <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y', overscrollBehaviorX: 'contain' }}>
-                {programs.map((prog) => {
-                  let IconComp = Zap;
-                  if (prog.icon_name === 'Flame') IconComp = Flame;
-                  if (prog.icon_name === 'Sparkles') IconComp = Sparkles;
-                  if (prog.icon_name === 'Activity') IconComp = Activity;
-                  if (prog.icon_name === 'Moon') IconComp = Moon;
-                  if (prog.icon_name === 'Target') IconComp = Target;
-                  if (prog.icon_name === 'Heart') IconComp = Heart;
-                  
-                  return (
-                    <ProgramCard 
-                      key={prog.id} 
-                      title={prog.title} 
-                      subtitle={prog.subtitle} 
-                      gradient={prog.gradient} 
-                      icon={<IconComp size={28} />} 
-                      onClick={() => { triggerHapticLight(); setActiveCollection({title: 'Collection', items: featured || []}); }} 
-                    />
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* STEP 3: DIFFICULTY HUBS (3 Banners) */}
-            <section style={{ padding: '0 12px', marginBottom: '40px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                
-                {/* Beginner Banner */}
-                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Beginner Workouts", items: difficultyMap["Beginner"] || []}); }} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80" alt="Beginner Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                    <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Beginner Workouts</h3>
-                  </div>
-                </div>
-
-                {/* Intermediate Banner */}
-                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Intermediate Workouts", items: difficultyMap["Intermediate"] || []}); }} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80" alt="Intermediate Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                    <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Intermediate Workouts</h3>
-                  </div>
-                </div>
-
-                {/* Advanced Banner */}
-                <div onClick={() => { triggerHapticLight(); setActiveCollection({title: "Advanced Workouts", items: difficultyMap["Advanced"] || []}); }} className="active-scale scroll-snap-item" style={{ position: 'relative', height: '110px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
-                  <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80" alt="Advanced Workouts" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-                    <h3 style={{ color: 'white', margin: 0, fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px' }}>Advanced Workouts</h3>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-            {/* STEP 2: ACTIVITY TYPES (The 11 Modalities with Image Thumbnails) */}
-            <section style={{ margin: '8px 0 24px' }}>
-              <div style={{ padding: '0 24px', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '2px' }}>Activity Types <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} /></h2>
-              </div>
-              <div className="hide-scrollbar scroll-snap-x" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 8px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
-                
-                {[
-                  { name: 'Strength', icon: <Dumbbell size={20} />, img: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=80', color: '#FF416C' },
-                  { name: 'Yoga', icon: <Wind size={20} />, img: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&q=80', color: '#8E2DE2' },
-                  { name: 'Core', icon: <Target size={20} />, img: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80', color: '#f5af19' },
-                  { name: 'HIIT', icon: <Zap size={20} />, img: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80', color: '#FF4B2B' },
-                  { name: 'Pilates', icon: <Sparkles size={20} />, img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80', color: '#4A00E0' },
-                  { name: 'Dance', icon: <Music size={20} />, img: 'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=400&q=80', color: '#fecfef' },
-                  { name: 'Kickboxing', icon: <Swords size={20} />, img: 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=400&q=80', color: '#f12711' },
-                  { name: 'Treadmill', icon: <Footprints size={20} />, img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80', color: '#00C9FF' },
-                  { name: 'Cycling', icon: <Bike size={20} />, img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80', color: '#11998e' },
-                  { name: 'Rowing', icon: <Waves size={20} />, img: '/images/rowing-crew.png', color: '#3b82f6' },
-                  { name: 'Cooldown', icon: <Moon size={20} />, img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80', color: '#66a6ff' }
-                ].map((type, i) => (
-                  <button 
-                    key={i}
-                    style={{
-                      flexShrink: 0,
-                      width: '130px',
-                      height: '115px',
-                      borderRadius: '20px',
-                      backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%), url(${type.img})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      padding: '16px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.02) translateY(-2px)';
-                      e.currentTarget.style.boxShadow = `0 8px 20px ${type.color}40`;
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.transform = 'scale(1) translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                    }}
-                  >
-                    <div style={{ color: type.color, background: 'rgba(255,255,255,0.9)', padding: '6px', borderRadius: '50%', display: 'flex' }}>
-                      {type.icon}
-                    </div>
-                    <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '-0.3px', textAlign: 'left', lineHeight: '1.1' }}>
-                      {type.name}
-                    </span>
-                  </button>
-                ))}
-
-              </div>
-            </section>
-
-            </>)}
-          {/* Our Own Music Library */}
-          <section style={{ padding: '0 24px' }}>
-            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Our Own Music Library <ChevronRight size={22} color="#94A3B8" strokeWidth={2.5} style={{ verticalAlign: 'middle' }} /></h2>
-              <span style={{ fontSize: '15px', fontWeight: 600, color: '#10B981', cursor: 'pointer' }}>See All</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="hide-scrollbar scroll-snap-x" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
               {[
-                { title: 'Balm Music', duration: '45 min', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=400&q=80' },
-                { title: 'Calm Music', duration: '60 min', img: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80' },
-                { title: 'Calm Songs 1', duration: '30 min', img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80' },
-                { title: 'Calm Songs 2', duration: '20 min', img: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80' }
+                { title: 'Deep Sleep', img: 'https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80' },
+                { title: 'Deep Focus', img: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80' },
+                { title: 'Pure Relax', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=800&q=80' },
+                { title: 'Morning Energy', img: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80' }
               ].map((item, i) => (
-                <div key={i} onClick={() => triggerHapticLight()} style={{ display: 'flex', flexDirection: 'column', gap: '12px', cursor: 'pointer' }}>
-                  <div style={{ aspectRatio: '1', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 8px 16px -6px rgba(0,0,0,0.08)' }}>
-                    <img loading="lazy" decoding="async" src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{item.title}</h4>
-                    <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#94A3B8' }}>{item.duration}</p>
+                <div key={i} onClick={() => triggerHapticLight()} className="active-scale scroll-snap-item" style={{ flexShrink: 0, position: 'relative', width: '220px', height: '120px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}>
+                  <img loading="lazy" decoding="async" src={item.img} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, transparent 90%)', display: 'flex', alignItems: 'center', padding: '0 16px' }}>
+                    <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 600, letterSpacing: '-0.3px', lineHeight: 1.2, maxWidth: '100px' }}>{item.title}</h3>
                   </div>
                 </div>
               ))}
