@@ -173,7 +173,7 @@ export default function AppShell() {
       document.body.appendChild(div);
       const computedTop = parseInt(getComputedStyle(div).paddingTop, 10) || 0;
       document.body.removeChild(div);
-      const finalTop = Math.max(computedTop, 44);
+      const finalTop = computedTop;
       document.documentElement.style.setProperty('--safe-area-top', `${finalTop}px`);
     };
     enforceSafeArea();
