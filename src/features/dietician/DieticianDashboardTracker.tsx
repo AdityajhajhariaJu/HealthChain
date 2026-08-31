@@ -109,27 +109,26 @@ export function DieticianDashboardTracker({
         </button>
       </div>
 
-      {/* 2. Main Budget Card (2x2 Grid) */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderRadius: '24px',
-        padding: '24px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.4)',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
-        gap: '24px',
-        justifyItems: 'center'
-      }}>
-        <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" title="Protein" subtitle={`${targetProtein}g`} />
-        <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" title="Carbs" subtitle={`${targetCarbs}g`} />
-        <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" title="Fats" subtitle={`${targetFats}g`} />
-        <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" title="Sugar" subtitle={`${targetSugar}g`} />
-        <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" title="Fibre" subtitle={`${targetFibre}g`} />
-        <CircularProgress value={consumed} max={targetCalories} color="#EF4444" title="Calories" subtitle={`${targetCalories} kcal`} />
-      </div>
+      {/* 2. Main Budget Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '32px',
+          padding: '36px 24px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.5)',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '40px 24px',
+          justifyItems: 'center'
+        }}>
+          <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
+          <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" trackColor="#DBEAFE" title="Carbs" subtitle={`${targetCarbs}g`} />
+          <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />
+          <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" trackColor="#EDE9FE" title="Fibre" subtitle={`${targetFibre}g`} />
+          <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" trackColor="#FEF3C7" title="Fats" subtitle={`${targetFats}g`} />
+          <CircularProgress value={consumed} max={targetCalories} color="#EF4444" trackColor="#FEE2E2" title="Calories" subtitle={`${targetCalories} kcal`} />
+        </div>
 
       {/* 3. Quick Actions */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
