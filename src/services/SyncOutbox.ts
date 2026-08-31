@@ -93,7 +93,10 @@ async function send(entry: OutboxEntry) {
   const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
     ? 'cases'
     : entry.kind === 'health_memory_upsert' ? 'health_memory'
-      : entry.kind === 'caregiver_profile_upsert' ? 'healthchain_profiles' : 'profiles';
+      : entry.kind === 'caregiver_profile_upsert' ? 'healthchain_profiles'
+      : entry.kind === 'fitness_history_upsert' ? 'user_fitness_history'
+      : entry.kind === 'body_measurements_upsert' ? 'user_body_measurements'
+      : entry.kind === 'health_metrics_upsert' ? 'user_health_metrics' : 'profiles';
   const recordId = entry.payload?.id;
   const localUpdatedAt = entry.payload?.updated_at;
 
@@ -152,7 +155,7 @@ async function send(entry: OutboxEntry) {
     return supabase.from('user_body_measurements').upsert(entry.payload, { onConflict: 'id' });
   }
   if (entry.kind === 'health_metrics_upsert') {
-    return supabase.from('user_health_metrics').upsert(entry.payload, { onConflict: 'user_id, metric_type, start_time, end_time' });
+    return supabase.from('user_health_metrics').upsert(entry.payload, { onConflict: 'user_id,metric_type,start_time,end_time' });
   }
   return { error: new Error('Unknown outbox kind') };
 }
