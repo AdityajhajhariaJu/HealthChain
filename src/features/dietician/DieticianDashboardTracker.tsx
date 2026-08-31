@@ -139,12 +139,12 @@ export function DieticianDashboardTracker({
           </div>
           Snap Gallery
         </button>
-        <button style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px' }}>
-          <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <BookOpen size={16} color="#FFF" />
-          </div>
-          Saved Meals
-        </button>
+        <button onClick={() => onLogMeal('Saved Meal')} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+            <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BookOpen size={16} color="#FFF" />
+            </div>
+            Saved Meals
+          </button>
       </div>
 
       {/* 4. Vertical Meal Tracker Feed */}
@@ -188,12 +188,7 @@ export function DieticianDashboardTracker({
         })}
       </div>
 
-      {/* 5. Floating Snap Button */}
-      <div style={{ position: 'fixed', bottom: '80px', right: '20px', zIndex: 50 }}>
-        <button onClick={onSnap} style={{ background: '#0F172A', color: '#FFF', border: 'none', borderRadius: '100px', padding: '16px 24px', fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.3)', cursor: 'pointer', transition: 'transform 0.2s' }}>
-          <Camera size={22} /> Snap
-        </button>
-      </div>
+
     </div>
   );
 }
