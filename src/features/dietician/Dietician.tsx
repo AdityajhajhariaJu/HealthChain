@@ -1,6 +1,6 @@
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
-import { Scan } from 'lucide-react';
+import { Scan, Sparkles } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 export function formatLocalDate(date: Date): string {
