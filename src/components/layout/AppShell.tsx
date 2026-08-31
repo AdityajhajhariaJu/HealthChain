@@ -297,7 +297,7 @@ const enforceSafeArea = () => {
           </div>
         </motion.main>
 
-      {isMobile && (!location.pathname.startsWith("/app/onboarding") && !location.pathname.startsWith("/app/sports")) && (
+      {isMobile && !location.pathname.startsWith("/app/onboarding") && (
           <>
             <div className="mobile-top-bar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
