@@ -64,6 +64,7 @@ import {
   generateMealPlan,
   generateDieticianAdvice,
   generateNutritionalGuardrails,
+  generateGroceryList,
 } from '../../services/geminiService';
 import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
@@ -205,6 +206,9 @@ export default function Dietician() {
   const [mealPlan, setMealPlan] = useState<any>(null);
   const [guardrails, setGuardrails] = useState<any[]>([]);
   const [isGeneratingGuardrails, setIsGeneratingGuardrails] = useState(false);
+
+  const [isGeneratingGrocery, setIsGeneratingGrocery] = useState(false);
+
 
   const [advice, setAdvice] = useState<any>(null);
   const [isFetchingAdvice, setIsFetchingAdvice] = useState(false);
@@ -489,6 +493,32 @@ export default function Dietician() {
   };
 
   
+  
+  const handleGenerateGrocery = async () => {
+    if (isGeneratingGrocery) return;
+    if (!mealPlan) {
+      toast.error('No Meal Plan', 'Please generate a 7-day meal plan first.');
+      return;
+    }
+    setIsGeneratingGrocery(true);
+    try {
+      const data = await generateGroceryList(mealPlan);
+      if (data && data.groceryList) {
+        if (isMounted.current) setGroceryList(data.groceryList);
+        updateProfileFeatureData('dietician', { groceryList: data.groceryList });
+        awardPoints(2, '🛒 Smart List Created', 'lifestyle', `grocery_${Date.now()}`);
+        triggerHapticSuccess();
+      } else {
+        toast.error('Generation Failed', 'Could not extract grocery list. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Network Error', 'Failed to connect to AI matrix.');
+    } finally {
+      if (isMounted.current) setIsGeneratingGrocery(false);
+    }
+  };
+
   const handleGenerateGuardrails = async () => {
     if (isGeneratingGuardrails) return;
     setIsGeneratingGuardrails(true);

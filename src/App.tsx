@@ -123,7 +123,7 @@ export default function App() {
       const clickable = target.closest('button, a, [role="button"]') as HTMLElement;
       if (clickable) {
         // Try to get a meaningful name for the button/link
-        let name = clickable.getAttribute('aria-label') || clickable.innerText;
+        let name: string | null = clickable.getAttribute('aria-label') || clickable.innerText;
         if (!name && clickable.tagName === 'A') {
           name = clickable.getAttribute('href');
         }
