@@ -123,12 +123,12 @@ export function DieticianDashboardTracker({
         gap: '24px',
         justifyItems: 'center'
       }}>
-        <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" title="Protein" subtitle={${targetProtein}g} />
-        <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" title="Carbs" subtitle={${targetCarbs}g} />
-        <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" title="Fats" subtitle={${targetFats}g} />
-        <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" title="Sugar" subtitle={${targetSugar}g} />
-        <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" title="Fibre" subtitle={${targetFibre}g} />
-        <CircularProgress value={consumed} max={targetCalories} color="#EF4444" title="Calories" subtitle={${targetCalories} kcal} />
+        <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" title="Protein" subtitle={`${targetProtein}g`} />
+        <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" title="Carbs" subtitle={`${targetCarbs}g`} />
+        <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" title="Fats" subtitle={`${targetFats}g`} />
+        <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" title="Sugar" subtitle={`${targetSugar}g`} />
+        <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" title="Fibre" subtitle={`${targetFibre}g`} />
+        <CircularProgress value={consumed} max={targetCalories} color="#EF4444" title="Calories" subtitle={`${targetCalories} kcal`} />
       </div>
 
       {/* 3. Quick Actions */}
