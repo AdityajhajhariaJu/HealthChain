@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Apple, CheckCircle2, RefreshCw, Smartphone } from 'lucide-react';
-import { checkHealthPermissions, requestHealthPermissions, syncHealthData } from '../../services/HealthTrackingService';
+import { isHealthSupported, checkHealthPermissions, requestHealthPermissions, syncHealthData } from '../../services/HealthTrackingService';
 import { useToast } from './ToastProvider';
 import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
 
 export function HealthDeviceIntegrations() {
   const [isConnected, setIsConnected] = useState(false);
+  const [isSupported, setIsSupported] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(localStorage.getItem('hc_last_health_sync'));
   const { toast, success, error } = useToast();
 
   useEffect(() => {
-    checkHealthPermissions().then(granted => setIsConnected(granted));
+    isHealthSupported().then(supported => {
+      setIsSupported(supported);
+      if (supported) {
+        checkHealthPermissions().then(granted => setIsConnected(granted));
+      }
+    });
 
     const handleSyncComplete = (e: any) => {
       const time = new Date(e.detail.at).toLocaleTimeString();
@@ -22,6 +28,8 @@ export function HealthDeviceIntegrations() {
     window.addEventListener('hc_health_sync_complete', handleSyncComplete);
     return () => window.removeEventListener('hc_health_sync_complete', handleSyncComplete);
   }, []);
+
+  if (!isSupported) return null;
 
   const handleConnect = async () => {
     triggerHapticMedium();

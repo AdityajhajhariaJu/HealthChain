@@ -14,6 +14,15 @@ function accountId(): string | null {
   }
 }
 
+export async function isHealthSupported(): Promise<boolean> {
+  try {
+    const available = await Health.isAvailable();
+    return !!available?.available;
+  } catch {
+    return false;
+  }
+}
+
 export async function checkHealthPermissions(): Promise<boolean> {
   try {
     const available = await Health.isAvailable();
@@ -100,7 +109,7 @@ export async function syncHealthData(daysBack: number = 7): Promise<void> {
         
         const payload = {
           user_id: userId,
-          metric_type: 'sleep',
+          metric_type: (sample as any).sleepState ? `sleep_${(sample as any).sleepState}` : 'sleep',
           value: sample.value, 
           unit: sample.unit || 'minute',
           start_time: sample.startDate,
