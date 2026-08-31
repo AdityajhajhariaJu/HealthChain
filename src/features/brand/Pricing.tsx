@@ -200,7 +200,7 @@ export default function Pricing() {
                 toast.success('Welcome to Pro!', 'All 16 specialists & diagnostic tools are unlocked.');
               }
               setTimeout(() => {
-                window.location.href = '/app';
+                navigate('/app');
               }, 800);
             } else {
               toast.error('Verification Failed', verifyData.error || 'Payment could not be verified.');

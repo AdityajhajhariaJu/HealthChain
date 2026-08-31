@@ -327,7 +327,7 @@ export default function App() {
 
             const path = window.location.pathname;
             if (path === '/' || path === '/login' || path === '/signup' || path === '/onboarding' || path === '/auth/callback') {
-              window.location.replace('/app');
+              navigate('/app', { replace: true });
             }
 
             // Sync other background data

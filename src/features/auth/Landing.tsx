@@ -330,7 +330,7 @@ export default function Landing() {
       if (cancelled) return;
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || (event === 'INITIAL_SESSION' && session)) && session) {
         setHasSession(true);
-        window.location.replace('/app');
+        navigate('/app', { replace: true });
       }
     });
 

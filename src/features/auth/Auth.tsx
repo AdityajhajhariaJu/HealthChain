@@ -25,7 +25,7 @@ export default function Auth() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        window.location.replace('/app');
+        navigate('/app', { replace: true });
       }
     }).catch(() => {});
   }, []);
@@ -99,7 +99,7 @@ export default function Auth() {
         }
 
         // Instant redirect to /app
-        window.location.replace('/app');
+        navigate('/app', { replace: true });
         return;
       } else {
         const passwordVal = formData.password;

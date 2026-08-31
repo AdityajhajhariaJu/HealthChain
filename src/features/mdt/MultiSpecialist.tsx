@@ -265,7 +265,7 @@ export default function MultiSpecialist() {
 
   const handleStart = async () => {
     if (!(await getActiveSession())) {
-      window.location.href = '/signup';
+      navigate('/signup');
       return;
     }
     if (symptomInput.trim().length < 5) {

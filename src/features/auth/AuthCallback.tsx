@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
 
 /**
@@ -11,6 +12,7 @@ import { supabase } from '../../services/supabaseClient';
  */
 export default function AuthCallback() {
   const handled = useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
@@ -23,14 +25,14 @@ export default function AuthCallback() {
         localStorage.removeItem('hc_guest_mode');
       } catch (e) {}
       console.log('[AuthCallback] Session confirmed, routing to /app');
-      window.location.replace('/app');
+      navigate('/app', { replace: true });
     };
 
     const navigateFailure = (reason: string) => {
       if (handled.current || !isMounted) return;
       handled.current = true;
       console.warn('[AuthCallback] Auth failed:', reason);
-      window.location.replace('/login');
+      navigate('/login', { replace: true });
     };
 
     // Safety timeout: 12 seconds max before redirecting to login
