@@ -277,7 +277,20 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       overflowX: 'clip'
     }}>
       <FatigueModeToggle />
-        <div style={{ padding: '24px 24px 0 24px', marginBottom: '32px' }}>
+        
+        <div style={{ padding: '0 24px 32px 24px', marginTop: '-8px' }}>
+          <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '20px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', boxShadow: '0 12px 32px rgba(15,23,42,0.15)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.3px' }}>Collaborative Health Canvas</span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>1 new note from Dr. Jenkins</span>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '50%' }}>
+              <ChevronRight size={20} color="#FFF" />
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '0 24px 32px 24px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {dailyTasks.map(task => (
@@ -289,16 +302,12 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 <CinematicCheckbox label={task.title} sublabel={task.subtitle} initialChecked={task.id === 'task_default_done'} />
               </div>
             ))}
-            <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '16px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginTop: '8px', boxShadow: '0 12px 32px rgba(15,23,42,0.2)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '16px', fontWeight: 700 }}>Enter Collaborative Health Canvas</span>
-                <span style={{ fontSize: '13px', color: '#94A3B8' }}>1 new note from Dr. Jenkins</span>
-              </div>
-              <ChevronRight size={20} color="#FFF" />
-            </div>
           </div>
         </div>
-        <div style={{ paddingBottom: "24px" }}><FitnessNav /></div>
+        
+        <div style={{ paddingBottom: "32px", borderTop: "1px solid rgba(0,0,0,0.03)", paddingTop: "32px" }}>
+          <FitnessNav />
+        </div>
 
           <div style={{ paddingTop: "12px" }}>
           {/* Our Own Meditation Hub (Hero) */}
