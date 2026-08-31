@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark} from 'lucide-react';
+import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
 
@@ -306,7 +306,13 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   minHeight: '260px'
                 }}
               >
-                {/* Brass Pendant Light */}
+                
+                  {/* Pushpin */}
+                  <div style={{ position: 'absolute', top: '24px', right: '28px', transform: 'rotate(15deg)', zIndex: 10 }}>
+                    <Pin size={22} color="#EF4444" strokeWidth={2.5} />
+                  </div>
+                  
+                  {/* Brass Pendant Light */}
                 <div style={{ position: 'absolute', top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={{ width: 2, height: 80, background: 'linear-gradient(to bottom, rgba(170,140,44,0.3) 0%, rgba(170,140,44,0.9) 100%)' }} />
                   <div style={{ width: 24, height: 36, borderRadius: '12px', background: 'rgba(255,255,255,0.9)', border: '2px solid #AA8C2C', boxShadow: '0 8px 16px rgba(170,140,44,0.2)', display: 'grid', placeItems: 'center' }}>
