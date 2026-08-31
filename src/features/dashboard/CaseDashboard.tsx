@@ -317,6 +317,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       {dashboardTab === 'fitness' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
+            {false && (<>
                       {/* STEP 1: BROWSE PROGRAMS (The 7 Curated Collections) */}
             <section>
               <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -439,6 +440,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
             </section>
 
+            </>)}
             {/* STEP 4: SPECIALTY & GAMING */}
             <section style={{ padding: '0 16px', marginBottom: '40px' }}>
               <div style={{ marginBottom: '16px' }}>

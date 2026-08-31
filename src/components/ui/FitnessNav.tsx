@@ -8,7 +8,7 @@ export function FitnessNav() {
 
   const tabs = [
     { id: 'today', label: 'For You', path: '/app/today' },
-    { id: 'sports', label: 'Sports', path: '/app/sports' },
+    // { id: 'sports', label: 'Sports', path: '/app/sports' },
     { id: 'progress', label: 'Progress', path: '/app/progress' },
     { id: 'trophies', label: 'Trophies', path: '/app/trophies' }
   ];
