@@ -300,21 +300,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
       
 
 
-      {/* Premium Toggle */}
-      <div style={{ display: 'flex', gap: '24px', padding: '0 24px', borderBottom: '1px solid rgba(0,0,0,0.05)', marginBottom: '24px' }}>
-        <button 
-          onClick={() => { triggerHapticLight(); setDashboardTab('fitness'); }}
-          style={{ background: 'none', border: 'none', padding: '12px 0', fontSize: '17px', fontWeight: 600, color: dashboardTab === 'fitness' ? '#0F172A' : '#94A3B8', borderBottom: dashboardTab === 'fitness' ? '2px solid #10B981' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
-          Fitness programme
-        </button>
-        <button 
-          onClick={() => { triggerHapticLight(); setDashboardTab('meditation'); }}
-          style={{ background: 'none', border: 'none', padding: '12px 0', fontSize: '17px', fontWeight: 600, color: dashboardTab === 'meditation' ? '#0F172A' : '#94A3B8', borderBottom: dashboardTab === 'meditation' ? '2px solid #10B981' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }}>
-          Meditation training
-        </button>
-      </div>
-
-      {dashboardTab === 'fitness' && (
+      
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
             {false && (<>
@@ -467,11 +453,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               </div>
             </section>
 
-        </div>
-      )}
 
-      {dashboardTab === 'meditation' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
           {/* Our Own Meditation Hub (Hero) */}
           <section>
@@ -570,7 +552,6 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </div>
           </section>
         </div>
-      )}
 
       {/* Articles for You */}
       <section style={{ padding: '32px 24px 100px' }}>
