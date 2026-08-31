@@ -55,12 +55,15 @@ import {
   Zap,
   RefreshCw,
   Layers,
+  Activity,
+  Brain,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   analyzeFoodEntry,
   generateMealPlan,
   generateDieticianAdvice,
+  generateNutritionalGuardrails,
 } from '../../services/geminiService';
 import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
@@ -200,6 +203,9 @@ export default function Dietician() {
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
   const [mealPlan, setMealPlan] = useState<any>(null);
+  const [guardrails, setGuardrails] = useState<any[]>([]);
+  const [isGeneratingGuardrails, setIsGeneratingGuardrails] = useState(false);
+
   const [advice, setAdvice] = useState<any>(null);
   const [isFetchingAdvice, setIsFetchingAdvice] = useState(false);
   const [groceryList, setGroceryList] = useState<any[]>(DEFAULT_GROCERY_CATEGORIES);
@@ -479,6 +485,28 @@ export default function Dietician() {
     if (updatedLogs[currentDate]) {
       updatedLogs[currentDate] = updatedLogs[currentDate].filter((item: any) => item.id !== id);
       setFoodLogs(updatedLogs);
+    }
+  };
+
+  
+  const handleGenerateGuardrails = async () => {
+    if (isGeneratingGuardrails) return;
+    setIsGeneratingGuardrails(true);
+    try {
+      const data = await generateNutritionalGuardrails(profile);
+      if (data && data.guardrails) {
+        if (isMounted.current) setGuardrails(data.guardrails);
+        updateProfileFeatureData('dietician', { guardrails: data.guardrails });
+        awardPoints(2, '🛡️ Shield Activated', 'lifestyle', `guardrails_${Date.now()}`);
+        triggerHapticSuccess();
+      } else {
+        toast.error('Generation Failed', 'Could not synthesize medical guardrails. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Network Error', 'Failed to connect to AI matrix.');
+    } finally {
+      if (isMounted.current) setIsGeneratingGuardrails(false);
     }
   };
 
@@ -1272,96 +1300,105 @@ export default function Dietician() {
           </motion.div>
         )}
 
-        {/* TAB 4: CLINICAL GUARDRAILS */}
-        {activeTab === 'guardrails' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                Nutritional Guardrails &amp; Bio-Compatibility Matrix
-              </h2>
-              <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                Autonomous clinical safety screening configured specifically to your medical profile.
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
-              {/* Card 1: Glycemic Index */}
-              <div style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706' }}>
-                    <Zap size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Glycemic Load &amp; Insulin Stability</h3>
-                    <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>GI &lt; 55 Target Active</span>
-                  </div>
+        
+          {/* TAB 4: CLINICAL GUARDRAILS */}
+          {activeTab === 'guardrails' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', marginBottom: '20px', gap: '12px' }}>
+                <div>
+                  <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
+                    Nutritional Guardrails & Bio-Compatibility Matrix
+                  </h2>
+                  <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
+                    Autonomous clinical safety screening configured specifically to your medical profile.
+                  </p>
                 </div>
-                <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                  Restricts high-glycemic simple carbohydrates to prevent postprandial glucose spikes. Prioritizes resistant starches, legumes, and high-fiber grains.
-                </p>
-                <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
-                  <strong>Key Nutrients:</strong> Viscous beta-glucans, Fenugreek (Methi) seeds, Inositol.
-                </div>
-              </div>
-
-              {/* Card 2: Cardiovascular & Sodium */}
-              <div style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
-                    <Heart size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Cardio-Renal DASH Balance</h3>
-                    <span style={{ fontSize: '12px', color: '#2563EB', fontWeight: 700 }}>Sodium &lt; 2,000mg Daily</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                  Balances potassium-to-sodium ratio to reduce endothelial tension and support optimal blood pressure regulation.
-                </p>
-                <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
-                  <strong>Key Nutrients:</strong> Potassium citrate, Magnesium glycinate foods, Dark leafy greens.
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={handleGenerateGuardrails}
+                    disabled={isGeneratingGuardrails}
+                    style={{
+                      background: guardrails.length > 0 ? '#FFFFFF' : '#0F172A',
+                      color: guardrails.length > 0 ? '#334155' : '#FFF',
+                      border: guardrails.length > 0 ? '1px solid #CBD5E1' : 'none',
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: isGeneratingGuardrails ? 'not-allowed' : 'pointer',
+                      opacity: isGeneratingGuardrails ? 0.7 : 1,
+                    }}
+                  >
+                    {isGeneratingGuardrails ? (
+                      <><Loader2 size={15} className="spin" /> Synthesizing...</>
+                    ) : (
+                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Recalibrate Guardrails' : 'Initialize Matrix'}</>
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Card 3: Anti-Inflammatory & Lipid Quality */}
-              <div style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
-                    <ShieldCheck size={18} />
+              {guardrails.length === 0 && !isGeneratingGuardrails ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', background: '#FFFFFF', borderRadius: '24px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px auto' }}>
+                    <ShieldCheck size={32} />
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Polyphenol &amp; Lipid Optimization</h3>
-                    <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>Omega-3 to Omega-6 Ratio &lt; 1:4</span>
-                  </div>
+                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>Matrix Offline</h3>
+                  <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
+                    Generate your personalized safety guardrails to ensure your meal plan strictly adheres to your clinical needs and conditions.
+                  </p>
+                  <button onClick={handleGenerateGuardrails} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 800, fontSize: '15px', cursor: 'pointer' }}>
+                    Initialize Matrix
+                  </button>
                 </div>
-                <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                  Eliminates industrial trans-fats and excessive omega-6 seed oils. Replaces them with cold-pressed extra virgin olive oil, ghee, and walnuts.
-                </p>
-                <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
-                  <strong>Key Nutrients:</strong> Curcumin + Piperine, Oleocanthal, Alpha-linolenic acid (ALA).
-                </div>
-              </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
+                  {guardrails.map((gr: any, idx: number) => {
+                    let IconComponent = ShieldCheck;
+                    if (gr.icon === 'Zap') IconComponent = Zap;
+                    if (gr.icon === 'Heart') IconComponent = Heart;
+                    if (gr.icon === 'Layers') IconComponent = Layers;
+                    if (gr.icon === 'Activity') IconComponent = Activity;
+                    if (gr.icon === 'Droplet') IconComponent = Droplet;
+                    if (gr.icon === 'Brain') IconComponent = Brain;
+                    if (gr.icon === 'Flame') IconComponent = Flame;
 
-              {/* Card 4: Gut Microbiome & Probiotics */}
-              <div style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C3AED' }}>
-                    <Layers size={18} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Microbiome &amp; SCFA Production</h3>
-                    <span style={{ fontSize: '12px', color: '#7C3AED', fontWeight: 700 }}>30+ Plant Types / Week</span>
-                  </div>
+                    let bgColor = '#F1F5F9';
+                    let iconColor = '#64748B';
+                    let targetColor = '#0F172A';
+                    
+                    if (gr.color === 'orange') { bgColor = '#FEF3C7'; iconColor = '#D97706'; targetColor = '#D97706'; }
+                    if (gr.color === 'blue') { bgColor = '#EFF6FF'; iconColor = '#2563EB'; targetColor = '#2563EB'; }
+                    if (gr.color === 'green') { bgColor = '#ECFDF5'; iconColor = '#059669'; targetColor = '#059669'; }
+                    if (gr.color === 'purple') { bgColor = '#F3E8FF'; iconColor = '#7E22CE'; targetColor = '#7E22CE'; }
+                    if (gr.color === 'red') { bgColor = '#FEE2E2'; iconColor = '#DC2626'; targetColor = '#DC2626'; }
+
+                    return (
+                      <div key={idx} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor }}>
+                            <IconComponent size={18} />
+                          </div>
+                          <div>
+                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>{gr.title}</h3>
+                            <span style={{ fontSize: '12px', color: targetColor, fontWeight: 700 }}>{gr.target}</span>
+                          </div>
+                        </div>
+                        <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+                          {gr.description}
+                        </p>
+                        <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
+                          <strong>Key Nutrients:</strong> {gr.keyNutrients}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                  Diversified prebiotic fibers feed commensal gut bacteria (Akkermansia, Bifidobacteria) to generate Short-Chain Fatty Acids (Butyrate) for intestinal mucosal integrity.
-                </p>
-                <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
-                  <strong>Key Nutrients:</strong> Set Probiotic Dahi, Fermented veggies, Prebiotic inulin.
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              )}
+</motion.div>
         )}
 
         {/* Floating Food Logger Modal */}
