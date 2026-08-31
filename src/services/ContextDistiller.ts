@@ -7,7 +7,7 @@ export function generateDistilledBiometricContext(): string {
   
   // Format Demographics
   const demo = profile?.demographics || {};
-  let demoStr = [];
+  let demoStr: string[] = [];
   if (demo.age) demoStr.push(`Age: ${demo.age}`);
   if (demo.gender) demoStr.push(`Sex: ${demo.gender}`);
   if (demo.weight) demoStr.push(`Weight: ${demo.weight}`);
