@@ -15,9 +15,62 @@ export function DieticianDashboardTracker({
   
   const targetCalories = profile?.targetCalories || 1850;
   
-  const consumed = Array.isArray(foodLogs[currentDate]) 
+    const consumed = Array.isArray(foodLogs[currentDate]) 
     ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.calories || 0), 0)
     : 0;
+    
+  const consumedProtein = Array.isArray(foodLogs[currentDate]) 
+    ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.protein || 0), 0)
+    : 0;
+    
+  const consumedCarbs = Array.isArray(foodLogs[currentDate]) 
+    ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.carbs || 0), 0)
+    : 0;
+    
+  const consumedFats = Array.isArray(foodLogs[currentDate]) 
+    ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.fat || log.fats || 0), 0)
+    : 0;
+    
+  const targetProtein = profile?.targetProtein || 135;
+  const targetCarbs = profile?.targetCarbs || 200;
+  const targetFats = profile?.targetFat || 75;
+  const targetSugar = profile?.targetSugar || 30;
+  const targetFibre = profile?.targetFibre || 25;
+  
+  const consumedSugar = Array.isArray(foodLogs[currentDate]) 
+    ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.sugar || 0), 0)
+    : 0;
+    
+  const consumedFibre = Array.isArray(foodLogs[currentDate]) 
+    ? foodLogs[currentDate].reduce((acc: number, log: any) => acc + (log.fibre || log.fiber || 0), 0)
+    : 0;
+  
+  const CircularProgress = ({ value, max, color, title, subtitle }: any) => {
+    const radius = 28;
+    const circumference = 2 * Math.PI * radius;
+    const percent = Math.min(value / (max || 1), 1);
+    const offset = circumference - percent * circumference;
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+        <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
+        <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" strokeOpacity="0.2" />
+            <circle cx="40" cy="40" r={radius} fill="none" stroke={color} strokeWidth="6" 
+              strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" 
+              style={{ transition: 'stroke-dashoffset 0.5s ease' }} 
+            />
+          </svg>
+          <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', lineHeight: '1.2' }}>{Math.round(value)}</span>
+            <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>{subtitle}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
   const mealConfig = [
     { name: 'Breakfast', percent: 0.25 },
@@ -56,30 +109,26 @@ export function DieticianDashboardTracker({
         </button>
       </div>
 
-      {/* 2. Main Budget Card */}
+      {/* 2. Main Budget Card (2x2 Grid) */}
       <div style={{
-        background: '#FFF', borderRadius: '16px', padding: '24px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+        background: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderRadius: '24px',
+        padding: '24px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.4)',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr 1fr',
+        gap: '24px',
+        justifyItems: 'center'
       }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <div style={{
-            width: '60px', height: '60px', borderRadius: '50%', border: '4px solid #F1F5F9', borderTopColor: '#F97316',
-            borderRightColor: consumed > targetCalories * 0.25 ? '#F97316' : '#F1F5F9',
-            borderBottomColor: consumed > targetCalories * 0.5 ? '#F97316' : '#F1F5F9',
-            borderLeftColor: consumed > targetCalories * 0.75 ? '#F97316' : '#F1F5F9',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Activity size={24} color="#F97316" />
-          </div>
-          <div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A' }}>
-              {Math.round(consumed)} of {targetCalories}
-            </div>
-            <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>Cal Eaten</div>
-          </div>
-        </div>
-        <button onClick={onOpenSettings} style={{ background: '#FFF7ED', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
-          <BarChart2 size={18} color="#F97316" />
-        </button>
+        <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" title="Protein" subtitle={${targetProtein}g} />
+        <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" title="Carbs" subtitle={${targetCarbs}g} />
+        <CircularProgress value={consumedFats} max={targetFats} color="#F59E0B" title="Fats" subtitle={${targetFats}g} />
+        <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" title="Sugar" subtitle={${targetSugar}g} />
+        <CircularProgress value={consumedFibre} max={targetFibre} color="#8B5CF6" title="Fibre" subtitle={${targetFibre}g} />
+        <CircularProgress value={consumed} max={targetCalories} color="#EF4444" title="Calories" subtitle={${targetCalories} kcal} />
       </div>
 
       {/* 3. Quick Actions */}
