@@ -93,7 +93,7 @@ export function GuestStickyBanner() {
           fontSize: '12.5px',
           zIndex: 40,
           position: 'sticky',
-          top: '6px',
+          top: 'calc(56px + var(--safe-area-top, 0px) + 6px)',
           boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05) inset',
         }}
       >

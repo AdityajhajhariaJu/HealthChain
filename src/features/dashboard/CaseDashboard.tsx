@@ -197,7 +197,7 @@ const VerticalWorkoutRow = ({ item, onClick, getFallbackImage }: any) => (
 
 const MeditationHeroCard = ({ item, onClick, getFallbackImage }: any) => (
   <div onClick={onClick} style={{
-    minWidth: '260px', height: '220px', borderRadius: '24px', overflow: 'hidden', position: 'relative', cursor: 'pointer', flexShrink: 0,
+    width: '75vw', maxWidth: '260px', height: '220px', borderRadius: '24px', overflow: 'hidden', position: 'relative', cursor: 'pointer', flexShrink: 0,
     boxShadow: '0 12px 24px -8px rgba(0,0,0,0.15)'
   }}>
     <img loading="lazy" decoding="async" src={item.cover_image_url || getFallbackImage(item.type, item.id)} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
