@@ -104,7 +104,7 @@ export function DieticianDashboardTracker({
             <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>14 hrs</div>
           </div>
         </div>
-        <button style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+        <button onClick={onOpenSettings} style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
           Get Started
         </button>
       </div>

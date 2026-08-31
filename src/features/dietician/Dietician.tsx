@@ -910,7 +910,7 @@ export default function Dietician() {
                 currentDate={currentDate}
                 onLogMeal={(mealName) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
                 onSnap={() => setShowARLens(true)}
-                onOpenSettings={() => toast.success('Coming Soon', 'Fasting & Diet settings will be available in the next update!')}
+                onOpenSettings={() => { triggerHapticLight(); toast.success('Coming Soon', 'Fasting & Diet settings will be available in the next update!'); }}
                 onOpenGallery={() => setShowARLens(true)}
               />
             </motion.div>
@@ -1047,7 +1047,7 @@ export default function Dietician() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Day selector tabs */}
-                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' }}>
                   {normalizedPlanDays.map((day: any, idx: number) => {
                     const dayNum = day.day || idx + 1;
                     const isSelected = selectedPlanDay === dayNum;
@@ -1059,9 +1059,7 @@ export default function Dietician() {
                           setSelectedPlanDay(dayNum);
                         }}
                         style={{
-                          padding: '10px 18px',
-                          borderRadius: '12px',
-                          border: `1px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
+                          flexShrink: 0, padding: '10px 18px', borderRadius: '12px', border: `1px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
                           background: isSelected ? '#ECFDF5' : '#FFFFFF',
                           color: isSelected ? '#065F46' : '#64748B',
                           fontWeight: 800,
