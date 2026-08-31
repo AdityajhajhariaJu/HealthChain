@@ -297,7 +297,7 @@ export default function Landing() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [guestMode, setGuestMode] = useState(false);
-  const isLoggedOut = !hasSession && !guestMode;
+  const isLoggedOut = !hasSession;
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
