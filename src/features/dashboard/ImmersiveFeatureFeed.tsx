@@ -89,7 +89,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
   }, []);
 
   return (
-    <div className="hide-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '16px', width: '100vw', padding: '0 24px 24px 24px', marginLeft: '-24px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
       {cards.map((card, index) => (
         <motion.div
           key={card.id}
@@ -99,11 +99,8 @@ export const ImmersiveFeatureFeed: React.FC = () => {
           onClick={() => navigate(card.route)}
           style={{ 
             position: 'relative',
-            width: '180px',
-            minWidth: '180px',
-            height: '240px',
-            scrollSnapAlign: 'center',
-            borderRadius: '28px',
+            width: '100%', height: '320px',
+            borderRadius: '24px',
             overflow: 'hidden',
             cursor: 'pointer',
             backgroundColor: '#0F172A',
