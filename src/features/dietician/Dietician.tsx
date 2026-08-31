@@ -701,10 +701,7 @@ export default function Dietician() {
               borderRadius: '14px',
               border: '1px solid #E2E8F0',
               boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-              overflowX: 'auto',
-              width: isMobile ? '100%' : 'auto',
-              maxWidth: '100%',
-              flexWrap: 'nowrap',
+              overflowX: 'visible', width: isMobile ? '100%' : 'auto', maxWidth: '100%', flexWrap: 'wrap',
               WebkitOverflowScrolling: 'touch',
               alignItems: 'center',
             }}
