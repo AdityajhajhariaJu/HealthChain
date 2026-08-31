@@ -16,20 +16,22 @@ function accountId(): string | null {
 
 export async function checkHealthPermissions(): Promise<boolean> {
   try {
-    const status = await Health.isAvailable();
-    return status?.available || false;
+    const available = await Health.isAvailable();
+    if (!available?.available) return false;
+    const status = await Health.checkAuthorization({ read: ['steps', 'sleep', 'heartRate', 'totalCalories', 'weight', 'height'] });
+    return status?.readAuthorized && status.readAuthorized.length > 0;
   } catch (err) {
-    console.warn('Health isAvailable error:', err);
+    console.warn('Health checkAuthorization error:', err);
     return false;
   }
 }
 
 export async function requestHealthPermissions(): Promise<boolean> {
   try {
-    await Health.requestAuthorization({
+    const status = await Health.requestAuthorization({
       read: ['steps', 'sleep', 'heartRate', 'totalCalories', 'weight', 'height']
     });
-    return true;
+    return !!(status?.readAuthorized && status.readAuthorized.length > 0);
   } catch (err) {
     console.error('Failed to request health permissions:', err);
     return false;
