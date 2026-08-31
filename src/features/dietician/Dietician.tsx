@@ -850,7 +850,7 @@ export default function Dietician() {
                 currentDate={currentDate}
                 onLogMeal={(mealName) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
                 onSnap={() => setShowARLens(true)}
-                onOpenSettings={() => {}}
+                onOpenSettings={() => toast.success('Coming Soon', 'Fasting & Diet settings will be available in the next update!')}
                 onOpenGallery={() => {}}
               />
             </motion.div>

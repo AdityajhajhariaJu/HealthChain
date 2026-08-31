@@ -165,7 +165,7 @@ export function DieticianDashboardTracker({
               </div>
               
               {mealConsumed === 0 && (
-                <div style={{ background: '#FFF', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px dashed #E2E8F0', color: '#94A3B8', fontSize: '13px', fontWeight: 500 }}>
+                <div onClick={() => onLogMeal(meal.name)} style={{ background: '#FFF', borderRadius: '16px', padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px dashed #E2E8F0', color: '#94A3B8', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s, transform 0.1s' }} onMouseOver={(e) => e.currentTarget.style.background = '#F8FAFC'} onMouseOut={(e) => e.currentTarget.style.background = '#FFF'} onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'} onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                   {meal.name === 'Breakfast' && 'Hey, here are some Healthy Breakfast Suggestions for you'}
                   {meal.name === 'Morning Snack' && 'Get energized by grabbing a morning snack 🥜'}
                   {meal.name === 'Lunch' && 'Don\'t miss lunch 🍱 It\'s time to get a tasty meal'}
