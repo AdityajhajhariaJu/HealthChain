@@ -1,5 +1,6 @@
 import WarRoom from './features/dashboard/WarRoom';
 import React, { Suspense, useEffect } from 'react';
+import { trackButtonClick } from './services/analytics';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
@@ -114,6 +115,29 @@ async function sha256Hex(str: string): Promise<string> {
 }
 
 export default function App() {
+
+  // Global User Activity Tracker
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const clickable = target.closest('button, a, [role="button"]') as HTMLElement;
+      if (clickable) {
+        // Try to get a meaningful name for the button/link
+        let name = clickable.getAttribute('aria-label') || clickable.innerText;
+        if (!name && clickable.tagName === 'A') {
+          name = clickable.getAttribute('href');
+        }
+        if (name && typeof name === 'string' && name.trim()) {
+          trackButtonClick(name.trim().substring(0, 60));
+        }
+      }
+    };
+    
+    // Use passive listener to not impact scrolling/performance
+    document.addEventListener('click', handleGlobalClick, { capture: true, passive: true });
+    return () => document.removeEventListener('click', handleGlobalClick, { capture: true });
+  }, []);
+
   const location = useLocation();
   const navigate = useNavigate();
   const { info } = useToast();

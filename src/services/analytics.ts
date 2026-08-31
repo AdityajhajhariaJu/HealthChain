@@ -13,6 +13,17 @@ declare global {
   }
 }
 
+
+const getAnonymousId = () => {
+  if (typeof window === 'undefined') return 'unknown';
+  let anonId = localStorage.getItem('hc_anon_id');
+  if (!anonId) {
+    anonId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem('hc_anon_id', anonId);
+  }
+  return anonId;
+};
+
 export const trackEvent = (eventName: string, payload: any = {}) => {
   // 1. Google Ads & Google Tag (gtag.js)
   if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
@@ -44,8 +55,10 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
     const platform = Capacitor.getPlatform();
     supabase.auth.getSession().then(({ data }) => {
       supabase.from('analytics_events').insert({
+        
         event_name: eventName,
-        event_params: payload,
+        event_params: { ...payload, anonymous_id: getAnonymousId() },
+
         user_id: data?.session?.user?.id || null,
         platform: platform,
         created_at: new Date().toISOString()
