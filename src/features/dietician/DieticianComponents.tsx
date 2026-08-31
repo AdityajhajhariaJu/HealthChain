@@ -68,6 +68,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
 
     return {
       weight: coreProfile?.weight ? String(coreProfile.weight) : '',
+        weightUnit: 'kg',
+        heightUnit: 'cm',
       targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
       targetDays: '90',
       height: coreProfile?.height ? String(coreProfile.height) : '',
