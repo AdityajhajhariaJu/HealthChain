@@ -186,7 +186,7 @@ const VerticalWorkoutRow = ({ item, onClick, getFallbackImage }: any) => (
         </div>
       )}
     </div>
-    <div style={{ flex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <div style={{ flex: 1, borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexShrink: 0 }}>
       <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>{item.title}</h4>
       <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
         {item.duration_minutes}min • {item.difficulty ? item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1) : 'Open'}
@@ -214,7 +214,7 @@ const MeditationHeroCard = ({ item, onClick, getFallbackImage }: any) => (
           <span style={{ color: 'white', fontSize: '12px', fontWeight: 600 }}>Ambient</span>
         </div>
       </div>
-      <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.8)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+      <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.8)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}>
         <Play size={20} fill="#0F172A" color="#0F172A" style={{ marginLeft: '3px' }} />
       </button>
     </div>
@@ -591,8 +591,8 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   
                   {/* Badge */}
                   {art.isPopular && (
-                    <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(255,255,255,0.85)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(4px)' }}>
-                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#2E2B5F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(255,255,255,0.85)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(4px)', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}>
+                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#2E2B5F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Flame size={8} color="#FFF" strokeWidth={3} />
                       </div>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: '#2E2B5F' }}>Popular</span>
@@ -601,13 +601,13 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
                   {/* Actions */}
                   <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '8px' }}>
-                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0 }}>
+                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0, minWidth: '32px', minHeight: '32px', flexShrink: 0 }}>
                       <Heart size={16} strokeWidth={1.5} />
                     </button>
-                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0 }}>
+                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0, minWidth: '32px', minHeight: '32px', flexShrink: 0 }}>
                       <Share2 size={16} strokeWidth={1.5} />
                     </button>
-                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0 }}>
+                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0, minWidth: '32px', minHeight: '32px', flexShrink: 0 }}>
                       <Bookmark size={16} strokeWidth={1.5} />
                     </button>
                   </div>
