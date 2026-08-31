@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from './ToastProvider';
 import { Pause, Play } from 'lucide-react';
@@ -16,7 +17,7 @@ interface MeditationPlayerProps {
 export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onClose }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const toast = useToast();
-  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState((content?.duration_minutes || 5) * 60);
   const [phase, setPhase] = useState<"Prepare" | "Inhale" | "Hold" | "Exhale" | "Rest">("Prepare");
   const [isCompleted, setIsCompleted] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -113,7 +114,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {content && (
         <motion.div 
@@ -264,7 +265,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
           )}
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
