@@ -1,85 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { getProfile } from '../../services/ProfileEngine';
-import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import re
 
-interface FeedCard {
-  id: string;
-  image: string;
-  title: string;
-  subtitle: string;
-  route: string;
-  priority: number;
-}
+filepath = 'C:/Users/adity/OneDrive/Desktop/HealthChain-Live/src/features/dashboard/ImmersiveFeatureFeed.tsx'
+with open(filepath, 'r', encoding='utf-8') as f:
+    content = f.read()
 
-export const ImmersiveFeatureFeed: React.FC = () => {
-  const navigate = useNavigate();
-  const [cards, setCards] = useState<FeedCard[]>([]);
-
-  useEffect(() => {
-    const profile = getProfile();
-    const hour = new Date().getHours();
-    
-    let feed: FeedCard[] = [
-      {
-        id: 'streak',
-        image: '/images/immersive/streak-rewards.png',
-        title: 'Master your health, one day at a time.',
-        subtitle: 'Answer questions. Build your streak. Unlock rewards.',
-        route: '/app/today',
-        priority: 10,
-      },
-      {
-        id: 'meal-personalized',
-        image: '/images/immersive/personalized-meal.png',
-        title: 'Personalized For You',
-        subtitle: 'Your cortisol is down. I\'ve updated your meal plan.',
-        route: '/app/nutrition',
-        priority: 20,
-      }
-    ];
-
-    if (hour >= 13 && hour <= 16) {
-      feed.push({
-        id: 'focus-boost',
-        image: '/images/immersive/focus-boost.png',
-        title: '2 PM Focus Boost',
-        subtitle: 'Add these for cognitive energy.',
-        route: '/app/nutrition',
-        priority: 100, 
-      });
-    }
-
-    if (profile.medicalConditions?.some(c => c.toLowerCase().includes('diabetes'))) {
-      feed.push({
-        id: 'glucose-spike',
-        image: '/images/immersive/doctor-biomarker.png',
-        title: 'Post-Meal Spike Detected',
-        subtitle: 'Let\'s take a 10-minute walk to stabilize glucose.',
-        route: '/app/today',
-        priority: 90, 
-      });
-    }
-    
-    feed.sort((a, b) => b.priority - a.priority);
-    setCards(feed); // Only take top 3 for the fanned layout
-  }, []);
-
-  const getCardStyle = (index: number, total: number) => {
-    if (total === 3) {
-      if (index === 0) return { rotate: -15, x: 40, y: 10, zIndex: 1, scale: 0.9 };
-      if (index === 1) return { rotate: 0, x: 0, y: -10, zIndex: 10, scale: 1.05 };
-      if (index === 2) return { rotate: 15, x: -40, y: 10, zIndex: 1, scale: 0.9 };
-    }
-    if (total === 2) {
-      if (index === 0) return { rotate: -8, x: 20, y: 0, zIndex: 1, scale: 0.95 };
-      if (index === 1) return { rotate: 8, x: -20, y: 0, zIndex: 2, scale: 1.0 };
-    }
-    return { rotate: 0, x: 0, y: 0, zIndex: 1, scale: 1 };
-  };
-
-  if (cards.length === 0) return null;
+new_return_block = '''  if (cards.length === 0) return null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -150,3 +75,18 @@ export const ImmersiveFeatureFeed: React.FC = () => {
     </div>
   );
 };
+'''
+
+content = re.sub(
+    r'  if \(cards\.length === 0\) return null;.*',
+    new_return_block,
+    content,
+    flags=re.DOTALL
+)
+
+content = content.replace('setCards(feed.slice(0, 3));', 'setCards(feed);')
+
+with open(filepath, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print('Replaced ImmersiveFeatureFeed layout with a carousel.')
