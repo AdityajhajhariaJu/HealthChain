@@ -81,7 +81,7 @@ export function GuestStickyBanner() {
           WebkitBackdropFilter: 'blur(24px)',
           border: '1px solid rgba(45, 212, 191, 0.25)',
           borderRadius: '24px',
-          margin: '6px auto',
+          margin: '0 auto 12px auto',
           alignSelf: 'center',
           width: '100%',
           maxWidth: '1120px',
@@ -93,7 +93,7 @@ export function GuestStickyBanner() {
           fontSize: '12.5px',
           zIndex: 40,
           position: 'sticky',
-          top: 'calc(56px + var(--safe-area-top, 0px) + 6px)',
+          top: 'calc(56px + var(--safe-area-top, 0px))',
           boxShadow: '0 12px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05) inset',
         }}
       >
