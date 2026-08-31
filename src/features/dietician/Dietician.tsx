@@ -224,6 +224,7 @@ export default function Dietician() {
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Hydrate diet state
   useEffect(() => {
@@ -310,12 +311,13 @@ export default function Dietician() {
         console.error('Failed to restore diet state:', e);
       }
     };
-    void load();
+    load().finally(() => setIsHydrated(true));
     return () => { cancelled = true; };
   }, []);
 
   // Save state to local storage when it changes
   useEffect(() => {
+    if (!isHydrated) return;
     try {
       const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList };
       updateProfileFeatureData('dietician', data);
