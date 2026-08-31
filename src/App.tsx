@@ -125,7 +125,7 @@ export default function App() {
         // Try to get a meaningful name for the button/link
         let name: string | null = clickable.getAttribute('aria-label') || clickable.innerText;
         if (!name && clickable.tagName === 'A') {
-          name = clickable.getAttribute('href');
+          name = clickable.getAttribute('href') || '';
         }
         if (name && typeof name === 'string' && name.trim()) {
           trackButtonClick(name.trim().substring(0, 60));

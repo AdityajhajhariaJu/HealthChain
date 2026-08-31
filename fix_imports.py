@@ -1,18 +1,11 @@
-﻿# -*- coding: utf-8 -*-
-import sys
+﻿import os
 
-with open('src/features/dietician/Dietician.tsx', 'r', encoding='utf-8') as f:
+path = r'C:\Users\adity\OneDrive\Desktop\HealthChain-Live\src\components\ui\ARGroceryLens.tsx'
+with open(path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# Add imports
-if "ARGroceryLens" not in content:
-    content = content.replace("import { motion, AnimatePresence } from 'framer-motion';", "import { motion, AnimatePresence } from 'framer-motion';\nimport { ARGroceryLens } from '../../components/ui/ARGroceryLens';\nimport { Scan } from 'lucide-react';")
+content = content.replace("import { getProfile }\nimport { analyzeFoodImage } from '../../services/geminiService'; from '../../services/ProfileEngine';", "import { getProfile } from '../../services/ProfileEngine';\nimport { analyzeFoodImage } from '../../services/geminiService';")
 
-# Add state
-if "showARLens" not in content:
-    content = content.replace("const [isLogModalOpen, setIsLogModalOpen] = useState(false);", "const [isLogModalOpen, setIsLogModalOpen] = useState(false);\n  const [showARLens, setShowARLens] = useState(false);")
-
-with open('src/features/dietician/Dietician.tsx', 'w', encoding='utf-8') as f:
+with open(path, 'w', encoding='utf-8') as f:
     f.write(content)
-
-print('Done')
+print("Fixed imports")

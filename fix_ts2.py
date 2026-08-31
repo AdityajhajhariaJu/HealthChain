@@ -1,18 +1,17 @@
-import sys
-import re
+﻿import os
 
-file_path = 'C:/Users/adity/OneDrive/Desktop/HealthChain-Live/src/features/dashboard/CaseDashboard.tsx'
-with open(file_path, 'r', encoding='utf-8') as f:
-    content = f.read()
+path = r'C:\Users\adity\OneDrive\Desktop\HealthChain-Live\src\features\dietician\Dietician.tsx'
+with open(path, 'r', encoding='utf-8') as f:
+    lines = f.readlines()
 
-# Replace any difficulty assignment that doesn't have equipment with the full block
-content = re.sub(
-    r"(difficulty:\s*'[^']+')(?!\s*,\s*equipment)",
-    r"\1, equipment: [], is_premium: false, is_featured: true",
-    content
-)
+new_lines = []
+for i, line in enumerate(lines):
+    if i == 58 and 'Droplet' in line:
+        continue
+    if i == 60 and 'Flame' in line:
+        continue
+    new_lines.append(line)
 
-with open(file_path, 'w', encoding='utf-8') as f:
-    f.write(content)
-
-print('Added missing properties to all FitnessContent mock objects.')
+with open(path, 'w', encoding='utf-8') as f:
+    f.writelines(new_lines)
+print("Removed duplicate imports")
