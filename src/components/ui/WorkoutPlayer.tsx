@@ -169,6 +169,7 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
             <div style={{ position: 'relative', zIndex: 10, padding: 'var(--safe-area-top, 44px) 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <button 
                 onClick={onClose}
+                aria-label="Close workout player"
                 style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
                 <ChevronDown size={24} color="white" />
@@ -216,12 +217,14 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                   <button
                     onClick={() => { setIsPlaying(!isPlaying); triggerHapticLight(); }}
+                    aria-label={isPlaying ? "Pause" : "Play"}
                     style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(0,0,0,0.3)' }}
                   >
                     {isPlaying ? <Pause size={28} color="#0F172A" /> : <Play size={28} color="#0F172A" style={{ marginLeft: '4px' }} />}
                   </button>
                   <button 
                     onClick={handleNextStep}
+                    aria-label="Next step"
                     style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   >
                     <FastForward size={20} color="white" />
