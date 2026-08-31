@@ -1900,6 +1900,11 @@ Return ONLY a valid JSON object matching this schema:
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) throw new Error('Empty response');
 
-  const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  let cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  const startIdx = cleanJson.indexOf('{');
+  const endIdx = cleanJson.lastIndexOf('}');
+  if (startIdx !== -1 && endIdx !== -1) {
+    cleanJson = cleanJson.substring(startIdx, endIdx + 1);
+  }
   return JSON.parse(cleanJson);
 }
