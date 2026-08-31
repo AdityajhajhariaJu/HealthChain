@@ -1,3 +1,4 @@
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
