@@ -281,8 +281,12 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Daily Clinical Actions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {dailyTasks.map(task => (
-              <div key={task.id} onClick={() => task.id === 'task_2' && setShowFrictionModal(true)}>
-                <CinematicCheckbox label={task.title} sublabel={task.subtitle} />
+              <div key={task.id} onClick={() => {
+                triggerHapticLight();
+                if (task.id === 'task_2') setShowFrictionModal(true);
+                if (task.id === 'task_default') navigate('/app/profile');
+              }} style={{ cursor: task.id === 'task_default' ? 'pointer' : 'default' }}>
+                <CinematicCheckbox label={task.title} sublabel={task.subtitle} initialChecked={task.id === 'task_default_done'} />
               </div>
             ))}
             <div onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: '#FFF', padding: '16px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginTop: '8px', boxShadow: '0 12px 32px rgba(15,23,42,0.2)' }}>

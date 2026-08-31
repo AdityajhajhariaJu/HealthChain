@@ -167,6 +167,12 @@ export default function MedicalProfile() {
     setIsSaving(true);
     setTimeout(() => {
       updateDemographics(demoForm);
+      
+      const isComplete = demoForm.dob && demoForm.gender && demoForm.bloodGroup;
+      if (isComplete) {
+        awardPoints(10, 'Health Profile Completed', 'platform', 'profile_completion');
+      }
+
       setIsSaving(false);
       setIsEditingDemo(false);
       setShowSaved(true);
