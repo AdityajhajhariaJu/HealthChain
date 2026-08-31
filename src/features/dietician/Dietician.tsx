@@ -88,7 +88,7 @@ export const ACTIVITY_LEVELS = [
 ];
 export const RESTRICTIONS = ['Vegetarian', 'Vegan', 'Gluten-free', 'Lactose-free', 'None'];
 export const MEDICAL_CONDITIONS = ['Diabetes', 'PCOS', 'Hypertension', 'Thyroid', 'None'];
-export const CUISINES = ['North Indian', 'South Indian', 'Mediterranean', 'Western', 'Keto', 'Any'];
+export const CUISINES = ['North Indian', 'South Indian', 'Mediterranean', 'Middle Eastern', 'Mexican', 'East Asian', 'Western', 'Keto', 'Any'];
 export const MEAL_SCHEDULES = [
   '3 Meals',
   '3 Meals + 1 Snack',

@@ -11,10 +11,16 @@ import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 function computeTargets(p: any) {
-  const parsedWeight = parseFloat(p.weight);
+  let parsedWeight = parseFloat(p.weight);
+  if (p.weightUnit === 'lbs') parsedWeight = parsedWeight * 0.453592;
   const w = Math.max(20, !Number.isNaN(parsedWeight) ? parsedWeight : 70);
 
-  const parsedHeight = parseFloat(p.height);
+  let parsedHeight = parseFloat(p.height);
+  if (p.heightUnit === 'ft') {
+    const ft = parseFloat(p.heightFt) || 0;
+    const inc = parseFloat(p.heightIn) || 0;
+    parsedHeight = (ft * 30.48) + (inc * 2.54);
+  }
   const h = Math.max(50, !Number.isNaN(parsedHeight) ? parsedHeight : 170);
 
   const parsedAge = parseInt(p.age, 10);
@@ -69,10 +75,12 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
     return {
       weight: coreProfile?.weight ? String(coreProfile.weight) : '',
         weightUnit: 'kg',
+        targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
+        targetDays: '90',
+        height: coreProfile?.height ? String(coreProfile.height) : '',
         heightUnit: 'cm',
-      targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
-      targetDays: '90',
-      height: coreProfile?.height ? String(coreProfile.height) : '',
+        heightFt: '',
+        heightIn: '',
       age: coreProfile?.age ? String(coreProfile.age) : '',
       gender: coreProfile?.gender?.toLowerCase() === 'female' ? 'female' : 'male',
       goal: 'Lose weight',
@@ -320,19 +328,31 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
               </div>
             </div>
 
+            {/* Unit Toggles */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '2px' }}>
+                <button onClick={() => setData({...data, weightUnit: 'kg'})} style={{ background: data.weightUnit === 'kg' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.weightUnit === 'kg' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.weightUnit === 'kg' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>kg</button>
+                <button onClick={() => setData({...data, weightUnit: 'lbs'})} style={{ background: data.weightUnit === 'lbs' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.weightUnit === 'lbs' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.weightUnit === 'lbs' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>lbs</button>
+              </div>
+              <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: '8px', padding: '2px' }}>
+                <button onClick={() => setData({...data, heightUnit: 'cm'})} style={{ background: data.heightUnit === 'cm' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.heightUnit === 'cm' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.heightUnit === 'cm' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>cm</button>
+                <button onClick={() => setData({...data, heightUnit: 'ft'})} style={{ background: data.heightUnit === 'ft' ? '#FFF' : 'transparent', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, color: data.heightUnit === 'ft' ? '#0F172A' : '#64748B', cursor: 'pointer', boxShadow: data.heightUnit === 'ft' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>ft/in</button>
+              </div>
+            </div>
+
             {/* Weight & Target Weight */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                  <Scale size={13} color="#059669" /> Current Weight (kg)
+                  <Scale size={13} color="#059669" /> Current Weight ({data.weightUnit})
                 </label>
                 <input
                   type="number"
                   min="20"
-                  max="300"
+                  max="600"
                   value={data.weight}
                   onChange={(e) => setData({ ...data, weight: e.target.value })}
-                  placeholder="e.g. 75"
+                  placeholder={data.weightUnit === 'kg' ? "e.g. 75" : "e.g. 165"}
                   style={{
                     width: '100%',
                     padding: '14px 16px',
@@ -349,15 +369,15 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                  <Target size={13} color="#059669" /> Target Weight (kg)
+                  <Target size={13} color="#059669" /> Target Weight ({data.weightUnit})
                 </label>
                 <input
                   type="number"
                   min="20"
-                  max="300"
+                  max="600"
                   value={data.targetWeight}
                   onChange={(e) => setData({ ...data, targetWeight: e.target.value })}
-                  placeholder="e.g. 70"
+                  placeholder={data.weightUnit === 'kg' ? "e.g. 70" : "e.g. 150"}
                   style={{
                     width: '100%',
                     padding: '14px 16px',
@@ -378,28 +398,73 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                  <Ruler size={13} color="#059669" /> Height (cm)
+                  <Ruler size={13} color="#059669" /> Height ({data.heightUnit})
                 </label>
-                <input
-                  type="number"
-                  min="50"
-                  max="260"
-                  value={data.height}
-                  onChange={(e) => setData({ ...data, height: e.target.value })}
-                  placeholder="e.g. 175"
-                  style={{
-                    width: '100%',
-                    padding: '14px 16px',
-                    borderRadius: '14px',
-                    border: '1.5px solid #E2E8F0',
-                    outline: 'none',
-                    background: '#FFFFFF',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    color: '#0F172A',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                  }}
-                />
+                {data.heightUnit === 'cm' ? (
+                  <input
+                    type="number"
+                    min="50"
+                    max="260"
+                    value={data.height}
+                    onChange={(e) => setData({ ...data, height: e.target.value })}
+                    placeholder="e.g. 175"
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px',
+                      borderRadius: '14px',
+                      border: '1.5px solid #E2E8F0',
+                      outline: 'none',
+                      background: '#FFFFFF',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      color: '#0F172A',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                    }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      min="3"
+                      max="8"
+                      value={data.heightFt}
+                      onChange={(e) => setData({ ...data, heightFt: e.target.value })}
+                      placeholder="ft"
+                      style={{
+                        width: '100%',
+                        padding: '14px 12px',
+                        borderRadius: '14px',
+                        border: '1.5px solid #E2E8F0',
+                        outline: 'none',
+                        background: '#FFFFFF',
+                        fontSize: '15px',
+                        fontWeight: 600,
+                        color: '#0F172A',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                      }}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="11"
+                      value={data.heightIn}
+                      onChange={(e) => setData({ ...data, heightIn: e.target.value })}
+                      placeholder="in"
+                      style={{
+                        width: '100%',
+                        padding: '14px 12px',
+                        borderRadius: '14px',
+                        border: '1.5px solid #E2E8F0',
+                        outline: 'none',
+                        background: '#FFFFFF',
+                        fontSize: '15px',
+                        fontWeight: 600,
+                        color: '#0F172A',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
@@ -515,7 +580,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
 
             <button
               onClick={next}
-              disabled={[data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null)}
+              disabled={(data.heightUnit === 'cm' ? [data.weight, data.targetWeight, data.height, data.age, data.targetDays] : [data.weight, data.targetWeight, data.heightFt, data.age, data.targetDays]).some(v => v === '' || v == null)}
               style={{
                 width: '100%',
                 padding: '16px',
@@ -525,8 +590,8 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
                 borderRadius: '16px',
                 fontWeight: 800,
                 fontSize: '15px',
-                cursor: [data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null) ? 'not-allowed' : 'pointer',
-                opacity: [data.weight, data.targetWeight, data.height, data.age, data.targetDays].some(v => v === '' || v == null) ? 0.5 : 1,
+                cursor: (data.heightUnit === 'cm' ? [data.weight, data.targetWeight, data.height, data.age, data.targetDays] : [data.weight, data.targetWeight, data.heightFt, data.age, data.targetDays]).some(v => v === '' || v == null) ? 'not-allowed' : 'pointer',
+                opacity: (data.heightUnit === 'cm' ? [data.weight, data.targetWeight, data.height, data.age, data.targetDays] : [data.weight, data.targetWeight, data.heightFt, data.age, data.targetDays]).some(v => v === '' || v == null) ? 0.5 : 1,
                 boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
