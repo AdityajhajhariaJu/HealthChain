@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, Bike, ChevronRight, Clock, Crosshair, Dumbbell, Flame, Footprints, Gamepad2, Heart, HeartPulse, Moon, MoreHorizontal, Music, Play, Settings2, Sparkles, Swords, Target, Waves, Wind, Zap, Share2, Bookmark} from 'lucide-react';
+import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 
@@ -19,7 +19,7 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 
 import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
-import { CinematicCheckbox } from '../../components/ui/CinematicCheckbox';
+
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
 

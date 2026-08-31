@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FileUp, Sparkles, Activity, Search, ArrowRight, ShieldCheck, 
-  X, CheckCircle2, ChevronDown, ListChecks, HelpCircle, BrainCircuit 
+  FileUp, Sparkles, Activity, Search, ArrowRight, 
+  X, CheckCircle2, HelpCircle 
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
