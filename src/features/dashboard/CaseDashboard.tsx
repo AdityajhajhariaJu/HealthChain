@@ -284,7 +284,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             <div style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Our Own Meditation Hub</h2>
             </div>
-            <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
               <MeditationHeroCard item={{ title: 'Full Meditation Environment', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', type: 'meditation', id: 'm1' }} onClick={() => { triggerHapticLight(); setActiveMeditation({ id: 'm1', category_id: 'meditation', is_active: true, type: 'meditation', title: 'Full Meditation Environment', subtitle: 'Immersive audio-visual journey', description: 'Our most complete meditation experience. Enter a fully immersive environment designed to detach you from your surroundings and center your awareness.', cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80', audio_url: '', video_url: '', duration_minutes: 30, calories_estimate: 0, difficulty: 'Intermediate', equipment: [], is_premium: false, is_featured: true }); }} getFallbackImage={getFallbackImage} />
               <MeditationHeroCard item={{ title: 'A Diff Experience', cover_image_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80', type: 'meditation', id: 'm2' }} onClick={() => { triggerHapticLight(); setActiveMeditation({ id: 'm2', category_id: 'meditation', is_active: true, type: 'meditation', title: 'A Diff Experience', subtitle: 'Shift your perspective', description: 'A different kind of meditation. Uses subtle disruptions and shifts in audio to train your ability to refocus when distracted.', cover_image_url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80', audio_url: '', video_url: '', duration_minutes: 20, calories_estimate: 0, difficulty: 'Advanced', equipment: [], is_premium: false, is_featured: true }); }} getFallbackImage={getFallbackImage} />
             </div>
@@ -297,7 +297,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Audio by Mood</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences to shift your state</p>
             </div>
-            <div className="hide-scrollbar scroll-snap-x" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
               {[
                 { title: 'Deep Sleep', img: 'https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80' },
                 { title: 'Deep Focus', img: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80' },
@@ -345,7 +345,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             <div style={{ padding: '0 24px', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Soundscapes</h2>
             </div>
-            <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: '0 -24px', WebkitOverflowScrolling: 'touch' }}>
               {[
                 { name: 'Rain Sounds', icon: <Waves size={24} />, color: '#3b82f6', img: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80' },
                 { name: 'Focus Frequencies', icon: <Activity size={24} />, color: '#8b5cf6', img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80' },
@@ -401,7 +401,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <div style={{ borderRadius: '24px', overflow: 'hidden', position: 'relative', height: '180px', boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }}>
                   <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800" alt="Mindful Play" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 100%)', display: 'flex', flexDirection: 'column', padding: '20px' }}>
-                    <div className="hide-scrollbar" style={{ display: 'flex', gap: '8px', marginBottom: 'auto', overflowX: 'auto', paddingBottom: '4px' }}>
+                    <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '8px', marginBottom: 'auto', overflowX: 'auto', paddingBottom: '4px' }}>
                       <button onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setActiveCollection({title: "Activity Games", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '8px 14px', borderRadius: '99px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0 }}><Gamepad2 size={16} /> Activity Games</button>
                       <button onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setActiveCollection({title: "Hand-Eye Coordination", items: specialtyContent.filter(s => s.category_id === categories.find(c => c.slug === "hand-eye")?.id) || []}); }} style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '8px 14px', borderRadius: '99px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0 }}><Crosshair size={16} /> Coordination</button>
                     </div>
@@ -422,7 +422,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500, cursor: 'pointer' }}>View all</span>
           </div>
           
-          <div className="hide-scrollbar" style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 24px 24px 24px', WebkitOverflowScrolling: 'touch', margin: 0 }}>
+          <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 24px 24px 24px', WebkitOverflowScrolling: 'touch', margin: 0 }}>
             {[
               { 
                 title: 'Overcome Overthinking - 10 Simple Tips from a Therapist', 

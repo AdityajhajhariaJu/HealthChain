@@ -1403,3 +1403,14 @@ input:-webkit-autofill:active{
 
 .app-shell__content { min-height: 0; }
 
+
+
+.scrollable-row {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-x;
+  scroll-snap-type: x mandatory;
+}
+.scrollable-row > * {
+  scroll-snap-align: start;
+}
