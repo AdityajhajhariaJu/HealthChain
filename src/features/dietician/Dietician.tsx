@@ -1690,7 +1690,21 @@ export default function Dietician() {
           <Scan size={24} />
         </button>
 
-        {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
+        {showARLens && <ARGroceryLens 
+          onClose={() => setShowARLens(false)} 
+          onLogFood={(food) => {
+            triggerHapticSuccess();
+            const updatedLogs = { ...foodLogs };
+            updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
+            updatedLogs[currentDate].push({
+              ...food,
+              id: Date.now() + Math.random(),
+            });
+            setFoodLogs(updatedLogs);
+            setShowARLens(false);
+            awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
+          }} 
+        />}
       </div>
     </div>
   );

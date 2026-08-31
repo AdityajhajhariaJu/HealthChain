@@ -5,7 +5,7 @@ import { getProfile } from '../../services/ProfileEngine';
 import { analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
 
-export const ARGroceryLens = ({ onClose }: { onClose: () => void }) => {
+export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => void }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -187,6 +187,31 @@ export const ARGroceryLens = ({ onClose }: { onClose: () => void }) => {
                   <ArrowRight size={16} />
                 </div>
               </div>
+            )}
+
+            {/* Log Food Button */}
+            {onLogFood && analysis?.foodName && (
+              <button 
+                onClick={() => {
+                  onLogFood({
+                    name: analysis.foodName,
+                    calories: analysis.calories,
+                    protein: analysis.protein,
+                    carbs: analysis.carbs,
+                    fat: analysis.fats,
+                    sugar: analysis.sugar,
+                    fibre: analysis.fibre,
+                    type: 'Snack' // Default type, user can change later or we just append it
+                  });
+                }}
+                style={{
+                  background: '#10B981', color: '#FFF', border: 'none', padding: '16px', borderRadius: '16px', 
+                  fontSize: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
+                  boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)'
+                }}>
+                <Scan size={18} />
+                Log {analysis.foodName}
+              </button>
             )}
           </motion.div>
         )}
