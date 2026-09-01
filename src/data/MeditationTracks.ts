@@ -107,3 +107,20 @@ export const FOREST_AMBIENCE_TRACKS = [
   { id: 'fa14', title: 'Warm Summer Rain Shower', subtitle: 'field recording of warm summer rain shower', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Warm Summer Rain Shower.m4a' },
   { id: 'fa15', title: 'Pure Gentle Drizzle', subtitle: 'field recording of gentle drizzle', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Pure Gentle Drizzle.m4a' }
 ];
+export const RAIN_SOUNDS_TRACKS = [
+  { id: 'rs1', title: 'Coastal Rain Storm', subtitle: 'field recording of rain falling over the ocean', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Coastal Rain Storm (1).m4a' },
+  { id: 'rs2', title: 'Puddle Drops & Rain', subtitle: 'field recording of soft rain falling into puddles', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Puddle Drops & Rain.m4a' },
+  { id: 'rs3', title: 'Midnight Backyard Rain', subtitle: 'field recording of night rain in a quiet backyard', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Midnight Backyard Rain.m4a' },
+  { id: 'rs4', title: 'Porch Rain Ambience', subtitle: 'field recording of steady rain falling on porch steps', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Porch Rain Ambience.m4a' },
+  { id: 'rs5', title: 'Distant Thunder & Rain FX', subtitle: 'field recording of distant rolling thunder', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Distant Thunder & Rain FX.m4a' },
+  { id: 'rs6', title: 'Rain in Woodland Canopy', subtitle: 'field recording of soft rain falling on forest foliage', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Rain in Woodland Canopy.m4a' },
+  { id: 'rs7', title: 'Pure Rain on Tin Roof', subtitle: 'field recording of steady rain on tin roof', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Pure Rain on Tin Roof.m4a' },
+  { id: 'rs8', title: 'Rain on Tent Canvas', subtitle: 'field recording of heavy rain on nylon tent', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Rain on Tent Canvas.m4a' },
+  { id: 'rs9', title: 'Rain on Umbrella', subtitle: 'field recording of rain hitting a fabric umbrella', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Rain on Umbrella.m4a' },
+  { id: 'rs10', title: 'Raindrops on Glass', subtitle: 'field recording of rain tapping on window glass', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Raindrops on Glass.m4a' },
+  { id: 'rs11', title: 'Meadow Evening Drizzle', subtitle: 'field recording of quiet evening drizzle in a meadow', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Meadow Evening Drizzle.m4a' },
+  { id: 'rs12', title: 'Rain in Woodland Canopy', subtitle: 'field recording of soft rain falling on forest foliage', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Rain in Woodland Canopy (1).m4a' },
+  { id: 'rs13', title: 'Midnight Backyard Rain', subtitle: 'field recording of night rain in a quiet backyard', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Midnight Backyard Rain (1).m4a' },
+  { id: 'rs14', title: 'Pure Gentle Drizzle', subtitle: 'field recording of gentle drizzle, pure rain sound', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Pure Gentle Drizzle.m4a' },
+  { id: 'rs15', title: 'Asphalt Rain Ambience', subtitle: 'field recording of rain on city asphalt', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Asphalt Rain Ambience.m4a' }
+];
