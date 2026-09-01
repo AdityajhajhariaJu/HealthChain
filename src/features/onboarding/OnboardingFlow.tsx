@@ -24,7 +24,7 @@ export default function OnboardingFlow() {
     }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} />
 
-      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', padding: '32px' }}>
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', padding: '32px', overflowY: 'auto' }}>
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div
@@ -33,7 +33,7 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, filter: 'blur(16px)' }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 'min-content', padding: '24px 0' }}
             >
               <div style={{ background: 'rgba(255,255,255,0.8)', padding: '16px', borderRadius: '50%', marginBottom: '32px', border: '1px solid rgba(15,23,42,0.1)' }}>
                 <Sparkles size={36} color="#10B981" />
@@ -80,7 +80,7 @@ export default function OnboardingFlow() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 'min-content' }}
             >
               <h2 style={{ fontSize: '34px', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '12px', color: '#0F172A', lineHeight: 1.2 }}>What brings you to<br/><span style={{ color: '#10B981' }}>HealthChain</span>?</h2>
               <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px' }}>Select your primary focus to personalize your experience.</p>
