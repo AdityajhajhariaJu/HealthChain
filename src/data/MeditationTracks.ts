@@ -90,3 +90,20 @@ export const FOCUS_FREQUENCIES_TRACKS = [
   { id: 'ff14', title: 'Theta Memory Drift', subtitle: 'ethereal atmospheric synth drone', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Theta Memory Drift.m4a' },
   { id: 'ff15', title: 'Solfeggio 528Hz Transformation', subtitle: 'warm harmonic resonant bell drone', cover: '/images/thumb_freq_cymatics_1788264629537.jpg', audioUrl: '/audio/Solfeggio 528Hz Transformation.m4a' }
 ];
+export const FOREST_AMBIENCE_TRACKS = [
+  { id: 'fa1', title: 'Coastal Rain Storm', subtitle: 'field recording of rain falling over the ocean', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Coastal Rain Storm.m4a' },
+  { id: 'fa2', title: 'Torrential Downpour FX', subtitle: 'field recording of heavy torrential downpour', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Torrential Downpour FX.m4a' },
+  { id: 'fa3', title: 'Puddle Drops & Rain', subtitle: 'field recording of soft rain falling into puddles', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Puddle Drops & Rain.m4a' },
+  { id: 'fa4', title: 'Midnight Backyard Rain', subtitle: 'field recording of night rain in a quiet backyard', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Midnight Backyard Rain.m4a' },
+  { id: 'fa5', title: 'Porch Rain Ambience', subtitle: 'field recording of steady rain falling on porch steps', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Porch Rain Ambience.m4a' },
+  { id: 'fa6', title: 'Distant Thunder & Rain FX', subtitle: 'field recording of distant rolling thunder', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Distant Thunder & Rain FX.m4a' },
+  { id: 'fa7', title: 'Rain in Woodland Canopy', subtitle: 'field recording of soft rain falling on forest foliage', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Rain in Woodland Canopy.m4a' },
+  { id: 'fa8', title: 'Rain on Tent Canvas', subtitle: 'field recording of heavy rain on nylon tent', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Rain on Tent Canvas.m4a' },
+  { id: 'fa9', title: 'Rain on Umbrella', subtitle: 'field recording of rain hitting a fabric umbrella', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Rain on Umbrella.m4a' },
+  { id: 'fa10', title: 'Meadow Evening Drizzle', subtitle: 'field recording of quiet evening drizzle in a meadow', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Meadow Evening Drizzle.m4a' },
+  { id: 'fa11', title: 'Rain in Woodland Canopy', subtitle: 'pure ambient nature sounds', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Rain in Woodland Canopy (1).m4a' },
+  { id: 'fa12', title: 'Dappled Noon', subtitle: 'cinematic ambient underscore, soft strings', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Dappled Noon.m4a' },
+  { id: 'fa13', title: 'Midnight Backyard Rain', subtitle: 'peaceful midnight atmosphere', cover: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80', audioUrl: '/audio/Midnight Backyard Rain (1).m4a' },
+  { id: 'fa14', title: 'Warm Summer Rain Shower', subtitle: 'field recording of warm summer rain shower', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Warm Summer Rain Shower.m4a' },
+  { id: 'fa15', title: 'Pure Gentle Drizzle', subtitle: 'field recording of gentle drizzle', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Pure Gentle Drizzle.m4a' }
+];
