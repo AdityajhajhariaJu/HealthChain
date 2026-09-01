@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin} from 'lucide-react';
+import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin, Scan} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
 
@@ -12,6 +12,7 @@ import { BottomSheetOverlay } from '../../components/ui/BottomSheetOverlay';
 import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { WorkoutPlayer } from '../../components/ui/WorkoutPlayer';
+import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { triggerHapticLight } from '../../services/haptics';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
@@ -40,6 +41,7 @@ export default function CaseDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
   const [showFrictionModal, setShowFrictionModal] = useState(false);
+  const [showARLens, setShowARLens] = useState(false);
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
   useEffect(() => {
     const profile = getProfile();
@@ -326,7 +328,43 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
               </div>
 
+              
+              {/* AR Lens Bento Tile */}
+              <div 
+                onClick={() => { triggerHapticLight(); setShowARLens(true); }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  borderRadius: '32px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                  border: '1px solid rgba(255,255,255,0.8)',
+                  minHeight: '140px',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Scan size={20} color="#FFF" />
+                  </div>
+                  <div style={{ background: '#EF4444', color: '#FFF', fontSize: '10px', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
+                    NEW
+                  </div>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A', lineHeight: 1.2, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
+                  <p style={{ fontSize: '12px', color: '#64748B', margin: 0, fontWeight: 500 }}>Scan food for glycemic spikes</p>
+                </div>
+              </div>
+
               {/* Task Bento Tiles */}
+
             {dailyTasks.map((task, idx) => (
               <div 
                 key={task.id}
@@ -364,6 +402,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
         <div style={{ paddingBottom: "32px", borderTop: "1px solid rgba(0,0,0,0.03)", paddingTop: "32px" }}>
           <FitnessNav />
+          {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
         </div>
 
           <div style={{ paddingTop: "12px" }}>
