@@ -155,7 +155,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               
               
               {/* Glycemic Spike Graph */}
-              {analysis?.sugar > 0 && (
+              {analysis?.sugar !== undefined && (
                 <div style={{ marginBottom: '16px', padding: '16px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '0.5px' }}>GLYCEMIC RESPONSE</span>
