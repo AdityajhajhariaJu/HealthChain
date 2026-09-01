@@ -425,11 +425,9 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </div>
             <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
-                { title: 'Deep Sleep', img: 'https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80' },
-                { title: 'Deep Focus', img: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80' },
-                { title: 'Pure Relax', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=800&q=80' },
-                { title: 'Morning Energy', img: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=800&q=80' }
-              ].map((item, i) => (
+                  { title: 'Deep Sleep', img: 'https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80' },
+                  { title: 'Deep Focus', img: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80' }
+                ].map((item, i) => (
                 <div key={i} onClick={() => {
                     triggerHapticLight();
                     setActiveMeditation({
