@@ -477,7 +477,7 @@ export default function Dietician() {
       carbs: preset.carbs,
       fat: preset.fat,
       emoji: preset.emoji,
-      type: preset.type,
+      type: selectedMealType,
       id: Date.now() + Math.random(),
     });
     setFoodLogs(updatedLogs);
@@ -1551,7 +1551,7 @@ export default function Dietician() {
 
                   {/* Meal type selection */}
                   <div style={{ display: 'flex', gap: '6px', margin: '18px 0 14px 0', flexWrap: 'wrap' }}>
-                    {['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((type) => (
+                    {['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'].map((type) => (
                       <button
                         key={type}
                         onClick={() => setSelectedMealType(type)}
