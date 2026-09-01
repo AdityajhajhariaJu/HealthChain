@@ -13,6 +13,13 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const profile = getProfile();
   const [analysis, setAnalysis] = useState<any>(null);
 
+  const targetCalories = profile?.targetCalories || 2000;
+  const targetProtein = Math.round((targetCalories * 0.3) / 4);
+  const targetCarbs = Math.round((targetCalories * 0.4) / 4);
+  const targetFats = Math.round((targetCalories * 0.3) / 9);
+  const targetSugar = 36;
+
+
   useEffect(() => {
     // Start camera
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
