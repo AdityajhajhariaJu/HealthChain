@@ -8,7 +8,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import Confetti from 'react-confetti';
-import { MEDITATION_TRACKS, DEEP_SLEEP_TRACKS, DEEP_FOCUS_TRACKS } from '../../data/MeditationTracks';
+import { MEDITATION_TRACKS, DEEP_SLEEP_TRACKS, DEEP_FOCUS_TRACKS, HAPPY_HIGH_ENERGY_TRACKS } from '../../data/MeditationTracks';
 
 interface MeditationPlayerProps {
   content: FitnessContent | null;
@@ -24,9 +24,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [showControls, setShowControls] = useState(true);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const isPlaylistMode = content?.id === 'm1' || content?.id === 'mood-0' || content?.id === 'mood-1';
-  const playlistTitle = content?.id === 'm1' ? 'Full Meditation Environment' : content?.id === 'mood-0' ? 'Deep Sleep Environment' : content?.id === 'mood-1' ? 'Deep Focus Environment' : '';
-  const currentPlaylist = content?.id === 'm1' ? MEDITATION_TRACKS : content?.id === 'mood-0' ? DEEP_SLEEP_TRACKS : content?.id === 'mood-1' ? DEEP_FOCUS_TRACKS : [];
+  const isPlaylistMode = content?.id === 'm1' || content?.id === 'mood-0' || content?.id === 'mood-1' || content?.id === 'mood-2';
+  const playlistTitle = content?.id === 'm1' ? 'Full Meditation Environment' : content?.id === 'mood-0' ? 'Deep Sleep Environment' : content?.id === 'mood-1' ? 'Deep Focus Environment' : content?.id === 'mood-2' ? 'Happy High Energy Environment' : '';
+  const currentPlaylist = content?.id === 'm1' ? MEDITATION_TRACKS : content?.id === 'mood-0' ? DEEP_SLEEP_TRACKS : content?.id === 'mood-1' ? DEEP_FOCUS_TRACKS : content?.id === 'mood-2' ? HAPPY_HIGH_ENERGY_TRACKS : [];
 
   const [showPlaylist, setShowPlaylist] = useState(isPlaylistMode);
   

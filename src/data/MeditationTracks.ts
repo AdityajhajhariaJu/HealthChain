@@ -56,3 +56,20 @@ export const DEEP_FOCUS_TRACKS = [
   { id: 'df14', title: 'Echoes in the Library', subtitle: 'ambient acoustic guitar fingerpicking', cover: '/images/thumb_focus_abstract_1788263006275.jpg', audioUrl: '/audio/Echoes in the Library.m4a' },
   { id: 'df15', title: 'Deep Thought Flow', subtitle: 'ethereal ambient drone, soft atmospheric', cover: '/images/thumb_focus_sphere_1788262954419.jpg', audioUrl: '/audio/Deep Thought Flow.m4a' }
 ];
+export const HAPPY_HIGH_ENERGY_TRACKS = [
+  { id: 'hhe1', title: 'Harvest High', subtitle: 'upbeat electronic pulse, bright energy', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Harvest High.m4a' },
+  { id: 'hhe2', title: 'Timber and Bloom', subtitle: 'warm acoustic groove, lively rhythm', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Timber and Bloom.m4a' },
+  { id: 'hhe3', title: 'Sunday Citrus', subtitle: 'bouncy synth pop, fresh morning vibes', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', audioUrl: '/audio/Sunday Citrus.m4a' },
+  { id: 'hhe4', title: 'Good Ground', subtitle: 'energetic modern classical, driving strings', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Good Ground.m4a' },
+  { id: 'hhe5', title: 'Personal Best', subtitle: 'motivational workout electronic, high tempo', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Personal Best.m4a' },
+  { id: 'hhe6', title: 'Blinding White', subtitle: 'bright future bass, uplifting melody', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', audioUrl: '/audio/Blinding White.m4a' },
+  { id: 'hhe7', title: 'First Light Surge', subtitle: 'driving synthwave, morning momentum', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/First Light Surge.m4a' },
+  { id: 'hhe8', title: 'Line By Line', subtitle: 'upbeat lo-fi funk, grooving bassline', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Line By Line.m4a' },
+  { id: 'hhe9', title: 'Clean Slate Sky', subtitle: 'soaring ambient pop, wide open soundscape', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', audioUrl: '/audio/Clean Slate Sky.m4a' },
+  { id: 'hhe10', title: 'Morning Letting Go', subtitle: 'optimistic acoustic indie, bright strumming', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Morning Letting Go.m4a' },
+  { id: 'hhe11', title: 'First Light Run', subtitle: 'energetic electronic beat, perfect pace', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/First Light Run.m4a' },
+  { id: 'hhe12', title: 'Wide Awake Now', subtitle: 'punchy house rhythm, awakening bass', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', audioUrl: '/audio/Wide Awake Now.m4a' },
+  { id: 'hhe13', title: 'Won Before Sunrise', subtitle: 'triumphant cinematic score, early victory', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Won Before Sunrise.m4a' },
+  { id: 'hhe14', title: 'Afternoon Is Mine', subtitle: 'bouncy nu-disco, sunny day energy', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Afternoon Is Mine.m4a' },
+  { id: 'hhe15', title: 'Cold Water Shock', subtitle: 'intense electronic jolt, pure adrenaline', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', audioUrl: '/audio/Cold Water Shock.m4a' }
+];
