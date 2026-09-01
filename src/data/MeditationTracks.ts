@@ -39,3 +39,20 @@ export const DEEP_SLEEP_TRACKS = [
   { id: 'ds13', title: 'Luminous Reverie', subtitle: 'ethereal ambient bell tones, soft sleep pads', cover: '/images/thumb_glass_cube_1788260037787.jpg', audioUrl: '/audio/Luminous Reverie.m4a' },
   { id: 'ds14', title: "Sleepwalker's Haven", subtitle: 'soothing ambient drones, deep rest', cover: '/images/thumb_rain_window_1788262571496.jpg', audioUrl: "/audio/Sleepwalker's Haven.m4a" }
 ];
+export const DEEP_FOCUS_TRACKS = [
+  { id: 'df1', title: 'Silent Momentum', subtitle: 'chill ambient techno, hypnotic minimal rhythm', cover: '/images/thumb_focus_sphere_1788262954419.jpg', audioUrl: '/audio/Silent Momentum.m4a' },
+  { id: 'df2', title: 'Steady Momentum', subtitle: 'downtempo electronic rhythm, warm synth bass', cover: 'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3?w=400&q=80', audioUrl: '/audio/Steady Momentum.m4a' },
+  { id: 'df3', title: 'Flow State Frequency', subtitle: 'lo-fi study beat, gentle rhodes piano', cover: '/images/thumb_focus_abstract_1788263006275.jpg', audioUrl: '/audio/Flow State Frequency.m4a' },
+  { id: 'df4', title: 'Binary Dawn', subtitle: 'serene ambient electronic, slow pulsing', cover: '/images/thumb_focus_grid_1788262939997.jpg', audioUrl: '/audio/Binary Dawn.m4a' },
+  { id: 'df5', title: 'Synaptic Drift', subtitle: 'chillwave synth ambient, soft arpeggiated', cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80', audioUrl: '/audio/Synaptic Drift.m4a' },
+  { id: 'df6', title: 'Monochrome Study', subtitle: 'lo-fi chillhop, gentle jazz chord progression', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Monochrome Study.m4a' },
+  { id: 'df7', title: 'Neuron Pulse', subtitle: 'minimal micro-house, light percussion tick', cover: '/images/thumb_focus_grid_1788262939997.jpg', audioUrl: '/audio/Neuron Pulse.m4a' },
+  { id: 'df8', title: 'Productivity Arc', subtitle: 'ambient lo-fi hip hop, warm rhodes', cover: '/images/thumb_focus_abstract_1788263006275.jpg', audioUrl: '/audio/Productivity Arc.m4a' },
+  { id: 'df9', title: 'Quiet Reverie', subtitle: 'solo felt piano, soft minimal chords', cover: 'https://images.unsplash.com/photo-1511295742362-92c96b5ade36?w=400&q=80', audioUrl: '/audio/Quiet Reverie.m4a' },
+  { id: 'df10', title: 'Alpha State Drift', subtitle: 'minimalist ambient synth pads, warm analog', cover: '/images/thumb_focus_sphere_1788262954419.jpg', audioUrl: '/audio/Alpha State Drift.m4a' },
+  { id: 'df11', title: 'Focus Current', subtitle: 'minimalist modern classical, delicate string', cover: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=400&q=80', audioUrl: '/audio/Focus Current.m4a' },
+  { id: 'df12', title: 'Midnight Study Session', subtitle: 'ambient synthwave, smooth retro pads', cover: '/images/thumb_focus_grid_1788262939997.jpg', audioUrl: '/audio/Midnight Study Session.m4a' },
+  { id: 'df13', title: 'Subtle Horizon', subtitle: 'deep ambient drone, shimmering warm synth', cover: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=400&q=80', audioUrl: '/audio/Subtle Horizon.m4a' },
+  { id: 'df14', title: 'Echoes in the Library', subtitle: 'ambient acoustic guitar fingerpicking', cover: '/images/thumb_focus_abstract_1788263006275.jpg', audioUrl: '/audio/Echoes in the Library.m4a' },
+  { id: 'df15', title: 'Deep Thought Flow', subtitle: 'ethereal ambient drone, soft atmospheric', cover: '/images/thumb_focus_sphere_1788262954419.jpg', audioUrl: '/audio/Deep Thought Flow.m4a' }
+];
