@@ -8,7 +8,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import Confetti from 'react-confetti';
-import { MEDITATION_TRACKS } from '../../data/MeditationTracks';
+import { MEDITATION_TRACKS, DEEP_SLEEP_TRACKS } from '../../data/MeditationTracks';
 
 interface MeditationPlayerProps {
   content: FitnessContent | null;
@@ -24,9 +24,13 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [showControls, setShowControls] = useState(true);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const [showPlaylist, setShowPlaylist] = useState(content?.id === 'm1');
+  const isPlaylistMode = content?.id === 'm1' || content?.id === 'mood-0';
+  const playlistTitle = content?.id === 'm1' ? 'Full Meditation Environment' : content?.id === 'mood-0' ? 'Deep Sleep Environment' : '';
+  const currentPlaylist = content?.id === 'm1' ? MEDITATION_TRACKS : content?.id === 'mood-0' ? DEEP_SLEEP_TRACKS : [];
+
+  const [showPlaylist, setShowPlaylist] = useState(isPlaylistMode);
   
-  const currentTrack = content?.id === 'm1' ? MEDITATION_TRACKS[activeTrackIndex] : null;
+  const currentTrack = isPlaylistMode ? currentPlaylist[activeTrackIndex] : null;
 
   useEffect(() => {
     if (audioRef.current) {
@@ -170,7 +174,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               {/* Premium Ambient Background */}
               <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
                                 <img 
-                  src={content?.id === 'm1' && currentTrack ? currentTrack.cover : (content.cover_image_url || "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80")} 
+                  src={isPlaylistMode && currentTrack ? currentTrack.cover : (content.cover_image_url || "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80")} 
                   alt="Ambient"  
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                 />
@@ -201,11 +205,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               {/* Center Breathing Rings */}
               <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
                 <motion.div
-                  animate={{ scale: content?.id === 'm1' ? (isPlaying ? [1, 1.2, 1] : 1) : (phase === "Inhale" || phase === "Hold" ? 2.5 : 1) }}
+                  animate={{ scale: isPlaylistMode ? (isPlaying ? [1, 1.2, 1] : 1) : (phase === "Inhale" || phase === "Hold" ? 2.5 : 1) }}
                   transition={{ 
-                    duration: content?.id === 'm1' ? 8 : (phase === "Inhale" ? pattern.inhale : phase === "Exhale" ? pattern.exhale : 2), 
+                    duration: isPlaylistMode ? 8 : (phase === "Inhale" ? pattern.inhale : phase === "Exhale" ? pattern.exhale : 2), 
                     ease: "easeInOut",
-                    repeat: content?.id === 'm1' && isPlaying ? Infinity : 0
+                    repeat: isPlaylistMode && isPlaying ? Infinity : 0
                   }}
                   style={{ position: "relative", width: "120px", height: "120px" }}
                 >
@@ -228,7 +232,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     
 
                                         {/* Content Info */}
-                    {content?.id === 'm1' && currentTrack && (
+                    {isPlaylistMode && currentTrack && (
                       <audio 
                         ref={audioRef} 
                         src={currentTrack.audioUrl} 
@@ -238,10 +242,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     )}
                     <div style={{ marginBottom: "32px", textAlign: "center", textShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
                                             <h3 style={{ margin: "0 0 8px", fontSize: "24px", fontWeight: 700, color: "white", letterSpacing: "-0.5px" }}>
-                        {content?.id === 'm1' && currentTrack ? currentTrack.title : content.title}
+                        {isPlaylistMode && currentTrack ? currentTrack.title : content.title}
                       </h3>
                       <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.85)", lineHeight: 1.5, maxWidth: "300px", marginLeft: "auto", marginRight: "auto" }}>
-                        {content?.id === 'm1' && currentTrack ? currentTrack.subtitle : content.description}
+                        {isPlaylistMode && currentTrack ? currentTrack.subtitle : content.description}
                       </p>
                     </div>
 
@@ -252,15 +256,15 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           triggerHapticLight(); 
-                          if (content?.id === 'm1') {
-                            setActiveTrackIndex(prev => prev > 0 ? prev - 1 : MEDITATION_TRACKS.length - 1);
+                          if (isPlaylistMode) {
+                            setActiveTrackIndex(prev => prev > 0 ? prev - 1 : currentPlaylist.length - 1);
                           } else {
                             setTimeRemaining(prev => Math.min(totalDuration, prev + 15)); 
                           }
                         }}
                         style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
                       >
-                        {content?.id === 'm1' ? (
+                        {isPlaylistMode ? (
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
                         ) : (
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
@@ -280,15 +284,15 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           triggerHapticLight(); 
-                          if (content?.id === 'm1') {
-                            setActiveTrackIndex(prev => prev < MEDITATION_TRACKS.length - 1 ? prev + 1 : 0);
+                          if (isPlaylistMode) {
+                            setActiveTrackIndex(prev => prev < currentPlaylist.length - 1 ? prev + 1 : 0);
                           } else {
                             setTimeRemaining(prev => Math.max(0, prev - 15)); 
                           }
                         }}
                         style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
                       >
-                        {content?.id === 'm1' ? (
+                        {isPlaylistMode ? (
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
                         ) : (
                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
@@ -296,7 +300,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       </button>
                       
                       {/* Tracks Button (Only for m1) */}
-                      {content?.id === 'm1' && (
+                      {isPlaylistMode && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setShowPlaylist(true); }}
                           style={{ position: 'absolute', right: '0', background: "rgba(255,255,255,0.15)", backdropFilter: 'blur(10px)', border: "1px solid rgba(255,255,255,0.2)", borderRadius: '12px', padding: '8px 12px', display: "flex", alignItems: "center", gap: '6px', color: 'white', fontSize: '12px', fontWeight: 600 }}
@@ -307,7 +311,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       )}
                     </div>
                     <div style={{ flex: 1, overflowY: "auto", padding: "12px 20px" }}>
-                      {MEDITATION_TRACKS.map((track, idx) => (
+                      {currentPlaylist.map((track, idx) => (
                         <div 
                           key={track.id} 
                           onClick={() => { setActiveTrackIndex(idx); setIsPlaying(true); setShowPlaylist(false); }}

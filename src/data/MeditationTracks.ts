@@ -23,3 +23,19 @@ export const MEDITATION_TRACKS = [
   { id: '22', title: 'Zen Horizon', subtitle: 'calm meditation ambient', cover: '/images/thumb_zen_stones_1788260013795.jpg', audioUrl: '/audio/Zen Horizon.m4a' },
   { id: '23', title: 'Mindful Echoes', subtitle: 'calming meditation soundscape', cover: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=400&q=80', audioUrl: '/audio/Mindful Echoes.m4a' }
 ];
+export const DEEP_SLEEP_TRACKS = [
+  { id: 'ds1', title: 'Cosmic Lullaby', subtitle: 'soft ambient synths, slow relaxing chords', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Cosmic Lullaby.m4a' },
+  { id: 'ds2', title: 'Slumber Waves', subtitle: 'soothing ambient textures, calm warm synth pads', cover: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=400&q=80', audioUrl: '/audio/Slumber Waves.m4a' },
+  { id: 'ds3', title: 'Eternal Calm', subtitle: 'continuous soothing ambient pad, deep sleep delta', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Eternal Calm.m4a' },
+  { id: 'ds4', title: 'Whispering Pines', subtitle: 'gentle forest breeze, ambient sleep texture', cover: 'https://images.unsplash.com/photo-1511295742362-92c96b5ade36?w=400&q=80', audioUrl: '/audio/Whispering Pines.m4a' },
+  { id: 'ds5', title: 'Serene Dreams', subtitle: 'gentle lullaby chords, soft atmospheric pads', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Serene Dreams.m4a' },
+  { id: 'ds6', title: 'Restful Horizon', subtitle: 'warm ambient soundscape, deep relaxation', cover: 'https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=400&q=80', audioUrl: '/audio/Restful Horizon.m4a' },
+  { id: 'ds7', title: 'Ocean Tide Sleep', subtitle: 'distant ocean surf, deep ambient pads', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Ocean Tide Sleep.m4a' },
+  { id: 'ds8', title: 'Velvet Darkness', subtitle: 'deep bass drone, ultra relaxing sleep ambient', cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80', audioUrl: '/audio/Velvet Darkness.m4a' },
+  { id: 'ds9', title: 'Elysian Rest', subtitle: 'peaceful ambient chords, soft tape warmth', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Elysian Rest.m4a' },
+  { id: 'ds10', title: 'Starlight Cradle', subtitle: 'glimmering ambient pads, quiet sleep melody', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Starlight Cradle.m4a' },
+  { id: 'ds11', title: 'Floating in Dreams', subtitle: 'weightless ambient drone, deep relaxation', cover: '/images/thumb_water_drop_1788260024692.jpg', audioUrl: '/audio/Floating in Dreams.m4a' },
+  { id: 'ds12', title: 'Night Rain & Soft Synth', subtitle: 'gentle rain sounds, ambient sleep pads', cover: '/images/thumb_rain_window_1788262571496.jpg', audioUrl: '/audio/Night Rain & Soft Synth.m4a' },
+  { id: 'ds13', title: 'Luminous Reverie', subtitle: 'ethereal ambient bell tones, soft sleep pads', cover: '/images/thumb_glass_cube_1788260037787.jpg', audioUrl: '/audio/Luminous Reverie.m4a' },
+  { id: 'ds14', title: "Sleepwalker's Haven", subtitle: 'soothing ambient drones, deep rest', cover: '/images/thumb_rain_window_1788262571496.jpg', audioUrl: "/audio/Sleepwalker's Haven.m4a" }
+];
