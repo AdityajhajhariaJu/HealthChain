@@ -24,7 +24,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [showControls, setShowControls] = useState(true);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
-  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [showPlaylist, setShowPlaylist] = useState(content?.id === 'm1');
   
   const currentTrack = content?.id === 'm1' ? MEDITATION_TRACKS[activeTrackIndex] : null;
 
@@ -201,10 +201,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
               {/* Center Breathing Rings */}
               <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
                 <motion.div
-                  animate={{ scale: phase === "Inhale" || phase === "Hold" ? 2.5 : 1 }}
+                  animate={{ scale: content?.id === 'm1' ? (isPlaying ? [1, 1.2, 1] : 1) : (phase === "Inhale" || phase === "Hold" ? 2.5 : 1) }}
                   transition={{ 
-                    duration: phase === "Inhale" ? pattern.inhale : phase === "Exhale" ? pattern.exhale : 2, 
-                    ease: "easeInOut" 
+                    duration: content?.id === 'm1' ? 8 : (phase === "Inhale" ? pattern.inhale : phase === "Exhale" ? pattern.exhale : 2), 
+                    ease: "easeInOut",
+                    repeat: content?.id === 'm1' && isPlaying ? Infinity : 0
                   }}
                   style={{ position: "relative", width: "120px", height: "120px" }}
                 >
@@ -245,14 +246,28 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     </div>
 
                     {/* Media Buttons */}
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "32px", marginBottom: "32px" }}>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "32px", marginBottom: "32px", position: "relative" }}>
+                      {/* Previous Track / Rewind */}
                       <button 
-                        onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setTimeRemaining(prev => Math.min(totalDuration, prev + 15)); }}
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          triggerHapticLight(); 
+                          if (content?.id === 'm1') {
+                            setActiveTrackIndex(prev => prev > 0 ? prev - 1 : MEDITATION_TRACKS.length - 1);
+                          } else {
+                            setTimeRemaining(prev => Math.min(totalDuration, prev + 15)); 
+                          }
+                        }}
                         style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
                       >
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
+                        {content?.id === 'm1' ? (
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                        ) : (
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
+                        )}
                       </button>
                       
+                      {/* Play / Pause */}
                       <button 
                         onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setIsPlaying(!isPlaying); }}
                         style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
@@ -260,13 +275,27 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         {isPlaying ? <Pause size={28} fill="#000" color="#000" /> : <Play size={28} fill="#000" color="#000" style={{ marginLeft: "3px" }} />}
                       </button>
 
+                      {/* Next Track / Forward */}
                       <button 
-                        onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setTimeRemaining(prev => Math.max(0, prev - 15)); }}
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          triggerHapticLight(); 
+                          if (content?.id === 'm1') {
+                            setActiveTrackIndex(prev => prev < MEDITATION_TRACKS.length - 1 ? prev + 1 : 0);
+                          } else {
+                            setTimeRemaining(prev => Math.max(0, prev - 15)); 
+                          }
+                        }}
                         style={{ background: "none", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
                       >
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
+                        {content?.id === 'm1' ? (
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                        ) : (
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"></path><path d="M21 13a9 9 0 1 1-3-7.7L21 8"></path><text x="12" y="15" textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.8)" strokeWidth="0">15</text></svg>
+                        )}
                       </button>
                       
+                      {/* Tracks Button (Only for m1) */}
                       {content?.id === 'm1' && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); triggerHapticLight(); setShowPlaylist(true); }}
@@ -277,44 +306,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         </button>
                       )}
                     </div>
-
-                    {/* Progress Bar */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px", fontVariantNumeric: "tabular-nums", fontWeight: 500, letterSpacing: "0.5px" }}>
-                        {formatTime(totalDuration - timeRemaining)}
-                      </span>
-                      <div style={{ flex: 1, height: "3px", background: "rgba(255,255,255,0.2)", borderRadius: "1.5px", position: "relative" }}>
-                        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${((totalDuration - timeRemaining) / totalDuration) * 100}%`, background: "white", borderRadius: "1.5px" }} />
-                      </div>
-                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "11px", fontVariantNumeric: "tabular-nums", fontWeight: 500, letterSpacing: "0.5px" }}>
-                        {formatTime(timeRemaining)}
-                      </span>
-                    </div>
-
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Playlist Drawer */}
-              <AnimatePresence>
-                {content?.id === 'm1' && showPlaylist && (
-                  <motion.div
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "60vh", background: "rgba(15, 23, 42, 0.85)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)", borderTopLeftRadius: "24px", borderTopRightRadius: "24px", zIndex: 30, display: "flex", flexDirection: "column", borderTop: "1px solid rgba(255,255,255,0.1)" }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div style={{ padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                      <h4 style={{ margin: 0, color: "white", fontSize: "16px", fontWeight: 600 }}>Full Meditation Environment</h4>
-                      <button onClick={() => setShowPlaylist(false)} style={{ background: "transparent", border: "none", color: "white", cursor: "pointer", padding: "8px" }}>Close</button>
-                    </div>
                     <div style={{ flex: 1, overflowY: "auto", padding: "12px 20px" }}>
                       {MEDITATION_TRACKS.map((track, idx) => (
                         <div 
                           key={track.id} 
-                          onClick={() => { setActiveTrackIndex(idx); setIsPlaying(true); }}
+                          onClick={() => { setActiveTrackIndex(idx); setIsPlaying(true); setShowPlaylist(false); }}
                           style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", cursor: "pointer", opacity: activeTrackIndex === idx ? 1 : 0.6 }}
                         >
                           <img src={track.cover} alt={track.title} style={{ width: "48px", height: "48px", borderRadius: "8px", objectFit: "cover" }} />
