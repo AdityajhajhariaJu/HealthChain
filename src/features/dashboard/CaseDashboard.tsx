@@ -290,15 +290,15 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
                 style={{ 
                   gridRow: 'span 2',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 100%)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)',
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
                   borderRadius: '160px 160px 32px 32px', 
                   position: 'relative',
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 0 20px rgba(255,255,255,0.5)',
-                  border: '1px solid rgba(255,255,255,0.6)',
+                  boxShadow: '0 16px 40px rgba(31,38,135,0.1), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(255,255,255,0.3)',
+                  border: '1px solid rgba(255,255,255,0.5)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -332,7 +332,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <div 
                 onClick={() => { triggerHapticLight(); setShowARLens(true); }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)',
                   borderRadius: '32px',
@@ -340,7 +340,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                  boxShadow: '0 16px 40px rgba(31,38,135,0.1), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(255,255,255,0.3)',
                   border: '1px solid rgba(255,255,255,0.8)',
                   minHeight: '140px',
                   cursor: 'pointer',
@@ -349,7 +349,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 4px 12px rgba(15,23,42,0.3), inset 0 2px 4px rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Scan size={20} color="#FFF" />
                   </div>
                   <div style={{ background: '#EF4444', color: '#FFF', fontSize: '10px', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
@@ -373,20 +373,20 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   if (task.id === 'task_default') navigate('/app/profile');
                 }}
                 style={{
-                  background: '#FFF',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
                   borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
-                  border: '1px solid #F8FAFC',
+                  boxShadow: '0 16px 40px rgba(31,38,135,0.1), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(255,255,255,0.3)',
+                  border: '1px solid rgba(255,255,255,0.5)',
                   minHeight: '140px',
                   cursor: 'pointer'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: task.id === 'task_default_done' ? '#10B981' : '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: task.id === 'task_default_done' ? 'linear-gradient(135deg, rgba(16,185,129,0.9) 0%, rgba(16,185,129,0.7) 100%)' : 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: task.id === 'task_default_done' ? '0 4px 12px rgba(16,185,129,0.3), inset 0 2px 4px rgba(255,255,255,0.3)' : '0 4px 12px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,1)', border: '1px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
                      {task.id === 'task_default_done' ? <ChevronRight size={20} color="#FFF" /> : <Clock size={20} color="#64748B" />}
                   </div>
                 </div>

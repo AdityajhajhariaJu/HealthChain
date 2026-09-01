@@ -48,9 +48,9 @@ export function FitnessNav() {
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                background: isActive ? 'rgba(15, 23, 42, 0.85)' : 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)',
+                background: isActive ? 'rgba(15, 23, 42, 0.85)' : 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)',
                 color: isActive ? 'white' : '#475569',
-                boxShadow: isActive ? '0 4px 12px rgba(15, 23, 42, 0.2)' : '0 12px 24px rgba(31, 38, 135, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 20px rgba(255,255,255,0.5)',
+                boxShadow: isActive ? '0 4px 12px rgba(15, 23, 42, 0.2)' : '0 8px 24px rgba(31, 38, 135, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(255, 255, 255, 0.3)',
                 border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.6)',
                 backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', transform: 'translateZ(0)'
               }}
