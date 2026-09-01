@@ -476,9 +476,18 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           </section>
 
           {/* Soundscapes */}
-          <section>
+          <section style={{
+            margin: '0 16px 40px',
+            padding: '24px 0',
+            borderRadius: '24px',
+            backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.4), rgba(15,23,42,0.8)), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }}>
             <div style={{ padding: '0 24px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Soundscapes</h2>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#FFFFFF', letterSpacing: '-0.5px' }}>Soundscapes</h2>
+              <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', margin: 0 }}>Immersive audio environments</p>
             </div>
             <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
