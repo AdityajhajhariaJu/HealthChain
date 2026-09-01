@@ -57,7 +57,7 @@ export const AmbientGyroBackground = () => {
       top: 0, left: 0, right: 0, bottom: 0,
       zIndex: -1, // Sits strictly behind all content
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+      background: '#FBF9F6',
       pointerEvents: 'none',
       contain: 'strict' // CSS containment for max performance
     }}>
@@ -77,7 +77,7 @@ export const AmbientGyroBackground = () => {
           top: '5%', left: '10%',
           width: '70vw', height: '70vw',
           maxWidth: '500px', maxHeight: '500px',
-          background: 'radial-gradient(circle, rgba(13,148,136,0.18) 0%, rgba(13,148,136,0) 70%)',
+          background: 'radial-gradient(circle, rgba(230,220,200,0.4) 0%, rgba(230,220,200,0) 70%)',
           borderRadius: '50%',
           filter: 'blur(60px)',
           transform: 'translateZ(0)'
@@ -89,7 +89,7 @@ export const AmbientGyroBackground = () => {
           bottom: '10%', right: '5%',
           width: '80vw', height: '80vw',
           maxWidth: '600px', maxHeight: '600px',
-          background: 'radial-gradient(circle, rgba(14,165,233,0.12) 0%, rgba(14,165,233,0) 70%)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%)',
           borderRadius: '50%',
           filter: 'blur(60px)',
           transform: 'translateZ(0)'
