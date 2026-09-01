@@ -72,7 +72,7 @@ export function compilePatientContext(options = {}) {
         if (c.actions) impStr += `- Actions: ${c.actions.slice(0, 150)}\n`;
         contextParts.push(impStr);
       }
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   }
 
   // 4. Active case context
