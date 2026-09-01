@@ -117,12 +117,13 @@ export function DieticianDashboardTracker({
           <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
           
           <div className="hide-scrollbar scrollable-row" style={{
-            background: 'rgba(255, 255, 255, 0.25)', // Heavy glassmorphism transparency
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%)',
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
             borderRadius: '32px',
             padding: '24px 16px',
-            boxShadow: '0 8px 32px rgba(15, 23, 42, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.8)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 30px rgba(255,255,255,0.5)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
             display: 'flex',
             flexWrap: 'nowrap',
             overflowX: 'auto',
