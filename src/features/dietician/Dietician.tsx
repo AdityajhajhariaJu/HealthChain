@@ -750,27 +750,7 @@ export default function Dietician() {
             >
               <Calendar size={15} /> 7-Day Plan
             </button>
-            <button
-              onClick={() => setActiveTab('grocery')}
-              style={{
-                padding: isMobile ? '8px 12px' : '8px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'grocery' ? '#0F172A' : 'transparent',
-                color: activeTab === 'grocery' ? '#FFFFFF' : '#64748B',
-                fontWeight: 700,
-                fontSize: isMobile ? '12.5px' : '13px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              <ShoppingCart size={15} /> Grocery List
-            </button>
+            
             <button
               onClick={() => setActiveTab('guardrails')}
               style={{
