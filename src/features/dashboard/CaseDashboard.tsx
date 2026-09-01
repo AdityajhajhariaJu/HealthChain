@@ -3,7 +3,6 @@ import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
 import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin, Scan} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
-import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
 
 
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -417,7 +416,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </div>
           </section>
 
-          <div style={{ padding: '0 24px', marginBottom: '32px' }}><ImmersiveFeatureFeed /></div>
+          
           {/* Audio by Mood */}
           <section>
             <div style={{ padding: '0 24px', marginBottom: '16px' }}>
