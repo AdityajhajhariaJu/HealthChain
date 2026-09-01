@@ -675,7 +675,7 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
       payload: { symptom, severity, score, note, lifestyle },
       dedupeKey: `daily_checkin:${todayStr}`,
     });
-  } catch(e) {}
+  } catch (e) { /* ignore */ }
 
   window.dispatchEvent(new CustomEvent('hc_daily_checkin_completed', { detail: checkinEntry }));
   return checkinEntry;
