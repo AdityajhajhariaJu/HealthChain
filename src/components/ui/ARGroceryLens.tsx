@@ -133,7 +133,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             style={{
               position: 'absolute', bottom: '40px', left: '20px', right: '20px', zIndex: 20,
-              display: 'flex', flexDirection: 'column', gap: '12px'
+              display: 'flex', flexDirection: 'column', gap: '12px',
+              maxHeight: 'calc(100vh - 140px)', overflowY: 'auto',
+              paddingBottom: '20px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch'
             }}
           >
             {/* The AI Result Card */}
@@ -142,7 +144,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               boxShadow: '0 24px 48px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.5)'
             }}>
               {analysis?.warning && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FEF2F2', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', background: '#FEF2F2', padding: '12px', borderRadius: '12px', width: '100%', marginBottom: '16px', boxSizing: 'border-box' }}>
                   <AlertTriangle size={14} color="#EF4444" />
                   <span style={{ color: '#EF4444', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{analysis.warning}</span>
                 </div>
