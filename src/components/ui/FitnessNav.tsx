@@ -16,6 +16,7 @@ export function FitnessNav() {
   return (
     <div style={{
       display: 'flex',
+      flexWrap: 'nowrap',
       gap: '8px',
       overflowX: 'auto',
       padding: '0 24px 16px',
@@ -29,7 +30,7 @@ export function FitnessNav() {
       <style>{`
         .fitness-nav::-webkit-scrollbar { display: none; }
       `}</style>
-      <div className="fitness-nav" style={{ display: 'flex', gap: '8px', minWidth: 'min-content', padding: '0 24px' }}>
+      <div className="fitness-nav" style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', minWidth: 'min-content', padding: '0 24px' }}>
         {tabs.map(tab => {
           const isActive = location.pathname === tab.path;
           return (

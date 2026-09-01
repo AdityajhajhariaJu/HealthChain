@@ -52,7 +52,7 @@ export function DieticianDashboardTracker({
     const offset = circumference - percent * circumference;
     
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
         <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{title}</div>
         <div style={{ position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
@@ -116,20 +116,23 @@ export function DieticianDashboardTracker({
           <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
           <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
           
-          <div style={{
+          <div className="hide-scrollbar scrollable-row" style={{
             background: 'rgba(255, 255, 255, 0.25)', // Heavy glassmorphism transparency
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             borderRadius: '32px',
             padding: '24px 16px',
             boxShadow: '0 8px 32px rgba(15, 23, 42, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.8)',
-            display: 'grid',
+            display: 'flex',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
             position: 'relative',
             zIndex: 1,
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '20px 8px',
-          justifyItems: 'center'
-        }}>
+            gap: '16px',
+            paddingBottom: '16px',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}>
           <CircularProgress value={consumedProtein} max={targetProtein} color="#10B981" trackColor="#D1FAE5" title="Protein" subtitle={`${targetProtein}g`} />
           <CircularProgress value={consumedCarbs} max={targetCarbs} color="#3B82F6" trackColor="#DBEAFE" title="Carbs" subtitle={`${targetCarbs}g`} />
           <CircularProgress value={consumedSugar} max={targetSugar} color="#E879F9" trackColor="#FAE8FF" title="Sugar" subtitle={`${targetSugar}g`} />
