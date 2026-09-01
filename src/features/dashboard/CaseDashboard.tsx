@@ -477,13 +477,11 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
           {/* Soundscapes */}
           <section style={{
-            margin: '0 16px 40px',
-            padding: '24px 0',
-            borderRadius: '24px',
-            backgroundImage: `linear-gradient(to bottom, rgba(15,23,42,0.4), rgba(15,23,42,0.8)), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800')`,
+            marginBottom: '40px',
+            padding: '40px 0 32px',
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800')`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+            backgroundPosition: 'center'
           }}>
             <div style={{ padding: '0 24px', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#FFFFFF', letterSpacing: '-0.5px' }}>Soundscapes</h2>
