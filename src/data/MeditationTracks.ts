@@ -73,3 +73,20 @@ export const HAPPY_HIGH_ENERGY_TRACKS = [
   { id: 'hhe14', title: 'Afternoon Is Mine', subtitle: 'bouncy nu-disco, sunny day energy', cover: 'https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?w=400&q=80', audioUrl: '/audio/Afternoon Is Mine.m4a' },
   { id: 'hhe15', title: 'Cold Water Shock', subtitle: 'intense electronic jolt, pure adrenaline', cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80', audioUrl: '/audio/Cold Water Shock.m4a' }
 ];
+export const FOCUS_FREQUENCIES_TRACKS = [
+  { id: 'ff1', title: 'Delta Sleep-Study Bridge', subtitle: 'warm floating ambient soundscape', cover: '/images/thumb_freq_wave_1788264616223.jpg', audioUrl: '/audio/Delta Sleep-Study Bridge.m4a' },
+  { id: 'ff2', title: 'Cognitive Clarity Pulse', subtitle: 'bright crystalline ambient synth drone', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Cognitive Clarity Pulse.m4a' },
+  { id: 'ff3', title: 'Quantum Flow Field', subtitle: 'futuristic ambient pad soundscape', cover: '/images/thumb_freq_cymatics_1788264629537.jpg', audioUrl: '/audio/Quantum Flow Field.m4a' },
+  { id: 'ff4', title: 'Deep Neural Harmony', subtitle: 'smooth subterranean bass drone', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Deep Neural Harmony.m4a' },
+  { id: 'ff5', title: 'Monochord Resonance', subtitle: 'acoustic ambient drone, rich overtone series', cover: '/images/thumb_freq_wave_1788264616223.jpg', audioUrl: '/audio/Monochord Resonance.m4a' },
+  { id: 'ff6', title: 'Alpha Focus Flow', subtitle: 'soothing ambient synth drone', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Alpha Focus Flow.m4a' },
+  { id: 'ff7', title: 'Isochronic Mindscape', subtitle: 'soft ambient soundscape with gentle isochronic', cover: '/images/thumb_freq_cymatics_1788264629537.jpg', audioUrl: '/audio/Isochronic Mindscape.m4a' },
+  { id: 'ff8', title: 'Binaural Horizon', subtitle: 'spacious ambient soundscape', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Binaural Horizon.m4a' },
+  { id: 'ff9', title: '432Hz Clarity', subtitle: 'calming 432Hz tuned ambient soundscape', cover: '/images/thumb_freq_wave_1788264616223.jpg', audioUrl: '/audio/432Hz Clarity.m4a' },
+  { id: 'ff10', title: 'Gamma State Flow', subtitle: 'pulsing ambient focus synth', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Gamma State Flow.m4a' },
+  { id: 'ff11', title: 'Harmonic Convergence', subtitle: 'rich multitone ambient drone', cover: '/images/thumb_freq_cymatics_1788264629537.jpg', audioUrl: '/audio/Harmonic Convergence.m4a' },
+  { id: 'ff12', title: 'Deep Mental Flow', subtitle: 'deep warm ambient synth drone', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Deep Mental Flow.m4a' },
+  { id: 'ff13', title: 'Subconscious Pulse', subtitle: 'ultra-low ambient frequency hum', cover: '/images/thumb_freq_wave_1788264616223.jpg', audioUrl: '/audio/Subconscious Pulse.m4a' },
+  { id: 'ff14', title: 'Theta Memory Drift', subtitle: 'ethereal atmospheric synth drone', cover: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80', audioUrl: '/audio/Theta Memory Drift.m4a' },
+  { id: 'ff15', title: 'Solfeggio 528Hz Transformation', subtitle: 'warm harmonic resonant bell drone', cover: '/images/thumb_freq_cymatics_1788264629537.jpg', audioUrl: '/audio/Solfeggio 528Hz Transformation.m4a' }
+];
