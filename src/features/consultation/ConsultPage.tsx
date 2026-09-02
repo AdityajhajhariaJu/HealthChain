@@ -20,10 +20,10 @@ export default function ConsultPage() {
       }}
     >
       {/* Aesthetic background blobs for Consult glass cards */}
-      <div style={{ position: 'absolute', top: '5%', left: '0%', width: '300px', height: '300px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(80px)', zIndex: 0 }} />
-      <div style={{ position: 'absolute', top: '30%', right: '-5%', width: '250px', height: '250px', background: '#FEE2E2', borderRadius: '50%', filter: 'blur(70px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '5%', left: '0%', width: '300px', height: '300px', background: '#FFE4E6', borderRadius: '50%', filter: 'blur(80px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '30%', right: '-5%', width: '250px', height: '250px', background: '#E0F2FE', borderRadius: '50%', filter: 'blur(70px)', zIndex: 0 }} />
       <div style={{ position: 'absolute', top: '60%', left: '10%', width: '350px', height: '350px', background: '#FEF3C7', borderRadius: '50%', filter: 'blur(90px)', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '0%', right: '0%', width: '250px', height: '250px', background: '#ECFCCB', borderRadius: '50%', filter: 'blur(80px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '0%', right: '0%', width: '250px', height: '250px', background: '#D1FAE5', borderRadius: '50%', filter: 'blur(80px)', zIndex: 0 }} />
       {/* Quick Consult Section */}
       <section style={{ position: 'relative', zIndex: 2 }}>
         <QuickConsult />
