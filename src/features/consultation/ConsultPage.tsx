@@ -19,10 +19,13 @@ export default function ConsultPage() {
         overflow: 'hidden'
       }}
     >
-      {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
-        <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
-        <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
-        <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+      {/* Small, distinct patches of color perfectly matched to the Consult Page context (Soft Blue & Slate) */}
+        {/* Top Left: Near 'Attach Lab Reports' and 'Quick Consult' (Soft Blue) */}
+        <div style={{ position: 'absolute', top: '15%', left: '15%', width: '120px', height: '120px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+        {/* Middle Right: Near 'Deploy AI Agents' (Soft Slate/Blue) */}
+        <div style={{ position: 'absolute', top: '45%', right: '15%', width: '120px', height: '120px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+        {/* Bottom Left: Near 'Collaborative Cases' (Soft Creme/White) */}
+        <div style={{ position: 'absolute', bottom: '15%', left: '20%', width: '120px', height: '120px', background: '#F8FAFC', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
       {/* Quick Consult Section */}
       <section style={{ position: 'relative', zIndex: 2 }}>
         <QuickConsult />

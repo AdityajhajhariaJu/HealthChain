@@ -403,10 +403,23 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
         </div>
 
           <div style={{ position: 'relative', margin: '0 16px 40px 16px' }}>
-          {/* Aesthetic background blobs so the glassmorphism has something to blur! */}
-          <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+          {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
+          {/* Top Left: Full Meditation (Teal) */}
+          <div style={{ position: 'absolute', top: '10%', left: '20%', width: '100px', height: '100px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          {/* Top Right: Deep Sleep (Warm Amber) */}
+          <div style={{ position: 'absolute', top: '10%', right: '20%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          
+          {/* Middle Left: Deep Focus (Stone/Grey) */}
+          <div style={{ position: 'absolute', top: '40%', left: '20%', width: '100px', height: '100px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          {/* Middle Right: Morning Energy (Slate/Sky) */}
+          <div style={{ position: 'absolute', top: '40%', right: '20%', width: '100px', height: '100px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          
+          {/* Bottom Left: Rain Sounds (Purple) */}
+          <div style={{ position: 'absolute', bottom: '10%', left: '15%', width: '90px', height: '90px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
+          {/* Bottom Middle: Focus Frequencies (Teal) */}
+          <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '90px', height: '90px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
+          {/* Bottom Right: Ambient (Slate) */}
+          <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '90px', height: '90px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
 
 <div style={{ 
             position: 'relative',
