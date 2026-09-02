@@ -623,14 +623,14 @@ useEffect(() => {
         {/* Header & Stepper Card */}
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
             borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
             padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
-            border: '1px solid #E2E8F0',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
             borderBottom: phase === 'intake' ? 'none' : '1px solid #E2E8F0',
-            boxShadow: phase === 'intake' ? 'none' : '0 10px 30px rgba(0,0,0,0.03)',
+            boxShadow: phase === 'intake' ? 'none' : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
             marginBottom: phase === 'intake' ? '0px' : '24px',
             maxWidth: phase === 'intake' ? '800px' : '100%',
             margin: phase === 'intake' ? '0 auto' : '0',
@@ -699,7 +699,7 @@ useEffect(() => {
                   padding: '6px',
                   borderRadius: '999px',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
                 }}
               >
                 <Step
@@ -1037,7 +1037,7 @@ useEffect(() => {
                   backdropFilter: 'blur(24px)',
                   padding: isMobile ? '32px 16px' : '32px 64px 64px',
                   borderRadius: '32px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   maxWidth: '600px',
                   margin: '40px auto 0',
@@ -1056,7 +1056,7 @@ useEffect(() => {
                   backdropFilter: 'blur(24px)',
                   padding: isMobile ? '32px' : '32px 64px 64px',
                   borderRadius: '32px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   textAlign: 'center',
                   maxWidth: '600px',
@@ -1145,7 +1145,7 @@ useEffect(() => {
                   backdropFilter: 'blur(24px)',
                   borderRadius: '32px',
                   textAlign: 'center',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
                   border: '1px solid rgba(255,255,255,0.5)',
                   display: 'flex',
                   flexDirection: 'column',

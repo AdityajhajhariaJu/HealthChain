@@ -418,13 +418,13 @@ export default function QuickConsult() {
               }
             }}
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid #E2E8F0',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -494,7 +494,7 @@ export default function QuickConsult() {
                     style={{
                       padding: '8px 12px 8px 36px',
                       borderRadius: '8px',
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid rgba(255, 255, 255, 0.8)',
                       fontSize: '14px',
                       width: '180px',
                       outline: 'none',
@@ -624,13 +624,13 @@ export default function QuickConsult() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '32px 20px' : '40px 56px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid #E2E8F0',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
               maxWidth: '560px',
               margin: '0 auto',
               textAlign: 'center'
@@ -711,7 +711,7 @@ export default function QuickConsult() {
             </div>
 
             {uploadedFiles.length > 0 && (
-              <div style={{ marginBottom: 24, textAlign: 'left', background: '#F8FAFC', padding: '12px 16px', borderRadius: 16, border: '1px solid #E2E8F0' }}>
+              <div style={{ marginBottom: 24, textAlign: 'left', background: '#F8FAFC', padding: '12px 16px', borderRadius: 16, border: '1px solid rgba(255, 255, 255, 0.8)' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginBottom: 8 }}>Attached Records:</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {uploadedFiles.map((f, i) => (
@@ -778,13 +778,13 @@ export default function QuickConsult() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.05)',
-              border: '1px solid #E2E8F0',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
               height: isMobile ? 'calc(100dvh - 120px)' : '700px',
               display: 'flex',
               flexDirection: 'column'
@@ -841,13 +841,13 @@ export default function QuickConsult() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
                 padding: isMobile ? '32px 16px' : '32px 64px 64px',
                 borderRadius: '32px',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-                border: '1px solid #E2E8F0',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.8)',
                 maxWidth: '600px',
                 margin: '0 auto',
               }}
@@ -861,13 +861,13 @@ export default function QuickConsult() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
               padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-              border: '1px solid #E2E8F0',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
               textAlign: 'center'
             }}
           >

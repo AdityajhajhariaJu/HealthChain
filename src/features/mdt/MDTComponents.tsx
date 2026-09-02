@@ -118,12 +118,12 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
     <div
       style={{
         padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '32px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
-        border: '1px solid #E2E8F0',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+        border: '1px solid rgba(255, 255, 255, 0.8)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '20px' }}>
@@ -165,7 +165,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
       <div
         style={{
           background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
           borderRadius: '20px',
           padding: '24px',
           marginBottom: '24px',
@@ -271,7 +271,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             padding: '22px',
             border: '1px solid #D9E2EC',
             borderRadius: '20px',
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
           }}
@@ -430,13 +430,13 @@ New Information / Changes in Symptoms since last evaluation:
           backgroundPosition: { duration: 10, ease: "linear", repeat: Infinity }
         }}
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
           padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
           borderRadius: isMobile ? '0 0 24px 24px' : '0 0 32px 32px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
-          border: '1px solid #E2E8F0',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
           borderTop: 'none'
         }}
       >
@@ -475,7 +475,7 @@ New Information / Changes in Symptoms since last evaluation:
                   minHeight: '160px',
                   padding: '18px',
                   borderRadius: 'var(--radius-lg)',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
                   fontSize: '15.5px',
                   lineHeight: 1.6,
                   resize: 'vertical',
@@ -609,7 +609,7 @@ New Information / Changes in Symptoms since last evaluation:
                   onClick={() => onElevateParallel && onElevateParallel(pc)}
                   style={{
                     background: '#FFF',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
                     borderRadius: 'var(--radius-lg)',
                     padding: '12px 16px',
                     cursor: 'pointer',
@@ -645,7 +645,7 @@ New Information / Changes in Symptoms since last evaluation:
                   onClick={() => onReviewPastMDT && onReviewPastMDT(mc)}
                   style={{
                     background: '#FFF',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
                     borderRadius: 'var(--radius-lg)',
                     padding: '12px 16px',
                     cursor: 'pointer',
@@ -705,7 +705,7 @@ New Information / Changes in Symptoms since last evaluation:
                       key={hc.id}
                       onClick={() => handleImportCase(hc)}
                       style={{
-                        padding: '16px', background: '#FFF', border: '1px solid #E2E8F0',
+                        padding: '16px', background: '#FFF', border: '1px solid rgba(255, 255, 255, 0.8)',
                         borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
                       }}
@@ -722,7 +722,7 @@ New Information / Changes in Symptoms since last evaluation:
                             {hc.date || (hc.updatedAt ? new Date(hc.updatedAt).toLocaleDateString() : '')}
                           </p>
                         </div>
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FFF', border: '1px solid #E2E8F0', display: 'grid', placeItems: 'center' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FFF', border: '1px solid rgba(255, 255, 255, 0.8)', display: 'grid', placeItems: 'center' }}>
                           <GitMerge size={14} color="#0F8B7E" />
                         </div>
                       </div>
@@ -799,7 +799,7 @@ const SymptomPills = ({ options, onSubmit, color }) => {
 const PainSlider = ({ onSubmit, color }) => {
   const [val, setVal] = useState(5);
   return (
-    <div style={{ marginTop: '12px', padding: '12px', background: '#F1F5F9', borderRadius: 'var(--radius-lg)', border: '1px solid #E2E8F0' }}>
+    <div style={{ marginTop: '12px', padding: '12px', background: '#F1F5F9', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(255, 255, 255, 0.8)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748B', fontSize: '12px', marginBottom: '8px' }}>
         <span>1 (Mild)</span>
         <span style={{ color: color, fontWeight: 700, fontSize: '14px' }}>{val}</span>
@@ -978,7 +978,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
         display: 'flex',
         flexDirection: 'column',
         height: '580px',
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '20px',
@@ -1184,7 +1184,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
 
         {status === 'thinking' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ alignSelf: 'flex-start' }}>
-            <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', gap: '6px' }}>
+            <div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px', background: '#F8FAFC', border: '1px solid rgba(255, 255, 255, 0.8)', display: 'flex', gap: '6px' }}>
               {[0, 0.15, 0.3].map((d, i) => (
                 <motion.span
                   key={i}
@@ -1217,10 +1217,10 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
             onSubmit={handleSend}
             style={{
               padding: '16px',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
-              borderTop: '1px solid #E2E8F0',
+              borderTop: '1px solid rgba(255, 255, 255, 0.8)',
               display: 'flex',
               gap: '12px',
             }}
@@ -1237,7 +1237,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
                 flex: 1,
                 padding: '14px 20px',
                 borderRadius: '999px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid rgba(255, 255, 255, 0.8)',
                 fontSize: '15px',
                 outline: 'none',
                 background: '#F8FAFC',
@@ -1379,7 +1379,7 @@ export function MDTConferencePanel({
           minHeight: '500px'
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.8)', paddingBottom: '24px' }}>
           <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
             Live Board Debate Room
           </h2>
@@ -1614,7 +1614,7 @@ export function MDTConferencePanel({
           background: '#F8FAFC',
           padding: '20px',
           borderRadius: '24px',
-          border: '1px solid #E2E8F0',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
           marginBottom: '24px',
         }}
       >
@@ -1649,7 +1649,7 @@ export function MDTConferencePanel({
                 background: '#FFF',
                 padding: '24px',
                 borderRadius: 'var(--radius-lg)',
-                border: '1px solid #E2E8F0',
+                border: '1px solid rgba(255, 255, 255, 0.8)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
               }}
             >
@@ -1847,7 +1847,7 @@ export function MDTReportPanel({
           backdropFilter: 'blur(24px)',
           borderRadius: '32px',
           textAlign: 'center',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
           border: '1px solid rgba(255,255,255,0.5)',
           display: 'flex',
           flexDirection: 'column',
@@ -1908,7 +1908,7 @@ export function MDTReportPanel({
         background: '#FFF',
         borderRadius: '32px',
         boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
-        border: '1px solid #E2E8F0',
+        border: '1px solid rgba(255, 255, 255, 0.8)',
       }}
     >
       {/* Top Actions */}
@@ -1939,7 +1939,7 @@ export function MDTReportPanel({
             padding: '12px 24px',
             background: '#F8FAFC',
             color: '#0F172A',
-            border: '1px solid #E2E8F0',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
             borderRadius: '999px',
             fontWeight: 700,
             cursor: 'pointer',
@@ -1958,7 +1958,7 @@ export function MDTReportPanel({
             padding: '12px 24px',
             background: '#F8FAFC',
             color: '#0F172A',
-            border: '1px solid #E2E8F0',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
             borderRadius: '999px',
             fontWeight: 700,
             cursor: 'pointer',
@@ -2058,7 +2058,7 @@ export function MDTReportPanel({
                 style={{
                   padding: '24px',
                   borderRadius: '20px',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
                   background: '#F8FAFC',
                   position: 'relative',
                   overflow: 'hidden',
@@ -2115,7 +2115,7 @@ export function MDTReportPanel({
                   style={{
                     display: 'inline-flex',
                     background: '#FFF',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
                     color: '#475569',
                     fontSize: '12px',
                     fontWeight: 700,
@@ -2144,7 +2144,7 @@ export function MDTReportPanel({
                   gap: isMobile ? '12px' : '20px',
                   padding: isMobile ? '16px' : '24px',
                   background: '#FFF',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
                   borderRadius: isMobile ? '16px' : '20px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
                 }}
@@ -2220,7 +2220,7 @@ export function MDTReportPanel({
       <div
         style={{
           marginTop: '48px',
-          borderTop: '1px solid #E2E8F0',
+          borderTop: '1px solid rgba(255, 255, 255, 0.8)',
           paddingTop: '40px',
           paddingLeft: '20px',
           paddingRight: '20px',
@@ -2263,7 +2263,7 @@ export function MDTReportPanel({
                   padding: '20px',
                   background: '#F8FAFC',
                   borderRadius: '24px',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid rgba(255, 255, 255, 0.8)',
                 }}
               >
                 <label
