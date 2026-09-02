@@ -623,9 +623,11 @@ useEffect(() => {
         {/* Header & Stepper Card */}
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
               WebkitBackdropFilter: 'blur(32px)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
             borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
             padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
             border: '1px solid rgba(255, 255, 255, 0.8)',
