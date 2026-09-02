@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
@@ -267,14 +267,8 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           </button>
         </div>
         <div
-          style={{
-            padding: '22px',
-            border: '1px solid #D9E2EC',
-            borderRadius: '20px',
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
-          }}
+          style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', padding: '22px',
+            borderRadius: '20px',}}
         >
           <div
             style={{
@@ -974,18 +968,12 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.15, type: 'spring', stiffness: 80 }}
-      style={{
-        display: 'flex',
+      style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', display: 'flex',
         flexDirection: 'column',
         height: '580px',
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '20px',
-        border: status === 'done' ? `2px solid ${specialist.color}` : '1px solid #E2E8F0',
-        overflow: 'hidden',
-        boxShadow: '0 18px 42px rgba(15,23,42,0.08)',
-      }}
+        border: status === 'done' ? `2px solid ${specialist.color}` : '1px solid rgba(255, 255, 255, 0.8)',
+        overflow: 'hidden',}}
     >
       {/* Header */}
       <div
@@ -1215,15 +1203,10 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             onSubmit={handleSend}
-            style={{
-              padding: '16px',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+            style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', padding: '16px',
               borderTop: '1px solid rgba(255, 255, 255, 0.8)',
               display: 'flex',
-              gap: '12px',
-            }}
+              gap: '12px',}}
           >
             <input
               ref={inputRef}

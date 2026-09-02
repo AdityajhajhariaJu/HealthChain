@@ -366,17 +366,10 @@ export default function JarvisInvestigator() {
         {/* Bottom Right: Near 'Clinical Trials' (Rose) */}
         <div style={{ position: 'absolute', bottom: '10%', right: '25%', width: '120px', height: '120px', background: '#FECDD3', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
 
-      <div style={{ 
-        position: 'relative',
+      <div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
         zIndex: 1,
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
-        backdropFilter: 'blur(32px)', 
-        WebkitBackdropFilter: 'blur(32px)', 
-        border: '1px solid rgba(255, 255, 255, 0.8)', 
         borderRadius: '32px', 
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', 
-        overflow: 'hidden' 
-      }}>
+        overflow: 'hidden'}}>
       
       <div style={{ padding: isMobile ? '32px 16px' : '48px', position: 'relative' }}>
         <div style={{ position: 'relative' }}>

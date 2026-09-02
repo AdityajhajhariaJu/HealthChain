@@ -41,6 +41,7 @@ export function FitnessNav() {
                 navigate(tab.path);
               }}
               style={{
+                backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
                 padding: '8px 20px',
                 borderRadius: '24px',
                 fontSize: '15px',
@@ -48,12 +49,11 @@ export function FitnessNav() {
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                background: isActive ? 'rgba(15, 23, 42, 0.85)' : 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)',
+                background: isActive ? 'rgba(15, 23, 42, 0.85)' : 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
                 color: isActive ? 'white' : '#475569',
-                boxShadow: isActive ? '0 4px 12px rgba(15, 23, 42, 0.2)' : '0 8px 24px rgba(31, 38, 135, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(255, 255, 255, 0.3)',
-                border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', transform: 'translateZ(0)'
-              }}
+                boxShadow: isActive ? '0 4px 12px rgba(15, 23, 42, 0.2)' : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+                border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.8)',
+                transform: 'translateZ(0)'}}
             >
               {tab.label}
             </button>

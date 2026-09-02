@@ -99,20 +99,13 @@ export default function OnboardingFlow() {
                     whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.7)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSelect}
-                    style={{
-                      background: 'rgba(255,255,255,0.6)',
-                      border: '1px solid rgba(15,23,42,0.12)',
-                      borderRadius: '24px',
+                    style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '24px',
                       padding: '20px 24px',
                       textAlign: 'left',
                       cursor: 'pointer',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '20px'
-                    }}
+                      gap: '20px'}}
                   >
                     <div style={{ background: 'rgba(255,255,255,0.5)', padding: '12px', borderRadius: '16px', border: '1px solid rgba(15,23,42,0.05)' }}>
                       {goal.icon}

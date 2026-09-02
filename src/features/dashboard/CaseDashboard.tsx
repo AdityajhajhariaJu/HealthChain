@@ -286,24 +286,17 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             {/* The Glassmorphic Arch Canvas Tile */}
               <div 
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
-                style={{ 
-                  gridRow: 'span 2',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 100%)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
+                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', gridRow: 'span 2',
                   borderRadius: '160px 160px 32px 32px', 
                   position: 'relative',
                   overflow: 'hidden',
                   cursor: 'pointer',
-                  boxShadow: '0 16px 40px rgba(31,38,135,0.1), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(255,255,255,0.3)',
-                  border: '1px solid rgba(255,255,255,0.5)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: '24px',
-                  minHeight: '260px'
-                }}
+                  minHeight: '260px'}}
               >
                 
                   {/* Pushpin */}
@@ -329,22 +322,15 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               {/* AR Lens Bento Tile */}
               <div 
                 onClick={() => { triggerHapticLight(); setShowARLens(true); }}
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 100%)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)',
-                  borderRadius: '32px',
+                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 16px 40px rgba(31,38,135,0.1), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(255,255,255,0.3)',
-                  border: '1px solid rgba(255,255,255,0.8)',
                   minHeight: '140px',
                   cursor: 'pointer',
                   position: 'relative',
-                  overflow: 'hidden'
-                }}
+                  overflow: 'hidden'}}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 4px 12px rgba(15,23,42,0.3), inset 0 2px 4px rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -370,18 +356,13 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   if (task.id === 'task_2') setShowFrictionModal(true);
                   if (task.id === 'task_default') navigate('/app/profile');
                 }}
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 100%)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
-                  borderRadius: '32px',
+                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 16px 40px rgba(31,38,135,0.1), inset 0 2px 4px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(255,255,255,0.3)',
-                  border: '1px solid rgba(255,255,255,0.5)',
                   minHeight: '140px',
-                  cursor: 'pointer'
-                }}
+                  cursor: 'pointer'}}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: task.id === 'task_default_done' ? 'linear-gradient(135deg, rgba(16,185,129,0.9) 0%, rgba(16,185,129,0.7) 100%)' : 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: task.id === 'task_default_done' ? '0 4px 12px rgba(16,185,129,0.3), inset 0 2px 4px rgba(255,255,255,0.3)' : '0 4px 12px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,1)', border: '1px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
@@ -421,17 +402,10 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {/* Bottom Right: Ambient (Slate) */}
           <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '90px', height: '90px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
 
-<div style={{ 
-            position: 'relative',
+<div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
             zIndex: 1,
             paddingTop: '24px', 
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
-            backdropFilter: 'blur(30px)', 
-            WebkitBackdropFilter: 'blur(30px)', 
-            border: '1px solid rgba(255, 255, 255, 0.8)', 
-            borderRadius: '32px', 
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)',
-          }}>
+            borderRadius: '32px',}}>
           {/* Our Own Meditation Hub (Hero) */}
           <section>
             <div style={{ padding: '0 16px', marginBottom: '16px' }}>
