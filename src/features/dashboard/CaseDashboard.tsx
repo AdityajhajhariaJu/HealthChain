@@ -402,7 +402,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
         </div>
 
-          <div style={{ position: 'relative', margin: '0 16px 40px 16px' }}>
+          <div style={{ position: 'relative', margin: '0 8px 40px 8px' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Teal) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '100px', height: '100px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
@@ -434,11 +434,11 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           }}>
           {/* Our Own Meditation Hub (Hero) */}
           <section>
-            <div style={{ padding: '0 24px', marginBottom: '16px' }}>
+            <div style={{ padding: '0 16px', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Your Calm Space</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences to shift your state</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 24px 16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
               {[
                 { 
                   id: 'm1', 
@@ -507,11 +507,11 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             marginBottom: '0',
             padding: '8px 0 16px'
           }}>
-            <div style={{ padding: '0 24px', marginBottom: '16px' }}>
+            <div style={{ padding: '0 16px', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Soundscapes</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Immersive audio environments</p>
             </div>
-            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 24px 16px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 16px 16px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
                 { name: 'Rain Sounds', icon: <Waves size={24} />, color: '#3b82f6', img: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80' },
                 { name: 'Focus Frequencies', icon: <Activity size={24} />, color: '#8b5cf6', img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=400&q=80' },
