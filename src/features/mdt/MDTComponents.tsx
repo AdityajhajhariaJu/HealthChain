@@ -120,7 +120,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
         padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)',
+              WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '32px',
         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
         border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -273,7 +273,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             borderRadius: '20px',
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)',
+              WebkitBackdropFilter: 'blur(32px)',
           }}
         >
           <div
@@ -432,7 +432,7 @@ New Information / Changes in Symptoms since last evaluation:
         style={{
           background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)',
+              WebkitBackdropFilter: 'blur(32px)',
           padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
           borderRadius: isMobile ? '0 0 24px 24px' : '0 0 32px 32px',
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
@@ -980,7 +980,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
         height: '580px',
         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)',
+              WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '20px',
         border: status === 'done' ? `2px solid ${specialist.color}` : '1px solid #E2E8F0',
         overflow: 'hidden',
@@ -1219,7 +1219,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
               padding: '16px',
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)',
+              WebkitBackdropFilter: 'blur(32px)',
               borderTop: '1px solid rgba(255, 255, 255, 0.8)',
               display: 'flex',
               gap: '12px',
@@ -2320,6 +2320,7 @@ export function MDTReportPanel({
     </motion.div>
   );
 }
+
 
 
 

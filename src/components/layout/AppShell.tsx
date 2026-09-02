@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Pill, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Dumbbell, Home, User } from 'lucide-react';
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
@@ -105,7 +105,7 @@ export default function AppShell() {
 
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
-  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || 'ðŸ¥‰';
+  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || 'Ã°Å¸Â¥â€°';
 
   const handleNavClick = (path: string, label?: string) => {
     triggerHapticLight();
@@ -230,7 +230,7 @@ const enforceSafeArea = () => {
               <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
               <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards â†’</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards Ã¢â€ â€™</span>
           </button>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
@@ -336,12 +336,16 @@ const enforceSafeArea = () => {
 
               <AnimatePresence>
                 {showProfileMenu && (
-                  <>
-                    <div
+                    <motion.div key="profile-backdrop"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       style={{ position: 'fixed', inset: 0, zIndex: 998, background: 'transparent' }}
                       onClick={() => setShowProfileMenu(false)}
                     />
-                    <motion.div
+                )}
+                {showProfileMenu && (
+                    <motion.div key="profile-menu"
                       initial={{ opacity: 0, y: 6, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.95 }}
@@ -367,7 +371,7 @@ const enforceSafeArea = () => {
                           {profile?.demographics?.name || 'My Health'}
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748B' }}>
-                          {profile?.isPro ? 'âœ¨ Pro Member' : 'Free Starter'}
+                          {profile?.isPro ? 'Ã¢Å“Â¨ Pro Member' : 'Free Starter'}
                         </div>
                       </div>
 
@@ -446,9 +450,8 @@ const enforceSafeArea = () => {
                         <span>Settings</span>
                       </button>
                     </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+            )}
+          </AnimatePresence>
             </div>
             )}
             </div>
@@ -527,15 +530,18 @@ const enforceSafeArea = () => {
 
           <AnimatePresence>
             {showMoreMenu && (
-              <>
                 <motion.div
+                  key="more-backdrop"
                   className="mobile-more-menu-backdrop"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setShowMoreMenu(false)}
                 />
-                <motion.div 
+            )}
+            {showMoreMenu && (
+                <motion.div
+                  key="more-menu"
                   className="mobile-more-menu" style={{ background: 'linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.85)), url(/ava-floral-bg.jpg) center/cover no-repeat' }}
                   initial={{ opacity: 0, y: '100%' }}
                   animate={{ opacity: 1, y: 0 }}
@@ -603,7 +609,6 @@ const enforceSafeArea = () => {
                   />
                 </div>
               </motion.div>
-              </>
             )}
           </AnimatePresence>
         </>
@@ -662,10 +667,10 @@ export function ActiveCaseBar({ navigate }: any) {
         <BriefcaseBusiness size={18} />
       </div>
       <div className="active-case-bar__copy">
-        <span>ACTIVE CASE Â· {profile?.demographics?.name || 'Your health record'}</span>
+        <span>ACTIVE CASE Ã‚Â· {profile?.demographics?.name || 'Your health record'}</span>
         <strong>{activeCase.title}</strong>
         <small>
-          {(activeCase.medicalRecords || []).length} evidence items Â· {pending} open actions Â·
+          {(activeCase.medicalRecords || []).length} evidence items Ã‚Â· {pending} open actions Ã‚Â·
           Updated {new Date(activeCase.updatedAt).toLocaleDateString()}
         </small>
       </div>
@@ -756,6 +761,7 @@ function BrandPulseBanner() {
     </section>
   );
 }
+
 
 
 
