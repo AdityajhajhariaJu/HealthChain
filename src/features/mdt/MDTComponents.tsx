@@ -118,7 +118,9 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
     <div
       style={{
         padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
-        background: '#FFFFFF',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '32px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
         border: '1px solid #E2E8F0',
@@ -269,7 +271,9 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             padding: '22px',
             border: '1px solid #D9E2EC',
             borderRadius: '20px',
-            background: '#FFFFFF',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
           }}
         >
           <div
@@ -426,7 +430,9 @@ New Information / Changes in Symptoms since last evaluation:
           backgroundPosition: { duration: 10, ease: "linear", repeat: Infinity }
         }}
         style={{
-          background: '#FFFFFF',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
           padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
           borderRadius: isMobile ? '0 0 24px 24px' : '0 0 32px 32px',
           boxShadow: '0 20px 40px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)',
@@ -972,7 +978,9 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
         display: 'flex',
         flexDirection: 'column',
         height: '580px',
-        background: '#FFFFFF',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '20px',
         border: status === 'done' ? `2px solid ${specialist.color}` : '1px solid #E2E8F0',
         overflow: 'hidden',
@@ -1209,7 +1217,9 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
             onSubmit={handleSend}
             style={{
               padding: '16px',
-              background: '#FFFFFF',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
               borderTop: '1px solid #E2E8F0',
               display: 'flex',
               gap: '12px',
