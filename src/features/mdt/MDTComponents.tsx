@@ -120,7 +120,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
         padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
         borderRadius: '32px',
         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
         border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -152,7 +152,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             Active case handoff
           </div>
           <h2 style={{ margin: 0, color: '#0F172A', fontSize: isMobile ? '24px' : '30px', letterSpacing: '-0.7px' }}>
-            Correlate, donâ€™t start over.
+            Correlate, donÃ¢â¬â¢t start over.
           </h2>
           <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '14px', lineHeight: 1.6 }}>
             The collaborative board will use your Parallel Specialists findings and saved evidence as one case file. It
@@ -201,7 +201,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             {pathways
               .map((pathway) => pathway.condition || pathway.name)
               .filter(Boolean)
-              .join(' Â· ')}
+              .join(' ÃÂ· ')}
           </div>
         )}
       </div>
@@ -239,9 +239,9 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             what conflicts, and what is still missing.
           </p>
           <div style={{ display: 'grid', gap: 7, color: '#334155', fontSize: 13, fontWeight: 650 }}>
-            <span>â€¢ shared signals across perspectives</span>
-            <span>â€¢ disagreements and evidence gaps</span>
-            <span>â€¢ clearer questions for your clinician</span>
+            <span>Ã¢â¬Â¢ shared signals across perspectives</span>
+            <span>Ã¢â¬Â¢ disagreements and evidence gaps</span>
+            <span>Ã¢â¬Â¢ clearer questions for your clinician</span>
           </div>
           <button
             onClick={onBegin}
@@ -267,7 +267,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           </button>
         </div>
         <div
-          style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', padding: '22px',
+          style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', padding: '22px',
             borderRadius: '20px',}}
         >
           <div
@@ -322,13 +322,13 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           fontSize: 13,
         }}
       >
-        This is a completely unrelated health concern â€” create a separate case
+        This is a completely unrelated health concern Ã¢â¬â create a separate case
       </button>
     </div>
   );
 }
 
-// â”€â”€â”€ Intake Phase UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ Intake Phase UI Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 
 export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing, onElevateParallel, onReviewPastMDT, onResumeActiveCase }: any) {
   const isMobile = useIsMobile();
@@ -414,19 +414,15 @@ New Information / Changes in Symptoms since last evaluation:
   return (
     <div style={{ maxWidth: isMobile ? '100%' : '800px', margin: '0 auto', paddingBottom: '40px' }}>
       <motion.div
-        initial={{ opacity: 0, y: 20, backgroundPosition: '0% 50%' }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ 
           opacity: 1, 
-          y: 0,
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-        }}
-        transition={{
-          backgroundPosition: { duration: 10, ease: "linear", repeat: Infinity }
+          y: 0
         }}
         style={{
           background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
           padding: isMobile ? '8px 20px 20px' : '16px 48px 48px',
           borderRadius: isMobile ? '0 0 24px 24px' : '0 0 32px 32px',
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
@@ -451,8 +447,8 @@ New Information / Changes in Symptoms since last evaluation:
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
-            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports â€” our multiple AI agents will connect everything.</p>
-            <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out â€” every detail matters.</p>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
+            <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
             </div>
           </div>
 
@@ -733,9 +729,9 @@ New Information / Changes in Symptoms since last evaluation:
   );
 }
 
-// â”€â”€â”€ MDT Specialist Panel (10-question AI Chat) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ MDT Specialist Panel (10-question AI Chat) Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 
-// â”€â”€â”€ HELPER COMPONENTS FOR SPECIALIST PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ HELPER COMPONENTS FOR SPECIALIST PANEL Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 const parseAIResponse = (text: any): any => {
   if (typeof text !== 'string') return { response: '' };
   let parsed: any = null;
@@ -826,7 +822,7 @@ const PainSlider = ({ onSubmit, color }) => {
     </div>
   );
 };
-// â”€â”€â”€ MDT Specialist Panel (10-question AI Chat) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ MDT Specialist Panel (10-question AI Chat) Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 
 export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeData, onComplete, initialMessages = [] as any[], onUpdate, isPaused = false, activeDifferentials = [] as any[] }: any) {
   const [messages, setMessages] = useState(initialMessages);
@@ -968,7 +964,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.15, type: 'spring', stiffness: 80 }}
-      style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', display: 'flex',
+      style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', display: 'flex',
         flexDirection: 'column',
         height: '580px',
         borderRadius: '20px',
@@ -1203,7 +1199,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             onSubmit={handleSend}
-            style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', padding: '16px',
+            style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', padding: '16px',
               borderTop: '1px solid rgba(255, 255, 255, 0.8)',
               display: 'flex',
               gap: '12px',}}
@@ -1257,7 +1253,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
   );
 });
 
-// â”€â”€â”€ MDT Conference Panel (Cross-Specialty Debate) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ MDT Conference Panel (Cross-Specialty Debate) Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 
 export function MDTConferencePanel({
   intakeData,

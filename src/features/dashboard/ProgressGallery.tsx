@@ -204,7 +204,7 @@ export const ProgressGallery: React.FC = () => {
         {activeTab === 'balance' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#38BDF8', filter: 'blur(80px)', opacity: 0.3, borderRadius: '50%' }} />
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#38BDF8', filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', opacity: 0.3, borderRadius: '50%' }} />
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
                 <div style={{ background: 'rgba(0,0,0,0.05)', padding: '8px', borderRadius: '10px', color: '#38BDF8' }}><Target size={20} /></div>

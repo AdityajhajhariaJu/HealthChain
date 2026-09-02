@@ -81,9 +81,9 @@ export const MedicalActionIsland = () => {
           <AnimatePresence mode="popLayout">
             {!expanded && (
               <motion.div
-                initial={{ opacity: 0, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, filter: 'blur(4px)', scale: 0.9 }}
+                initial={{ opacity: 0, filter: 'blur(4px)', transform: 'translateZ(0)', willChange: 'transform' }}
+                animate={{ opacity: 1, filter: 'blur(0px)', transform: 'translateZ(0)', willChange: 'transform' }}
+                exit={{ opacity: 0, filter: 'blur(4px)', transform: 'translateZ(0)', willChange: 'transform', scale: 0.9 }}
                 transition={{ duration: 0.2 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >

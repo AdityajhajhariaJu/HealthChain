@@ -41,7 +41,7 @@ export function FitnessNav() {
                 navigate(tab.path);
               }}
               style={{
-                backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+                backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
                 padding: '8px 20px',
                 borderRadius: '24px',
                 fontSize: '15px',

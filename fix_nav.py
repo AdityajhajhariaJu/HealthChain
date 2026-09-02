@@ -1,13 +1,14 @@
-﻿import re
+﻿import sys
+import re
 
-with open('src/components/layout/AppShell.tsx', 'r', encoding='utf-8') as f:
+path = r'C:\Users\adity\OneDrive\Desktop\HealthChain-Live\src\components\ui\FitnessNav.tsx'
+with open(path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-content = content.replace(
-    '<nav className={mobile-tab-bar }>',
-    '<nav className={`mobile-tab-bar ${isScrolling ? \'scrolling\' : \'\'}`}>'
-)
+# Make sure it has flexWrap: 'nowrap'
+content = content.replace("display: 'flex', gap: '8px', minWidth: 'min-content', padding: '0 24px'", "display: 'flex', flexWrap: 'nowrap', gap: '8px', minWidth: 'min-content', padding: '0 24px'")
+content = content.replace("display: 'flex',\n      gap: '8px',", "display: 'flex',\n      flexWrap: 'nowrap',\n      gap: '8px',")
 
-with open('src/components/layout/AppShell.tsx', 'w', encoding='utf-8') as f:
+with open(path, 'w', encoding='utf-8') as f:
     f.write(content)
-print('Done!')
+print("Updated FitnessNav")

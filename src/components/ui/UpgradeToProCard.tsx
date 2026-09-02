@@ -134,7 +134,7 @@ export default function UpgradeToProCard({ isPro = false, compact = false, onNav
           height: compact ? '80px' : '120px',
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, transparent 70%)',
-          filter: 'blur(12px)',
+          filter: 'blur(12px)', transform: 'translateZ(0)', willChange: 'transform',
           pointerEvents: 'none',
         }}
       />

@@ -143,7 +143,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
           height: '320px',
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%)',
-          filter: 'blur(40px)',
+          filter: 'blur(40px)', transform: 'translateZ(0)', willChange: 'transform',
           pointerEvents: 'none',
           zIndex: 0,
         }}
@@ -157,7 +157,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
           height: '350px',
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%)',
-          filter: 'blur(50px)',
+          filter: 'blur(50px)', transform: 'translateZ(0)', willChange: 'transform',
           pointerEvents: 'none',
           zIndex: 0,
         }}

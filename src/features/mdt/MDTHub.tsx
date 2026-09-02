@@ -594,27 +594,27 @@ useEffect(() => {
         {/* Ambient decorative blobs */}
       <div
         style={{
-          position: 'absolute',
+          position: 'absolute', willChange: 'transform',
           top: '-10%',
           right: '-5%',
           width: '500px',
           height: '500px',
           background: 'rgba(167, 139, 250, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)',
+          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform',
           pointerEvents: 'none',
         }}
       />
       <div
         style={{
-          position: 'absolute',
+          position: 'absolute', willChange: 'transform',
           bottom: '-10%',
           left: '-5%',
           width: '400px',
           height: '400px',
           background: 'rgba(52, 211, 153, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)',
+          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform',
           pointerEvents: 'none',
         }}
       />
@@ -625,7 +625,7 @@ useEffect(() => {
           style={{
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
             borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
             padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
             border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -822,7 +822,7 @@ useEffect(() => {
                           animate={{ rotate: 360 }}
                           transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
                           style={{
-                            position: 'absolute',
+                            position: 'absolute', willChange: 'transform',
                             inset: 0,
                             border: '3px dashed #10B981',
                             borderRadius: '50%',
@@ -833,7 +833,7 @@ useEffect(() => {
                           animate={{ rotate: -360 }}
                           transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
                           style={{
-                            position: 'absolute',
+                            position: 'absolute', willChange: 'transform',
                             inset: 8,
                             border: '3px dashed #34D399',
                             borderRadius: '50%',
@@ -842,7 +842,7 @@ useEffect(() => {
                         />
                         <div
                           style={{
-                            position: 'absolute',
+                            position: 'absolute', willChange: 'transform',
                             inset: 0,
                             display: 'flex',
                             alignItems: 'center',

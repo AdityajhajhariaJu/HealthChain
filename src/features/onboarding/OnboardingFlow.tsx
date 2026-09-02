@@ -31,7 +31,7 @@ export default function OnboardingFlow() {
               key="step0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, filter: 'blur(16px)' }}
+              exit={{ opacity: 0, scale: 0.95, filter: 'blur(16px)', transform: 'translateZ(0)', willChange: 'transform' }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 'min-content', padding: '24px 0' }}
             >
@@ -99,7 +99,7 @@ export default function OnboardingFlow() {
                     whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.7)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSelect}
-                    style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '24px',
+                    style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '24px',
                       padding: '20px 24px',
                       textAlign: 'left',
                       cursor: 'pointer',

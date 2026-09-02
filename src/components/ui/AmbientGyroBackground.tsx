@@ -79,7 +79,7 @@ export const AmbientGyroBackground = () => {
           maxWidth: '500px', maxHeight: '500px',
           background: 'radial-gradient(circle, rgba(230,220,200,0.4) 0%, rgba(230,220,200,0) 70%)',
           borderRadius: '50%',
-          filter: 'blur(60px)',
+          filter: 'blur(60px)', transform: 'translateZ(0)', willChange: 'transform',
           transform: 'translateZ(0)'
         }} />
         
@@ -91,7 +91,7 @@ export const AmbientGyroBackground = () => {
           maxWidth: '600px', maxHeight: '600px',
           background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%)',
           borderRadius: '50%',
-          filter: 'blur(60px)',
+          filter: 'blur(60px)', transform: 'translateZ(0)', willChange: 'transform',
           transform: 'translateZ(0)'
         }} />
       </motion.div>

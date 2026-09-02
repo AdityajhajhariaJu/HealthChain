@@ -403,24 +403,16 @@ export default function QuickConsult() {
       <AnimatePresence mode="wait">
         {phase === 'select' && (
           <motion.div
-            initial={{ opacity: 0, y: 20, backgroundPosition: '0% 50%' }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ 
               opacity: 1, 
-              y: 0,
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+              y: 0
             }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{
-              backgroundPosition: {
-                duration: 10,
-                ease: "linear",
-                repeat: Infinity
-              }
-            }}
             style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
@@ -626,7 +618,7 @@ export default function QuickConsult() {
             style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
               padding: isMobile ? '32px 20px' : '40px 56px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
@@ -780,7 +772,7 @@ export default function QuickConsult() {
             style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
               padding: isMobile ? '20px' : '24px 48px 48px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
@@ -843,7 +835,7 @@ export default function QuickConsult() {
               style={{
                 background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
                 padding: isMobile ? '32px 16px' : '32px 64px 64px',
                 borderRadius: '32px',
                 boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
@@ -863,7 +855,7 @@ export default function QuickConsult() {
             style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
               padding: isMobile ? '32px' : '32px 64px 64px',
               borderRadius: '32px',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',

@@ -1,11 +1,29 @@
-﻿with open('src/features/dashboard/CaseDashboard.tsx', 'r', encoding='utf-8') as f:
+﻿import sys
+
+path = r'C:\Users\adity\OneDrive\Desktop\HealthChain-Live\src\features\dashboard\CaseDashboard.tsx'
+with open(path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-old_str = "style={{ maxWidth: 1120, margin: '0 auto', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}"
-new_str = "style={{ maxWidth: 1120, margin: '0 auto', padding: isMobile ? '16px' : '0 24px', paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 16 }}"
+target = """          {/* Soundscapes */}
+          <section style={{
+            marginBottom: '40px',
+            padding: '40px 0 32px',
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}>"""
 
-content = content.replace(old_str, new_str)
+replacement = """          {/* Soundscapes */}
+          <section style={{
+            marginBottom: '40px',
+            padding: '16px 0 8px',
+            backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}>"""
 
-with open('src/features/dashboard/CaseDashboard.tsx', 'w', encoding='utf-8') as f:
+content = content.replace(target, replacement)
+
+with open(path, 'w', encoding='utf-8') as f:
     f.write(content)
-print("Added padding to CaseDashboard")
+print("Tightened the vertical padding on Soundscapes background")
