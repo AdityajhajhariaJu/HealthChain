@@ -402,7 +402,17 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
         </div>
 
-          <div style={{ paddingTop: "12px" }}>
+          <div style={{ 
+          margin: '0 0 40px 0', 
+          paddingTop: '24px', 
+          background: 'rgba(255, 255, 255, 0.4)', 
+          backdropFilter: 'blur(30px)', 
+          WebkitBackdropFilter: 'blur(30px)', 
+          border: '1px solid rgba(255, 255, 255, 0.8)', 
+          borderRadius: '32px', 
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7)', 
+          overflow: 'hidden' 
+        }}>
           {/* Our Own Meditation Hub (Hero) */}
           <section>
             <div style={{ padding: '0 24px', marginBottom: '16px' }}>
@@ -475,8 +485,8 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
           {/* Soundscapes */}
           <section style={{
-            marginBottom: '40px',
-            padding: '16px 0 8px',
+            marginBottom: '0',
+            padding: '24px 0 16px',
             backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
