@@ -536,7 +536,7 @@ const enforceSafeArea = () => {
                   onClick={() => setShowMoreMenu(false)}
                 />
                 <motion.div 
-                  className="mobile-more-menu"
+                  className="mobile-more-menu" style={{ background: 'linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url(/ava-floral-bg.jpg) center/cover no-repeat' }}
                   initial={{ opacity: 0, y: '100%' }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: '100%' }}
