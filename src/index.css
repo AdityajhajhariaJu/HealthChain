@@ -1095,7 +1095,7 @@ html.dark-theme body {
     z-index: 999;
   }
 
-  .mobile-more-menu {
+  .mobile-more-menu { will-change: transform;
     position: fixed;
     bottom: 0;
     left: 0;

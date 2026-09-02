@@ -279,7 +279,7 @@ const enforceSafeArea = () => {
         </aside>
       )}
 
-        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, transformOrigin: 'top center' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1, borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px', filter: showMoreMenu || showProfileMenu ? 'blur(4px)' : 'blur(0px)' }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && location.pathname.startsWith('/app/ava') ? 'hidden' : 'auto', paddingTop: undefined, paddingBottom: isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined, transformOrigin: 'top center' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1, borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: '800px', margin: '0 auto', transform: 'translateZ(0)' }}>
             {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult') || location.pathname.startsWith('/app/progress') || location.pathname.startsWith('/app/trophies') || location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/sports') || location.pathname.startsWith('/app/war-room')) && (
@@ -536,6 +536,7 @@ const enforceSafeArea = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
                   onClick={() => setShowMoreMenu(false)}
                 />
             )}
@@ -546,7 +547,7 @@ const enforceSafeArea = () => {
                   initial={{ opacity: 0, y: '100%' }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: '100%' }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  transition={{ y: { type: 'spring', damping: 30, stiffness: 300 }, opacity: { duration: 0.2 } }}
                   drag="y"
                   dragConstraints={{ top: 0, bottom: 0 }}
                   dragElastic={{ top: 0, bottom: 0.8 }}
