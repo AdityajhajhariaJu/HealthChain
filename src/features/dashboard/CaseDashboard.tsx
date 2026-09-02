@@ -402,17 +402,24 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
         </div>
 
+          <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
+          {/* Calming aesthetic background blobs for the meditation glass card */}
+          <div style={{ position: 'absolute', top: '5%', left: '0%', width: '200px', height: '200px', background: '#DDD6FE', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '40%', right: '0%', width: '250px', height: '250px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(70px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: '5%', left: '10%', width: '150px', height: '150px', background: '#CCFBF1', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
+
           <div style={{ 
-          margin: '0 0 40px 0', 
-          paddingTop: '24px', 
-          background: 'rgba(255, 255, 255, 0.4)', 
-          backdropFilter: 'blur(30px)', 
-          WebkitBackdropFilter: 'blur(30px)', 
-          border: '1px solid rgba(255, 255, 255, 0.8)', 
-          borderRadius: '32px', 
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7)', 
-          overflow: 'hidden' 
-        }}>
+            position: 'relative',
+            zIndex: 1,
+            paddingTop: '24px', 
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.2) 100%)', 
+            backdropFilter: 'blur(30px)', 
+            WebkitBackdropFilter: 'blur(30px)', 
+            border: '1px solid rgba(255, 255, 255, 0.8)', 
+            borderRadius: '32px', 
+            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.05), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.3)', 
+            overflow: 'hidden' 
+          }}>
           {/* Our Own Meditation Hub (Hero) */}
           <section>
             <div style={{ padding: '0 24px', marginBottom: '16px' }}>
@@ -537,9 +544,8 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             </div>
           </section>
         </div>
+      </div>
 
-
-          
       {/* Articles for You */}
         <section style={{ padding: '32px 0 100px' }}>
           <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
