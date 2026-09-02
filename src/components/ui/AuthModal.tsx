@@ -7,6 +7,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 export function AuthModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', message: '' });
+  const [isFocused, setIsFocused] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -83,6 +84,9 @@ export function AuthModal() {
           >
             <button
               onClick={handleClose}
+              aria-label="Close dialog"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               style={{
                 position: 'absolute',
                 top: '16px',
@@ -96,7 +100,9 @@ export function AuthModal() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '50%',
-                transition: 'background-color 0.2s, color 0.2s',
+                transition: 'background-color 0.2s, color 0.2s, outline 0.2s',
+                outline: isFocused ? '2px solid #3B82F6' : 'none',
+                outlineOffset: '2px',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#F1F5F9';
