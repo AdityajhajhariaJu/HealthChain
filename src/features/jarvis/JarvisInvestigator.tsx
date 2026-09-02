@@ -211,7 +211,7 @@ export default function JarvisInvestigator() {
   if (phase === 'done' && report) {
     return (
     <>
-      <div style={{ padding: isMobile ? '8px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
+      <div style={{ padding: isMobile ? '8px 0' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(15,23,42,0.2)' }}>
             <NetworkHubIcon size={32} color="#38BDF8" />
@@ -354,7 +354,7 @@ export default function JarvisInvestigator() {
 
   return (
     <>
-      <div style={{ padding: isMobile ? '8px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
+      <div style={{ padding: isMobile ? '8px 0' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
       
       {/* Small, distinct patches of color perfectly matched to the JARVIS action buttons directly above them */}
         {/* Top Left: Near 'Discuss with Ava' (Blue) */}
