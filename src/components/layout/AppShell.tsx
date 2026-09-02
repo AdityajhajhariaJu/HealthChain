@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Pill, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Dumbbell, Home, User } from 'lucide-react';
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
@@ -542,7 +542,7 @@ const enforceSafeArea = () => {
             {showMoreMenu && (
                 <motion.div
                   key="more-menu"
-                  className="mobile-more-menu" style={{ background: 'linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.85)), url(/ava-floral-bg.jpg) center/cover no-repeat' }}
+                  className="mobile-more-menu" style={{ background: 'linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.85)), url(/ava-floral-bg.jpg) center/cover no-repeat' }}
                   initial={{ opacity: 0, y: '100%' }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: '100%' }}
