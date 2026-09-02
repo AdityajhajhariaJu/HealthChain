@@ -403,10 +403,23 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
         </div>
 
           <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
-          {/* Calming aesthetic background blobs for the meditation glass card */}
-          <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+          {/* Calming aesthetic background blobs radiating colors from the thumbnails */}
+          {/* Top Left Grid: Full Meditation (Teal Water) */}
+          <div style={{ position: 'absolute', top: '8%', left: '15%', width: '130px', height: '130px', background: '#5EEAD4', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
+          {/* Top Right Grid: Deep Sleep (Warm Skin/Earth Tones) */}
+          <div style={{ position: 'absolute', top: '8%', right: '15%', width: '130px', height: '130px', background: '#FDBA74', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
+          {/* Bottom Left Grid: Deep Focus (White/Stone/Grey) */}
+          <div style={{ position: 'absolute', top: '35%', left: '15%', width: '130px', height: '130px', background: '#E7E5E4', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
+          {/* Bottom Right Grid: Morning Energy (Slate/Cool Twilight) */}
+          <div style={{ position: 'absolute', top: '35%', right: '15%', width: '130px', height: '130px', background: '#94A3B8', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
+          
+          {/* Soundscapes Row */}
+          {/* Left Soundscape: Rain Sounds (Deep Purple/Red Bokeh) */}
+          <div style={{ position: 'absolute', bottom: '12%', left: '15%', width: '110px', height: '110px', background: '#D8B4FE', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+          {/* Middle Soundscape: Focus Frequencies (Rich Teal) */}
+          <div style={{ position: 'absolute', bottom: '12%', left: '50%', transform: 'translateX(-50%)', width: '110px', height: '110px', background: '#2DD4BF', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+          {/* Right Soundscape: Ambient (Slate Twilight) */}
+          <div style={{ position: 'absolute', bottom: '12%', right: '15%', width: '110px', height: '110px', background: '#CBD5E1', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
 
           <div style={{ 
             position: 'relative',
