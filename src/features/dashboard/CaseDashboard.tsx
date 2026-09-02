@@ -36,7 +36,7 @@ export default function CaseDashboard() {
   const [difficultyMap, setDifficultyMap] = useState<Record<string, FitnessContent[]>>({});
   const [specialtyContent, setSpecialtyContent] = useState<FitnessContent[]>([]);
   const [activeCollection, setActiveCollection] = useState<{title: string, items: FitnessContent[]} | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dashboardTab, setDashboardTab] = useState<'fitness' | 'meditation'>('fitness');
   const [showFrictionModal, setShowFrictionModal] = useState(false);
@@ -59,9 +59,7 @@ export default function CaseDashboard() {
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
   const [activeWorkout, setActiveWorkout] = useState<any>(null);
 
-  useEffect(() => {
-    loadFitnessData();
-  }, []);
+
 
   const handleProgramClick = async (prog: any) => {
     triggerHapticLight();
