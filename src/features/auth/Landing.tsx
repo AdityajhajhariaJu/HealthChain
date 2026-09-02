@@ -402,7 +402,7 @@ export default function Landing() {
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              background: '#F4FBF7',
+              background: '#FBF9F6',
               zIndex: 9999,
               display: 'flex',
               flexDirection: 'column',
