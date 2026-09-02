@@ -383,7 +383,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
         </div>
 
-          <div style={{ position: 'relative', margin: '0 8px 40px 8px' }}>
+          <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Teal) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '100px', height: '100px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
