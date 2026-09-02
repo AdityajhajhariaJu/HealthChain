@@ -404,9 +404,9 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
           <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
           {/* Calming aesthetic background blobs for the meditation glass card */}
-          <div style={{ position: 'absolute', top: '5%', left: '0%', width: '200px', height: '200px', background: '#DDD6FE', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', top: '40%', right: '0%', width: '250px', height: '250px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(70px)', zIndex: 0 }} />
-          <div style={{ position: 'absolute', bottom: '5%', left: '10%', width: '150px', height: '150px', background: '#CCFBF1', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '10%', left: '10%', width: '120px', height: '120px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '150px', height: '150px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '40%', right: '30%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
 
           <div style={{ 
             position: 'relative',
