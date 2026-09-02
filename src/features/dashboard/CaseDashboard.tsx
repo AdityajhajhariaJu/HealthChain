@@ -288,7 +288,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
                 style={{ 
                   gridRow: 'span 2',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 100%)',
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
                   borderRadius: '160px 160px 32px 32px', 
@@ -330,7 +330,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <div 
                 onClick={() => { triggerHapticLight(); setShowARLens(true); }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 100%)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)',
                   borderRadius: '32px',
@@ -347,7 +347,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 4px 12px rgba(15,23,42,0.3), inset 0 2px 4px rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 4px 12px rgba(15,23,42,0.3), inset 0 2px 4px rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Scan size={20} color="#FFF" />
                   </div>
                   <div style={{ background: '#EF4444', color: '#FFF', fontSize: '10px', fontWeight: 800, padding: '4px 8px', borderRadius: '12px' }}>
@@ -371,7 +371,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   if (task.id === 'task_default') navigate('/app/profile');
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.1) 100%)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 100%)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
                   borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
@@ -425,7 +425,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             position: 'relative',
             zIndex: 1,
             paddingTop: '24px', 
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%)', 
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
             backdropFilter: 'blur(30px)', 
             WebkitBackdropFilter: 'blur(30px)', 
             border: '1px solid rgba(255, 255, 255, 0.8)', 

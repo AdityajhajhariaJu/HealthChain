@@ -364,7 +364,7 @@ export default function JarvisInvestigator() {
       <div style={{ 
         position: 'relative',
         zIndex: 1,
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)', 
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
         backdropFilter: 'blur(32px)', 
         WebkitBackdropFilter: 'blur(32px)', 
         border: '1px solid rgba(255, 255, 255, 0.8)', 
