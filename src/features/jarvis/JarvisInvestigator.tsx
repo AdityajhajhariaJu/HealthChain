@@ -356,19 +356,24 @@ export default function JarvisInvestigator() {
     <>
       <div style={{ padding: isMobile ? '8px' : '32px', maxWidth: '900px', margin: '0 auto', paddingBottom: '100px', position: 'relative' }}>
       
-      <div
-        style={{
-          background: 'linear-gradient(120deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 60%, rgba(250,245,255,0.95) 100%)',
-          backgroundSize: '200% 200%',
-          backdropFilter: 'blur(24px)',
-          padding: isMobile ? '32px 16px' : '48px',
-          borderRadius: '32px 32px 0 0',
-          margin: '0',
-          boxShadow: 'none',
-          border: '1px solid #E2E8F0',
-          borderBottom: 'none'
-        }}
-      >
+      {/* Aesthetic background blobs for J.A.R.V.I.S sheer glass card */}
+      <div style={{ position: 'absolute', top: '10%', left: '10%', width: '300px', height: '300px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(80px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '40%', right: '5%', width: '250px', height: '250px', background: '#FEE2E2', borderRadius: '50%', filter: 'blur(70px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '15%', left: '20%', width: '200px', height: '200px', background: '#FEF3C7', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
+
+      <div style={{ 
+        position: 'relative',
+        zIndex: 1,
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.3) 100%)', 
+        backdropFilter: 'blur(32px)', 
+        WebkitBackdropFilter: 'blur(32px)', 
+        border: '1px solid rgba(255, 255, 255, 0.8)', 
+        borderRadius: '32px', 
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', 
+        overflow: 'hidden' 
+      }}>
+      
+      <div style={{ padding: isMobile ? '32px 16px' : '48px', position: 'relative' }}>
         <div style={{ position: 'relative' }}>
           <div 
             style={{ 
@@ -409,7 +414,7 @@ export default function JarvisInvestigator() {
         </div>
       </div>
 
-      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderTop: '1px solid rgba(15,23,42,0.05)', borderRadius: '0 0 32px 32px', padding: isMobile ? '24px 16px' : '40px', boxShadow: '0 20px 40px rgba(15,23,42,0.06)' }}>
+      <div style={{ borderTop: '1px solid rgba(15,23,42,0.05)', padding: isMobile ? '24px 16px' : '40px' }}>
         <div style={{ marginBottom: '28px' }}>
           <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
             <span>Clinical Timeline & Symptoms</span>
@@ -497,13 +502,11 @@ export default function JarvisInvestigator() {
 
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAnalyze} disabled={!history.trim() && files.length === 0} style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: (!history.trim() && files.length === 0) ? '#94A3B8' : '#FFF', borderRadius: '16px', border: 'none', fontSize: '18px', fontWeight: 800, cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(234,88,12,0.3)', transition: 'all 0.2s' }}> <Sparkles size={24} /> Initiate Core Investigation </motion.button>
       </div>
-    </div>
+      </div>
+      </div>
     </>
   );
 }
-
-
-
 
 
 
