@@ -594,7 +594,7 @@ useEffect(() => {
         {/* Ambient decorative blobs */}
       <div
         style={{
-          position: 'absolute', willChange: 'transform', top: '-10%',
+          position: 'absolute', top: '-10%',
           right: '-5%',
           width: '500px',
           height: '500px',
@@ -605,7 +605,7 @@ useEffect(() => {
       />
       <div
         style={{
-          position: 'absolute', willChange: 'transform', bottom: '-10%',
+          position: 'absolute', bottom: '-10%',
           left: '-5%',
           width: '400px',
           height: '400px',
