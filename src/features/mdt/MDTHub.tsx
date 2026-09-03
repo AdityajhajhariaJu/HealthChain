@@ -22,7 +22,7 @@ import {
   StopCircle,
   GitMerge,
   RotateCcw,
-  ChevronLeft
+  ChevronLeft,
 } from 'lucide-react';
 import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -39,14 +39,19 @@ import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { addEvent, addActionItems, addCondition, getProfile } from '../../services/ProfileEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { trackConsultationStarted } from '../../services/analytics';
-import { getActiveCase, saveReviewSnapshot, setActiveCase as setGlobalActiveCase, getCases } from '../../services/CaseEngine';
+import {
+  getActiveCase,
+  saveReviewSnapshot,
+  setActiveCase as setGlobalActiveCase,
+  getCases,
+} from '../../services/CaseEngine';
 import {
   Step,
   StepDivider,
   IntakePhase,
   MDTSpecialistPanel,
   MDTReportPanel,
-    MDTConferencePanel,
+  MDTConferencePanel,
 } from './MDTComponents';
 import { MDTHubDashboard } from './MDTHubDashboard';
 import { runDifferentialAnalysis } from '../../services/geminiService';
@@ -69,23 +74,23 @@ export default function MDTHub() {
   const [mobileActiveTab, setMobileActiveTab] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const phase = useMDTStore(s => s.phase);
-  const setPhase = useMDTStore(s => s.setPhase);
-  const dashboardTab = useMDTStore(s => s.dashboardTab);
-  const setDashboardTab = useMDTStore(s => s.setDashboardTab);
-  const intakeData = useMDTStore(s => s.intakeData);
-  const setIntakeData = useMDTStore(s => s.setIntakeData);
-    const rawSelectedSpecialists = useMDTStore(s => s.selectedSpecialists);
+
+  const phase = useMDTStore((s) => s.phase);
+  const setPhase = useMDTStore((s) => s.setPhase);
+  const dashboardTab = useMDTStore((s) => s.dashboardTab);
+  const setDashboardTab = useMDTStore((s) => s.setDashboardTab);
+  const intakeData = useMDTStore((s) => s.intakeData);
+  const setIntakeData = useMDTStore((s) => s.setIntakeData);
+  const rawSelectedSpecialists = useMDTStore((s) => s.selectedSpecialists);
   const selectedSpecialists = useMemo(() => {
-    return rawSelectedSpecialists.map(s => ALL_SPECIALISTS.find(a => a.id === s.id) || s);
+    return rawSelectedSpecialists.map((s) => ALL_SPECIALISTS.find((a) => a.id === s.id) || s);
   }, [rawSelectedSpecialists]);
-  const setSelectedSpecialists = useMDTStore(s => s.setSelectedSpecialists);
-  const specialistTranscripts = useMDTStore(s => s.specialistTranscripts);
-  const setSpecialistTranscripts = useMDTStore(s => s.setSpecialistTranscripts);
-  const isSelecting = useMDTStore(s => s.isSelecting);
-  const setIsSelecting = useMDTStore(s => s.setIsSelecting);
-  const resetMDTStore = useMDTStore(s => s.reset);
+  const setSelectedSpecialists = useMDTStore((s) => s.setSelectedSpecialists);
+  const specialistTranscripts = useMDTStore((s) => s.specialistTranscripts);
+  const setSpecialistTranscripts = useMDTStore((s) => s.setSpecialistTranscripts);
+  const isSelecting = useMDTStore((s) => s.isSelecting);
+  const setIsSelecting = useMDTStore((s) => s.setIsSelecting);
+  const resetMDTStore = useMDTStore((s) => s.reset);
 
   const [historyReport, setHistoryReport] = useState<any>(null);
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
@@ -93,9 +98,6 @@ export default function MDTHub() {
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const isCompilingRef = React.useRef(false);
   const fileInputRef = React.useRef<any>(null);
-
-  
-
 
   useEffect(() => {
     // If the user navigates away after finishing a case and returns later via the sidebar,
@@ -107,9 +109,9 @@ export default function MDTHub() {
       setMedicalRecords([]);
     }
   }, []); // Empty dependency array ensures this ONLY runs on component mount
-useEffect(() => {
+  useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    
+
     if (searchParams.has('new')) {
       // Force bulletproof reset
       setGlobalActiveCase(null);
@@ -117,44 +119,39 @@ useEffect(() => {
       resetMDTStore();
       setHistoryReport(null);
       setMedicalRecords([]);
-      
+
       // Clean up the URL to prevent re-triggering
       window.history.replaceState({}, '', location.pathname);
       return;
     }
-    
-    
   }, [location.search, phase, setPhase, resetMDTStore]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-      const historyId = searchParams.get('historyId');
-      if (historyId) {
-        let foundReport = null;
-        // History must come from the authenticated canonical case store. The
-        // old global `hc_history` key was not account/profile scoped and could
-        // show a previous user's report after a device switch or logout.
-        const cases = getCases();
-        const caseItem = cases.find((c: any) => c.id === historyId);
-        const reviewItem = caseItem?.reviews?.find((r: any) => r.id === historyId)
-          || cases.flatMap((c: any) => c.reviews || []).find((r: any) => r.id === historyId);
-        if (reviewItem?.type === 'mdt' && reviewItem.report) {
-          foundReport = reviewItem.report;
-        } else if (caseItem?.currentSummary && caseItem.currentStage === 'mdt_complete') {
-          foundReport = caseItem.currentSummary;
-        }
-
-        if (foundReport) {
-          setHistoryReport(foundReport);
-          setPhase('dashboard');
-          setDashboardTab('mdt');
-        }
+    const historyId = searchParams.get('historyId');
+    if (historyId) {
+      let foundReport = null;
+      // History must come from the authenticated canonical case store. The
+      // old global `hc_history` key was not account/profile scoped and could
+      // show a previous user's report after a device switch or logout.
+      const cases = getCases();
+      const caseItem = cases.find((c: any) => c.id === historyId);
+      const reviewItem =
+        caseItem?.reviews?.find((r: any) => r.id === historyId) ||
+        cases.flatMap((c: any) => c.reviews || []).find((r: any) => r.id === historyId);
+      if (reviewItem?.type === 'mdt' && reviewItem.report) {
+        foundReport = reviewItem.report;
+      } else if (caseItem?.currentSummary && caseItem.currentStage === 'mdt_complete') {
+        foundReport = caseItem.currentSummary;
       }
+
+      if (foundReport) {
+        setHistoryReport(foundReport);
+        setPhase('dashboard');
+        setDashboardTab('mdt');
+      }
+    }
   }, [location.search, setPhase, setDashboardTab]);
-
-  
-
-  
 
   useEffect(() => {
     const refresh = () => setActiveCase(getActiveCase());
@@ -166,46 +163,56 @@ useEffect(() => {
     };
   }, []);
 
-
-  const reviewRecords = useMemo(() => [
-    ...(activeCase?.medicalRecords || []),
-    ...medicalRecords.filter(
-      (record) =>
-        !(activeCase?.medicalRecords || []).some(
-          (existing) =>
-            existing.filename === record.filename && existing.findings === record.findings
-        )
-    ),
-  ], [activeCase?.medicalRecords, medicalRecords]);
+  const reviewRecords = useMemo(
+    () => [
+      ...(activeCase?.medicalRecords || []),
+      ...medicalRecords.filter(
+        (record) =>
+          !(activeCase?.medicalRecords || []).some(
+            (existing) =>
+              existing.filename === record.filename && existing.findings === record.findings
+          )
+      ),
+    ],
+    [activeCase?.medicalRecords, medicalRecords]
+  );
 
   const handleIntakeComplete = async (data) => {
     if (!(await getActiveSession())) {
-      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-        detail: { 
-          title: 'Authentication Required', 
-          message: 'You need to log in or sign up to start an investigation.' 
-        } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('hc_require_auth', {
+          detail: {
+            title: 'Authentication Required',
+            message: 'You need to log in or sign up to start an investigation.',
+          },
+        })
+      );
       return;
     }
 
     const profile = getProfile();
-    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
+    const isVip =
+      typeof localStorage !== 'undefined' &&
+      localStorage.getItem('hc_vp_sig') ===
+        'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
     if (!profile?.isPro && !isVip) {
       openTrialModal('Collaborative Specialists Board (16 Doctors)');
       return;
     }
-    
+
     // Clear the current run namespace before starting another case.
     clearRunStorage('mdt');
-    trackConsultationStarted('mdt', { hasFiles: Boolean(data.files && data.files.length > 0), hasImportedCase: Boolean(data.importedCaseId) });
+    trackConsultationStarted('mdt', {
+      hasFiles: Boolean(data.files && data.files.length > 0),
+      hasImportedCase: Boolean(data.importedCaseId),
+    });
 
     setIsSelecting(true);
     let enhancedComplaint = data.chiefComplaint || '';
-      let newRecords: any[] = [];
-      
-      try {
-        if (data.files && data.files.length > 0) {
+    let newRecords: any[] = [];
+
+    try {
+      if (data.files && data.files.length > 0) {
         const profile = getProfile() || {};
         for (const file of data.files) {
           if (!file || file.size === 0 || file.size > 5 * 1024 * 1024) continue;
@@ -218,22 +225,27 @@ useEffect(() => {
             };
             reader.readAsDataURL(file);
           });
-          
+
           if (!base64Data) continue;
 
           const result = await analyzeLabReport(base64Data, file.type, profile);
           if (result) {
-              enhancedComplaint += `\n\n--- Document: ${file.name} ---\n`;
-              enhancedComplaint += `Test/Report Type: ${result.testName}\n`;
-              enhancedComplaint += `Key Findings: ${result.keyFindings}\n`;
-              if (result.interpretation) enhancedComplaint += `Interpretation: ${result.interpretation}\n`;
-              newRecords.push({ filename: file.name, findings: result.keyFindings, source: 'mdt_hub' });
-            }
+            enhancedComplaint += `\n\n--- Document: ${file.name} ---\n`;
+            enhancedComplaint += `Test/Report Type: ${result.testName}\n`;
+            enhancedComplaint += `Key Findings: ${result.keyFindings}\n`;
+            if (result.interpretation)
+              enhancedComplaint += `Interpretation: ${result.interpretation}\n`;
+            newRecords.push({
+              filename: file.name,
+              findings: result.keyFindings,
+              source: 'mdt_hub',
+            });
+          }
         }
       }
-      
+
       setIntakeData({ ...data, chiefComplaint: enhancedComplaint });
-      
+
       let finalSelection;
       if (enhancedComplaint.includes('[FOLLOW-UP FROM PREVIOUS EVALUATION]')) {
         finalSelection = [
@@ -242,15 +254,18 @@ useEffect(() => {
             label: 'AI Specialist',
             icon: BrainCircuit,
             color: '#8B5CF6',
-            description: 'Advanced Follow-up Specialist focusing on your cross-questions and new findings.',
-          }
+            description:
+              'Advanced Follow-up Specialist focusing on your cross-questions and new findings.',
+          },
         ];
       } else {
         const ids = (await selectMDTSpecialists(enhancedComplaint)) || [];
         const matched = ALL_SPECIALISTS.filter((s) => ids.includes(s.id));
         finalSelection = matched.length > 0 ? matched : ALL_SPECIALISTS.slice(0, 3);
       }
-      const importedCase = data.importedCaseId ? getCases().find((candidate: any) => candidate.id === data.importedCaseId) : null;
+      const importedCase = data.importedCaseId
+        ? getCases().find((candidate: any) => candidate.id === data.importedCaseId)
+        : null;
       const previousReview = importedCase?.reviews?.[0];
       const firstPassMaterial = importedCase
         ? `This is a follow-up review of an existing HealthChain case. Do not repeat questions already answered in the prior case. Focus on the patient's new information, changes since the prior review, contradictions, unresolved evidence gaps, and what should be discussed next with a qualified clinician.\n\nExisting case: ${importedCase.title}\nPrior review summary: ${previousReview?.report?.executiveSummary || importedCase.currentSummary?.executiveSummary || 'Prior review available in the case file.'}`
@@ -258,14 +273,24 @@ useEffect(() => {
       const transcripts = Object.fromEntries(
         finalSelection.map((specialist) => [specialist.id, []])
       );
-      
-      const { createCaseDraft, setActiveCase: dynSetActiveCase, addEvidenceToActiveCase } = await import('../../services/CaseEngine');
-        const workingCase = importedCase || createCaseDraft({ title: enhancedComplaint.slice(0, 40) + '...', mode: 'mdt', intakeData: { ...data, chiefComplaint: enhancedComplaint } });
-        dynSetActiveCase(workingCase.id);
-        for (const record of newRecords) {
-          addEvidenceToActiveCase(record);
-        }
-      
+
+      const {
+        createCaseDraft,
+        setActiveCase: dynSetActiveCase,
+        addEvidenceToActiveCase,
+      } = await import('../../services/CaseEngine');
+      const workingCase =
+        importedCase ||
+        createCaseDraft({
+          title: enhancedComplaint.slice(0, 40) + '...',
+          mode: 'mdt',
+          intakeData: { ...data, chiefComplaint: enhancedComplaint },
+        });
+      dynSetActiveCase(workingCase.id);
+      for (const record of newRecords) {
+        addEvidenceToActiveCase(record);
+      }
+
       setIntakeData({
         ...data,
         importedCaseId: importedCase?.id || null,
@@ -286,17 +311,22 @@ useEffect(() => {
 
   const handleElevateParallel = async (caseItem: any) => {
     if (!(await getActiveSession())) {
-      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-        detail: { 
-          title: 'Authentication Required', 
-          message: 'You need to log in or sign up to elevate this case.' 
-        } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('hc_require_auth', {
+          detail: {
+            title: 'Authentication Required',
+            message: 'You need to log in or sign up to elevate this case.',
+          },
+        })
+      );
       return;
     }
 
     const profile = getProfile();
-    const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
+    const isVip =
+      typeof localStorage !== 'undefined' &&
+      localStorage.getItem('hc_vp_sig') ===
+        'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
     if (!profile?.isPro && !isVip) {
       openTrialModal('Collaborative Specialists Board (16 Doctors)');
       return;
@@ -311,7 +341,7 @@ useEffect(() => {
     const data = {
       chiefComplaint: caseItem.title || caseItem.intakeData?.chiefComplaint || '',
       history: '',
-      redFlags: false
+      redFlags: false,
     };
     setIntakeData(data);
     setIsSelecting(true);
@@ -328,24 +358,24 @@ useEffect(() => {
       );
       setSelectedSpecialists(finalSelection);
       setSpecialistTranscripts(transcripts);
-      
+
       // No need to save a review just for starting MDT. We save it when the report completes.
 
       // trigger refresh
       setGlobalActiveCase(caseItem.id);
-        setActiveCase(getActiveCase());
-        setDashboardTab('specialists');
-        setPhase('dashboard');
+      setActiveCase(getActiveCase());
+      setDashboardTab('specialists');
+      setPhase('dashboard');
     } finally {
       setIsSelecting(false);
     }
   };
 
-    const handleReviewPastMDT = (caseItem: any) => {
+  const handleReviewPastMDT = (caseItem: any) => {
     clearRunStorage('mdt', caseItem?.id);
     setGlobalActiveCase(caseItem.id);
-      setActiveCase(getActiveCase());
-      setPhase('dashboard');
+    setActiveCase(getActiveCase());
+    setPhase('dashboard');
   };
 
   const handleResumeActiveCase = () => {
@@ -361,9 +391,9 @@ useEffect(() => {
     setPhase('dashboard');
   };
 
-      const beginCaseCorrelation = useCallback(() => {
-      // Clear session storage to ensure AI doesn't load a cached conversation
-      clearRunStorage('mdt', activeCase?.id);
+  const beginCaseCorrelation = useCallback(() => {
+    // Clear session storage to ensure AI doesn't load a cached conversation
+    clearRunStorage('mdt', activeCase?.id);
 
     if (!activeCase) {
       setPhase('intake');
@@ -372,10 +402,11 @@ useEffect(() => {
 
     const caseConcern =
       activeCase.intakeData?.chiefComplaint || activeCase.title || 'Active health case';
-    const latestSpecialists = activeCase.reviews.length > 0 ? activeCase.reviews[activeCase.reviews.length - 1].specialists : [];
-    const caseSpecialists = ALL_SPECIALISTS.filter((s) =>
-      latestSpecialists.includes(s.label)
-    );
+    const latestSpecialists =
+      activeCase.reviews.length > 0
+        ? activeCase.reviews[activeCase.reviews.length - 1].specialists
+        : [];
+    const caseSpecialists = ALL_SPECIALISTS.filter((s) => latestSpecialists.includes(s.label));
     const board = caseSpecialists.length >= 2 ? caseSpecialists : ALL_SPECIALISTS.slice(0, 3);
     const report = activeCase.currentSummary || {};
     const evidence = (reviewRecords || [])
@@ -400,9 +431,7 @@ useEffect(() => {
       )
       .join('\n');
     const sharedCaseMaterial = `This is an existing Parallel Specialists case file, not a new intake.\n\nCase concern: ${caseConcern}\n\nParallel synthesis: ${report.executiveSummary || 'Independent specialist perspectives are ready for cross-correlation.'}\n\nPossible pathways:\n${pathways || '- No pathways recorded yet'}\n\nEvidence already in the case:\n${evidence || '- No uploaded records yet'}\n\nExisting next steps:\n${actionPlan || '- No action plan recorded yet'}\n\nYour role is to correlate this same case: identify where perspectives agree, where evidence is missing or conflicting, and what should be clarified next.`;
-    const transcripts = Object.fromEntries(
-      board.map((specialist) => [specialist.id, []])
-    );
+    const transcripts = Object.fromEntries(board.map((specialist) => [specialist.id, []]));
 
     setIntakeData({
       chiefComplaint: caseConcern,
@@ -420,7 +449,6 @@ useEffect(() => {
       beginCaseCorrelation();
     }
   }, [phase, activeCase, beginCaseCorrelation, selectedSpecialists.length]);
-
 
   const handleUploadOldReport = (e: any) => {
     const file = e.target?.files?.[0];
@@ -465,28 +493,36 @@ useEffect(() => {
     }
   };
 
-  const handleSpecialistUpdate = useCallback((id: string, transcript: any[]) => {
-    setSpecialistTranscripts((prev) => ({ ...prev, [id]: transcript }));
-  }, [setSpecialistTranscripts]);
+  const handleSpecialistUpdate = useCallback(
+    (id: string, transcript: any[]) => {
+      setSpecialistTranscripts((prev) => ({ ...prev, [id]: transcript }));
+    },
+    [setSpecialistTranscripts]
+  );
 
-  
   const handleConferenceComplete = async (conferenceData: any, answers: any) => {
     try {
       const isImportedFollowUp = Boolean((intakeData as any).importedCaseId);
-      const report = await generateMDTReport(intakeData, conferenceData, answers, activeCase?.medicalRecords || [], isImportedFollowUp ? specialistTranscripts : undefined);
-                setHistoryReport(report);
-          if (activeCase?.id) {
-            navigate('/app/cases/' + activeCase.id);
-          } else {
-            setPhase('report');
-          }
+      const report = await generateMDTReport(
+        intakeData,
+        conferenceData,
+        answers,
+        activeCase?.medicalRecords || [],
+        isImportedFollowUp ? specialistTranscripts : undefined
+      );
+      setHistoryReport(report);
+      if (activeCase?.id) {
+        navigate('/app/cases/' + activeCase.id);
+      } else {
+        setPhase('report');
+      }
     } catch (e) {
       console.error('Failed to generate MDT report', e);
       toast.error('Generation Failed', 'Failed to generate consensus report. Please try again.');
     }
   };
 
-      React.useEffect(() => {
+  React.useEffect(() => {
     if (phase === 'compiling' && !isCompilingRef.current) {
       isCompilingRef.current = true;
       (async () => {
@@ -506,14 +542,19 @@ useEffect(() => {
                 corroborations: [],
                 contentions: [],
                 followUpQuestions: [],
-                debateSummary: 'Targeted follow-up perspective based on the prior case and the patient’s new information.'
+                debateSummary:
+                  'Targeted follow-up perspective based on the prior case and the patient’s new information.',
               }
-            : await runMDTConference(intakeData, namedTranscripts, activeCase?.medicalRecords || []);
+            : await runMDTConference(
+                intakeData,
+                namedTranscripts,
+                activeCase?.medicalRecords || []
+              );
           const safeConferenceData = conferenceData || {
             corroborations: [],
             contentions: [],
             followUpQuestions: [],
-            debateSummary: "Synthesized available information."
+            debateSummary: 'Synthesized available information.',
           };
 
           const report = await generateMDTReport(
@@ -523,7 +564,7 @@ useEffect(() => {
             activeCase?.medicalRecords || [],
             namedTranscripts
           );
-          
+
           // Save snapshot to CaseEngine
           saveReviewSnapshot({
             type: 'mdt',
@@ -533,85 +574,104 @@ useEffect(() => {
             specialists: selectedSpecialists.map((s: any) => s.label),
             caseId: activeCase?.id || '',
             parentReviewId: (intakeData as any).importedReviewId || undefined,
-            basedOnReviewIds: (intakeData as any).importedReviewId ? [(intakeData as any).importedReviewId] : [],
+            basedOnReviewIds: (intakeData as any).importedReviewId
+              ? [(intakeData as any).importedReviewId]
+              : [],
           });
 
           if (activeCase?.id && !isImportedFollowUp) {
             try {
-              const results = await runDifferentialAnalysis(intakeData, activeCase.medicalRecords || [], getProfile());
+              const results = await runDifferentialAnalysis(
+                intakeData,
+                activeCase.medicalRecords || [],
+                getProfile()
+              );
               if (results && Array.isArray(results)) {
                 updateCaseDifferentials(activeCase.id, results);
               }
-            } catch(e) { console.error("Diff analysis failed", e); }
+            } catch (e) {
+              console.error('Diff analysis failed', e);
+            }
           }
 
-                    setHistoryReport(report);
+          setHistoryReport(report);
           if (activeCase?.id) {
             navigate('/app/cases/' + activeCase.id);
           } else {
             setPhase('report');
           }
         } catch (e: any) {
-            console.error('Failed to generate MDT report', e);
-            if (e.message && e.message.includes('409') && (activeCase as any)?.data?.reviews) {
-              const latestMDT = (activeCase as any).data.reviews.find((r: any) => r.type === 'mdt');
-              if (latestMDT && latestMDT.report) {
-                setHistoryReport(latestMDT.report);
-                setPhase('report');
-                return;
-              }
+          console.error('Failed to generate MDT report', e);
+          if (e.message && e.message.includes('409') && (activeCase as any)?.data?.reviews) {
+            const latestMDT = (activeCase as any).data.reviews.find((r: any) => r.type === 'mdt');
+            if (latestMDT && latestMDT.report) {
+              setHistoryReport(latestMDT.report);
+              setPhase('report');
+              return;
             }
-            setPhase('failed');
-          } finally {
+          }
+          setPhase('failed');
+        } finally {
           isCompilingRef.current = false;
         }
       })();
     }
   }, [phase, activeCase, intakeData, selectedSpecialists, specialistTranscripts, setPhase]);
 
-  const handleSpecialistComplete = useCallback((id: string, transcript: any[]) => {
-    setSpecialistTranscripts((prev) => {
-      const updated = { ...prev, [id]: transcript };
-      if (Object.keys(updated).length === selectedSpecialists.length) {
-        setPhase('compiling');
-      }
-      return updated;
-    });
-  }, [selectedSpecialists.length, setPhase, setSpecialistTranscripts]);
+  const handleSpecialistComplete = useCallback(
+    (id: string, transcript: any[]) => {
+      setSpecialistTranscripts((prev) => {
+        const updated = { ...prev, [id]: transcript };
+        if (Object.keys(updated).length === selectedSpecialists.length) {
+          setPhase('compiling');
+        }
+        return updated;
+      });
+    },
+    [selectedSpecialists.length, setPhase, setSpecialistTranscripts]
+  );
 
   return (
     <div
       style={{
         minHeight: '100%',
-        background: 'transparent', zIndex: 1,
+        background: 'transparent',
+        zIndex: 1,
         transition: 'background 1.5s ease',
         padding: isMobile ? '16px 0' : '0px 0px 40px 0px',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      
-        {/* Ambient decorative blobs */}
+      {/* Ambient decorative blobs */}
       <div
         style={{
-          position: 'absolute', top: '-10%',
+          position: 'absolute',
+          top: '-10%',
           right: '-5%',
           width: '500px',
           height: '500px',
           background: 'rgba(167, 139, 250, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', pointerEvents: 'none',
+          filter: 'blur(80px)',
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+          pointerEvents: 'none',
         }}
       />
       <div
         style={{
-          position: 'absolute', bottom: '-10%',
+          position: 'absolute',
+          bottom: '-10%',
           left: '-5%',
           width: '400px',
           height: '400px',
           background: 'rgba(52, 211, 153, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', pointerEvents: 'none',
+          filter: 'blur(80px)',
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+          pointerEvents: 'none',
         }}
       />
 
@@ -619,21 +679,66 @@ useEffect(() => {
         {/* Header & Stepper Card */}
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
-            padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
+            background:
+              'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
+            transform: 'translateZ(0)',
+            willChange: 'transform',
+            borderRadius:
+              phase === 'intake'
+                ? isMobile
+                  ? '24px 24px 0 0'
+                  : '32px 32px 0 0'
+                : isMobile
+                  ? '24px'
+                  : '32px',
+            padding: isMobile
+              ? phase === 'intake'
+                ? '24px 20px 8px'
+                : '24px 20px 20px'
+              : phase === 'intake'
+                ? '32px 40px 8px'
+                : '32px 40px 24px',
             border: '1px solid rgba(255, 255, 255, 0.8)',
             borderBottom: phase === 'intake' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+            boxShadow:
+              '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
             marginBottom: phase === 'intake' ? '0px' : '24px',
             maxWidth: phase === 'intake' ? '800px' : '100%',
             margin: phase === 'intake' ? '0 auto' : '0',
             textAlign: 'center',
-            position: 'relative'
+            position: 'relative',
           }}
         >
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '12px', padding: '6px 14px', background: '#FFF9F0', borderRadius: '999px', border: '1px solid #FED7AA', boxShadow: '0 2px 6px rgba(253, 186, 116, 0.1)', position: 'relative', zIndex: 1 }}><NetworkHubIcon size={16} color="#EA580C" /><span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>Collaborative Board</span></div>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              padding: '6px 14px',
+              background: '#FFF9F0',
+              borderRadius: '999px',
+              border: '1px solid #FED7AA',
+              boxShadow: '0 2px 6px rgba(253, 186, 116, 0.1)',
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
+            <NetworkHubIcon size={16} color="#EA580C" />
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#EA580C',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              }}
+            >
+              Collaborative Board
+            </span>
+          </div>
           <h1
             style={{
               fontSize: isMobile ? '20px' : '24px',
@@ -642,20 +747,22 @@ useEffect(() => {
               margin: '0 0 4px 0',
               letterSpacing: '-0.8px',
               position: 'relative',
-              zIndex: 1
+              zIndex: 1,
             }}
           >
             Deep Collaborative Specialists
           </h1>
-          <div style={{ 
-            fontStyle: 'italic', 
-            color: '#10B981', 
-            fontWeight: 700, 
-            fontSize: '14px', 
-            marginBottom: '12px',
-            position: 'relative',
-            zIndex: 1
-          }}>
+          <div
+            style={{
+              fontStyle: 'italic',
+              color: '#10B981',
+              fontWeight: 700,
+              fontSize: '14px',
+              marginBottom: '12px',
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
             "For Complex Cases"
           </div>
           <p
@@ -668,17 +775,17 @@ useEffect(() => {
               lineHeight: 1.5,
             }}
           >
-            {activeCase 
-                ? 'Collaborative Specialists decode your unique chain of symptoms like clinical DNA—cross-referencing perspectives to find agreement, resolve conflict, and map your next steps.'
+            {activeCase
+              ? 'Collaborative Specialists decode your unique chain of symptoms like clinical DNA—cross-referencing perspectives to find agreement, resolve conflict, and map your next steps.'
               : 'Our AI will automatically select a team of specialists to deeply investigate your case from multiple angles.'}
           </p>
 
           {/* Progress Stepper (Pill Style) */}
-          <div 
+          <div
             className="hide-scrollbar"
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
               width: '100%',
               overflowX: 'auto',
               WebkitOverflowScrolling: 'touch',
@@ -708,7 +815,13 @@ useEffect(() => {
                   icon={Users}
                   label="Collaboration Board"
                   active={phase === 'dashboard'}
-                  completed={phase === 'compiling' || phase === 'conference' || phase === 'assessment' || phase === 'report' || false}
+                  completed={
+                    phase === 'compiling' ||
+                    phase === 'conference' ||
+                    phase === 'assessment' ||
+                    phase === 'report' ||
+                    false
+                  }
                 />
                 <StepDivider />
                 <Step
@@ -784,7 +897,6 @@ useEffect(() => {
               </motion.div>
             )}
 
-
             {phase === 'select' && (
               <motion.div
                 key="select"
@@ -817,7 +929,9 @@ useEffect(() => {
                           animate={{ rotate: 360 }}
                           transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
                           style={{
-                            position: 'absolute', willChange: 'transform', inset: 0,
+                            position: 'absolute',
+                            willChange: 'transform',
+                            inset: 0,
                             border: '3px dashed #10B981',
                             borderRadius: '50%',
                             opacity: 0.3,
@@ -827,7 +941,9 @@ useEffect(() => {
                           animate={{ rotate: -360 }}
                           transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
                           style={{
-                            position: 'absolute', willChange: 'transform', inset: 8,
+                            position: 'absolute',
+                            willChange: 'transform',
+                            inset: 8,
                             border: '3px dashed #34D399',
                             borderRadius: '50%',
                             opacity: 0.5,
@@ -835,7 +951,9 @@ useEffect(() => {
                         />
                         <div
                           style={{
-                            position: 'absolute', willChange: 'transform', inset: 0,
+                            position: 'absolute',
+                            willChange: 'transform',
+                            inset: 0,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -939,7 +1057,11 @@ useEffect(() => {
                               }}
                             >
                               <div
-                                style={{ background: s.bg, padding: '8px', borderRadius: 'var(--radius-lg)' }}
+                                style={{
+                                  background: s.bg,
+                                  padding: '8px',
+                                  borderRadius: 'var(--radius-lg)',
+                                }}
                               >
                                 <Icon size={20} color={s.color} />
                               </div>
@@ -987,7 +1109,9 @@ useEffect(() => {
               >
                 <div
                   style={{
-                    maxWidth: selectedSpecialists.length === 1 ? '800px' : '100%', margin: '0 auto', display: 'grid',
+                    maxWidth: selectedSpecialists.length === 1 ? '800px' : '100%',
+                    margin: '0 auto',
+                    display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
                     gap: '16px',
                   }}
@@ -1029,7 +1153,8 @@ useEffect(() => {
                   backdropFilter: 'blur(24px)',
                   padding: isMobile ? '32px 16px' : '32px 64px 64px',
                   borderRadius: '32px',
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+                  boxShadow:
+                    '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   maxWidth: '600px',
                   margin: '40px auto 0',
@@ -1048,23 +1173,75 @@ useEffect(() => {
                   backdropFilter: 'blur(24px)',
                   padding: isMobile ? '32px' : '32px 64px 64px',
                   borderRadius: '32px',
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+                  boxShadow:
+                    '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   textAlign: 'center',
                   maxWidth: '600px',
-                  margin: '40px auto 0'
+                  margin: '40px auto 0',
                 }}
               >
-                <div style={{ width: 64, height: 64, background: '#DCFCE7', color: '#16A34A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    background: '#DCFCE7',
+                    color: '#16A34A',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 24px auto',
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+                    <path d="m9 12 2 2 4-4"></path>
+                  </svg>
                 </div>
-                <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
-                <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px auto' }}>
-                  The Multi-Disciplinary Board has finalized your case and generated the consensus report.
+                <h2
+                  style={{
+                    fontSize: '28px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    marginBottom: '8px',
+                  }}
+                >
+                  Assessment Complete
+                </h2>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontSize: '16px',
+                    marginBottom: '40px',
+                    maxWidth: '400px',
+                    margin: '0 auto 40px auto',
+                  }}
+                >
+                  The Multi-Disciplinary Board has finalized your case and generated the consensus
+                  report.
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>
-                  <button 
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    maxWidth: '400px',
+                    margin: '0 auto',
+                  }}
+                >
+                  <button
                     onClick={() => navigate(`/app/cases/${activeCase?.id}`)}
                     style={{
                       width: '100%',
@@ -1080,16 +1257,38 @@ useEffect(() => {
                       gap: '8px',
                       cursor: 'pointer',
                       fontSize: '15px',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
                     }}
-                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.background = '#F8FAFC'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FFF'; }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.borderColor = '#CBD5E1';
+                      e.currentTarget.style.background = '#F8FAFC';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.borderColor = '#E2E8F0';
+                      e.currentTarget.style.background = '#FFF';
+                    }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                      <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                      <path d="M10 9H8"></path>
+                      <path d="M16 13H8"></path>
+                      <path d="M16 17H8"></path>
+                    </svg>
                     View Case Summary
                   </button>
-                  
-                                    <button 
+
+                  <button
                     onClick={() => {
                       resetMDTStore();
                       setGlobalActiveCase(null);
@@ -1111,7 +1310,7 @@ useEffect(() => {
                       cursor: 'pointer',
                       fontSize: '15px',
                       transition: 'all 0.2s',
-                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)'
+                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
                     }}
                   >
                     Start New Case
@@ -1120,10 +1319,6 @@ useEffect(() => {
               </motion.div>
             )}
 
-
-            
-
-
             {phase === 'failed' && (
               <motion.div
                 key="failed"
@@ -1131,23 +1326,31 @@ useEffect(() => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <div style={{
-                  padding: '100px 40px',
-                  background: 'rgba(255,255,255,0.8)',
-                  backdropFilter: 'blur(24px)',
-                  borderRadius: '32px',
-                  textAlign: 'center',
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
-                  border: '1px solid rgba(255,255,255,0.5)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '20px',
-                  maxWidth: 600,
-                  margin: '60px auto'
-                }}>
-                  <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#101828' }}>Synthesis Failed</h2>
-                  <p style={{ margin: 0, fontSize: 16, color: '#475467', lineHeight: 1.6 }}>There was a network issue while synthesizing the board consensus. Your specialist transcripts have been preserved.</p>
+                <div
+                  style={{
+                    padding: '100px 40px',
+                    background: 'rgba(255,255,255,0.8)',
+                    backdropFilter: 'blur(24px)',
+                    borderRadius: '32px',
+                    textAlign: 'center',
+                    boxShadow:
+                      '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+                    border: '1px solid rgba(255,255,255,0.5)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '20px',
+                    maxWidth: 600,
+                    margin: '60px auto',
+                  }}
+                >
+                  <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#101828' }}>
+                    Synthesis Failed
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 16, color: '#475467', lineHeight: 1.6 }}>
+                    There was a network issue while synthesizing the board consensus. Your
+                    specialist transcripts have been preserved.
+                  </p>
                   <button
                     onClick={() => {
                       setPhase('compiling'); // Retries the effect
@@ -1161,7 +1364,7 @@ useEffect(() => {
                       fontSize: '16px',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      marginTop: '10px'
+                      marginTop: '10px',
                     }}
                   >
                     Retry Synthesis
@@ -1183,7 +1386,3 @@ useEffect(() => {
     </div>
   );
 }
-
-
-
-
