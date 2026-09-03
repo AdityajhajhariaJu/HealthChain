@@ -13,16 +13,23 @@ export async function syncStorageFromPreferences() {
   }
 
   try {
-    const keys = await Preferences.keys();
+    const keysPromise = Preferences.keys();
+    // 2-second timeout to prevent white-screen hang if native bridge fails
+    const timeoutPromise = new Promise<{ keys: string[] }>((_, reject) => 
+      setTimeout(() => reject(new Error('Preferences.keys() timeout')), 2000)
+    );
+    
+    const keys = await Promise.race([keysPromise, timeoutPromise]);
+    
     for (const key of keys.keys) {
       const { value } = await Preferences.get({ key });
       if (value) {
         localStorage.setItem(key, value);
       }
     }
-    console.log('✅ Storage synced from Capacitor Preferences');
+    console.log('✨ Storage synced from Capacitor Preferences');
   } catch (e) {
-    console.warn('Failed to sync from preferences', e);
+    console.warn('Failed to sync from preferences (or timed out)', e);
   }
 }
 
@@ -64,16 +71,20 @@ export function removeItemSync(key: string) {
 }
 
 // Ensure clear still clears native
-if (typeof localStorage !== 'undefined' && localStorage.clear) {
-  const originalClear = localStorage.clear.bind(localStorage);
-  localStorage.clear = function() {
-    try {
-      originalClear();
-    } catch (e) {
-      console.warn('localStorage.clear failed', e);
-    }
-    if (Capacitor.getPlatform() !== 'web') {
-      Preferences.clear().catch(e => console.warn('Native clear error:', e));
-    }
-  };
+try {
+  if (typeof localStorage !== 'undefined' && localStorage.clear) {
+    const originalClear = localStorage.clear.bind(localStorage);
+    localStorage.clear = function() {
+      try {
+        originalClear();
+      } catch (e) {
+        console.warn('localStorage.clear failed', e);
+      }
+      if (Capacitor.getPlatform() !== 'web') {
+        Preferences.clear().catch(e => console.warn('Native clear error:', e));
+      }
+    };
+  }
+} catch (e) {
+  console.warn('localStorage access blocked globally', e);
 }

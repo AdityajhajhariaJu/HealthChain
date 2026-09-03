@@ -675,7 +675,8 @@ export default function App() {
           <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
           <Route path="/app/admin/content" element={<SafeRoute><AdminContentDashboard /></SafeRoute>} />
         </Route>
-        <Route path="\*" element={<SafeRoute><NotFound /></SafeRoute>} />
+        <Route path="/index.html" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<SafeRoute><NotFound /></SafeRoute>} />
       </Routes>
       
       {topUpFeature && (
