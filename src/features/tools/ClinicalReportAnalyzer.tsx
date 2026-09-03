@@ -425,13 +425,13 @@ export default function ClinicalReportAnalyzer() {
               
               {/* Scan Highlight Area */}
               <motion.div
-                animate={{ height: [0, 96, 0], top: [0, 0, 96] }}
+                animate={{ y: [0, 96, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                 style={{
                   position: 'absolute',
                   left: 0,
                   right: 0,
-                  background: 'rgba(16, 185, 129, 0.1)',
+                  background: 'rgba(16, 185, 129, 0.1)', height: '40px', transform: 'translateZ(0)', willChange: 'transform',
                   zIndex: 1,
                 }}
               />

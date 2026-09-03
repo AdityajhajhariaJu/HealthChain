@@ -684,7 +684,7 @@ export default function LongevityBioStackCard() {
               >
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${hydrationPercent}%` }}
+                  animate={{ scaleX: hydrationPercent / 100 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
                   style={{
                     height: '100%',

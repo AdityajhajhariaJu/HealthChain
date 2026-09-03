@@ -42,9 +42,9 @@ export const PredictiveTimeline = () => {
           ))}
           {/* Progress fill */}
           <motion.div 
-            animate={{ width: `${(timeIndex / 2) * 100}%`, backgroundColor: current.color }}
+            animate={{ scaleX: timeIndex / 2, backgroundColor: current.color }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  position: 'absolute', top: 0, left: 0, bottom: 0, borderRadius: '2px', zIndex: 1 }}
+            style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y', position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, transformOrigin: 'left', borderRadius: '2px', zIndex: 1 }}
           />
         </div>
 

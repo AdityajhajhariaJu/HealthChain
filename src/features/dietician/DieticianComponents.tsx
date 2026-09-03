@@ -192,7 +192,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
         >
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${(step / 8) * 100}%` }}
+            animate={{ scaleX: step / 8 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
             style={{
               height: '100%',

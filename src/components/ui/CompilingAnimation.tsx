@@ -145,7 +145,7 @@ export function CompilingAnimation({ isDark = false, isMobile = false }: { isDar
         <motion.div 
           style={{ height: '100%', background: 'linear-gradient(90deg, #6366F1, #A855F7)', borderRadius: '3px' }}
           initial={{ width: '0%' }}
-          animate={{ width: `${progress}%` }}
+          animate={{ scaleX: progress / 100 }}
           transition={{ ease: 'linear' }}
         />
       </div>

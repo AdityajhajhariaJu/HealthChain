@@ -1185,9 +1185,9 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
       {/* Progress Bar */}
       <div style={{ height: '4px', background: '#E2E8F0' }}>
         <motion.div
-          animate={{ width: status === 'done' ? '100%' : `${(questionCount / 8) * 100}%` }}
+          animate={{ scaleX: status === 'done' ? 1 : questionCount / 8 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          style={{ height: '100%', background: specialist.color }}
+          style={{ height: '100%', width: '100%', background: specialist.color, transformOrigin: 'left' }}
         />
       </div>
 
