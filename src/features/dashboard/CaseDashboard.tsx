@@ -387,22 +387,22 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
           <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
-          {/* Top Left: Full Meditation (Teal) */}
-          <div style={{ position: 'absolute', top: '10%', left: '20%', width: '100px', height: '100px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
-          {/* Top Right: Deep Sleep (Warm Amber) */}
-          <div style={{ position: 'absolute', top: '10%', right: '20%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          {/* Top Left: Full Meditation (Zen Turquoise) */}
+          <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          {/* Top Right: Deep Sleep (Lavender Violet matching the Crescent Moon) */}
+          <div style={{ position: 'absolute', top: '10%', right: '20%', width: '110px', height: '110px', background: 'rgba(196, 181, 253, 0.45)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
           
-          {/* Middle Left: Deep Focus (Stone/Grey) */}
-          <div style={{ position: 'absolute', top: '40%', left: '20%', width: '100px', height: '100px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
-          {/* Middle Right: Morning Energy (Slate/Sky) */}
-          <div style={{ position: 'absolute', top: '40%', right: '20%', width: '100px', height: '100px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          {/* Middle Left: Deep Focus (Minimalist Zen Slate) */}
+          <div style={{ position: 'absolute', top: '40%', left: '20%', width: '110px', height: '110px', background: 'rgba(203, 213, 225, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+          {/* Middle Right: Morning Energy (Radiant Golden Dawn) */}
+          <div style={{ position: 'absolute', top: '40%', right: '20%', width: '110px', height: '110px', background: 'rgba(253, 224, 71, 0.45)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
           
-          {/* Bottom Left: Rain Sounds (Purple) */}
-          <div style={{ position: 'absolute', bottom: '10%', left: '15%', width: '90px', height: '90px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
-          {/* Bottom Middle: Focus Frequencies (Teal) */}
-          <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%) translateZ(0)', width: '90px', height: '90px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(30px)', willChange: 'transform', zIndex: 0 }} />
-          {/* Bottom Right: Ambient (Slate) */}
-          <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '90px', height: '90px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
+          {/* Bottom Left: Rain Sounds (Misty Rain Blue) */}
+          <div style={{ position: 'absolute', bottom: '10%', left: '15%', width: '95px', height: '95px', background: 'rgba(56, 189, 248, 0.4)', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
+          {/* Bottom Middle: Focus Frequencies (Resonant Cymatic Violet) */}
+          <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%) translateZ(0)', width: '95px', height: '95px', background: 'rgba(217, 70, 239, 0.4)', borderRadius: '50%', filter: 'blur(30px)', willChange: 'transform', zIndex: 0 }} />
+          {/* Bottom Right: Forest Ambience (Woodland Emerald) */}
+          <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '95px', height: '95px', background: 'rgba(52, 211, 153, 0.4)', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
 
 <div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
             zIndex: 1,

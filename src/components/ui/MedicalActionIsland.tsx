@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pill, Activity, ShieldCheck, ChevronRight, X } from 'lucide-react';
+import { Pill, Activity, ShieldCheck, ChevronRight, X, Wind } from 'lucide-react';
 import { triggerHapticLight, triggerHapticHeavy } from '../../services/haptics';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 
 export const MedicalActionIsland = () => {
   const [expanded, setExpanded] = useState(false);
-  const { currentState, title, subtitle, actionText, dismissIsland } = useActionIslandStore();
+  const { currentState, title, subtitle, actionText, onAction, dismissIsland } = useActionIslandStore();
 
   // Auto-collapse after some time
   useEffect(() => {
@@ -26,6 +26,9 @@ export const MedicalActionIsland = () => {
   const handleAction = (e: React.MouseEvent) => {
     e.stopPropagation();
     triggerHapticHeavy();
+    if (onAction) {
+      onAction();
+    }
     dismissIsland();
     setExpanded(false);
   };
@@ -71,10 +74,20 @@ export const MedicalActionIsland = () => {
           {/* Icon */}
           <motion.div layout style={{ 
             width: '32px', height: '32px', borderRadius: '50%', 
-            background: currentState === 'medication' ? 'rgba(244, 63, 94, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+            background: currentState === 'medication' 
+              ? 'rgba(244, 63, 94, 0.2)' 
+              : currentState === 'calm'
+              ? 'rgba(56, 189, 248, 0.25)'
+              : 'rgba(16, 185, 129, 0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            {currentState === 'medication' ? <Pill size={16} color="#F43F5E" /> : <Activity size={16} color="#10B981" />}
+            {currentState === 'medication' ? (
+              <Pill size={16} color="#F43F5E" />
+            ) : currentState === 'calm' ? (
+              <Wind size={16} color="#38BDF8" />
+            ) : (
+              <Activity size={16} color="#10B981" />
+            )}
           </motion.div>
 
           {/* Collapsed State Text */}
@@ -129,12 +142,16 @@ export const MedicalActionIsland = () => {
                   onClick={handleAction}
                   style={{ 
                     flex: 1, padding: '12px', borderRadius: '16px', border: 'none',
-                  background: currentState === 'medication' ? '#F43F5E' : '#10B981',
+                  background: currentState === 'medication' 
+                    ? '#F43F5E' 
+                    : currentState === 'calm'
+                    ? 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)'
+                    : '#10B981',
                   color: '#FFFFFF', fontSize: '14px', fontWeight: 700,
                   display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px'
                 }}
               >
-                <>{actionText} {currentState === 'medication' ? <ShieldCheck size={16} /> : <ChevronRight size={16} />}</>
+                <>{actionText} {currentState === 'medication' ? <ShieldCheck size={16} /> : currentState === 'calm' ? <Wind size={16} /> : <ChevronRight size={16} />}</>
               </button>
             </motion.div>
           )}
