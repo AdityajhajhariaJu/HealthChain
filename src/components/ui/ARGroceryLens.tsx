@@ -125,7 +125,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           animate={{ y: '80vh' }}
           transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse', ease: 'linear' }}
           style={{
-            position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', willChange: 'transform',, background: '#10B981',
+            position: 'absolute', top: 0, left: '10%', right: '10%', height: '2px', willChange: 'transform', background: '#10B981',
             boxShadow: '0 0 20px 4px rgba(16, 185, 129, 0.5)', zIndex: 5
           }}
         />
