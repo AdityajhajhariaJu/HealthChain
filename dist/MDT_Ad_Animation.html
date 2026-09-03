@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthChain MDT Ad Simulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10B981;
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+        }
+        .container {
+            width: 1000px;
+            height: 700px;
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .header {
+            padding: 24px 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+        }
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: #ECFDF5;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 16px;
+        }
+        .header-icon svg { stroke: var(--primary); }
+        .header-text h1 { margin: 0; font-size: 24px; font-weight: 700; }
+        .header-text p { margin: 4px 0 0; font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+        .content {
+            padding: 40px;
+            flex: 1;
+            position: relative;
+        }
+
+        /* View 1: Intake */
+        .view-intake {
+            position: absolute;
+            top: 40px; left: 40px; right: 40px;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .intake-box {
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            height: 200px;
+            font-size: 20px;
+            color: var(--text-main);
+            line-height: 1.5;
+            position: relative;
+            background: #FAFAFA;
+        }
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 24px;
+            background: var(--primary);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            border: none;
+            margin-top: 24px;
+            float: right;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+        .btn.active { opacity: 1; transform: scale(1.02); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); }
+
+        /* View 2: Specialists */
+        .view-specialists {
+            position: absolute;
+            top: 40px; left: 40px; right: 40px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            transition: opacity 0.8s, transform 0.8s;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .chat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 12px; }
+        .neuro-dot { background: #8B5CF6; }
+        .rheum-dot { background: #EC4899; }
+        .ent-dot { background: #10B981; }
+
+        .chat-name { font-weight: 600; font-size: 16px; }
+        .typing-indicator {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-style: italic;
+            display: none;
+            margin-top: 8px;
+        }
+        .chat-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-main);
+            display: none;
+        }
+
+        /* Overlay Debate */
+        .debate-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s;
+        }
+        .pulse-ring {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.2);
+            display: flex; justify-content: center; align-items: center;
+            animation: pulse 2s infinite;
+            margin-bottom: 24px;
+        }
+        .pulse-core {
+            width: 40px; height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 40px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        .debate-text {
+            font-size: 22px; font-weight: 600; color: var(--primary);
+            margin-bottom: 8px;
+        }
+        .final-report {
+            margin-top: 40px;
+            padding: 32px;
+            background: #ECFDF5;
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s;
+        }
+        .final-title { font-size: 14px; font-weight: 700; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+        .final-diagnosis { font-size: 28px; font-weight: 800; color: #064E3B; }
+        .confidence { margin-top: 12px; font-size: 16px; font-weight: 600; color: var(--primary); }
+
+        #start-btn {
+            position: fixed; top: 20px; left: 20px;
+            padding: 12px 24px; background: #0F172A; color: white;
+            border: none; border-radius: 8px; cursor: pointer;
+            z-index: 100; font-family: 'Inter'; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="start-btn" onclick="runSequence()">▶ Start Recording Sequence</button>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1>Advanced MDT Board</h1>
+                <p>Parallel Diagnostic Analysis</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- View 1 -->
+            <div class="view-intake" id="view-intake">
+                <h2 style="font-size: 18px; margin-top: 0;">Clinical Intake</h2>
+                <div class="intake-box">
+                    <span id="typewriter-text"></span><span class="cursor" id="cursor"></span>
+                </div>
+                <button class="btn" id="assemble-btn">Assemble Medical Board →</button>
+            </div>
+
+            <!-- View 2 -->
+            <div class="view-specialists" id="view-specialists">
+                <div class="chat-card" id="card-1">
+                    <div class="chat-header">
+                        <div class="dot neuro-dot"></div>
+                        <div class="chat-name">Neurologist</div>
+                    </div>
+                    <div class="typing-indicator" id="type-1">Analyzing symptoms...</div>
+                    <div class="chat-text" id="text-1">"Are you experiencing any tingling or numbness along with the brain fog?"</div>
+                </div>
+
+                <div class="chat-card" id="card-2">
+                    <div class="chat-header">
+                        <div class="dot rheum-dot"></div>
+                        <div class="chat-name">Rheumatologist</div>
+                    </div>
+                    <div class="typing-indicator" id="type-2">Cross-correlating...</div>
+                    <div class="chat-text" id="text-2">"Is the joint pain worse in the morning, and does it affect both sides of your body equally?"</div>
+                </div>
+
+                <div class="chat-card" id="card-3" style="grid-column: 1 / -1; width: calc(50% - 12px);">
+                    <div class="chat-header">
+                        <div class="dot ent-dot"></div>
+                        <div class="chat-name">Endocrinologist</div>
+                    </div>
+                    <div class="typing-indicator" id="type-3">Reviewing labs...</div>
+                    <div class="chat-text" id="text-3">"Have you noticed any unexplained weight changes or severe sensitivity to cold?"</div>
+                </div>
+            </div>
+
+            <!-- View 3 -->
+            <div class="debate-overlay" id="debate-overlay">
+                <div class="pulse-ring"><div class="pulse-core"></div></div>
+                <div class="debate-text" id="debate-status">Cross-correlating specialist findings...</div>
+
+                <div class="final-report" id="final-report">
+                    <div class="final-title">UNIFIED REPORT</div>
+                    <div class="final-diagnosis">Systemic Lupus Erythematosus (SLE)</div>
+                    <div class="confidence">88% Diagnostic Confidence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textToType = "Brain fog, joint pain, extreme fatigue for 3 years. Normal blood work.";
+
+        async function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        async function runSequence() {
+            document.getElementById('start-btn').style.display = 'none';
+
+            // 1. Typing effect
+            const textEl = document.getElementById('typewriter-text');
+            textEl.innerHTML = '';
+            for(let i=0; i<textToType.length; i++) {
+                textEl.innerHTML += textToType.charAt(i);
+                await sleep(40); // typing speed
+            }
+
+            await sleep(500);
+            document.getElementById('cursor').style.display = 'none';
+
+            // 2. Button active & click
+            const btn = document.getElementById('assemble-btn');
+            btn.classList.add('active');
+            await sleep(800);
+            btn.style.transform = 'scale(0.95)';
+            btn.style.background = '#059669';
+            await sleep(200);
+
+            // 3. Transition to View 2
+            document.getElementById('view-intake').style.opacity = '0';
+            document.getElementById('view-intake').style.transform = 'scale(0.95)';
+            await sleep(500);
+
+            const v2 = document.getElementById('view-specialists');
+            v2.style.opacity = '1';
+            v2.style.transform = 'translateY(0)';
+
+            // 4. Cards pop in
+            const cards = [document.getElementById('card-1'), document.getElementById('card-2'), document.getElementById('card-3')];
+            const typers = [document.getElementById('type-1'), document.getElementById('type-2'), document.getElementById('type-3')];
+            const texts = [document.getElementById('text-1'), document.getElementById('text-2'), document.getElementById('text-3')];
+
+            for(let i=0; i<cards.length; i++) {
+                await sleep(200);
+                cards[i].style.opacity = '1';
+                cards[i].style.transform = 'translateY(0)';
+                typers[i].style.display = 'block';
+            }
+
+            // 5. Specialists "type" and respond
+            await sleep(1500);
+            typers[0].style.display = 'none'; texts[0].style.display = 'block';
+            await sleep(400);
+            typers[1].style.display = 'none'; texts[1].style.display = 'block';
+            await sleep(300);
+            typers[2].style.display = 'none'; texts[2].style.display = 'block';
+
+            // 6. Transition to Overlay Debate
+            await sleep(2000);
+            const overlay = document.getElementById('debate-overlay');
+            overlay.style.opacity = '1';
+
+            await sleep(1500);
+            document.getElementById('debate-status').innerHTML = "Autoimmune pattern detected.";
+
+            await sleep(1000);
+            document.getElementById('debate-status').style.display = 'none';
+            const finalReport = document.getElementById('final-report');
+            finalReport.style.opacity = '1';
+            finalReport.style.transform = 'translateY(0)';
+        }
+    </script>
+</body>
+</html>
