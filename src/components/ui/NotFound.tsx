@@ -54,7 +54,12 @@ export default function NotFound() {
         </p>
 
         <button
-          onClick={() => navigate('/app/today')}
+          onClick={() => {
+            try {
+              localStorage.setItem('hc_onboarded', 'true');
+            } catch (e) {}
+            navigate('/app/today', { replace: true });
+          }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',

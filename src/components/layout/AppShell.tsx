@@ -55,9 +55,18 @@ export default function AppShell() {
   const navigate = useNavigate();
   useEffect(() => { 
     try {
-      if (!localStorage.getItem('hc_onboarded') && location.pathname !== '/app/onboarding') { navigate('/app/onboarding'); }
+      if (localStorage.getItem('hc_onboarded') !== 'true') {
+        const prof = getProfile();
+        if (prof?.demographics?.onboardingCompletedAt || (prof?.demographics?.name && prof?.demographics?.age)) {
+          localStorage.setItem('hc_onboarded', 'true');
+          return;
+        }
+        if (location.pathname !== '/app/onboarding') {
+          navigate('/app/onboarding', { replace: true });
+        }
+      }
     } catch(e) {}
-  }, [location, navigate]);
+  }, [location.pathname, navigate]);
   const toast = useToast();
   const isMobile = useIsMobile();
     const [showMoreMenu, setShowMoreMenu] = useState(false);

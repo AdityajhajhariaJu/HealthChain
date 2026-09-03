@@ -47,6 +47,9 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const canContinue = step === 0 ? Boolean(form.name.trim() && form.age) : true;
   const finish = () => {
+    try {
+      localStorage.setItem('hc_onboarded', 'true');
+    } catch(e) {}
     completeProfileOnboarding({
       demographics: {
         name: form.name.trim(),

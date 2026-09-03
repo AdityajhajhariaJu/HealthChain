@@ -11,7 +11,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { supabase } from './services/supabaseClient';
-import { setItemSync } from './services/storage';
+import { setItemSync, getItemSync, removeItemSync } from './services/storage';
 import { clearPersistedMDTSession } from './stores/useMDTStore';
 import { flushSyncOutbox } from './services/SyncOutbox';
 
@@ -570,6 +570,7 @@ export default function App() {
           }
         >
                     <Route path="/app" element={<Navigate to="/app/today" replace />} />
+          <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
           
           <Route path="/app/sports" element={<SafeRoute><SportsHub /></SafeRoute>} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
@@ -612,6 +613,7 @@ export default function App() {
           {/* Redirects for old routes */}
           <Route path="/app/multi" element={<Navigate to="/app/consult" replace />} />
           <Route path="/app/mdthub" element={<Navigate to="/app/collab" replace />} />
+          <Route path="/app/mdt" element={<Navigate to="/app/consult" replace />} />
 
           <Route
             path="/app/consult"
