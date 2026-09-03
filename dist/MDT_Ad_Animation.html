@@ -56,7 +56,7 @@
         .header-icon svg { stroke: var(--primary); }
         .header-text h1 { margin: 0; font-size: 24px; font-weight: 700; }
         .header-text p { margin: 4px 0 0; font-size: 14px; color: var(--text-muted); font-weight: 500; }
-        
+
         .content {
             padding: 40px;
             flex: 1;
@@ -136,7 +136,7 @@
         .neuro-dot { background: #8B5CF6; }
         .rheum-dot { background: #EC4899; }
         .ent-dot { background: #10B981; }
-        
+
         .chat-name { font-weight: 600; font-size: 16px; }
         .typing-indicator {
             color: var(--text-muted);
@@ -180,7 +180,7 @@
             border-radius: 50%;
         }
         @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 40px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-        
+
         .debate-text {
             font-size: 22px; font-weight: 600; color: var(--primary);
             margin-bottom: 8px;
@@ -271,7 +271,7 @@
             <div class="debate-overlay" id="debate-overlay">
                 <div class="pulse-ring"><div class="pulse-core"></div></div>
                 <div class="debate-text" id="debate-status">Cross-correlating specialist findings...</div>
-                
+
                 <div class="final-report" id="final-report">
                     <div class="final-title">UNIFIED REPORT</div>
                     <div class="final-diagnosis">Systemic Lupus Erythematosus (SLE)</div>
@@ -283,12 +283,12 @@
 
     <script>
         const textToType = "Brain fog, joint pain, extreme fatigue for 3 years. Normal blood work.";
-        
+
         async function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        
+
         async function runSequence() {
             document.getElementById('start-btn').style.display = 'none';
-            
+
             // 1. Typing effect
             const textEl = document.getElementById('typewriter-text');
             textEl.innerHTML = '';
@@ -296,10 +296,10 @@
                 textEl.innerHTML += textToType.charAt(i);
                 await sleep(40); // typing speed
             }
-            
+
             await sleep(500);
             document.getElementById('cursor').style.display = 'none';
-            
+
             // 2. Button active & click
             const btn = document.getElementById('assemble-btn');
             btn.classList.add('active');
@@ -307,28 +307,28 @@
             btn.style.transform = 'scale(0.95)';
             btn.style.background = '#059669';
             await sleep(200);
-            
+
             // 3. Transition to View 2
             document.getElementById('view-intake').style.opacity = '0';
             document.getElementById('view-intake').style.transform = 'scale(0.95)';
             await sleep(500);
-            
+
             const v2 = document.getElementById('view-specialists');
             v2.style.opacity = '1';
             v2.style.transform = 'translateY(0)';
-            
+
             // 4. Cards pop in
             const cards = [document.getElementById('card-1'), document.getElementById('card-2'), document.getElementById('card-3')];
             const typers = [document.getElementById('type-1'), document.getElementById('type-2'), document.getElementById('type-3')];
             const texts = [document.getElementById('text-1'), document.getElementById('text-2'), document.getElementById('text-3')];
-            
+
             for(let i=0; i<cards.length; i++) {
                 await sleep(200);
                 cards[i].style.opacity = '1';
                 cards[i].style.transform = 'translateY(0)';
                 typers[i].style.display = 'block';
             }
-            
+
             // 5. Specialists "type" and respond
             await sleep(1500);
             typers[0].style.display = 'none'; texts[0].style.display = 'block';
@@ -336,15 +336,15 @@
             typers[1].style.display = 'none'; texts[1].style.display = 'block';
             await sleep(300);
             typers[2].style.display = 'none'; texts[2].style.display = 'block';
-            
+
             // 6. Transition to Overlay Debate
             await sleep(2000);
             const overlay = document.getElementById('debate-overlay');
             overlay.style.opacity = '1';
-            
+
             await sleep(1500);
             document.getElementById('debate-status').innerHTML = "Autoimmune pattern detected.";
-            
+
             await sleep(1000);
             document.getElementById('debate-status').style.display = 'none';
             const finalReport = document.getElementById('final-report');

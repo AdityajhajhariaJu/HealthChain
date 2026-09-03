@@ -43,7 +43,7 @@ const adminContentPlugin = () => ({
             }
             if (action === 'delete') {
               const { id } = payload;
-              const { data, error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
+              const { error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
               if (error) throw error;
               res.statusCode = 200;
               return res.end(JSON.stringify({ success: true }));

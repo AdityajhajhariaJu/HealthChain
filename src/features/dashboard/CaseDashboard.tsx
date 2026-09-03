@@ -398,7 +398,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {/* Bottom Left: Rain Sounds (Purple) */}
           <div style={{ position: 'absolute', bottom: '10%', left: '15%', width: '90px', height: '90px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(30px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
           {/* Bottom Middle: Focus Frequencies (Teal) */}
-          <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '90px', height: '90px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(30px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%) translateZ(0)', width: '90px', height: '90px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(30px)', willChange: 'transform', zIndex: 0 }} />
           {/* Bottom Right: Ambient (Slate) */}
           <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '90px', height: '90px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(30px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
 

@@ -21,7 +21,7 @@ if (!content.includes('DieticianDashboardTracker')) {
     // Find the end of the dashboard tab which is right before TAB 2
     const tab2CommentIdx = content.lastIndexOf("{/*", endIdx);
 
-    const replacement = 
+    const replacement = `
               <DieticianDashboardTracker 
                 profile={profile} 
                 foodLogs={foodLogs} 
@@ -34,7 +34,7 @@ if (!content.includes('DieticianDashboardTracker')) {
             </motion.div>
           )}
 
-          ;
+          </div>`;
     content = content.substring(0, gridStartIdx) + replacement + content.substring(tab2CommentIdx);
     fs.writeFileSync(path, content, 'utf8');
     console.log("Successfully replaced dashboard content.");
