@@ -867,13 +867,67 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    setCurrentTime(val);
-    if (audioRef.current) {
-      audioRef.current.currentTime = val;
+  // Point 5: Haptic Precision Scrubber with Floating Time Bubble
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const [scrubValue, setScrubValue] = useState(0);
+  const scrubBarRef = useRef<HTMLDivElement | null>(null);
+  const lastHapticIntervalRef = useRef<number>(-1);
+
+  const calculateScrubTimeFromEvent = (clientX: number) => {
+    if (!scrubBarRef.current || duration <= 0) return 0;
+    const rect = scrubBarRef.current.getBoundingClientRect();
+    const clampedX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const ratio = clampedX / rect.width;
+    return ratio * duration;
+  };
+
+  const handleScrubStart = (clientX: number) => {
+    if (duration <= 0) return;
+    setIsScrubbing(true);
+    triggerHapticLight();
+    const newTime = calculateScrubTimeFromEvent(clientX);
+    setScrubValue(newTime);
+    lastHapticIntervalRef.current = Math.floor(newTime / 30);
+  };
+
+  const handleScrubMove = (clientX: number) => {
+    if (!isScrubbing || duration <= 0) return;
+    const newTime = calculateScrubTimeFromEvent(clientX);
+    setScrubValue(newTime);
+
+    // Haptic tick on 30s boundaries
+    const interval = Math.floor(newTime / 30);
+    if (interval !== lastHapticIntervalRef.current) {
+      lastHapticIntervalRef.current = interval;
+      triggerHapticLight();
     }
   };
+
+  const handleScrubEnd = () => {
+    if (!isScrubbing) return;
+    setIsScrubbing(false);
+    triggerHapticLight();
+    setCurrentTime(scrubValue);
+    if (audioRef.current) {
+      audioRef.current.currentTime = scrubValue;
+    }
+  };
+
+  useEffect(() => {
+    if (!isScrubbing) return;
+    const onPointerMove = (e: PointerEvent) => {
+      handleScrubMove(e.clientX);
+    };
+    const onPointerUp = () => {
+      handleScrubEnd();
+    };
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+  }, [isScrubbing, scrubValue, duration]);
 
   const handleTrackEnded = () => {
     if (isPlaylistMode && currentPlaylist.length > 0) {
@@ -1518,27 +1572,121 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       </button>
                     </div>
 
-                    {/* Audio Progress Scrubber */}
+                    {/* Point 5: Haptic Precision Scrubber with Floating Time Bubble */}
                     {isPlaylistMode && duration > 0 && (
-                      <div style={{ marginBottom: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', minWidth: '32px' }}>
-                            {formatTime(currentTime)}
+                      <div style={{ marginBottom: '14px', position: 'relative' }}>
+                        {/* Floating Time Bubble */}
+                        <AnimatePresence>
+                          {isScrubbing && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8, scale: 0.85 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 8, scale: 0.85 }}
+                              transition={{ duration: 0.15 }}
+                              style={{
+                                position: 'absolute',
+                                bottom: '26px',
+                                left: `${Math.min(94, Math.max(6, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
+                                transform: 'translateX(-50%)',
+                                background: 'rgba(15, 23, 42, 0.95)',
+                                backdropFilter: 'blur(16px)',
+                                WebkitBackdropFilter: 'blur(16px)',
+                                border: `1.5px solid ${vibrationThemeColors.ring}`,
+                                boxShadow: `0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px ${vibrationThemeColors.glow}`,
+                                borderRadius: '14px',
+                                padding: '5px 10px',
+                                color: 'white',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                pointerEvents: 'none',
+                                whiteSpace: 'nowrap',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                zIndex: 30
+                              }}
+                            >
+                              <span>{formatTime(isScrubbing ? scrubValue : currentTime)}</span>
+                              {/* Downward Arrow */}
+                              <div style={{
+                                position: 'absolute',
+                                bottom: '-5px',
+                                width: 0,
+                                height: 0,
+                                borderLeft: '5px solid transparent',
+                                borderRight: '5px solid transparent',
+                                borderTop: `5px solid ${vibrationThemeColors.ring}`
+                              }} />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.7)', minWidth: '34px', fontWeight: 600 }}>
+                            {formatTime(isScrubbing ? scrubValue : currentTime)}
                           </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={duration || 100}
-                            value={currentTime}
-                            onChange={handleSeek}
+
+                          {/* Custom Interactive Track */}
+                          <div
+                            ref={scrubBarRef}
+                            onPointerDown={(e) => {
+                              (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+                              handleScrubStart(e.clientX);
+                            }}
                             style={{
                               flex: 1,
-                              accentColor: '#38BDF8',
-                              height: '4px',
-                              cursor: 'pointer'
+                              height: '24px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              position: 'relative',
+                              touchAction: 'none'
                             }}
-                          />
-                          <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)', minWidth: '32px', textAlign: 'right' }}>
+                          >
+                            {/* Track Rail */}
+                            <div style={{
+                              width: '100%',
+                              height: '5px',
+                              borderRadius: '3px',
+                              background: 'rgba(255, 255, 255, 0.18)',
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}>
+                              {/* Filled Progress Bar */}
+                              <div style={{
+                                width: `${Math.min(100, Math.max(0, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
+                                height: '100%',
+                                background: `linear-gradient(90deg, #38BDF8 0%, ${vibrationThemeColors.ring} 100%)`,
+                                borderRadius: '3px',
+                                boxShadow: `0 0 10px ${vibrationThemeColors.glow}`
+                              }} />
+                            </div>
+
+                            {/* Active Glowing Thumb */}
+                            <motion.div
+                              animate={{ 
+                                scale: isScrubbing ? 1.45 : 1,
+                                boxShadow: isScrubbing 
+                                  ? `0 0 16px ${vibrationThemeColors.ring}, 0 2px 8px rgba(0,0,0,0.5)` 
+                                  : '0 2px 6px rgba(0, 0, 0, 0.4)'
+                              }}
+                              transition={{ duration: 0.12 }}
+                              style={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: `${Math.min(100, Math.max(0, ((isScrubbing ? scrubValue : currentTime) / Math.max(1, duration)) * 100))}%`,
+                                transform: 'translate(-50%, -50%)',
+                                width: '13px',
+                                height: '13px',
+                                borderRadius: '50%',
+                                background: '#FFFFFF',
+                                border: `2px solid ${vibrationThemeColors.ring}`,
+                                pointerEvents: 'none'
+                              }}
+                            />
+                          </div>
+
+                          <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.7)', minWidth: '34px', textAlign: 'right', fontWeight: 600 }}>
                             {formatTime(duration)}
                           </span>
                         </div>

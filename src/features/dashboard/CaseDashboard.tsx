@@ -1,10 +1,31 @@
 import { useNavigate } from 'react-router-dom';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import { Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin, Scan } from 'lucide-react';
+import { 
+  Activity, 
+  ChevronRight, 
+  Clock, 
+  Crosshair, 
+  Flame, 
+  Gamepad2, 
+  Heart, 
+  Play, 
+  Waves, 
+  Wind, 
+  Share2, 
+  Bookmark, 
+  Pin, 
+  Scan,
+  Check,
+  Droplets,
+  Sparkles,
+  BookOpen,
+  Award,
+  X,
+  ShieldCheck
+} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-
 
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SwimlaneCarousel } from '../../components/ui/SwimlaneCarousel';
@@ -13,17 +34,90 @@ import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { WorkoutPlayer } from '../../components/ui/WorkoutPlayer';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 
-
-
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
+
+export interface MedicalArticle {
+  id: string;
+  title: string;
+  subtitle: string;
+  author: string;
+  role: string;
+  readTime: string;
+  img: string;
+  category: string;
+  keyTakeaways: string[];
+  sections: { heading: string; body: string }[];
+}
+
+export const CLINICAL_ARTICLES: MedicalArticle[] = [
+  {
+    id: 'art-overthinking',
+    title: 'Overcome Overthinking — 10 Evidence-Based Strategies',
+    subtitle: 'Clinical Cognitive Restructuring & Somatic Regulation',
+    author: 'Dr. Sarah Jenkins, MD',
+    role: 'Board-Certified Neuropsychiatrist & Sleep Specialist',
+    readTime: '4 min read',
+    img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=800&q=80',
+    category: 'Cognitive Health',
+    keyTakeaways: [
+      'Rumination activates the Default Mode Network (DMN), suppressing executive prefrontal cortex focus.',
+      'The 5-4-3-2-1 Sensory Grounding protocol resets acute sympathetic nervous overdrive in 90 seconds.',
+      'Scheduling a 20-minute daily "Worry Window" reduces nocturnal cognitive intrusion by 47%.'
+    ],
+    sections: [
+      {
+        heading: '1. The Neurobiology of the Overthinking Loop',
+        body: 'Overthinking is not a personality flaw—it is an evolutionary threat-simulation reflex run amok. When the amygdala senses ambiguity, it triggers the Default Mode Network (DMN) to repetitively project worst-case scenarios. Without conscious somatic intervention, elevated cortisol and norepinephrine sustain an autonomic feedback loop that impairs sleep and immune resilience.'
+      },
+      {
+        heading: '2. Somatic Interrupt: The Physiological Vagal Reset',
+        body: 'When you notice circular ruminative thoughts, cognitive rationalizing rarely works because blood flow has shifted away from Broca’s verbal region. Instead, perform a double nasal inhale followed by an elongated, unforced oral exhale (the physiological sigh). This activates baroreceptor firing, lowers heart rate within three cycles, and restores prefrontal blood perfusion.'
+      },
+      {
+        heading: '3. Cognitive Defusion & The Worry Window',
+        body: 'Designate a strict 20-minute window at 4:30 PM each day. When intrusive anxieties surface during work or rest, mentally file them: "I will thoroughly analyze this at 4:30 PM." Clinical trials show that over 82% of perceived crises dissolve before the scheduled window arrives.'
+      }
+    ]
+  },
+  {
+    id: 'art-muscle-hypertrophy',
+    title: 'Want to Gain Muscle? The 6 Most Important Clinical Rules',
+    subtitle: 'Myofibrillar Protein Synthesis, Mechanical Tension & Recovery',
+    author: 'Dr. Marcus Vance, PhD, CSCS',
+    role: 'Exercise Physiologist & Metabolic Researcher',
+    readTime: '5 min read',
+    img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
+    category: 'Metabolic & Musculoskeletal',
+    keyTakeaways: [
+      'Mechanical tension within 1-3 Reps in Reserve (RIR) is the primary driver of myofibrillar hypertrophy.',
+      'Daily protein intake should target 1.6 to 2.2g per kg of bodyweight distributed across 3-4 leucine-rich boluses.',
+      'Over 70% of nightly Growth Hormone secretion occurs during Delta slow-wave sleep.'
+    ],
+    sections: [
+      {
+        heading: '1. Prioritize Mechanical Tension Over Metabolic Fatigue',
+        body: 'Lactic acid "burn" and sweat do not equal muscle hypertrophy. True muscle growth requires high mechanical tension across muscle fibers, recruiting high-threshold Motor Units (Type IIx fibers). This occurs when sets are performed within 0 to 3 reps of muscular failure.'
+      },
+      {
+        heading: '2. The Leucine Trigger & Protein Timing',
+        body: 'Muscle Protein Synthesis (MPS) operates like an all-or-none biological switch. To trigger the mTORC1 pathway, each feeding requires approximately 2.7 to 3.0 grams of the branched-chain amino acid leucine. Distributing daily protein into 3 to 4 meals containing 30-45g each significantly outperforms continuous grazing.'
+      },
+      {
+        heading: '3. Slow-Wave Sleep: The Primary Anabolic Window',
+        body: 'Chronically sleeping less than 6.5 hours elevates evening cortisol, impairs insulin sensitivity by up to 25%, and blunts overnight myofibrillar protein synthesis. Deep sleep is when cellular repair, glycogen replenishment, and testosterone production peak.'
+      }
+    ]
+  }
+];
 
 
 export default function CaseDashboard() {
@@ -43,6 +137,37 @@ export default function CaseDashboard() {
   const [showFrictionModal, setShowFrictionModal] = useState(false);
   const [showARLens, setShowARLens] = useState(false);
   const [dailyTasks, setDailyTasks] = useState<any[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<MedicalArticle | null>(null);
+
+  // Point 3: Interactive Daily Habit Bento Stack
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const [completedHabits, setCompletedHabits] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(`healthchain_habits_${todayDateStr}`);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleHabit = (habitId: string, title: string) => {
+    const isNowDone = !completedHabits[habitId];
+    const next = { ...completedHabits, [habitId]: isNowDone };
+    setCompletedHabits(next);
+    try {
+      localStorage.setItem(`healthchain_habits_${todayDateStr}`, JSON.stringify(next));
+    } catch (e) {
+      // ignore
+    }
+
+    if (isNowDone) {
+      triggerHapticSuccess();
+      awardPoints(2, `Daily Habit: ${title}`, 'lifestyle', `habit_${habitId}_${todayDateStr}`);
+    } else {
+      triggerHapticLight();
+    }
+  };
+
   useEffect(() => {
     const profile = getProfile();
     const tasks: any[] = [];
@@ -54,7 +179,6 @@ export default function CaseDashboard() {
     }
     setDailyTasks(tasks);
   }, []);
-
 
   const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
@@ -348,35 +472,201 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                 </div>
               </div>
 
-              {/* Task Bento Tiles */}
-
-            {dailyTasks.map((task, idx) => (
+              {/* Point 3: Interactive Daily Habit Bento Stack */}
               <div 
-                key={task.id}
-                onClick={() => {
-                  triggerHapticLight();
-                  if (task.id === 'task_2') setShowFrictionModal(true);
-                  if (task.id === 'task_default') navigate('/app/profile');
-                }}
-                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
+                onClick={() => toggleHabit('hydration', 'Morning Hydration (500ml)')}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
+                  backdropFilter: 'blur(32px)', 
+                  WebkitBackdropFilter: 'blur(32px)', 
+                  border: completedHabits['hydration'] ? '1.5px solid #10B981' : '1px solid rgba(255, 255, 255, 0.8)', 
+                  boxShadow: completedHabits['hydration'] 
+                    ? '0 20px 40px rgba(16, 185, 129, 0.2), inset 0 2px 0 rgba(255,255,255,0.7)' 
+                    : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7)', 
+                  borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   minHeight: '140px',
-                  cursor: 'pointer'}}
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: task.id === 'task_default_done' ? 'linear-gradient(135deg, rgba(16,185,129,0.9) 0%, rgba(16,185,129,0.7) 100%)' : 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: task.id === 'task_default_done' ? '0 4px 12px rgba(16,185,129,0.3), inset 0 2px 4px rgba(255,255,255,0.3)' : '0 4px 12px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,1)', border: '1px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
-                     {task.id === 'task_default_done' ? <ChevronRight size={20} color="#FFF" /> : <Clock size={20} color="#64748B" />}
+                  <div style={{ 
+                    width: '44px', 
+                    height: '44px', 
+                    borderRadius: '50%', 
+                    background: completedHabits['hydration'] 
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                      : 'linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%)', 
+                    boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(16, 185, 129, 0.4)' : 'none',
+                    border: completedHabits['hydration'] ? 'none' : '1px solid rgba(56, 189, 248, 0.3)',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    {completedHabits['hydration'] ? (
+                      <Check size={20} color="#FFF" />
+                    ) : (
+                      <Droplets size={20} color="#0EA5E9" />
+                    )}
+                  </div>
+                  <div style={{ 
+                    background: completedHabits['hydration'] ? '#DCFCE7' : 'rgba(56, 189, 248, 0.15)', 
+                    color: completedHabits['hydration'] ? '#15803D' : '#0284C7', 
+                    fontSize: '10px', 
+                    fontWeight: 800, 
+                    padding: '4px 8px', 
+                    borderRadius: '12px' 
+                  }}>
+                    {completedHabits['hydration'] ? '+2 PTS' : 'DAILY'}
                   </div>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A', lineHeight: 1.2, letterSpacing: '-0.3px' }}>{task.title}</h4>
-                  <p style={{ fontSize: '12px', color: '#BAE6FD', margin: 0, fontWeight: 500 }}>{task.subtitle}</p>
+                  <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A', lineHeight: 1.2, letterSpacing: '-0.3px' }}>
+                    {completedHabits['hydration'] ? 'Hydrated 💧' : 'Hydrate 500ml'}
+                  </h4>
+                  <p style={{ fontSize: '12px', color: completedHabits['hydration'] ? '#10B981' : '#64748B', margin: 0, fontWeight: 500 }}>
+                    {completedHabits['hydration'] ? 'Optimal cellular hydration' : 'Tap to mark complete'}
+                  </p>
                 </div>
               </div>
-            ))}
+
+              {/* Habit 2: Calm Reset */}
+              <div 
+                onClick={() => {
+                  triggerHapticLight();
+                  toggleHabit('calm_reset', 'Calm Space Reset');
+                  if (!completedHabits['calm_reset']) {
+                    const track = allMeditations[0] || heroMeditations[0] || null;
+                    if (track) setActiveMeditation(track);
+                  }
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
+                  backdropFilter: 'blur(32px)', 
+                  WebkitBackdropFilter: 'blur(32px)', 
+                  border: completedHabits['calm_reset'] ? '1.5px solid #10B981' : '1px solid rgba(255, 255, 255, 0.8)', 
+                  boxShadow: completedHabits['calm_reset'] 
+                    ? '0 20px 40px rgba(16, 185, 129, 0.2), inset 0 2px 0 rgba(255,255,255,0.7)' 
+                    : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7)', 
+                  borderRadius: '32px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '140px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ 
+                    width: '44px', 
+                    height: '44px', 
+                    borderRadius: '50%', 
+                    background: completedHabits['calm_reset'] 
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                      : 'linear-gradient(135deg, rgba(45, 212, 191, 0.2) 0%, rgba(20, 184, 166, 0.1) 100%)', 
+                    boxShadow: completedHabits['calm_reset'] ? '0 4px 12px rgba(16, 185, 129, 0.4)' : 'none',
+                    border: completedHabits['calm_reset'] ? 'none' : '1px solid rgba(45, 212, 191, 0.3)',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    {completedHabits['calm_reset'] ? (
+                      <Check size={20} color="#FFF" />
+                    ) : (
+                      <Wind size={20} color="#0D9488" />
+                    )}
+                  </div>
+                  <div style={{ 
+                    background: completedHabits['calm_reset'] ? '#DCFCE7' : 'rgba(45, 212, 191, 0.15)', 
+                    color: completedHabits['calm_reset'] ? '#15803D' : '#0F766E', 
+                    fontSize: '10px', 
+                    fontWeight: 800, 
+                    padding: '4px 8px', 
+                    borderRadius: '12px' 
+                  }}>
+                    {completedHabits['calm_reset'] ? '+2 PTS' : 'MINDFUL'}
+                  </div>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A', lineHeight: 1.2, letterSpacing: '-0.3px' }}>
+                    {completedHabits['calm_reset'] ? 'Mind Reset 🧘' : 'Calm Space'}
+                  </h4>
+                  <p style={{ fontSize: '12px', color: completedHabits['calm_reset'] ? '#10B981' : '#64748B', margin: 0, fontWeight: 500 }}>
+                    {completedHabits['calm_reset'] ? 'HRV baroreflex tuned' : '5-min nervous reset'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Habit 3: Daily Vitamins / Micronutrients */}
+              <div 
+                onClick={() => toggleHabit('vitamins', 'Daily Micronutrient / Rx')}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
+                  backdropFilter: 'blur(32px)', 
+                  WebkitBackdropFilter: 'blur(32px)', 
+                  border: completedHabits['vitamins'] ? '1.5px solid #10B981' : '1px solid rgba(255, 255, 255, 0.8)', 
+                  boxShadow: completedHabits['vitamins'] 
+                    ? '0 20px 40px rgba(16, 185, 129, 0.2), inset 0 2px 0 rgba(255,255,255,0.7)' 
+                    : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7)', 
+                  borderRadius: '32px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '140px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ 
+                    width: '44px', 
+                    height: '44px', 
+                    borderRadius: '50%', 
+                    background: completedHabits['vitamins'] 
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                      : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%)', 
+                    boxShadow: completedHabits['vitamins'] ? '0 4px 12px rgba(16, 185, 129, 0.4)' : 'none',
+                    border: completedHabits['vitamins'] ? 'none' : '1px solid rgba(245, 158, 11, 0.3)',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    {completedHabits['vitamins'] ? (
+                      <Check size={20} color="#FFF" />
+                    ) : (
+                      <Clock size={20} color="#D97706" />
+                    )}
+                  </div>
+                  <div style={{ 
+                    background: completedHabits['vitamins'] ? '#DCFCE7' : 'rgba(245, 158, 11, 0.15)', 
+                    color: completedHabits['vitamins'] ? '#15803D' : '#B45309', 
+                    fontSize: '10px', 
+                    fontWeight: 800, 
+                    padding: '4px 8px', 
+                    borderRadius: '12px' 
+                  }}>
+                    {completedHabits['vitamins'] ? '+2 PTS' : 'RX / VIT'}
+                  </div>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px', color: '#0F172A', lineHeight: 1.2, letterSpacing: '-0.3px' }}>
+                    {completedHabits['vitamins'] ? 'Vitamins Taken 💊' : 'Daily Vitamins'}
+                  </h4>
+                  <p style={{ fontSize: '12px', color: completedHabits['vitamins'] ? '#10B981' : '#64748B', margin: 0, fontWeight: 500 }}>
+                    {completedHabits['vitamins'] ? 'Cellular micronutrients' : 'Tap to mark complete'}
+                  </p>
+                </div>
+              </div>
           </div>
         </div>
 
@@ -578,67 +868,190 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           </div>
           
           <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', overflowX: 'auto', gap: '16px', padding: '0 24px 24px 24px', WebkitOverflowScrolling: 'touch', margin: 0 }}>
-            {[
-              { 
-                title: 'Overcome Overthinking - 10 Simple Tips from a Therapist', 
-                img: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=500&q=80',
-                isPopular: true
-              },
-              { 
-                title: 'WANT TO GAIN MUSCLE? THE 6 MOST IMPORTANT RULES', 
-                img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=500&q=80',
-                isPopular: true
-              }
-            ].map((art, i) => (
-              <div key={i} onClick={() => triggerHapticLight()} style={{ 
-                width: '260px', 
-                minWidth: '260px', 
-                background: '#FFFFFF', 
-                borderRadius: '16px', 
-                boxShadow: '0 4px 15px rgba(0,0,0,0.05)', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                overflow: 'hidden', 
-                cursor: 'pointer' 
-              }}>
+            {CLINICAL_ARTICLES.map((art) => (
+              <div 
+                key={art.id} 
+                onClick={() => {
+                  triggerHapticLight();
+                  setSelectedArticle(art);
+                }} 
+                style={{ 
+                  width: '260px', 
+                  minWidth: '260px', 
+                  background: '#FFFFFF', 
+                  borderRadius: '20px', 
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.06)', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  overflow: 'hidden', 
+                  cursor: 'pointer',
+                  border: '1px solid rgba(0, 0, 0, 0.05)',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                }}
+              >
                 {/* Image Section */}
                 <div style={{ position: 'relative', height: '150px', width: '100%' }}>
                   <img loading="lazy" decoding="async" src={art.img} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   
                   {/* Badge */}
-                  {art.isPopular && (
-                    <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(255,255,255,0.85)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(4px)', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}>
-                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#2E2B5F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Flame size={8} color="#FFF" strokeWidth={3} />
-                      </div>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#2E2B5F' }}>Popular</span>
+                  <div style={{ position: 'absolute', bottom: '12px', left: '12px', background: 'rgba(255,255,255,0.92)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(8px)', minWidth: '40px', minHeight: '32px', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#0EA5E9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <BookOpen size={8} color="#FFF" strokeWidth={3} />
                     </div>
-                  )}
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F172A' }}>{art.readTime}</span>
+                  </div>
 
-                  {/* Actions */}
-                  <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '8px' }}>
-                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0, minWidth: '32px', minHeight: '32px', flexShrink: 0 }}>
-                      <Heart size={16} strokeWidth={1.5} />
-                    </button>
-                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0, minWidth: '32px', minHeight: '32px', flexShrink: 0 }}>
-                      <Share2 size={16} strokeWidth={1.5} />
-                    </button>
-                    <button style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', backdropFilter: 'blur(4px)', padding: 0, minWidth: '32px', minHeight: '32px', flexShrink: 0 }}>
-                      <Bookmark size={16} strokeWidth={1.5} />
-                    </button>
+                  {/* Category Pill */}
+                  <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(15, 23, 42, 0.75)', padding: '4px 10px', borderRadius: '12px', backdropFilter: 'blur(8px)' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'white', letterSpacing: '0.4px', textTransform: 'uppercase' }}>{art.category}</span>
                   </div>
                 </div>
 
                 {/* Text Section */}
-                <div style={{ padding: '16px' }}>
-                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#2E2B5F', lineHeight: '1.4' }}>
+                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: '1.4' }}>
                     {art.title}
                   </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+                    <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>{art.author}</span>
+                    <ChevronRight size={16} color="#94A3B8" />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </section>
+
+      {/* Point 2: Interactive Clinical Article Reader Sheet */}
+      {selectedArticle && (
+        <BottomSheetOverlay isOpen={!!selectedArticle} onClose={() => setSelectedArticle(null)}>
+          <div style={{ padding: '20px 24px 60px', maxHeight: '85vh', overflowY: 'auto' }}>
+            {/* Header Cover Banner */}
+            <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '24px', overflow: 'hidden', marginBottom: '20px' }}>
+              <img 
+                src={selectedArticle.img} 
+                alt={selectedArticle.title} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.2) 60%, transparent 100%)' }} />
+              
+              <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => {
+                    triggerHapticLight();
+                    setSelectedArticle(null);
+                  }}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                  aria-label="Close article"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(8px)', padding: '4px 10px', borderRadius: '12px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'white', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    {selectedArticle.category}
+                  </span>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>•</span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.9)' }}>
+                    {selectedArticle.readTime}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Author Credential Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '16px', background: '#F8FAFC', border: '1px solid #E2E8F0', marginBottom: '20px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#0EA5E9', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '16px' }}>
+                {selectedArticle.author.split(' ')[1]?.charAt(0) || 'D'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{selectedArticle.author}</span>
+                  <ShieldCheck size={16} color="#0EA5E9" />
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>{selectedArticle.role}</div>
+              </div>
+            </div>
+
+            <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px', lineHeight: 1.2, letterSpacing: '-0.5px' }}>
+              {selectedArticle.title}
+            </h2>
+            <p style={{ fontSize: '15px', color: '#64748B', margin: '0 0 24px', lineHeight: 1.4, fontWeight: 500 }}>
+              {selectedArticle.subtitle}
+            </p>
+
+            {/* Key Clinical Takeaways */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.8) 0%, rgba(240, 253, 250, 0.8) 100%)', borderRadius: '20px', padding: '18px', border: '1px solid #BFDBFE', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                <Sparkles size={16} color="#2563EB" />
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#1E40AF', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                  Key Clinical Takeaways
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {selectedArticle.keyTakeaways.map((takeaway, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563EB', marginTop: '6px', flexShrink: 0 }} />
+                    <span style={{ fontSize: '13px', color: '#1E3A8A', lineHeight: 1.4, fontWeight: 500 }}>{takeaway}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Article Sections */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
+              {selectedArticle.sections.map((section, idx) => (
+                <div key={idx}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
+                    {section.heading}
+                  </h3>
+                  <p style={{ fontSize: '15px', color: '#334155', lineHeight: 1.6, margin: 0 }}>
+                    {section.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Bookmark & Done Button */}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => {
+                  triggerHapticLight();
+                  setSelectedArticle(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)',
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(14, 165, 233, 0.3)'
+                }}
+              >
+                Finished Reading
+              </button>
+            </div>
+          </div>
+        </BottomSheetOverlay>
+      )}
 
       <ClinicalFrictionModal isOpen={showFrictionModal} onComplete={() => setShowFrictionModal(false)} />
       <ContentDetailPage 
