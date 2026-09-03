@@ -605,7 +605,11 @@ export default function AvaHealthBuddy() {
                         width: '32px',
                         height: '32px',
                         borderRadius: '50%',
-                        background: theme.light,
+                        background: 'rgba(255, 255, 255, 0.55)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(255, 255, 255, 0.8)',
+                        boxShadow: '0 4px 12px rgba(244, 63, 94, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -619,16 +623,22 @@ export default function AvaHealthBuddy() {
 
                   <div
                     style={{
-                      background: msg.role === 'user' ? 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)' : 'rgba(255, 255, 255, 0.85)', backdropFilter: msg.role === 'user' ? 'none' : 'blur(16px)', WebkitBackdropFilter: msg.role === 'user' ? 'none' : 'blur(16px)',
-                      color: msg.role === 'user' ? '#FFFFFF' : '#334155',
-                      padding: isMobile ? '10px 14px' : '12px 18px',
+                      background: msg.role === 'user' 
+                        ? 'linear-gradient(135deg, rgba(244, 63, 94, 0.9) 0%, rgba(225, 29, 72, 0.9) 100%)' 
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.18) 100%)',
+                      backdropFilter: 'blur(32px)',
+                      WebkitBackdropFilter: 'blur(32px)',
+                      color: msg.role === 'user' ? '#FFFFFF' : '#0F172A',
+                      padding: isMobile ? '14px 18px' : '16px 22px',
                       borderRadius:
-                        msg.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                      fontSize: '16px',
-                      lineHeight: 1.45,
-                      boxShadow: msg.role === 'user' ? '0 12px 32px rgba(244, 63, 94, 0.35)' : '0 16px 40px rgba(244, 63, 94, 0.1)',
-                      border: msg.role === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
-                      maxWidth: '80%',
+                        msg.role === 'user' ? '22px 22px 6px 22px' : '22px 22px 22px 6px',
+                      fontSize: '15.5px',
+                      lineHeight: 1.5,
+                      boxShadow: msg.role === 'user' 
+                        ? '0 12px 32px rgba(244, 63, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
+                        : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.75), inset 0 0 30px rgba(255, 255, 255, 0.35)',
+                      border: msg.role === 'user' ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.85)',
+                      maxWidth: isMobile ? '86%' : '80%',
                     }}
                   >
                     {msg.isStreaming ? (
@@ -666,7 +676,11 @@ export default function AvaHealthBuddy() {
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: theme.light,
+                    background: 'rgba(255, 255, 255, 0.55)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                    boxShadow: '0 4px 12px rgba(244, 63, 94, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -677,10 +691,13 @@ export default function AvaHealthBuddy() {
                 </div>
                 <div
                   style={{
-                    background: 'transparent',
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.18) 100%)',
+                    backdropFilter: 'blur(32px)',
+                    WebkitBackdropFilter: 'blur(32px)',
                     padding: isMobile ? '12px 16px' : '16px',
                     borderRadius: '20px 20px 20px 4px',
-                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                    border: '1px solid rgba(255, 255, 255, 0.85)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.75), inset 0 0 30px rgba(255, 255, 255, 0.35)',
                     display: 'flex',
                     gap: '4px',
                     alignItems: 'center',
@@ -743,27 +760,31 @@ export default function AvaHealthBuddy() {
                     key={s}
                     onClick={() => handleSend(s)}
                     style={{
-                      background: 'transparent',
-                      border: `1px solid ${importedCase ? '#99F6E4' : theme.light}`,
-                      color: importedCase ? '#0D9488' : theme.primary,
-                      padding: '8px 14px',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.2) 100%)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.85)',
+                      color: importedCase ? '#0D9488' : '#BE123C',
+                      padding: isMobile ? '10px 16px' : '10px 18px',
                       borderRadius: '99px',
-                      fontSize: '12.5px',
+                      fontSize: '13px',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(139,92,246,0.06)',
+                      boxShadow: '0 4px 16px rgba(244, 63, 94, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 6
+                      gap: 8
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.background = importedCase ? '#CCFBF1' : theme.light;
-                      e.currentTarget.style.borderColor = importedCase ? '#0D9488' : theme.primary;
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)';
+                      e.currentTarget.style.borderColor = theme.primary;
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.background = '#FFFFFF';
-                      e.currentTarget.style.borderColor = importedCase ? '#99F6E4' : theme.light;
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.2) 100%)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.85)';
+                      e.currentTarget.style.transform = 'none';
                     }}
                   >
                     <Sparkles size={12} />
