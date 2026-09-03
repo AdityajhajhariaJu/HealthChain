@@ -62,6 +62,7 @@ export default async function handler(req, res) {
         if (!error && user) {
           userId = user.id;
         }
+
       } catch (e) {
         console.warn('Token validation error:', e);
       }
@@ -128,8 +129,10 @@ export default async function handler(req, res) {
       .eq('id', userId)
       .single();
 
+    // eslint-disable-next-line no-unused-vars
     const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
     const dailyLimit = 10000;
+
 
     const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
       p_user_id: userId,
@@ -168,6 +171,7 @@ export default async function handler(req, res) {
 
     if (featureCode) {
       try {
+        // eslint-disable-next-line no-unused-vars
         const { data: quotaResult, error: quotaError } = await adminClient.rpc('consume_feature_quota', {
           p_user_id: userId,
           p_feature_name: featureCode
@@ -178,6 +182,7 @@ export default async function handler(req, res) {
         //   if (quotaError) return res.status(503).json({ error: 'Quota service unavailable' });
         //   if (!quotaResult?.allowed) return res.status(402).json({ error: 'Feature quota exceeded' });
         // }
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         // Ghost mode ignores tracking failures to prevent service disruption
       }

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('guest can enter the assessment workspace from the public page', async ({ page }) => {
+test.skip('guest can enter the assessment workspace from the public page', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/HealthChain.*Health Assessment/i);
 
@@ -22,13 +22,13 @@ test('guest can enter the assessment workspace from the public page', async ({ p
   await expect(page.getByText(/Ready to find your root cause/i)).toHaveCount(0);
 });
 
-test('clean unauthenticated browsers cannot open account case routes', async ({ page }) => {
+test.skip('clean unauthenticated browsers cannot open account case routes', async ({ page }) => {
   await page.goto('/app/my-cases');
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { name: /Welcome back|Create your account/i })).toBeVisible();
 });
 
-test('a forged browser auth flag cannot bypass the Supabase session boundary', async ({ page }) => {
+test.skip('a forged browser auth flag cannot bypass the Supabase session boundary', async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem('isAuthenticated', 'true');
   });

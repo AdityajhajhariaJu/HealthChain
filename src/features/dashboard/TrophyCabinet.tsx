@@ -203,7 +203,7 @@ export const TrophyCabinet: React.FC = () => {
               </button>
 
               {/* Decorative Background Glow */}
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200px', height: '200px', borderRadius: '50%', background: selectedBadge.color, filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', opacity: 0.3, zIndex: 0 }} />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) translateZ(0)', width: '200px', height: '200px', borderRadius: '50%', background: selectedBadge.color, filter: 'blur(80px)', willChange: 'transform', opacity: 0.3, zIndex: 0 }} />
 
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ 
