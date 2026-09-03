@@ -29,8 +29,8 @@ export const DEEP_SLEEP_TRACKS = [
   { id: 'ds2', title: 'Slumber Waves', subtitle: 'soothing ambient textures, calm warm synth pads', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Slumber Waves.m4a' },
   { id: 'ds3', title: 'Eternal Calm', subtitle: 'continuous soothing ambient pad, deep sleep delta', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Eternal Calm.m4a' },
   { id: 'ds4', title: 'Starlight Cradle', subtitle: 'glimmering ambient pads, quiet sleep melody', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Starlight Cradle.m4a' },
-  { id: 'ds5', title: 'Serene Dreams', subtitle: 'gentle lullaby chords, soft atmospheric pads', cover: '/images/nature_calm.webp', audioUrl: '/audio/Serene Dreams.m4a' },
-  { id: 'ds6', title: 'Restful Horizon', subtitle: 'warm ambient soundscape, deep relaxation', cover: '/images/nature_calm.webp', audioUrl: '/audio/Restful Horizon.m4a' },
+  { id: 'ds5', title: 'Serene Dreams', subtitle: 'gentle lullaby chords, soft atmospheric pads', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Serene Dreams.m4a' },
+  { id: 'ds6', title: 'Restful Horizon', subtitle: 'warm ambient soundscape, deep relaxation', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Restful Horizon.m4a' },
   { id: 'ds7', title: 'Ocean Tide Sleep', subtitle: 'distant ocean surf, deep ambient pads', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Ocean Tide Sleep.m4a' },
   { id: 'ds8', title: 'Velvet Darkness', subtitle: 'deep bass drone, ultra relaxing sleep ambient', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Velvet Darkness.m4a' },
   { id: 'ds9', title: 'Elysian Rest', subtitle: 'peaceful ambient chords, soft tape warmth', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Elysian Rest.m4a' },
@@ -39,7 +39,7 @@ export const DEEP_SLEEP_TRACKS = [
   { id: 'ds12', title: 'Luminous Reverie', subtitle: 'ethereal ambient bell tones, soft sleep pads', cover: '/images/thumb_glass_cube_1788260037787.jpg', audioUrl: '/audio/Luminous Reverie.m4a' },
   { id: 'ds13', title: "Sleepwalker's Haven", subtitle: 'soothing ambient drones, deep rest', cover: '/images/thumb_rain_window_1788262571496.jpg', audioUrl: "/audio/Sleepwalker's Haven.m4a" },
   { id: 'ds14', title: 'Delta Sleep-Study Bridge', subtitle: 'warm floating ambient soundscape', cover: '/images/thumb_freq_wave_1788264616223.jpg', audioUrl: '/audio/Delta Sleep-Study Bridge.m4a' },
-  { id: 'ds15', title: 'Whispering Pines', subtitle: 'gentle forest breeze, ambient sleep texture', cover: '/images/nature_calm.webp', audioUrl: '/audio/Whispering Pines.m4a' }
+  { id: 'ds15', title: 'Whispering Pines', subtitle: 'gentle forest breeze, ambient sleep texture', cover: '/images/thumb_night_clouds_1788262545783.jpg', audioUrl: '/audio/Whispering Pines.m4a' }
 ];
 
 export const DEEP_FOCUS_TRACKS = [
@@ -126,7 +126,7 @@ export const FOREST_AMBIENCE_TRACKS = [
   { id: 'fa9', title: 'Sacred Stillness', subtitle: 'ancient redwood temple stillness, deep reverie', cover: '/images/thumb_zen_stones_1788260013795.jpg', audioUrl: '/audio/Sacred Stillness.m4a' },
   { id: 'fa10', title: 'Infinite Calm', subtitle: 'expansive natural sanctuary, gentle winds and distance', cover: '/images/thumb_glass_cube_1788260037787.jpg', audioUrl: '/audio/Infinite Calm.m4a' },
   { id: 'fa11', title: 'Zen Horizon', subtitle: 'tranquil bamboo sanctuary and peaceful water flow', cover: '/images/thumb_zen_stones_1788260013795.jpg', audioUrl: '/audio/Zen Horizon.m4a' },
-  { id: 'fa12', title: 'Clean Slate Sky', subtitle: 'crisp mountain breeze under open forest skies', cover: '/images/nature_calm.webp', audioUrl: '/audio/Clean Slate Sky.m4a' },
+  { id: 'fa12', title: 'Clean Slate Sky', subtitle: 'crisp mountain breeze under open forest skies', cover: '/images/thumb_dark_ocean_1788262557769.jpg', audioUrl: '/audio/Clean Slate Sky.m4a' },
   { id: 'fa13', title: 'Warm Summer Rain Shower', subtitle: 'warm summer shower nurturing lush green leaves', cover: '/images/thumb_water_drop_1788260024692.jpg', audioUrl: '/audio/Warm Summer Rain Shower.m4a' },
   { id: 'fa14', title: 'Pure Gentle Drizzle', subtitle: 'delicate mist settling over ferns and woodland moss', cover: '/images/thumb_water_drop_1788260024692.jpg', audioUrl: '/audio/Pure Gentle Drizzle.m4a' },
   { id: 'fa15', title: 'Resonant Mind', subtitle: 'organic textures and natural resonance of the forest', cover: '/images/thumb_zen_stones_1788260013795.jpg', audioUrl: '/audio/Resonant Mind.m4a' }

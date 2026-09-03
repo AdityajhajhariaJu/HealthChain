@@ -667,7 +667,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     y: { duration: 40, repeat: Infinity, ease: 'easeInOut' },
                     opacity: { duration: 0.8 }
                   }}
-                  src={isPlaylistMode && currentTrack ? currentTrack.cover : (content.id === 'mood-0' ? '/images/nature_calm.webp' : (content.cover_image_url || '/images/nature_calm.webp'))} 
+                  src={isPlaylistMode && currentTrack ? currentTrack.cover : (content.id === 'mood-0' ? '/images/thumb_night_clouds_1788262545783.jpg' : (content.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg'))} 
                   alt="Atmosphere"  
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 />

@@ -428,7 +428,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   title: 'Deep Sleep',
                   subtitle: 'Restorative slumber',
                   duration: '45 MIN',
-                  img: '/images/nature_calm.webp',
+                  img: '/images/thumb_night_clouds_1788262545783.jpg',
                   description: 'A guided progression into delta-wave sleep.'
                 },
                 {
