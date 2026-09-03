@@ -1,6 +1,5 @@
 ﻿import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import { visualizer } from 'rollup-plugin-visualizer'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
 import { createClient } from '@supabase/supabase-js'
 
@@ -43,7 +42,7 @@ const adminContentPlugin = () => ({
             }
             if (action === 'delete') {
               const { id } = payload;
-              const { data, error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
+              const { error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
               if (error) throw error;
               res.statusCode = 200;
               return res.end(JSON.stringify({ success: true }));
@@ -73,7 +72,7 @@ export default defineConfig({
       jpeg: { quality: 80 },
       jpg: { quality: 80 },
     }),
-    visualizer({ open: false, filename: 'bundle-stats.html' })
+
   ],
   build: {
     rollupOptions: {

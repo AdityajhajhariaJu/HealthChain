@@ -1,12 +1,33 @@
-node_modules/
-dist/
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+playwright-report
+test-results
+
+# Env
 .env
 .env.*
 !.env.example
-ios/App/Pods/
-android/app/build/
-client_secret_*.json
-bundle-stats.html
-skills-lock.json
-.agents/

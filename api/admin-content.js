@@ -68,7 +68,7 @@ export default async function handler(req, res) {
     if (action === 'delete') {
       const { id } = payload;
       // Soft delete
-      const { data, error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
+      const { error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
       if (error) throw error;
       return res.status(200).json({ success: true });
     }
