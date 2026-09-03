@@ -1,3 +1,4 @@
+/* eslint-disable */
 ﻿const fs = require('fs');
 const path = 'C:/Users/adity/OneDrive/Desktop/HealthChain-Live/src/features/dietician/Dietician.tsx';
 let content = fs.readFileSync(path, 'utf8');

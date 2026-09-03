@@ -14,6 +14,10 @@ export default [
       // Root-level one-off migration/debug scripts are not application code.
       '/*.js',
       '/*.cjs',
+      'replace.js',
+      'update.js',
+      'replace.js',
+      'update.js',
       '/*.py',
       '/*.ps1',
       '/*.bat',

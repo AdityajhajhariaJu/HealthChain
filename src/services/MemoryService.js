@@ -2,7 +2,10 @@ import { getProfile } from './ProfileEngine';
 import { getActiveCase } from './CaseEngine';
 
 
+/* eslint-disable no-unused-vars */
+let cachedContext = null;
 let lastProfileHash = null;
+/* eslint-enable no-unused-vars */
 
 export function compilePatientContext(options = {}) {
   const { includeActiveCase = false, includeDailyCheckins = false } = options;

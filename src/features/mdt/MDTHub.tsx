@@ -594,24 +594,24 @@ useEffect(() => {
         {/* Ambient decorative blobs */}
       <div
         style={{
-          position: 'absolute', willChange: 'transform', top: '-10%',
+          position: 'absolute', top: '-10%',
           right: '-5%',
           width: '500px',
           height: '500px',
           background: 'rgba(167, 139, 250, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', pointerEvents: 'none',
+          filter: 'blur(80px)', transform: 'translateZ(0)', pointerEvents: 'none',
         }}
       />
       <div
         style={{
-          position: 'absolute', willChange: 'transform', bottom: '-10%',
+          position: 'absolute', bottom: '-10%',
           left: '-5%',
           width: '400px',
           height: '400px',
           background: 'rgba(52, 211, 153, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', pointerEvents: 'none',
+          filter: 'blur(80px)', transform: 'translateZ(0)', pointerEvents: 'none',
         }}
       />
 
