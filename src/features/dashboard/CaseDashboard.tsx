@@ -236,7 +236,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBF9F6', padding: '24px' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF2E8', padding: '24px' }}>
         <p style={{ color: '#64748B', marginBottom: '16px', textAlign: 'center' }}>{error}</p>
         <button onClick={loadFitnessData} style={{ padding: '12px 24px', backgroundColor: '#10B981', color: 'white', borderRadius: '99px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
           Try Again
@@ -247,7 +247,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
 
   if (loading) {
     return (
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '80px' }}>
+      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '80px', backgroundColor: '#FFF2E8', minHeight: '100vh' }}>
         <div style={{ width: '100%', height: '140px', borderRadius: '24px', background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)', backgroundSize: '200% 100%', animation: 'shimmer 2s infinite' }} />
         <div style={{ width: '40%', height: '24px', borderRadius: '8px', background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)', backgroundSize: '200% 100%', animation: 'shimmer 2s infinite' }} />
         <div style={{ display: 'flex', gap: '16px', overflowX: 'clip' }}>
@@ -269,7 +269,8 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
   return (
     <div style={{
       width: '100%',
-      backgroundColor: '#FBF9F6', // Premium creme background for Apple style
+      background: 'linear-gradient(180deg, #FFF8F4 0%, #FFF2E8 35%, #FDF0E7 100%)',
+      backgroundColor: '#FFF2E8',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',

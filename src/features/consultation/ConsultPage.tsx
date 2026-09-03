@@ -10,7 +10,8 @@ export default function ConsultPage() {
     <div 
       className="consult-page-wrapper"
       style={{
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #FDFBF7 25%, #FAF7F0 100%)',
+        background: 'linear-gradient(180deg, #FFF8F4 0%, #FFF2E8 35%, #FDF0E7 100%)',
+        backgroundColor: '#FFF2E8',
         minHeight: '100%',
         paddingBottom: '60px',
         margin: '-24px -16px',

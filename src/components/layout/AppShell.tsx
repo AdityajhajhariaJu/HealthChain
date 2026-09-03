@@ -203,8 +203,10 @@ const enforceSafeArea = () => {
     setTimeout(enforceSafeArea, 150);
   }, []);
 
+  const isPeachPage = location.pathname.startsWith('/app/today') || location.pathname.startsWith('/app/consult');
+
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ backgroundColor: isPeachPage ? '#FFF2E8' : undefined, transition: 'background-color 0.3s ease' }}>
       
       <MedicalActionIsland />
       <a href="#main-content" className="skip-link">Skip to main content</a>
@@ -292,7 +294,7 @@ const enforceSafeArea = () => {
         </aside>
       )}
 
-        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: location.pathname.startsWith('/app/onboarding') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ backgroundColor: isPeachPage ? '#FFF2E8' : undefined, overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: location.pathname.startsWith('/app/onboarding') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
             {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult') || location.pathname.startsWith('/app/progress') || location.pathname.startsWith('/app/trophies') || location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/sports') || location.pathname.startsWith('/app/war-room')) && (
