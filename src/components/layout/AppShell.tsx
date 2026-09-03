@@ -471,13 +471,33 @@ const enforceSafeArea = () => {
             )}
             </div>
               {!location.pathname.startsWith('/app/ava') ? (
-                <button className="mobile-top-bar__search" onClick={() => navigate('/app/ava')} aria-label="Search or Ask Ava Health Buddy" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingRight: '6px', borderRight: '1px solid #FFE4E6', color: '#F43F5E' }}>
-                    <Heart size={12} fill="#F43F5E" color="#F43F5E" />
-                    <span style={{ fontWeight: 800, fontSize: '11px' }}>Ava</span>
+                <button 
+                  className="mobile-top-bar__search" 
+                  onClick={() => navigate('/app/ava')} 
+                  aria-label="Search or Ask Ava Health Buddy" 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px', 
+                    padding: '0 10px',
+                    minWidth: 0,
+                    flex: 1
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F43F5E', flexShrink: 0 }}>
+                    <Heart size={13} fill="#F43F5E" color="#F43F5E" />
+                    <span style={{ fontWeight: 800, fontSize: '12px', letterSpacing: '-0.2px' }}>Ava</span>
                   </div>
-                  <Bot size={14} style={{ color: '#F43F5E', flexShrink: 0 }} />
-                  <span style={{ fontSize: '13px', color: '#9CA3AF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Ask anything...</span>
+                  <span style={{ 
+                    fontSize: '13px', 
+                    color: '#94A3B8', 
+                    whiteSpace: 'nowrap', 
+                    overflow: 'hidden', 
+                    textOverflow: 'ellipsis',
+                    fontWeight: 500
+                  }}>
+                    Ask anything...
+                  </span>
                 </button>
               ) : (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>

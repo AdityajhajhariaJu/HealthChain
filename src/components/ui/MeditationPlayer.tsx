@@ -13,9 +13,10 @@ import {
   X, 
   Clock, 
   Wind,
-  Check 
+  Check,
+  Moon
 } from 'lucide-react';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
@@ -382,9 +383,12 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [enableBreathingGuide, setEnableBreathingGuide] = useState(true);
+  const [showSleepTimerSheet, setShowSleepTimerSheet] = useState(false);
+  const [sleepTimerOption, setSleepTimerOption] = useState<'off' | '15' | '30' | '45' | '60' | 'end_of_track'>('off');
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
+  const isCrossfading = useRef(false);
 
   const contentTitleLower = (content?.title || '').toLowerCase();
   const contentTypeLower = (content?.type || '').toLowerCase();
@@ -397,12 +401,12 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const isEnergy = content?.id === 'mood-2' || contentTitleLower.includes('energy') || contentTitleLower.includes('morning') || contentTitleLower.includes('wake') || contentTitleLower.includes('vitality');
 
   const playlistTitle = 
-    isSleep ? 'Deep Sleep Environment' :
+    isSleep ? 'Deep Sleep' :
     isRain ? 'Rain Sounds' :
     isFrequency ? 'Focus Frequencies' :
     isForest ? 'Forest Ambience' :
-    isFocus ? 'Deep Focus Environment' :
-    isEnergy ? 'Morning Energy Environment' :
+    isFocus ? 'Deep Focus' :
+    isEnergy ? 'Morning Energy' :
     (content?.title || 'Full Meditation');
 
   const currentPlaylist = 
@@ -435,6 +439,135 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     focus: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(56, 189, 248, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' },
     meditation: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(168, 85, 247, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' }
   }[atmosphereTheme] || { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(56, 189, 248, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' };
+
+  // Point 6: Seamless Audio Crossfade Engine
+  const switchTrackSmoothly = (newIndex: number) => {
+    triggerHapticLight();
+    if (!audioRef.current || isMuted || !isPlaying) {
+      setActiveTrackIndex(newIndex);
+      return;
+    }
+
+    if (isCrossfading.current) return;
+    isCrossfading.current = true;
+
+    let fadeOutStep = 0;
+    const fadeOutInterval = setInterval(() => {
+      fadeOutStep += 1;
+      if (audioRef.current) {
+        audioRef.current.volume = Math.max(0, 1 - (fadeOutStep / 5));
+      }
+      if (fadeOutStep >= 5) {
+        clearInterval(fadeOutInterval);
+        setActiveTrackIndex(newIndex);
+        
+        setTimeout(() => {
+          if (audioRef.current && !isMuted) {
+            audioRef.current.volume = 0;
+            let fadeInStep = 0;
+            const fadeInInterval = setInterval(() => {
+              fadeInStep += 1;
+              if (audioRef.current) {
+                audioRef.current.volume = Math.min(1, fadeInStep / 6);
+              }
+              if (fadeInStep >= 6) {
+                clearInterval(fadeInInterval);
+                isCrossfading.current = false;
+              }
+            }, 100);
+          } else {
+            isCrossfading.current = false;
+          }
+        }, 150);
+      }
+    }, 80);
+  };
+
+  // Point 3: Tactile Breath Haptics for Eyes-Closed Meditation
+  const previousPhase = useRef<string>(phase);
+  useEffect(() => {
+    if (!enableBreathingGuide || !isPlaying) {
+      previousPhase.current = phase;
+      return;
+    }
+
+    if (previousPhase.current !== phase && phase !== 'Prepare') {
+      previousPhase.current = phase;
+      if (phase === 'Inhale') {
+        triggerHapticLight();
+      } else if (phase === 'Hold') {
+        triggerHapticLight();
+        setTimeout(() => triggerHapticLight(), 120);
+      } else if (phase === 'Exhale') {
+        triggerHapticMedium();
+      }
+    }
+  }, [phase, enableBreathingGuide, isPlaying]);
+
+  // Point 5: iOS Lock Screen & Dynamic Island MediaSession Integration
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    const trackTitle = isPlaylistMode && currentTrack ? currentTrack.title : (content?.title || 'Calm Meditation');
+    const rawCover = isPlaylistMode && currentTrack ? currentTrack.cover : (content?.cover_image_url || '/images/thumb_night_clouds_1788262545783.jpg');
+    const absoluteCover = rawCover.startsWith('http') ? rawCover : `${window.location.origin}${rawCover}`;
+
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: trackTitle,
+        artist: `HealthChain • ${playlistTitle}`,
+        album: 'Calm Space Soundscapes',
+        artwork: [
+          { src: absoluteCover, sizes: '512x512', type: 'image/jpeg' }
+        ]
+      });
+
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        setIsPlaying(true);
+        triggerHapticLight();
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        setIsPlaying(false);
+        triggerHapticLight();
+      });
+
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        if (isPlaylistMode && currentPlaylist.length > 0) {
+          switchTrackSmoothly(activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        if (isPlaylistMode && currentPlaylist.length > 0) {
+          switchTrackSmoothly((activeTrackIndex + 1) % currentPlaylist.length);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime && audioRef.current) {
+          audioRef.current.currentTime = details.seekTime;
+          setCurrentTime(details.seekTime);
+        }
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    return () => {
+      try {
+        navigator.mediaSession.setActionHandler('play', null);
+        navigator.mediaSession.setActionHandler('pause', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+        navigator.mediaSession.setActionHandler('seekto', null);
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, [isPlaying, activeTrackIndex, currentTrack, isPlaylistMode, playlistTitle, content, currentPlaylist.length, isMuted]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -488,17 +621,28 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     };
   }, [isPlaying, showPlaylist]);
 
-  // Session Countdown Timer
+  // Point 4: Session Countdown Timer & 10s Exponential Volume Fade-Out
   useEffect(() => {
     if (!isPlaying || isCompleted || timeRemaining <= 0) return;
     const timer = setInterval(() => {
-      setTimeRemaining(prev => Math.max(0, prev - 1));
+      setTimeRemaining(prev => {
+        const next = Math.max(0, prev - 1);
+        // Fade volume out over last 10 seconds
+        if (next <= 10 && next > 0 && audioRef.current && !isMuted) {
+          audioRef.current.volume = Math.max(0, next / 10);
+        }
+        return next;
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, [isPlaying, isCompleted, timeRemaining]);
+  }, [isPlaying, isCompleted, timeRemaining, isMuted]);
 
   useEffect(() => {
     if (timeRemaining === 0 && isPlaying && !isCompleted) {
+      if (audioRef.current) {
+        audioRef.current.volume = 0;
+        audioRef.current.pause();
+      }
       handleComplete();
     }
   }, [timeRemaining, isPlaying, isCompleted]);
@@ -577,7 +721,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
   const handleTrackEnded = () => {
     if (isPlaylistMode && currentPlaylist.length > 0) {
-      setActiveTrackIndex((prev) => (prev < currentPlaylist.length - 1 ? prev + 1 : 0));
+      if (sleepTimerOption === 'end_of_track') {
+        handleComplete();
+      } else {
+        switchTrackSmoothly((activeTrackIndex + 1) % currentPlaylist.length);
+      }
     }
   };
 
@@ -768,49 +916,70 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       <X size={20} />
                     </button>
 
-                    {/* Environment / Track Info Pill */}
+                    {/* Environment / Track Info Pill (Point 1: Single-Line Mobile Fit) */}
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '6px',
                       padding: '6px 14px',
                       borderRadius: '20px',
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
                       backdropFilter: 'blur(20px)',
                       WebkitBackdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.25)',
                       color: 'white',
                       fontSize: '13px',
                       fontWeight: 600,
-                      letterSpacing: '-0.2px'
+                      letterSpacing: '-0.2px',
+                      whiteSpace: 'nowrap',
+                      minWidth: 0,
+                      flexShrink: 1
                     }}>
-                      <span style={{ color: '#38BDF8', display: 'flex', alignItems: 'center' }}>
-                        <Wind size={14} style={{ marginRight: '4px' }} />
+                      <span style={{ color: vibrationThemeColors.ring, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+                        <Wind size={13} style={{ marginRight: '4px', flexShrink: 0 }} />
                         {playlistTitle}
                       </span>
                       {isPlaylistMode && currentPlaylist.length > 0 && (
-                        <span style={{ opacity: 0.6 }}>• {activeTrackIndex + 1}/{currentPlaylist.length}</span>
+                        <span style={{ opacity: 0.65, whiteSpace: 'nowrap', fontSize: '12px' }}>• {activeTrackIndex + 1}/{currentPlaylist.length}</span>
                       )}
                     </div>
 
-                    {/* Session Remaining Countdown Pill */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '6px 12px',
-                      borderRadius: '20px',
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
-                      color: 'white',
-                      fontSize: '13px',
-                      fontWeight: 600
-                    }}>
-                      <Clock size={14} style={{ opacity: 0.7 }} />
+                    {/* Point 4: Interactive Sleep Timer & Session Countdown Pill */}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHapticLight();
+                        setShowSleepTimerSheet(true);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        background: sleepTimerOption !== 'off'
+                          ? `linear-gradient(135deg, ${vibrationThemeColors.glow} 0%, rgba(255, 255, 255, 0.1) 100%)`
+                          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        border: sleepTimerOption !== 'off'
+                          ? `1px solid ${vibrationThemeColors.ring}`
+                          : '1px solid rgba(255, 255, 255, 0.25)',
+                        color: 'white',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        boxShadow: sleepTimerOption !== 'off' ? `0 0 16px ${vibrationThemeColors.glow}` : 'none'
+                      }}
+                      aria-label="Set Sleep Timer"
+                    >
+                      {sleepTimerOption !== 'off' ? (
+                        <Moon size={14} style={{ color: vibrationThemeColors.ring }} />
+                      ) : (
+                        <Clock size={14} style={{ opacity: 0.75 }} />
+                      )}
                       <span>{formatTime(timeRemaining)}</span>
-                    </div>
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1204,10 +1373,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <button
                           onClick={() => {
-                            triggerHapticLight();
                             if (isPlaylistMode && currentPlaylist.length > 0) {
-                              setActiveTrackIndex((prev) => (prev > 0 ? prev - 1 : currentPlaylist.length - 1));
+                              const newIdx = activeTrackIndex > 0 ? activeTrackIndex - 1 : currentPlaylist.length - 1;
+                              switchTrackSmoothly(newIdx);
                             } else {
+                              triggerHapticLight();
                               setTimeRemaining((prev) => Math.min(totalDuration, prev + 15));
                             }
                           }}
@@ -1254,10 +1424,11 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
                         <button
                           onClick={() => {
-                            triggerHapticLight();
                             if (isPlaylistMode && currentPlaylist.length > 0) {
-                              setActiveTrackIndex((prev) => (prev < currentPlaylist.length - 1 ? prev + 1 : 0));
+                              const newIdx = activeTrackIndex < currentPlaylist.length - 1 ? activeTrackIndex + 1 : 0;
+                              switchTrackSmoothly(newIdx);
                             } else {
+                              triggerHapticLight();
                               setTimeRemaining((prev) => Math.max(0, prev - 15));
                             }
                           }}
@@ -1380,10 +1551,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             <div
                               key={track.id}
                               onClick={() => {
-                                setActiveTrackIndex(idx);
+                                switchTrackSmoothly(idx);
                                 setIsPlaying(true);
                                 setShowPlaylist(false);
-                                triggerHapticLight();
                               }}
                               style={{
                                 display: 'flex',
@@ -1445,6 +1615,129 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 </div>
                               )}
                             </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+
+              {/* Point 4: Ultra-Sheer Glass Sleep Timer Bottom Sheet */}
+              <AnimatePresence>
+                {showSleepTimerSheet && (
+                  <>
+                    {/* Backdrop */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowSleepTimerSheet(false)}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.65)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                        zIndex: 45
+                      }}
+                    />
+
+                    {/* Sheet Content */}
+                    <motion.div
+                      initial={{ y: '100%' }}
+                      animate={{ y: 0 }}
+                      exit={{ y: '100%' }}
+                      transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(10, 15, 29, 0.98) 100%)',
+                        backdropFilter: 'blur(32px)',
+                        WebkitBackdropFilter: 'blur(32px)',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                        boxShadow: '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                        borderTopLeftRadius: '28px',
+                        borderTopRightRadius: '28px',
+                        padding: '16px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)',
+                        zIndex: 50
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.3)' }} />
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Moon size={20} color={vibrationThemeColors.ring} />
+                          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'white' }}>
+                            Sleep Timer
+                          </h4>
+                        </div>
+                        <button
+                          onClick={() => setShowSleepTimerSheet(false)}
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {[
+                          { label: 'Off', value: 'off', durationSec: totalDuration },
+                          { label: '15 Minutes', value: '15', durationSec: 15 * 60 },
+                          { label: '30 Minutes', value: '30', durationSec: 30 * 60 },
+                          { label: '45 Minutes', value: '45', durationSec: 45 * 60 },
+                          { label: '60 Minutes (1 Hour)', value: '60', durationSec: 60 * 60 },
+                          { label: 'End of Current Track', value: 'end_of_track', durationSec: Math.max(1, Math.floor(duration - currentTime)) }
+                        ].map((option) => {
+                          const isSelected = sleepTimerOption === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                triggerHapticLight();
+                                setSleepTimerOption(option.value as any);
+                                setTimeRemaining(option.durationSec);
+                                if (audioRef.current && !isMuted) audioRef.current.volume = 1;
+                                setShowSleepTimerSheet(false);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '14px 18px',
+                                borderRadius: '16px',
+                                background: isSelected ? `${vibrationThemeColors.glow}` : 'rgba(255, 255, 255, 0.06)',
+                                border: isSelected ? `1.5px solid ${vibrationThemeColors.ring}` : '1px solid rgba(255, 255, 255, 0.12)',
+                                color: 'white',
+                                fontSize: '15px',
+                                fontWeight: isSelected ? 700 : 500,
+                                cursor: 'pointer',
+                                textAlign: 'left'
+                              }}
+                            >
+                              <span style={{ color: isSelected ? vibrationThemeColors.ring : 'white' }}>
+                                {option.label}
+                              </span>
+                              {isSelected && (
+                                <Check size={18} color={vibrationThemeColors.ring} />
+                              )}
+                            </button>
                           );
                         })}
                       </div>
