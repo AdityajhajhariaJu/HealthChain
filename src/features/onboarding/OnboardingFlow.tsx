@@ -8,16 +8,26 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
 
-  const handleSelect = () => {
+  const handleSelect = (route: string, title: string) => {
     triggerHapticMedium();
-    localStorage.setItem('hc_onboarded', 'true');
-    navigate('/app/today');
+    try {
+      localStorage.setItem('hc_onboarded', 'true');
+      localStorage.setItem('hc_primary_focus', title);
+    } catch(e) {}
+    navigate(route, { replace: true });
   };
 
   return (
     <div style={{ 
-      position: 'fixed', inset: 0, 
-      background: 'url("/ava-floral-bg.jpg") center/cover no-repeat',
+      position: 'fixed', 
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      width: '100%',
+      height: '100%',
+      minHeight: '100dvh',
+      background: 'url("/ava-floral-bg.jpg") center/cover no-repeat, #FAF5F0',
       zIndex: 9999, 
       display: 'flex', 
       flexDirection: 'column'
@@ -87,9 +97,24 @@ export default function OnboardingFlow() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[
-                  { title: 'Chronic Management', desc: 'Organize symptoms & labs', icon: <HeartPulse size={26} color="#F43F5E" /> },
-                  { title: 'Track Calories', desc: 'Monitor macros & nutrition goals', icon: <Flame size={26} color="#F59E0B" /> },
-                  { title: 'Mental Clarity', desc: 'Focus, sleep, and meditation', icon: <Moon size={26} color="#8B5CF6" /> }
+                  { 
+                    title: 'Chronic Management', 
+                    desc: 'Connect symptoms & labs', 
+                    icon: <HeartPulse size={26} color="#F43F5E" />,
+                    route: '/app/consult'
+                  },
+                  { 
+                    title: 'Track Calories', 
+                    desc: 'Monitor macros & nutrition goals', 
+                    icon: <Flame size={26} color="#F59E0B" />,
+                    route: '/app/dietician'
+                  },
+                  { 
+                    title: 'Mental Clarity', 
+                    desc: 'Focus, sleep, and meditation', 
+                    icon: <Moon size={26} color="#8B5CF6" />,
+                    route: '/app/today'
+                  }
                 ].map((goal, i) => (
                   <motion.button
                     key={i}
@@ -98,7 +123,7 @@ export default function OnboardingFlow() {
                     transition={{ delay: i * 0.1 + 0.2 }}
                     whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.7)' }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={handleSelect}
+                    onClick={() => handleSelect(goal.route, goal.title)}
                     style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '24px',
                       padding: '20px 24px',
                       textAlign: 'left',
