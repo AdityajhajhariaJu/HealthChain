@@ -386,19 +386,44 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const isPlaylistMode = content?.id === 'm1' || content?.id === 'mood-0' || content?.id === 'mood-1' || content?.id === 'mood-2' || content?.id === 'soundscape-0' || content?.id === 'soundscape-1' || content?.id === 'soundscape-2';
-  const playlistTitle = content?.id === 'm1' ? 'Full Meditation' : content?.id === 'mood-0' ? 'Deep Sleep Environment' : content?.id === 'mood-1' ? 'Deep Focus Environment' : content?.id === 'mood-2' ? 'Morning Energy Environment' : content?.id === 'soundscape-0' ? 'Rain Sounds' : content?.id === 'soundscape-1' ? 'Focus Frequencies' : content?.id === 'soundscape-2' ? 'Forest Ambience' : 'Curated Playlist';
-  const currentPlaylist = content?.id === 'm1' ? MEDITATION_TRACKS : content?.id === 'mood-0' ? DEEP_SLEEP_TRACKS : content?.id === 'mood-1' ? DEEP_FOCUS_TRACKS : content?.id === 'mood-2' ? HAPPY_HIGH_ENERGY_TRACKS : content?.id === 'soundscape-0' ? RAIN_SOUNDS_TRACKS : content?.id === 'soundscape-1' ? FOCUS_FREQUENCIES_TRACKS : content?.id === 'soundscape-2' ? FOREST_AMBIENCE_TRACKS : [];
+  const contentTitleLower = (content?.title || '').toLowerCase();
+  const contentTypeLower = (content?.type || '').toLowerCase();
 
-  const currentTrack = isPlaylistMode && currentPlaylist.length > 0 ? currentPlaylist[activeTrackIndex] : null;
+  const isSleep = content?.id === 'mood-0' || contentTypeLower === 'sleep_story' || contentTitleLower.includes('sleep') || contentTitleLower.includes('slumber') || contentTitleLower.includes('lullaby');
+  const isRain = content?.id === 'soundscape-0' || contentTitleLower.includes('rain') || contentTitleLower.includes('storm') || contentTitleLower.includes('drizzle');
+  const isFrequency = content?.id === 'soundscape-1' || contentTitleLower.includes('frequency') || contentTitleLower.includes('frequencies') || contentTitleLower.includes('hz') || contentTitleLower.includes('cymatic') || contentTitleLower.includes('binaural');
+  const isForest = content?.id === 'soundscape-2' || contentTitleLower.includes('forest') || contentTitleLower.includes('woodland') || contentTitleLower.includes('pines') || contentTitleLower.includes('nature');
+  const isFocus = content?.id === 'mood-1' || contentTitleLower.includes('focus') || contentTitleLower.includes('study') || contentTitleLower.includes('work') || contentTitleLower.includes('productivity');
+  const isEnergy = content?.id === 'mood-2' || contentTitleLower.includes('energy') || contentTitleLower.includes('morning') || contentTitleLower.includes('wake') || contentTitleLower.includes('vitality');
+
+  const playlistTitle = 
+    isSleep ? 'Deep Sleep Environment' :
+    isRain ? 'Rain Sounds' :
+    isFrequency ? 'Focus Frequencies' :
+    isForest ? 'Forest Ambience' :
+    isFocus ? 'Deep Focus Environment' :
+    isEnergy ? 'Morning Energy Environment' :
+    (content?.title || 'Full Meditation');
+
+  const currentPlaylist = 
+    isSleep ? DEEP_SLEEP_TRACKS :
+    isRain ? RAIN_SOUNDS_TRACKS :
+    isFrequency ? FOCUS_FREQUENCIES_TRACKS :
+    isForest ? FOREST_AMBIENCE_TRACKS :
+    isFocus ? DEEP_FOCUS_TRACKS :
+    isEnergy ? HAPPY_HIGH_ENERGY_TRACKS :
+    MEDITATION_TRACKS;
+
+  const isPlaylistMode = currentPlaylist.length > 0;
+  const currentTrack = isPlaylistMode ? currentPlaylist[activeTrackIndex % currentPlaylist.length] : null;
 
   const atmosphereTheme: AtmosphereTheme = 
-    content?.id === 'mood-0' || (currentTrack && (currentTrack.title.includes('Sleep') || currentTrack.title.includes('Lullaby') || currentTrack.title.includes('Dream'))) ? 'sleep' :
-    content?.id === 'soundscape-0' || (currentTrack && currentTrack.title.includes('Rain')) ? 'rain' :
-    content?.id === 'soundscape-1' || (currentTrack && (currentTrack.title.includes('Frequency') || currentTrack.title.includes('Hz') || currentTrack.title.includes('Wave') || currentTrack.title.includes('Quantum'))) ? 'frequency' :
-    content?.id === 'soundscape-2' || (currentTrack && (currentTrack.title.includes('Forest') || currentTrack.title.includes('Pines') || currentTrack.title.includes('Woodland'))) ? 'forest' :
-    content?.id === 'mood-1' || (currentTrack && (currentTrack.title.includes('Focus') || currentTrack.title.includes('Momentum') || currentTrack.title.includes('Study'))) ? 'focus' :
-    content?.id === 'mood-2' || (currentTrack && (currentTrack.title.includes('Energy') || currentTrack.title.includes('Sun') || currentTrack.title.includes('Morning'))) ? 'energy' :
+    isSleep || (currentTrack && (currentTrack.title.includes('Sleep') || currentTrack.title.includes('Lullaby') || currentTrack.title.includes('Dream'))) ? 'sleep' :
+    isRain || (currentTrack && currentTrack.title.includes('Rain')) ? 'rain' :
+    isFrequency || (currentTrack && (currentTrack.title.includes('Frequency') || currentTrack.title.includes('Hz') || currentTrack.title.includes('Wave') || currentTrack.title.includes('Quantum'))) ? 'frequency' :
+    isForest || (currentTrack && (currentTrack.title.includes('Forest') || currentTrack.title.includes('Pines') || currentTrack.title.includes('Woodland'))) ? 'forest' :
+    isFocus || (currentTrack && (currentTrack.title.includes('Focus') || currentTrack.title.includes('Momentum') || currentTrack.title.includes('Study'))) ? 'focus' :
+    isEnergy || (currentTrack && (currentTrack.title.includes('Energy') || currentTrack.title.includes('Sun') || currentTrack.title.includes('Morning'))) ? 'energy' :
     'meditation';
 
   useEffect(() => {
@@ -412,7 +437,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     }
   }, [isPlaying, activeTrackIndex, content, isMuted]);
 
-  
   const pattern = content?.breathwork_pattern || { inhale: 4, hold: 4, exhale: 4, rest: 0 };
   const totalDuration = (content?.duration_minutes || 5) * 60;
 
@@ -422,6 +446,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       setIsPlaying(true);
       setIsCompleted(false);
       setPhase("Prepare");
+      setActiveTrackIndex(0);
     }
   }, [content, totalDuration]);
 
