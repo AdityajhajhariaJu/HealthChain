@@ -8,15 +8,17 @@ import prettier from 'eslint-config-prettier';
 export default [
   {
     ignores: [
-      'dist',
-      'node_modules',
-      'coverage',
-      // Root-level one-off migration/debug scripts are not application code.
-      '/*.js',
-      '/*.cjs',
-      '/*.py',
-      '/*.ps1',
-      '/*.bat',
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      'android/**',
+      'ios/**',
+      '*.js',
+      '*.cjs',
+      '*.mjs',
+      '*.py',
+      '*.ps1',
+      '*.bat',
       '**/fix_*.js',
       '**/debug_*.js',
       '**/test_*.js',

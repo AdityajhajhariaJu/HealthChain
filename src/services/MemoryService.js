@@ -2,6 +2,7 @@ import { getProfile } from './ProfileEngine';
 import { getActiveCase } from './CaseEngine';
 
 
+let cachedContext = null;
 let lastProfileHash = null;
 
 export function compilePatientContext(options = {}) {

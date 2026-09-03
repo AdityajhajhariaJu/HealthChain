@@ -56,23 +56,25 @@ export const safariSafeAuthStorage = {
     }
 
     // 4. IndexedDB fallback (durable async storage for Safari PWA/Private/ITP evictions)
-    try {
-      const idbVal = await get<string>(IDB_PREFIX + key);
-      if (idbVal) {
-        memoryCache.set(key, idbVal);
-        try {
-          if (typeof window !== 'undefined' && window.localStorage) {
-            window.localStorage.setItem(key, idbVal);
+    if (typeof indexedDB !== 'undefined') {
+      try {
+        const idbVal = await get<string>(IDB_PREFIX + key);
+        if (idbVal) {
+          memoryCache.set(key, idbVal);
+          try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+              window.localStorage.setItem(key, idbVal);
+            }
+          } catch {}
+          // Notify Supabase/App if it was initialized before IDB resolved
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('hc_auth_storage_restored'));
           }
-        } catch {}
-        // Notify Supabase/App if it was initialized before IDB resolved
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('hc_auth_storage_restored'));
+          return idbVal;
         }
-        return idbVal;
+      } catch (e) {
+        console.warn('[SafariSafeAuthStorage] IndexedDB read error:', e);
       }
-    } catch (e) {
-      console.warn('[SafariSafeAuthStorage] IndexedDB read error:', e);
     }
 
     return null;
@@ -92,10 +94,12 @@ export const safariSafeAuthStorage = {
     }
 
     // 3. Update IndexedDB asynchronously for robust offline/PWA backup
-    try {
-      await set(IDB_PREFIX + key, value);
-    } catch (e) {
-      console.warn('[SafariSafeAuthStorage] IndexedDB write error:', e);
+    if (typeof indexedDB !== 'undefined') {
+      try {
+        await set(IDB_PREFIX + key, value);
+      } catch (e) {
+        console.warn('[SafariSafeAuthStorage] IndexedDB write error:', e);
+      }
     }
   },
 
@@ -113,10 +117,12 @@ export const safariSafeAuthStorage = {
     }
 
     // 3. Remove from IndexedDB
-    try {
-      await del(IDB_PREFIX + key);
-    } catch (e) {
-      console.warn('[SafariSafeAuthStorage] IndexedDB remove error:', e);
+    if (typeof indexedDB !== 'undefined') {
+      try {
+        await del(IDB_PREFIX + key);
+      } catch (e) {
+        console.warn('[SafariSafeAuthStorage] IndexedDB remove error:', e);
+      }
     }
   },
 };
