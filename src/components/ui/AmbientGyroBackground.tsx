@@ -78,8 +78,7 @@ export const AmbientGyroBackground = () => {
           width: '70vw', height: '70vw',
           maxWidth: '500px', maxHeight: '500px',
           background: 'radial-gradient(circle, rgba(230,220,200,0.4) 0%, rgba(230,220,200,0) 70%)',
-          borderRadius: '50%',
-          transform: 'translateZ(0)', willChange: 'transform'
+          borderRadius: '50%'
         }} />
         
         {/* Glow Orb 2 - Secondary Ambient */}
@@ -89,8 +88,7 @@ export const AmbientGyroBackground = () => {
           width: '80vw', height: '80vw',
           maxWidth: '600px', maxHeight: '600px',
           background: 'radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%)',
-          borderRadius: '50%',
-          transform: 'translateZ(0)', willChange: 'transform'
+          borderRadius: '50%'
         }} />
       </motion.div>
     </div>

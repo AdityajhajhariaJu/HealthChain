@@ -15,7 +15,13 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   // Track the last SIGNED_IN timestamp so we can debounce false SIGNED_OUT events.
   // This mirrors the same debounce logic in App.tsx.
   const lastSignedInRef = React.useRef<number>(
-    localStorage.getItem('isAuthenticated') === 'true' ? Date.now() : 0
+    (() => {
+      try {
+        return localStorage.getItem('isAuthenticated') === 'true' ? Date.now() : 0;
+      } catch {
+        return 0;
+      }
+    })()
   );
 
   React.useEffect(() => {
@@ -38,11 +44,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           return;
         }
 
+        const getAuthFlag = () => {
+          try {
+            return typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true';
+          } catch {
+            return false;
+          }
+        };
+
         // Check if there is an auth token in multi-tier storage (localStorage, cookie, memory)
         const storedToken = await safariSafeAuthStorage.getItem('healthchain_auth_token');
         const hasStoredToken = Boolean(
-          storedToken ||
-          (typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true')
+          storedToken || getAuthFlag()
         );
 
         // Also check if there's a PKCE code in the URL — if so, Supabase is about to
@@ -65,7 +78,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         if (!isMounted) return;
         // On network error or offline, preserve session if previously logged in
         const stored = await safariSafeAuthStorage.getItem('healthchain_auth_token');
-        if (localStorage.getItem('isAuthenticated') === 'true' || stored) {
+        const fallbackAuthFlag = (() => { try { return localStorage.getItem('isAuthenticated') === 'true'; } catch { return false; }})();
+        if (fallbackAuthFlag || stored) {
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);

@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -7,8 +7,13 @@ export default function FallbackError({ error, resetErrorBoundary }) {
   
   useEffect(() => {
     if (error && (error.message.includes('dynamically imported module') || error.message.includes('Importing a module script failed'))) {
-      if (!sessionStorage.getItem('hc_reloaded_for_chunk')) {
-        sessionStorage.setItem('hc_reloaded_for_chunk', 'true');
+      try {
+        if (!sessionStorage.getItem('hc_reloaded_for_chunk')) {
+          sessionStorage.setItem('hc_reloaded_for_chunk', 'true');
+          window.location.reload();
+        }
+      } catch (e) {
+        // Fallback if sessionStorage is blocked
         window.location.reload();
       }
     }

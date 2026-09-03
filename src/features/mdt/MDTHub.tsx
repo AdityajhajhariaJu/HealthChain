@@ -600,7 +600,7 @@ useEffect(() => {
           height: '500px',
           background: 'rgba(167, 139, 250, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', pointerEvents: 'none',
+          filter: 'blur(80px)', pointerEvents: 'none',
         }}
       />
       <div
@@ -611,7 +611,7 @@ useEffect(() => {
           height: '400px',
           background: 'rgba(52, 211, 153, 0.05)',
           borderRadius: '50%',
-          filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', pointerEvents: 'none',
+          filter: 'blur(80px)', pointerEvents: 'none',
         }}
       />
 
@@ -621,7 +621,7 @@ useEffect(() => {
           style={{
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
               backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
+              WebkitBackdropFilter: 'blur(32px)', borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
             padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
             border: '1px solid rgba(255, 255, 255, 0.8)',
             borderBottom: phase === 'intake' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',

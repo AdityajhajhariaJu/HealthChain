@@ -322,7 +322,11 @@ export default function Landing() {
       }
       if (!cancelled) {
         setHasSession(false);
-        setGuestMode(localStorage.getItem('hc_guest_mode') === 'true');
+        try {
+          setGuestMode(localStorage.getItem('hc_guest_mode') === 'true');
+        } catch {
+          setGuestMode(false);
+        }
       }
     });
 

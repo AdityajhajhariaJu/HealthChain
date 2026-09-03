@@ -286,7 +286,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
             {/* The Glassmorphic Arch Canvas Tile */}
               <div 
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
-                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', gridRow: 'span 2',
+                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', gridRow: 'span 2',
                   borderRadius: '160px 160px 32px 32px', 
                   position: 'relative',
                   overflow: 'hidden',
@@ -322,7 +322,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               {/* AR Lens Bento Tile */}
               <div 
                 onClick={() => { triggerHapticLight(); setShowARLens(true); }}
-                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
+                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -356,7 +356,7 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                   if (task.id === 'task_2') setShowFrictionModal(true);
                   if (task.id === 'task_default') navigate('/app/profile');
                 }}
-                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
+                style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -386,23 +386,23 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Teal) */}
-          <div style={{ position: 'absolute', top: '10%', left: '20%', width: '100px', height: '100px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '10%', left: '20%', width: '100px', height: '100px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
           {/* Top Right: Deep Sleep (Warm Amber) */}
-          <div style={{ position: 'absolute', top: '10%', right: '20%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '10%', right: '20%', width: '100px', height: '100px', background: '#FDE68A', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
           
           {/* Middle Left: Deep Focus (Stone/Grey) */}
-          <div style={{ position: 'absolute', top: '40%', left: '20%', width: '100px', height: '100px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '40%', left: '20%', width: '100px', height: '100px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
           {/* Middle Right: Morning Energy (Slate/Sky) */}
-          <div style={{ position: 'absolute', top: '40%', right: '20%', width: '100px', height: '100px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: '40%', right: '20%', width: '100px', height: '100px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
           
           {/* Bottom Left: Rain Sounds (Purple) */}
-          <div style={{ position: 'absolute', bottom: '10%', left: '15%', width: '90px', height: '90px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(30px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: '10%', left: '15%', width: '90px', height: '90px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
           {/* Bottom Middle: Focus Frequencies (Teal) */}
           <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%) translateZ(0)', width: '90px', height: '90px', background: '#A7F3D0', borderRadius: '50%', filter: 'blur(30px)', willChange: 'transform', zIndex: 0 }} />
           {/* Bottom Right: Ambient (Slate) */}
-          <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '90px', height: '90px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(30px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '90px', height: '90px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(30px)', zIndex: 0 }} />
 
-<div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
+<div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
             zIndex: 1,
             paddingTop: '24px', 
             borderRadius: '32px',}}>

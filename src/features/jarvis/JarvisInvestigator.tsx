@@ -358,15 +358,15 @@ export default function JarvisInvestigator() {
       
       {/* Small, distinct patches of color perfectly matched to the JARVIS action buttons directly above them */}
         {/* Top Left: Near 'Discuss with Ava' (Blue) */}
-        <div style={{ position: 'absolute', top: '15%', left: '15%', width: '120px', height: '120px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', top: '15%', left: '15%', width: '120px', height: '120px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
         {/* Middle Right: Near 'Analyze Labs' (Purple) */}
-        <div style={{ position: 'absolute', top: '40%', right: '15%', width: '120px', height: '120px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', top: '40%', right: '15%', width: '120px', height: '120px', background: '#E9D5FF', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
         {/* Bottom Left: Near 'Cross-Reference' (Teal) */}
-        <div style={{ position: 'absolute', bottom: '20%', left: '20%', width: '120px', height: '120px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', bottom: '20%', left: '20%', width: '120px', height: '120px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
         {/* Bottom Right: Near 'Clinical Trials' (Rose) */}
-        <div style={{ position: 'absolute', bottom: '10%', right: '25%', width: '120px', height: '120px', background: '#FECDD3', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', bottom: '10%', right: '25%', width: '120px', height: '120px', background: '#FECDD3', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
 
-      <div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
+      <div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
         zIndex: 1,
         borderRadius: '32px', 
         overflow: 'hidden'}}>

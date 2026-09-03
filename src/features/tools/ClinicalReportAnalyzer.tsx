@@ -320,8 +320,8 @@ export default function ClinicalReportAnalyzer() {
           }}
         >
           {/* Background glowing orbs */}
-          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '200px', height: '200px', background: '#10B981', filter: 'blur(80px)', transform: 'translateZ(0)', willChange: 'transform', opacity: 0.1, borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', bottom: '-40px', left: '10%', width: '200px', height: '200px', background: '#0ea5e9', filter: 'blur(100px)', transform: 'translateZ(0)', willChange: 'transform', opacity: 0.05, borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '200px', height: '200px', background: '#10B981', filter: 'blur(80px)', opacity: 0.1, borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', bottom: '-40px', left: '10%', width: '200px', height: '200px', background: '#0ea5e9', filter: 'blur(100px)', opacity: 0.05, borderRadius: '50%' }} />
 
           <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '20px', alignItems: isMobile ? 'flex-start' : 'center', position: 'relative', zIndex: 1 }}>
             <div style={{
@@ -431,7 +431,7 @@ export default function ClinicalReportAnalyzer() {
                   position: 'absolute',
                   left: 0,
                   right: 0,
-                  background: 'rgba(16, 185, 129, 0.1)', height: '40px', transform: 'translateZ(0)', willChange: 'transform',
+                  background: 'rgba(16, 185, 129, 0.1)', height: '40px',
                   zIndex: 1,
                 }}
               />

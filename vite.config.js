@@ -1,4 +1,4 @@
-﻿import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
@@ -76,6 +76,7 @@ export default defineConfig({
     visualizer({ open: false, filename: 'bundle-stats.html' })
   ],
   build: {
+    target: ['es2015', 'safari11', 'chrome87'],
     rollupOptions: {
       output: {
         manualChunks: {

@@ -23,7 +23,7 @@ export const VitalityRing = ({ progress = 75 }) => {
       }}>
         <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', position: 'absolute' }}>
           {/* Ghost Past State Ring */}
-          <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(16, 185, 129, 0.15)" strokeWidth={strokeWidth} fill="transparent" strokeDasharray={circumference} strokeDashoffset={circumference - (65 / 100) * circumference} strokeLinecap="round" style={{ filter: 'blur(4px)', transform: 'translateZ(0)', willChange: 'transform' }} />
+          <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(16, 185, 129, 0.15)" strokeWidth={strokeWidth} fill="transparent" strokeDasharray={circumference} strokeDashoffset={circumference - (65 / 100) * circumference} strokeLinecap="round" style={{ filter: 'blur(4px)' }} />
           {/* Background Ring */}
           <circle
             cx={size / 2}

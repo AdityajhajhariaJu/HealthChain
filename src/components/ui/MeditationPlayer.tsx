@@ -454,7 +454,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       borderRadius: '50%',
                       background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(56, 189, 248, 0) 70%)',
                       filter: 'blur(24px)',
-                      transform: 'translateZ(0)',
                       pointerEvents: 'none'
                     }}
                   />

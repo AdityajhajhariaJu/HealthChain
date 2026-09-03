@@ -272,7 +272,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
         flex: 1,
         background: 'rgba(255, 255, 255, 0.25)',
         backdropFilter: 'blur(32px)',
-        WebkitBackdropFilter: 'blur(32px)', transform: 'translateZ(0)', willChange: 'transform',
+        WebkitBackdropFilter: 'blur(32px)',
         borderRadius: '24px',
         border:
           status === 'done' ? `2px solid ${specialist.color}` : '1px solid rgba(255, 255, 255, 0.25)',

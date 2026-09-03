@@ -21,11 +21,11 @@ export default function ConsultPage() {
     >
       {/* Small, distinct patches of color perfectly matched to the Consult Page context (Soft Blue & Slate) */}
         {/* Top Left: Near 'Attach Lab Reports' and 'Quick Consult' (Soft Blue) */}
-        <div style={{ position: 'absolute', top: '15%', left: '15%', width: '120px', height: '120px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', top: '15%', left: '15%', width: '120px', height: '120px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
         {/* Middle Right: Near 'Deploy AI Agents' (Soft Slate/Blue) */}
-        <div style={{ position: 'absolute', top: '45%', right: '15%', width: '120px', height: '120px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', top: '45%', right: '15%', width: '120px', height: '120px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
         {/* Bottom Left: Near 'Collaborative Cases' (Soft Creme/White) */}
-        <div style={{ position: 'absolute', bottom: '15%', left: '20%', width: '120px', height: '120px', background: '#F8FAFC', borderRadius: '50%', filter: 'blur(35px)', transform: 'translateZ(0)', willChange: 'transform', zIndex: 0 }} />
+        <div style={{ position: 'absolute', bottom: '15%', left: '20%', width: '120px', height: '120px', background: '#F8FAFC', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
       {/* Quick Consult Section */}
       <section style={{ position: 'relative', zIndex: 2 }}>
         <QuickConsult />

@@ -315,32 +315,36 @@ export default function App() {
           lastSignedInAt = Date.now();
           setItemSync('isAuthenticated', 'true');
           
-          if (localStorage.getItem('hc_guest_mode') === 'true') {
+          if (getItemSync('hc_guest_mode') === 'true') {
             const guestPrefix = 'hc_unified_profile_guest';
             const authPrefix = `hc_unified_profile_${session.user.id}`;
             
-            const guestProfile = localStorage.getItem(guestPrefix);
+            const guestProfile = getItemSync(guestPrefix);
             if (guestProfile) {
-              try { localStorage.setItem(authPrefix, guestProfile); } catch(e) {}
-              localStorage.removeItem(guestPrefix);
+              setItemSync(authPrefix, guestProfile);
+              removeItemSync(guestPrefix);
             }
             
             // Older features used both *_guest and *_guest_profile_1 key shapes.
             // Migrate every guest-scoped health key without guessing a suffix, so no guest work is stranded on sign-in.
-            Object.keys(localStorage).forEach((key) => {
-              if (!key.startsWith('hc_') || !key.includes('_guest')) return;
-              const value = localStorage.getItem(key);
-              if (!value) return;
-              const targetKey = key.replace('_guest', `_${session.user.id}`);
-              try { localStorage.setItem(targetKey, value); } catch(e) {}
-              localStorage.removeItem(key);
-            });
+            try {
+              Object.keys(localStorage).forEach((key) => {
+                if (!key.startsWith('hc_') || !key.includes('_guest')) return;
+                const value = getItemSync(key);
+                if (!value) return;
+                const targetKey = key.replace('_guest', `_${session.user.id}`);
+                setItemSync(targetKey, value);
+                removeItemSync(key);
+              });
+            } catch (e) {
+               // Ignore if Object.keys(localStorage) throws due to security block
+            }
           }
           
-          localStorage.removeItem('hc_guest_mode');
+          removeItemSync('hc_guest_mode');
         
         // Sync account info from session to capture OAuth logins (like Google)
-        const currentAccount = localStorage.getItem('hc_account');
+        const currentAccount = getItemSync('hc_account');
         let parsedAccount: any = {};
         try { parsedAccount = currentAccount ? JSON.parse(currentAccount) : {}; } catch (e) { parsedAccount = {}; }
         setItemSync(

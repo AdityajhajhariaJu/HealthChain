@@ -226,7 +226,7 @@ export default function Auth() {
               width: '150px',
               height: '150px',
               background: 'var(--teal-light)',
-              filter: 'blur(60px)', transform: 'translateZ(0)', willChange: 'transform',
+              filter: 'blur(60px)',
               borderRadius: '50%',
               pointerEvents: 'none',
             }}

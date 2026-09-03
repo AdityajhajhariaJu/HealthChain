@@ -94,7 +94,7 @@ export default function UpdatePassword() {
           style={{ width: '100%', maxWidth: '440px', padding: '24px', position: 'relative', overflow: 'hidden' }}
         >
           {/* Subtle Glow */}
-          <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'var(--teal-light)', filter: 'blur(60px)', transform: 'translateZ(0)', willChange: 'transform', borderRadius: '50%', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'var(--teal-light)', filter: 'blur(60px)', borderRadius: '50%', pointerEvents: 'none' }} />
 
           {updated ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
