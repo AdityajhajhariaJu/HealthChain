@@ -19,13 +19,17 @@ export default function ConsultPage() {
         overflow: 'hidden'
       }}
     >
-      {/* Small, distinct patches of color perfectly matched to the Consult Page context (Soft Blue & Slate) */}
-        {/* Top Left: Near 'Attach Lab Reports' and 'Quick Consult' (Soft Blue) */}
-        <div style={{ position: 'absolute', top: '15%', left: '15%', width: '120px', height: '120px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
-        {/* Middle Right: Near 'Deploy AI Agents' (Soft Slate/Blue) */}
-        <div style={{ position: 'absolute', top: '45%', right: '15%', width: '120px', height: '120px', background: '#E2E8F0', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
-        {/* Bottom Left: Near 'Collaborative Cases' (Soft Creme/White) */}
-        <div style={{ position: 'absolute', bottom: '15%', left: '20%', width: '120px', height: '120px', background: '#F8FAFC', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+      {/* Distinct ambient color patches for frosted glass refraction */}
+      {/* Top Left: Behind Quick Consult (Soft Blue) */}
+      <div style={{ position: 'absolute', top: '12%', left: '15%', width: '140px', height: '140px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+      {/* Middle Right: Near Quick Consult / Divider (Soft Orange/Peach) */}
+      <div style={{ position: 'absolute', top: '35%', right: '12%', width: '130px', height: '130px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+      {/* Deep Collab Top Right: Behind Deep Collab Header (Emerald / Mint) */}
+      <div style={{ position: 'absolute', top: '55%', right: '15%', width: '160px', height: '160px', background: '#CCFBF1', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
+      {/* Deep Collab Left: Behind Deep Collab Stepper (Soft Lavender/Slate) */}
+      <div style={{ position: 'absolute', top: '68%', left: '12%', width: '140px', height: '140px', background: '#EDE9FE', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
+      {/* Bottom Center: Warm grounding light */}
+      <div style={{ position: 'absolute', bottom: '8%', left: '30%', width: '180px', height: '180px', background: '#FEF3C7', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
       {/* Quick Consult Section */}
       <section style={{ position: 'relative', zIndex: 2 }}>
         <QuickConsult />

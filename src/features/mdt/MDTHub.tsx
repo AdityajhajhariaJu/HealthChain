@@ -620,8 +620,9 @@ useEffect(() => {
         <div
           style={{
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)', borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
+            backdropFilter: 'blur(32px)',
+            WebkitBackdropFilter: 'blur(32px)',
+            borderRadius: phase === 'intake' ? (isMobile ? '24px 24px 0 0' : '32px 32px 0 0') : (isMobile ? '24px' : '32px'),
             padding: isMobile ? (phase === 'intake' ? '24px 20px 8px' : '24px 20px 20px') : (phase === 'intake' ? '32px 40px 8px' : '32px 40px 24px'),
             border: '1px solid rgba(255, 255, 255, 0.8)',
             borderBottom: phase === 'intake' ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
@@ -630,10 +631,47 @@ useEffect(() => {
             maxWidth: phase === 'intake' ? '800px' : '100%',
             margin: phase === 'intake' ? '0 auto' : '0',
             textAlign: 'center',
-            position: 'relative'
+            position: 'relative',
+            overflow: 'hidden'
           }}
         >
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '12px', padding: '6px 14px', background: '#FFF9F0', borderRadius: '999px', border: '1px solid #FED7AA', boxShadow: '0 2px 6px rgba(253, 186, 116, 0.1)', position: 'relative', zIndex: 1 }}><NetworkHubIcon size={16} color="#EA580C" /><span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>Collaborative Board</span></div>
+          {/* Luminous orbital watermark for glass refraction */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: isMobile ? '-40px' : '-10px',
+              transform: 'translateY(-50%)',
+              zIndex: 0,
+              pointerEvents: 'none',
+              opacity: isMobile ? 0.35 : 0.65,
+            }}
+          >
+            <AgentOrbit size={isMobile ? 200 : 270} />
+          </div>
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              padding: '6px 14px',
+              background: 'rgba(255, 255, 255, 0.45)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderRadius: '999px',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
+              boxShadow: '0 4px 12px rgba(234, 88, 12, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              position: 'relative',
+              zIndex: 1
+            }}
+          >
+            <NetworkHubIcon size={16} color="#EA580C" />
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Collaborative Board
+            </span>
+          </div>
           <h1
             style={{
               fontSize: isMobile ? '20px' : '24px',
@@ -666,6 +704,8 @@ useEffect(() => {
               maxWidth: '620px',
               fontWeight: 500,
               lineHeight: 1.5,
+              position: 'relative',
+              zIndex: 1
             }}
           >
             {activeCase 
@@ -683,6 +723,8 @@ useEffect(() => {
               overflowX: 'auto',
               WebkitOverflowScrolling: 'touch',
               paddingBottom: '4px',
+              position: 'relative',
+              zIndex: 1
             }}
           >
             <div style={{ margin: '0 auto', display: 'flex', minWidth: 'max-content', zoom: 0.65 }}>
@@ -690,10 +732,12 @@ useEffect(() => {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  background: '#F8FAFC',
+                  background: 'rgba(255, 255, 255, 0.45)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                   padding: '6px',
                   borderRadius: '999px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
                   border: '1px solid rgba(255, 255, 255, 0.8)',
                 }}
               >
