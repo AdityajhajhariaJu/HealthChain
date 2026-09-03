@@ -83,6 +83,7 @@ export function AuthModal() {
           >
             <button
               onClick={handleClose}
+              aria-label="Close modal"
               style={{
                 position: 'absolute',
                 top: '16px',
