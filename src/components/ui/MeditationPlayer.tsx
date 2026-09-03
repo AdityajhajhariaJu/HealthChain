@@ -426,6 +426,16 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     isEnergy || (currentTrack && (currentTrack.title.includes('Energy') || currentTrack.title.includes('Sun') || currentTrack.title.includes('Morning'))) ? 'energy' :
     'meditation';
 
+  const vibrationThemeColors = {
+    sleep: { ring: 'rgba(196, 181, 253, 0.85)', glow: 'rgba(167, 139, 250, 0.55)', fill: 'rgba(167, 139, 250, 0.08)' },
+    rain: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(14, 165, 233, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' },
+    frequency: { ring: 'rgba(217, 70, 239, 0.85)', glow: 'rgba(168, 85, 247, 0.6)', fill: 'rgba(192, 132, 252, 0.1)' },
+    forest: { ring: 'rgba(52, 211, 153, 0.85)', glow: 'rgba(16, 185, 129, 0.55)', fill: 'rgba(52, 211, 153, 0.08)' },
+    energy: { ring: 'rgba(251, 191, 36, 0.9)', glow: 'rgba(245, 158, 11, 0.6)', fill: 'rgba(253, 224, 71, 0.12)' },
+    focus: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(56, 189, 248, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' },
+    meditation: { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(168, 85, 247, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' }
+  }[atmosphereTheme] || { ring: 'rgba(56, 189, 248, 0.85)', glow: 'rgba(56, 189, 248, 0.55)', fill: 'rgba(56, 189, 248, 0.08)' };
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
@@ -816,83 +826,152 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                 zIndex: 10,
                 padding: '0 24px'
               }}>
-                {/* Pulsing Ethereal Radial Rings */}
-                <div style={{ position: 'relative', width: '240px', height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {/* Center Living Acoustic Mandala & Vibration Waves Engine */}
+                <div style={{ position: 'relative', width: '260px', height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  
+                  {/* Atmospheric Glow Aura */}
                   <motion.div
                     animate={{ 
                       scale: !isPlaying ? 1 : 
-                             phase === 'Inhale' ? 1.65 : 
-                             phase === 'Hold' ? 1.65 : 
-                             phase === 'Exhale' ? 0.95 : 1,
-                      opacity: isPlaying ? [0.4, 0.8, 0.4] : 0.3
+                             phase === 'Inhale' ? 1.75 : 
+                             phase === 'Hold' ? [1.75, 1.8, 1.75] : 
+                             phase === 'Exhale' ? 1.05 : [1.1, 1.25, 1.1],
+                      opacity: isPlaying ? [0.45, 0.8, 0.45] : 0.25
                     }}
                     transition={{ 
-                      duration: phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
+                      duration: phase === 'Prepare' ? 2.4 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
+                      repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0,
                       ease: 'easeInOut'
                     }}
                     style={{ 
                       position: 'absolute', 
-                      inset: '-20px', 
+                      inset: '-25px', 
                       borderRadius: '50%',
-                      background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(56, 189, 248, 0) 70%)',
-                      filter: 'blur(24px)',
+                      background: `radial-gradient(circle, ${vibrationThemeColors.glow} 0%, rgba(0, 0, 0, 0) 70%)`,
+                      filter: 'blur(30px)',
                       pointerEvents: 'none'
                     }}
                   />
 
-                  {/* Concentric Glass Halo Rings */}
+                  {/* 4 Continuous Radiating Acoustic Vibration Waves (Never frozen, rippling outward) */}
+                  {isPlaying && [0, 1, 2, 3].map((waveIndex) => (
+                    <motion.div
+                      key={`acoustic-vibration-wave-${waveIndex}`}
+                      animate={{ 
+                        scale: [1, 1.65, 2.45],
+                        opacity: [0.75, 0.35, 0],
+                        borderWidth: ['2px', '1.5px', '1px']
+                      }}
+                      transition={{ 
+                        duration: 3.6,
+                        repeat: Infinity,
+                        ease: [0.22, 1, 0.36, 1],
+                        delay: waveIndex * 0.9,
+                      }}
+                      style={{ 
+                        position: 'absolute', 
+                        width: '135px', 
+                        height: '135px', 
+                        borderRadius: '50%', 
+                        borderStyle: 'solid',
+                        borderColor: vibrationThemeColors.ring,
+                        boxShadow: `0 0 24px ${vibrationThemeColors.glow}, inset 0 0 12px ${vibrationThemeColors.glow}`,
+                        pointerEvents: 'none'
+                      }}
+                    />
+                  ))}
+
+                  {/* Outer Harmonic Resonance Shell */}
                   <motion.div
                     animate={{ 
                       scale: !isPlaying ? 1 : 
-                             phase === 'Inhale' ? 1.5 : 
-                             phase === 'Hold' ? [1.5, 1.53, 1.5] : 
-                             phase === 'Exhale' ? 0.9 : 1
+                             phase === 'Inhale' ? [1.1, 1.55] : 
+                             phase === 'Hold' ? [1.55, 1.59, 1.55] : 
+                             phase === 'Exhale' ? [1.55, 1.0] : [1.02, 1.1, 1.02],
+                      opacity: !isPlaying ? 0.3 :
+                               phase === 'Inhale' ? [0.4, 0.85] : 
+                               phase === 'Hold' ? [0.85, 0.95, 0.85] : 
+                               phase === 'Exhale' ? [0.85, 0.35] : [0.4, 0.75, 0.4]
                     }}
                     transition={{ 
-                      duration: phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
+                      duration: phase === 'Prepare' ? 2.2 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
                       ease: 'easeInOut',
-                      repeat: phase === 'Hold' && isPlaying ? Infinity : 0
+                      repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0
                     }}
                     style={{ 
                       position: 'absolute', 
-                      inset: 0, 
+                      width: '230px', 
+                      height: '230px', 
                       borderRadius: '50%', 
-                      border: '1.5px solid rgba(255, 255, 255, 0.25)',
-                      boxShadow: '0 0 40px rgba(56, 189, 248, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.1)'
+                      border: `1.5px solid ${vibrationThemeColors.ring}`,
+                      boxShadow: `0 0 35px ${vibrationThemeColors.glow}, inset 0 0 20px rgba(255, 255, 255, 0.15)`,
+                      pointerEvents: 'none'
                     }}
                   />
 
+                  {/* Inner Harmonic Resonance Wave */}
                   <motion.div
                     animate={{ 
                       scale: !isPlaying ? 1 : 
-                             phase === 'Inhale' ? 1.25 : 
-                             phase === 'Hold' ? 1.25 : 
-                             phase === 'Exhale' ? 0.85 : 1
+                             phase === 'Inhale' ? [1.05, 1.3] : 
+                             phase === 'Hold' ? [1.3, 1.33, 1.3] : 
+                             phase === 'Exhale' ? [1.3, 0.92] : [0.96, 1.05, 0.96],
+                      opacity: !isPlaying ? 0.35 : [0.5, 0.85, 0.5]
                     }}
                     transition={{ 
-                      duration: phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
-                      ease: 'easeInOut'
+                      duration: phase === 'Prepare' ? 1.8 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
+                      ease: 'easeInOut',
+                      repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0,
+                      delay: 0.15
                     }}
                     style={{ 
                       position: 'absolute', 
-                      inset: '30px', 
+                      width: '180px', 
+                      height: '180px', 
                       borderRadius: '50%', 
-                      border: '1px solid rgba(255, 255, 255, 0.4)',
-                      background: 'radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%)'
+                      border: '1.5px solid rgba(255, 255, 255, 0.5)',
+                      background: vibrationThemeColors.fill,
+                      boxShadow: `0 0 20px ${vibrationThemeColors.glow}, inset 0 0 15px rgba(255, 255, 255, 0.2)`,
+                      pointerEvents: 'none'
                     }}
                   />
 
-                  {/* Inner Breathing Core with Text */}
+                  {/* Inner Breathing Core with Text & Reactive Pulse */}
                   <motion.div
+                    animate={{
+                      scale: !isPlaying ? 1 :
+                             phase === 'Inhale' ? [1, 1.12] :
+                             phase === 'Hold' ? [1.12, 1.15, 1.12] :
+                             phase === 'Exhale' ? [1.12, 0.98] :
+                             [1, 1.04, 1],
+                      boxShadow: isPlaying
+                        ? [
+                            `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 25px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.8)`,
+                            `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 45px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.9)`,
+                            `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 25px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.8)`,
+                          ]
+                        : '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7)'
+                    }}
+                    transition={{
+                      scale: {
+                        duration: phase === 'Prepare' ? 2 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3),
+                        repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0,
+                        ease: 'easeInOut'
+                      },
+                      boxShadow: {
+                        duration: 2.2,
+                        repeat: Infinity,
+                        ease: 'easeInOut'
+                      }
+                    }}
                     style={{
-                      width: '130px',
-                      height: '130px',
+                      width: '132px',
+                      height: '132px',
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.12) 100%)',
                       backdropFilter: 'blur(32px)',
                       WebkitBackdropFilter: 'blur(32px)',
-                      border: '1px solid rgba(255, 255, 255, 0.6)',
-                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.7)',
+                      border: '1.5px solid rgba(255, 255, 255, 0.65)',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -920,9 +999,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     {enableBreathingGuide && isPlaying && (
                       <span style={{ 
                         fontSize: '13px', 
-                        color: '#38BDF8', 
+                        color: vibrationThemeColors.ring, 
                         fontWeight: 600,
-                        marginTop: '2px'
+                        marginTop: '2px',
+                        textShadow: `0 0 10px ${vibrationThemeColors.glow}`
                       }}>
                         {phaseSecondsLeft}s
                       </span>
@@ -1018,11 +1098,12 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             {isPlaylistMode && currentTrack ? currentTrack.title : content.title}
                           </h3>
                           {isPlaying && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '2.5px', flexShrink: 0 }}>
-                              <motion.span animate={{ height: ['4px', '14px', '5px', '12px', '4px'] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} style={{ width: '2.5px', background: '#38BDF8', borderRadius: '2px' }} />
-                              <motion.span animate={{ height: ['10px', '4px', '16px', '6px', '10px'] }} transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }} style={{ width: '2.5px', background: '#38BDF8', borderRadius: '2px' }} />
-                              <motion.span animate={{ height: ['5px', '15px', '8px', '4px', '5px'] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }} style={{ width: '2.5px', background: '#38BDF8', borderRadius: '2px' }} />
-                              <motion.span animate={{ height: ['12px', '5px', '10px', '15px', '12px'] }} transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }} style={{ width: '2.5px', background: '#38BDF8', borderRadius: '2px' }} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, padding: '2px 4px' }}>
+                              <motion.span animate={{ height: ['4px', '16px', '6px', '14px', '4px'] }} transition={{ duration: 0.85, repeat: Infinity, ease: 'easeInOut' }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
+                              <motion.span animate={{ height: ['12px', '4px', '18px', '8px', '12px'] }} transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.12 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
+                              <motion.span animate={{ height: ['6px', '18px', '9px', '16px', '6px'] }} transition={{ duration: 0.95, repeat: Infinity, ease: 'easeInOut', delay: 0.24 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
+                              <motion.span animate={{ height: ['14px', '6px', '13px', '5px', '14px'] }} transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.08 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
+                              <motion.span animate={{ height: ['8px', '16px', '5px', '12px', '8px'] }} transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }} style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 8px ${vibrationThemeColors.glow}` }} />
                             </div>
                           )}
                         </div>
@@ -1310,8 +1391,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                                 gap: '14px',
                                 padding: '12px',
                                 borderRadius: '16px',
-                                background: isActive ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-                                border: isActive ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid transparent',
+                                background: isActive ? `${vibrationThemeColors.glow}` : 'transparent',
+                                border: isActive ? `1px solid ${vibrationThemeColors.ring}` : '1px solid transparent',
                                 cursor: 'pointer',
                                 marginBottom: '6px',
                                 transition: 'all 0.2s ease'
@@ -1324,7 +1405,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                               />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
-                                  color: isActive ? '#38BDF8' : 'white',
+                                  color: isActive ? vibrationThemeColors.ring : 'white',
                                   fontSize: '15px',
                                   fontWeight: 600,
                                   whiteSpace: 'nowrap',
@@ -1347,19 +1428,19 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                               {isActive && (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '3px', paddingLeft: '8px' }}>
                                   <motion.span
-                                    animate={{ height: ['4px', '14px', '4px'] }}
-                                    transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
-                                    style={{ width: '3px', background: '#38BDF8', borderRadius: '2px' }}
+                                    animate={{ height: isPlaying ? ['4px', '16px', '4px'] : '6px' }}
+                                    transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut' }}
+                                    style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '2px', boxShadow: `0 0 6px ${vibrationThemeColors.glow}` }}
                                   />
                                   <motion.span
-                                    animate={{ height: ['12px', '4px', '12px'] }}
-                                    transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
-                                    style={{ width: '3px', background: '#38BDF8', borderRadius: '2px' }}
+                                    animate={{ height: isPlaying ? ['14px', '4px', '14px'] : '12px' }}
+                                    transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
+                                    style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '2px', boxShadow: `0 0 6px ${vibrationThemeColors.glow}` }}
                                   />
                                   <motion.span
-                                    animate={{ height: ['6px', '16px', '6px'] }}
-                                    transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-                                    style={{ width: '3px', background: '#38BDF8', borderRadius: '2px' }}
+                                    animate={{ height: isPlaying ? ['6px', '18px', '6px'] : '8px' }}
+                                    transition={{ duration: 0.75, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                                    style={{ width: '3px', background: vibrationThemeColors.ring, borderRadius: '2px', boxShadow: `0 0 6px ${vibrationThemeColors.glow}` }}
                                   />
                                 </div>
                               )}

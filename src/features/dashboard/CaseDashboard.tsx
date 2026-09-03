@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useActionIslandStore } from '../../store/actionIslandStore';
 import { FitnessNav } from '../../components/ui/FitnessNav';
-import {Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin, Scan} from 'lucide-react';
+import { Activity, ChevronRight, Clock, Crosshair, Flame, Gamepad2, Heart, Play, Waves, Wind, Share2, Bookmark, Pin, Scan } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -493,22 +494,44 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Soundscapes</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Immersive audio environments</p>
             </div>
-            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '0 16px 16px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '20px', overflowX: 'auto', padding: '12px 20px 20px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
-                { name: 'Rain Sounds', icon: <Waves size={24} />, color: '#3b82f6', img: '/images/thumb_rain_window_1788262571496.jpg' },
-                { name: 'Focus Frequencies', icon: <Activity size={24} />, color: '#8b5cf6', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
-                { name: 'Forest Ambience', icon: <Wind size={24} />, color: '#10b981', img: '/images/thumb_water_drop_1788260024692.jpg' }
+                { name: 'Rain Sounds', icon: <Waves size={24} />, color: '#38bdf8', img: '/images/thumb_rain_window_1788262571496.jpg' },
+                { name: 'Focus Frequencies', icon: <Activity size={24} />, color: '#c084fc', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
+                { name: 'Forest Ambience', icon: <Wind size={24} />, color: '#34d399', img: '/images/thumb_water_drop_1788260024692.jpg' }
               ].map((type, i) => (
-                <button 
-                  key={i}
-                  style={{
-                    flexShrink: 0, width: '140px', height: '140px', borderRadius: '50%',
-                    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%), url(${type.img})`,
-                    backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', flexDirection: 'column',
-                    justifyContent: 'center', alignItems: 'center', padding: '16px', border: `1.5px solid rgba(255, 255, 255, 0.4)`, cursor: 'pointer',
-                    boxShadow: `0 10px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.4)`
-                  }}
-                  onClick={() => {
+                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '144px', height: '144px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* Living Vibration Halo Rings */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.14, 1],
+                      opacity: [0.35, 0.75, 0.35]
+                    }}
+                    transition={{
+                      duration: 3.2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: i * 0.7
+                    }}
+                    style={{
+                      position: 'absolute',
+                      inset: '-6px',
+                      borderRadius: '50%',
+                      border: `1.5px solid ${type.color}`,
+                      boxShadow: `0 0 22px ${type.color}66`,
+                      pointerEvents: 'none'
+                    }}
+                  />
+                  <motion.button 
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      width: '100%', height: '100%', borderRadius: '50%',
+                      backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%), url(${type.img})`,
+                      backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', flexDirection: 'column',
+                      justifyContent: 'center', alignItems: 'center', padding: '16px', border: `1.5px solid rgba(255, 255, 255, 0.45)`, cursor: 'pointer',
+                      boxShadow: `0 10px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.4)`
+                    }}
+                    onClick={() => {
                       triggerHapticLight();
                       setActiveMeditation({
                         id: `soundscape-${i}`,
@@ -531,9 +554,16 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
                       });
                     }}
                   >
-                  <div style={{ color: 'white', marginBottom: '8px' }}>{type.icon}</div>
-                  <span style={{ color: 'white', fontWeight: 600, fontSize: '14px', textAlign: 'center', lineHeight: '1.2' }}>{type.name}</span>
-                </button>
+                    <motion.div 
+                      animate={{ scale: [1, 1.12, 1] }} 
+                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+                      style={{ color: 'white', marginBottom: '8px' }}
+                    >
+                      {type.icon}
+                    </motion.div>
+                    <span style={{ color: 'white', fontWeight: 600, fontSize: '14px', textAlign: 'center', lineHeight: '1.2' }}>{type.name}</span>
+                  </motion.button>
+                </div>
               ))}
             </div>
           </section>
