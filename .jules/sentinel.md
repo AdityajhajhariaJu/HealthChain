@@ -1,0 +1,4 @@
+## 2024-05-18 - Admin API Access Control & Arbitrary Table Modification
+**Vulnerability:** The `api/admin-content.js` serverless function bypassed Row Level Security via the service key without verifying the user's role, and allowed unrestricted writes/deletes to any table by accepting an arbitrary `table` parameter.
+**Learning:** Endpoints intended for internal/admin tools often omit proper authorization checks under the assumption they won't be called directly. Additionally, passing table names directly from the payload into Supabase clients enables dangerous IDOR/injection-like behavior across the entire database.
+**Prevention:** Always enforce strict role-based access control (e.g., verifying `user.id` against an `ADMIN_USER_ID`) even for "internal" API routes. Never accept raw table names from user input without validation; always use a strict allowlist.

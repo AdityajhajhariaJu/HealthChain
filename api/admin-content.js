@@ -36,11 +36,21 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  // TODO: Add strict admin role check here. For now, assuming authorized since it's an internal route.
-  // In production: if (user.id !== ADMIN_USER_ID) return res.status(403);
+
+  // Strict admin role check
+  const adminUserId = process.env.ADMIN_USER_ID;
+  if (!adminUserId || user.id !== adminUserId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
 
   try {
+
     const { action, payload, table = 'fitness_content' } = req.body;
+
+    const allowedTables = ['fitness_content', 'fitness_categories'];
+    if (!allowedTables.includes(table)) {
+      return res.status(403).json({ error: 'Forbidden table' });
+    }
 
     if (action === 'insert') {
       const { data, error } = await supabase.from(table).insert(payload).select();
