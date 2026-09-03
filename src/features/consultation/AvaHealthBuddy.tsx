@@ -390,7 +390,7 @@ export default function AvaHealthBuddy() {
   return (
     <div
       style={{
-        padding: isMobile ? '0' : '0 24px',
+        padding: isMobile ? '8px 12px calc(var(--safe-area-bottom, 0px) + 12px) 12px' : '0 24px',
         position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
         width: '100%',
         display: 'flex',
@@ -408,10 +408,10 @@ export default function AvaHealthBuddy() {
           minHeight: 0,
           height: '100%',
           maxHeight: '100%',
-          background: isMobile ? 'transparent' : 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)',
-            backdropFilter: isMobile ? 'none' : 'blur(32px)',
-            WebkitBackdropFilter: isMobile ? 'none' : 'blur(32px)',
-            borderRadius: isMobile ? '0' : '32px',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0.14) 100%)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          borderRadius: isMobile ? '28px' : '32px',
           margin: '0',
           maxWidth: isMobile ? '100%' : '1000px',
           width: '100%',
@@ -419,8 +419,8 @@ export default function AvaHealthBuddy() {
           flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.8)',
-            boxShadow: isMobile ? 'none' : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.85)',
+          boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.35)',
         }}
       >
         {/* Header */}
@@ -624,10 +624,10 @@ export default function AvaHealthBuddy() {
                   <div
                     style={{
                       background: msg.role === 'user' 
-                        ? 'linear-gradient(135deg, rgba(244, 63, 94, 0.9) 0%, rgba(225, 29, 72, 0.9) 100%)' 
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.18) 100%)',
-                      backdropFilter: 'blur(32px)',
-                      WebkitBackdropFilter: 'blur(32px)',
+                        ? 'linear-gradient(135deg, rgba(244, 63, 94, 0.92) 0%, rgba(225, 29, 72, 0.92) 100%)' 
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.42) 100%)',
+                      backdropFilter: 'blur(16px)',
+                      WebkitBackdropFilter: 'blur(16px)',
                       color: msg.role === 'user' ? '#FFFFFF' : '#0F172A',
                       padding: isMobile ? '14px 18px' : '16px 22px',
                       borderRadius:
@@ -636,7 +636,7 @@ export default function AvaHealthBuddy() {
                       lineHeight: 1.5,
                       boxShadow: msg.role === 'user' 
                         ? '0 12px 32px rgba(244, 63, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
-                        : '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.75), inset 0 0 30px rgba(255, 255, 255, 0.35)',
+                        : '0 12px 28px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
                       border: msg.role === 'user' ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.85)',
                       maxWidth: isMobile ? '86%' : '80%',
                     }}
@@ -799,7 +799,7 @@ export default function AvaHealthBuddy() {
         {/* Input Area */}
         <div
           style={{
-            padding: isMobile ? '12px 14px calc(16px + env(safe-area-inset-bottom, 16px)) 14px' : '24px 32px',
+            padding: isMobile ? '12px 14px 14px 14px' : '24px 32px',
             background: 'transparent',
             display: 'flex',
             flexDirection: 'column',
