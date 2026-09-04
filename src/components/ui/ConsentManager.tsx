@@ -23,7 +23,10 @@ export default function ConsentManager() {
   const [showCookies, setShowCookies] = useState(false);
 
   useEffect(() => {
-    const cookiesAccepted = localStorage.getItem('hc_cookies_accepted');
+    let cookiesAccepted: string | null = null;
+    try {
+      cookiesAccepted = localStorage.getItem('hc_cookies_accepted');
+    } catch {}
     if (!cookiesAccepted || cookiesAccepted === 'true') {
       setShowCookies(true);
     } else if (cookiesAccepted === 'accepted') {
