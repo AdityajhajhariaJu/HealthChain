@@ -28,7 +28,29 @@ export const PredictiveTimeline = () => {
           {[0, 1, 2].map(idx => (
             <div 
               key={idx}
+              role="slider"
+              tabIndex={0}
+              aria-label={`Timeline horizon: ${timelineData[idx].type} - ${timelineData[idx].time}`}
+              aria-valuemin={0}
+              aria-valuemax={2}
+              aria-valuenow={timeIndex}
+              aria-valuetext={timelineData[idx].title}
               onClick={() => { triggerHapticLight(); setTimeIndex(idx); }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  triggerHapticLight();
+                  setTimeIndex(prev => Math.min(2, prev + 1));
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  triggerHapticLight();
+                  setTimeIndex(prev => Math.max(0, prev - 1));
+                } else if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  triggerHapticLight();
+                  setTimeIndex(idx);
+                }
+              }}
               style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y', 
                 width: '16px', height: '16px', borderRadius: '50%',
                 background: timeIndex === idx ? current.color : '#CBD5E1',
@@ -36,7 +58,8 @@ export const PredictiveTimeline = () => {
                 cursor: 'pointer',
                 boxShadow: timeIndex === idx ? `0 0 0 4px ${current.color}33` : 'none',
                 transition: 'all 0.3s ease',
-                zIndex: 2
+                zIndex: 2,
+                outline: 'none',
               }}
             />
           ))}

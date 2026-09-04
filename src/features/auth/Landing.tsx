@@ -1305,15 +1305,17 @@ export default function Landing() {
             </div>
             <div className={styles.consensusPills}>
               {LATEST_ACTIVITIES.map((act, aIdx) => (
-                <div 
+                <button 
+                  type="button"
                   key={aIdx}
                   className={styles.consensusPill}
                   onClick={() => handleStartInvestigation(`activity_pill_${aIdx}`, act.symptom, act.specId)}
+                  aria-label={`Explore case: ${act.text}`}
                 >
                   <span>{act.icon}</span>
                   <span>{act.text}</span>
                   <span className={styles.consensusPillTime}>· {act.time}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>

@@ -371,7 +371,8 @@ export default function ClinicalReportAnalyzer() {
       <motion.div
         role="button"
         tabIndex={0}
-        aria-label="Upload bloodwork or lab report PDF/image"
+        aria-label={activeCase ? 'Upload clinical report to this case' : 'Upload lab report or medical scan'}
+        onClick={() => fileInputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -383,7 +384,6 @@ export default function ClinicalReportAnalyzer() {
         transition={{ delay: 0.1 }}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
         style={{
           background: '#FAFAFA',
           borderRadius: '24px',
@@ -497,25 +497,24 @@ export default function ClinicalReportAnalyzer() {
                 fontWeight: 700,
                 color: '#0F172A',
                 margin: '0 0 8px 0',
-                letterSpacing: '0.5px',
+                letterSpacing: '-0.2px',
               }}
             >
-              {activeCase ? 'ADD A REPORT TO THIS CASE' : 'UPLOAD LAB REPORT'}
+              {activeCase ? 'Add a report to this case' : 'Upload lab report'}
             </h2>
             <p
               style={{
-                fontSize: '12px',
-                color: '#94A3B8',
-                fontWeight: 600,
+                fontSize: '13px',
+                color: '#64748B',
+                fontWeight: 500,
                 margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                marginBottom: '24px'
+                marginBottom: '24px',
+                lineHeight: 1.4,
               }}
             >
               {activeCase
-                ? 'WE WILL ANALYSE IT, SAVE THE FINDING, THEN YOU CAN CONTINUE COLLABORATION'
-                : 'PHOTO OR PDF (CAMERA SUPPORTED)'}
+                ? 'We will analyse it, extract key biomarkers, and integrate the findings into your case timeline'
+                : 'Photo or PDF (camera and files supported)'}
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>
               <button

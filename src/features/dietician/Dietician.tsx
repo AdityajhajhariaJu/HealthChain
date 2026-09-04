@@ -233,6 +233,18 @@ export default function Dietician() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showResetDietConfirm) setShowResetDietConfirm(false);
+        if (showSavedMealsModal) setShowSavedMealsModal(false);
+        if (showARLens) setShowARLens(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showResetDietConfirm, showSavedMealsModal, showARLens]);
+
   // Hydrate diet state
   useEffect(() => {
     let cancelled = false;

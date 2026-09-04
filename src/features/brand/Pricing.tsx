@@ -31,6 +31,7 @@ import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
 import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
 import { loadRazorpaySDK } from '../../services/razorpay';
+import { triggerHapticLight } from '../../services/haptics';
 
 interface FeatureItem {
   name: string;
@@ -113,6 +114,7 @@ export default function Pricing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleCheckout = async (planId: string) => {
+    triggerHapticLight();
     if (isProcessing) return;
     try {
       setIsProcessing(planId);
@@ -661,7 +663,12 @@ export default function Pricing() {
                 }}
               >
                 <button
-                  onClick={() => setOpenFaq(isOpen ? null : i)}
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setOpenFaq(isOpen ? null : i);
+                  }}
                   style={{
                     width: '100%',
                     padding: '16px 20px',
@@ -678,7 +685,11 @@ export default function Pricing() {
                   {isOpen ? <ChevronUp size={18} color="#64748B" /> : <ChevronDown size={18} color="#64748B" />}
                 </button>
                 {isOpen && (
-                  <div style={{ padding: '0 20px 18px', fontSize: '13.5px', color: '#475569', lineHeight: 1.5, borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                  <div
+                    role="region"
+                    aria-label={faq.q}
+                    style={{ padding: '0 20px 18px', fontSize: '13.5px', color: '#475569', lineHeight: 1.5, borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}
+                  >
                     {faq.a}
                   </div>
                 )}

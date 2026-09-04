@@ -214,6 +214,9 @@ export const TrophyCabinet: React.FC = () => {
             onClick={() => setSelectedBadge(null)}
           >
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Achievement: ${selectedBadge.title}`}
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
@@ -231,7 +234,9 @@ export const TrophyCabinet: React.FC = () => {
               }}
             >
               <button 
+                type="button"
                 onClick={() => setSelectedBadge(null)}
+                aria-label="Close milestone dialog"
                 style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer' }}
               >
                 <X size={16} />

@@ -11,6 +11,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { useToast } from '../../components/ui/ToastProvider';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const SUGGESTIONS = [
   "I'm looking for mental peace and a calm space to de-stress.",
@@ -434,6 +435,8 @@ export default function AvaHealthBuddy() {
             lastMessage: response,
             messageCount: newMessages.length + 1,
         }, false, null as any, sessionId as any);
+        const todayDateStr = new Date().toISOString().split('T')[0];
+        awardPoints(5, 'Consulted Ava Clinical Chief of Staff', 'consult', `ava_consult_${todayDateStr}`);
         recordTrialUsage('ava');
       },
     onError: () => {

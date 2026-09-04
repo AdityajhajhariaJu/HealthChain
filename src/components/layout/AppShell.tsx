@@ -141,6 +141,18 @@ export default function AppShell() {
     return () => window.removeEventListener('hc_scroll_intent', onCustomScroll);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showMoreMenu) setShowMoreMenu(false);
+        if (showProfileMenu) setShowProfileMenu(false);
+        if (showNotifications) setShowNotifications(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showMoreMenu, showProfileMenu, showNotifications]);
+
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
   const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
@@ -404,16 +416,24 @@ const enforceSafeArea = () => {
               )}
             {!(location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/war-room')) && (
               <div style={{ position: 'relative' }}>
-              <img 
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
-                alt="Profile" 
-                className="mobile-top-bar__profile" 
+              <button
+                type="button"
                 onClick={() => {
                   triggerHapticLight();
                   setShowProfileMenu(!showProfileMenu);
-                }} 
-                style={{ cursor: 'pointer', display: 'block' }}
-              />
+                }}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block', borderRadius: '50%' }}
+                aria-haspopup="menu"
+                aria-expanded={showProfileMenu}
+                aria-label="Open profile menu"
+              >
+                <img 
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
+                  alt="" 
+                  className="mobile-top-bar__profile" 
+                  style={{ display: 'block' }}
+                />
+              </button>
 
               <AnimatePresence>
                 {showProfileMenu && (
@@ -427,6 +447,8 @@ const enforceSafeArea = () => {
                 )}
                 {showProfileMenu && (
                     <motion.div key="profile-menu"
+                      role="menu"
+                      aria-label="User Profile Menu"
                       initial={{ opacity: 0, y: 6, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 4, scale: 0.95 }}
@@ -666,6 +688,9 @@ const enforceSafeArea = () => {
             {showMoreMenu && (
                 <motion.div
                   key="more-menu"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="More Health Tools"
                   className="mobile-more-menu" style={{ background: 'linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.85)), url(/ava-floral-bg.jpg) center/cover no-repeat' }}
                   initial={{ opacity: 0, y: '100%' }}
                   animate={{ opacity: 1, y: 0 }}

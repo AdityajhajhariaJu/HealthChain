@@ -606,7 +606,16 @@ New Information / Changes in Symptoms since last evaluation:
               {parallelCases.map(pc => (
                 <div
                   key={pc.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Resume Quick Consult case: ${pc.title}`}
                   onClick={() => onElevateParallel && onElevateParallel(pc)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onElevateParallel && onElevateParallel(pc);
+                    }
+                  }}
                   style={{
                     background: '#FFF',
                     border: '1px solid rgba(255, 255, 255, 0.8)',
@@ -642,7 +651,16 @@ New Information / Changes in Symptoms since last evaluation:
               {mdtCases.map(mc => (
                 <div
                   key={mc.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Review past Collaborative case: ${mc.title}`}
                   onClick={() => onReviewPastMDT && onReviewPastMDT(mc)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onReviewPastMDT && onReviewPastMDT(mc);
+                    }
+                  }}
                   style={{
                     background: '#FFF',
                     border: '1px solid rgba(255, 255, 255, 0.8)',

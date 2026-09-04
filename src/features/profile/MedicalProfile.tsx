@@ -115,6 +115,16 @@ export default function MedicalProfile() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const profileRef = useRef<any>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showClearConfirm) {
+        setShowClearConfirm(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showClearConfirm]);
+
   const account = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem('hc_account') || '{}');
@@ -1273,7 +1283,17 @@ export default function MedicalProfile() {
                   return (
                     <div
                       key={item.id}
+                      role="checkbox"
+                      aria-checked={isCompleted}
+                      tabIndex={0}
+                      aria-label={`${cleanTitle} - ${isCompleted ? 'Completed' : 'Pending'}`}
                       onClick={() => toggleActionItem(item.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleActionItem(item.id);
+                        }
+                      }}
                       style={{
                         padding: '10px 12px',
                         background: isCompleted ? '#F0FDF4' : 'var(--surface-hover)',
@@ -2104,6 +2124,9 @@ export default function MedicalProfile() {
             onClick={() => setShowClearConfirm(false)}
           >
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Reset Medical Profile"
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 16 }}

@@ -2032,10 +2032,22 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           return (
                             <div
                               key={track.id}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Play ${track.title}`}
+                              aria-pressed={isActive}
                               onClick={() => {
                                 switchTrackSmoothly(idx);
                                 setIsPlaying(true);
                                 setShowPlaylist(false);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  switchTrackSmoothly(idx);
+                                  setIsPlaying(true);
+                                  setShowPlaylist(false);
+                                }
                               }}
                               style={{
                                 display: 'flex',

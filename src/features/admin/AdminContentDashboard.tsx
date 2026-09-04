@@ -441,6 +441,9 @@ export const AdminContentDashboard: React.FC = () => {
             onClick={() => setContentToDelete(null)}
           >
             <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Deactivate Content"
               style={{
                 background: '#FFFFFF',
                 borderRadius: '24px',

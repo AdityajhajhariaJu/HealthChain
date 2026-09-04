@@ -183,15 +183,17 @@ export default function Auth() {
     >
       {/* Nav */}
       <nav style={{ padding: isMobile ? '16px 20px' : '24px 40px', width: '100%' }}>
-        <div
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+        <button
+          type="button"
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
           onClick={() => navigate('/')}
+          aria-label="HealthChain360 Home"
         >
           <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>
             HealthChain360.ai
           </span>
-        </div>
+        </button>
       </nav>
 
       {/* Main Form */}
@@ -561,22 +563,24 @@ export default function Auth() {
                 {isForgotPassword ? (
                   <>
                     Remember your password?{' '}
-                    <span
+                    <button
+                      type="button"
                       onClick={() => setIsForgotPassword(false)}
-                      style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', textDecoration: 'underline' }}
                     >
                       Back to login
-                    </span>
+                    </button>
                   </>
                 ) : (
                   <>
                     {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                    <span
+                    <button
+                      type="button"
                       onClick={() => navigate(isLogin ? '/signup' : '/login')}
-                      style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer' }}
+                      style={{ color: 'var(--teal)', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none', padding: 0, font: 'inherit', textDecoration: 'underline' }}
                     >
                       {isLogin ? 'Sign up' : 'Log in'}
-                    </span>
+                    </button>
                   </>
                 )}
               </div>

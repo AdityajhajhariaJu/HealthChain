@@ -773,9 +773,19 @@ export function ClinicalArticleSection() {
                 return (
                   <div
                     key={art.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Read article: ${art.title}`}
                     onClick={() => {
                       triggerHapticLight();
                       setSelectedArticle(art);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        triggerHapticLight();
+                        setSelectedArticle(art);
+                      }
                     }}
                     style={{
                       background: '#FFFFFF',
