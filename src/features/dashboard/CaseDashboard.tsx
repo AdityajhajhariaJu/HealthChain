@@ -42,7 +42,6 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
-import { ImmersiveFeatureFeed } from './ImmersiveFeatureFeed';
 
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
@@ -675,11 +674,6 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
         <div style={{ paddingBottom: "32px", borderTop: "1px solid rgba(0,0,0,0.03)", paddingTop: "32px" }}>
           <FitnessNav />
           {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
-        </div>
-
-        {/* AI Insight Discovery Stories Feed */}
-        <div style={{ padding: '0 24px 28px' }}>
-          <ImmersiveFeatureFeed />
         </div>
 
         {/* Point 1: Clinical Symptom & Energy Check-in Widget */}
