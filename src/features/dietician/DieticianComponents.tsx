@@ -131,6 +131,22 @@ export function OnboardingWizard({
     setStep((s) => Math.max(1, s - 1));
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (step > 1) {
+          e.preventDefault();
+          prev();
+        } else if (onCancel) {
+          e.preventDefault();
+          onCancel();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [step, onCancel]);
+
   // Live Metrics
   const parsedW = parseFloat(data.weight);
   const parsedH = parseFloat(data.height) / 100;

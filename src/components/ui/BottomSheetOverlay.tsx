@@ -113,6 +113,15 @@ export function BottomSheetOverlay({
             }}
           >
             <div 
+              role="button"
+              tabIndex={0}
+              aria-label="Dismiss bottom sheet"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onClose();
+                }
+              }}
               onClick={onClose}
               style={{
                 position: 'absolute',

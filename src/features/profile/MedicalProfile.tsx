@@ -2028,6 +2028,15 @@ export default function MedicalProfile() {
             {activeCase ? (
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
                 <motion.div 
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Navigate to AI Discussion Board"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate('/app/collab');
+                    }
+                  }}
                   whileHover={{ scale: 1.02 }}
                   onClick={() => navigate('/app/collab')} 
                   style={{ padding: '12px', background: 'var(--surface-hover)', borderRadius: '10px', cursor: 'pointer', border: '1px solid var(--border)' }}

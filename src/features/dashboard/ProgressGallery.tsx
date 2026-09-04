@@ -186,7 +186,7 @@ export const ProgressGallery: React.FC = () => {
         </div>
 
         {/* Custom Tab Switcher */}
-        <div style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
+        <div role="tablist" aria-label="Analytics Sections" style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
           {[
             { id: 'trends', label: 'Trends' },
             { id: 'balance', label: 'Balance' },
@@ -195,6 +195,8 @@ export const ProgressGallery: React.FC = () => {
           ].map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={() => { triggerHapticLight(); setActiveTab(tab.id as any); }}
               style={{
                 flex: 1,

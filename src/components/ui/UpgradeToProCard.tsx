@@ -103,6 +103,15 @@ export default function UpgradeToProCard({ isPro = false, compact = false, onNav
 
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
+      aria-label="Upgrade to Pro subscription"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       whileTap={{ scale: 0.985 }}
       onClick={handleClick}
       className={className}

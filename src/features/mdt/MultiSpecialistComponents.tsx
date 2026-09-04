@@ -549,6 +549,7 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
             />
             <button
               type="submit"
+              aria-label="Send response to specialist"
               disabled={!input.trim() || isPaused}
               style={{
                 width: '50px',

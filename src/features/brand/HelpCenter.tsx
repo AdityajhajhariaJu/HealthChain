@@ -128,6 +128,7 @@ export default function HelpCenter() {
           <Search size={20} color="var(--text-muted)" style={{ position: 'absolute', left: 16, top: 14 }} />
           <input
             type="text"
+            aria-label="Search for answers and help articles"
             placeholder="Search for answers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -294,8 +295,9 @@ export default function HelpCenter() {
             </div>
 
             <div>
-              <label style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Your Message / Description *</label>
+              <label htmlFor="feedback-message" style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Your Message / Description *</label>
               <textarea
+                id="feedback-message"
                 rows={4}
                 required
                 value={feedbackMsg}
@@ -315,8 +317,9 @@ export default function HelpCenter() {
             </div>
 
             <div>
-              <label style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Your Email (Optional, if you want a response)</label>
+              <label htmlFor="feedback-email" style={{ fontSize: 12.5, fontWeight: 700, color: '#475569', display: 'block', marginBottom: 6 }}>Your Email (Optional, if you want a response)</label>
               <input
+                id="feedback-email"
                 type="email"
                 value={userEmail}
                 onChange={e => setUserEmail(e.target.value)}

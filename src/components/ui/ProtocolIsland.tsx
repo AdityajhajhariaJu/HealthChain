@@ -10,6 +10,17 @@ export const ProtocolIsland = () => {
     <div style={{ position: 'fixed', top: '12px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 9999, pointerEvents: 'none' }}>
       <motion.div
         layout
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        aria-label="Toggle Fasting Protocol details"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            triggerHapticLight();
+            setExpanded(!expanded);
+          }
+        }}
         onClick={() => {
           triggerHapticLight();
           setExpanded(!expanded);

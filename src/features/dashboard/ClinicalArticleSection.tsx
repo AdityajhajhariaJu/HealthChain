@@ -92,6 +92,23 @@ export function ClinicalArticleSection() {
     };
   }, [selectedArticle]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (selectedArticle) {
+          e.preventDefault();
+          stopNarration();
+          setSelectedArticle(null);
+        } else if (showLibraryModal) {
+          e.preventDefault();
+          setShowLibraryModal(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedArticle, showLibraryModal]);
+
   // Toggle Audio Narration
   const toggleNarration = () => {
     if (!selectedArticle) return;
@@ -418,9 +435,21 @@ export function ClinicalArticleSection() {
             return (
               <motion.div 
                 key={art.id} 
+                role="button"
+                tabIndex={0}
+                aria-label={`Read clinical article: ${art.title}`}
+                onKeyDown={(e) => {
+                  if ((e.target as HTMLElement).closest('button')) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticLight();
+                    setSelectedArticle(art);
+                  }
+                }}
                 whileHover={{ y: -4, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest('button')) return;
                   triggerHapticLight();
                   setSelectedArticle(art);
                 }} 

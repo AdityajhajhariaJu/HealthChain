@@ -282,6 +282,7 @@ export default function Auth() {
                 {!isLogin && (
                   <div>
                     <label
+                      htmlFor="auth-name"
                       style={{
                         display: 'block',
                         fontSize: '13px',
@@ -293,8 +294,10 @@ export default function Auth() {
                       Full Name
                     </label>
                     <input
+                      id="auth-name"
                       type="text"
                       required
+                      autoComplete="name"
                       placeholder="John Doe"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -312,6 +315,7 @@ export default function Auth() {
                 )}
                 <div>
                   <label
+                    htmlFor="auth-email"
                     style={{
                       display: 'block',
                       fontSize: '13px',
@@ -323,8 +327,10 @@ export default function Auth() {
                     Email Address
                   </label>
                   <input
+                    id="auth-email"
                     type="email"
                     required
+                    autoComplete="email"
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -343,6 +349,7 @@ export default function Auth() {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <label
+                        htmlFor="auth-password"
                         style={{
                           fontSize: '13px',
                           fontWeight: 600,
@@ -369,8 +376,10 @@ export default function Auth() {
                       )}
                     </div>
                     <input
+                      id="auth-password"
                       type="password"
                       required
+                      autoComplete={isLogin ? 'current-password' : 'new-password'}
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -411,6 +420,7 @@ export default function Auth() {
                 {!isForgotPassword && !isLogin && (
                   <div>
                     <label
+                      htmlFor="auth-confirm-password"
                       style={{
                         display: 'block',
                         fontSize: '13px',
@@ -422,8 +432,10 @@ export default function Auth() {
                       Confirm Password
                     </label>
                     <input
+                      id="auth-confirm-password"
                       type="password"
                       required
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}

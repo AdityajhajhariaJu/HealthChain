@@ -11,6 +11,7 @@ import {
   Scan,
   Search,
   MessageCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
@@ -635,20 +636,49 @@ export default function ClinicalReportAnalyzer() {
                         Report Date: {displayData.date}
                       </div>
                     </div>
-                    {displayFile && (
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          background: '#F1F5F9',
-                          padding: '6px 12px',
-                          borderRadius: '99px',
-                          color: '#475569',
-                          fontWeight: 600,
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {displayFile && (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            background: '#F1F5F9',
+                            padding: '6px 12px',
+                            borderRadius: '99px',
+                            color: '#475569',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {displayFile}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          setResult(null);
+                          setFile(null);
+                          if (fileInputRef.current) fileInputRef.current.value = '';
                         }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          borderRadius: '99px',
+                          border: '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          color: '#475569',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.color = '#0F766E'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
                       >
-                        {displayFile}
-                      </div>
-                    )}
+                        <RotateCcw size={13} /> Analyze Another Report
+                      </button>
+                    </div>
                   </div>
 
                   <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 0.8fr', gap: '16px' }}>
@@ -972,6 +1002,37 @@ export default function ClinicalReportAnalyzer() {
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setResult(null);
+                        setFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 28px',
+                        borderRadius: '14px',
+                        border: '1px solid #CBD5E1',
+                        background: '#FFFFFF',
+                        color: '#0F172A',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      <RotateCcw size={16} /> Analyze Another Clinical Report
+                    </button>
                   </div>
                 </>
               );

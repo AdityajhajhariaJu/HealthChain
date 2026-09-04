@@ -17,12 +17,23 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
       setPhase(0);
       triggerHapticLight();
       
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onComplete();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      
       const t1 = setTimeout(() => { setPhase(1); triggerHapticLight(); }, 800);
       const t2 = setTimeout(() => { setPhase(2); triggerHapticHeavy(); }, 1800);
       const t3 = setTimeout(() => { setPhase(3); triggerHapticLight(); }, 2500);
       const t4 = setTimeout(() => { onComplete(); }, 3000);
 
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
+      };
     }
   }, [isOpen, onComplete]);
 
@@ -30,6 +41,9 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

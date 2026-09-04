@@ -38,6 +38,16 @@ export function ImmersiveMediaCard({
 
   return (
     <motion.div
+      role="button"
+      tabIndex={0}
+      aria-label={title || 'Media card'}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerHapticLight();
+          if (onClick) onClick();
+        }
+      }}
       layoutId={layoutId}
       whileTap={{ scale: 0.96 }}
       onClick={() => {
