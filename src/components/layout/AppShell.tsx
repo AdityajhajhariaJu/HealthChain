@@ -40,8 +40,6 @@ const links: any[] = [
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
-  { to: '/app/progress', label: 'Vitality Progress', icon: Activity },
-  { to: '/app/trophies', label: 'Trophy Cabinet', icon: Trophy },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },
 ];
@@ -738,7 +736,7 @@ const enforceSafeArea = () => {
                   </button>
                 </div>
                 <div className="mobile-more-menu__grid">
-                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to)).map((l) => {
+                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to) && l.to !== '/app/progress' && l.to !== '/app/trophies').map((l) => {
                     const isLocked = l.locked;
                     return (
                     <button
@@ -767,12 +765,23 @@ const enforceSafeArea = () => {
                       navigate('/app/settings');
                     }} 
                     className="more-menu-item"
-                    style={{ border: 'none', background: 'none', outline: 'none' }}
+                    style={{ 
+                      border: 'none', 
+                      background: 'rgba(255, 255, 255, 0.55)', 
+                      outline: 'none',
+                      gridColumn: '1 / -1',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      padding: '12px 20px',
+                      borderRadius: '16px'
+                    }}
                   >
-                    <div className="more-menu-icon">
-                      <Settings size={22} />
+                    <div className="more-menu-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                      <Settings size={20} />
                     </div>
-                    <span>Settings</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Settings</span>
                   </button>
                 </div>
 
