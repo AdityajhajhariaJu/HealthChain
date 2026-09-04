@@ -635,9 +635,11 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
     profile.dailyCheckins = [];
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayIso = new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const todayLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   // Remove existing checkin for today if any, so we update it smoothly
-  profile.dailyCheckins = profile.dailyCheckins.filter(c => !c.date || !c.date.startsWith(todayStr));
+  profile.dailyCheckins = profile.dailyCheckins.filter(c => !c.date || (!c.date.startsWith(todayIso) && !c.date.startsWith(todayLocal)));
 
   const checkinEntry = {
     id: generateId(),
@@ -673,7 +675,7 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
       title: `Daily Check-in: ${symptom} (${severity})`,
       occurredAt: new Date().toISOString(),
       payload: { symptom, severity, score, note, lifestyle },
-      dedupeKey: `daily_checkin:${todayStr}`,
+      dedupeKey: `daily_checkin:${todayIso}`,
     });
   } catch (e) { console.error(e); }
 
@@ -683,8 +685,10 @@ export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }
 
 export function getTodayCheckin() {
   const profile = getProfile();
-  const todayStr = new Date().toISOString().split('T')[0];
-  return (profile.dailyCheckins || []).find(c => c.date && c.date.startsWith(todayStr));
+  const todayIso = new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const todayLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return (profile.dailyCheckins || []).find(c => c.date && (c.date.startsWith(todayIso) || c.date.startsWith(todayLocal)));
 }
 
 export function getRecentCheckins(days = 7) {
