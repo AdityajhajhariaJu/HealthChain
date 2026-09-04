@@ -10,6 +10,7 @@ import { getActiveCase } from '../../services/CaseEngine';
 import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     try {
       setTodayCheckin(getTodayCheckin());
       setActiveCase(getActiveCase());
-      const savedWater = parseInt(localStorage.getItem('hc_water_' + todayStr) || '0', 10);
+      const savedWater = parseInt(getItemSync('hc_water_' + todayStr) || '0', 10);
       setWaterGlasses(savedWater);
     } catch (e) {
       console.error(e);
@@ -56,11 +57,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     triggerHapticLight();
     const next = waterGlasses + 1;
     setWaterGlasses(next);
-    try {
-      localStorage.setItem('hc_water_' + todayStr, next.toString());
-    } catch (e) {
-      console.warn('Failed to save water glass count', e);
-    }
+    setItemSync('hc_water_' + todayStr, next.toString());
     if (next === 4 || next === 8) {
       awardPoints(5, 'Hydration Target Milestone 💧', 'lifestyle');
     }

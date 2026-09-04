@@ -13,6 +13,7 @@ import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
 import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
 import { getVitalityPoints, getVitalityState, awardPoints, TIERS } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
+import { getItemSync, setItemSync, removeItemSync, clearSync } from '../../services/storage';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_unified_profile',
@@ -39,7 +40,7 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
-  const [hapticsEnabled, setHapticsEnabled] = useState(localStorage.getItem('hc_haptics_enabled') !== 'false');
+  const [hapticsEnabled, setHapticsEnabled] = useState(() => getItemSync('hc_haptics_enabled') !== 'false');
   const [isDarkMode, setIsDarkMode] = useState(() => typeof document !== 'undefined' && document.documentElement.classList.contains('dark-theme'));
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
@@ -64,7 +65,7 @@ export default function Settings() {
     return () => { cancelled = true; };
   }, []);
 
-  const accountStr = localStorage.getItem('hc_account');
+  const accountStr = getItemSync('hc_account');
   let account: any = null;
   try { account = accountStr ? JSON.parse(accountStr) : null; } catch {}
   const storageScope = account?.id || 'guest';
@@ -151,10 +152,10 @@ export default function Settings() {
         await clearSyncOutbox(session.user.id);
       }
       
-      sessionStorage.clear();
+      try { sessionStorage.clear(); } catch {}
       window.dispatchEvent(new Event('hc_logout'));
 
-      localStorage.clear();
+      clearSync();
       await supabase.auth.signOut();
       success('Health data removed', 'Your HealthChain account and user-owned data have been permanently deleted.');
       navigate('/');
@@ -277,10 +278,10 @@ export default function Settings() {
                 setIsDarkMode(isDark);
                 if (isDark) {
                   document.documentElement.classList.add('dark-theme');
-                  try { localStorage.setItem('hc_theme', 'dark'); } catch(e) {}
+                  setItemSync('hc_theme', 'dark');
                 } else {
                   document.documentElement.classList.remove('dark-theme');
-                  try { localStorage.setItem('hc_theme', 'light'); } catch(e) {}
+                  setItemSync('hc_theme', 'light');
                 }
               }}
             />
@@ -342,10 +343,10 @@ export default function Settings() {
                 onChange={(e) => {
                   const isEnabled = e.target.checked;
                   if (isEnabled) {
-                    try { localStorage.removeItem('hc_haptics_enabled'); } catch(e) {}
+                    removeItemSync('hc_haptics_enabled');
                     setHapticsEnabled(true);
                   } else {
-                    try { localStorage.setItem('hc_haptics_enabled', 'false'); } catch(e) {}
+                    setItemSync('hc_haptics_enabled', 'false');
                     setHapticsEnabled(false);
                   }
                 }}
@@ -665,9 +666,10 @@ export default function Settings() {
             className="btn btn-outline"
             onClick={async () => {
               try {
-                const exportedData = Object.keys(localStorage).reduce<Record<string, string>>((data, key) => {
+                const allKeys = (() => { try { return Object.keys(localStorage); } catch { return []; } })();
+                const exportedData = allKeys.reduce<Record<string, string>>((data, key) => {
                   if (scopedExportPrefixes.some((prefix) => key.startsWith(prefix))) {
-                    const value = localStorage.getItem(key);
+                    const value = getItemSync(key);
                     if (value !== null) data[key] = value;
                   }
                   return data;
@@ -779,7 +781,7 @@ export default function Settings() {
                       const isAllowed = ALLOWED_PREFIXES.some(prefix => key.startsWith(prefix));
                       if (isAllowed) {
                         const val = typeof result[key] === 'string' ? result[key] : JSON.stringify(result[key]);
-                        try { localStorage.setItem(key, val); } catch(e) {}
+                        setItemSync(key, val);
                         importedCount++;
                       }
                     });

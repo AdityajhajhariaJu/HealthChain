@@ -13,6 +13,7 @@ import {
 import { completeProfileOnboarding } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 const splitList = (value?: string) =>
   (typeof value === 'string' ? value : '')
@@ -25,7 +26,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
   const navigate = useNavigate();
   const account = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('hc_account') || '{}');
+      return JSON.parse(getItemSync('hc_account') || '{}');
     } catch {
       return {};
     }
@@ -48,9 +49,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const canContinue = step === 0 ? Boolean(form.name.trim() && form.age) : true;
   const finish = () => {
-    try {
-      localStorage.setItem('hc_onboarded', 'true');
-    } catch(e) {}
+    setItemSync('hc_onboarded', 'true');
     completeProfileOnboarding({
       demographics: {
         name: form.name.trim(),

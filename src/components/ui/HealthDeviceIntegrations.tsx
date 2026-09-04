@@ -4,12 +4,13 @@ import { LivingHeartIcon } from './LivingHeartIcon';
 import { isHealthSupported, checkHealthPermissions, requestHealthPermissions, syncHealthData } from '../../services/HealthTrackingService';
 import { useToast } from './ToastProvider';
 import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 export function HealthDeviceIntegrations() {
   const [isConnected, setIsConnected] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSync, setLastSync] = useState<string | null>(localStorage.getItem('hc_last_health_sync'));
+  const [lastSync, setLastSync] = useState<string | null>(() => getItemSync('hc_last_health_sync'));
   const { toast, success, error } = useToast();
 
   useEffect(() => {
@@ -27,9 +28,7 @@ export function HealthDeviceIntegrations() {
     const handleSyncComplete = (e: any) => {
       const time = new Date(e.detail.at).toLocaleTimeString();
       setLastSync(time);
-      try {
-        localStorage.setItem('hc_last_health_sync', time);
-      } catch {}
+      setItemSync('hc_last_health_sync', time);
     };
 
     window.addEventListener('hc_health_sync_complete', handleSyncComplete);

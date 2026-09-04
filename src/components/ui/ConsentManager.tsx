@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 const GA_ID = 'G-0JPQJJHTB6';
 
@@ -24,10 +25,7 @@ export default function ConsentManager() {
   const [showCookies, setShowCookies] = useState(false);
 
   useEffect(() => {
-    let cookiesAccepted: string | null = null;
-    try {
-      cookiesAccepted = localStorage.getItem('hc_cookies_accepted');
-    } catch {}
+    const cookiesAccepted = getItemSync('hc_cookies_accepted');
     if (!cookiesAccepted || cookiesAccepted === 'true') {
       setShowCookies(true);
     } else if (cookiesAccepted === 'accepted') {
@@ -48,14 +46,14 @@ export default function ConsentManager() {
 
   const acceptCookies = () => {
     triggerHapticLight();
-    try { localStorage.setItem('hc_cookies_accepted', 'accepted'); } catch(e) {}
+    setItemSync('hc_cookies_accepted', 'accepted');
     enableAnalytics();
     setShowCookies(false);
   };
 
   const declineOptionalCookies = () => {
     triggerHapticLight();
-    try { localStorage.setItem('hc_cookies_accepted', 'declined'); } catch(e) {}
+    setItemSync('hc_cookies_accepted', 'declined');
     setShowCookies(false);
   };
 

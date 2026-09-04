@@ -281,6 +281,7 @@ const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) =
           playsInline
           className={styles.videoPlayer}
           onEnded={() => setIsPlaying(false)}
+          onError={() => setIsPlaying(false)}
         />
       ) : (
         <div className={styles.videoPosterContainer}>

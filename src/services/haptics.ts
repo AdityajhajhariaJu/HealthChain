@@ -1,6 +1,16 @@
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { getItemSync } from './storage';
+
+export const isHapticsEnabled = (): boolean => {
+  try {
+    return getItemSync('hc_haptics_enabled') !== 'false';
+  } catch {
+    return true;
+  }
+};
 
 export const triggerHapticLight = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.impact({ style: ImpactStyle.Light });
   } catch (e) {
@@ -11,6 +21,7 @@ export const triggerHapticLight = async () => {
 };
 
 export const triggerHapticHeavy = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.impact({ style: ImpactStyle.Heavy });
   } catch (e) {
@@ -21,6 +32,7 @@ export const triggerHapticHeavy = async () => {
 };
 
 export const triggerHapticMedium = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.impact({ style: ImpactStyle.Medium });
   } catch (e) {
@@ -31,6 +43,7 @@ export const triggerHapticMedium = async () => {
 };
 
 export const triggerHapticSuccess = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     // Note: Some Capacitor versions use NotificationType enum
     await Haptics.notification({ type: 'SUCCESS' as any });
@@ -42,6 +55,7 @@ export const triggerHapticSuccess = async () => {
 };
 
 export const triggerHapticWarning = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.notification({ type: 'WARNING' as any });
   } catch (e) {
@@ -53,6 +67,7 @@ export const triggerHapticWarning = async () => {
 
 /** Feather tick for tabs, pill selections, and micro-switches */
 export const triggerHapticSelection = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     if ((Haptics as any).selectionChanged) {
       await (Haptics as any).selectionChanged();
@@ -68,6 +83,7 @@ export const triggerHapticSelection = async () => {
 
 /** Soft pop for bottom sheets, drawers, and modal transitions */
 export const triggerHapticModal = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.impact({ style: ImpactStyle.Medium });
   } catch (e) {
@@ -79,10 +95,12 @@ export const triggerHapticModal = async () => {
 
 /** Dual-pulse rhythmic heartbeat signature for vital events and breathing peaks */
 export const triggerHapticHeartbeat = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.impact({ style: ImpactStyle.Light });
     setTimeout(async () => {
       try {
+        if (!isHapticsEnabled()) return;
         await Haptics.impact({ style: ImpactStyle.Medium });
       } catch {
         // ignore
@@ -97,6 +115,7 @@ export const triggerHapticHeartbeat = async () => {
 
 /** Crisp micro-tick for timer decrements, sliders, and audio frequency dials */
 export const triggerHapticTick = async () => {
+  if (!isHapticsEnabled()) return;
   try {
     await Haptics.impact({ style: ImpactStyle.Light });
   } catch (e) {
@@ -115,6 +134,7 @@ export const initGlobalHaptics = () => {
 
   // Add a listener to the document to catch clicks on interactive elements
   document.addEventListener('pointerdown', (e) => {
+    if (!isHapticsEnabled()) return;
     const target = e.target as HTMLElement;
     
     // Check if the target or any of its parents is a button or link

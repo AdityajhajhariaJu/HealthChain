@@ -44,6 +44,7 @@ import { VitalityNav } from '../../components/ui/FitnessNav';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
@@ -84,7 +85,7 @@ export default function CaseDashboard() {
   const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
   const [completedHabits, setCompletedHabits] = useState<Record<string, boolean>>(() => {
     try {
-      const stored = localStorage.getItem(`healthchain_habits_${todayDateStr}`);
+      const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -101,11 +102,7 @@ export default function CaseDashboard() {
     const isNowDone = !completedHabits[habitId];
     const next = { ...completedHabits, [habitId]: isNowDone };
     setCompletedHabits(next);
-    try {
-      localStorage.setItem(`healthchain_habits_${todayDateStr}`, JSON.stringify(next));
-    } catch (e) {
-      // ignore
-    }
+    setItemSync(`healthchain_habits_${todayDateStr}`, JSON.stringify(next));
 
     if (isNowDone) {
       triggerHapticSuccess();

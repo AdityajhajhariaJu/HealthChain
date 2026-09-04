@@ -5,6 +5,7 @@ import FocusTrap from './FocusTrap';
 import { getActiveSession } from '../../services/authSession';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 const TOUR_STEPS = [
   {
@@ -36,7 +37,7 @@ export default function ProductTour() {
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const hasSeenTour = localStorage.getItem('hc_product_tour_seen');
+    const hasSeenTour = getItemSync('hc_product_tour_seen');
     getActiveSession().then((session) => {
       if (cancelled || hasSeenTour || !session) return;
       timer = setTimeout(() => setIsVisible(true), 2000);
@@ -46,7 +47,7 @@ export default function ProductTour() {
 
   const dismiss = () => {
     setIsVisible(false);
-    try { localStorage.setItem('hc_product_tour_seen', 'true'); } catch(e) {}
+    setItemSync('hc_product_tour_seen', 'true');
   };
 
   useEffect(() => {

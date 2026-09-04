@@ -72,6 +72,41 @@ export function removeItemSync(key: string) {
   }
 }
 
+export function clearSync() {
+  try {
+    localStorage.clear();
+  } catch (e) {
+    console.warn('localStorage.clear failed', e);
+  }
+  if (Capacitor.getPlatform() !== 'web') {
+    Preferences.clear().catch(e => console.warn('Native clear error:', e));
+  }
+}
+
+export function getSessionItemSync(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function setSessionItemSync(key: string, value: string) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch (e) {
+    console.warn(`sessionStorage setItem failed for ${key}`, e);
+  }
+}
+
+export function removeSessionItemSync(key: string) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch (e) {
+    console.warn(`sessionStorage removeItem failed for ${key}`, e);
+  }
+}
+
 // Ensure clear still clears native
 try {
   if (typeof localStorage !== 'undefined' && localStorage.clear) {

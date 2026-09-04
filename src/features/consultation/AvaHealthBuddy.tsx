@@ -32,6 +32,7 @@ import { getProfileEngineState, getProfileKey, getProfile, updateProfileFeatureD
 import { GlassBoxExplanation } from '../../components/ui/GlassBoxExplanation';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { FitnessContent } from '../../services/FitnessService';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 const DEFAULT_CALM_TRACK: FitnessContent = {
   id: 'ava-calm-reset-1',
@@ -68,7 +69,7 @@ function getSavedMessages() {
   const profile = getProfile();
   if (profile && profile.avaData) return profile.avaData;
   try {
-    const saved = localStorage.getItem(getAvaVaultKey());
+    const saved = getItemSync(getAvaVaultKey());
     return saved ? JSON.parse(saved) : [INITIAL_MSG];
   } catch {
     return [INITIAL_MSG];
@@ -359,7 +360,7 @@ export default function AvaHealthBuddy() {
     try {
       const sanitized = messages.map(m => { const { isStreaming, ...rest } = m; return rest; });
       updateProfileFeatureData('avaData', sanitized);
-      localStorage.setItem(getAvaVaultKey(), JSON.stringify(sanitized));
+      setItemSync(getAvaVaultKey(), JSON.stringify(sanitized));
     } catch (e: any) {
       if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
         const keepCount = Math.floor(messages.length * 0.8);
@@ -367,7 +368,7 @@ export default function AvaHealthBuddy() {
         const sanitized = newMsgs.map(m => { const { isStreaming, ...rest } = m; return rest; });
         try {
           updateProfileFeatureData('avaData', sanitized);
-          localStorage.setItem(getAvaVaultKey(), JSON.stringify(sanitized));
+          setItemSync(getAvaVaultKey(), JSON.stringify(sanitized));
         } catch (e2) {}
       }
     }

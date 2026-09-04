@@ -12,6 +12,7 @@ import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 const loadingSteps = [
   "Analyzing biomarkers...",
@@ -178,7 +179,7 @@ export default function ClinicalTrialsMatcher() {
   const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
   const [savedItems, setSavedItems] = useState<Record<string, boolean>>(() => {
     try {
-      const stored = localStorage.getItem('hc_saved_trials');
+      const stored = getItemSync('hc_saved_trials');
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -190,9 +191,7 @@ export default function ClinicalTrialsMatcher() {
     triggerHapticSuccess();
     const newSaved = { ...savedItems, [item.id]: true };
     setSavedItems(newSaved);
-    try {
-      localStorage.setItem('hc_saved_trials', JSON.stringify(newSaved));
-    } catch {}
+    setItemSync('hc_saved_trials', JSON.stringify(newSaved));
 
     recordHealthMemory({
       kind: 'research',

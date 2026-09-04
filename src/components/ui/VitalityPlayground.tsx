@@ -4,6 +4,7 @@ import { Sparkles, Trophy, Flame, Gift, Brain, HelpCircle, CheckCircle2, XCircle
 import { awardTriviaPoints, awardMysteryDrop, awardMythBusterPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 interface TriviaQuestion {
   id: number;
@@ -321,7 +322,7 @@ export default function VitalityPlayground() {
   // Mystery Drop State
   const [mysteryClaimed, setMysteryClaimed] = useState<number | null>(() => {
     try {
-      const saved = localStorage.getItem(mysteryKey);
+      const saved = getItemSync(mysteryKey);
       const parsed = saved ? parseInt(saved, 10) : null;
       return parsed !== null && Number.isFinite(parsed) ? parsed : null;
     } catch {
@@ -334,7 +335,7 @@ export default function VitalityPlayground() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [triviaSolved, setTriviaSolved] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(triviaKey) === 'true';
+      return getItemSync(triviaKey) === 'true';
     } catch {
       return false;
     }
@@ -344,7 +345,7 @@ export default function VitalityPlayground() {
   // MythBuster State
   const [mythAnswered, setMythAnswered] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(mythKey) === 'true';
+      return getItemSync(mythKey) === 'true';
     } catch {
       return false;
     }
@@ -367,9 +368,7 @@ export default function VitalityPlayground() {
       const drop = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
       setMysteryClaimed(drop);
       setIsRevealingMystery(false);
-      try {
-        localStorage.setItem(mysteryKey, drop.toString());
-      } catch {}
+      setItemSync(mysteryKey, drop.toString());
       awardMysteryDrop(drop);
       triggerHapticSuccess();
     }, 900);
@@ -382,9 +381,7 @@ export default function VitalityPlayground() {
 
     if (index === currentTrivia.correct) {
       setTriviaSolved(true);
-      try {
-        localStorage.setItem(triviaKey, 'true');
-      } catch {}
+      setItemSync(triviaKey, 'true');
       awardTriviaPoints();
       triggerHapticSuccess();
     } else {
@@ -396,9 +393,7 @@ export default function VitalityPlayground() {
     if (mythAnswered) return;
     setSelectedMythChoice(choice);
     setMythAnswered(true);
-    try {
-      localStorage.setItem(mythKey, 'true');
-    } catch {}
+    setItemSync(mythKey, 'true');
 
     if (choice === currentMyth.isFact) {
       awardMythBusterPoints();

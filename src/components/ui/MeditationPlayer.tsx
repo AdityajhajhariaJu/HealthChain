@@ -1165,6 +1165,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   autoPlay={isPlaying}
                   preload="auto"
                   playsInline
+                  onError={() => {
+                    console.warn('Track audio playback error, resetting playing state');
+                    setIsPlaying(false);
+                  }}
                   onTimeUpdate={() => {
                     if (audioRef.current) {
                       setCurrentTime(audioRef.current.currentTime);
@@ -1191,6 +1195,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   autoPlay={isPlaying}
                   preload="auto"
                   playsInline
+                  onError={() => {
+                    console.warn('Ambient audio layer failed to load or stream interrupted');
+                  }}
                 />
               )}
 

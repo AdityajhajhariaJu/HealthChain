@@ -3,6 +3,7 @@ import { ShieldCheck, Target, Zap, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { getRunScope } from '../../services/RunContext';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 export default function ActionPlan({ analysis }) {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -10,7 +11,7 @@ export default function ActionPlan({ analysis }) {
 
   useEffect(() => {
     if (analysis) {
-      const storedTasks = localStorage.getItem(planKey);
+      const storedTasks = getItemSync(planKey);
       if (storedTasks) {
         try { setTasks(JSON.parse(storedTasks)); } catch { /* ignore */ }
       } else if (analysis.what_to_do || analysis.this_week_tasks) {
@@ -26,14 +27,14 @@ export default function ActionPlan({ analysis }) {
           completed: false,
         }));
         setTasks(initialTasks);
-        try { localStorage.setItem(planKey, JSON.stringify(initialTasks)); } catch(e) {}
+        setItemSync(planKey, JSON.stringify(initialTasks));
       }
     }
   }, [analysis, planKey]);
   const toggleTask = (id) => {
     const updated = tasks.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t));
     setTasks(updated);
-    try { localStorage.setItem(planKey, JSON.stringify(updated)); } catch(e) {}
+    setItemSync(planKey, JSON.stringify(updated));
   };
 
   if (!analysis) return null;

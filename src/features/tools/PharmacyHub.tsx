@@ -24,6 +24,7 @@ import { trackFeatureUsed } from '../../services/analytics';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 let cachedPharmacyState: any = null;
 
@@ -90,7 +91,7 @@ export default function PharmacyHub() {
   const executeSearch = async (term: string) => {
     if (!term.trim()) return;
     if (!(await getActiveSession())) {
-      const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10) || 0;
+      const currentCount = parseInt(getItemSync('hc_guest_pharmacy_count') || '0', 10) || 0;
       if (currentCount >= 5) {
         window.dispatchEvent(new CustomEvent('hc_require_auth', { 
           detail: { 
@@ -100,7 +101,7 @@ export default function PharmacyHub() {
         }));
         return;
       }
-      try { localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString()); } catch(e) {}
+      setItemSync('hc_guest_pharmacy_count', (currentCount + 1).toString());
     }
 
     setLoading(true);

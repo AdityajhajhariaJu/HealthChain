@@ -4,6 +4,7 @@ import { Heart, Play, Square, CheckCircle2, Wind, Activity, Volume2, VolumeX, In
 import { awardMindfulPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticTick, triggerHapticHeartbeat, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 function getLocalDateKey(): string {
   const d = new Date();
@@ -58,7 +59,7 @@ export default function MindfulHRVCard() {
   const [showScienceRationale, setShowScienceRationale] = useState(false);
   const [breathCompletedToday, setBreathCompletedToday] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(breathKey) === 'true' || localStorage.getItem(isoBreathKey) === 'true';
+      return getItemSync(breathKey) === 'true' || getItemSync(isoBreathKey) === 'true';
     } catch {
       return false;
     }
@@ -109,6 +110,10 @@ export default function MindfulHRVCard() {
       const audio = new Audio(encodeURI(track.url));
       audio.loop = true;
       audio.preload = 'auto';
+      audio.onerror = () => {
+        console.warn('Audio playback error on track');
+        stopAudio();
+      };
       audioInstanceRef.current = audio;
 
       const playPromise = audio.play();
@@ -179,9 +184,7 @@ export default function MindfulHRVCard() {
       if (nextCycle >= 3) {
         setBreathActive(false);
         setBreathCompletedToday(true);
-        try {
-          localStorage.setItem(breathKey, 'true');
-        } catch {}
+        setItemSync(breathKey, 'true');
         awardMindfulPoints();
         triggerHapticHeartbeat();
         triggerHapticSuccess();

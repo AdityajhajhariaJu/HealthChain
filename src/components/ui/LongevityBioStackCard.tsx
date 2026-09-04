@@ -19,6 +19,7 @@ import {
   awardHydrationPoints,
   awardMicroMovementPoints
 } from '../../services/VitalityPointsEngine';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 interface PhytoColor {
   id: string;
@@ -136,7 +137,7 @@ export default function LongevityBioStackCard() {
   // State: Rainbow Tracker
   const [selectedColors, setSelectedColors] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem(phytoKey);
+      const saved = getItemSync(phytoKey);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -144,7 +145,7 @@ export default function LongevityBioStackCard() {
   });
   const [phytoRewardClaimed, setPhytoRewardClaimed] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(`${phytoKey}_claimed`) === 'true';
+      return getItemSync(`${phytoKey}_claimed`) === 'true';
     } catch {
       return false;
     }
@@ -153,7 +154,7 @@ export default function LongevityBioStackCard() {
   // State: Hydration Matrix
   const [waterMl, setWaterMl] = useState<number>(() => {
     try {
-      const saved = localStorage.getItem(hydrationKey);
+      const saved = getItemSync(hydrationKey);
       const parsed = saved ? parseInt(saved, 10) : 500;
       return Number.isFinite(parsed) ? parsed : 500;
     } catch {
@@ -162,7 +163,7 @@ export default function LongevityBioStackCard() {
   });
   const [hydrationRewardClaimed, setHydrationRewardClaimed] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(`${hydrationKey}_claimed`) === 'true';
+      return getItemSync(`${hydrationKey}_claimed`) === 'true';
     } catch {
       return false;
     }
@@ -174,7 +175,7 @@ export default function LongevityBioStackCard() {
   const [isMovementActive, setIsMovementActive] = useState(false);
   const [movementDone, setMovementDone] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(movementKey) === 'true';
+      return getItemSync(movementKey) === 'true';
     } catch {
       return false;
     }
@@ -190,15 +191,11 @@ export default function LongevityBioStackCard() {
       : [...selectedColors, id];
 
     setSelectedColors(updated);
-    try {
-      localStorage.setItem(phytoKey, JSON.stringify(updated));
-    } catch {}
+    setItemSync(phytoKey, JSON.stringify(updated));
 
     if (updated.length >= 3 && !phytoRewardClaimed) {
       setPhytoRewardClaimed(true);
-      try {
-        localStorage.setItem(`${phytoKey}_claimed`, 'true');
-      } catch {}
+      setItemSync(`${phytoKey}_claimed`, 'true');
       awardPhytoPoints();
       triggerHapticSuccess();
     }
@@ -209,15 +206,11 @@ export default function LongevityBioStackCard() {
     triggerHapticMedium();
     const newTotal = Math.min(4000, waterMl + amount);
     setWaterMl(newTotal);
-    try {
-      localStorage.setItem(hydrationKey, newTotal.toString());
-    } catch {}
+    setItemSync(hydrationKey, newTotal.toString());
 
     if (newTotal >= 2000 && !hydrationRewardClaimed) {
       setHydrationRewardClaimed(true);
-      try {
-        localStorage.setItem(`${hydrationKey}_claimed`, 'true');
-      } catch {}
+      setItemSync(`${hydrationKey}_claimed`, 'true');
       awardHydrationPoints();
       triggerHapticSuccess();
     }
@@ -226,27 +219,23 @@ export default function LongevityBioStackCard() {
   const handleResetWater = () => {
     triggerHapticLight();
     setWaterMl(0);
-    try {
-      localStorage.setItem(hydrationKey, '0');
-    } catch {}
+    setItemSync(hydrationKey, '0');
   };
 
   // Movement timer interval
   useEffect(() => {
-    if (isMovementActive) {
-      movementTimerRef.current = setInterval(() => {
-        setMovementTimeLeft((prev) => Math.max(0, prev - 1));
+    let interval: any = null;
+    if (isMovementActive && movementTimeLeft > 0) {
+      interval = setInterval(() => {
+        setMovementTimeLeft((t) => t - 1);
       }, 1000);
-    } else if (movementTimerRef.current) {
-      clearInterval(movementTimerRef.current);
     }
-
     return () => {
-      if (movementTimerRef.current) clearInterval(movementTimerRef.current);
+      if (interval) clearInterval(interval);
     };
-  }, [isMovementActive]);
+  }, [isMovementActive, movementTimeLeft]);
 
-  // Handle step transition and completion cleanly
+  // Movement sequence progression
   useEffect(() => {
     if (isMovementActive && movementTimeLeft === 0) {
       triggerHapticMedium();
@@ -257,9 +246,7 @@ export default function LongevityBioStackCard() {
       } else {
         setIsMovementActive(false);
         setMovementDone(true);
-        try {
-          localStorage.setItem(movementKey, 'true');
-        } catch {}
+        setItemSync(movementKey, 'true');
         awardMicroMovementPoints();
         triggerHapticSuccess();
       }

@@ -154,6 +154,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         autoPlay 
         playsInline 
         muted 
+        onError={() => setCameraError("Video stream could not be loaded")}
         style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0
         }} 

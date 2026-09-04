@@ -3,6 +3,7 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
+import { getItemSync, removeItemSync } from '../../services/storage';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -127,7 +128,7 @@ export default function MedicalProfile() {
 
   const account = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('hc_account') || '{}');
+      return JSON.parse(getItemSync('hc_account') || '{}');
     } catch {
       return {};
     }
@@ -241,18 +242,18 @@ export default function MedicalProfile() {
 
   const executeClearData = () => {
     clearProfile();
-    localStorage.removeItem(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
-    localStorage.removeItem('hc_history');
+    removeItemSync(getProfileKey().replace('hc_unified_profile', 'hc_diet_profile'));
+    removeItemSync('hc_history');
     
     const state = getProfileEngineState();
     const profileKey = getProfileKey();
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_cases') + '_' + state.activeId);
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_active_case') + '_' + state.activeId);
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_ava_vault'));
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
-    localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_cases') + '_' + state.activeId);
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_active_case') + '_' + state.activeId);
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_ava_vault'));
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+    removeItemSync(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
     
     toast.info('Data Reset', 'Health dossier has been reset.');
     window.location.reload();

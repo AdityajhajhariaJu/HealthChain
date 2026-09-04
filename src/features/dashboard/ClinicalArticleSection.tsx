@@ -25,6 +25,7 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 const CATEGORIES = [
   'All',
@@ -55,7 +56,7 @@ export function ClinicalArticleSection() {
   // Bookmarks persistence
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem('healthchain_bookmarked_articles');
+      const stored = getItemSync('healthchain_bookmarked_articles');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -65,7 +66,7 @@ export function ClinicalArticleSection() {
   // Read articles persistence
   const [readIds, setReadIds] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem('healthchain_read_articles');
+      const stored = getItemSync('healthchain_read_articles');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -148,9 +149,7 @@ export function ClinicalArticleSection() {
       : [...bookmarkedIds, articleId];
     
     setBookmarkedIds(updated);
-    try {
-      localStorage.setItem('healthchain_bookmarked_articles', JSON.stringify(updated));
-    } catch {}
+    setItemSync('healthchain_bookmarked_articles', JSON.stringify(updated));
 
     if (!isSaved) {
       toast.success('Article Saved', 'Added to your personal reading list.');
@@ -189,9 +188,7 @@ export function ClinicalArticleSection() {
     if (!readIds.includes(article.id)) {
       const nextRead = [...readIds, article.id];
       setReadIds(nextRead);
-      try {
-        localStorage.setItem('healthchain_read_articles', JSON.stringify(nextRead));
-      } catch {}
+      setItemSync('healthchain_read_articles', JSON.stringify(nextRead));
       awardPoints(10, `Read Article: ${article.title}`, 'lifestyle', `read_${article.id}`);
       toast.success('Article Completed! 📖', '+10 Vitality Points awarded for preventative health learning.');
     } else {

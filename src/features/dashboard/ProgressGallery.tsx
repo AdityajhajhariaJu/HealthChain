@@ -13,6 +13,7 @@ import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera, MessageSquar
 import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
 import { getProfile } from '../../services/ProfileEngine';
 import { getCases } from '../../services/CaseEngine';
+import { getItemSync, setItemSync } from '../../services/storage';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -22,7 +23,7 @@ export const ProgressGallery: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
-  const [userPhoto, setUserPhoto] = useState<string | null>(() => localStorage.getItem('hc_progress_photo'));
+  const [userPhoto, setUserPhoto] = useState<string | null>(() => getItemSync('hc_progress_photo'));
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -32,11 +33,7 @@ export const ProgressGallery: React.FC = () => {
       const dataUrl = event.target?.result as string;
       if (dataUrl) {
         setUserPhoto(dataUrl);
-        try {
-          localStorage.setItem('hc_progress_photo', dataUrl);
-        } catch (err) {
-          console.warn('Failed to save progress photo to localStorage', err);
-        }
+        setItemSync('hc_progress_photo', dataUrl);
         triggerHapticSuccess();
         awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
         toast.success('Photo Captured!', 'New transformation benchmark recorded (+10 Vitality points).');
@@ -110,7 +107,13 @@ export const ProgressGallery: React.FC = () => {
     const sleepScore = Math.min(100, Math.max(40, checkins.length * 10 + 35));
 
     // Hydration & Habits
-    const habitKeys = Object.keys(localStorage).filter(k => k.startsWith('healthchain_habits_'));
+    const habitKeys = (() => {
+      try {
+        return Object.keys(localStorage).filter(k => k.startsWith('healthchain_habits_'));
+      } catch {
+        return [];
+      }
+    })();
     const habitScore = Math.min(100, Math.max(30, habitKeys.length * 12 + 25));
 
     // Biomarkers & Lab Records
