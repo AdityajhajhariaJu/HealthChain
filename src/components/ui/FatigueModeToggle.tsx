@@ -24,6 +24,7 @@ export const FatigueModeToggle = () => {
     <div style={{ padding: '0 24px', margin: '16px 0', display: 'flex', justifyContent: 'flex-end' }}>
       <button 
         onClick={toggle}
+        aria-label={isFatigued ? "Disable Fatigue UI" : "Enable Fatigue UI"}
         style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '8px 16px', borderRadius: '20px', border: 'none',
