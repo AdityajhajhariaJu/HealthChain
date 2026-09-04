@@ -553,7 +553,7 @@ export default function CaseDashboard() {
           <DailySymptomCheckinWidget />
         </div>
 
-        <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
+        <div style={{ position: 'relative', margin: '0 0 16px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />

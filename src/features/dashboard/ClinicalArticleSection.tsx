@@ -248,14 +248,14 @@ export function ClinicalArticleSection() {
   }, [libraryCategory, librarySearch, bookmarkedIds]);
 
   return (
-    <section style={{ padding: isMobile ? '28px 0 12px' : '32px 0 20px', position: 'relative' }}>
+    <section style={{ padding: isMobile ? '8px 0 12px' : '20px 0 20px', position: 'relative' }}>
       {/* Section Header */}
       <div style={{ 
         padding: '0 24px', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'flex-end', 
-        marginBottom: '18px' 
+        marginBottom: isMobile ? '12px' : '18px' 
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -323,7 +323,7 @@ export function ClinicalArticleSection() {
           display: 'flex', 
           gap: '8px', 
           overflowX: 'auto', 
-          padding: '0 24px 16px',
+          padding: isMobile ? '0 24px 12px' : '0 24px 16px',
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none'
         }}
@@ -469,7 +469,7 @@ export function ClinicalArticleSection() {
                 }}
               >
                 {/* Thumbnail Image Header */}
-                <div style={{ position: 'relative', height: '165px', width: '100%', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', height: isMobile ? '150px' : '165px', width: '100%', overflow: 'hidden' }}>
                   <img 
                     loading="lazy" 
                     decoding="async" 
