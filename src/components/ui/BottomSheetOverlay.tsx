@@ -81,7 +81,7 @@ export function BottomSheetOverlay({
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 60,
+              zIndex: 1000,
               backgroundColor: 'rgba(0, 0, 0, 0.6)',
               backdropFilter: 'blur(4px)'
             }}
@@ -100,8 +100,9 @@ export function BottomSheetOverlay({
               left: 0,
               right: 0,
               bottom: 0,
-              zIndex: 61,
+              zIndex: 1001,
               height: '92vh',
+              maxHeight: 'calc(100vh - max(20px, env(safe-area-inset-top, 20px)))',
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: resolvedBg,

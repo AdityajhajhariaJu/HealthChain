@@ -87,6 +87,10 @@ export function ClinicalArticleSection() {
   };
 
   useEffect(() => {
+    if (selectedArticle && readerContentRef.current) {
+      readerContentRef.current.scrollTop = 0;
+      setScrollProgress(0);
+    }
     return () => {
       stopNarration();
     };
@@ -813,12 +817,14 @@ export function ClinicalArticleSection() {
                     aria-label={`Read article: ${art.title}`}
                     onClick={() => {
                       triggerHapticLight();
+                      setShowLibraryModal(false);
                       setSelectedArticle(art);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         triggerHapticLight();
+                        setShowLibraryModal(false);
                         setSelectedArticle(art);
                       }
                     }}
@@ -917,7 +923,7 @@ export function ClinicalArticleSection() {
               minHeight: 0,
               overflowY: 'auto',
               overflowX: 'hidden',
-              padding: isMobile ? '20px 16px 80px' : '24px 32px 80px',
+              padding: isMobile ? '36px 16px 80px' : '32px 32px 80px',
               background: '#FFFFFF',
               boxSizing: 'border-box'
             }}
@@ -927,10 +933,11 @@ export function ClinicalArticleSection() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center', 
-              marginTop: '8px',
-              marginBottom: '16px',
+              marginTop: isMobile ? '4px' : '8px',
+              marginBottom: '18px',
               paddingBottom: '12px',
-              borderBottom: '1px solid #F1F5F9'
+              borderBottom: '1px solid #F1F5F9',
+              flexShrink: 0
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ 
@@ -1064,44 +1071,84 @@ export function ClinicalArticleSection() {
               </div>
             </div>
 
-            {/* Hero Cover Banner with Medical Review Badge */}
+            {/* Hero Cover Banner with Medical Review Badge & Thumbnail Picture */}
             <div style={{ 
               position: 'relative', 
               width: '100%', 
-              height: isMobile ? '200px' : '260px', 
-              borderRadius: '24px', 
+              height: isMobile ? '210px' : '270px', 
+              borderRadius: '20px', 
               overflow: 'hidden', 
-              marginBottom: '20px' 
+              marginBottom: '20px',
+              backgroundColor: '#0F172A',
+              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.10)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              flexShrink: 0
             }}>
               <img 
                 src={selectedArticle.img} 
-                alt={selectedArticle.title} 
+                alt={selectedArticle.title}
+                loading="eager"
+                decoding="async" 
                 onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&q=80';
+                  const fallbackMap: Record<string, string> = {
+                    'Gut Health': '/images/immersive/personalized-meal.png',
+                    'Brain & Mind': '/images/immersive/focus-boost.png',
+                    'Cardiometabolic': '/images/immersive/doctor-biomarker.png',
+                    'Sleep & Circadian': '/images/immersive/midnight-craving.png',
+                    'Longevity': '/images/immersive/master-your-health.png'
+                  };
+                  const fallback = fallbackMap[selectedArticle.category] || '/images/immersive/doctor-biomarker.png';
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
                 }}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
               />
               <div style={{ 
                 position: 'absolute', 
                 inset: 0, 
-                background: 'linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.2) 60%, transparent 100%)' 
+                background: 'linear-gradient(to top, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.25) 55%, transparent 100%)' 
               }} />
               
-              <div style={{ position: 'absolute', bottom: '16px', left: '16px', right: '16px' }}>
+              <div style={{ 
+                position: 'absolute', 
+                bottom: '14px', 
+                left: '16px', 
+                right: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px'
+              }}>
                 <div style={{ 
                   display: 'inline-flex', 
                   alignItems: 'center', 
                   gap: '6px', 
-                  background: 'rgba(255, 255, 255, 0.2)', 
+                  background: 'rgba(15, 23, 42, 0.65)', 
                   backdropFilter: 'blur(10px)', 
-                  padding: '4px 10px', 
-                  borderRadius: '12px' 
+                  padding: '5px 12px', 
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}>
                   <ShieldCheck size={14} color="#34D399" />
                   <span style={{ fontSize: '11px', fontWeight: 700, color: 'white', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                     PEER-REVIEWED CLINICAL EVIDENCE
                   </span>
                 </div>
+
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  background: 'rgba(15, 23, 42, 0.5)',
+                  backdropFilter: 'blur(8px)',
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {selectedArticle.categoryLabel || selectedArticle.category}
+                </span>
               </div>
             </div>
 
