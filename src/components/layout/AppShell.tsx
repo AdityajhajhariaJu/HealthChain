@@ -285,7 +285,7 @@ const enforceSafeArea = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Trophy size={15} color="#059669" />
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
+                <span className="tabular-nums" style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
                 <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
               </div>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
@@ -567,21 +567,34 @@ const enforceSafeArea = () => {
             )}
             </div>
               {!location.pathname.startsWith('/app/ava') ? (
-                <button 
+                <motion.button 
                   className="mobile-top-bar__search" 
-                  onClick={() => navigate('/app/ava')} 
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                  onClick={() => {
+                    triggerHapticLight();
+                    navigate('/app/ava');
+                  }} 
                   aria-label="Search or Ask Ava Health Buddy" 
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '6px', 
-                    padding: '0 10px',
+                    padding: '0 12px',
                     minWidth: 0,
-                    flex: 1
+                    flex: 1,
+                    cursor: 'pointer',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F43F5E', flexShrink: 0 }}>
-                    <Heart size={13} fill="#F43F5E" color="#F43F5E" />
+                    <motion.div
+                      animate={{ scale: [1, 1.15, 1], opacity: [0.85, 1, 0.85] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{ display: 'flex', alignItems: 'center' }}
+                    >
+                      <Heart size={13} fill="#F43F5E" color="#F43F5E" />
+                    </motion.div>
                     <span style={{ fontWeight: 800, fontSize: '12px', letterSpacing: '-0.2px' }}>Ava</span>
                   </div>
                   <span style={{ 
@@ -594,7 +607,7 @@ const enforceSafeArea = () => {
                   }}>
                     Ask anything...
                   </span>
-                </button>
+                </motion.button>
               ) : (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                   <span style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -604,7 +617,7 @@ const enforceSafeArea = () => {
               )}
               <div className="mobile-top-bar__actions">
                     <button
-                      className="mobile-top-bar__points sparkly-gold-pill"
+                      className="mobile-top-bar__points sparkly-gold-pill tabular-nums"
                       onClick={() => {
                         triggerHapticLight();
                         window.dispatchEvent(new Event('hc_open_points_modal'));
@@ -620,7 +633,7 @@ const enforceSafeArea = () => {
                       aria-label="View Vitality Points & Daily Rewards"
                     >
                       <Trophy size={14} color="#059669" />
-                      <span style={{ fontWeight: 900, color: '#065F46' }}>{points} PTS</span>
+                      <span className="tabular-nums" style={{ fontWeight: 900, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
                       <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
                     </button>
                 <button 

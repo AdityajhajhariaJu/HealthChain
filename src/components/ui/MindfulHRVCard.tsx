@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Play, Square, CheckCircle2, Wind, Activity, Volume2, VolumeX } from 'lucide-react';
+import { Heart, Play, Square, CheckCircle2, Wind, Activity, Volume2, VolumeX, Info } from 'lucide-react';
 import { awardMindfulPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess, triggerHapticTick, triggerHapticHeartbeat, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 function getLocalDateKey(): string {
@@ -55,6 +55,7 @@ export default function MindfulHRVCard() {
   const [breathPhase, setBreathPhase] = useState<'Inhale' | 'Hold' | 'Exhale' | 'Rest'>('Inhale');
   const [cycleCount, setCycleCount] = useState(0);
   const [secondsRemaining, setSecondsRemaining] = useState(4);
+  const [showScienceRationale, setShowScienceRationale] = useState(false);
   const [breathCompletedToday, setBreathCompletedToday] = useState<boolean>(() => {
     try {
       return localStorage.getItem(breathKey) === 'true' || localStorage.getItem(isoBreathKey) === 'true';
@@ -141,11 +142,17 @@ export default function MindfulHRVCard() {
     };
   }, []);
 
-  // Breathwork timer interval
+  // Breathwork timer interval with haptic tick on decrement
   useEffect(() => {
     if (!breathActive) return;
     const timer = setInterval(() => {
-      setSecondsRemaining((prev) => Math.max(0, prev - 1));
+      setSecondsRemaining((prev) => {
+        const nextVal = Math.max(0, prev - 1);
+        if (nextVal > 0) {
+          triggerHapticTick();
+        }
+        return nextVal;
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, [breathActive]);
@@ -157,15 +164,15 @@ export default function MindfulHRVCard() {
     if (breathPhase === 'Inhale') {
       setBreathPhase('Hold');
       setSecondsRemaining(4);
-      triggerHapticLight();
+      triggerHapticTick();
     } else if (breathPhase === 'Hold') {
       setBreathPhase('Exhale');
       setSecondsRemaining(4);
-      triggerHapticLight();
+      triggerHapticTick();
     } else if (breathPhase === 'Exhale') {
       setBreathPhase('Rest');
       setSecondsRemaining(4);
-      triggerHapticLight();
+      triggerHapticTick();
     } else {
       const nextCycle = cycleCount + 1;
       setCycleCount(nextCycle);
@@ -176,13 +183,14 @@ export default function MindfulHRVCard() {
           localStorage.setItem(breathKey, 'true');
         } catch {}
         awardMindfulPoints();
+        triggerHapticHeartbeat();
         triggerHapticSuccess();
         setSecondsRemaining(4);
         stopAudio();
       } else {
         setBreathPhase('Inhale');
         setSecondsRemaining(4);
-        triggerHapticLight();
+        triggerHapticHeartbeat();
       }
     }
   }, [secondsRemaining, breathActive, breathPhase, cycleCount, breathKey]);
@@ -207,7 +215,8 @@ export default function MindfulHRVCard() {
 
   const handleSelectTrack = (idx: number) => {
     setSelectedTrackIndex(idx);
-    triggerHapticLight();
+    triggerHapticSelection();
+    triggerHapticTick();
     if (breathActive && !isSoundMuted) {
       playAudio(idx);
     }
@@ -241,7 +250,7 @@ export default function MindfulHRVCard() {
         borderRadius: isMobile ? '20px' : '24px',
         background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 55%, #FAF5FF 100%)',
         border: '1px solid rgba(16, 185, 129, 0.22)',
-        boxShadow: '0 4px 20px -2px rgba(16, 185, 129, 0.08)',
+        boxShadow: '0 8px 32px -4px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
         padding: isMobile ? '16px' : '20px 24px',
         color: '#0F172A',
         position: 'relative',
@@ -275,34 +284,59 @@ export default function MindfulHRVCard() {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <span
+              className="micro-badge"
               style={{
-                fontSize: '11px',
-                fontWeight: 700,
                 color: '#059669',
                 background: '#ECFDF5',
                 border: '1px solid #A7F3D0',
-                padding: '2px 8px',
+                padding: '3px 9px',
                 borderRadius: '999px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)'
               }}
             >
               <Wind size={12} /> 1-Min Reset
             </span>
             <span
+              className="tabular-nums micro-badge"
               style={{
-                fontSize: '11px',
-                fontWeight: 700,
                 color: '#7C3AED',
                 background: '#F5F3FF',
                 border: '1px solid #DDD6FE',
-                padding: '2px 8px',
+                padding: '3px 9px',
                 borderRadius: '999px',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)'
               }}
             >
               +3 PTS
             </span>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticSelection();
+                setShowScienceRationale(prev => !prev);
+              }}
+              aria-label="Toggle clinical baroreflex science rationale"
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#047857',
+                background: showScienceRationale ? 'rgba(16, 185, 129, 0.18)' : 'rgba(255, 255, 255, 0.85)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                padding: '3px 9px',
+                borderRadius: '999px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.95)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Info size={11} /> {showScienceRationale ? 'Hide Science' : 'Clinical Rationale'}
+            </button>
           </div>
 
           <h3 style={{ margin: '0 0 4px', fontSize: isMobile ? '17px' : '19px', fontWeight: 800, letterSpacing: '-0.3px', color: '#0F172A' }}>
@@ -539,8 +573,8 @@ export default function MindfulHRVCard() {
                     : 'radial-gradient(circle, #38BDF8 0%, #0284C7 90%)'
                   : 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
                 boxShadow: breathActive
-                  ? '0 0 24px rgba(52, 211, 153, 0.45)'
-                  : '0 2px 10px rgba(5, 150, 105, 0.12)',
+                  ? '0 0 28px rgba(52, 211, 153, 0.5), inset 0 1px 0 rgba(255,255,255,0.85)'
+                  : '0 2px 10px rgba(5, 150, 105, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -559,7 +593,18 @@ export default function MindfulHRVCard() {
                 {breathActive ? breathPhase : 'Calm'}
               </span>
               {breathActive ? (
-                <span style={{ fontSize: '15px', fontWeight: 900, marginTop: '1px', lineHeight: 1 }}>
+                <span 
+                  className="tabular-nums"
+                  style={{ 
+                    fontSize: '15px', 
+                    fontWeight: 900, 
+                    marginTop: '1px', 
+                    lineHeight: 1,
+                    fontVariantNumeric: 'tabular-nums',
+                    fontFeatureSettings: '"tnum" 1',
+                    letterSpacing: '0.02em'
+                  }}
+                >
                   {secondsRemaining}s
                 </span>
               ) : (
@@ -569,6 +614,40 @@ export default function MindfulHRVCard() {
           </div>
         </div>
       </div>
+
+      {/* Progressive Clinical Disclosure */}
+      <AnimatePresence>
+        {showScienceRationale && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginTop: 14 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+            style={{
+              overflow: 'hidden',
+              background: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(16px)',
+              borderRadius: '16px',
+              padding: '12px 16px',
+              border: '1px solid rgba(16, 185, 129, 0.28)',
+              boxShadow: '0 4px 16px rgba(5, 150, 105, 0.06), inset 0 1px 0 rgba(255,255,255,0.95)',
+              width: '100%',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span className="micro-badge" style={{ color: '#047857', letterSpacing: '0.08em' }}>
+                Clinical Baroreflex Science
+              </span>
+              <span className="tabular-nums micro-badge" style={{ color: '#64748B', background: '#F1F5F9', padding: '2px 6px', borderRadius: '6px' }}>
+                0.1 Hz RSA Resonance
+              </span>
+            </div>
+            <p style={{ fontSize: '12px', color: '#334155', margin: 0, lineHeight: 1.45, fontWeight: 500 }}>
+              <strong>Vagal Nerve & Autonomic Tone:</strong> 4-4-4 resonant box breathing synchronizes pulmonary stretch receptor input with aortic baroreceptors. This slow pacing stimulates cholinergic efferent vagal nerve firing, accelerating acetylcholine release at the sinoatrial node to lower resting blood pressure, expand High-Frequency HRV (RMSSD), and extinguish acute adrenergic fight-or-flight signaling within 60 seconds.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

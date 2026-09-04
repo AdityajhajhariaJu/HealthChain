@@ -51,6 +51,61 @@ export const triggerHapticWarning = async () => {
   }
 };
 
+/** Feather tick for tabs, pill selections, and micro-switches */
+export const triggerHapticSelection = async () => {
+  try {
+    if ((Haptics as any).selectionChanged) {
+      await (Haptics as any).selectionChanged();
+    } else {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
+  } catch (e) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(8);
+    }
+  }
+};
+
+/** Soft pop for bottom sheets, drawers, and modal transitions */
+export const triggerHapticModal = async () => {
+  try {
+    await Haptics.impact({ style: ImpactStyle.Medium });
+  } catch (e) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(18);
+    }
+  }
+};
+
+/** Dual-pulse rhythmic heartbeat signature for vital events and breathing peaks */
+export const triggerHapticHeartbeat = async () => {
+  try {
+    await Haptics.impact({ style: ImpactStyle.Light });
+    setTimeout(async () => {
+      try {
+        await Haptics.impact({ style: ImpactStyle.Medium });
+      } catch {
+        // ignore
+      }
+    }, 90);
+  } catch (e) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([12, 60, 20]);
+    }
+  }
+};
+
+/** Crisp micro-tick for timer decrements, sliders, and audio frequency dials */
+export const triggerHapticTick = async () => {
+  try {
+    await Haptics.impact({ style: ImpactStyle.Light });
+  } catch (e) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(6);
+    }
+  }
+};
+
 let hasInitializedGlobalHaptics = false;
 
 // Global initializer for that premium native feel
