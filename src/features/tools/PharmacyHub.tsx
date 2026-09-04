@@ -303,6 +303,7 @@ export default function PharmacyHub() {
               type="file"
               accept="image/*"
               capture="environment"
+              aria-label="Upload or take photo of medication"
               style={{ display: 'none' }}
               onChange={handleCameraScan}
             />
@@ -350,6 +351,7 @@ export default function PharmacyHub() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search medicine (e.g., Metformin, PCM)..."
+              aria-label="Search medicine name, salt, or prescription"
               style={{
                 width: '100%',
                 padding: '16px 16px 16px 60px',

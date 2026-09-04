@@ -164,6 +164,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           <span style={{ color: '#FFF', fontWeight: 600, fontSize: '14px', letterSpacing: '0.5px' }}>HEALTHCHAIN LENS</span>
         </div>
         <button 
+          type="button"
+          aria-label="Close AR Grocery Lens"
           onClick={handleClose}
           style={{ width: '40px', height: '40px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
@@ -385,6 +387,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         type="file"
         accept="image/*"
         ref={fileInputRef}
+        aria-label="Upload grocery or food label photo"
         onChange={handleFileUpload}
         style={{ display: 'none' }}
       />

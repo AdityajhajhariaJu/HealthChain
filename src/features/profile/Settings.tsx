@@ -285,6 +285,7 @@ export default function Settings() {
           <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
             <input
               type="checkbox"
+              aria-label="Dark Mode high-contrast radiology theme"
               style={{ display: 'none' }}
               checked={isDarkMode}
               onChange={(e) => {
@@ -352,6 +353,7 @@ export default function Settings() {
             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
               <input
                 type="checkbox"
+                aria-label="Subtle vibrations haptic feedback"
                 style={{ display: 'none' }}
                 checked={hapticsEnabled}
                 onChange={(e) => {
@@ -764,6 +766,7 @@ export default function Settings() {
             <input 
               type="file" 
               accept=".json" 
+              aria-label="Import health record JSON backup file"
               style={{ display: 'none' }} 
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -921,6 +924,8 @@ export default function Settings() {
               }}
             >
             <button
+              type="button"
+              aria-label="Close delete account modal"
               onClick={() => {
                 setShowDeleteModal(false);
                 setDeleteConfirmation('');
@@ -954,6 +959,7 @@ export default function Settings() {
 
             <input
               type="text"
+              aria-label="Type DELETE to confirm account deletion"
               placeholder="DELETE"
               value={deleteConfirmation}
               onChange={(e) => setDeleteConfirmation(e.target.value)}

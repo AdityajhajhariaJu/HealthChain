@@ -688,6 +688,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
+                  aria-label="Cancel editing symptom checkin"
                   style={{
                     background: 'none',
                     border: 'none',
@@ -708,6 +709,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                 placeholder="e.g. Worse after screen time, relieved with hydration..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
+                aria-label="Optional note describing symptom context or triggers"
                 style={{
                   padding: '8px 12px',
                   borderRadius: '10px',

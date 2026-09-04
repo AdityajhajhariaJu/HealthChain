@@ -30,11 +30,25 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
     return () => clearInterval(interval);
   }, [isPlaying]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
       <motion.div 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Zen Breathing Exercise"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -58,7 +72,9 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
 
         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', zIndex: 10, paddingTop: '48px' }}>
           <button 
+            type="button"
             onClick={onClose} 
+            aria-label="Close Zen Breathing player"
             style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}
           >
             <X size={24} color="white" />
@@ -87,6 +103,8 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
 
         <div style={{ width: '100%', padding: '32px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', marginBottom: '32px' }}>
             <button 
+                type="button"
+                aria-label={isPlaying ? 'Pause breathing session' : 'Start breathing session'}
                 onClick={() => {
                     triggerHapticLight();
                     setIsPlaying(!isPlaying);

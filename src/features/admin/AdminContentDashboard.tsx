@@ -183,6 +183,7 @@ export const AdminContentDashboard: React.FC = () => {
                     value={editForm.title || ''}
                     onChange={e => setEditForm({...editForm, title: e.target.value})}
                     placeholder="e.g. 4-7-8 Vagal Tone Reset"
+                    aria-label="Content title"
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                   />
                 </div>
@@ -193,6 +194,7 @@ export const AdminContentDashboard: React.FC = () => {
                     value={editForm.subtitle || ''}
                     onChange={e => setEditForm({...editForm, subtitle: e.target.value})}
                     placeholder="e.g. Parasympathetic Nervous System Modulation"
+                    aria-label="Content subtitle"
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                   />
                 </div>
@@ -203,6 +205,7 @@ export const AdminContentDashboard: React.FC = () => {
                     <select 
                       value={editForm.type || 'breathwork'}
                       onChange={e => setEditForm({...editForm, type: e.target.value as any})}
+                      aria-label="Content type"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white appearance-none"
                     >
                       <option value="breathwork">Breathwork Protocol</option>
@@ -217,6 +220,7 @@ export const AdminContentDashboard: React.FC = () => {
                     <select 
                       value={editForm.category_id || ''}
                       onChange={e => setEditForm({...editForm, category_id: e.target.value})}
+                      aria-label="Content category"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white appearance-none"
                     >
                       <option value="">Select Category...</option>
@@ -228,6 +232,7 @@ export const AdminContentDashboard: React.FC = () => {
                     <select 
                       value={editForm.difficulty || 'Beginner'}
                       onChange={e => setEditForm({...editForm, difficulty: e.target.value as any})}
+                      aria-label="Content difficulty"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white appearance-none"
                     >
                       <option value="Beginner">Beginner</option>
@@ -246,6 +251,7 @@ export const AdminContentDashboard: React.FC = () => {
                       value={editForm.video_url || editForm.audio_url || ''}
                       onChange={e => setEditForm({...editForm, video_url: e.target.value, audio_url: e.target.value})}
                       placeholder="https://..."
+                      aria-label="Media URL video or audio"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -255,6 +261,7 @@ export const AdminContentDashboard: React.FC = () => {
                       type="number" 
                       value={editForm.duration_minutes || ''}
                       onChange={e => setEditForm({...editForm, duration_minutes: parseInt(e.target.value)})}
+                      aria-label="Duration in minutes"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -264,6 +271,7 @@ export const AdminContentDashboard: React.FC = () => {
                       type="number" 
                       value={editForm.calories_estimate || ''}
                       onChange={e => setEditForm({...editForm, calories_estimate: parseInt(e.target.value)})}
+                      aria-label="Estimated calories"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                     />
                   </div>
@@ -274,6 +282,7 @@ export const AdminContentDashboard: React.FC = () => {
                   <textarea 
                     value={editForm.description || ''}
                     onChange={e => setEditForm({...editForm, description: e.target.value})}
+                    aria-label="Content description"
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl h-32 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white resize-none"
                   />
                 </div>
@@ -289,7 +298,7 @@ export const AdminContentDashboard: React.FC = () => {
                         <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
                           <label className="cursor-pointer bg-white text-slate-900 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 shadow-lg hover:scale-105 transition-transform">
                             <UploadCloud size={18} /> Replace Image
-                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} aria-label="Upload replace image" />
                           </label>
                         </div>
                       </>
@@ -300,7 +309,7 @@ export const AdminContentDashboard: React.FC = () => {
                         </div>
                         <span className="font-semibold text-sm text-slate-600">Upload Cover Image</span>
                         <span className="text-xs text-slate-400 mt-1">16:9 aspect ratio recommended</span>
-                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                        <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} aria-label="Upload cover image" />
                       </label>
                     )}
                   </div>
@@ -308,12 +317,12 @@ export const AdminContentDashboard: React.FC = () => {
                 
                 <div className="flex items-center gap-6 mt-6 bg-slate-50 p-5 rounded-2xl border border-slate-100">
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={editForm.is_premium || false} onChange={e => setEditForm({...editForm, is_premium: e.target.checked})} className="rounded text-emerald-600 focus:ring-emerald-500 w-5 h-5 border-slate-300 transition-all" />
+                    <input type="checkbox" checked={editForm.is_premium || false} onChange={e => setEditForm({...editForm, is_premium: e.target.checked})} aria-label="Mark as premium content" className="rounded text-emerald-600 focus:ring-emerald-500 w-5 h-5 border-slate-300 transition-all" />
                     <span className="text-sm font-semibold text-slate-700">Premium Content</span>
                   </label>
                   
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={editForm.is_featured || false} onChange={e => setEditForm({...editForm, is_featured: e.target.checked})} className="rounded text-emerald-600 focus:ring-emerald-500 w-5 h-5 border-slate-300 transition-all" />
+                    <input type="checkbox" checked={editForm.is_featured || false} onChange={e => setEditForm({...editForm, is_featured: e.target.checked})} aria-label="Mark as featured hero content" className="rounded text-emerald-600 focus:ring-emerald-500 w-5 h-5 border-slate-300 transition-all" />
                     <span className="text-sm font-semibold text-slate-700">Featured (Hero)</span>
                   </label>
                 </div>
@@ -321,10 +330,10 @@ export const AdminContentDashboard: React.FC = () => {
             </div>
   
             <div className="mt-10 flex justify-end gap-4 pt-6 border-t border-slate-100">
-              <button onClick={() => setIsEditing(false)} className="px-6 py-3 rounded-full font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+              <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-3 rounded-full font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                 Cancel
               </button>
-              <button onClick={handleSave} className="px-6 py-3 rounded-full font-semibold text-white bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 flex items-center gap-2 transition-all">
+              <button type="button" onClick={handleSave} className="px-6 py-3 rounded-full font-semibold text-white bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 flex items-center gap-2 transition-all">
                 <Save size={18} /> Save Content
               </button>
             </div>

@@ -1258,6 +1258,7 @@ useEffect(() => {
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleUploadOldReport}
+        aria-label="Upload previous MDT consultation report JSON file"
       />
     </div>
   );

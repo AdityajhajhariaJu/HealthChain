@@ -49,7 +49,17 @@ export const MedicalActionIsland = () => {
     }}>
       <motion.div
         layout
+        role="button"
+        tabIndex={0}
+        aria-label="Clinical Action Island"
+        aria-expanded={expanded}
         onClick={toggleIsland}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleIsland();
+          }
+        }}
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         style={{
@@ -137,7 +147,14 @@ export const MedicalActionIsland = () => {
               exit={{ opacity: 0, height: 0, marginTop: 0 }}
               style={{ width: '100%', display: 'flex', gap: '8px' }}
             >
-              <button onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} style={{ width: '44px', padding: '12px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', border: 'none', cursor: 'pointer' }}><X size={16} /></button>
+              <button 
+                type="button"
+                aria-label="Dismiss action island"
+                onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} 
+                style={{ width: '44px', padding: '12px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={16} />
+              </button>
                 <button 
                   onClick={handleAction}
                   style={{ 

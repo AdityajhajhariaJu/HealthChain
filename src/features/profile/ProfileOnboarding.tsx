@@ -78,6 +78,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
         onChange={(event) => update(key, event.target.value)}
         placeholder={options.placeholder || ''}
         type={options.type || 'text'}
+        aria-label={label}
         style={inputStyle}
       />
     </label>
@@ -256,6 +257,7 @@ function StepAbout({ form, field, update, isMobile }: any) {
           <select
             value={form.gender}
             onChange={(event) => update('gender', event.target.value)}
+            aria-label="Gender"
             style={inputStyle}
           >
             <option value="">Prefer not to say</option>
@@ -377,6 +379,7 @@ function TextAreaField({ label, fieldKey, form, update, placeholder }: any) {
         value={form[fieldKey] || ''}
         onChange={(event) => update(fieldKey, event.target.value)}
         placeholder={placeholder}
+        aria-label={label}
         style={{ ...inputStyle, minHeight: 74, resize: 'vertical', fontFamily: 'inherit' }}
       />
     </label>

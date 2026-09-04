@@ -135,6 +135,7 @@ export default function UpdatePassword() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    aria-label="New password"
                     style={{ width: '100%', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)', outline: 'none' }}
                   />
                 </div>
@@ -149,6 +150,7 @@ export default function UpdatePassword() {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    aria-label="Confirm new password"
                     style={{ width: '100%', padding: '12px 16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)', outline: 'none' }}
                   />
                 </div>

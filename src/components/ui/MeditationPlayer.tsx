@@ -1512,11 +1512,23 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       zIndex: 2,
                       cursor: 'pointer'
                     }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={enableBreathingGuide ? "Disable breathing guide" : "Enable breathing guide"}
+                    aria-pressed={enableBreathingGuide}
                     whileTap={{ scale: 0.96 }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setEnableBreathingGuide(!enableBreathingGuide);
                       triggerHapticLight();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEnableBreathingGuide(!enableBreathingGuide);
+                        triggerHapticLight();
+                      }
                     }}
                   >
                     <span style={{ 
@@ -2485,6 +2497,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                           </div>
                           <input
                             type="range"
+                            aria-label="Ambient background sound volume"
                             min={0}
                             max={1}
                             step={0.02}

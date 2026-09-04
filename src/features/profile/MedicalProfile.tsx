@@ -964,6 +964,7 @@ export default function MedicalProfile() {
                 <input
                   type="text"
                   placeholder="Full Name"
+                  aria-label="Full Name"
                   className="input"
                   value={demoForm.name}
                   onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
@@ -972,12 +973,14 @@ export default function MedicalProfile() {
                 <input
                   type="number"
                   placeholder="Age"
+                  aria-label="Age"
                   className="input"
                   value={demoForm.age}
                   onChange={(e) => setDemoForm({ ...demoForm, age: e.target.value })}
                 />
                 <select
                   className="input"
+                  aria-label="Gender"
                   value={demoForm.gender}
                   onChange={(e) => setDemoForm({ ...demoForm, gender: e.target.value })}
                 >
@@ -989,6 +992,7 @@ export default function MedicalProfile() {
                 <input
                   type="text"
                   placeholder="Blood Group (e.g. O+)"
+                  aria-label="Blood Group"
                   className="input"
                   value={demoForm.bloodGroup}
                   onChange={(e) => setDemoForm({ ...demoForm, bloodGroup: e.target.value })}
@@ -996,6 +1000,7 @@ export default function MedicalProfile() {
                 <input
                   type="text"
                   placeholder="Height (e.g. 175cm)"
+                  aria-label="Height"
                   className="input"
                   value={demoForm.height}
                   onChange={(e) => setDemoForm({ ...demoForm, height: e.target.value })}
@@ -1003,6 +1008,7 @@ export default function MedicalProfile() {
                 <input
                   type="text"
                   placeholder="Weight (e.g. 70kg)"
+                  aria-label="Weight"
                   className="input"
                   value={demoForm.weight}
                   onChange={(e) => setDemoForm({ ...demoForm, weight: e.target.value })}
@@ -1010,6 +1016,7 @@ export default function MedicalProfile() {
                 <input
                   type="text"
                   placeholder="Emergency Contact"
+                  aria-label="Emergency Contact"
                   className="input"
                   value={demoForm.emergencyContact}
                   onChange={(e) => setDemoForm({ ...demoForm, emergencyContact: e.target.value })}
@@ -1064,6 +1071,7 @@ export default function MedicalProfile() {
               </AnimatePresence>
               <input
                 type="text"
+                aria-label="Add allergy"
                 placeholder="Add allergy..."
                 value={newAllergy}
                 onChange={(e) => setNewAllergy(e.target.value)}
@@ -1116,6 +1124,7 @@ export default function MedicalProfile() {
               </AnimatePresence>
               <input
                 type="text"
+                aria-label="Add family history"
                 placeholder="Add family history..."
                 value={newFamilyHist}
                 onChange={(e) => setNewFamilyHist(e.target.value)}
@@ -1142,6 +1151,7 @@ export default function MedicalProfile() {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input
                   type="text"
+                  aria-label="Add diagnosed condition"
                   placeholder="Add diagnosed condition..."
                   value={newCondition}
                   onChange={(e) => setNewCondition(e.target.value)}
@@ -1783,7 +1793,7 @@ export default function MedicalProfile() {
               {profile.familyHistory.map((hist, i) => (
                 <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '10px 16px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                   <span style={{ fontSize: '14px', color: '#0F172A', fontWeight: 500 }}>{hist}</span>
-                  <button onClick={() => removeFamilyHistory(hist)} style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button type="button" onClick={() => removeFamilyHistory(hist)} aria-label={`Remove family history entry: ${hist}`} style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <X size={16} />
                   </button>
                 </div>
@@ -1795,6 +1805,7 @@ export default function MedicalProfile() {
               placeholder="e.g. Diabetes (Father)"
               value={newFamilyHist}
               onChange={(e) => setNewFamilyHist(e.target.value)}
+              aria-label="Add family medical history"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && newFamilyHist) {
                   addFamilyHistory(newFamilyHist);

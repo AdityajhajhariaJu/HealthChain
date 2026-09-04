@@ -139,7 +139,12 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         aria-label="Unlock Feature Top-Up"
         style={{ width: '100%', maxWidth: 400, padding: 24, margin: 16, position: 'relative' }}
       >
-        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+        <button 
+          type="button"
+          aria-label="Close top up modal"
+          onClick={onClose} 
+          style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+        >
           <X size={20} />
         </button>
         

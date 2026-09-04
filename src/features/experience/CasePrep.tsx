@@ -67,6 +67,18 @@ export default function CasePrep() {
     }
   }, [selectedCase]);
 
+  useEffect(() => {
+    if (!showDrawer && !showPicker) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showDrawer) setShowDrawer(false);
+        if (showPicker && selectedCase) setShowPicker(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDrawer, showPicker, selectedCase]);
+
   const handleRefine = async () => {
     if (!brief || !selectedCase) return;
     setIsRefining(true);
@@ -310,7 +322,14 @@ export default function CasePrep() {
             >
               <div style={{ padding: '24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: 18, display: 'flex', alignItems: 'center', gap: 8 }}><Info size={20} color="#0d9488" /> Supporting detail</h3>
-                <button onClick={() => setShowDrawer(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#64748b' }}>&times;</button>
+                <button 
+                  type="button"
+                  aria-label="Close supporting detail drawer"
+                  onClick={() => setShowDrawer(false)} 
+                  style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#64748b' }}
+                >
+                  &times;
+                </button>
               </div>
               <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
                 <p style={{ fontSize: 14, color: '#475569', marginBottom: 24, lineHeight: 1.5 }}>

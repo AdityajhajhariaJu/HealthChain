@@ -97,7 +97,14 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
               </AnimatePresence>
             </div>
 
-            <button onClick={onComplete} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={20} /></button>
+            <button 
+              type="button"
+              aria-label="Dismiss clinical friction guide"
+              onClick={onComplete} 
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}
+            >
+              <X size={20} />
+            </button>
               <h3 style={{ color: '#F8FAFC', fontSize: '18px', fontWeight: 600, margin: '0 0 16px', textAlign: 'center' }}>
               {title}
             </h3>

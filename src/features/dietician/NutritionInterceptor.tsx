@@ -104,6 +104,7 @@ export const NutritionInterceptor: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="e.g. 2 scrambled eggs and an avocado..."
+            aria-label="Describe what you ate"
             className="w-full bg-white/5 border border-white/10 rounded-[32px] p-8 text-white text-xl placeholder-white/20 outline-none resize-none min-h-[160px]"
             style={{
               backdropFilter: 'blur(24px)',
@@ -111,8 +112,10 @@ export const NutritionInterceptor: React.FC = () => {
             }}
           />
           <button 
+            type="button"
             onClick={handleLog}
             disabled={isAnalyzing || !input.trim()}
+            aria-label="Submit meal description for AI nutritional analysis"
             className="absolute bottom-6 right-6 p-4 rounded-full bg-emerald-500 text-slate-900 disabled:opacity-50 disabled:bg-white/10 disabled:text-white/50 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]"
           >
             {isAnalyzing ? <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" /> : <Send size={24} />}

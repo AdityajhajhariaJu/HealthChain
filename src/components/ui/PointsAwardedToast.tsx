@@ -43,6 +43,9 @@ export default function PointsAwardedToast() {
     <AnimatePresence>
       <motion.div
         key={toastData.id}
+        role="button"
+        tabIndex={0}
+        aria-label={`+${toastData.amount} Vitality Points: ${toastData.reason}. Tap to view trophy cabinet`}
         initial={{ opacity: 0, y: -20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -66,6 +69,13 @@ export default function PointsAwardedToast() {
         onClick={() => {
           setToastData(null);
           window.dispatchEvent(new Event('hc_open_points_modal'));
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setToastData(null);
+            window.dispatchEvent(new Event('hc_open_points_modal'));
+          }
         }}
       >
         <div

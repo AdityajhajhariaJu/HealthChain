@@ -719,6 +719,7 @@ export function ClinicalArticleSection() {
                 value={librarySearch}
                 onChange={(e) => setLibrarySearch(e.target.value)}
                 placeholder="Search biomarkers (ApoB), topics (Sleep), or doctors..."
+                aria-label="Search clinical articles, biomarkers, or topics"
                 style={{
                   width: '100%',
                   padding: '12px 14px 12px 42px',
@@ -732,7 +733,9 @@ export function ClinicalArticleSection() {
               />
               {librarySearch && (
                 <button 
+                  type="button"
                   onClick={() => setLibrarySearch('')}
+                  aria-label="Clear article search"
                   style={{
                     position: 'absolute',
                     top: '12px',

@@ -485,6 +485,7 @@ export default function QuickConsult() {
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label="Search clinical specialists and perspectives"
                     style={{
                       padding: '8px 12px 8px 36px',
                       borderRadius: '8px',
@@ -657,6 +658,7 @@ export default function QuickConsult() {
               multiple
               accept="image/*,.pdf,.doc,.docx,.txt"
               onChange={handleFileSelect}
+              aria-label="Upload existing medical reports or lab results"
               style={{ display: 'none' }}
             />
 

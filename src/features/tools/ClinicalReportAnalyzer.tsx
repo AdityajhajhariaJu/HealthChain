@@ -413,6 +413,7 @@ export default function ClinicalReportAnalyzer() {
           ref={fileInputRef}
           onChange={handleFileChange}
           accept="image/*,application/pdf"
+          aria-label="Upload clinical lab report or medical document"
           style={{ display: 'none' }}
         />
 

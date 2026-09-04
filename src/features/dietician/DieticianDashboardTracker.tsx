@@ -302,7 +302,12 @@ export function DieticianDashboardTracker({
                 <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: 0 }}>{meal.name}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span style={{ fontSize: '14px', color: '#64748B', fontWeight: 500 }}>{mealConsumed} of {mealBudget} Cal</span>
-                  <button onClick={() => onLogMeal(meal.name)} style={{ background: '#F97316', color: '#FFF', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 4px 10px rgba(249, 115, 22, 0.3)' }}>
+                  <button 
+                    type="button"
+                    aria-label={`Log meal for ${meal.name}`}
+                    onClick={() => onLogMeal(meal.name)} 
+                    style={{ background: '#F97316', color: '#FFF', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 4px 10px rgba(249, 115, 22, 0.3)' }}
+                  >
                     <Plus size={16} />
                   </button>
                 </div>

@@ -105,6 +105,8 @@ export default function VitalityPointsModal() {
             }}
           >
             <button
+              type="button"
+              aria-label="Close Vitality Points modal"
               onClick={handleClose}
               style={{
                 position: 'absolute',

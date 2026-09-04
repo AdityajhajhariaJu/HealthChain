@@ -470,6 +470,7 @@ New Information / Changes in Symptoms since last evaluation:
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
                 placeholder={"Describe your symptoms, health history, or questions in detail...\n\n(Optional: You can also attach lab reports, scans, or past records below)."}
+                aria-label="Describe your symptoms, health history, or questions in detail"
                 style={{
                   width: '100%',
                   minHeight: '160px',
@@ -497,6 +498,7 @@ New Information / Changes in Symptoms since last evaluation:
                 accept="image/*,application/pdf"
                 capture="environment"
                 onChange={handleFileChange}
+                aria-label="Attach medical records, reports, or clinical photos"
               />
             </div>
 
@@ -841,10 +843,13 @@ const PainSlider = ({ onSubmit, color }) => {
         max="10"
         value={val}
         onChange={(e) => setVal(Number(e.target.value))}
+        aria-label="Pain severity scale from 1 mild to 10 severe"
         style={{ width: '100%', accentColor: color }}
       />
       <button
+        type="button"
         onClick={() => onSubmit(`Pain level: ${val}/10`)}
+        aria-label={`Submit pain level ${val} out of 10`}
         style={{
           width: '100%',
           marginTop: '12px',
@@ -1252,6 +1257,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Your answer..."
+              aria-label="Your response to clinical question"
               style={{
                 flex: 1,
                 padding: '14px 20px',
@@ -1687,6 +1693,7 @@ export function MDTConferencePanel({
                 value={answers[i] || ''}
                 onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
                 placeholder="Your answer..."
+                aria-label={`Answer for question: ${q}`}
                 style={{
                   width: '100%',
                   padding: '14px 20px',
@@ -2300,6 +2307,7 @@ export function MDTReportPanel({
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder="e.g., I forgot to mention my shoulder also hurts, or I disagree with the primary specialty..."
+                  aria-label="What should the board know before re-evaluating"
                   style={{
                     width: '100%',
                     minHeight: '120px',

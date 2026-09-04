@@ -122,12 +122,18 @@ export default function FeedbackWidget() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-main)' }}>Send Feedback</h3>
-              <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <button 
+                type="button"
+                aria-label="Close feedback popover"
+                onClick={() => setIsOpen(false)} 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
                 <X size={18} />
               </button>
             </div>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <textarea
+                aria-label="Feedback message"
                 placeholder="What's on your mind? Found a bug or have a suggestion?"
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}

@@ -245,6 +245,7 @@ export default function MyCases() {
             placeholder="Search by condition, title..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
+            aria-label="Search cases by condition or title"
             style={{
               width: '100%',
               padding: '12px 14px 12px 40px',

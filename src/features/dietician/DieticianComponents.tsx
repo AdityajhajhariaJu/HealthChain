@@ -422,6 +422,7 @@ export function OnboardingWizard({
                   value={data.weight}
                   onChange={(e) => setData({ ...data, weight: e.target.value })}
                   placeholder={data.weightUnit === 'kg' ? "e.g. 75" : "e.g. 165"}
+                  aria-label={`Current weight in ${data.weightUnit}`}
                   style={{
                     width: '100%',
                     padding: '14px 16px',
@@ -447,6 +448,7 @@ export function OnboardingWizard({
                   value={data.targetWeight}
                   onChange={(e) => setData({ ...data, targetWeight: e.target.value })}
                   placeholder={data.weightUnit === 'kg' ? "e.g. 70" : "e.g. 150"}
+                  aria-label={`Target weight in ${data.weightUnit}`}
                   style={{
                     width: '100%',
                     padding: '14px 16px',
@@ -477,6 +479,7 @@ export function OnboardingWizard({
                     value={data.height}
                     onChange={(e) => setData({ ...data, height: e.target.value })}
                     placeholder="e.g. 175"
+                    aria-label="Height in centimeters"
                     style={{
                       width: '100%',
                       padding: '14px 16px',
@@ -499,6 +502,7 @@ export function OnboardingWizard({
                       value={data.heightFt}
                       onChange={(e) => setData({ ...data, heightFt: e.target.value })}
                       placeholder="ft"
+                      aria-label="Height feet component"
                       style={{
                         width: '100%',
                         padding: '14px 12px',
@@ -519,6 +523,7 @@ export function OnboardingWizard({
                       value={data.heightIn}
                       onChange={(e) => setData({ ...data, heightIn: e.target.value })}
                       placeholder="in"
+                      aria-label="Height inches component"
                       style={{
                         width: '100%',
                         padding: '14px 12px',
@@ -546,6 +551,7 @@ export function OnboardingWizard({
                   value={data.age}
                   onChange={(e) => setData({ ...data, age: e.target.value })}
                   placeholder="e.g. 29"
+                  aria-label="Age in years"
                   style={{
                     width: '100%',
                     padding: '14px 16px',
@@ -574,6 +580,7 @@ export function OnboardingWizard({
                 value={data.targetDays}
                 onChange={(e) => setData({ ...data, targetDays: e.target.value })}
                 placeholder="e.g. 90"
+                aria-label="Target duration in days"
                 style={{
                   width: '100%',
                   padding: '14px 16px',

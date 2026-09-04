@@ -454,6 +454,7 @@ export default function JarvisInvestigator() {
               }
             }}
             placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 800 words)..."
+            aria-label="Clinical timeline and symptom notes (maximum 800 words)"
             style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid #E2E8F0', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }}
             onFocus={(e) => e.target.style.borderColor = '#F97316'}
             onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
@@ -474,10 +475,13 @@ export default function JarvisInvestigator() {
             onChange={handleFileSelect} 
             multiple 
             accept="image/*,application/pdf"
+            aria-label="Upload medical records, lab reports, or health documents"
             style={{ display: 'none' }} 
           />
           <button 
+            type="button"
             onClick={() => fileInputRef.current?.click()}
+            aria-label="Upload PDFs or photos of medical records"
             style={{ width: '100%', padding: '32px', background: '#F8FAFC', border: '2px dashed #CBD5E1', borderRadius: '16px', color: '#475569', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', cursor: 'pointer', transition: 'all 0.2s' }}
             onMouseOver={(e) => e.currentTarget.style.borderColor = '#38BDF8'}
             onMouseOut={(e) => e.currentTarget.style.borderColor = '#CBD5E1'}
@@ -493,7 +497,7 @@ export default function JarvisInvestigator() {
               {files.map((f, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
                   <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.file.name}</span>
-                  <button onClick={() => removeFile(idx)} style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px', color: '#EF4444', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}><X size={16} /></button>
+                  <button type="button" onClick={() => removeFile(idx)} aria-label={`Remove uploaded file ${f.file.name}`} style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px', color: '#EF4444', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}><X size={16} /></button>
                 </div>
               ))}
             </div>
@@ -517,6 +521,7 @@ export default function JarvisInvestigator() {
                 type="checkbox"
                 checked={isIsolated}
                 onChange={(e) => setIsIsolated(e.target.checked)}
+                aria-label="Isolate investigation to entered symptoms only"
                 style={{ width: '18px', height: '18px', accentColor: '#EA580C', cursor: 'pointer' }}
               />
               {isIsolated ? 'Isolated (New Case)' : 'Include Profile'}

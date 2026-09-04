@@ -521,8 +521,17 @@ export default function Landing() {
             {/* High-Tech Black Look Window Card with Continuous Specialist Ticker */}
             <motion.div 
               variants={itemVariants} 
+              role="button"
+              tabIndex={0}
+              aria-label="Live AI Board Specialist Ticker - Start Investigation"
               className={styles.darkTickerWindowCard}
               onClick={() => handleStartInvestigation('landing_ticker_window')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleStartInvestigation('landing_ticker_window');
+                }
+              }}
             >
               <div className={styles.darkTickerPrefix}>
                 <div className={styles.darkTickerLiveDot} />
@@ -569,6 +578,7 @@ export default function Landing() {
                 <input 
                   ref={inputRef}
                   type="text" 
+                  aria-label="Describe your symptoms or paste blood test results"
                   placeholder="Type your symptoms or paste blood test results (e.g. chronic fatigue, morning headaches)..."
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
@@ -1266,9 +1276,18 @@ export default function Landing() {
           {filteredCaseCards.map((item, idx) => (
             <motion.div
               key={item.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Explore case: ${item.title}. ${item.desc}`}
               className={`${styles.caseCard} ${idx === 0 ? styles.caseCardTop1 : idx === 1 ? styles.caseCardTop2 : idx === 2 ? styles.caseCardTop3 : ''}`}
               whileHover={{ y: -2 }}
               onClick={() => handleStartInvestigation(`case_${item.id}`, item.symptom, item.specId)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleStartInvestigation(`case_${item.id}`, item.symptom, item.specId);
+                }
+              }}
             >
               <div className={`${styles.caseRankBadge} ${idx === 0 ? styles.caseRank1 : idx === 1 ? styles.caseRank2 : idx === 2 ? styles.caseRank3 : ''}`}>
                 {item.rank}

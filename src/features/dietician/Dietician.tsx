@@ -1209,13 +1209,21 @@ export default function Dietician() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Day selector tabs */}
-                <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' }}>
+                <div 
+                  role="tablist" 
+                  aria-label="7-Day Plan Days"
+                  className="hide-scrollbar scrollable-row" 
+                  style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' }}
+                >
                   {normalizedPlanDays.map((day: any, idx: number) => {
                     const dayNum = day.day || idx + 1;
                     const isSelected = selectedPlanDay === dayNum;
                     return (
                       <button
                         key={idx}
+                        role="tab"
+                        aria-selected={isSelected}
+                        aria-label={`Day ${dayNum}`}
                         onClick={() => {
                           triggerHapticLight();
                           setSelectedPlanDay(dayNum);
@@ -1794,10 +1802,12 @@ export default function Dietician() {
 
                   {/* Natural Language Input */}
                   <div style={{ position: 'relative', marginBottom: '18px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    <label htmlFor="dietician-food-input" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
                       Or type in plain English / Hindi:
                     </label>
                     <textarea
+                      id="dietician-food-input"
+                      aria-label="Meal items in plain English or Hindi"
                       value={foodInput}
                       onChange={(e) => setFoodInput(e.target.value)}
                       placeholder="e.g. 2 whole wheat rotis with 1 bowl of moong dal, a small bowl of curd, and cucumber salad..."

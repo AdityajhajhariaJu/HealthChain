@@ -23,6 +23,20 @@ export function MedicalRecordsBar({
     }
   };
 
+  React.useEffect(() => {
+    if (!isUploading) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsUploading(false);
+        setSelectedFile(null);
+        setFindings('');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isUploading]);
+
   const handleSaveRecord = () => {
     if (selectedFile && findings.trim()) {
       onAddRecord({
@@ -99,6 +113,7 @@ export function MedicalRecordsBar({
         <input
           type="file"
           ref={fileInputRef}
+          aria-label="Upload medical record or diagnostic document"
           style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
           onChange={handleFileSelect}
           accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
@@ -143,6 +158,7 @@ export function MedicalRecordsBar({
               <textarea
                 value={findings}
                 onChange={(e) => setFindings(e.target.value)}
+                aria-label="Key medical report findings to include"
                 placeholder="e.g., Elevated WBC count, mild disc bulge at L4-L5..."
                 style={{
                   width: '100%',

@@ -87,12 +87,22 @@ export const InfiniteHealthCanvas = ({ cases }: { cases: any[] }) => {
           return (
             <motion.div
               key={c.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`View clinical case: ${c.title || 'Untitled Case'}`}
               initial={{ opacity: 0, y: yOffset + 20 }}
               animate={{ opacity: 1, y: yOffset }}
               transition={{ delay: 0.2 + (i * 0.1) }}
               onClick={() => {
                 triggerHapticLight();
                 navigate(`/app/cases/${c.id}`);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  triggerHapticLight();
+                  navigate(`/app/cases/${c.id}`);
+                }
               }}
               style={{
                 position: 'absolute',

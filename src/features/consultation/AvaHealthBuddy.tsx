@@ -1084,6 +1084,7 @@ export default function AvaHealthBuddy() {
               ref={fileInputRef}
               onChange={handleFileUpload}
               accept="image/*,application/pdf"
+              aria-label="Upload medical file or health image"
               style={{ display: 'none' }}
             />
             <button
@@ -1114,7 +1115,7 @@ export default function AvaHealthBuddy() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-                
+              aria-label="Ask Ava Health Buddy a question"
               placeholder="Share what's on your mind..."
               style={{
                 width: '100%',

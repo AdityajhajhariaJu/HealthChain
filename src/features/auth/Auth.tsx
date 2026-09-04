@@ -458,6 +458,7 @@ export default function Auth() {
                       type="checkbox" 
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
+                      aria-label="Remember me for 30 days"
                       style={{
                         width: '16px',
                         height: '16px',

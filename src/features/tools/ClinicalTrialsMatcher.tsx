@@ -122,7 +122,10 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}>
         <button 
+          type="button"
           onClick={() => setExpanded(!expanded)} 
+          aria-expanded={expanded}
+          aria-label={expanded ? `Collapse match details for ${item.title}` : `Expand match details for ${item.title}`}
           style={{ background: 'transparent', border: 'none', color: '#4F46E5', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
         >
           {expanded ? 'Show Less' : 'Match Details'} {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -140,12 +143,19 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
                 }
               });
             }} 
+            aria-label={`Discuss "${item.title}" with Ava`}
             style={{ padding: '4px 10px', fontSize: '12px', height: '28px', display: 'flex', alignItems: 'center', gap: '4px', color: '#4F46E5', borderColor: '#C7D2FE' }}
             title="Discuss with Ava"
           >
             <MessageCircle size={13} /> Discuss with Ava
           </button>
-          <button className="btn btn-primary btn-sm" onClick={onClick} style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}>
+          <button 
+            type="button"
+            className="btn btn-primary btn-sm" 
+            onClick={onClick} 
+            aria-label={`View clinical trial details for ${item.title}`}
+            style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}
+          >
              View <ExternalLink size={12} />
           </button>
         </div>
@@ -363,6 +373,7 @@ export default function ClinicalTrialsMatcher() {
                   placeholder="e.g. Migraine, GLP-1..."
                   value={customQuery}
                   onChange={(e) => setCustomQuery(e.target.value)}
+                  aria-label="Search topic or condition for clinical trials"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && customQuery.trim()) {
                       setCustomSearchTerms([customQuery.trim()]);

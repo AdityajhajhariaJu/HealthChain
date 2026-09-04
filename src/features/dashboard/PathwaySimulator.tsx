@@ -109,7 +109,12 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
               Questions, cautions, and follow-up topics for: <strong>{actionItem?.step || actionItem?.title || 'Selected Topic'}</strong>
             </p>
           </div>
-          <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', minWidth: 36, minHeight: 36, flexShrink: 0 }}>
+          <button 
+            type="button"
+            aria-label="Close pathway simulator"
+            onClick={onClose} 
+            style={{ background: '#f1f5f9', border: 'none', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', minWidth: 36, minHeight: 36, flexShrink: 0 }}
+          >
             <X size={18} />
           </button>
         </div>
