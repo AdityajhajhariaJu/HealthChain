@@ -65,7 +65,7 @@ export const HAPPY_HIGH_ENERGY_TRACKS = [
   { id: 'hhe2', title: 'Timber and Bloom', subtitle: 'warm acoustic groove, lively rhythm', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Timber and Bloom.m4a' },
   { id: 'hhe3', title: 'Sunday Citrus', subtitle: 'bouncy synth pop, fresh morning vibes', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Sunday Citrus.m4a' },
   { id: 'hhe4', title: 'Good Ground', subtitle: 'energetic modern classical, driving strings', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Good Ground.m4a' },
-  { id: 'hhe5', title: 'Personal Best', subtitle: 'motivational workout electronic, high tempo', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Personal Best.m4a' },
+  { id: 'hhe5', title: 'Personal Best', subtitle: 'motivational somatic electronic, high tempo', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Personal Best.m4a' },
   { id: 'hhe6', title: 'Blinding White', subtitle: 'bright future bass, uplifting melody', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Blinding White.m4a' },
   { id: 'hhe7', title: 'First Light Surge', subtitle: 'driving synthwave, morning momentum', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/First Light Surge.m4a' },
   { id: 'hhe8', title: 'Line By Line', subtitle: 'upbeat lo-fi funk, grooving bassline', cover: '/images/thumb_energy_sun_1788263731169.jpg', audioUrl: '/audio/Line By Line.m4a' },

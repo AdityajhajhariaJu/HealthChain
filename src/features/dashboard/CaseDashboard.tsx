@@ -40,6 +40,7 @@ import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
+import { FitnessNav } from '../../components/ui/FitnessNav';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
@@ -91,31 +92,31 @@ export const CLINICAL_ARTICLES: MedicalArticle[] = [
     ]
   },
   {
-    id: 'art-muscle-hypertrophy',
-    title: 'Want to Gain Muscle? The 6 Most Important Clinical Rules',
-    subtitle: 'Myofibrillar Protein Synthesis, Mechanical Tension & Recovery',
-    author: 'Dr. Marcus Vance, PhD, CSCS',
-    role: 'Exercise Physiologist & Metabolic Researcher',
+    id: 'art-metabolic-biomarkers',
+    title: 'Understanding Your Metabolic Biomarkers — ApoB, Insulin Sensitivity & Glycemic Variability',
+    subtitle: 'ApoB Particle Count, Triglyceride-to-HDL Ratio & Endothelial Protection',
+    author: 'Dr. Elizabeth Chen, MD, FACC',
+    role: 'Board-Certified Preventative Cardiologist & Longevity Researcher',
     readTime: '5 min read',
-    img: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
-    category: 'Metabolic & Musculoskeletal',
+    img: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&q=80',
+    category: 'Preventative Cardiology & Metabolism',
     keyTakeaways: [
-      'Mechanical tension within 1-3 Reps in Reserve (RIR) is the primary driver of myofibrillar hypertrophy.',
-      'Daily protein intake should target 1.6 to 2.2g per kg of bodyweight distributed across 3-4 leucine-rich boluses.',
-      'Over 70% of nightly Growth Hormone secretion occurs during Delta slow-wave sleep.'
+      'Apolipoprotein B (ApoB) directly quantifies all atherogenic particles and predicts cardiovascular events far better than standard LDL-C.',
+      'A Triglyceride-to-HDL ratio below 1.5 is a reliable clinical surrogate for robust peripheral insulin sensitivity.',
+      'Postprandial glycemic variability creates repetitive microvascular endothelial shear stress and oxidative damage.'
     ],
     sections: [
       {
-        heading: '1. Prioritize Mechanical Tension Over Metabolic Fatigue',
-        body: 'Lactic acid "burn" and sweat do not equal muscle hypertrophy. True muscle growth requires high mechanical tension across muscle fibers, recruiting high-threshold Motor Units (Type IIx fibers). This occurs when sets are performed within 0 to 3 reps of muscular failure.'
+        heading: '1. Why ApoB Outperforms Standard LDL-C',
+        body: 'Standard lipid panels estimate LDL-C by cholesterol concentration, not the actual number of circulating atherogenic particles. Because each atherogenic lipoprotein (LDL, VLDL, IDL) carries exactly one molecule of ApoB, measuring serum ApoB provides an exact particle count. In discordance states (e.g., metabolic syndrome), LDL-C can appear deceptively normal while ApoB remains dangerously elevated.'
       },
       {
-        heading: '2. The Leucine Trigger & Protein Timing',
-        body: 'Muscle Protein Synthesis (MPS) operates like an all-or-none biological switch. To trigger the mTORC1 pathway, each feeding requires approximately 2.7 to 3.0 grams of the branched-chain amino acid leucine. Distributing daily protein into 3 to 4 meals containing 30-45g each significantly outperforms continuous grazing.'
+        heading: '2. Insulin Sensitivity & The TG/HDL Ratio',
+        body: 'Before fasting blood glucose or HbA1c rise into prediabetic thresholds, hepatic insulin resistance manifests as elevated fasting triglycerides coupled with reduced HDL particles. A serum Triglyceride-to-HDL ratio less than 1.5 indicates preserved cellular insulin sensitivity, whereas values exceeding 3.0 strongly correlate with hyperinsulinemia and subclinical metabolic dysfunction.'
       },
       {
-        heading: '3. Slow-Wave Sleep: The Primary Anabolic Window',
-        body: 'Chronically sleeping less than 6.5 hours elevates evening cortisol, impairs insulin sensitivity by up to 25%, and blunts overnight myofibrillar protein synthesis. Deep sleep is when cellular repair, glycogen replenishment, and testosterone production peak.'
+        heading: '3. Glycemic Variability & Endothelial Protection',
+        body: 'Continuous glucose monitoring reveals that rapid glucose spikes and subsequent plunges generate significantly higher reactive oxygen species (ROS) than steady, moderate glucose levels. Minimizing postprandial glycemic amplitude through dietary fiber preloading, whole-food macronutrient pairing, and light post-meal ambulation directly preserves vascular endothelial nitric oxide synthesis.'
       }
     ]
   }
@@ -221,6 +222,7 @@ export default function CaseDashboard() {
       overflowX: 'clip'
     }}>
       <FatigueModeToggle />
+      <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><FitnessNav /></div>
         
         <div style={{ padding: '0 24px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>

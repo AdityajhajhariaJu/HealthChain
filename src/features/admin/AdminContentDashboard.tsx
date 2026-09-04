@@ -110,10 +110,11 @@ export const AdminContentDashboard: React.FC = () => {
   
     const getTypeColor = (type: string) => {
       switch(type) {
-        case 'workout': return 'bg-orange-50 text-orange-600 border-orange-100';
-        case 'meditation': return 'bg-teal-50 text-teal-600 border-teal-100';
+        case 'breathwork': return 'bg-teal-50 text-teal-600 border-teal-100';
+        case 'meditation': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
         case 'soundscape': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
-        default: return 'bg-blue-50 text-blue-600 border-blue-100';
+        case 'article': return 'bg-blue-50 text-blue-600 border-blue-100';
+        default: return 'bg-slate-50 text-slate-600 border-slate-100';
       }
     };
 
@@ -128,10 +129,10 @@ export const AdminContentDashboard: React.FC = () => {
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Content Studio</h1>
-            <p className="text-slate-500 text-sm mt-1 font-medium">Manage premium workouts, meditations, and soundscapes</p>
+            <p className="text-slate-500 text-sm mt-1 font-medium">Manage clinical protocols, therapeutic breathwork, and soundscapes</p>
           </div>
           <button 
-            onClick={() => { setEditForm({ type: 'workout', difficulty: 'Beginner', is_active: true, equipment: [] }); setIsEditing(true); }}
+            onClick={() => { setEditForm({ type: 'breathwork', difficulty: 'Beginner', is_active: true, equipment: [] }); setIsEditing(true); }}
             className="bg-slate-900 text-white px-6 py-3 rounded-full flex items-center gap-2 hover:bg-slate-800 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-900/20 transition-all duration-300 font-semibold"
           >
             <Plus size={18} /> New Content
@@ -155,7 +156,7 @@ export const AdminContentDashboard: React.FC = () => {
                     type="text" 
                     value={editForm.title || ''}
                     onChange={e => setEditForm({...editForm, title: e.target.value})}
-                    placeholder="e.g. 10-Min Fat Torch"
+                    placeholder="e.g. 4-7-8 Vagal Tone Reset"
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                   />
                 </div>
@@ -165,7 +166,7 @@ export const AdminContentDashboard: React.FC = () => {
                     type="text" 
                     value={editForm.subtitle || ''}
                     onChange={e => setEditForm({...editForm, subtitle: e.target.value})}
-                    placeholder="e.g. Build Muscle & Power"
+                    placeholder="e.g. Parasympathetic Nervous System Modulation"
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                   />
                 </div>
@@ -174,14 +175,14 @@ export const AdminContentDashboard: React.FC = () => {
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Type</label>
                     <select 
-                      value={editForm.type || 'workout'}
+                      value={editForm.type || 'breathwork'}
                       onChange={e => setEditForm({...editForm, type: e.target.value as any})}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white appearance-none"
                     >
-                      <option value="workout">Workout</option>
+                      <option value="breathwork">Breathwork Protocol</option>
                       <option value="meditation">Meditation</option>
                       <option value="soundscape">Soundscape</option>
-                      <option value="article">Article</option>
+                      <option value="article">Clinical Article</option>
                     </select>
                   </div>
   

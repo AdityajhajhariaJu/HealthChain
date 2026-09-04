@@ -179,7 +179,7 @@ const TRIVIA_BANK: TriviaQuestion[] = [
       'Grip Strength and Skeletal Muscle Mass',
       'Flexibility of the wrist tendons',
       'Breath-holding endurance only',
-      'Bench press 1-rep maximum',
+      'Resting lung capacity alone',
     ],
     correct: 0,
     explanation: 'Grip strength serves as a clinical surrogate for overall neuromuscular integrity, frailty resistance, and metabolic reserve.',
@@ -276,7 +276,7 @@ const MYTH_BANK: MythBusterItem[] = [
     category: 'Muscle Physiology',
     statement: 'Delayed Onset Muscle Soreness (DOMS) 24–48 hours after exercise is caused by lactic acid trapped in muscles.',
     isFact: false,
-    explanation: 'Lactate is metabolized back into energy within 30–60 minutes post-workout. DOMS is caused by microscopic myofibrillar micro-tears and localized inflammation.',
+    explanation: 'Lactate is metabolized back into energy within 30–60 minutes post-exertion. DOMS is caused by microscopic myofibrillar micro-tears and localized inflammation.',
   },
   {
     id: 11,

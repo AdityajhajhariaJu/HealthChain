@@ -39,6 +39,7 @@ const links: any[] = [
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
+  { to: '/app/progress', label: 'Vitality Progress', icon: Activity },
   { to: '/app/trophies', label: 'Trophy Cabinet', icon: Trophy },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },

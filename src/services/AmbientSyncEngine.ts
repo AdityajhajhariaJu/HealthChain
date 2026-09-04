@@ -71,9 +71,9 @@ export class AmbientSyncEngine {
     briefing += `Their current HRV is ${biometrics.hrv}ms, Resting Heart Rate is ${biometrics.heartRate}bpm, and they got ${biometrics.sleepHours} hours of sleep last night. `;
     
     if (isStressed || isFatigued) {
-      briefing += `They are showing signs of physiological fatigue. Proactively greet them, inform them of this data drop, cancel any intense workouts, and generate a [WIDGET:WORKOUT] for restorative recovery.`;
+      briefing += `They are showing signs of physiological fatigue and autonomic stress. Proactively greet them, inform them of this biomarker trend, advise gentle pacing and hydration, and generate a [WIDGET:CALM] for an autonomic breathwork reset.`;
     } else {
-      briefing += `They are in a state of high vitality. Proactively greet them, inform them that their biometrics are primed for performance, and challenge them to a high-intensity workout.`;
+      briefing += `They are in a state of optimal autonomic stability. Proactively greet them, inform them that their biometrics reflect strong parasympathetic recovery and physiological equilibrium, and encourage them to sustain their health regimen or log their morning vitals.`;
     }
 
     return briefing;
