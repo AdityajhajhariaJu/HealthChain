@@ -3,11 +3,12 @@ import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, ge
 import { generateDeterministicBrief, isBriefUpToDate } from '../../services/AppointmentBriefService';
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
-import { ArrowRight, Briefcase, ChevronRight, FileText, Loader2, Printer, Sparkles, AlertCircle, Eye, Info, CheckCircle2, Copy } from 'lucide-react';
+import { ArrowRight, Briefcase, ChevronRight, FileText, Loader2, Printer, Sparkles, AlertCircle, Eye, Info, CheckCircle2, Copy, MessageSquare } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
-import { triggerHapticSuccess } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 export default function CasePrep() {
   const navigate = useNavigate();
@@ -21,6 +22,16 @@ export default function CasePrep() {
   const [isRefining, setIsRefining] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showDrawer) {
+        setShowDrawer(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDrawer]);
 
   useEffect(() => {
     const allCases = getCases().filter(c => c.status === 'active');
@@ -52,6 +63,7 @@ export default function CasePrep() {
         saveAppointmentBrief(selectedCase.id, currentBrief);
       }
       setBrief(currentBrief);
+      awardPoints(15, 'Generated Physician Appointment Brief', 'consult', 'brief_gen_' + selectedCase.id);
     }
   }, [selectedCase]);
 
@@ -63,6 +75,8 @@ export default function CasePrep() {
       if (refined) {
         saveAppointmentBrief(selectedCase.id, refined);
         setBrief(refined);
+        awardPoints(10, 'AI Refined Appointment Brief', 'consult', 'brief_refined_' + selectedCase.id);
+        triggerHapticSuccess();
         toast.success('Brief Refined', 'AI polished your clinical appointment brief.');
       }
     } catch (e) {
@@ -102,6 +116,7 @@ export default function CasePrep() {
 
     navigator.clipboard.writeText(lines).then(() => {
       triggerHapticSuccess();
+      awardPoints(5, 'Copied Clinician Appointment Brief', 'consult', 'brief_copy_' + selectedCase?.id);
       toast.success('Brief Copied', 'Ready to paste into MyChart, patient portal, or message your clinician.');
     }).catch(() => {
       toast.error('Copy Failed', 'Unable to copy text to clipboard.');
@@ -141,7 +156,17 @@ export default function CasePrep() {
             {cases.map(c => (
               <div 
                 key={c.id} 
+                role="button"
+                tabIndex={0}
+                aria-label={`Select case: ${c.title || 'Untitled Case'}`}
                 onClick={() => { setSelectedCase(c); setShowPicker(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedCase(c);
+                    setShowPicker(false);
+                  }
+                }}
                 style={{ padding: 20, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'border 0.2s' }}
                 onMouseOver={e => e.currentTarget.style.borderColor = '#0d9488'}
                 onMouseOut={e => e.currentTarget.style.borderColor = '#e2e8f0'}
@@ -178,10 +203,22 @@ export default function CasePrep() {
           &larr; Change case
         </button>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button 
+            className="btn btn-primary btn-sm" 
+            onClick={() => {
+              triggerHapticLight();
+              const questionList = (brief.questionsForClinician || []).map((q: any, i: number) => `${i + 1}. ${typeof q === 'string' ? q : q?.question || q?.text}`).join('\n');
+              const prompt = `I am preparing for an upcoming doctor appointment for my case: "${selectedCase?.title || 'Clinical Evaluation'}".\n\nMain concern: ${brief.mainConcern?.text || 'Clinical checkup'}\n\nQuestions I plan to ask:\n${questionList || 'General clinical review'}\n\nPlease help me rehearse this visit: what questions might my doctor ask in response, and how can I clearly communicate my symptoms?`;
+              navigate('/app/ava', { state: { initialPrompt: prompt } });
+            }}
+            style={{ background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <MessageSquare size={16} /> Rehearse with Ava
+          </button>
           <button className="btn btn-outline btn-sm" onClick={handleCopyBrief}>
             <Copy size={16} style={{ marginRight: 6 }} /> Copy Brief
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => window.print()}>
+          <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
             <Printer size={16} style={{ marginRight: 6 }} /> Print Brief
           </button>
           <button className="btn btn-outline btn-sm" onClick={() => setShowDrawer(true)}>
@@ -266,6 +303,9 @@ export default function CasePrep() {
             <motion.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Supporting detail"
               style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 450, background: '#fff', zIndex: 100001, boxShadow: '-4px 0 24px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column' }}
             >
               <div style={{ padding: '24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

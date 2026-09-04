@@ -360,6 +360,21 @@ export default function Dietician() {
     return () => { isMounted.current = false; };
   }, []);
 
+  // Keyboard dismissals for all interactive modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showARLens) setShowARLens(false);
+        else if (isLoggingFood) setIsLoggingFood(false);
+        else if (showResetDietConfirm) setShowResetDietConfirm(false);
+        else if (showSavedMealsModal) setShowSavedMealsModal(false);
+        else if (isEditingProfile) setIsEditingProfile(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showARLens, isLoggingFood, showResetDietConfirm, showSavedMealsModal, isEditingProfile]);
+
   // Fetch advice if not present
   useEffect(() => {
     if (profile && !advice && !isFetchingAdvice && !adviceFetched.current) {
@@ -504,8 +519,29 @@ export default function Dietician() {
     triggerHapticLight();
     const updatedLogs = { ...foodLogs };
     if (updatedLogs[currentDate]) {
+      const removedItem = updatedLogs[currentDate].find((item: any) => item.id === id);
       updatedLogs[currentDate] = updatedLogs[currentDate].filter((item: any) => item.id !== id);
       setFoodLogs(updatedLogs);
+      updateProfileFeatureData('dietFoodLogs', updatedLogs);
+      updateProfileFeatureData('dietician', { foodLogs: updatedLogs });
+      toast.info('Meal Removed', `"${removedItem?.name || 'Meal'}" removed from daily nutrition log.`);
+    }
+  };
+
+  const handleUpdateHydration = (delta: number) => {
+    triggerHapticLight();
+    const current = hydration[currentDate] || 0;
+    const next = Math.max(0, current + delta);
+    const updated = { ...hydration, [currentDate]: next };
+    setHydration(updated);
+    updateProfileFeatureData('dietHydration', updated);
+    updateProfileFeatureData('dietician', { hydration: updated });
+    if (next >= 8 && current < 8) {
+      awardPoints(2, 'Daily Optimal Hydration Target (2L)', 'lifestyle', `hydration_target_${currentDate}`);
+      toast.success('Hydration Target Met! 💧', 'You reached your 2,000ml daily hydration goal (+2 PTS)');
+      triggerHapticSuccess();
+    } else if (delta > 0) {
+      toast.info('Hydration Logged', `${next * 250}ml logged for today (${next}/8 glasses).`);
     }
   };
 
@@ -765,6 +801,27 @@ export default function Dietician() {
             >
               <Calendar size={15} /> 7-Day Plan
             </button>
+            <button
+              onClick={() => setActiveTab('grocery')}
+              style={{
+                padding: isMobile ? '8px 12px' : '8px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'grocery' ? '#0F172A' : 'transparent',
+                color: activeTab === 'grocery' ? '#FFFFFF' : '#64748B',
+                fontWeight: 700,
+                fontSize: isMobile ? '12.5px' : '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <ShoppingCart size={15} /> Smart Grocery
+            </button>
             
             <button
               onClick={() => setActiveTab('guardrails')}
@@ -945,7 +1002,10 @@ export default function Dietician() {
                 profile={profile} 
                 foodLogs={foodLogs} 
                 currentDate={currentDate}
+                waterGlasses={waterGlasses}
                 onLogMeal={(mealName: string) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
+                onDeleteMeal={handleDeleteFood}
+                onUpdateHydration={handleUpdateHydration}
                 onSnap={() => setShowARLens(true)}
                 onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
                 onOpenSavedMeals={() => { triggerHapticLight(); setShowSavedMealsModal(true); }}
@@ -995,6 +1055,30 @@ export default function Dietician() {
                     }}
                   >
                     <Printer size={15} /> Print Dossier
+                  </button>
+                )}
+                {mealPlan && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setActiveTab('grocery');
+                    }}
+                    style={{
+                      background: '#ECFDF5',
+                      color: '#065F46',
+                      border: '1px solid #A7F3D0',
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ShoppingCart size={15} /> Smart Grocery
                   </button>
                 )}
                 {mealPlan && (
@@ -1369,6 +1453,16 @@ export default function Dietician() {
                       {cat.items.map((item: any) => (
                         <div
                           key={item.id}
+                          role="checkbox"
+                          aria-checked={item.checked}
+                          aria-label={item.name}
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              toggleGroceryItem(catIdx, item.id);
+                            }
+                          }}
                           onClick={() => toggleGroceryItem(catIdx, item.id)}
                           style={{
                             display: 'flex',
@@ -1565,6 +1659,9 @@ export default function Dietician() {
                 />
 
                 <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Log Meal"
                   initial={{ opacity: 0, scale: 0.95, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1764,6 +1861,9 @@ export default function Dietician() {
               onClick={() => setShowResetDietConfirm(false)}
             >
               <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Reset Diet Profile"
                 initial={{ opacity: 0, scale: 0.95, y: 16 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -1836,6 +1936,9 @@ export default function Dietician() {
         <AnimatePresence>
           {isEditingProfile && (
             <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Edit Diet Profile"
               style={{
                 position: 'fixed',
                 inset: 0,
@@ -1881,6 +1984,9 @@ export default function Dietician() {
               onClick={() => setShowSavedMealsModal(false)}
             >
               <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Saved Meals"
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}

@@ -1,5 +1,5 @@
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { useToast } from '../../components/ui/ToastProvider';
 import {
   FolderHeart,
   Activity,
@@ -37,7 +38,7 @@ import {
   Dna,
   Camera,
   Mail,
-
+  MessageSquare,
   Lock,
 } from 'lucide-react';
 import {
@@ -67,6 +68,7 @@ import { cleanClinicalText } from '../../components/ui/RichReportTemplate';
 
 export default function MedicalProfile() {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'timeline' | 'insights'>('overview');
   const navigate = useNavigate();
   const synthesisKey = getRunScope('profile', 'draft', 'synthesis');
@@ -180,6 +182,8 @@ export default function MedicalProfile() {
       setIsSaving(false);
       setIsEditingDemo(false);
       setShowSaved(true);
+      triggerHapticSuccess();
+      toast.success('Demographics Updated', 'Your medical dossier has been safely saved.');
       setTimeout(() => setShowSaved(false), 2000);
     }, 500); // Simulate network latency for the saving indicator
   };
@@ -210,8 +214,12 @@ export default function MedicalProfile() {
       
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set(opt).from(container).save();
+      triggerHapticSuccess();
+      awardPoints(10, 'Exported Clinical Profile PDF', 'milestone');
+      toast.success('PDF Exported', 'Your health record was downloaded as a clean clinical brief.');
     } catch (e) {
       console.warn('PDF export failed:', e);
+      toast.error('Export Failed', 'Unable to generate PDF. Please try again or use browser print.');
     } finally {
       // Restore interactive elements
       interactiveElements.forEach((el) => {
@@ -236,6 +244,7 @@ export default function MedicalProfile() {
     localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
     localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
     
+    toast.info('Data Reset', 'Health dossier has been reset.');
     window.location.reload();
   };
 
@@ -246,9 +255,13 @@ export default function MedicalProfile() {
       if (result) {
         setSynthesisData(result);
         try { sessionStorage.setItem(synthesisKey, JSON.stringify(result)); } catch(e) {}
+        awardPoints(15, 'Generated AI Clinical Health Synthesis', 'research', 'profile_synth_' + Date.now());
+        triggerHapticSuccess();
+        toast.success('Clinical Synthesis Complete', 'AI synthesized multi-system health insights (+15 pts).');
       }
     } catch (error) {
       console.error('Profile synthesis failed:', error);
+      toast.error('Synthesis Failed', 'Could not complete clinical health synthesis. Please try again.');
     } finally {
       setIsGeneratingSynthesis(false);
     }
@@ -426,6 +439,58 @@ export default function MedicalProfile() {
             <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
               Your entire health story on one screen — alive, updating, and ready to share.
             </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                const conditions = (profile?.conditions || []).join(', ') || 'None recorded';
+                const meds = (profile?.medications || []).map((m: any) => typeof m === 'string' ? m : m.name || m.label).join(', ') || 'None recorded';
+                const allergies = (profile?.allergies || []).join(', ') || 'No known allergies';
+                navigate('/app/ava', {
+                  state: {
+                    initialPrompt: `Hi Ava, please perform a clinical review of my unified medical profile.\n\nDemographics: Age ${profile?.demographics?.age || 'N/A'}, Gender ${profile?.demographics?.gender || 'N/A'}, Blood Group ${profile?.demographics?.bloodGroup || 'N/A'}\nActive Conditions: ${conditions}\nCurrent Medications: ${meds}\nAllergies: ${allergies}\n\nWhat preventive steps, interaction warnings, or lab panels should I discuss with my physician?`
+                  }
+                });
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                color: '#FFFFFF',
+                fontSize: '14px',
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(15, 118, 110, 0.2)'
+              }}
+            >
+              <MessageSquare size={16} /> Review Dossier with Ava
+            </button>
+            <button
+              type="button"
+              onClick={handleExportPDF}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                borderRadius: '14px',
+                background: '#FFFFFF',
+                color: '#334155',
+                fontSize: '14px',
+                fontWeight: 600,
+                border: '1px solid #E2E8F0',
+                cursor: 'pointer'
+              }}
+            >
+              <Download size={16} /> Export PDF
+            </button>
           </div>
         </div>
       </motion.div>
@@ -728,12 +793,44 @@ export default function MedicalProfile() {
           </div>
           
           {synthesisData ? (
-             <motion.div 
-               animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
-               style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
-             >
-              <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
-            </motion.div>
+            <div>
+              <motion.div 
+                animate={{ opacity: isGeneratingSynthesis ? 0.5 : 1 }}
+                style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}
+              >
+                <ReactMarkdown>{synthesisData.synthesisText}</ReactMarkdown>
+              </motion.div>
+              <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    const snippet = synthesisData.synthesisText?.slice(0, 400) || '';
+                    navigate('/app/ava', {
+                      state: {
+                        initialPrompt: `Hi Ava, I would like to discuss my AI Clinical Health Synthesis:\n\n"${snippet}..."\n\nCan you explain the main clinical takeaways in simple terms and advise me on actionable next steps?`
+                      }
+                    });
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 16px',
+                    borderRadius: '12px',
+                    background: '#8B5CF6',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)'
+                  }}
+                >
+                  <MessageSquare size={15} /> Discuss Synthesis with Ava
+                </button>
+              </div>
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
               <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
@@ -943,7 +1040,11 @@ export default function MedicalProfile() {
                 >
                   <AlertTriangle size={16} /> Allergy: {allergy}
                   <button
-                    onClick={() => removeAllergy(allergy)}
+                    onClick={() => {
+                      triggerHapticLight();
+                      removeAllergy(allergy);
+                      toast.info('Allergy Removed', `"${allergy}" removed from profile.`);
+                    }}
                     style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', marginLeft: '4px', opacity: 0.7 }}
                   >
                     <X size={14} />
@@ -957,8 +1058,11 @@ export default function MedicalProfile() {
                 value={newAllergy}
                 onChange={(e) => setNewAllergy(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newAllergy) {
-                    addAllergy(newAllergy);
+                  if (e.key === 'Enter' && newAllergy.trim()) {
+                    addAllergy(newAllergy.trim());
+                    awardPoints(5, 'Allergy Added to Health Profile', 'milestone');
+                    triggerHapticLight();
+                    toast.success('Allergy Recorded', `"${newAllergy.trim()}" added to allergy records.`);
                     setNewAllergy('');
                   }
                 }}
@@ -988,7 +1092,11 @@ export default function MedicalProfile() {
                 >
                   <Dna size={16} /> Family: {fh}
                   <button
-                    onClick={() => removeFamilyHistory(fh)}
+                    onClick={() => {
+                      triggerHapticLight();
+                      removeFamilyHistory(fh);
+                      toast.info('Family History Removed', `"${fh}" removed from profile.`);
+                    }}
                     style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', marginLeft: '4px', opacity: 0.7 }}
                   >
                     <X size={14} />
@@ -1002,8 +1110,11 @@ export default function MedicalProfile() {
                 value={newFamilyHist}
                 onChange={(e) => setNewFamilyHist(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newFamilyHist) {
-                    addFamilyHistory(newFamilyHist);
+                  if (e.key === 'Enter' && newFamilyHist.trim()) {
+                    addFamilyHistory(newFamilyHist.trim());
+                    awardPoints(5, 'Family History Added to Profile', 'milestone');
+                    triggerHapticLight();
+                    toast.success('Family History Recorded', `"${newFamilyHist.trim()}" added to hereditary history.`);
                     setNewFamilyHist('');
                   }
                 }}
@@ -1029,6 +1140,7 @@ export default function MedicalProfile() {
                       addCondition(newCondition.trim());
                       awardPoints(5, 'Condition Added to Health Profile', 'milestone');
                       triggerHapticLight();
+                      toast.success('Condition Recorded', `"${newCondition.trim()}" added to clinical profile.`);
                       setNewCondition('');
                     }
                   }}
@@ -1043,6 +1155,7 @@ export default function MedicalProfile() {
                       addCondition(newCondition.trim());
                       awardPoints(5, 'Condition Added to Health Profile', 'milestone');
                       triggerHapticLight();
+                      toast.success('Condition Recorded', `"${newCondition.trim()}" added to clinical profile.`);
                       setNewCondition('');
                     }
                   }}
@@ -1082,7 +1195,11 @@ export default function MedicalProfile() {
                       <Activity size={13} color="var(--teal)" style={{ flexShrink: 0 }} />
                       <span>{cleanClinicalText(condition)}</span>
                       <button
-                        onClick={() => removeCondition(condition)}
+                        onClick={() => {
+                          triggerHapticLight();
+                          removeCondition(condition);
+                          toast.info('Condition Removed', `"${condition}" removed from profile.`);
+                        }}
                         aria-label={`Remove condition ${condition}`}
                         style={{
                           background: 'none',
@@ -1590,7 +1707,12 @@ export default function MedicalProfile() {
                       {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : 'Manually added'}
                     </div>
                     <button
-                      onClick={() => removeMedication(m.name)}
+                      onClick={() => {
+                        triggerHapticLight();
+                        removeMedication(m.name);
+                        toast.info('Medication Removed', `"${m.name}" removed from clinical records.`);
+                      }}
+                      aria-label={`Remove medication ${m.name}`}
                       style={{
                         position: 'absolute',
                         top: '16px',

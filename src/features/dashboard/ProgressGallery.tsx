@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VitalityNav } from '../../components/ui/FitnessNav';
+import { useNavigate } from 'react-router-dom';
+import { VitalityNav } from '../../components/ui/VitalityNav';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
@@ -8,13 +9,14 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { useToast } from '../../components/ui/ToastProvider';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Legend, Cell } from 'recharts';
-import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera } from 'lucide-react';
+import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera, MessageSquare } from 'lucide-react';
 import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
 import { getProfile } from '../../services/ProfileEngine';
 import { getCases } from '../../services/CaseEngine';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
@@ -142,12 +144,46 @@ export const ProgressGallery: React.FC = () => {
       <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><VitalityNav /></div>
 
       <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
-        <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: '8px' }}>
-          My Analytics
-        </h1>
-        <p style={{ color: '#64748B', fontSize: '15px', marginBottom: '24px' }}>
-          Track your trends, lifestyle balance, and transformation.
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+          <div>
+            <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 8px 0' }}>
+              My Analytics
+            </h1>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: 0 }}>
+              Track your trends, lifestyle balance, and transformation.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              const totalEnergy = trendsData.reduce((s, d) => s + d.calories, 0);
+              const totalRest = trendsData.reduce((s, d) => s + d.minutes, 0);
+              navigate('/app/ava', {
+                state: {
+                  initialPrompt: `Can you review my recent analytics trends and clinical vitality balance? In the last 7 days I logged ${totalEnergy} kcal energy expenditure and ${totalRest} minutes of calming restorative practice. How can I optimize my metabolic health and autonomic recovery?`
+                }
+              });
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 18px',
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              color: '#FFFFFF',
+              fontSize: '14px',
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.15)',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <MessageSquare size={16} color="#38BDF8" /> Discuss Analytics with Ava
+          </button>
+        </div>
 
         {/* Custom Tab Switcher */}
         <div style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
@@ -188,7 +224,7 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
                 <div style={{ background: '#FEF2F2', padding: '8px', borderRadius: '10px', color: '#EF4444' }}><Flame size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Active Energy</h3>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Active Energy Expenditure</h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 Days (kcal)</p>
                 </div>
               </div>
@@ -219,7 +255,7 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
                 <div style={{ background: '#ECFEFF', padding: '8px', borderRadius: '10px', color: '#06B6D4' }}><Clock size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Exercise Minutes</h3>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Restorative & Calming Minutes</h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 Days (mins)</p>
                 </div>
               </div>
@@ -285,8 +321,8 @@ export const ProgressGallery: React.FC = () => {
              <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Transformation</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Physical progress log</p>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Clinical Vitality Benchmarks</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Longitudinal visual milestones & baseline tracking</p>
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                 <button 
@@ -301,18 +337,18 @@ export const ProgressGallery: React.FC = () => {
 
               {/* Stacked Polaroids */}
               <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
-                <div style={{ position: 'relative', zIndex: 1, transform: 'rotate(-5deg) translateY(10px)', background: 'white', padding: '10px 10px 40px', borderRadius: '8px', boxShadow: '0 10px 20px rgba(0,0,0,0.08)' }}>
-                  <div style={{ width: '130px', height: '150px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" alt="Day 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'relative', zIndex: 1, transform: 'rotate(-5deg) translateY(10px)', background: 'white', padding: '10px 10px 40px', borderRadius: '12px', boxShadow: '0 10px 20px rgba(0,0,0,0.08)', border: '1px solid #E2E8F0' }}>
+                  <div style={{ width: '130px', height: '150px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                    <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" alt="Baseline" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div style={{ position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '14px', fontWeight: 'bold' }}>Day 1</div>
+                  <div style={{ position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '13px', fontWeight: 700, color: '#1E293B', letterSpacing: '0.3px' }}>Baseline</div>
                 </div>
                 
-                <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
-                  <div style={{ width: '150px', height: '170px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                    <img src={userPhoto || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80"} alt={userPhoto ? "Latest Progress" : "Day 30"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
+                  <div style={{ width: '150px', height: '170px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                    <img src={userPhoto || "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80"} alt={userPhoto ? "Latest Progress" : "Current Benchmark"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '18px', fontWeight: 'bold' }}>{userPhoto ? 'Latest' : 'Day 30'}</div>
+                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>{userPhoto ? 'Latest' : 'Current'}</div>
                 </div>
               </div>
             </div>

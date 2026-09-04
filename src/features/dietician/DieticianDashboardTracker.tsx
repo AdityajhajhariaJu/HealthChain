@@ -1,13 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Plus, BarChart2, BookOpen, Clock, Activity, Sparkles } from 'lucide-react';
+import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, ArrowRight } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { triggerHapticLight } from '../../services/haptics';
 
 export function DieticianDashboardTracker({ 
   profile, 
   foodLogs, 
   currentDate, 
+  waterGlasses = 0,
   onLogMeal, 
+  onDeleteMeal,
+  onUpdateHydration,
   onSnap, 
   onOpenSettings,
   onOpenGallery,
@@ -93,23 +97,85 @@ export function DieticianDashboardTracker({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '100px', position: 'relative' }}>
       
-      {/* 1. Fasting Widget */}
-      <div style={{
-        background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-      }}>
-        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-          <div style={{ background: '#F8FAFC', width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Clock size={20} color="#0F172A" />
+      {/* 1. Fasting & Hydration Widgets */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+        {/* Fasting Card */}
+        <div style={{
+          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9'
+        }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+            <div style={{ background: '#F8FAFC', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={20} color="#0F172A" />
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Intermittent Fasting</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>Target Window</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>{profile?.mealSchedule?.includes('16:8') ? '16:8 Protocol' : '14 hrs Active'}</div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Set up Intermittent Fasting</div>
-            <div style={{ fontSize: '11px', color: '#94A3B8' }}>Recommended Plan</div>
-            <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>14 hrs</div>
+          <button onClick={onOpenSettings} style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+            Configure
+          </button>
+        </div>
+
+        {/* Daily Hydration Card */}
+        <div style={{
+          background: '#FFF', borderRadius: '16px', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9'
+        }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+            <div style={{ background: '#EFF6FF', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Droplet size={20} color="#0284C7" />
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Cellular Hydration</div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{waterGlasses * 250}ml of 2,000ml (Target: 8 glasses)</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0284C7' }}>{waterGlasses} / 8 Glasses</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => onUpdateHydration && onUpdateHydration(-1)}
+              disabled={waterGlasses <= 0}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: '1px solid #E2E8F0',
+                background: '#FFF',
+                color: '#64748B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: waterGlasses <= 0 ? 'not-allowed' : 'pointer',
+                opacity: waterGlasses <= 0 ? 0.4 : 1,
+              }}
+              title="Remove glass"
+              aria-label="Remove 1 glass of water"
+            >
+              <Minus size={14} />
+            </button>
+            <button
+              onClick={() => onUpdateHydration && onUpdateHydration(1)}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: 'none',
+                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                color: '#FFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+              }}
+              title="Add 1 glass (250ml)"
+              aria-label="Add 1 glass of water (250ml)"
+            >
+              <Plus size={14} />
+            </button>
           </div>
         </div>
-        <button onClick={onOpenSettings} style={{ background: '#0F172A', color: '#FFF', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-          Get Started
-        </button>
       </div>
 
       {/* 2. Main Budget Card */}
@@ -167,6 +233,63 @@ export function DieticianDashboardTracker({
         </button>
       </div>
 
+      {/* Ava Clinical Nutritionist Bridge Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        borderRadius: '20px',
+        padding: '16px 20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        color: '#FFFFFF',
+        boxShadow: '0 4px 15px rgba(15, 23, 42, 0.15)',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Sparkles size={20} color="#38BDF8" />
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>Ava Clinical Nutritionist</div>
+            <div style={{ fontSize: '12px', color: '#94A3B8' }}>
+              {consumed === 0
+                ? 'Ask for personalized Indian meal suggestions tailored to your biomarkers'
+                : `${consumed} / ${targetCalories} kcal logged • Review macro split & glycemic index balance`}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            triggerHapticLight();
+            navigate('/app/ava', {
+              state: {
+                initialPrompt: `Hi Ava, here is my daily nutrition intake for today: Consumed ${consumed} kcal (Target: ${targetCalories} kcal), Protein: ${Math.round(consumedProtein)}g / ${targetProtein}g, Carbs: ${Math.round(consumedCarbs)}g / ${targetCarbs}g, Fats: ${Math.round(consumedFats)}g / ${targetFats}g, Fibre: ${Math.round(consumedFibre)}g / ${targetFibre}g, Hydration: ${waterGlasses} / 8 glasses. What adjustments should I make for remaining meals according to my health goals?`
+              }
+            });
+          }}
+          style={{
+            background: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '9px 18px',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 2px 10px rgba(56, 189, 248, 0.3)',
+            whiteSpace: 'nowrap',
+            alignSelf: isMobile ? 'stretch' : 'auto',
+            justifyContent: 'center'
+          }}
+        >
+          Discuss Nutrition with Ava <ArrowRight size={14} />
+        </button>
+      </div>
+
       {/* 4. Vertical Meal Tracker Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginTop: '16px' }}>
         {mealConfig.map((meal, idx) => {
@@ -212,10 +335,67 @@ export function DieticianDashboardTracker({
               )}
 
               {mealConsumed > 0 && Array.isArray(foodLogs[currentDate]) && foodLogs[currentDate].filter((l: any) => l.type === meal.name || (meal.name === 'Morning Snack' && l.type === 'Snack')).map((log: any, idx2: number) => (
-                  <div key={idx2} style={{ background: '#FFF', borderRadius: '12px', padding: '16px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{log.calories} Cal • {log.protein}g Protein</div>
+                  <div key={idx2} style={{ background: '#FFF', borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9', flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '10px' }}>
+                    <div style={{ flex: 1, minWidth: '160px' }}>
+                      <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '15px' }}>{log.name}</div>
+                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, color: '#EF4444' }}>🔥 {log.calories} kcal</span>
+                        <span style={{ fontWeight: 600, color: '#10B981' }}>🥩 {log.protein || 0}g P</span>
+                        <span style={{ fontWeight: 600, color: '#3B82F6' }}>🍚 {log.carbs || 0}g C</span>
+                        <span style={{ fontWeight: 600, color: '#F59E0B' }}>🥑 {log.fat || log.fats || 0}g F</span>
+                        {(log.fibre || log.fiber) ? <span style={{ fontWeight: 600, color: '#8B5CF6' }}>🌾 {log.fibre || log.fiber}g Fibre</span> : null}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => {
+                          triggerHapticLight();
+                          navigate('/app/ava', {
+                            state: {
+                              initialPrompt: `Hi Ava, I logged "${log.name}" (${log.calories} kcal, ${log.protein || 0}g protein, ${log.carbs || 0}g carbs, ${log.fat || log.fats || 0}g fat). What are its clinical glycemic index impact and micronutrient benefits for my metabolic profile?`
+                            }
+                          });
+                        }}
+                        style={{
+                          background: '#EEF2FF',
+                          color: '#4F46E5',
+                          border: '1px solid #C7D2FE',
+                          borderRadius: '10px',
+                          padding: '6px 12px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          transition: 'all 0.15s'
+                        }}
+                        title="Discuss this meal with Ava"
+                        aria-label={`Discuss ${log.name} with Ava`}
+                      >
+                        <Sparkles size={13} /> Ava Review
+                      </button>
+                      {onDeleteMeal && (
+                        <button
+                          onClick={() => onDeleteMeal(log.id)}
+                          style={{
+                            background: '#FEF2F2',
+                            color: '#EF4444',
+                            border: '1px solid #FEE2E2',
+                            borderRadius: '10px',
+                            padding: '6px 10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.15s'
+                          }}
+                          title="Delete meal log"
+                          aria-label={`Delete ${log.name}`}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                     </div>
                   </div>
               ))}

@@ -1,7 +1,8 @@
-import { VitalityNav } from '../../components/ui/FitnessNav';
+import { VitalityNav } from '../../components/ui/VitalityNav';
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Share, X, Award, Star, Zap, Activity } from 'lucide-react';
+import { Trophy, Share, X, Award, Star, Zap, Activity, MessageSquare } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
@@ -24,10 +25,21 @@ const BADGE_DICTIONARY = [
 
 export const TrophyCabinet: React.FC = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [earnedSlugs, setEarnedSlugs] = useState<Set<string>>(new Set());
   const [selectedBadge, setSelectedBadge] = useState<any | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedBadge) {
+        setSelectedBadge(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedBadge]);
 
   useEffect(() => {
     loadBadges();
@@ -117,6 +129,16 @@ export const TrophyCabinet: React.FC = () => {
               return (
                 <motion.div 
                   key={badge.slug}
+                  role={isEarned ? "button" : undefined}
+                  tabIndex={isEarned ? 0 : undefined}
+                  aria-label={`${badge.title} - ${isEarned ? 'Unlocked' : 'Locked'}`}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && isEarned) {
+                      e.preventDefault();
+                      triggerHapticLight();
+                      setSelectedBadge(badge);
+                    }
+                  }}
                   whileHover={isEarned ? { scale: 1.05, y: -4 } : {}}
                   whileTap={isEarned ? { scale: 0.95 } : {}}
                   onClick={() => {
@@ -179,6 +201,9 @@ export const TrophyCabinet: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedBadge.title}
             style={{
               position: 'fixed', inset: 0, zIndex: 1000,
               backgroundColor: 'rgba(0,0,0,0.8)',
@@ -234,12 +259,45 @@ export const TrophyCabinet: React.FC = () => {
                 <h2 style={{ color: '#0F172A', fontSize: '32px', fontWeight: 900, margin: '0 0 12px', lineHeight: 1.1 }}>
                   {selectedBadge.title}
                 </h2>
-                <p style={{ color: '#64748B', fontSize: '16px', lineHeight: 1.5, margin: '0 0 40px' }}>
+                <p style={{ color: '#64748B', fontSize: '16px', lineHeight: 1.5, margin: '0 0 32px' }}>
                   {selectedBadge.desc}
                 </p>
 
-                                  <button
-                    onClick={async () => {
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    const b = selectedBadge;
+                    setSelectedBadge(null);
+                    navigate('/app/ava', {
+                      state: {
+                        initialPrompt: `I just unlocked the "${b.title}" milestone on HealthChain (${b.desc})! How does this achievement impact my clinical biomarkers and long-term health trajectory? What should my next health milestone be?`
+                      }
+                    });
+                  }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#0F172A',
+                    color: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    padding: '14px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    marginBottom: '10px',
+                    boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)'
+                  }}
+                >
+                  <MessageSquare size={18} color="#38BDF8" /> Discuss Milestone with Ava
+                </button>
+
+                <button
+                  onClick={async () => {
                       triggerHapticLight();
                       const shareData = {
                         title: `I unlocked the ${selectedBadge.title} badge!`,

@@ -150,9 +150,38 @@ export default function CaseDashboard() {
         <div style={{ padding: '0 24px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
             <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-              <LivingHeartIcon size={16} color="#F43F5E" />
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  navigate('/app/ava', {
+                    state: {
+                      initialPrompt: 'Hi Ava, I would like to do a quick clinical health check-in. Can you review my day and recent biomarkers?'
+                    }
+                  });
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
+                  color: '#FFFFFF',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)'
+                }}
+              >
+                <Sparkles size={14} color="#38BDF8" /> Ask Ava
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                <LivingHeartIcon size={16} color="#F43F5E" />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
+              </div>
             </div>
           </div>
           
@@ -160,7 +189,17 @@ export default function CaseDashboard() {
             
             {/* The Glassmorphic Arch Canvas Tile */}
               <div 
+                role="button"
+                tabIndex={0}
+                aria-label="Health Canvas War Room"
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticLight();
+                    navigate('/app/war-room');
+                  }
+                }}
                 style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', gridRow: 'span 2',
                   borderRadius: '160px 160px 32px 32px', 
                   position: 'relative',
@@ -196,7 +235,17 @@ export default function CaseDashboard() {
               
               {/* AR Lens Bento Tile */}
               <div 
+                role="button"
+                tabIndex={0}
+                aria-label="Clinical AR Food Lens"
                 onClick={() => { triggerHapticLight(); setShowARLens(true); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticLight();
+                    setShowARLens(true);
+                  }
+                }}
                 style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', borderRadius: '32px',
                   padding: '20px',
                   display: 'flex',
@@ -223,7 +272,16 @@ export default function CaseDashboard() {
 
               {/* Point 3: Interactive Daily Habit Bento Stack */}
               <div 
+                role="button"
+                tabIndex={0}
+                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Completed' : 'Tap to mark done'}`}
                 onClick={() => toggleHabit('hydration', 'Morning Hydration (500ml)')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleHabit('hydration', 'Morning Hydration (500ml)');
+                  }
+                }}
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
                   backdropFilter: 'blur(32px)', 
@@ -286,6 +344,9 @@ export default function CaseDashboard() {
 
               {/* Habit 2: Calm Reset */}
               <div 
+                role="button"
+                tabIndex={0}
+                aria-label={`Calm Space Reset - ${completedHabits['calm_reset'] ? 'Completed' : 'Tap to start reset'}`}
                 onClick={() => {
                   triggerHapticLight();
                   toggleHabit('calm_reset', 'Calm Space Reset');
@@ -308,6 +369,13 @@ export default function CaseDashboard() {
                       is_premium: false,
                       is_featured: true
                     });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticLight();
+                    toggleHabit('calm_reset', 'Calm Space Reset');
                   }
                 }}
                 style={{
@@ -334,8 +402,8 @@ export default function CaseDashboard() {
                     height: '44px', 
                     borderRadius: '50%', 
                     background: completedHabits['calm_reset'] 
-                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                      : 'linear-gradient(135deg, rgba(45, 212, 191, 0.2) 0%, rgba(20, 184, 166, 0.1) 100%)', 
+                    ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                    : 'linear-gradient(135deg, rgba(45, 212, 191, 0.2) 0%, rgba(20, 184, 166, 0.1) 100%)', 
                     boxShadow: completedHabits['calm_reset'] ? '0 4px 12px rgba(16, 185, 129, 0.4)' : 'none',
                     border: completedHabits['calm_reset'] ? 'none' : '1px solid rgba(45, 212, 191, 0.3)',
                     display: 'flex', 
@@ -372,7 +440,16 @@ export default function CaseDashboard() {
 
               {/* Habit 3: Daily Vitamins / Micronutrients */}
               <div 
+                role="button"
+                tabIndex={0}
+                aria-label={`Daily Vitamins / Micronutrients - ${completedHabits['vitamins'] ? 'Completed' : 'Tap to mark done'}`}
                 onClick={() => toggleHabit('vitamins', 'Daily Micronutrient / Rx')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                  }
+                }}
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
                   backdropFilter: 'blur(32px)', 

@@ -166,6 +166,16 @@ export default function MyCases() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && caseToDelete) {
+        setCaseToDelete(null);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [caseToDelete]);
+
   const filteredCases = cases.filter(c => (c?.title || 'Untitled Case').toLowerCase().includes(searchTerm.toLowerCase()));
   const totalPages = Math.ceil(filteredCases.length / itemsPerPage);
   const paginatedCases = filteredCases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -293,6 +303,16 @@ export default function MyCases() {
             return (
               <div 
                  key={caseItem.id}
+                 role="button"
+                 tabIndex={0}
+                 aria-label={`View clinical case: ${caseItem.title}`}
+                 onKeyDown={(e) => {
+                    if ((e.target as HTMLElement).closest('button')) return;
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/app/cases/${caseItem.id}`);
+                    }
+                 }}
                  className="card" 
                  onClick={(e) => {
                     if ((e.target as HTMLElement).closest('button')) return;
@@ -337,17 +357,47 @@ export default function MyCases() {
                        )}
                     </div>
                  </div>
-                  <button
-                    aria-label="Delete case"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCaseToDelete(caseItem);
-                    }}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px', color: '#ef4444' }}
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                  <ChevronRight size={20} color="#cbd5e1" />
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: isMobile ? 'flex-end' : 'center' }}>
+                   <button
+                     type="button"
+                     aria-label={`Discuss ${caseItem.title} with Ava`}
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       navigate('/app/ava', {
+                         state: {
+                           initialPrompt: `Hi Ava, let's review my clinical case: "${caseItem.title}". Leading pathway: ${primary?.condition || 'Awaiting evidence synthesis'}. Can you summarize potential clinical blind spots or suggest questions for my doctor?`
+                         }
+                       });
+                     }}
+                     style={{
+                       background: '#EEF2FF',
+                       border: '1px solid #C7D2FE',
+                       borderRadius: '10px',
+                       padding: '6px 12px',
+                       color: '#4F46E5',
+                       fontSize: '12px',
+                       fontWeight: 700,
+                       cursor: 'pointer',
+                       display: 'flex',
+                       alignItems: 'center',
+                       gap: '4px',
+                       transition: 'all 0.15s'
+                     }}
+                   >
+                     <Sparkles size={13} /> Ask Ava
+                   </button>
+                   <button
+                     aria-label="Delete case"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       setCaseToDelete(caseItem);
+                     }}
+                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px', color: '#ef4444' }}
+                   >
+                     <Trash2 size={20} />
+                   </button>
+                   <ChevronRight size={20} color="#cbd5e1" />
+                 </div>
                </div>
             );
           })
@@ -404,6 +454,9 @@ export default function MyCases() {
             onClick={() => setCaseToDelete(null)}
           >
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Delete Clinical Case"
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
