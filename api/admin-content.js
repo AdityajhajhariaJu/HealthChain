@@ -43,22 +43,22 @@ export default async function handler(req, res) {
     const { action, payload, table = 'fitness_content' } = req.body;
 
     if (action === 'insert') {
-      const { data, error } = await supabase.from(table).insert(payload).select();
+      const { data: resultData, error } = await supabase.from(table).insert(payload).select();
       if (error) throw error;
-      return res.status(200).json(data);
+      return res.status(200).json(resultData);
     } 
     
     if (action === 'update') {
       const { id, ...updates } = payload;
-      const { data, error } = await supabase.from(table).update(updates).eq('id', id).select();
+      const { data: updateData, error } = await supabase.from(table).update(updates).eq('id', id).select();
       if (error) throw error;
-      return res.status(200).json(data);
+      return res.status(200).json(updateData);
     }
 
     if (action === 'delete') {
       const { id } = payload;
       // Soft delete
-      const { data, error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
+      const { error } = await supabase.from(table).update({ is_active: false }).eq('id', id);
       if (error) throw error;
       return res.status(200).json({ success: true });
     }

@@ -122,20 +122,13 @@ export default async function handler(req, res) {
     if (ledgerError) {
       return res.status(503).json({ error: 'AI request ledger unavailable' });
     }
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('is_pro, pro_expires_at')
-      .eq('id', userId)
-      .single();
-
-    const isPro = profile?.is_pro && (!profile.pro_expires_at || new Date(profile.pro_expires_at) > new Date());
     const dailyLimit = 10000;
 
-    const { data: allowed, error: quotaError } = await adminClient.rpc('consume_ai_request', {
+    const { data: allowed, error: _quotaError } = await adminClient.rpc('consume_ai_request', {
       p_user_id: userId,
       p_daily_limit: dailyLimit,
     });
-    if (quotaError) {
+    if (_quotaError) {
       await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
       return res.status(503).json({ error: 'AI quota service unavailable' });
     }
@@ -168,7 +161,7 @@ export default async function handler(req, res) {
 
     if (featureCode) {
       try {
-        const { data: quotaResult, error: quotaError } = await adminClient.rpc('consume_feature_quota', {
+        await adminClient.rpc('consume_feature_quota', {
           p_user_id: userId,
           p_feature_name: featureCode
         });
@@ -178,7 +171,7 @@ export default async function handler(req, res) {
         //   if (quotaError) return res.status(503).json({ error: 'Quota service unavailable' });
         //   if (!quotaResult?.allowed) return res.status(402).json({ error: 'Feature quota exceeded' });
         // }
-      } catch (e) {
+      } catch {
         // Ghost mode ignores tracking failures to prevent service disruption
       }
     }

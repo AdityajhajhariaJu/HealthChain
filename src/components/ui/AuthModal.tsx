@@ -83,6 +83,7 @@ export function AuthModal() {
           >
             <button
               onClick={handleClose}
+              aria-label="Close authentication modal"
               style={{
                 position: 'absolute',
                 top: '16px',
@@ -96,7 +97,8 @@ export function AuthModal() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '50%',
-                transition: 'background-color 0.2s, color 0.2s',
+                transition: 'background-color 0.2s, color 0.2s, box-shadow 0.2s',
+                outline: 'none',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#F1F5F9';
@@ -105,6 +107,12 @@ export function AuthModal() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
                 e.currentTarget.style.color = '#94A3B8';
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow = '0 0 0 2px #3B82F6';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = 'none';
               }}
             >
               <X size={20} />
@@ -146,10 +154,17 @@ export function AuthModal() {
                   fontSize: '15px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s',
+                  transition: 'background-color 0.2s, box-shadow 0.2s',
+                  outline: 'none',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563EB')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3B82F6')}
+                onFocus={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #3B82F6';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 Create Free Account
               </button>
@@ -165,10 +180,17 @@ export function AuthModal() {
                   fontSize: '15px',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s',
+                  transition: 'background-color 0.2s, box-shadow 0.2s',
+                  outline: 'none',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+                onFocus={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #94A3B8';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 Log In
               </button>
