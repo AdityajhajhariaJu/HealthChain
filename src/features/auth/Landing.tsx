@@ -259,7 +259,19 @@ const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) =
   };
 
   return (
-    <div className={styles.videoWrapper} onClick={!isPlaying ? handlePlay : undefined}>
+    <div 
+      className={styles.videoWrapper} 
+      onClick={!isPlaying ? handlePlay : undefined}
+      role="button"
+      tabIndex={!isPlaying ? 0 : -1}
+      aria-label="Play video demonstration"
+      onKeyDown={(e) => {
+        if (!isPlaying && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handlePlay();
+        }
+      }}
+    >
       {isPlaying ? (
         <video
           ref={videoRef}

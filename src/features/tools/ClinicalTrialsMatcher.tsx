@@ -507,7 +507,15 @@ export default function ClinicalTrialsMatcher() {
 
       <AnimatePresence>
         {selectedItem && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} onClick={() => setSelectedItem(null)}>
+          <div 
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} 
+            onClick={() => setSelectedItem(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Research Detail Modal"
+            tabIndex={-1}
+            onKeyDown={(e) => { if (e.key === 'Escape') setSelectedItem(null); }}
+          >
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '640px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
               <div style={{ padding: isMobile ? '16px' : '24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
