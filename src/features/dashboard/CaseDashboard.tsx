@@ -42,7 +42,6 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import { VitalityNav } from '../../components/ui/FitnessNav';
-import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
 
@@ -874,11 +873,6 @@ export default function CaseDashboard() {
             <div style={{ padding: '0 16px', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Your Calm Space</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences to shift your state</p>
-            </div>
-
-            {/* 4-4-4-4 Resonant HRV Coherence Box Breathing */}
-            <div style={{ padding: '0 16px 20px' }}>
-              <MindfulHRVCard />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
