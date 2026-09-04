@@ -126,13 +126,26 @@ export default function CasePrep() {
       `Prepared with HealthChain Clinical Dossier`
     ].join('\n');
 
-    navigator.clipboard.writeText(lines).then(() => {
-      triggerHapticSuccess();
-      awardPoints(5, 'Copied Clinician Appointment Brief', 'consult', 'brief_copy_' + selectedCase?.id);
-      toast.success('Brief Copied', 'Ready to paste into MyChart, patient portal, or message your clinician.');
-    }).catch(() => {
-      toast.error('Copy Failed', 'Unable to copy text to clipboard.');
-    });
+    const copyBrief = async () => {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(lines);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = lines;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        }
+        triggerHapticSuccess();
+        awardPoints(5, 'Copied Clinician Appointment Brief', 'consult', 'brief_copy_' + selectedCase?.id);
+        toast.success('Brief Copied', 'Ready to paste into MyChart, patient portal, or message your clinician.');
+      } catch {
+        toast.error('Copy Failed', 'Unable to copy text to clipboard.');
+      }
+    };
+    copyBrief();
   };
 
   if (!selectedCase && !showPicker) {
@@ -224,16 +237,17 @@ export default function CasePrep() {
               navigate('/app/ava', { state: { initialPrompt: prompt } });
             }}
             style={{ background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            aria-label="Rehearse appointment with Ava AI"
           >
             <MessageSquare size={16} /> Rehearse with Ava
           </button>
-          <button className="btn btn-outline btn-sm" onClick={handleCopyBrief}>
+          <button className="btn btn-outline btn-sm" onClick={handleCopyBrief} aria-label="Copy appointment brief to clipboard">
             <Copy size={16} style={{ marginRight: 6 }} /> Copy Brief
           </button>
-          <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
+          <button className="btn btn-outline btn-sm" onClick={() => window.print()} aria-label="Print appointment brief">
             <Printer size={16} style={{ marginRight: 6 }} /> Print Brief
           </button>
-          <button className="btn btn-outline btn-sm" onClick={() => setShowDrawer(true)}>
+          <button className="btn btn-outline btn-sm" onClick={() => setShowDrawer(true)} aria-label="See supporting case detail">
             <Eye size={16} style={{ marginRight: 6 }} /> See supporting detail
           </button>
         </div>

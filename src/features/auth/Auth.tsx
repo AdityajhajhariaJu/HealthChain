@@ -21,14 +21,17 @@ export default function Auth() {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const { toast, success, error: toastError } = useToast();
 
-  // If already authenticated when visiting /login or /signup, immediately redirect to /app
   useEffect(() => {
+    let isMounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (isMounted && session) {
         navigate('/app', { replace: true });
       }
     }).catch(() => {});
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const handleOAuth = async (provider: 'google' | 'apple') => {
     try {

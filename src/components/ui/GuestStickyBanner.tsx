@@ -42,6 +42,7 @@ export function GuestStickyBanner() {
     checkAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
       if (session) {
         setIsGuest(false);
       } else {

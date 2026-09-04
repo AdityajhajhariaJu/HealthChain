@@ -259,10 +259,12 @@ export const AdminContentDashboard: React.FC = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Duration (min)</label>
                     <input 
                       type="number" 
+                      min="1"
+                      max="180"
                       value={editForm.duration_minutes || ''}
                       onChange={e => {
                         const val = parseInt(e.target.value, 10);
-                        setEditForm({ ...editForm, duration_minutes: Number.isFinite(val) ? Math.max(0, val) : 0 });
+                        setEditForm({ ...editForm, duration_minutes: Number.isFinite(val) ? Math.max(1, Math.min(180, val)) : 0 });
                       }}
                       aria-label="Duration in minutes"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
@@ -272,10 +274,12 @@ export const AdminContentDashboard: React.FC = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Calories</label>
                     <input 
                       type="number" 
+                      min="0"
+                      max="5000"
                       value={editForm.calories_estimate || ''}
                       onChange={e => {
                         const val = parseInt(e.target.value, 10);
-                        setEditForm({ ...editForm, calories_estimate: Number.isFinite(val) ? Math.max(0, val) : 0 });
+                        setEditForm({ ...editForm, calories_estimate: Number.isFinite(val) ? Math.max(0, Math.min(5000, val)) : 0 });
                       }}
                       aria-label="Estimated calories"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
@@ -336,10 +340,10 @@ export const AdminContentDashboard: React.FC = () => {
             </div>
   
             <div className="mt-10 flex justify-end gap-4 pt-6 border-t border-slate-100">
-              <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-3 rounded-full font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+              <button type="button" onClick={() => setIsEditing(false)} aria-label="Cancel editing" className="px-6 py-3 rounded-full font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                 Cancel
               </button>
-              <button type="button" onClick={handleSave} className="px-6 py-3 rounded-full font-semibold text-white bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 flex items-center gap-2 transition-all">
+              <button type="button" onClick={handleSave} aria-label="Save clinical content" className="px-6 py-3 rounded-full font-semibold text-white bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/20 flex items-center gap-2 transition-all">
                 <Save size={18} /> Save Content
               </button>
             </div>

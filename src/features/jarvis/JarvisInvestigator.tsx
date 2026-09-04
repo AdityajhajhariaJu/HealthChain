@@ -95,7 +95,7 @@ export default function JarvisInvestigator() {
             ctx?.drawImage(img, 0, 0, width, height);
             
             const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            const base64 = dataUrl.split(',')[1];
+            const base64 = (dataUrl && dataUrl.includes(',')) ? dataUrl.split(',')[1] : (dataUrl || '');
             const estimatedBytes = Math.round((base64.length * 3) / 4);
             resolve({ file: f, base64, size: estimatedBytes });
           };

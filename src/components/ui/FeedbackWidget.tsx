@@ -154,6 +154,7 @@ export default function FeedbackWidget() {
               <button 
                 type="submit" 
                 className="btn btn-primary" 
+                aria-label="Submit feedback to HealthChain"
                 style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
                 disabled={!feedback.trim()}
               >

@@ -15,6 +15,8 @@ export const GlassBoxExplanation = () => {
     <div style={{ marginTop: '12px' }}>
       <button
         onClick={toggle}
+        aria-expanded={isOpen}
+        aria-label={isOpen ? "Collapse neural breakdown" : "Expand neural breakdown"}
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           background: 'none', border: 'none', padding: 0,

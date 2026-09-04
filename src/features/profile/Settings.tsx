@@ -549,7 +549,7 @@ export default function Settings() {
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{userEmail}</div>
               </div>
             </div>
-            <button className="btn btn-outline" onClick={handleLogout} style={{ gap: '8px' }}>
+            <button className="btn btn-outline" onClick={handleLogout} aria-label="Log out of HealthChain account" style={{ gap: '8px' }}>
               <LogOut size={16} /> Log Out
             </button>
           </div>

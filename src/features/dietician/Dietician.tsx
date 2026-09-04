@@ -357,9 +357,17 @@ export default function Dietician() {
   // Record Health Memory snapshots
   useEffect(() => {
     if (!profile) return;
+    const safeOccurredAt = (() => {
+      try {
+        const d = new Date(`${currentDate}T12:00:00`);
+        return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+      } catch {
+        return new Date().toISOString();
+      }
+    })();
     const dailyFood = foodLogs[currentDate] || [];
     recordHealthMemory({
-      kind: 'diet', source: 'dietician', title: `Diet log: ${currentDate}`, occurredAt: new Date(`${currentDate}T12:00:00`).toISOString(),
+      kind: 'diet', source: 'dietician', title: `Diet log: ${currentDate}`, occurredAt: safeOccurredAt,
       payload: { profile: { goal: profile.goal, targetCalories: profile.targetCalories, targetProtein: profile.targetProtein }, food: dailyFood, hydration: hydration || {}, mealPlan: mealPlan || null },
       dedupeKey: `diet-day:${currentDate}`,
     });

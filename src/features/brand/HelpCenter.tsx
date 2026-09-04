@@ -384,12 +384,14 @@ export default function HelpCenter() {
                 className="btn btn-primary btn-sm" 
                 style={{ flex: 1 }} 
                 onClick={() => window.location.href = 'mailto:healthchain360@gmail.com'}
+                aria-label="Send email to HealthChain support"
               >
                 Send Email
               </button>
               <button 
                 className="btn btn-outline btn-sm" 
                 onClick={copyEmail}
+                aria-label={copied ? "Support email address copied" : "Copy support email address"}
               >
                 <Copy size={14} /> {copied ? 'Copied!' : 'Copy'}
               </button>

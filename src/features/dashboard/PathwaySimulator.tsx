@@ -131,6 +131,7 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
               </p>
               <button 
                 onClick={runSimulation}
+                aria-label="Create clinician discussion guide"
                 style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, margin: '0 auto', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}
               >
                 <GitMerge size={18} />

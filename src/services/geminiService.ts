@@ -347,11 +347,7 @@ Example: ["neuro", "physio", "ortho"]${CLINICAL_SAFETY_RULES}`;
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const cleanText = text
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      return JSON.parse(cleanText);
+      return parseModelJson<string[]>(text, ['gp']) || ['gp'];
     }
   } catch (err) {
     console.error('Triage error:', err);
@@ -523,9 +519,8 @@ export async function runMDTConference(intakeData: any, specialistData: any, med
       if (terminalMsg) {
         try {
           const textToParse = terminalMsg.text || '';
-          const match = textToParse.match(/\{[\s\S]*\}/);
-          if (match) {
-            const parsed = JSON.parse(match[0]);
+          const parsed = parseModelJson<any>(textToParse, null);
+          if (parsed && typeof parsed === 'object') {
             return [id, {
               specialist: id,
               keyFindings: parsed.keyFindings || parsed.evidenceNote,
@@ -635,10 +630,9 @@ export async function generateMDTReport(
       const terminalMsg = (messages || []).slice().reverse().find((m: any) => m.role === 'ai' && m.text?.includes('ANALYSIS_COMPLETE'));
       if (terminalMsg) {
         try {
-          const match = (terminalMsg.text || '').match(/\{[\s\S]*\}/);
-          if (match) {
-            const parsed = JSON.parse(match[0]);
-            return `--- ${id} ---\nKey Findings: ${parsed.keyFindings}\nInterpretation: ${parsed.interpretation}\nNext Steps: ${parsed.nextSteps}`;
+          const parsed = parseModelJson<any>(terminalMsg.text || '', null);
+          if (parsed && typeof parsed === 'object') {
+            return `--- ${id} ---\nKey Findings: ${parsed.keyFindings || 'None'}\nInterpretation: ${parsed.interpretation || 'None'}\nNext Steps: ${parsed.nextSteps || 'None'}`;
           }
         } catch(e) {}
       }
@@ -813,10 +807,9 @@ export async function generateParallelMultiReport(
     const terminalMsg = (messages || []).slice().reverse().find((m: any) => m.role === 'ai' && m.text?.includes('ANALYSIS_COMPLETE'));
     if (terminalMsg) {
       try {
-        const match = (terminalMsg.text || '').match(/\{[\s\S]*\}/);
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          formattedTranscripts += `Key Findings: ${parsed.keyFindings}\nInterpretation: ${parsed.interpretation}\nNext Steps: ${parsed.nextSteps}\n`;
+        const parsed = parseModelJson<any>(terminalMsg.text || '', null);
+        if (parsed && typeof parsed === 'object') {
+          formattedTranscripts += `Key Findings: ${parsed.keyFindings || 'None'}\nInterpretation: ${parsed.interpretation || 'None'}\nNext Steps: ${parsed.nextSteps || 'None'}\n`;
           if (parsed.currentHypotheses && parsed.currentHypotheses.length > 0) {
             formattedTranscripts += `[Active Hypotheses: ${parsed.currentHypotheses.map((h: any) => typeof h === 'string' ? h : h.condition).join(', ')}]\n`;
           }
@@ -983,8 +976,7 @@ Rules:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Food analysis error:', err);
@@ -1082,8 +1074,7 @@ Rules:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Guardrails generation error:', err);
@@ -1142,8 +1133,7 @@ Rules:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Grocery generation error:', err);
@@ -1213,8 +1203,7 @@ Rules:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Meal plan generation error:', err);
@@ -1267,8 +1256,7 @@ ${CLINICAL_SAFETY_RULES}`;
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Specialist suggestion error:', err);
@@ -1384,8 +1372,7 @@ ${CLINICAL_SAFETY_RULES}`;
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Synthesis error:', err);
@@ -1426,8 +1413,7 @@ ${CLINICAL_SAFETY_RULES}`;
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\{[\s\S]*\}/);
-      return match ? JSON.parse(match[0]) : null;
+      return parseModelJson<any>(text, null);
     }
   } catch (err) {
     console.error('Interaction check error:', err);
@@ -1526,8 +1512,7 @@ Return ONLY a valid JSON array of objects with the exact following schema:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\[[\s\S]*\]/);
-      const parsed = match ? JSON.parse(match[0]) : [];
+      const parsed = parseModelJson<any[]>(text, []) || [];
       
       // Merge AI context back into trials
       return trials.map(trial => {
@@ -1591,8 +1576,7 @@ Return ONLY a valid JSON array of objects with the exact following schema:
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const match = text.match(/\[[\s\S]*\]/);
-      const parsed = match ? JSON.parse(match[0]) : [];
+      const parsed = parseModelJson<any[]>(text, []) || [];
       
       return papers.map(paper => {
         const aiData = parsed.find((p: any) => p.id === paper.id) || {};
@@ -1659,7 +1643,8 @@ Return strictly as JSON matching this structure:
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return parseModelJson<any>(text, null);
   } catch (err) {
     console.error('Case prep analysis error:', err);
     return null;
@@ -1781,7 +1766,8 @@ Return strictly as a JSON array of strings.`;
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text || '');
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return parseModelJson<string[]>(text, []) || [];
   } catch (err) {
     console.error('generateAppointmentQuestions error:', err);
     return [];
@@ -1841,10 +1827,12 @@ ${JSON.stringify(brief, null, 2)}
     if (!res.ok) throw new Error('API Error');
     const data = await res.json();
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const jsonStr = rawText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '');
-    const refined = JSON.parse(jsonStr);
-    refined.isRefinedByAI = true;
-    return refined;
+    const refined = parseModelJson<any>(rawText, null);
+    if (refined && typeof refined === 'object') {
+      refined.isRefinedByAI = true;
+      return refined;
+    }
+    return brief;
   } catch (err) {
     console.error('refineAppointmentBrief error:', err);
     return brief; // Return original on failure
@@ -1967,7 +1955,7 @@ Example: ["Patient reported persistent lower back pain starting 2 days ago", "Pa
     if (!res.ok) return [];
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
-    return JSON.parse(text);
+    return parseModelJson<any[]>(text, []) || [];
   } catch (err) {
     console.error('Memory extraction error:', err);
     return [];

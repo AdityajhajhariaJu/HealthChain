@@ -129,8 +129,13 @@ export default function ClinicalReportAnalyzer() {
           toast.error('Processing Failed', 'Failed to process file format.');
           return;
         }
-        const base64Data = result.split(',')[1];
-        const mimeType = selectedFile.type;
+        const base64Data = result.includes(',') ? result.split(',')[1] : result;
+        if (!base64Data) {
+          setLoading(false);
+          toast.error('Processing Failed', 'Could not read document contents.');
+          return;
+        }
+        const mimeType = selectedFile.type || 'image/jpeg';
 
       const profile = getProfile() || {};
       const data = await analyzeLabReport(base64Data, mimeType, profile);

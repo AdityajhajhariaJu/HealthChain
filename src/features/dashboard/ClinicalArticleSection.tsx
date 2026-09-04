@@ -116,7 +116,7 @@ export function ClinicalArticleSection() {
       stopNarration();
       return;
     }
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
       toast.info('Narration Unavailable', 'Audio synthesis is not supported on this browser.');
       return;
     }

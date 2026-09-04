@@ -974,6 +974,8 @@ export default function MedicalProfile() {
                   type="number"
                   placeholder="Age"
                   aria-label="Age"
+                  min="0"
+                  max="125"
                   className="input"
                   value={demoForm.age}
                   onChange={(e) => setDemoForm({ ...demoForm, age: e.target.value })}
@@ -2107,6 +2109,7 @@ export default function MedicalProfile() {
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
                 className="btn btn-outline"
+                aria-label="Clear clinical profile data"
                 onClick={() => setShowClearConfirm(true)}
                 style={{ color: '#EF4444', borderColor: '#FEE2E2', background: '#FEF2F2', padding: '10px 16px' }}
               >
@@ -2114,6 +2117,7 @@ export default function MedicalProfile() {
               </button>
               <button
                 className="btn btn-primary"
+                aria-label="Export complete medical profile as PDF"
                 onClick={handleExportPDF}
                 style={{ display: 'flex', gap: '8px', background: 'var(--teal)', border: 'none', color: '#FFF', padding: '10px 16px' }}
               >

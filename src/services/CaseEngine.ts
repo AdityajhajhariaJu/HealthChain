@@ -174,6 +174,16 @@ export function getCases(): CaseItem[] {
 let syncTimeout: any = null;
 let currentCasesKey: string | null = null;
 
+function safeIsoDate(val?: string | number | Date | null): string {
+  if (!val) return new Date().toISOString();
+  try {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
 async function save(cases: CaseItem[]) {
   const safeCases = JSON.parse(JSON.stringify(cases));
   
@@ -202,7 +212,7 @@ async function save(cases: CaseItem[]) {
           status: c.status,
           specialty: c.currentStage,
           data: { ...c, __profileId: currentProfileId },
-          updated_at: new Date(c.updatedAt || new Date()).toISOString()
+          updated_at: safeIsoDate(c.updatedAt)
        });
     }
     await flushSyncOutbox(session.user.id);
@@ -603,7 +613,7 @@ export async function initCaseEngine() {
               status: c.status,
               specialty: c.currentStage,
               data: { ...c, __profileId: currentProfileId },
-              updated_at: new Date(c.updatedAt || new Date()).toISOString()
+              updated_at: safeIsoDate(c.updatedAt)
             });
           }
           await flushSyncOutbox(session.user.id);

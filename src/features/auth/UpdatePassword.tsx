@@ -15,13 +15,19 @@ export default function UpdatePassword() {
   const [updated, setUpdated] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
+      if (!isMounted) return;
+      if (!data?.session) {
         setError('Invalid or expired reset link. Please request a new one.');
       }
     }).catch(() => {
+      if (!isMounted) return;
       setError('Could not verify session. Please try again.');
     });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +86,7 @@ export default function UpdatePassword() {
       {/* Nav */}
       <nav style={{ padding: '24px 40px', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="HealthChain360.ai" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>HealthChain360.ai</span>
         </div>
       </nav>

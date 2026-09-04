@@ -585,11 +585,16 @@ export default function ClinicalTrialsMatcher() {
                 </button>
                 <button 
                   className="btn btn-primary" 
+                  aria-label="View full external source in new tab"
                   onClick={() => {
                     const targetUrl = selectedItem.journal
                       ? (selectedItem.url || `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(selectedItem.title)}`)
                       : `https://clinicaltrials.gov/study/${selectedItem.id}`;
-                    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                    try {
+                      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                    } catch {
+                      window.location.href = targetUrl;
+                    }
                   }}
                 >
                   View Full Source <ExternalLink size={16} />
