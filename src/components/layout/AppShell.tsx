@@ -22,6 +22,7 @@ import { openTrialModal } from '../../services/TrialEngine';
 import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { useToast } from '../ui/ToastProvider';
+import FeedbackWidget from '../ui/FeedbackWidget';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -657,6 +658,7 @@ const enforceSafeArea = () => {
       <VitalityPointsModal />
       <PointsAwardedToast />
       <TrialFeaturesModal />
+      <FeedbackWidget />
     </div>
   );
 }

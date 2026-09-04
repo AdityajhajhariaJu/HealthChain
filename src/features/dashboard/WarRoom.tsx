@@ -91,7 +91,7 @@ export default function WarRoom() {
             <button 
               onClick={() => {
                 triggerHapticLight();
-                navigate('/app/health-buddy', { 
+                navigate('/app/ava', { 
                   state: { 
                     initialPrompt: "I'd like to discuss the recent clinical note from Dr. Sarah Jenkins and my Q3 Bloodwork Results regarding my lipid panel and sodium reduction." 
                   } 

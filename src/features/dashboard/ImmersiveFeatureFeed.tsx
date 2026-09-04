@@ -35,7 +35,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
         image: '/images/immersive/personalized-meal.png',
         title: 'Personalized For You',
         subtitle: 'Your cortisol is down. I\'ve updated your meal plan.',
-        route: '/app/nutrition',
+        route: '/app/dietician',
         priority: 20,
       }
     ];
@@ -46,7 +46,7 @@ export const ImmersiveFeatureFeed: React.FC = () => {
         image: '/images/immersive/focus-boost.png',
         title: '2 PM Focus Boost',
         subtitle: 'Add these for cognitive energy.',
-        route: '/app/nutrition',
+        route: '/app/dietician',
         priority: 100, 
       });
     }

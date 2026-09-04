@@ -7,6 +7,7 @@ import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight } from '../../services/haptics';
 import { getVitalityState } from '../../services/VitalityPointsEngine';
+import VitalityPlayground from '../../components/ui/VitalityPlayground';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [
@@ -160,6 +161,11 @@ export const TrophyCabinet: React.FC = () => {
               );
             })}
           </div>
+        </div>
+
+        {/* Clinical Rewards Arcade & Daily Mystery Drops */}
+        <div style={{ marginTop: '32px' }}>
+          <VitalityPlayground />
         </div>
 
       </div>

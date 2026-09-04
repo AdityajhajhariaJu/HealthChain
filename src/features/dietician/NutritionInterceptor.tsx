@@ -22,7 +22,7 @@ export const NutritionInterceptor: React.FC = () => {
       if (result && result.items) {
         setRecentLog(result);
         triggerHapticSuccess();
-        awardPoints(2, 'dY?? Quick Nutrition Log', 'lifestyle', 'quick_diet_' + Date.now());
+        awardPoints(2, '🥗 Quick Nutrition Log', 'lifestyle', 'quick_diet_' + Date.now());
         setInput('');
       }
     } catch (err) {

@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from './ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function FeedbackWidget() {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
   const { success } = useToast();
   const isMobile = useIsMobile();
+
+  // Hide floating feedback on full-screen chats and onboarding to prevent input obstruction
+  if (
+    location.pathname.startsWith('/app/ava') || 
+    location.pathname.startsWith('/app/war-room') || 
+    location.pathname.startsWith('/app/onboarding')
+  ) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

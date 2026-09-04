@@ -2,6 +2,8 @@ import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { Scan } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 
 export function formatLocalDate(date: Date): string {
   const validDate = (date instanceof Date && !Number.isNaN(date.getTime())) ? date : new Date();
@@ -199,7 +201,8 @@ function calculateTargets(p: any) {
 export default function Dietician() {
   const isMobile = useIsMobile();
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'grocery' | 'guardrails'>('dashboard');
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
@@ -398,7 +401,7 @@ export default function Dietician() {
             protein: meal.protein || 0,
             carbs: meal.carbs || 0,
             fat: meal.fat || 0,
-            emoji: '??',
+            emoji: meal.emoji || (meal.type?.toLowerCase().includes('break') ? '🥣' : meal.type?.toLowerCase().includes('lunch') ? '🥗' : meal.type?.toLowerCase().includes('din') ? '🍲' : meal.type?.toLowerCase().includes('snack') ? '🥑' : '🍽️'),
             type: meal.type || 'Meal'
           });
         }
@@ -772,6 +775,27 @@ export default function Dietician() {
             >
               <ShieldCheck size={15} /> Guardrails
             </button>
+            <button
+              onClick={() => setActiveTab('longevity')}
+              style={{
+                padding: isMobile ? '8px 12px' : '8px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'longevity' ? '#0F172A' : 'transparent',
+                color: activeTab === 'longevity' ? '#FFFFFF' : '#64748B',
+                fontWeight: 700,
+                fontSize: isMobile ? '12.5px' : '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <Sparkles size={15} color={activeTab === 'longevity' ? '#38BDF8' : '#64748B'} /> Longevity Bio-Stack
+            </button>
             <div style={{ width: '1px', height: '22px', background: '#E2E8F0', margin: '6px 2px', flexShrink: 0 }} />
             <button
               onClick={() => setShowResetDietConfirm(true)}
@@ -877,7 +901,29 @@ export default function Dietician() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Plus size={16} /> Log Meal / Snack
+                  <Plus size={16} /> Log Meal
+                </button>
+                <button
+                  onClick={() => navigate('/app/nutrition-log')}
+                  style={{
+                    background: '#0F172A',
+                    color: '#FFF',
+                    border: 'none',
+                    padding: '11px 16px',
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+                    flex: isMobile ? 1 : 'unset',
+                    justifyContent: 'center',
+                  }}
+                  title="Ambient Natural Language & Voice Food Tracking"
+                >
+                  <Sparkles size={16} color="#34D399" /> Ambient Log
                 </button>
               </div>
             </div>
@@ -1430,6 +1476,17 @@ export default function Dietician() {
                 </div>
               )}
 </motion.div>
+        )}
+
+        {/* TAB 4: LONGEVITY BIO-STACK */}
+        {activeTab === 'longevity' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <LongevityBioStackCard />
+          </motion.div>
         )}
 
         {/* Floating Food Logger Modal */}

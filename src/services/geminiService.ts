@@ -1710,7 +1710,7 @@ Return ONLY a valid JSON object matching this exact schema:
     { "from": "symp1", "to": "cond1", "type": "symptom_presentation", "label": "Primary presentation", "strength": "strong" }
   ],
   "precautions": [
-    { "text": "Monitor for fever above 38.5Â°C", "severity": "red_flag|watch|info", "relatedConditions": ["cond1"] }
+    { "text": "Monitor for fever above 38.5°C", "severity": "red_flag|watch|info", "relatedConditions": ["cond1"] }
   ],
   "missingEvidence": [
     { "test": "Complete Blood Count", "wouldDifferentiate": ["cond1", "cond2"], "urgency": "Routine|Soon", "recommendedSpecialists": "General Physician or Hematologist" }

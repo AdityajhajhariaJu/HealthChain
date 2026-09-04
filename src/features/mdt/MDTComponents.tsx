@@ -328,7 +328,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
   );
 }
 
-// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ Intake Phase UI Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
+// ------------------- Intake Phase UI -------------------
 
 export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing, onElevateParallel, onReviewPastMDT, onResumeActiveCase }: any) {
   const isMobile = useIsMobile();
@@ -729,9 +729,9 @@ New Information / Changes in Symptoms since last evaluation:
   );
 }
 
-// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ MDT Specialist Panel (10-question AI Chat) Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
+// ------------------- MDT Specialist Panel (10-question AI Chat) -------------------
 
-// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ HELPER COMPONENTS FOR SPECIALIST PANEL Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
+// ------------------- HELPER COMPONENTS FOR SPECIALIST PANEL -------------------
 const parseAIResponse = (text: any): any => {
   if (typeof text !== 'string') return { response: '' };
   let parsed: any = null;
@@ -822,7 +822,7 @@ const PainSlider = ({ onSubmit, color }) => {
     </div>
   );
 };
-// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ MDT Specialist Panel (10-question AI Chat) Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
+// ------------------- MDT Specialist Panel (10-question AI Chat) -------------------
 
 export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ specialist, index, allSpecialists, intakeData, onComplete, initialMessages = [] as any[], onUpdate, isPaused = false, activeDifferentials = [] as any[] }: any) {
   const [messages, setMessages] = useState(initialMessages);
@@ -1253,7 +1253,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
   );
 });
 
-// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ MDT Conference Panel (Cross-Specialty Debate) Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
+// ------------------- MDT Conference Panel (Cross-Specialty Debate) -------------------
 
 export function MDTConferencePanel({
   intakeData,

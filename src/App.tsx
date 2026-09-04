@@ -58,6 +58,7 @@ const Pricing = React.lazy(() => import('./features/brand/Pricing'));
 const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
 const HealthMemory = React.lazy(() => import('./features/experience/HealthMemory'));
 const OnboardingFlow = React.lazy(() => import('./features/onboarding/OnboardingFlow'));
+const NutritionInterceptor = React.lazy(() => import('./features/dietician/NutritionInterceptor').then(m => ({ default: m.NutritionInterceptor })));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -357,7 +358,7 @@ export default function App() {
           })
         );
         
-        // Use the session from the event directly â€” do NOT re-call getSession()
+        // Use the session from the event directly — do NOT re-call getSession()
         // inside this callback. Re-calling getSession() acquires the internal
         // Supabase lock, which is already held during onAuthStateChange dispatch,
         // causing a deadlock or returning stale data from async storage.
@@ -396,7 +397,7 @@ export default function App() {
         // Supabase's internal _recoverAndRefresh can fire SIGNED_OUT on stale
         // storage before our async IndexedDB write from a fresh login has
         // committed. If a SIGNED_IN occurred within the last 5 seconds, this
-        // SIGNED_OUT is a false positive â€” ignore it.
+        // SIGNED_OUT is a false positive — ignore it.
         if (Date.now() - lastSignedInAt < 5000) {
           console.warn('[Auth] Ignoring SIGNED_OUT that raced with recent SIGNED_IN (debounce window)');
           return;
@@ -636,6 +637,8 @@ export default function App() {
             }
           />
           <Route path="/app/pharmacy" element={<Navigate to="/app/medicine-lab" replace />} />
+          <Route path="/app/nutrition" element={<Navigate to="/app/dietician" replace />} />
+          <Route path="/app/nutrition-log" element={<SafeRoute><NutritionInterceptor /></SafeRoute>} />
           <Route
             path="/app/dietician"
             element={
@@ -644,6 +647,7 @@ export default function App() {
               </SafeRoute>
             }
           />
+          <Route path="/app/health-buddy" element={<Navigate to="/app/ava" replace />} />
           <Route
             path="/app/ava"
             element={
