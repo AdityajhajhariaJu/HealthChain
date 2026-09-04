@@ -331,7 +331,7 @@ export default function CasePrep() {
                   &times;
                 </button>
               </div>
-              <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
+              <div style={{ padding: '24px 24px calc(24px + env(safe-area-inset-bottom)) 24px', overflowY: 'auto', flex: 1 }}>
                 <p style={{ fontSize: 14, color: '#475569', marginBottom: 24, lineHeight: 1.5 }}>
                   This brief was deterministically generated without inventing new facts. Here are the perspectives mapped into your brief:
                 </p>

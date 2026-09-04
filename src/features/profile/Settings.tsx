@@ -107,28 +107,11 @@ export default function Settings() {
 
   const executeLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      window.dispatchEvent(new Event('hc_logout'));
     } catch (e) {
-      console.error(e);
+      console.error('Logout error:', e);
+      navigate('/', { replace: true });
     }
-    const theme = localStorage.getItem('hc_theme');
-    const consent = localStorage.getItem('hc_consent');
-    localStorage.clear();
-    
-    try {
-      const idb = await import('idb-keyval');
-      const keys = await idb.keys();
-      for (const k of keys) {
-        if (typeof k === 'string' && k.startsWith('hc_sync_outbox_')) continue;
-        await idb.del(k);
-      }
-    } catch (e) {}
-
-    if (theme) localStorage.setItem('hc_theme', theme);
-    if (consent) localStorage.setItem('hc_consent', consent);
-    sessionStorage.clear();
-    window.dispatchEvent(new Event('hc_logout'));
-    navigate('/', { replace: true });
   };
 
   const handleLogout = async () => {
@@ -681,58 +664,63 @@ export default function Settings() {
           <button
             className="btn btn-outline"
             onClick={async () => {
-              const exportedData = Object.keys(localStorage).reduce<Record<string, string>>((data, key) => {
-                if (scopedExportPrefixes.some((prefix) => key.startsWith(prefix))) {
-                  const value = localStorage.getItem(key);
-                  if (value !== null) data[key] = value;
-                }
-                return data;
-              }, {});
+              try {
+                const exportedData = Object.keys(localStorage).reduce<Record<string, string>>((data, key) => {
+                  if (scopedExportPrefixes.some((prefix) => key.startsWith(prefix))) {
+                    const value = localStorage.getItem(key);
+                    if (value !== null) data[key] = value;
+                  }
+                  return data;
+                }, {});
 
-              let cloudData: Record<string, unknown> | null = null;
-              if (isAuthenticated) {
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                if (sessionError || !session?.user) {
-                  toastError('Export Incomplete', 'Your sign-in session expired. Sign in again before exporting cloud data.');
-                  return;
+                let cloudData: Record<string, unknown> | null = null;
+                if (isAuthenticated) {
+                  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                  if (sessionError || !session?.user) {
+                    toastError('Export Incomplete', 'Your sign-in session expired. Sign in again before exporting cloud data.');
+                    return;
+                  }
+                  const [profileResult, casesResult, memoryResult, caregiverResult] = await Promise.all([
+                    supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+                    supabase.from('cases').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+                    supabase.from('health_memory').select('*').eq('user_id', session.user.id).order('occurred_at', { ascending: false }),
+                    supabase.from('healthchain_profiles').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
+                  ]);
+                  const snapshotUnavailable = caregiverResult.error?.code === 'PGRST205' || caregiverResult.error?.code === '42P01';
+                  const remoteError = profileResult.error || casesResult.error || memoryResult.error ||
+                    (snapshotUnavailable ? null : caregiverResult.error);
+                  if (remoteError) {
+                    toastError('Export Incomplete', 'Cloud records could not be read. Nothing was downloaded so you do not receive a partial backup.');
+                    return;
+                  }
+                  cloudData = {
+                    userId: session.user.id,
+                    profile: profileResult.data,
+                    cases: casesResult.data || [],
+                    healthMemory: memoryResult.data || [],
+                    caregiverProfiles: snapshotUnavailable ? [] : (caregiverResult.data || []),
+                  };
                 }
-                const [profileResult, casesResult, memoryResult, caregiverResult] = await Promise.all([
-                  supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
-                  supabase.from('cases').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
-                  supabase.from('health_memory').select('*').eq('user_id', session.user.id).order('occurred_at', { ascending: false }),
-                  supabase.from('healthchain_profiles').select('*').eq('user_id', session.user.id).order('updated_at', { ascending: false }),
-                ]);
-                const snapshotUnavailable = caregiverResult.error?.code === 'PGRST205' || caregiverResult.error?.code === '42P01';
-                const remoteError = profileResult.error || casesResult.error || memoryResult.error ||
-                  (snapshotUnavailable ? null : caregiverResult.error);
-                if (remoteError) {
-                  toastError('Export Incomplete', 'Cloud records could not be read. Nothing was downloaded so you do not receive a partial backup.');
-                  return;
-                }
-                cloudData = {
-                  userId: session.user.id,
-                  profile: profileResult.data,
-                  cases: casesResult.data || [],
-                  healthMemory: memoryResult.data || [],
-                  caregiverProfiles: snapshotUnavailable ? [] : (caregiverResult.data || []),
-                };
+
+                const dataStr = JSON.stringify({
+                  exportedAt: new Date().toISOString(),
+                  format: 'healthchain-user-data-v2',
+                  scope: cloudData ? 'local-cache-and-supabase-records' : 'local-cache-only',
+                  localStorage: exportedData,
+                  supabase: cloudData,
+                }, null, 2);
+                const blobUrl = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', blobUrl);
+                linkElement.setAttribute('download', 'healthchain_export.json');
+                linkElement.click();
+                window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                awardPoints(10, 'Exported Patient Health Archive', 'research');
+                success('Export Complete', cloudData ? 'Your local cache and cloud records were downloaded (+10 Vitality Points).' : 'Your local data was downloaded (+10 Vitality Points).');
+              } catch (err: any) {
+                console.error('Export failed:', err);
+                toastError('Export Failed', err?.message || 'An error occurred while compiling your health archive.');
               }
-
-              const dataStr = JSON.stringify({
-                exportedAt: new Date().toISOString(),
-                format: 'healthchain-user-data-v2',
-                scope: cloudData ? 'local-cache-and-supabase-records' : 'local-cache-only',
-                localStorage: exportedData,
-                supabase: cloudData,
-              }, null, 2);
-              const blobUrl = URL.createObjectURL(new Blob([dataStr], { type: 'application/json' }));
-              const linkElement = document.createElement('a');
-              linkElement.setAttribute('href', blobUrl);
-              linkElement.setAttribute('download', 'healthchain_export.json');
-              linkElement.click();
-              window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-              awardPoints(10, 'Exported Patient Health Archive', 'research');
-              success('Export Complete', cloudData ? 'Your local cache and cloud records were downloaded (+10 Vitality Points).' : 'Your local data was downloaded (+10 Vitality Points).');
             }}
           >
             Export JSON
@@ -1072,8 +1060,12 @@ export default function Settings() {
                     cursor: 'pointer',
                   }}
                   onClick={async () => {
-                    setShowLogoutConfirm(false);
-                    await executeLogout();
+                    try {
+                      setShowLogoutConfirm(false);
+                      await executeLogout();
+                    } catch (err) {
+                      console.error('Logout error:', err);
+                    }
                   }}
                 >
                   Log Out Anyway

@@ -475,6 +475,9 @@ export function ClinicalArticleSection() {
                     decoding="async" 
                     src={art.img} 
                     alt={art.title} 
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&q=80';
+                    }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
                   <div style={{ 
@@ -834,6 +837,9 @@ export function ClinicalArticleSection() {
                     <img 
                       src={art.img} 
                       alt={art.title} 
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=300&q=80';
+                      }}
                       style={{ 
                         width: '85px', 
                         height: '85px', 
@@ -1070,6 +1076,9 @@ export function ClinicalArticleSection() {
               <img 
                 src={selectedArticle.img} 
                 alt={selectedArticle.title} 
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&q=80';
+                }}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />
               <div style={{ 

@@ -341,14 +341,28 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
                 <div style={{ position: 'relative', zIndex: 1, transform: 'rotate(-5deg) translateY(10px)', background: 'white', padding: '10px 10px 40px', borderRadius: '12px', boxShadow: '0 10px 20px rgba(0,0,0,0.08)', border: '1px solid #E2E8F0' }}>
                   <div style={{ width: '130px', height: '150px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                    <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" alt="Baseline" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                      src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" 
+                      alt="Baseline" 
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80';
+                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
                   </div>
                   <div style={{ position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '13px', fontWeight: 700, color: '#1E293B', letterSpacing: '0.3px' }}>Baseline</div>
                 </div>
                 
                 <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
                   <div style={{ width: '150px', height: '170px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
-                    <img src={userPhoto || "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80"} alt={userPhoto ? "Latest Progress" : "Current Benchmark"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                      src={userPhoto || "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80"} 
+                      alt={userPhoto ? "Latest Progress" : "Current Benchmark"} 
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80';
+                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
                   </div>
                   <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>{userPhoto ? 'Latest' : 'Current'}</div>
                 </div>

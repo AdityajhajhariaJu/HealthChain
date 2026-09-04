@@ -104,7 +104,7 @@ export const FitnessService = {
       .order('episode_number', { ascending: true });
       
     if (error) throw error;
-    return data.map((d: any) => d.fitness_content) as FitnessContent[];
+    return (data || []).map((d: any) => d.fitness_content).filter(Boolean) as FitnessContent[];
   },
 
   async getAllActiveContent() {
@@ -231,16 +231,16 @@ export const FitnessService = {
       .eq('user_id', userId)
       .order('measured_at', { ascending: true });
     if (error) throw error;
-    return data;
+    return data || [];
   },
-    async getUserBadges(userId: string) {
+  async getUserBadges(userId: string) {
     const { data, error } = await supabase
       .from('user_badges')
       .select('*')
       .eq('user_id', userId)
       .order('earned_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data || [];
   },
   async getProgressPhotos(userId: string) {
     const { data, error } = await supabase
@@ -249,7 +249,7 @@ export const FitnessService = {
       .eq('user_id', userId)
       .order('taken_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data || [];
   }
 };
 

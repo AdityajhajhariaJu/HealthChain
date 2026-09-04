@@ -260,7 +260,10 @@ export const AdminContentDashboard: React.FC = () => {
                     <input 
                       type="number" 
                       value={editForm.duration_minutes || ''}
-                      onChange={e => setEditForm({...editForm, duration_minutes: parseInt(e.target.value)})}
+                      onChange={e => {
+                        const val = parseInt(e.target.value, 10);
+                        setEditForm({ ...editForm, duration_minutes: Number.isFinite(val) ? Math.max(0, val) : 0 });
+                      }}
                       aria-label="Duration in minutes"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                     />
@@ -270,7 +273,10 @@ export const AdminContentDashboard: React.FC = () => {
                     <input 
                       type="number" 
                       value={editForm.calories_estimate || ''}
-                      onChange={e => setEditForm({...editForm, calories_estimate: parseInt(e.target.value)})}
+                      onChange={e => {
+                        const val = parseInt(e.target.value, 10);
+                        setEditForm({ ...editForm, calories_estimate: Number.isFinite(val) ? Math.max(0, val) : 0 });
+                      }}
                       aria-label="Estimated calories"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white"
                     />

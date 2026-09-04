@@ -51,9 +51,12 @@ export const triggerHapticWarning = async () => {
   }
 };
 
+let hasInitializedGlobalHaptics = false;
+
 // Global initializer for that premium native feel
 export const initGlobalHaptics = () => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || hasInitializedGlobalHaptics) return;
+  hasInitializedGlobalHaptics = true;
 
   // Add a listener to the document to catch clicks on interactive elements
   document.addEventListener('pointerdown', (e) => {

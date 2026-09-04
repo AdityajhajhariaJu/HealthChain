@@ -2077,6 +2077,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                               <img
                                 src={track.cover}
                                 alt={track.title}
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=300&q=80';
+                                }}
                                 style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
                               />
                               <div style={{ flex: 1, minWidth: 0 }}>
@@ -2502,7 +2505,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             max={1}
                             step={0.02}
                             value={ambientVolume}
-                            onChange={(e) => setAmbientVolume(parseFloat(e.target.value))}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (Number.isFinite(val)) setAmbientVolume(Math.min(1, Math.max(0, val)));
+                            }}
                             style={{
                               width: '100%',
                               accentColor: vibrationThemeColors.ring,

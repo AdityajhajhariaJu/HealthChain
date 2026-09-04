@@ -432,6 +432,9 @@ const enforceSafeArea = () => {
                   alt={`${profile?.demographics?.name || 'User'} profile avatar`} 
                   className="mobile-top-bar__profile" 
                   style={{ display: 'block' }}
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="%230F8B7E"><circle cx="20" cy="20" r="20"/><path d="M20 21a6 6 0 100-12 6 6 0 000 12zm0 3c-5.33 0-16 2.67-16 8v2h32v-2c0-5.33-10.67-8-16-8z" fill="%23fff"/></svg>';
+                  }}
                 />
               </button>
 

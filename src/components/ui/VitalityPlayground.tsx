@@ -322,7 +322,8 @@ export default function VitalityPlayground() {
   const [mysteryClaimed, setMysteryClaimed] = useState<number | null>(() => {
     try {
       const saved = localStorage.getItem(mysteryKey);
-      return saved ? parseInt(saved, 10) : null;
+      const parsed = saved ? parseInt(saved, 10) : null;
+      return parsed !== null && Number.isFinite(parsed) ? parsed : null;
     } catch {
       return null;
     }

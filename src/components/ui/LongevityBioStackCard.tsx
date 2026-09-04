@@ -154,7 +154,8 @@ export default function LongevityBioStackCard() {
   const [waterMl, setWaterMl] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(hydrationKey);
-      return saved ? parseInt(saved, 10) : 500;
+      const parsed = saved ? parseInt(saved, 10) : 500;
+      return Number.isFinite(parsed) ? parsed : 500;
     } catch {
       return 500;
     }

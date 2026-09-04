@@ -30,14 +30,18 @@ export const setupPushListeners = () => {
     if (import.meta.env.DEV) console.log('Push registration success');
     
     // Save to Supabase
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      await supabase
-        .from('user_devices')
-        .upsert(
-          { user_id: session.user.id, push_token: token.value, platform: Capacitor.getPlatform(), updated_at: new Date().toISOString() },
-          { onConflict: 'user_id,push_token' }
-        );
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase
+          .from('user_devices')
+          .upsert(
+            { user_id: session.user.id, push_token: token.value, platform: Capacitor.getPlatform(), updated_at: new Date().toISOString() },
+            { onConflict: 'user_id,push_token' }
+          );
+      }
+    } catch (err) {
+      console.warn('Failed to sync push device registration to Supabase:', err);
     }
   });
 
