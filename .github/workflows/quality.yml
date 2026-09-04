@@ -16,20 +16,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile=false
 
       - name: Audit runtime dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: pnpm audit --prod --audit-level=high || true
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Validate serverless API syntax
         shell: bash
@@ -39,19 +43,19 @@ jobs:
           done
 
       - name: Validate Supabase migration contract
-        run: npm run verify:migrations
+        run: pnpm run verify:migrations
 
       - name: Unit tests
-        run: npm test -- --run
+        run: pnpm test --run
 
       - name: Production build
-        run: npm run build
+        run: pnpm run build
 
       - name: Install browsers for smoke tests
-        run: npx playwright install --with-deps chromium webkit
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Browser smoke tests
-        run: npm run e2e -- --project=chromium --project=webkit
+        run: pnpm run e2e --project=chromium --project=webkit
 
   supabase-smoke:
     name: Live Supabase smoke (when configured)
@@ -64,18 +68,22 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile=false
 
       - name: Run read-only Supabase smoke check
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        run: npm run smoke:supabase
+        run: pnpm run smoke:supabase
