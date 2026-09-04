@@ -41,7 +41,6 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
-import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import { VitalityNav } from '../../components/ui/FitnessNav';
 import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
@@ -167,7 +166,6 @@ export default function CaseDashboard() {
       paddingBottom: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : '24px',
       overflowX: 'clip'
     }}>
-      <FatigueModeToggle />
       <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><VitalityNav /></div>
         
         <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
