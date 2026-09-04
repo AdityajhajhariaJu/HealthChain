@@ -224,13 +224,15 @@ export const TrophyCabinet: React.FC = () => {
               style={{
                 width: '100%',
                 maxWidth: '360px',
+                maxHeight: 'min(90vh, 580px)',
+                overflowY: 'auto',
                 background: `linear-gradient(135deg, #FFFFFF 0%, #FBF9F6 100%)`,
                 borderRadius: '32px',
-                padding: '32px',
+                padding: '32px 24px',
                 boxShadow: `0 25px 50px -12px ${selectedBadge.color}60`,
                 border: `1px solid ${selectedBadge.color}80`,
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                textAlign: 'center', position: 'relative', overflow: 'hidden'
+                textAlign: 'center', position: 'relative'
               }}
             >
               <button 

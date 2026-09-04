@@ -519,7 +519,7 @@ export default function ClinicalTrialsMatcher() {
       <AnimatePresence>
         {selectedItem && (
           <div 
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} 
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '12px' : '20px' }} 
             onClick={() => setSelectedItem(null)}
             role="dialog"
             aria-modal="true"
@@ -527,15 +527,31 @@ export default function ClinicalTrialsMatcher() {
             tabIndex={-1}
             onKeyDown={(e) => { if (e.key === 'Escape') setSelectedItem(null); }}
           >
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '640px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-              <div style={{ padding: isMobile ? '16px' : '24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              exit={{ opacity: 0, scale: 0.95 }} 
+              style={{ 
+                background: 'white', 
+                borderRadius: '24px', 
+                width: '100%', 
+                maxWidth: '640px', 
+                maxHeight: 'calc(100vh - 48px)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
+              }} 
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ padding: isMobile ? '16px' : '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
                 </h2>
                 <span className="badge badge-teal">Match: {selectedItem.matchScore}</span>
               </div>
-              <div style={{ padding: isMobile ? '16px' : '24px' }}>
-                <h3 style={{ fontSize: '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{selectedItem.title}</h3>
+              <div style={{ padding: isMobile ? '16px' : '24px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                <h3 style={{ fontSize: isMobile ? '18px' : '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{selectedItem.title}</h3>
                 <p style={{ color: '#475569', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
                   {selectedItem.journal ? selectedItem.abstract : selectedItem.summary}
                 </p>
@@ -550,7 +566,7 @@ export default function ClinicalTrialsMatcher() {
                   </div>
                 </div>
               </div>
-              <div style={{ padding: '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px' }}>
+              <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #E2E8F0' }}>
                 <button className="btn btn-outline" onClick={() => setSelectedItem(null)}>Close</button>
                 <button
                   type="button"

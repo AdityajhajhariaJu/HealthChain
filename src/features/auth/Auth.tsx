@@ -192,7 +192,12 @@ export default function Auth() {
           onClick={() => navigate('/')}
           aria-label="HealthChain360 Home"
         >
-          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+          <img 
+            src="/logo.png" 
+            alt="HealthChain360.ai" 
+            style={{ width: '30px', height: '30px', objectFit: 'contain' }} 
+            onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+          />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>
             HealthChain360.ai
           </span>

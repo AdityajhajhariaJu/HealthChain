@@ -284,7 +284,13 @@ const DemoVideoPlayer: React.FC<DemoVideoPlayerProps> = ({ src, poster, alt }) =
         />
       ) : (
         <div className={styles.videoPosterContainer}>
-          <img src={poster} alt={alt} className={styles.videoPosterImg} loading="eager" />
+          <img 
+            src={poster} 
+            alt={alt} 
+            className={styles.videoPosterImg} 
+            loading="eager" 
+            onError={(e) => { e.currentTarget.src = '/videos/healthchain-overview-poster.jpg'; }}
+          />
         </div>
       )}
     </div>
@@ -488,7 +494,12 @@ export default function Landing() {
       {/* 1. Floating Neutral Glass Navbar */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
         <div className={styles.logoContainer}>
-          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+          <img 
+            src="/logo.png" 
+            alt="HealthChain360.ai" 
+            style={{ width: '32px', height: '32px', objectFit: 'contain' }} 
+            onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+          />
           <span className={styles.logoText}>HealthChain360.ai</span>
         </div>
         <div className={styles.navActions}>
@@ -665,7 +676,12 @@ export default function Landing() {
           
           {/* Top Brand Pill */}
           <div className={styles.convergenceTopBrand}>
-            <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+            <img 
+              src="/logo.png" 
+              alt="HealthChain360.ai" 
+              style={{ width: '20px', height: '20px', objectFit: 'contain' }} 
+              onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+            />
             <span>HealthChain360.ai</span>
           </div>
 
@@ -762,7 +778,12 @@ export default function Landing() {
             {/* Dashboard Top Header */}
             <div className={styles.convergenceCardHeader}>
               <div className={styles.convergenceBrandArea}>
-                <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                <img 
+                  src="/logo.png" 
+                  alt="HealthChain360.ai" 
+                  style={{ width: '22px', height: '22px', objectFit: 'contain' }} 
+                  onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+                />
                 <span className={styles.convergenceBrandName}>HealthChain360.ai</span>
               </div>
               <div className={styles.convergenceNavTabs}>
@@ -1194,7 +1215,13 @@ export default function Landing() {
                     >
                       {card.type === 'img' && card.img && (
                         <div className={styles.bentoImgWrapper}>
-                          <img src={card.img} alt={card.title} className={styles.bentoImg} loading="lazy" />
+                          <img 
+                            src={card.img} 
+                            alt={card.title} 
+                            className={styles.bentoImg} 
+                            loading="lazy" 
+                            onError={(e) => { e.currentTarget.src = '/images/immersive/doctor-biomarker.png'; }}
+                          />
                           <div className={styles.bentoImgOverlay} />
                         </div>
                       )}
@@ -1221,7 +1248,13 @@ export default function Landing() {
                     >
                       {card.type === 'img' && card.img && (
                         <div className={styles.bentoImgWrapper}>
-                          <img src={card.img} alt={card.title} className={styles.bentoImg} loading="lazy" />
+                          <img 
+                            src={card.img} 
+                            alt={card.title} 
+                            className={styles.bentoImg} 
+                            loading="lazy" 
+                            onError={(e) => { e.currentTarget.src = '/images/immersive/doctor-biomarker.png'; }}
+                          />
                           <div className={styles.bentoImgOverlay} />
                         </div>
                       )}
@@ -1433,7 +1466,12 @@ export default function Landing() {
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
+              <img 
+                src="/logo.png" 
+                alt="HealthChain360.ai" 
+                style={{ width: '26px', height: '26px', objectFit: 'contain' }} 
+                onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+              />
               <span>HealthChain360.ai</span>
             </div>
             <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>

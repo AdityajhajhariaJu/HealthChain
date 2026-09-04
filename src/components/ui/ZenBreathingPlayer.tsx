@@ -9,7 +9,7 @@ interface ZenBreathingPlayerProps {
   bgImage?: string;
 }
 
-export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.unsplash.com/photo-1518085250985-78e7bbdf6a62?auto=format&fit=crop&q=80' }: ZenBreathingPlayerProps) {
+export function ZenBreathingPlayer({ isOpen, onClose, bgImage = '/images/nature_calm.webp' }: ZenBreathingPlayerProps) {
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [phase, setPhase] = useState<'Inhale' | 'Hold' | 'Exhale'>('Inhale');
@@ -55,7 +55,7 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 100,
+          zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -68,14 +68,14 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
           backgroundPosition: 'center',
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)' }} />
 
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', zIndex: 10, paddingTop: '48px' }}>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'calc(env(safe-area-inset-top, 24px) + 16px) 24px 16px', zIndex: 10 }}>
           <button 
             type="button"
             onClick={onClose} 
             aria-label="Close Zen Breathing player"
-            style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}
+            style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', borderRadius: '9999px', border: 'none', cursor: 'pointer' }}
           >
             <X size={24} color="white" />
           </button>
@@ -88,11 +88,6 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
                 transition={{ duration: 4, ease: "easeInOut" }}
             />
             <motion.div 
-                style={{ position: 'absolute', width: '192px', height: '192px', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '9999px' }}
-                animate={{ scale: isPlaying ? (phase === 'Inhale' ? 1.4 : phase === 'Exhale' ? 1 : 1.4) : 1 }}
-                transition={{ duration: 4, ease: "easeInOut", delay: 0.1 }}
-            />
-            <motion.div 
                 style={{ position: 'absolute', width: '128px', height: '128px', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(4px)' }}
                 animate={{ scale: isPlaying ? (phase === 'Inhale' ? 1.2 : phase === 'Exhale' ? 1 : 1.2) : 1 }}
                 transition={{ duration: 4, ease: "easeInOut", delay: 0.2 }}
@@ -101,7 +96,7 @@ export function ZenBreathingPlayer({ isOpen, onClose, bgImage = 'https://images.
             </motion.div>
         </div>
 
-        <div style={{ width: '100%', padding: '32px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px', marginBottom: '32px' }}>
+        <div style={{ width: '100%', padding: '24px 32px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', marginBottom: 'calc(24px + env(safe-area-inset-bottom, 16px))' }}>
             <button 
                 type="button"
                 aria-label={isPlaying ? 'Pause breathing session' : 'Start breathing session'}

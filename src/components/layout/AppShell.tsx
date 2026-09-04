@@ -250,7 +250,12 @@ const enforceSafeArea = () => {
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
-            <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+            <img 
+              src="/logo.png" 
+              alt="HealthChain360.ai" 
+              style={{ width: '38px', height: '38px', objectFit: 'contain' }} 
+              onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+            />
             <div>
               <span className="sidebar__logo-text">HealthChain360.ai</span>
               <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>
@@ -389,7 +394,7 @@ const enforceSafeArea = () => {
           </div>
         </motion.main>
 
-      {isMobile && !location.pathname.startsWith("/app/onboarding") && (
+      {isMobile && !location.pathname.startsWith("/app/onboarding") && !location.pathname.startsWith("/app/war-room") && (
           <>
             <div className="mobile-top-bar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

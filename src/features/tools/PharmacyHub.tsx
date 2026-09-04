@@ -216,19 +216,19 @@ export default function PharmacyHub() {
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, y: -20, x: 20 }}
             style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
+              position: 'fixed',
+              top: 'calc(env(safe-area-inset-top, 16px) + 72px)',
+              right: '16px',
               background: '#10B981',
               color: 'white',
-              padding: '12px 24px',
-              borderRadius: '8px',
+              padding: '12px 20px',
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-              zIndex: 100
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
+              zIndex: 1001
             }}
           >
             <CheckCircle size={18} /> Medication Saved to Profile

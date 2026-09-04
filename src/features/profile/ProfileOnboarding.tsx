@@ -103,7 +103,12 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
             marginBottom: 28,
           }}
         >
-          <img src="/logo.png" alt="HealthChain360.ai" style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'contain' }} /> HealthChain360.ai
+          <img 
+            src="/logo.png" 
+            alt="HealthChain360.ai" 
+            style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'contain' }} 
+            onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
+          /> HealthChain360.ai
         </div>
         <main
           style={{
