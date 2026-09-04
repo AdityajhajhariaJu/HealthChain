@@ -248,7 +248,7 @@ export function ClinicalArticleSection() {
   }, [libraryCategory, librarySearch, bookmarkedIds]);
 
   return (
-    <section style={{ padding: '32px 0 100px', position: 'relative' }}>
+    <section style={{ padding: isMobile ? '28px 0 12px' : '32px 0 20px', position: 'relative' }}>
       {/* Section Header */}
       <div style={{ 
         padding: '0 24px', 
@@ -423,7 +423,7 @@ export function ClinicalArticleSection() {
             display: 'flex', 
             overflowX: 'auto', 
             gap: '18px', 
-            padding: '0 24px 24px', 
+            padding: isMobile ? '0 24px 6px' : '0 24px 16px', 
             WebkitOverflowScrolling: 'touch', 
             margin: 0 
           }}

@@ -141,7 +141,7 @@ export default function CaseDashboard() {
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
+      paddingBottom: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : '24px',
       overflowX: 'clip'
     }}>
       <FatigueModeToggle />
