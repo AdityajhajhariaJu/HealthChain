@@ -43,7 +43,6 @@ const JarvisInvestigator = React.lazy(() => import('./features/jarvis/JarvisInve
 const Settings = React.lazy(() => import('./features/profile/Settings'));
 const Dietician = React.lazy(() => import('./features/dietician/Dietician'));
 const CaseDashboard = React.lazy(() => import('./features/dashboard/CaseDashboard'));
-const SportsHub = React.lazy(() => import('./features/dashboard/SportsHub'));
 const ProgressGallery = React.lazy(() => import('./features/dashboard/ProgressGallery'));
 const TrophyCabinet = React.lazy(() => import('./features/dashboard/TrophyCabinet'));
 const ClinicalTrialsMatcher = React.lazy(() => import('./features/tools/ClinicalTrialsMatcher'));
@@ -574,7 +573,7 @@ export default function App() {
                     <Route path="/app" element={<Navigate to="/app/today" replace />} />
           <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
           
-          <Route path="/app/sports" element={<SafeRoute><SportsHub /></SafeRoute>} />
+          <Route path="/app/sports" element={<Navigate to="/app/today" replace />} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
           <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
           <Route path="/app/war-room" element={<SafeRoute><WarRoom /></SafeRoute>} />

@@ -383,7 +383,7 @@ export default function CaseDetail() {
               <button
                 className="btn btn-outline"
                 style={{ padding: '8px 14px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                onClick={() => navigate('/app/reports')}
+                onClick={() => navigate(`/app/reports?caseId=${encodeURIComponent(caseItem.id)}&returnTo=${encodeURIComponent('/app/cases/' + caseItem.id)}`)}
               >
                 <FileText size={15} /> Interpret New Report
               </button>
@@ -399,7 +399,7 @@ export default function CaseDetail() {
                 <button
                   className="btn btn-primary"
                   style={{ padding: '8px 16px', fontSize: 13 }}
-                  onClick={() => navigate('/app/reports')}
+                  onClick={() => navigate(`/app/reports?caseId=${encodeURIComponent(caseItem.id)}&returnTo=${encodeURIComponent('/app/cases/' + caseItem.id)}`)}
                 >
                   Upload Clinical Record
                 </button>

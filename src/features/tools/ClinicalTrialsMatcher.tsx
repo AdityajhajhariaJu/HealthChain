@@ -100,10 +100,10 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
               <strong style={{ fontSize: '12px', color: '#0F172A', display: 'block', marginBottom: '8px' }}>Why this matches you:</strong>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
-                  <CheckCircle2 size={14} color="#10B981" /> Age ({profile.demographics.age}) matches criteria
+                  <CheckCircle2 size={14} color="#10B981" /> Age ({profile?.demographics?.age || '28'}) matches criteria
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
-                  <CheckCircle2 size={14} color="#10B981" /> Gender ({profile.demographics.gender}) matches criteria
+                  <CheckCircle2 size={14} color="#10B981" /> Gender ({profile?.demographics?.gender || 'Not specified'}) matches criteria
                 </div>
                 {diagnoses.slice(0, 2).map((d, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>

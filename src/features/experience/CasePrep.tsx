@@ -133,7 +133,7 @@ export default function CasePrep() {
       
       {/* Print Hide Controls */}
       <div className="print-hide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <button className="btn btn-outline btn-sm" onClick={() => { setSelectedCase(null); setShowPicker(false); }}>
+        <button className="btn btn-outline btn-sm" onClick={() => { setSelectedCase(null); setShowPicker(true); }}>
           &larr; Change case
         </button>
         <div style={{ display: 'flex', gap: 12 }}>

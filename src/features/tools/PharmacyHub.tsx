@@ -10,7 +10,7 @@ import {
   BookmarkPlus,
   AlertOctagon,
 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { fetchMedicineData, checkDrugInteractions } from '../../services/geminiService';
 import { addMedication, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
@@ -25,7 +25,9 @@ let cachedPharmacyState: any = null;
 export default function PharmacyHub() {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const initialQuery = location.state?.searchQuery || cachedPharmacyState?.query || '';
+  const [searchParams] = useSearchParams();
+  const queryParam = searchParams.get('search') || searchParams.get('q') || '';
+  const initialQuery = queryParam || location.state?.searchQuery || cachedPharmacyState?.query || '';
 
   const [query, setQuery] = useState(initialQuery);
   const [loading, setLoading] = useState(cachedPharmacyState?.loading || false);
@@ -35,20 +37,10 @@ export default function PharmacyHub() {
   const [activeInteractions, setActiveInteractions] = useState<any[]>([]);
   const [isCheckingInteraction, setIsCheckingInteraction] = useState(false);
 
-  useEffect(() => {
-    if (location.state?.searchQuery && !searched) {
-      handleSearch(new Event('submit'));
-    }
-  }, [location.state]);
+  const searchedRef = useRef<string>('');
 
-  useEffect(() => {
-    return () => {
-      cachedPharmacyState = { query, loading: false, result, searched };
-    };
-  }, [query, loading, result, searched]);
-
-  const handleSearch = async (e?: any) => {
-    e?.preventDefault?.();
+  const executeSearch = async (term: string) => {
+    if (!term.trim()) return;
     if (!(await getActiveSession())) {
       const currentCount = parseInt(localStorage.getItem('hc_guest_pharmacy_count') || '0', 10) || 0;
       if (currentCount >= 5) {
@@ -62,23 +54,22 @@ export default function PharmacyHub() {
       }
       try { localStorage.setItem('hc_guest_pharmacy_count', (currentCount + 1).toString()); } catch(e) {}
     }
-    if (!query.trim()) return;
 
     setLoading(true);
     setSearched(true);
     setResult(null);
 
     const profile = getProfile();
-    const data = await fetchMedicineData(query.trim(), profile);
+    const data = await fetchMedicineData(term.trim(), profile);
 
     if (data) {
       setResult(data);
-      trackFeatureUsed('pharmacy_drug_searched', { drug: query.trim(), found: true });
-      recordHealthMemory({ kind: 'pharmacy', source: 'pharmacy_hub', title: `Medication information: ${data.name || query.trim()}`, occurredAt: new Date().toISOString(), payload: data, dedupeKey: `pharmacy:${query.trim().toLowerCase()}` });
+      trackFeatureUsed('pharmacy_drug_searched', { drug: term.trim(), found: true });
+      recordHealthMemory({ kind: 'pharmacy', source: 'pharmacy_hub', title: `Medication information: ${data.name || term.trim()}`, occurredAt: new Date().toISOString(), payload: data, dedupeKey: `pharmacy:${term.trim().toLowerCase()}` });
     } else {
-      trackFeatureUsed('pharmacy_drug_searched', { drug: query.trim(), found: false });
+      trackFeatureUsed('pharmacy_drug_searched', { drug: term.trim(), found: false });
       setResult({
-        name: query.toUpperCase(),
+        name: term.toUpperCase(),
         class: 'Unknown / Error',
         uses: 'Could not fetch data from the AI network at this time.',
         sideEffects: 'Unknown.',
@@ -88,6 +79,26 @@ export default function PharmacyHub() {
     }
 
     setLoading(false);
+  };
+
+  useEffect(() => {
+    const q = queryParam || location.state?.searchQuery;
+    if (q && q !== searchedRef.current) {
+      searchedRef.current = q;
+      setQuery(q);
+      executeSearch(q);
+    }
+  }, [queryParam, location.state]);
+
+  useEffect(() => {
+    return () => {
+      cachedPharmacyState = { query, loading: false, result, searched };
+    };
+  }, [query, loading, result, searched]);
+
+  const handleSearch = async (e?: any) => {
+    e?.preventDefault?.();
+    executeSearch(query);
   };
 
   const handleAddMedication = async (medicineName) => {

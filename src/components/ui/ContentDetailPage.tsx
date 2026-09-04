@@ -4,6 +4,7 @@ import { ChevronLeft, Share, Play, Lock, Clock, Flame, Dumbbell } from 'lucide-r
 import { FitnessContent } from '../../services/FitnessService';
 import { triggerHapticLight } from '../../services/haptics';
 import { openTrialModal } from '../../services/TrialEngine';
+import { useToast } from './ToastProvider';
 
 interface Props {
   content: FitnessContent | null;
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }) => {
+  const toast = useToast();
+
   // Prevent body scroll when open
   useEffect(() => {
     if (content) {
@@ -34,6 +37,33 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
   }, [content]);
 
   if (!content) return null;
+
+  const handleShare = async () => {
+    triggerHapticLight();
+    const shareData = {
+      title: content.title,
+      text: `Check out ${content.title} on HealthChain360!`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // user cancelled or error
+      }
+    } else {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+          toast.success('Link Copied!', 'Session link copied to clipboard.');
+        } else {
+          toast.info('Share Session', 'Copy the URL from your browser address bar to share.');
+        }
+      } catch {
+        toast.info('Share Session', 'Copy the URL from your browser address bar to share.');
+      }
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -87,6 +117,7 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
           <div style={{ position: 'absolute', top: 'var(--safe-area-top, 44px)', left: '16px', right: '16px', display: 'flex', justifyContent: 'space-between' }}>
             <button 
               onClick={() => { triggerHapticLight(); onClose(); }}
+              aria-label="Back"
               style={{
                 width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer'
@@ -95,6 +126,8 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
               <ChevronLeft size={24} color="#000" />
             </button>
             <button 
+              onClick={handleShare}
+              aria-label="Share"
               style={{
                 width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer'
@@ -214,6 +247,3 @@ export const ContentDetailPage: React.FC<Props> = ({ content, onClose, onStart }
     </AnimatePresence>
   );
 };
-
-
-

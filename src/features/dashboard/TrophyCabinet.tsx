@@ -7,6 +7,7 @@ import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight } from '../../services/haptics';
 import { getVitalityState } from '../../services/VitalityPointsEngine';
+import { useToast } from '../../components/ui/ToastProvider';
 import VitalityPlayground from '../../components/ui/VitalityPlayground';
 
 // Static Badge Dictionary for rich metadata
@@ -23,6 +24,7 @@ const BADGE_DICTIONARY = [
 
 export const TrophyCabinet: React.FC = () => {
   const isMobile = useIsMobile();
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [earnedSlugs, setEarnedSlugs] = useState<Set<string>>(new Set());
   const [selectedBadge, setSelectedBadge] = useState<any | null>(null);
@@ -237,16 +239,30 @@ export const TrophyCabinet: React.FC = () => {
                 </p>
 
                                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       triggerHapticLight();
+                      const shareData = {
+                        title: `I unlocked the ${selectedBadge.title} badge!`,
+                        text: `I just earned the ${selectedBadge.title} achievement on HealthChain360!`,
+                        url: window.location.href,
+                      };
                       if (navigator.share) {
-                        navigator.share({
-                          title: `I unlocked the ${selectedBadge.title} badge!`,
-                          text: `I just earned the ${selectedBadge.title} achievement on HealthChain360!`,
-                          url: window.location.href,
-                        }).catch(console.error);
+                        try {
+                          await navigator.share(shareData);
+                        } catch (err) {
+                          // user cancelled share or error
+                        }
                       } else {
-                        alert('Your browser does not support native sharing. Screenshot this card instead!');
+                        try {
+                          if (navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+                            toast.success('Achievement Copied!', 'Badge details copied to clipboard. Ready to share!');
+                          } else {
+                            toast.info('Share Badge', 'Take a screenshot of this badge card to share!');
+                          }
+                        } catch {
+                          toast.info('Share Badge', 'Take a screenshot of this badge card to share!');
+                        }
                       }
                     }}
                   style={{

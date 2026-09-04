@@ -23,6 +23,7 @@ import { getVitalityPoints, getVitalityState, TIERS } from '../../services/Vital
 import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
+import NotificationPanel from '../ui/NotificationPanel';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -39,7 +40,6 @@ const links: any[] = [
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
-  { to: '/app/sports', label: 'Sports & Training', icon: Dumbbell },
   { to: '/app/trophies', label: 'Trophy Cabinet', icon: Trophy },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },
@@ -74,10 +74,32 @@ export default function AppShell() {
   const isMobile = useIsMobile();
     const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasPendingCheckin, setHasPendingCheckin] = useState(false);
   const [profile, setProfile] = useState(getProfile());
   const [isScrolling, setIsScrolling] = useState(false);
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<any>(null);
+
+  useEffect(() => {
+    const checkCheckin = () => {
+      try {
+        const todayKey = new Date().toISOString().split('T')[0];
+        const prof = getProfile();
+        const done = (prof?.dailyCheckins || []).some((c: any) => c.date && c.date.startsWith(todayKey));
+        setHasPendingCheckin(!done);
+      } catch (e) {
+        setHasPendingCheckin(false);
+      }
+    };
+    checkCheckin();
+    window.addEventListener('hc_daily_checkin_completed', checkCheckin);
+    window.addEventListener('hc_profile_updated', checkCheckin);
+    return () => {
+      window.removeEventListener('hc_daily_checkin_completed', checkCheckin);
+      window.removeEventListener('hc_profile_updated', checkCheckin);
+    };
+  }, []);
 
   const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
@@ -223,33 +245,74 @@ const enforceSafeArea = () => {
             </div>
           </div>
 
-          {/* Desktop Vitality Rewards Pill */}
-          <button
-            onClick={() => {
-              triggerHapticLight();
-              window.dispatchEvent(new Event('hc_open_points_modal'));
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              margin: '0 16px 14px',
-              padding: '8px 12px',
-              background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
-              border: '1px solid #A7F3D0',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            title="View Vitality Points & Daily Rewards"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Trophy size={15} color="#059669" />
-              <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
-              <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
-            </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
-          </button>
+          {/* Desktop Vitality Rewards & Notifications Row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 16px 14px' }}>
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                window.dispatchEvent(new Event('hc_open_points_modal'));
+              }}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 12px',
+                background: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
+                border: '1px solid #A7F3D0',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="View Vitality Points & Daily Rewards"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Trophy size={15} color="#059669" />
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
+                <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
+            </button>
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                setShowNotifications(true);
+              }}
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#475569',
+                position: 'relative',
+                flexShrink: 0,
+                transition: 'all 0.15s ease',
+              }}
+              title="View Health Alerts & Notifications"
+              aria-label="View notifications"
+            >
+              <Bell size={17} />
+              {hasPendingCheckin && (
+                <span 
+                  style={{ 
+                    position: 'absolute', 
+                    top: '8px', 
+                    right: '8px', 
+                    width: '7px', 
+                    height: '7px', 
+                    borderRadius: '50%', 
+                    backgroundColor: '#F59E0B', 
+                    border: '1.5px solid #FFFFFF' 
+                  }} 
+                />
+              )}
+            </button>
+          </div>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
             {links.map((l) => {
@@ -300,12 +363,12 @@ const enforceSafeArea = () => {
         <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''}`} id="main-content" style={{ backgroundColor: isPeachPage ? '#FFF2E8' : undefined, overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: location.pathname.startsWith('/app/onboarding') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : undefined), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-            {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult') || location.pathname.startsWith('/app/progress') || location.pathname.startsWith('/app/trophies') || location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/sports') || location.pathname.startsWith('/app/war-room')) && (
+            {!(location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult') || location.pathname.startsWith('/app/progress') || location.pathname.startsWith('/app/trophies') || location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) && (
               <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/medicine-lab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
                 <BrandPulseBanner />
               </div>
             )}
-            {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/sports', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
+            {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
               <ActiveCaseBar navigate={navigate} />
             )}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
@@ -530,8 +593,30 @@ const enforceSafeArea = () => {
                       <span style={{ fontWeight: 900, color: '#065F46' }}>{points} PTS</span>
                       <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
                     </button>
-                <button className="mobile-top-bar__bell" aria-label="View notifications">
+                <button 
+                  className="mobile-top-bar__bell" 
+                  aria-label="View notifications"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setShowNotifications(true);
+                  }}
+                  style={{ position: 'relative', cursor: 'pointer' }}
+                >
                   <Bell size={18} aria-hidden="true" />
+                  {hasPendingCheckin && (
+                    <span 
+                      style={{ 
+                        position: 'absolute', 
+                        top: '6px', 
+                        right: '6px', 
+                        width: '7px', 
+                        height: '7px', 
+                        borderRadius: '50%', 
+                        backgroundColor: '#F59E0B', 
+                        border: '1.5px solid #FFFFFF' 
+                      }} 
+                    />
+                  )}
                 </button>
               </div>
           </div>
@@ -659,6 +744,7 @@ const enforceSafeArea = () => {
       <PointsAwardedToast />
       <TrialFeaturesModal />
       <FeedbackWidget />
+      <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
     </div>
   );
 }

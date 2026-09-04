@@ -1,4 +1,5 @@
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight } from '../../services/haptics';
 import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { PredictiveTimeline } from '../../components/ui/PredictiveTimeline';
@@ -357,19 +358,19 @@ export default function MedicalProfile() {
   const completedActions = uniqueActionItems.filter((i) => i.status === 'completed').length;
   const totalActions = uniqueActionItems.length;
   const recordFields = [
-    profile.demographics.name,
-    profile.demographics.age,
-    profile.demographics.gender,
-    profile.demographics.bloodGroup,
-    profile.demographics.height,
-    profile.demographics.weight,
-    profile.demographics.emergencyContact,
+    profile?.demographics?.name,
+    profile?.demographics?.age,
+    profile?.demographics?.gender,
+    profile?.demographics?.bloodGroup,
+    profile?.demographics?.height,
+    profile?.demographics?.weight,
+    profile?.demographics?.emergencyContact,
   ];
   const recordReady = Math.round(
     ((recordFields.filter(Boolean).length +
-      (profile.conditions.length ? 1 : 0) +
-      (profile.allergies.length ? 1 : 0) +
-      (profile.medications.length ? 1 : 0)) /
+      (profile?.conditions?.length ? 1 : 0) +
+      (profile?.allergies?.length ? 1 : 0) +
+      (profile?.medications?.length ? 1 : 0)) /
       10) *
       100
   );
@@ -1476,7 +1477,16 @@ export default function MedicalProfile() {
                           <strong style={{ fontSize: '15px' }}>{med.name}</strong>
                           <span style={{ display: 'block', fontSize: '12px', color: '#EF4444', fontWeight: 600 }}>Only {daysLeft} days supply remaining</span>
                         </div>
-                        <button className="btn btn-primary btn-sm" style={{ background: '#EF4444' }}>Auto-Refill Now</button>
+                        <button 
+                          className="btn btn-primary btn-sm" 
+                          style={{ background: '#EF4444', cursor: 'pointer' }}
+                          onClick={() => {
+                            triggerHapticLight();
+                            navigate('/app/pharmacy?search=' + encodeURIComponent(med.name));
+                          }}
+                        >
+                          Auto-Refill Now
+                        </button>
                       </div>
                     );
                   }

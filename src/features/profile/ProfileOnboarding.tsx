@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { completeProfileOnboarding } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const splitList = (value?: string) =>
   (typeof value === 'string' ? value : '')
@@ -65,6 +66,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
       familyHistory: splitList(form.familyHistory),
       healthFocus: form.healthFocus,
     });
+    awardPoints(50, 'Medical Profile Initialized ✨', 'milestone', 'profile_onboarding_init');
     if (onComplete) onComplete();
     else navigate('/app/today', { replace: true });
   };

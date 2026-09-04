@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Apple, Utensils, Target, CheckCircle2, ChevronRight, ChevronLeft, 
   ArrowRight, Flame, Scale, Ruler, Heart, Sparkles, Zap, Activity, 
-  Clock, ShieldCheck, Droplets, User, Info, Check
+  Clock, ShieldCheck, Droplets, User, Info, Check, X 
 } from 'lucide-react';
 import { GOALS, ACTIVITY_LEVELS, RESTRICTIONS, MEDICAL_CONDITIONS, CUISINES, MEAL_SCHEDULES } from './Dietician';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -61,12 +61,41 @@ function computeTargets(p: any) {
   return { bmr: Math.round(bmr), tdee: Math.round(tdee), targetCalories, targetProtein, targetCarbs, targetFat };
 }
 
-export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => void }) {
+export function OnboardingWizard({ 
+  onComplete, 
+  initialData, 
+  onCancel 
+}: { 
+  onComplete: (data: any) => void;
+  initialData?: any;
+  onCancel?: () => void;
+}) {
   const isMobile = useIsMobile();
   const [step, setStep] = useState(1);
   const coreProfile = getCoreProfile();
 
   const [data, setData] = useState(() => {
+    if (initialData) {
+      return {
+        weight: initialData.weight ? String(initialData.weight) : (coreProfile?.weight ? String(coreProfile.weight) : ''),
+        weightUnit: initialData.weightUnit || 'kg',
+        targetWeight: initialData.targetWeight ? String(initialData.targetWeight) : '',
+        targetDays: initialData.targetDays ? String(initialData.targetDays) : '90',
+        height: initialData.height ? String(initialData.height) : (coreProfile?.height ? String(coreProfile.height) : ''),
+        heightUnit: initialData.heightUnit || 'cm',
+        heightFt: initialData.heightFt || '',
+        heightIn: initialData.heightIn || '',
+        age: initialData.age ? String(initialData.age) : (coreProfile?.age ? String(coreProfile.age) : ''),
+        gender: initialData.gender || (coreProfile?.gender?.toLowerCase() === 'female' ? 'female' : 'male'),
+        goal: initialData.goal || 'Lose weight',
+        activityLevel: initialData.activityLevel || 'moderate',
+        restrictions: initialData.restrictions || ['None'],
+        medicalConditions: initialData.medicalConditions || ['None'],
+        cuisine: initialData.cuisine || 'North Indian',
+        mealSchedule: initialData.mealSchedule || '3 Meals + 1 Snack',
+      };
+    }
+
     const rawConds = (coreProfile?.conditions || []).map((c: any) => typeof c === 'string' ? c : c.name || '');
     const matchedConds = MEDICAL_CONDITIONS.filter(mc => rawConds.some((rc: string) => rc.toLowerCase().includes(mc.toLowerCase())));
     const allergies = (coreProfile?.allergies || []).map((a: any) => typeof a === 'string' ? a : a?.name || '');
@@ -74,13 +103,13 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
 
     return {
       weight: coreProfile?.weight ? String(coreProfile.weight) : '',
-        weightUnit: 'kg',
-        targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
-        targetDays: '90',
-        height: coreProfile?.height ? String(coreProfile.height) : '',
-        heightUnit: 'cm',
-        heightFt: '',
-        heightIn: '',
+      weightUnit: 'kg',
+      targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
+      targetDays: '90',
+      height: coreProfile?.height ? String(coreProfile.height) : '',
+      heightUnit: 'cm',
+      heightFt: '',
+      heightIn: '',
       age: coreProfile?.age ? String(coreProfile.age) : '',
       gender: coreProfile?.gender?.toLowerCase() === 'female' ? 'female' : 'male',
       goal: 'Lose weight',
@@ -259,18 +288,42 @@ export function OnboardingWizard({ onComplete }: { onComplete: (data: any) => vo
             </div>
           </div>
 
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: 800,
-              padding: '4px 10px',
-              borderRadius: '999px',
-              background: 'rgba(5, 150, 105, 0.1)',
-              color: '#047857',
-              border: '1px solid rgba(5, 150, 105, 0.2)',
-            }}
-          >
-            {Math.round((step / 8) * 100)}% Ready
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                padding: '4px 10px',
+                borderRadius: '999px',
+                background: 'rgba(5, 150, 105, 0.1)',
+                color: '#047857',
+                border: '1px solid rgba(5, 150, 105, 0.2)',
+              }}
+            >
+              {Math.round((step / 8) * 100)}% Ready
+            </div>
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                aria-label="Close"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: 'rgba(241, 245, 249, 0.8)',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         </div>
 

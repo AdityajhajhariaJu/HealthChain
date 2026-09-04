@@ -41,6 +41,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  BookOpen,
   Loader2,
   Plus,
   ArrowRight,
@@ -227,6 +228,8 @@ export default function Dietician() {
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
+  const [showSavedMealsModal, setShowSavedMealsModal] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Hydrate diet state
@@ -412,18 +415,22 @@ export default function Dietician() {
     return meals.length > 0 ? meals : QUICK_PRESETS;
   }, [mealPlan]);
 
+  const handleSaveProfile = (p: any) => {
+    const fullProfile = { ...p, ...calculateTargets(p) };
+    setProfile(fullProfile);
+    
+    // Persist to unified profile
+    const unified = getCoreProfile() || {};
+    unified.dietProfile = fullProfile;
+    try {
+      localStorage.setItem(getProfileKey(), JSON.stringify(unified));
+    } catch (e) {}
+    updateProfileFeatureData('dietProfile', fullProfile);
+    toast.success('Targets Updated', 'Clinical dietician profile refreshed.');
+  };
+
   if (!profile) {
-    return <OnboardingWizard onComplete={(p) => {
-      const fullProfile = { ...p, ...calculateTargets(p) };
-      setProfile(fullProfile);
-      
-      // Persist to unified profile
-      const unified = getCoreProfile() || {};
-      unified.dietProfile = fullProfile;
-      try {
-        localStorage.setItem(getProfileKey(), JSON.stringify(unified));
-      } catch (e) {}
-    }} />;
+    return <OnboardingWizard onComplete={handleSaveProfile} />;
   }
 
 
@@ -933,9 +940,10 @@ export default function Dietician() {
                 profile={profile} 
                 foodLogs={foodLogs} 
                 currentDate={currentDate}
-                onLogMeal={(mealName) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
+                onLogMeal={(mealName: string) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
                 onSnap={() => setShowARLens(true)}
-                onOpenSettings={() => { triggerHapticLight(); toast.success('Coming Soon', 'Fasting & Diet settings will be available in the next update!'); }}
+                onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
+                onOpenSavedMeals={() => { triggerHapticLight(); setShowSavedMealsModal(true); }}
                 onOpenGallery={() => setShowARLens(true)}
               />
             </motion.div>
@@ -1785,6 +1793,147 @@ export default function Dietician() {
                   >
                     Reset Diet
                   </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Onboarding Wizard Edit Overlay */}
+        <AnimatePresence>
+          {isEditingProfile && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1100,
+                background: 'rgba(15, 23, 42, 0.75)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+                overflowY: 'auto',
+              }}
+            >
+              <div style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
+                <OnboardingWizard
+                  initialData={profile}
+                  onCancel={() => setIsEditingProfile(false)}
+                  onComplete={(data) => {
+                    handleSaveProfile(data);
+                    setIsEditingProfile(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Saved Meals Modal */}
+        <AnimatePresence>
+          {showSavedMealsModal && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1050,
+                background: 'rgba(15, 23, 42, 0.65)',
+                backdropFilter: 'blur(6px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+              }}
+              onClick={() => setShowSavedMealsModal(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: '24px',
+                  width: '100%',
+                  maxWidth: '560px',
+                  maxHeight: '85vh',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                  border: '1px solid #E2E8F0',
+                  overflow: 'hidden',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(5, 150, 105, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                      <BookOpen size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Saved Meals Library</h3>
+                      <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>Quick-log your curated &amp; plan-derived meals</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSavedMealsModal(false)}
+                    style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div style={{ padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {dynamicPresets.map((preset: any, idx: number) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px',
+                        borderRadius: '16px',
+                        background: '#F8FAFC',
+                        border: '1px solid #E2E8F0',
+                        gap: '12px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: '24px', flexShrink: 0 }}>{preset.emoji}</span>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 750, fontSize: '14px', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {preset.name}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
+                            {preset.calories} kcal · {preset.protein}g P · {preset.carbs}g C · {preset.fat}g F · {preset.portion}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleAddPreset(preset);
+                          setShowSavedMealsModal(false);
+                          toast.success('Meal Logged', `Logged ${preset.name} to today's diary.`);
+                        }}
+                        style={{
+                          padding: '8px 14px',
+                          borderRadius: '10px',
+                          background: '#059669',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
+                        }}
+                      >
+                        Log Meal
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </div>

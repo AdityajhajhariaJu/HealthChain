@@ -1,19 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FitnessNav } from '../../components/ui/FitnessNav';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { useToast } from '../../components/ui/ToastProvider';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Legend, Cell } from 'recharts';
 import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera } from 'lucide-react';
 import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
+  const toast = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
+  const [userPhoto, setUserPhoto] = useState<string | null>(() => localStorage.getItem('hc_progress_photo'));
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setUserPhoto(dataUrl);
+        try {
+          localStorage.setItem('hc_progress_photo', dataUrl);
+        } catch (err) {
+          console.warn('Failed to save progress photo to localStorage', err);
+        }
+        triggerHapticSuccess();
+        awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
+        toast.success('Photo Captured!', 'New transformation benchmark recorded (+10 Vitality points).');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     loadData();
@@ -253,12 +279,18 @@ export const ProgressGallery: React.FC = () => {
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Transformation</h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Physical progress log</p>
                 </div>
-                <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}>
+                <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
+                <button 
+                  onClick={() => { triggerHapticLight(); fileInputRef.current?.click(); }}
+                  title="Snap or upload progress photo"
+                  aria-label="Snap or upload progress photo"
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', cursor: 'pointer', minWidth: '40px', minHeight: '40px', flexShrink: 0 }}
+                >
                   <Camera size={18} />
                 </button>
               </div>
 
-              {/* Stacked Polaroids (Mock) */}
+              {/* Stacked Polaroids */}
               <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
                 <div style={{ position: 'relative', zIndex: 1, transform: 'rotate(-5deg) translateY(10px)', background: 'white', padding: '10px 10px 40px', borderRadius: '8px', boxShadow: '0 10px 20px rgba(0,0,0,0.08)' }}>
                   <div style={{ width: '130px', height: '150px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
@@ -269,9 +301,9 @@ export const ProgressGallery: React.FC = () => {
                 
                 <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
                   <div style={{ width: '150px', height: '170px', background: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
-                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80" alt="Day 30" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={userPhoto || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80"} alt={userPhoto ? "Latest Progress" : "Day 30"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '18px', fontWeight: 'bold' }}>Day 30</div>
+                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '18px', fontWeight: 'bold' }}>{userPhoto ? 'Latest' : 'Day 30'}</div>
                 </div>
               </div>
             </div>

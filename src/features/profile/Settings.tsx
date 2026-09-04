@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 import { getAllProfiles, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock } from 'lucide-react';
+import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock, Trophy, Zap, ChevronRight, Award } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
 import { clearSyncOutbox } from '../../services/SyncOutbox';
@@ -11,6 +11,8 @@ import FocusTrap from '../../components/ui/FocusTrap';
 import { getActiveSession } from '../../services/authSession';
 import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
 import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
+import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight } from '../../services/haptics';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_unified_profile',
@@ -38,8 +40,21 @@ export default function Settings() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [hapticsEnabled, setHapticsEnabled] = useState(localStorage.getItem('hc_haptics_enabled') !== 'false');
+  const [isDarkMode, setIsDarkMode] = useState(() => typeof document !== 'undefined' && document.documentElement.classList.contains('dark-theme'));
+  const [points, setPoints] = useState(getVitalityPoints());
+  const [vitalityState, setVitalityState] = useState(() => getVitalityState());
+  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast, success, error: toastError } = useToast();
+
+  useEffect(() => {
+    const handlePoints = () => {
+      setPoints(getVitalityPoints());
+      setVitalityState(getVitalityState());
+    };
+    window.addEventListener('hc_points_updated', handlePoints);
+    return () => window.removeEventListener('hc_points_updated', handlePoints);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -257,9 +272,11 @@ export default function Settings() {
             <input
               type="checkbox"
               style={{ display: 'none' }}
-              checked={document.documentElement.classList.contains('dark-theme')}
+              checked={isDarkMode}
               onChange={(e) => {
+                triggerHapticLight();
                 const isDark = e.target.checked;
+                setIsDarkMode(isDark);
                 if (isDark) {
                   document.documentElement.classList.add('dark-theme');
                   try { localStorage.setItem('hc_theme', 'dark'); } catch(e) {}
@@ -267,15 +284,13 @@ export default function Settings() {
                   document.documentElement.classList.remove('dark-theme');
                   try { localStorage.setItem('hc_theme', 'light'); } catch(e) {}
                 }
-                // Force re-render to update the checkbox visually
-                navigate('.', { replace: true });
               }}
             />
             <div
               style={{
                 width: '44px',
                 height: '24px',
-                background: document.documentElement.classList.contains('dark-theme') ? '#10B981' : '#E2E8F0',
+                background: isDarkMode ? '#10B981' : '#E2E8F0',
                 borderRadius: '999px',
                 position: 'relative',
                 transition: 'background 0.3s ease',
@@ -289,7 +304,7 @@ export default function Settings() {
                   borderRadius: '50%',
                   position: 'absolute',
                   top: '2px',
-                  left: document.documentElement.classList.contains('dark-theme') ? '22px' : '2px',
+                  left: isDarkMode ? '22px' : '2px',
                   transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 }}
@@ -372,14 +387,122 @@ export default function Settings() {
             fontSize: '18px',
             fontWeight: 600,
             color: 'var(--text-main)',
-            marginBottom: '24px',
+            marginBottom: '16px',
             marginTop: '40px',
           }}
         >
           Growth & Rewards
         </h2>
-        
 
+        <div
+          style={{
+            padding: '20px',
+            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 95, 70, 0.03) 100%)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            marginBottom: '28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #10B981, #059669)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                }}
+              >
+                <Trophy size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{points} Vitality Points</span>
+                  <span>{currentTierBadge}</span>
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  Tier: <strong style={{ color: '#059669' }}>{vitalityState.tier}</strong>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                window.dispatchEvent(new Event('hc_open_points_modal'));
+              }}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '999px',
+                background: '#10B981',
+                color: '#FFFFFF',
+                border: 'none',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              View Quests
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                navigate('/app/trophies');
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Award size={18} color="#059669" />
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)' }}>Trophy Cabinet</span>
+              </div>
+              <ChevronRight size={16} color="var(--text-muted)" />
+            </button>
+
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                window.dispatchEvent(new Event('hc_open_points_modal'));
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 14px',
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Zap size={18} color="#D97706" />
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)' }}>Daily Vitality Hub</span>
+              </div>
+              <ChevronRight size={16} color="var(--text-muted)" />
+            </button>
+          </div>
+        </div>
 
         <h2
           style={{
