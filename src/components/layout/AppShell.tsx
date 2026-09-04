@@ -8,7 +8,6 @@ import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { triggerHapticLight } from '../../services/haptics';
-import { PsychoacousticEngine } from '../../services/PsychoacousticEngine';
 
 import { AuthModal } from '../ui/AuthModal';
 import { GuestStickyBanner } from '../ui/GuestStickyBanner';

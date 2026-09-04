@@ -56,7 +56,11 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
     triggerHapticLight();
     const next = waterGlasses + 1;
     setWaterGlasses(next);
-    localStorage.setItem('hc_water_' + todayStr, next.toString());
+    try {
+      localStorage.setItem('hc_water_' + todayStr, next.toString());
+    } catch (e) {
+      console.warn('Failed to save water glass count', e);
+    }
     if (next === 4 || next === 8) {
       awardPoints(5, 'Hydration Target Milestone 💧', 'lifestyle');
     }

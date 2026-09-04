@@ -6,6 +6,7 @@ export class PsychoacousticEngine {
   private static oscLeft: OscillatorNode | null = null;
   private static oscRight: OscillatorNode | null = null;
   private static initialized = false;
+  private static biometricInterval: any = null;
 
   static async initialize() {
     if (this.initialized) return;
@@ -42,8 +43,16 @@ export class PsychoacousticEngine {
     }
   }
 
+  static stopBiometricLoop() {
+    if (this.biometricInterval) {
+      clearInterval(this.biometricInterval);
+      this.biometricInterval = null;
+    }
+  }
+
   static async startBiometricLoop() {
-    setInterval(async () => {
+    this.stopBiometricLoop();
+    this.biometricInterval = setInterval(async () => {
       if (!this.context || !this.masterGain) return;
       
       const biometrics = await AmbientSyncEngine.pullLiveBiometrics();
