@@ -10,8 +10,9 @@ import {
   BookmarkPlus,
   AlertOctagon,
   Search,
+  MessageCircle,
 } from 'lucide-react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchMedicineData, checkDrugInteractions, analyzeMedicineImage } from '../../services/geminiService';
 import { addMedication, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
@@ -28,6 +29,7 @@ let cachedPharmacyState: any = null;
 
 export default function PharmacyHub() {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get('search') || searchParams.get('q') || '';
@@ -154,6 +156,8 @@ export default function PharmacyHub() {
     // Optimistically add medication to profile so offline/AI failures don't block core UX
     try {
       addMedication({ name: medicineName }, 'pharmacy_hub');
+      awardPoints(10, `💊 Medication Saved: ${medicineName}`, 'lifestyle', `med_save_${Date.now()}`);
+      triggerHapticSuccess();
     } catch (e) {
       console.error('Failed to add medication locally:', e);
     }
@@ -467,8 +471,39 @@ export default function PharmacyHub() {
                         {displayData.class}
                       </div>
                     </div>
-                    <div style={{ marginLeft: isMobile ? '0' : 'auto', display: 'flex', alignItems: 'center', width: isMobile ? '100%' : 'auto' }}>
+                    <div style={{ marginLeft: isMobile ? '0' : 'auto', display: 'flex', alignItems: 'center', gap: '10px', width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
                       <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          navigate('/app/ava', {
+                            state: {
+                              initialPrompt: `I am researching the medication ${displayData.name} (${displayData.class}). Can you explain its mechanism of action, key clinical uses, and any precautions or interactions with my profile?`
+                            }
+                          });
+                        }}
+                        style={{
+                          background: '#F0FDFA',
+                          color: '#0F766E',
+                          border: '1px solid #99F6E4',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
+                        onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                      >
+                        <MessageCircle size={16} /> Discuss with Ava
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => handleAddMedication(displayData.name)}
                         disabled={isCheckingInteraction}
                         style={{
@@ -701,7 +736,27 @@ export default function PharmacyHub() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {dynamicRegimen.length === 0 && <p style={{fontSize: '14px', color: '#64748B'}}>No medications in profile.</p>}
+            {dynamicRegimen.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '20px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 12px 0' }}>No active medications in your profile.</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/app/profile')}
+                  style={{
+                    background: '#0F172A',
+                    color: '#FFF',
+                    border: 'none',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add in Medical Profile
+                </button>
+              </div>
+            )}
             {dynamicRegimen.map((schedule, idx) => (
               <div key={idx} style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>

@@ -688,8 +688,8 @@ export function OnboardingWizard({
                 },
                 { 
                   id: 'Gain muscle', 
-                  title: 'Hypertrophy & Clean Muscle Surplus', 
-                  subtitle: 'Controlled positive energy balance with optimized amino acid timing.', 
+                  title: 'Lean Mass Preservation & Recovery', 
+                  subtitle: 'Optimized amino acid distribution and micronutrient density to sustain lean muscle mass and metabolic vitality.', 
                   icon: Zap, 
                   color: '#3B82F6', 
                   bg: '#EFF6FF' 

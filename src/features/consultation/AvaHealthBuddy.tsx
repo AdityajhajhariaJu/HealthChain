@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -116,27 +116,128 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   return <span>{displayed}</span>;
 };
 
-const MessageRenderer = ({ content }: { content: string }) => {
-  if (content.includes('[WIDGET:WORKOUT]')) {
-    const parts = content.split('[WIDGET:WORKOUT]');
+const MessageRenderer = ({ content, onOpenCalm }: { content: string; onOpenCalm?: () => void }) => {
+  const handleStartCalm = () => {
+    triggerHapticLight();
+    if (onOpenCalm) {
+      onOpenCalm();
+    } else {
+      window.dispatchEvent(new CustomEvent('hc_reopen_meditation'));
+    }
+  };
+
+  if (content.includes('[WIDGET:CALM]') || content.includes('[WIDGET:BREATHWORK]')) {
+    const splitKey = content.includes('[WIDGET:CALM]') ? '[WIDGET:CALM]' : '[WIDGET:BREATHWORK]';
+    const parts = content.split(splitKey);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {parts[0] && <span>{parts[0]}</span>}
-        <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', borderRadius: '16px', padding: '16px', color: 'white', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10B981' }}>
-            <Activity size={18} />
-            <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.5px' }}>GENERATED WORKOUT</span>
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(15, 118, 110, 0.95) 0%, rgba(13, 148, 136, 0.9) 100%)',
+          borderRadius: '18px',
+          padding: '18px',
+          color: 'white',
+          boxShadow: '0 12px 28px rgba(13, 148, 136, 0.25)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#A7F3D0' }}>
+            <Wind size={18} />
+            <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              AUTONOMIC VAGAL TONE RESET
+            </span>
           </div>
-          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>30-Min Mobility Flow</h4>
-          <p style={{ margin: 0, fontSize: '14px', color: '#94A3B8' }}>Perfect for your back pain recovery.</p>
-          <button onClick={() => triggerHapticLight()} style={{ marginTop: '8px', background: '#10B981', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
-            <Play size={16} /> Start Routine
+          <h4 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#FFFFFF' }}>
+            4-7-8 Parasympathetic Calm Session
+          </h4>
+          <p style={{ margin: 0, fontSize: '13px', color: '#CCFBF1', lineHeight: 1.5 }}>
+            Evidence-based rhythmic breathwork engineered to lower sympathetic overdrive, steady heart rate, and restore prefrontal clarity.
+          </p>
+          <button
+            type="button"
+            onClick={handleStartCalm}
+            style={{
+              marginTop: '6px',
+              background: '#FFFFFF',
+              color: '#0F766E',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}
+          >
+            <Play size={16} fill="#0F766E" /> Begin 5-Min Calm Reset
           </button>
         </div>
         {parts[1] && <span>{parts[1]}</span>}
       </div>
     );
   }
+
+  if (content.includes('[WIDGET:WORKOUT]')) {
+    const parts = content.split('[WIDGET:WORKOUT]');
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {parts[0] && <span>{parts[0]}</span>}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%)',
+          borderRadius: '18px',
+          padding: '18px',
+          color: 'white',
+          boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34D399' }}>
+            <Activity size={18} />
+            <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              RESTORATIVE SOMATIC RESET
+            </span>
+          </div>
+          <h4 style={{ margin: 0, fontSize: '17px', fontWeight: 700 }}>
+            Gentle Autonomic Decompression
+          </h4>
+          <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', lineHeight: 1.5 }}>
+            Restorative nervous system reset with somatic breath regulation.
+          </p>
+          <button
+            type="button"
+            onClick={handleStartCalm}
+            style={{
+              marginTop: '6px',
+              background: '#10B981',
+              color: '#0F172A',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <Play size={16} fill="#0F172A" /> Start Restorative Session
+          </button>
+        </div>
+        {parts[1] && <span>{parts[1]}</span>}
+      </div>
+    );
+  }
+
   return <span>{content}</span>;
 };
 
@@ -172,10 +273,8 @@ export default function AvaHealthBuddy() {
   }, [activeMeditation]);
 
   useEffect(() => {
-    const handleReopen = () => {
-      if (lastMeditationRef.current) {
-        setActiveMeditation(lastMeditationRef.current);
-      }
+    const handleReopen = (e?: any) => {
+      setActiveMeditation(e?.detail || lastMeditationRef.current || DEFAULT_CALM_TRACK);
     };
     window.addEventListener('hc_reopen_meditation', handleReopen);
     return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
@@ -712,7 +811,7 @@ export default function AvaHealthBuddy() {
                     ) : (
                       msg.content ? (
                         <>
-                          <MessageRenderer content={msg.content} />
+                          <MessageRenderer content={msg.content} onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)} />
                           {msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}
                           {msg.role === 'model' && /(mental peace|calm space|de-stress|relax|anxiety|breathe|breathing|4-7-8|meditat|insomnia)/i.test(msg.content) && (
                             <motion.div

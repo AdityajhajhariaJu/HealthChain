@@ -873,7 +873,7 @@ export default function QuickConsult() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>
               <button 
-                onClick={() => navigate(`/app/cases/${activeCase?.id}`)}
+                onClick={() => navigate(activeCase?.id ? `/app/cases/${activeCase.id}` : '/app/my-cases')}
                 style={{
                   width: '100%',
                   padding: '16px',

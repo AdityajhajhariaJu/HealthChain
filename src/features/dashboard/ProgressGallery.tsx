@@ -10,6 +10,8 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Legend, Cell } from 'recharts';
 import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera } from 'lucide-react';
 import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
+import { getProfile } from '../../services/ProfileEngine';
+import { getCases } from '../../services/CaseEngine';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
@@ -81,38 +83,45 @@ export const ProgressGallery: React.FC = () => {
     };
   });
 
-  // 2. Process data for Balance Radar
+  // 2. Process data for Clinical Vitality Balance Radar
   const getBalanceData = () => {
-    let cardio = 0;
-    let strength = 0;
-    let mindfulness = 0;
-    let flexibility = 0;
-    let endurance = 0;
+    const profile = getProfile();
+    const cases = getCases();
 
+    // Nutrition Quality (from diet food logs)
+    const foodLogs = profile?.dietFoodLogs || {};
+    const daysLogged = Object.keys(foodLogs).length;
+    const nutritionScore = Math.min(100, Math.max(30, daysLogged * 15 + (profile?.targetCalories ? 25 : 10)));
+
+    // Mindfulness & Autonomic Calm (from logged sessions)
+    let mindfulnessMinutes = 0;
     history.forEach(h => {
       const type = h.fitness_content?.type || h.content_type || 'unknown';
-      const cat = h.category?.slug || '';
-      const diff = h.fitness_content?.difficulty || 'Beginner';
-
-      if (type === 'meditation' || type === 'soundscape' || type === 'sleep_story') {
-        mindfulness += 10;
-      } else if (type === 'workout') {
-        if (cat.includes('strength') || cat.includes('core')) strength += 10;
-        else if (cat.includes('yoga') || cat.includes('stretch')) flexibility += 10;
-        else cardio += 10;
-        
-        if (diff === 'Advanced') endurance += 5;
-        if (h.duration_seconds > 1800) endurance += 5; // > 30 mins
+      if (type === 'meditation' || type === 'soundscape' || type === 'sleep_story' || type === 'breathwork') {
+        mindfulnessMinutes += Math.round((h.duration_seconds || 300) / 60);
       }
     });
+    const mindfulnessScore = Math.min(100, Math.max(35, mindfulnessMinutes * 3 + 30));
 
-    // Add base scores so chart looks good even if empty
+    // Circadian Sleep & Rest (from daily checkins and sleep records)
+    const checkins = profile?.dailyCheckins || [];
+    const sleepScore = Math.min(100, Math.max(40, checkins.length * 10 + 35));
+
+    // Hydration & Habits
+    const habitKeys = Object.keys(localStorage).filter(k => k.startsWith('healthchain_habits_'));
+    const habitScore = Math.min(100, Math.max(30, habitKeys.length * 12 + 25));
+
+    // Biomarkers & Lab Records
+    const recordsCount = cases.reduce((acc, c) => acc + (c.medicalRecords?.length || 0), 0);
+    const vitalsCount = profile?.vitals ? Object.keys(profile.vitals).length : 0;
+    const biomarkerScore = Math.min(100, Math.max(40, (recordsCount * 15) + (vitalsCount * 10) + 30));
+
     return [
-      { subject: 'Cardio', A: cardio + 20, fullMark: 100 },
-      { subject: 'Strength', A: strength + 15, fullMark: 100 },
-      { subject: 'Mindfulness', A: mindfulness + 25, fullMark: 100 },
-      { subject: 'Flexibility', A: flexibility + 10, fullMark: 100 },
-      { subject: 'Endurance', A: endurance + 15, fullMark: 100 },
+      { subject: 'Nutrition Quality', A: nutritionScore, fullMark: 100 },
+      { subject: 'Mindfulness & Calm', A: mindfulnessScore, fullMark: 100 },
+      { subject: 'Circadian Sleep', A: sleepScore, fullMark: 100 },
+      { subject: 'Hydration & Habits', A: habitScore, fullMark: 100 },
+      { subject: 'Biomarkers & Labs', A: biomarkerScore, fullMark: 100 },
     ];
   };
 
@@ -237,33 +246,33 @@ export const ProgressGallery: React.FC = () => {
         {activeTab === 'balance' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#38BDF8', filter: 'blur(80px)', opacity: 0.3, borderRadius: '50%' }} />
+              <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#10B981', filter: 'blur(80px)', opacity: 0.2, borderRadius: '50%' }} />
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
-                <div style={{ background: 'rgba(0,0,0,0.05)', padding: '8px', borderRadius: '10px', color: '#38BDF8' }}><Target size={20} /></div>
+                <div style={{ background: '#ECFDF5', padding: '8px', borderRadius: '10px', color: '#059669' }}><Target size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Lifestyle Balance</h3>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Clinical Vitality Balance</h3>
                 </div>
               </div>
               <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
-                Visual mapping of your comprehensive health routine. Watch this shape expand as you tackle different workout genres.
+                Multi-dimensional mapping of your physiological and lifestyle health pillars. Tracks balance across nutrition, autonomic calm, sleep, habits, and biomarkers.
               </p>
 
               <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius={isMobile ? "70%" : "80%"} data={radarData}>
-                    <PolarGrid stroke="rgba(0,0,0,0.05)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} />
-                    <Radar name="My Routine" dataKey="A" stroke="#38BDF8" strokeWidth={3} fill="#38BDF8" fillOpacity={0.4} />
+                    <PolarGrid stroke="rgba(0,0,0,0.06)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
+                    <Radar name="My Health Balance" dataKey="A" stroke="#10B981" strokeWidth={3} fill="#10B981" fillOpacity={0.35} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
               
-              {/* Pro Tip */}
-              <div style={{ background: '#F1F5F9', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                <Brain color="#F59E0B" size={24} style={{ flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#0F172A' }}>Coach's Insight:</strong> Your mindfulness score is growing beautifully, but your flexibility could use some attention. Try a 10-minute Yoga flow tomorrow!
+              {/* Clinical Insight */}
+              <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid #E2E8F0' }}>
+                <Brain color="#10B981" size={24} style={{ flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+                  <strong style={{ color: '#0F172A' }}>Clinical Balance Insight:</strong> Your biomarker monitoring and autonomic calm are well supported. Maintain consistent protein pacing and evening circadian wind-downs to keep metabolic recovery optimal.
                 </p>
               </div>
             </div>
