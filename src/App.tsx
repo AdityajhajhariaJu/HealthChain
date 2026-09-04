@@ -647,6 +647,7 @@ export default function App() {
             }
           />
           <Route path="/app/health-buddy" element={<Navigate to="/app/ava" replace />} />
+          <Route path="/chat" element={<Navigate to="/app/ava" replace />} />
           <Route
             path="/app/ava"
             element={

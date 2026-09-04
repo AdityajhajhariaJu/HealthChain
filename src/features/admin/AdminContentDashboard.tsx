@@ -356,7 +356,7 @@ export const AdminContentDashboard: React.FC = () => {
                 {/* Content Info */}
                 <div className="w-[45%] flex items-center gap-5">
                   {content.cover_image_url ? (
-                    <img src={content.cover_image_url} alt="" className="w-20 h-20 rounded-[18px] object-cover bg-slate-50 shadow-sm" />
+                    <img src={content.cover_image_url} alt={`${content.title} cover image`} className="w-20 h-20 rounded-[18px] object-cover bg-slate-50 shadow-sm" />
                   ) : (
                     <div className="w-20 h-20 rounded-[18px] bg-white/50 backdrop-blur-md flex items-center justify-center text-slate-300 border border-white/50 shadow-sm">
                       <ImageIcon size={28} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import PharmacyHub from './PharmacyHub';
 import ClinicalReportAnalyzer from './ClinicalReportAnalyzer';
 import { motion } from 'framer-motion';
@@ -8,8 +9,9 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 
 export default function MedicineLabPage() {
   const isMobile = useIsMobile();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'all' | 'pharmacy' | 'reports'>(() => {
-    if (typeof window !== 'undefined' && window.location.hash === '#clinical-report-analyzer') {
+    if (typeof window !== 'undefined' && (window.location.hash === '#clinical-report-analyzer' || location.hash === '#clinical-report-analyzer')) {
       return 'reports';
     }
     return 'all';
@@ -17,7 +19,7 @@ export default function MedicineLabPage() {
 
   useEffect(() => {
     const handleHash = () => {
-      if (window.location.hash === '#clinical-report-analyzer') {
+      if (location.hash === '#clinical-report-analyzer' || (typeof window !== 'undefined' && window.location.hash === '#clinical-report-analyzer')) {
         setActiveTab('reports');
         setTimeout(() => {
           const el = document.getElementById('clinical-report-analyzer');
@@ -31,7 +33,7 @@ export default function MedicineLabPage() {
     handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
-  }, []);
+  }, [location.hash]);
 
   return (
     <div 

@@ -281,19 +281,20 @@ export default function AvaHealthBuddy() {
     window.addEventListener('hc_reopen_meditation', handleReopen);
     return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
   }, []);
+  const incomingPrompt = location.state?.initialPrompt || location.state?.initialMessage;
   const [input, setInput] = useState(() => { 
     try { 
-      return location.state?.initialPrompt || sessionStorage.getItem('hc_ava_draft') || ''; 
+      return incomingPrompt || sessionStorage.getItem('hc_ava_draft') || ''; 
     } catch { 
       return ''; 
     } 
   });
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
   useEffect(() => {
-    if (location.state?.initialPrompt) {
-      setInput(location.state.initialPrompt);
+    if (incomingPrompt) {
+      setInput(incomingPrompt);
     }
-  }, [location.state?.initialPrompt]);
+  }, [incomingPrompt]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);

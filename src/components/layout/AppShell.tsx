@@ -429,7 +429,7 @@ const enforceSafeArea = () => {
               >
                 <img 
                   src={`https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.demographics?.name || 'User')}&background=0F8B7E&color=fff`}
-                  alt="" 
+                  alt={`${profile?.demographics?.name || 'User'} profile avatar`} 
                   className="mobile-top-bar__profile" 
                   style={{ display: 'block' }}
                 />
