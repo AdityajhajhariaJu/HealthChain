@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Play, RotateCcw, CheckCircle2, Wind, Activity, Volume2, VolumeX, ChevronDown } from 'lucide-react';
+import { Heart, Play, Square, CheckCircle2, Wind, Activity, Volume2, VolumeX } from 'lucide-react';
 import { awardMindfulPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -63,96 +63,81 @@ export default function MindfulHRVCard() {
     }
   });
 
-  // Vibrational Audio State
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const fadeIntervalRef = useRef<any>(null);
+  // Vibrational Audio Management
+  const audioInstanceRef = useRef<HTMLAudioElement | null>(null);
+  const isPlayingRef = useRef<boolean>(false);
+  const playSeqRef = useRef<number>(0);
+
   const [selectedTrackIndex, setSelectedTrackIndex] = useState(0);
   const [isSoundMuted, setIsSoundMuted] = useState(false);
-  const [showTrackPicker, setShowTrackPicker] = useState(false);
 
-  const stopAudio = (immediate = false) => {
-    if (fadeIntervalRef.current) {
-      clearInterval(fadeIntervalRef.current);
-      fadeIntervalRef.current = null;
-    }
-    const audio = audioRef.current;
-    if (!audio) return;
+  // Guaranteed instant audio termination (iOS & Desktop safe, zero lingering decoder)
+  const stopAudio = () => {
+    isPlayingRef.current = false;
+    playSeqRef.current += 1;
 
-    if (immediate) {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.volume = 0;
-      return;
-    }
-
-    fadeIntervalRef.current = setInterval(() => {
-      if (audio.volume > 0.06) {
-        audio.volume = Math.max(0, audio.volume - 0.08);
-      } else {
+    if (audioInstanceRef.current) {
+      try {
+        const audio = audioInstanceRef.current;
         audio.pause();
         audio.currentTime = 0;
-        audio.volume = 0;
-        if (fadeIntervalRef.current) {
-          clearInterval(fadeIntervalRef.current);
-          fadeIntervalRef.current = null;
-        }
+        audio.removeAttribute('src'); // Explicitly detach source to clear Dynamic Island / iOS audio session
+        audio.load();
+      } catch (e) {
+        console.warn('Error terminating audio:', e);
       }
-    }, 60);
+      audioInstanceRef.current = null;
+    }
   };
 
+  // Glitch-free audio player
   const playAudio = (trackIdx = selectedTrackIndex) => {
     if (isSoundMuted) return;
-    if (fadeIntervalRef.current) {
-      clearInterval(fadeIntervalRef.current);
-      fadeIntervalRef.current = null;
-    }
+
+    // Immediately halt previous audio instance
+    stopAudio();
+
+    const currentSeq = ++playSeqRef.current;
+    isPlayingRef.current = true;
 
     const track = VIBRATIONAL_TRACKS[trackIdx];
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(track.url);
-        audioRef.current.loop = true;
-      } else {
-        if (!audioRef.current.src.endsWith(encodeURI(track.url)) && !audioRef.current.src.endsWith(track.url)) {
-          audioRef.current.src = track.url;
-        }
-      }
+    if (!track) return;
 
-      const audio = audioRef.current;
-      audio.volume = 0;
+    try {
+      // Use encoded URL to prevent URI parsing anomalies in iOS WebViews
+      const audio = new Audio(encodeURI(track.url));
+      audio.loop = true;
+      audio.preload = 'auto';
+      audioInstanceRef.current = audio;
+
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            fadeIntervalRef.current = setInterval(() => {
-              if (audio.volume < 0.45) {
-                audio.volume = Math.min(0.5, audio.volume + 0.05);
-              } else {
-                audio.volume = 0.5;
-                if (fadeIntervalRef.current) {
-                  clearInterval(fadeIntervalRef.current);
-                  fadeIntervalRef.current = null;
-                }
+            // If user stopped or changed track while promise was resolving, halt immediately
+            if (!isPlayingRef.current || playSeqRef.current !== currentSeq) {
+              audio.pause();
+              audio.currentTime = 0;
+              audio.removeAttribute('src');
+              audio.load();
+              if (audioInstanceRef.current === audio) {
+                audioInstanceRef.current = null;
               }
-            }, 80);
+            }
           })
           .catch((err) => {
-            console.log('Audio playback prevented or error:', err);
+            console.warn('Audio playback prevented or interrupted:', err);
           });
       }
     } catch (e) {
-      console.error('Failed to initialize audio:', e);
+      console.error('Failed to initialize vibrational audio:', e);
     }
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopAudio(true);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
-      }
+      stopAudio();
     };
   }, []);
 
@@ -222,11 +207,9 @@ export default function MindfulHRVCard() {
 
   const handleSelectTrack = (idx: number) => {
     setSelectedTrackIndex(idx);
-    setShowTrackPicker(false);
     triggerHapticLight();
     if (breathActive && !isSoundMuted) {
-      stopAudio(true);
-      setTimeout(() => playAudio(idx), 100);
+      playAudio(idx);
     }
   };
 
@@ -238,7 +221,7 @@ export default function MindfulHRVCard() {
     } else {
       setIsSoundMuted(false);
       if (breathActive) {
-        setTimeout(() => playAudio(selectedTrackIndex), 50);
+        playAudio(selectedTrackIndex);
       }
     }
   };
@@ -320,155 +303,71 @@ export default function MindfulHRVCard() {
             >
               +3 PTS
             </span>
-
-            {/* Vibrational Frequency Badge & Selector */}
-            <div style={{ position: 'relative' }}>
-              <button
-                type="button"
-                onClick={() => setShowTrackPicker(!showTrackPicker)}
-                aria-label={`Vibrational frequency: ${VIBRATIONAL_TRACKS[selectedTrackIndex].label}. Click to select vibrational frequency.`}
-                aria-expanded={showTrackPicker}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: breathActive && !isSoundMuted ? '#0284C7' : '#64748B',
-                  background: breathActive && !isSoundMuted ? '#F0F9FF' : '#F8FAFC',
-                  border: breathActive && !isSoundMuted ? '1px solid #BAE6FD' : '1px solid #E2E8F0',
-                  padding: '2px 9px',
-                  borderRadius: '999px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {breathActive && !isSoundMuted ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', height: '10px' }}>
-                    <motion.span
-                      animate={{ height: ['3px', '11px', '3px'] }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
-                      style={{ width: '2px', backgroundColor: '#0284C7', borderRadius: '1px', display: 'inline-block' }}
-                    />
-                    <motion.span
-                      animate={{ height: ['9px', '3px', '10px'] }}
-                      transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
-                      style={{ width: '2px', backgroundColor: '#0284C7', borderRadius: '1px', display: 'inline-block' }}
-                    />
-                    <motion.span
-                      animate={{ height: ['3px', '12px', '4px'] }}
-                      transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-                      style={{ width: '2px', backgroundColor: '#0284C7', borderRadius: '1px', display: 'inline-block' }}
-                    />
-                  </span>
-                ) : isSoundMuted ? (
-                  <VolumeX size={11} color="#94A3B8" />
-                ) : (
-                  <Volume2 size={11} color="#64748B" />
-                )}
-                <span>{VIBRATIONAL_TRACKS[selectedTrackIndex].frequency}</span>
-                <ChevronDown size={11} style={{ opacity: 0.6 }} />
-              </button>
-
-              {/* Track Picker Dropdown */}
-              <AnimatePresence>
-                {showTrackPicker && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 4, scale: 0.97 }}
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 6px)',
-                      left: 0,
-                      zIndex: 30,
-                      background: '#FFFFFF',
-                      borderRadius: '14px',
-                      border: '1px solid #E2E8F0',
-                      boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.05)',
-                      padding: '6px',
-                      minWidth: '250px',
-                    }}
-                  >
-                    <div style={{ padding: '4px 8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F1F5F9' }}>
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', color: '#64748B' }}>
-                        Vibrational Frequency
-                      </span>
-                      <button
-                        type="button"
-                        onClick={toggleMute}
-                        aria-label={isSoundMuted ? "Unmute vibrational audio" : "Mute vibrational audio"}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          padding: '2px 6px',
-                          cursor: 'pointer',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: isSoundMuted ? '#EF4444' : '#0284C7',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        {isSoundMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
-                        {isSoundMuted ? 'Muted' : 'Sound On'}
-                      </button>
-                    </div>
-                    {VIBRATIONAL_TRACKS.map((t, idx) => {
-                      const isSelected = selectedTrackIndex === idx;
-                      return (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => handleSelectTrack(idx)}
-                          aria-label={`Select ${t.label} vibrational music: ${t.desc}`}
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'flex-start',
-                            width: '100%',
-                            textAlign: 'left',
-                            padding: '7px 10px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            background: isSelected ? '#F0F9FF' : 'transparent',
-                            color: isSelected ? '#0284C7' : '#1E293B',
-                            cursor: 'pointer',
-                            marginTop: '2px',
-                            transition: 'background 0.12s ease',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <span style={{ fontSize: '12px', fontWeight: isSelected ? 800 : 600 }}>
-                              {t.label}
-                            </span>
-                            <span style={{ fontSize: '10.5px', fontWeight: 700, color: isSelected ? '#0284C7' : '#94A3B8' }}>
-                              {t.frequency}
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '11px', color: '#64748B', marginTop: '1px' }}>
-                            {t.desc}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
 
           <h3 style={{ margin: '0 0 4px', fontSize: isMobile ? '17px' : '19px', fontWeight: 800, letterSpacing: '-0.3px', color: '#0F172A' }}>
             60-Second Mindful HRV Reset
           </h3>
-          <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#64748B', lineHeight: 1.45, maxWidth: '460px' }}>
+          <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#64748B', lineHeight: 1.45, maxWidth: '460px' }}>
             {breathActive
               ? getPhaseInstruction()
               : breathCompletedToday
               ? '✨ Session completed today (+3 PTS awarded). Practice again anytime.'
-              : 'Follow the 4-4-4 box breathing rhythm with soothing vibrational resonance to calm your nervous system.'}
+              : `4-4-4 box breathing with ${VIBRATIONAL_TRACKS[selectedTrackIndex].label} (${VIBRATIONAL_TRACKS[selectedTrackIndex].desc}).`}
           </p>
+
+          {/* Direct Frequency Selector Pills */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px', flexWrap: 'wrap' }}>
+            {VIBRATIONAL_TRACKS.map((t, idx) => {
+              const isSelected = selectedTrackIndex === idx;
+              const isCurrentlyPlaying = isSelected && breathActive && !isSoundMuted;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => handleSelectTrack(idx)}
+                  aria-label={`Select ${t.label} frequency (${t.desc})`}
+                  style={{
+                    fontSize: '11.5px',
+                    fontWeight: isSelected ? 800 : 600,
+                    color: isSelected ? (isCurrentlyPlaying ? '#059669' : '#0D9488') : '#64748B',
+                    background: isSelected ? (isCurrentlyPlaying ? '#ECFDF5' : '#F0FDFA') : '#F8FAFC',
+                    border: isSelected ? (isCurrentlyPlaying ? '1.5px solid #10B981' : '1.5px solid #14B8A6') : '1px solid #E2E8F0',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? '0 1px 4px rgba(16, 185, 129, 0.15)' : 'none',
+                  }}
+                  title={`${t.label} - ${t.desc}`}
+                >
+                  {isCurrentlyPlaying ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', height: '10px' }}>
+                      <motion.span
+                        animate={{ height: ['3px', '10px', '3px'] }}
+                        transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ width: '2px', backgroundColor: '#059669', borderRadius: '1px', display: 'inline-block' }}
+                      />
+                      <motion.span
+                        animate={{ height: ['9px', '3px', '9px'] }}
+                        transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }}
+                        style={{ width: '2px', backgroundColor: '#059669', borderRadius: '1px', display: 'inline-block' }}
+                      />
+                      <motion.span
+                        animate={{ height: ['3px', '11px', '4px'] }}
+                        transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                        style={{ width: '2px', backgroundColor: '#059669', borderRadius: '1px', display: 'inline-block' }}
+                      />
+                    </span>
+                  ) : null}
+                  <span>{t.frequency}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* Action Row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -499,22 +398,23 @@ export default function MindfulHRVCard() {
               <button
                 type="button"
                 onClick={resetBreathwork}
-                aria-label="Stop and reset 60-second mindful HRV session"
+                aria-label="Stop 60-second mindful HRV session"
                 style={{
                   padding: '9px 16px',
                   borderRadius: '12px',
-                  background: '#F1F5F9',
-                  color: '#475569',
-                  border: '1px solid #E2E8F0',
+                  background: '#FEE2E2',
+                  color: '#DC2626',
+                  border: '1px solid #FCA5A5',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <RotateCcw size={13} /> Stop / Reset
+                <Square size={13} fill="#DC2626" /> Stop Session
               </button>
             )}
 
@@ -524,21 +424,24 @@ export default function MindfulHRVCard() {
               onClick={toggleMute}
               aria-label={isSoundMuted ? 'Unmute vibrational frequency audio' : 'Mute vibrational frequency audio'}
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                border: '1px solid #E2E8F0',
+                height: '38px',
+                padding: '0 12px',
+                borderRadius: '11px',
+                border: isSoundMuted ? '1px solid #FCA5A5' : '1px solid #E2E8F0',
                 background: isSoundMuted ? '#FEF2F2' : '#F8FAFC',
-                color: isSoundMuted ? '#EF4444' : '#64748B',
+                color: isSoundMuted ? '#DC2626' : '#475569',
                 display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
               title={isSoundMuted ? 'Unmute vibrational frequency audio' : 'Mute vibrational frequency audio'}
             >
-              {isSoundMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+              {isSoundMuted ? <VolumeX size={15} color="#DC2626" /> : <Volume2 size={15} color="#059669" />}
+              <span>{isSoundMuted ? 'Muted' : 'Sound On'}</span>
             </button>
 
             {breathActive && (
