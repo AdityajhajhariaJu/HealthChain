@@ -23,7 +23,8 @@ import {
   X, 
   ShieldCheck,
   Info,
-  ChevronDown 
+  ChevronDown,
+  ArrowRight 
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -208,11 +209,11 @@ export default function CaseDashboard() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
-            {/* The Glassmorphic Arch Canvas Tile */}
-              <div 
+            {/* The Rajasthani Palace Gate Health Canvas Tile */}
+              <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label="Health Canvas War Room"
+                aria-label="Enter Health Canvas Multi-Agent War Room"
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -221,44 +222,330 @@ export default function CaseDashboard() {
                     navigate('/app/war-room');
                   }
                 }}
+                whileHover={{ 
+                  y: -4, 
+                  scale: 1.015,
+                  boxShadow: '0 24px 48px rgba(180, 83, 9, 0.16), 0 6px 18px rgba(0, 0, 0, 0.06), inset 0 2px 0 rgba(255, 255, 255, 0.9), inset 0 0 28px rgba(254, 243, 199, 0.55)'
+                }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 24 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.8)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', 
                   gridRow: 'span 2',
-                  borderRadius: isMobile ? '80px 80px 24px 24px' : '160px 160px 32px 32px', 
+                  borderRadius: isMobile ? '80px 80px 24px 24px' : '140px 140px 32px 32px',
+                  background: 'linear-gradient(180deg, rgba(254, 243, 199, 0.5) 0%, rgba(255, 255, 255, 0.78) 32%, rgba(248, 250, 252, 0.95) 100%)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  border: '1.5px solid rgba(245, 158, 11, 0.35)',
+                  boxShadow: '0 20px 40px rgba(180, 83, 9, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 0 24px rgba(254, 243, 199, 0.4)',
+                  padding: isMobile ? '16px 10px 14px' : '20px 14px 18px',
+                  minHeight: isMobile ? '280px' : '320px',
                   position: 'relative',
                   overflow: 'hidden',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: isMobile ? '18px 12px' : '24px',
-                  minHeight: isMobile ? '220px' : '260px'
+                  justifyContent: 'space-between',
+                  userSelect: 'none'
                 }}
               >
-                
-                  {/* Pushpin */}
-                  <div style={{ position: 'absolute', top: '24px', right: '28px', transform: 'rotate(15deg)', zIndex: 10 }}>
-                    <Pin size={22} color="#EF4444" strokeWidth={2.5} />
+                {/* Ambient Gate Radial Backlight */}
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: '10%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: isMobile ? '160px' : '200px',
+                    height: isMobile ? '160px' : '200px',
+                    background: 'radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, rgba(245, 158, 11, 0.08) 50%, transparent 75%)',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
+
+                {/* Top Bar: Live War Room Badge */}
+                <div style={{ position: 'relative', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(255, 255, 255, 0.88)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(16, 185, 129, 0.32)',
+                      padding: '3px 10px',
+                      borderRadius: '999px',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)',
+                    }}
+                  >
+                    <motion.span
+                      animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#10B981',
+                        display: 'inline-block',
+                        boxShadow: '0 0 8px #10B981',
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: '9px',
+                        fontWeight: 800,
+                        color: '#065F46',
+                        letterSpacing: '1.2px',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Live War Room
+                    </span>
                   </div>
+                </div>
+
+                {/* Center Architecture: The Rajasthani Palace Gate SVG */}
+                <div 
+                  style={{ 
+                    position: 'relative', 
+                    zIndex: 5, 
+                    width: isMobile ? '135px' : '155px', 
+                    height: isMobile ? '150px' : '172px',
+                    margin: isMobile ? '4px 0 2px' : '8px 0 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 160 176"
+                    width="100%"
+                    height="100%"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{ filter: 'drop-shadow(0 4px 12px rgba(180, 83, 9, 0.15))' }}
+                  >
+                    <defs>
+                      <linearGradient id="rpgGoldLeaf" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#B45309" />
+                        <stop offset="30%" stopColor="#FBBF24" />
+                        <stop offset="65%" stopColor="#FDE68A" />
+                        <stop offset="100%" stopColor="#D97706" />
+                      </linearGradient>
+
+                      <linearGradient id="rpgDoorWood" x1="0" y1="0" x2="0" y2="100%">
+                        <stop offset="0%" stopColor="#78350F" />
+                        <stop offset="50%" stopColor="#451A03" />
+                        <stop offset="100%" stopColor="#1E0B02" />
+                      </linearGradient>
+
+                      <radialGradient id="rpgPortalGlow" cx="50%" cy="65%" r="60%">
+                        <stop offset="0%" stopColor="#FEF08A" stopOpacity="0.95" />
+                        <stop offset="35%" stopColor="#F59E0B" stopOpacity="0.75" />
+                        <stop offset="65%" stopColor="#0284C7" stopOpacity="0.5" />
+                        <stop offset="100%" stopColor="#0F172A" stopOpacity="0.9" />
+                      </radialGradient>
+
+                      <filter id="rpgLanternGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+
+                    {/* Outer Arch Border Trim (Dotted Filigree) */}
+                    <rect
+                      x="14"
+                      y="16"
+                      width="132"
+                      height="148"
+                      rx="14"
+                      fill="none"
+                      stroke="url(#rpgGoldLeaf)"
+                      strokeWidth="1.2"
+                      strokeDasharray="3 3"
+                      opacity="0.5"
+                    />
+
+                    {/* Kalash Apex Finial */}
+                    <path d="M 80 8 L 82 14 L 84 15 L 80 18 L 76 15 L 78 14 Z" fill="url(#rpgGoldLeaf)" />
+                    <circle cx="80" cy="7" r="2.2" fill="#FDE047" />
+                    <path d="M 74 18 C 76 16 84 16 86 18" stroke="#B45309" strokeWidth="1.5" fill="none" />
+
+                    {/* Ornate Spandrel Filigree Flanking Apex */}
+                    <path d="M 28 28 C 38 28 46 22 54 20" stroke="#D97706" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6" />
+                    <path d="M 132 28 C 122 28 114 22 106 20" stroke="#D97706" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6" />
+
+                    {/* Outer Multicusped Rajput Arch Moldings */}
+                    <path
+                      d="M 80 20 C 74 24 68 28 62 33 C 55 33 49 41 45 49 C 38 51 34 60 32 70 C 26 73 24 82 24 92 L 24 162 L 136 162 L 136 92 C 136 82 134 73 128 70 C 126 60 122 51 115 49 C 111 41 105 33 98 33 C 92 28 86 24 80 20 Z"
+                      fill="none"
+                      stroke="url(#rpgGoldLeaf)"
+                      strokeWidth="2.2"
+                    />
+
+                    {/* Inner Portal Void (War Room Ambient Glow radiating from inside) */}
+                    <path
+                      d="M 80 26 C 75 30 70 34 65 38 C 58 39 53 46 50 53 C 44 55 40 63 38 72 C 33 76 31 84 31 92 L 31 162 L 129 162 L 129 92 C 129 84 127 76 122 72 C 120 63 116 55 110 53 C 107 46 102 39 95 38 C 90 34 85 30 80 26 Z"
+                      fill="url(#rpgPortalGlow)"
+                    />
+
+                    {/* Inside War Room Emitted Light Fan */}
+                    <path d="M 80 80 L 22 162 L 138 162 Z" fill="url(#rpgGoldLeaf)" opacity="0.16" />
+                    <circle cx="80" cy="96" r="26" fill="#FEF08A" opacity="0.22" />
+
+                    {/* Fluted Sandstone Side Columns */}
+                    {/* Left Column */}
+                    <rect x="18" y="84" width="10" height="78" fill="#D97706" opacity="0.2" />
+                    <line x1="23" y1="84" x2="23" y2="162" stroke="#B45309" strokeWidth="1" strokeDasharray="2 2" opacity="0.4" />
+                    <path d="M 16 84 L 30 84 L 28 88 L 18 88 Z" fill="url(#rpgGoldLeaf)" />
+                    <rect x="16" y="156" width="14" height="8" rx="2" fill="url(#rpgGoldLeaf)" />
+
+                    {/* Right Column */}
+                    <rect x="132" y="84" width="10" height="78" fill="#D97706" opacity="0.2" />
+                    <line x1="137" y1="84" x2="137" y2="162" stroke="#B45309" strokeWidth="1" strokeDasharray="2 2" opacity="0.4" />
+                    <path d="M 130 84 L 144 84 L 142 88 L 132 88 Z" fill="url(#rpgGoldLeaf)" />
+                    <rect x="130" y="156" width="14" height="8" rx="2" fill="url(#rpgGoldLeaf)" />
+
+                    {/* Rajasthani Carved Palace Doors (Parted in center revealing inner light) */}
+                    {/* Left Door Leaf */}
+                    <g>
+                      <path
+                        d="M 33 92 L 33 162 L 75 162 L 75 74 C 68 76 64 82 62 86 C 56 87 52 90 49 92 Z"
+                        fill="url(#rpgDoorWood)"
+                        stroke="#92400E"
+                        strokeWidth="1"
+                      />
+                      {/* Horizontal Brass Bands (Patta) */}
+                      <line x1="34" y1="104" x2="74" y2="104" stroke="url(#rpgGoldLeaf)" strokeWidth="1.8" />
+                      <line x1="34" y1="124" x2="74" y2="124" stroke="url(#rpgGoldLeaf)" strokeWidth="1.8" />
+                      <line x1="34" y1="144" x2="74" y2="144" stroke="url(#rpgGoldLeaf)" strokeWidth="1.8" />
+                      {/* Brass Studs (Killi) */}
+                      <circle cx="42" cy="104" r="1.8" fill="#FDE047" />
+                      <circle cx="54" cy="104" r="1.8" fill="#FDE047" />
+                      <circle cx="66" cy="104" r="1.8" fill="#FDE047" />
+                      <circle cx="42" cy="124" r="1.8" fill="#FDE047" />
+                      <circle cx="54" cy="124" r="1.8" fill="#FDE047" />
+                      <circle cx="66" cy="124" r="1.8" fill="#FDE047" />
+                      <circle cx="42" cy="144" r="1.8" fill="#FDE047" />
+                      <circle cx="54" cy="144" r="1.8" fill="#FDE047" />
+                      <circle cx="66" cy="144" r="1.8" fill="#FDE047" />
+                      {/* Left Brass Door Pull Ring (Kadi) */}
+                      <circle cx="68" cy="128" r="3.8" fill="none" stroke="#FDE047" strokeWidth="1.6" />
+                      <circle cx="68" cy="124" r="1.6" fill="#B45309" />
+                    </g>
+
+                    {/* Right Door Leaf */}
+                    <g>
+                      <path
+                        d="M 127 92 L 127 162 L 85 162 L 85 74 C 92 76 96 82 98 86 C 104 87 108 90 111 92 Z"
+                        fill="url(#rpgDoorWood)"
+                        stroke="#92400E"
+                        strokeWidth="1"
+                      />
+                      {/* Horizontal Brass Bands (Patta) */}
+                      <line x1="86" y1="104" x2="126" y2="104" stroke="url(#rpgGoldLeaf)" strokeWidth="1.8" />
+                      <line x1="86" y1="124" x2="126" y2="124" stroke="url(#rpgGoldLeaf)" strokeWidth="1.8" />
+                      <line x1="86" y1="144" x2="126" y2="144" stroke="url(#rpgGoldLeaf)" strokeWidth="1.8" />
+                      {/* Brass Studs (Killi) */}
+                      <circle cx="94" cy="104" r="1.8" fill="#FDE047" />
+                      <circle cx="106" cy="104" r="1.8" fill="#FDE047" />
+                      <circle cx="118" cy="104" r="1.8" fill="#FDE047" />
+                      <circle cx="94" cy="124" r="1.8" fill="#FDE047" />
+                      <circle cx="106" cy="124" r="1.8" fill="#FDE047" />
+                      <circle cx="118" cy="124" r="1.8" fill="#FDE047" />
+                      <circle cx="94" cy="144" r="1.8" fill="#FDE047" />
+                      <circle cx="106" cy="144" r="1.8" fill="#FDE047" />
+                      <circle cx="118" cy="144" r="1.8" fill="#FDE047" />
+                      {/* Right Brass Door Pull Ring (Kadi) */}
+                      <circle cx="92" cy="128" r="3.8" fill="none" stroke="#FDE047" strokeWidth="1.6" />
+                      <circle cx="92" cy="124" r="1.6" fill="#B45309" />
+                    </g>
+
+                    {/* Radiant Portal Light Beaming through the parted doors */}
+                    <rect x="76" y="72" width="8" height="90" fill="#FEF08A" opacity="0.85" />
+                    <line x1="80" y1="46" x2="80" y2="162" stroke="#FFFFFF" strokeWidth="1.6" opacity="0.95" />
+
+                    {/* Hanging Royal Palace Brass Lantern (Fanoos / Diya) */}
+                    <line x1="80" y1="20" x2="80" y2="50" stroke="#B45309" strokeWidth="1.2" />
+                    <g filter="url(#rpgLanternGlow)">
+                      <polygon points="80,48 85,55 83,65 77,65 75,55" fill="#F59E0B" opacity="0.4" />
+                    </g>
+                    <polygon points="80,48 85,55 83,64 77,64 75,55" fill="#78350F" stroke="url(#rpgGoldLeaf)" strokeWidth="1.2" />
+                    <circle cx="80" cy="58" r="2.8" fill="#FEF08A" />
+                    <path d="M 79 64 L 80 68 L 81 64 Z" fill="url(#rpgGoldLeaf)" />
+
+                    {/* Carved Sandstone Threshold Plinth */}
+                    <rect x="22" y="162" width="116" height="7" rx="2" fill="url(#rpgGoldLeaf)" />
+                    <line x1="22" y1="164" x2="138" y2="164" stroke="#78350F" strokeWidth="0.8" opacity="0.4" />
+                  </svg>
+                </div>
+
+                {/* Bottom Info & Interactive Action Button Pill */}
+                <div 
+                  style={{ 
+                    position: 'relative', 
+                    zIndex: 10, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    textAlign: 'center',
+                    gap: '2px',
+                    width: '100%'
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: isMobile ? '18px' : '21px',
+                      fontWeight: 800,
+                      color: '#1E293B',
+                      margin: 0,
+                      lineHeight: 1.15,
+                      letterSpacing: '-0.3px',
+                    }}
+                  >
+                    Health Canvas
+                  </h3>
                   
-                  {/* Brass Pendant Light */}
-                <div style={{ position: 'absolute', top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ width: 2, height: 80, background: 'linear-gradient(to bottom, rgba(170,140,44,0.3) 0%, rgba(170,140,44,0.9) 100%)' }} />
-                  <div style={{ width: 24, height: 36, borderRadius: '12px', background: 'rgba(255,255,255,0.9)', border: '2px solid #AA8C2C', boxShadow: '0 8px 16px rgba(170,140,44,0.2)', display: 'grid', placeItems: 'center' }}>
-                    <div style={{ width: 12, height: 16, borderRadius: '6px', background: '#AA8C2C', boxShadow: '0 0 8px #AA8C2C' }} />
-                  </div>
+                  <p
+                    style={{
+                      fontSize: '9.5px',
+                      color: '#B45309',
+                      margin: '0 0 6px',
+                      fontWeight: 700,
+                      letterSpacing: '0.6px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Multi-Agent Hub
+                  </p>
+
+                  {/* Tactile Button Affordance */}
+                  <motion.div
+                    whileHover={{ scale: 1.05, boxShadow: '0 6px 18px rgba(15, 23, 42, 0.28)' }}
+                    whileTap={{ scale: 0.96 }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+                      color: '#F8FAFC',
+                      padding: isMobile ? '5px 12px' : '6px 14px',
+                      borderRadius: '999px',
+                      fontSize: isMobile ? '10.5px' : '11.5px',
+                      fontWeight: 700,
+                      border: '1px solid rgba(245, 158, 11, 0.45)',
+                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.22)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Sparkles size={11} color="#FBBF24" />
+                    <span>Enter Gate</span>
+                    <ArrowRight size={12} color="#F59E0B" />
+                  </motion.div>
                 </div>
-                
-                <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
-                   <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#64748B', margin: 0, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DR. JENKINS</p>
-                </div>
-              </div>
+              </motion.div>
 
               
               {/* AR Lens Bento Tile */}
