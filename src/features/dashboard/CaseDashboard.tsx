@@ -42,6 +42,7 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
+import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
@@ -184,6 +185,23 @@ export default function CaseDashboard() {
   const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
   const [activeWorkout, setActiveWorkout] = useState<any>(null);
+  const lastMeditationRef = useRef<FitnessContent | null>(null);
+
+  useEffect(() => {
+    if (activeMeditation) {
+      lastMeditationRef.current = activeMeditation;
+    }
+  }, [activeMeditation]);
+
+  useEffect(() => {
+    const handleReopen = () => {
+      if (lastMeditationRef.current) {
+        setActiveMeditation(lastMeditationRef.current);
+      }
+    };
+    window.addEventListener('hc_reopen_meditation', handleReopen);
+    return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
+  }, []);
 
 
 
@@ -710,6 +728,12 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
               <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Your Calm Space</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences to shift your state</p>
             </div>
+
+            {/* 4-4-4-4 Resonant HRV Coherence Box Breathing */}
+            <div style={{ padding: '0 16px 20px' }}>
+              <MindfulHRVCard />
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
               {[
                 { 

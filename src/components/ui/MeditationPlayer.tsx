@@ -856,7 +856,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
         'calm',
         `${trackTitle}`,
         `${playlistTitle} • Active`,
-        'Expand'
+        'Expand',
+        () => {
+          window.dispatchEvent(new CustomEvent('hc_reopen_meditation'));
+        }
       );
     } else {
       useActionIslandStore.getState().dismissIsland();

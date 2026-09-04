@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
-import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText } from 'lucide-react';
+import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText, Sparkles } from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
+import PathwaySimulator from './PathwaySimulator';
 
 const formatDate = (value: string) => {
   try {
@@ -22,6 +23,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
     reviews.length > 0 ? reviews[reviews.length - 1].id : null
   );
   const [elifMode, setElifMode] = useState(false);
+  const [simulatingAction, setSimulatingAction] = useState<any>(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
   const exportToPDF = async () => {
@@ -188,16 +190,47 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                </section>
                
                <section>
-                  <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Recommended Actions</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                    <h3 style={{ fontSize: 18, margin: 0 }}>Recommended Actions</h3>
+                    <span style={{ fontSize: 12, color: '#64748B' }}>Tap "Simulate & Guide" to prepare your doctor discussion</span>
+                  </div>
                   <div style={{ display: 'grid', gap: 8 }}>
-                     {(activeReview.report?.recommendedActionPlan || []).map((action: any, idx: number) => (
-                        <div key={idx} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 16px', background: '#f8fafc', borderRadius: 8 }}>
-                           <CheckCircle2 size={18} color="#64748b"/>
-                           <span style={{ fontSize: 14, color: '#334155' }}>
-                              {typeof action === 'string' ? action : action?.step || action?.title || action?.action || 'Action item'}
-                           </span>
-                        </div>
-                     ))}
+                     {(activeReview.report?.recommendedActionPlan || []).map((action: any, idx: number) => {
+                        const actionText = typeof action === 'string' ? action : action?.step || action?.title || action?.action || 'Action item';
+                        const actionObj = typeof action === 'string' ? { step: action, id: `action_${idx}` } : action;
+                        return (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 12, padding: '12px 16px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                <CheckCircle2 size={18} color="#10B981" style={{ flexShrink: 0 }} />
+                                <span style={{ fontSize: 14, color: '#334155', fontWeight: 500, lineHeight: 1.4 }}>
+                                   {actionText}
+                                </span>
+                             </div>
+                             <button
+                               type="button"
+                               className="btn btn-outline"
+                               style={{
+                                 padding: '6px 12px',
+                                 fontSize: 12,
+                                 fontWeight: 600,
+                                 display: 'inline-flex',
+                                 alignItems: 'center',
+                                 gap: 6,
+                                 borderRadius: 8,
+                                 borderColor: '#cbd5e1',
+                                 color: '#2563eb',
+                                 background: '#eff6ff',
+                                 cursor: 'pointer',
+                                 flexShrink: 0,
+                                 alignSelf: isMobile ? 'flex-end' : 'center'
+                               }}
+                               onClick={() => setSimulatingAction(actionObj)}
+                             >
+                               <Sparkles size={14} color="#3b82f6" /> Simulate & Guide
+                             </button>
+                          </div>
+                        );
+                     })}
                   </div>
                </section>
                
@@ -220,6 +253,13 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
          <div className="card" style={{ padding: 36, textAlign: 'center' }}>
            <p style={{ color: '#64748b' }}>Select a snapshot to view its report.</p>
          </div>
+      )}
+
+      {simulatingAction && (
+        <PathwaySimulator
+          actionItem={simulatingAction}
+          onClose={() => setSimulatingAction(null)}
+        />
       )}
     </div>
   );

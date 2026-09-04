@@ -7,12 +7,13 @@ import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight } from '../../services/haptics';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Legend, Cell } from 'recharts';
 import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera } from 'lucide-react';
+import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
 
 export const ProgressGallery: React.FC = () => {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos'>('trends');
+  const [activeTab, setActiveTab] = useState<'trends' | 'balance' | 'photos' | 'vault'>('trends');
 
   useEffect(() => {
     loadData();
@@ -114,26 +115,32 @@ export const ProgressGallery: React.FC = () => {
         </p>
 
         {/* Custom Tab Switcher */}
-        <div style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px' }}>
-          {['trends', 'balance', 'photos'].map((tab) => (
+        <div style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
+          {[
+            { id: 'trends', label: 'Trends' },
+            { id: 'balance', label: 'Balance' },
+            { id: 'photos', label: 'Photos' },
+            { id: 'vault', label: '3D Vault 🌌' }
+          ].map((tab) => (
             <button
-              key={tab}
-              onClick={() => { triggerHapticLight(); setActiveTab(tab as any); }}
+              key={tab.id}
+              onClick={() => { triggerHapticLight(); setActiveTab(tab.id as any); }}
               style={{
                 flex: 1,
-                padding: '8px',
+                padding: '8px 12px',
                 borderRadius: '8px',
                 border: 'none',
-                background: activeTab === tab ? '#FFFFFF' : 'transparent',
-                color: activeTab === tab ? '#0F172A' : '#64748B',
-                fontWeight: activeTab === tab ? 700 : 600,
+                background: activeTab === tab.id ? '#FFFFFF' : 'transparent',
+                color: activeTab === tab.id ? '#0F172A' : '#64748B',
+                fontWeight: activeTab === tab.id ? 700 : 600,
                 fontSize: '14px',
-                boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                boxShadow: activeTab === tab.id ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
                 transition: 'all 0.2s',
-                textTransform: 'capitalize'
+                whiteSpace: 'nowrap',
+                cursor: 'pointer'
               }}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -267,6 +274,23 @@ export const ProgressGallery: React.FC = () => {
                   <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '"Comic Sans MS", cursive, sans-serif', fontSize: '18px', fontWeight: 'bold' }}>Day 30</div>
                 </div>
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Tab 4: 3D Spatial Health Records Vault */}
+        {activeTab === 'vault' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{ background: '#FFF', padding: isMobile ? '16px' : '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
+                  Spatial Memory Vault
+                </h3>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
+                  Interactive 3D timeline of historical laboratory records, imaging, and diagnostic benchmarks.
+                </p>
+              </div>
+              <SpatialGalleryCanvas />
             </div>
           </motion.div>
         )}

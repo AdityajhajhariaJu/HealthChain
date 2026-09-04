@@ -59,6 +59,7 @@ const CasePrep = React.lazy(() => import('./features/experience/CasePrep'));
 const HealthMemory = React.lazy(() => import('./features/experience/HealthMemory'));
 const OnboardingFlow = React.lazy(() => import('./features/onboarding/OnboardingFlow'));
 const NutritionInterceptor = React.lazy(() => import('./features/dietician/NutritionInterceptor').then(m => ({ default: m.NutritionInterceptor })));
+const CaseDetail = React.lazy(() => import('./features/dashboard/CaseDetail'));
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -589,7 +590,7 @@ export default function App() {
             path="/app/cases/:id"
             element={
               <SafeRoute>
-                <CaseDashboard />
+                <CaseDetail />
               </SafeRoute>
             }
           />

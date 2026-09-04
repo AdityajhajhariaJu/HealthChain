@@ -163,6 +163,23 @@ export default function AvaHealthBuddy() {
   }, []);
   const [messages, setMessages] = useState(getSavedMessages());
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
+  const lastMeditationRef = useRef<FitnessContent | null>(null);
+
+  useEffect(() => {
+    if (activeMeditation) {
+      lastMeditationRef.current = activeMeditation;
+    }
+  }, [activeMeditation]);
+
+  useEffect(() => {
+    const handleReopen = () => {
+      if (lastMeditationRef.current) {
+        setActiveMeditation(lastMeditationRef.current);
+      }
+    };
+    window.addEventListener('hc_reopen_meditation', handleReopen);
+    return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
+  }, []);
   const [input, setInput] = useState(() => { 
     try { 
       return location.state?.initialPrompt || sessionStorage.getItem('hc_ava_draft') || ''; 
