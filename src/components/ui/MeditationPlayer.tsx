@@ -835,7 +835,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user && content) {
       try {
-        await FitnessService.completeWorkoutSession(
+        await FitnessService.completeWellnessSession(
           session.user.id, 
           content.id, 
           totalDuration, 

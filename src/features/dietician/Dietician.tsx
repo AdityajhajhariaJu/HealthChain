@@ -60,6 +60,7 @@ import {
   Layers,
   Activity,
   Brain,
+  MessageCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -82,12 +83,12 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { useToast } from '../../components/ui/ToastProvider';
 
 // --- Constants & Helpers ---
-export const GOALS = ['Lose weight', 'Maintain', 'Gain muscle'];
+export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
 export const ACTIVITY_LEVELS = [
-  { id: 'sedentary', label: 'Sedentary', desc: 'Little or no exercise' },
-  { id: 'light', label: 'Light', desc: 'Exercise 1-3 times/week' },
-  { id: 'moderate', label: 'Moderate', desc: 'Exercise 4-5 times/week' },
-  { id: 'active', label: 'Very Active', desc: 'Daily exercise or physical job' },
+  { id: 'sedentary', label: 'Sedentary', desc: 'Minimal ambulation' },
+  { id: 'light', label: 'Light', desc: 'Active movement 1-3 days/week' },
+  { id: 'moderate', label: 'Moderate', desc: 'Active physical movement 4-5 days/week' },
+  { id: 'active', label: 'Very Active', desc: 'Daily functional physical activity or active work' },
 ];
 export const RESTRICTIONS = ['Vegetarian', 'Vegan', 'Gluten-free', 'Lactose-free', 'None'];
 export const MEDICAL_CONDITIONS = ['Diabetes', 'PCOS', 'Hypertension', 'Thyroid', 'None'];
@@ -181,10 +182,10 @@ function calculateTargets(p: any) {
     const safeDailyChange = Math.min(dailyChange, 1000);
 
     if (p?.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
-    if (p?.goal === 'Gain muscle') targetCalories = Math.round(tdee + safeDailyChange);
+    if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation') targetCalories = Math.round(tdee + safeDailyChange);
   } else {
     if (p?.goal === 'Lose weight') targetCalories -= 500;
-    if (p?.goal === 'Gain muscle') targetCalories += 500;
+    if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation') targetCalories += 500;
   }
 
   // Safe floor
@@ -463,7 +464,7 @@ export default function Dietician() {
           setIsLoggingFood(false);
           setFoodInput('');
           triggerHapticSuccess();
-          awardPoints(2, '🍏 Logged Food in Clinical Dietician', 'lifestyle', `diet_log_${currentDate}`);
+          awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
         }
 
         addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')}`, {
@@ -496,7 +497,7 @@ export default function Dietician() {
     });
     setFoodLogs(updatedLogs);
     setIsLoggingFood(false);
-    awardPoints(2, '🍏 Logged Food in Clinical Dietician', 'lifestyle', `diet_log_${currentDate}`);
+    awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
   };
 
   const handleDeleteFood = (id: number) => {
@@ -543,7 +544,7 @@ export default function Dietician() {
       if (data && data.guardrails) {
         if (isMounted.current) setGuardrails(data.guardrails);
         updateProfileFeatureData('dietician', { guardrails: data.guardrails });
-        awardPoints(2, '🛡️ Shield Activated', 'lifestyle', `guardrails_${Date.now()}`);
+        awardPoints(10, 'Calibrated Clinical Nutritional Guardrails', 'lifestyle', `guardrails_${Date.now()}`);
         triggerHapticSuccess();
       } else {
         toast.error('Generation Failed', 'Could not synthesize medical guardrails. Please try again.');
@@ -579,7 +580,7 @@ export default function Dietician() {
       if (plan) {
         if (isMounted.current) {
           setMealPlan(plan);
-          awardPoints(3, '✨ Generated 7-Day Precision Meal Plan', 'lifestyle', `diet_plan_${Date.now()}`);
+          awardPoints(15, 'Generated 7-Day Precision Clinical Nutrition Plan', 'lifestyle', `diet_plan_${Date.now()}`);
           triggerHapticSuccess();
           recordTrialUsage('dietician');
         }
@@ -994,6 +995,34 @@ export default function Dietician() {
                     }}
                   >
                     <Printer size={15} /> Print Dossier
+                  </button>
+                )}
+                {mealPlan && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      navigate('/app/ava', {
+                        state: {
+                          initialPrompt: `I generated a 7-day personalized clinical nutrition plan. Can you review it with respect to my medical conditions, daily target of ${profile?.targetCalories || 2000} kcal, and dietary preferences?`
+                        }
+                      });
+                    }}
+                    style={{
+                      background: '#EEF2FF',
+                      color: '#4F46E5',
+                      border: '1px solid #C7D2FE',
+                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <MessageCircle size={15} /> Discuss with Ava
                   </button>
                 )}
                 <button

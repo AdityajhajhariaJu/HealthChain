@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient';
 
 export interface FitnessProgram {
   id: string;
@@ -197,6 +197,10 @@ export const FitnessService = {
       
     if (error) throw error;
     return data as FitnessContent[];
+  },
+
+  async completeWellnessSession(userId: string, contentId: string, durationSeconds: number, calories: number = 0) {
+    return this.completeWorkoutSession(userId, contentId, durationSeconds, calories);
   },
 
   async completeWorkoutSession(userId: string, contentId: string, durationSeconds: number, calories: number) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FlaskConical, ExternalLink, Activity, Filter, Info, ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Search, RotateCcw, X } from 'lucide-react';
+import { FlaskConical, ExternalLink, Activity, Filter, Info, ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import { fetchLiveTrials } from '../../services/clinicalTrialsService';
@@ -9,6 +10,8 @@ import { analyzeTrialRelevance, analyzeLiteratureRelevance } from '../../service
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { useToast } from '../../components/ui/ToastProvider';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 const loadingSteps = [
   "Analyzing biomarkers...",
@@ -42,6 +45,7 @@ const MatchRing = ({ score }: { score: number }) => {
 };
 
 function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profile: any, diagnoses: any[], onClick: () => void }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
   const isPaper = !!item.journal;
@@ -105,7 +109,7 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
                   <CheckCircle2 size={14} color="#10B981" /> Gender ({profile?.demographics?.gender || 'Not specified'}) matches criteria
                 </div>
-                {diagnoses.slice(0, 2).map((d, i) => (
+                {diagnoses.slice(0, 2).map((d: any, i: number) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
                     <CheckCircle2 size={14} color="#10B981" /> Condition: {d}
                   </div>
@@ -116,16 +120,35 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
         )}
       </AnimatePresence>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}>
         <button 
           onClick={() => setExpanded(!expanded)} 
           style={{ background: 'transparent', border: 'none', color: '#4F46E5', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
         >
           {expanded ? 'Show Less' : 'Match Details'} {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
-        <button className="btn btn-outline btn-sm" onClick={onClick} style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}>
-           View <ExternalLink size={12} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button 
+            type="button"
+            className="btn btn-outline btn-sm" 
+            onClick={(e) => {
+              e.stopPropagation();
+              triggerHapticLight();
+              navigate('/app/ava', {
+                state: {
+                  initialPrompt: `I am interested in this clinical research: "${item.title}". How might this relate to my case, conditions, and treatment options?`
+                }
+              });
+            }} 
+            style={{ padding: '4px 10px', fontSize: '12px', height: '28px', display: 'flex', alignItems: 'center', gap: '4px', color: '#4F46E5', borderColor: '#C7D2FE' }}
+            title="Discuss with Ava"
+          >
+            <MessageCircle size={13} /> Discuss with Ava
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={onClick} style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}>
+             View <ExternalLink size={12} />
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -133,6 +156,8 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
 
 export default function ClinicalTrialsMatcher() {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const toast = useToast();
   const activeCase = getActiveCase();
   const profile = getProfile();
   const [loading, setLoading] = useState(true);
@@ -141,6 +166,37 @@ export default function ClinicalTrialsMatcher() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [customQuery, setCustomQuery] = useState('');
   const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
+  const [savedItems, setSavedItems] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem('hc_saved_trials');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleSaveToDossier = (item: any) => {
+    if (!item) return;
+    triggerHapticSuccess();
+    const newSaved = { ...savedItems, [item.id]: true };
+    setSavedItems(newSaved);
+    try {
+      localStorage.setItem('hc_saved_trials', JSON.stringify(newSaved));
+    } catch {}
+
+    recordHealthMemory({
+      kind: 'research',
+      source: 'clinical_trials',
+      title: item.title,
+      occurredAt: new Date().toISOString(),
+      caseId: activeCase?.id,
+      payload: item,
+      dedupeKey: `saved_trial:${item.id}`
+    });
+
+    awardPoints(10, `Saved Research to Dossier: ${item.title.slice(0, 24)}...`, 'research', `trial_save_${item.id}`);
+    toast.success('Saved to Dossier (+10 pts)', 'Study added to your medical case evidence memory.');
+  };
 
   useEffect(() => {
     if (loading) {
@@ -432,7 +488,11 @@ export default function ClinicalTrialsMatcher() {
                     item={item} 
                     profile={profile} 
                     diagnoses={diagnoses} 
-                    onClick={() => setSelectedItem(item)} 
+                    onClick={() => {
+                      triggerHapticLight();
+                      awardPoints(5, `Reviewed Evidence: ${(item.title || 'Trial').slice(0, 24)}...`, 'research', `trial_view_${item.id}`);
+                      setSelectedItem(item);
+                    }} 
                   />
                 ))
               ) : (
@@ -448,7 +508,7 @@ export default function ClinicalTrialsMatcher() {
       <AnimatePresence>
         {selectedItem && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }} onClick={() => setSelectedItem(null)}>
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '600px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '640px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
               <div style={{ padding: isMobile ? '16px' : '24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
@@ -471,8 +531,39 @@ export default function ClinicalTrialsMatcher() {
                   </div>
                 </div>
               </div>
-              <div style={{ padding: '20px 24px', background: '#F8FAFC', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <div style={{ padding: '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px' }}>
                 <button className="btn btn-outline" onClick={() => setSelectedItem(null)}>Close</button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => handleSaveToDossier(selectedItem)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    color: savedItems[selectedItem.id] ? '#059669' : '#0F172A',
+                    borderColor: savedItems[selectedItem.id] ? '#A7F3D0' : '#CBD5E1',
+                    background: savedItems[selectedItem.id] ? '#ECFDF5' : 'transparent',
+                  }}
+                >
+                  {savedItems[selectedItem.id] ? <Check size={15} color="#059669" /> : <Bookmark size={15} />}
+                  {savedItems[selectedItem.id] ? 'Saved to Dossier' : 'Save to Dossier (+10 pts)'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => {
+                    triggerHapticLight();
+                    navigate('/app/ava', {
+                      state: {
+                        initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${selectedItem.title}". Could you help me understand how this evidence matches my health conditions, biomarkers, and treatment options?`
+                      }
+                    });
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#4F46E5', borderColor: '#C7D2FE' }}
+                >
+                  <MessageCircle size={15} /> Discuss with Ava
+                </button>
                 <button 
                   className="btn btn-primary" 
                   onClick={() => {

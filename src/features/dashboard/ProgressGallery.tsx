@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FitnessNav } from '../../components/ui/FitnessNav';
+import { VitalityNav } from '../../components/ui/FitnessNav';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
@@ -139,7 +139,7 @@ export const ProgressGallery: React.FC = () => {
       flexDirection: 'column',
       paddingBottom: isMobile ? 'calc(80px + env(safe-area-inset-bottom))' : '40px',
     }}>
-      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><FitnessNav /></div>
+      <div style={{ paddingTop: isMobile ? "12px" : "24px" }}><VitalityNav /></div>
 
       <div style={{ padding: isMobile ? '12px 16px 0' : '24px 32px 0' }}>
         <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', marginBottom: '8px' }}>

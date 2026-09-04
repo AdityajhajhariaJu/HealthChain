@@ -572,8 +572,6 @@ export default function App() {
         >
                     <Route path="/app" element={<Navigate to="/app/today" replace />} />
           <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
-          
-          <Route path="/app/sports" element={<Navigate to="/app/today" replace />} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
           <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
           <Route path="/app/war-room" element={<SafeRoute><WarRoom /></SafeRoute>} />

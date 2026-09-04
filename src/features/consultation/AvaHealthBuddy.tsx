@@ -183,8 +183,9 @@ const MessageRenderer = ({ content, onOpenCalm }: { content: string; onOpenCalm?
     );
   }
 
-  if (content.includes('[WIDGET:WORKOUT]')) {
-    const parts = content.split('[WIDGET:WORKOUT]');
+  if (content.includes('[WIDGET:WORKOUT]') || content.includes('[WIDGET:SOMATIC]')) {
+    const delimiter = content.includes('[WIDGET:SOMATIC]') ? '[WIDGET:SOMATIC]' : '[WIDGET:WORKOUT]';
+    const parts = content.split(delimiter);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {parts[0] && <span>{parts[0]}</span>}

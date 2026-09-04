@@ -47,10 +47,10 @@ function computeTargets(p: any) {
     const safeDailyChange = Math.min(dailyChange, 1000);
 
     if (p.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
-    if (p.goal === 'Gain muscle') targetCalories = Math.round(tdee + safeDailyChange);
+    if (p.goal === 'Gain muscle' || p.goal === 'Lean mass preservation') targetCalories = Math.round(tdee + safeDailyChange);
   } else {
     if (p.goal === 'Lose weight') targetCalories -= 500;
-    if (p.goal === 'Gain muscle') targetCalories += 500;
+    if (p.goal === 'Gain muscle' || p.goal === 'Lean mass preservation') targetCalories += 500;
   }
 
   targetCalories = Math.max(1200, Number.isNaN(targetCalories) ? 2000 : targetCalories);
@@ -687,7 +687,7 @@ export function OnboardingWizard({
                   bg: '#ECFDF5' 
                 },
                 { 
-                  id: 'Gain muscle', 
+                  id: 'Lean mass preservation', 
                   title: 'Lean Mass Preservation & Recovery', 
                   subtitle: 'Optimized amino acid distribution and micronutrient density to sustain lean muscle mass and metabolic vitality.', 
                   icon: Zap, 
@@ -695,7 +695,7 @@ export function OnboardingWizard({
                   bg: '#EFF6FF' 
                 },
               ].map((item) => {
-                const isSelected = data.goal === item.id;
+                const isSelected = data.goal === item.id || (item.id === 'Lean mass preservation' && data.goal === 'Gain muscle');
                 const IconComponent = item.icon;
                 return (
                   <motion.button

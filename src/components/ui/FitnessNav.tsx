@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { triggerHapticLight } from '../../services/haptics';
 
-export function FitnessNav() {
+export function VitalityNav() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,9 +27,9 @@ export function FitnessNav() {
       overscrollBehaviorX: 'contain'
     }}>
       <style>{`
-        .fitness-nav::-webkit-scrollbar { display: none; }
+        .vitality-nav::-webkit-scrollbar, .fitness-nav::-webkit-scrollbar { display: none; }
       `}</style>
-      <div className="fitness-nav" style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', minWidth: 'min-content', padding: '0 24px' }}>
+      <div className="vitality-nav fitness-nav" style={{ display: 'flex', flexWrap: 'nowrap', gap: '8px', minWidth: 'min-content', padding: '0 24px' }}>
         {tabs.map(tab => {
           const isActive = location.pathname === tab.path;
           return (
@@ -60,4 +60,7 @@ export function FitnessNav() {
     </div>
   );
 }
+
+export const FitnessNav = VitalityNav;
+
 

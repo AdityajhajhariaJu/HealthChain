@@ -277,6 +277,7 @@ useEffect(() => {
       });
       setSelectedSpecialists(finalSelection);
       setSpecialistTranscripts(transcripts);
+      awardPoints(10, 'Prepared Clinical Case for MDT Panel', 'consult', 'mdt_intake_' + (workingCase?.id || Date.now()));
       setDashboardTab('specialists');
       setPhase('dashboard');
     } finally {
@@ -535,6 +536,8 @@ useEffect(() => {
             parentReviewId: (intakeData as any).importedReviewId || undefined,
             basedOnReviewIds: (intakeData as any).importedReviewId ? [(intakeData as any).importedReviewId] : [],
           });
+
+          awardPoints(25, 'Completed MDT Specialist Consensus Conference', 'consult', 'mdt_conf_' + (activeCase?.id || Date.now()));
 
           if (activeCase?.id && !isImportedFollowUp) {
             try {

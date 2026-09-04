@@ -36,11 +36,10 @@ import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
-import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
-import { FitnessNav } from '../../components/ui/FitnessNav';
+import { VitalityNav } from '../../components/ui/FitnessNav';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
@@ -103,7 +102,6 @@ export default function CaseDashboard() {
     setDailyTasks(tasks);
   }, []);
 
-  const [selectedContent, setSelectedContent] = useState<FitnessContent | null>(null);
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
   const lastMeditationRef = useRef<FitnessContent | null>(null);
 
@@ -135,11 +133,6 @@ export default function CaseDashboard() {
     return 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=800&q=80';
   };
 
-  const handleStartContent = (content: FitnessContent) => {
-    setSelectedContent(null);
-    setActiveMeditation(content);
-  };
-
   return (
     <div style={{
       width: '100%',
@@ -152,7 +145,7 @@ export default function CaseDashboard() {
       overflowX: 'clip'
     }}>
       <FatigueModeToggle />
-      <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><FitnessNav /></div>
+      <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><VitalityNav /></div>
         
         <div style={{ padding: '0 24px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
@@ -678,11 +671,6 @@ export default function CaseDashboard() {
       <ClinicalArticleSection />
 
       <ClinicalFrictionModal isOpen={showFrictionModal} onComplete={() => setShowFrictionModal(false)} />
-      <ContentDetailPage 
-        content={selectedContent}
-        onClose={() => setSelectedContent(null)}
-        onStart={handleStartContent}
-      />
 
       {activeMeditation && (
         <MeditationPlayer 
