@@ -196,11 +196,11 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
     <div
       style={{
         borderRadius: isMobile ? '20px' : '24px',
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+        background: '#FFFFFF',
         border: '1px solid #E2E8F0',
-        boxShadow: '0 8px 30px -4px rgba(15, 23, 42, 0.05)',
-        padding: isMobile ? '16px 16px 18px' : '24px 28px',
-        marginBottom: isMobile ? '20px' : '28px',
+        boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.05)',
+        padding: isMobile ? '16px' : '20px 24px',
+        marginBottom: isMobile ? '16px' : '24px',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -212,63 +212,62 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
           flexDirection: isMobile ? 'column' : 'row',
           justifyContent: 'space-between',
           alignItems: isMobile ? 'flex-start' : 'center',
-          marginBottom: isMobile ? '14px' : '18px',
-          gap: isMobile ? '10px' : '12px',
+          marginBottom: isMobile ? '12px' : '16px',
+          gap: isMobile ? '8px' : '12px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: isMobile ? '34px' : '38px',
-              height: isMobile ? '34px' : '38px',
-              borderRadius: isMobile ? '10px' : '12px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '10px',
               background: '#ECFDF5',
               color: '#059669',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               border: '1px solid #A7F3D0',
-              boxShadow: '0 2px 6px rgba(5,150,105,0.1)',
               flexShrink: 0,
             }}
           >
-            <HeartPulse size={isMobile ? 18 : 20} />
+            <HeartPulse size={16} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                 Daily Check-in
               </span>
               <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#10B981' }} />
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>1-Tap Wellness Log</span>
+              <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>1-Tap Log</span>
             </div>
-            <h3 style={{ margin: '2px 0 0', fontSize: isMobile ? '16px' : '17px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.2px' }}>
+            <h3 style={{ margin: '1px 0 0', fontSize: isMobile ? '15.5px' : '17px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.2px' }}>
               {todayCheckin && !isEditing ? `Today's Log: ${todayCheckin.symptom}` : `How is your ${selectedSymptom} today?`}
             </h3>
           </div>
         </div>
 
-        {/* Streak & Milestone Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', alignSelf: isMobile ? 'flex-start' : 'center' }}>
+        {/* Streak Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: isMobile ? 'flex-start' : 'center' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '5px',
               background: streakDays > 0 ? '#FFF7ED' : '#F8FAFC',
               border: `1px solid ${streakDays > 0 ? '#FED7AA' : '#E2E8F0'}`,
-              padding: '5px 12px',
+              padding: '3px 10px',
               borderRadius: '999px',
-              fontSize: '12px',
+              fontSize: '11.5px',
               fontWeight: 700,
               color: streakDays > 0 ? '#C2410C' : '#64748B',
             }}
           >
-            <Flame size={14} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
-            <span>{streakDays} Day Streak</span>
-            {streakDays > 0 && (
-              <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#9A3412', borderLeft: '1px solid #FDBA74', paddingLeft: '5px' }}>
-                {milestone.remaining > 0 ? `${milestone.remaining}d to ${milestone.label}` : milestone.label}
+            <Flame size={13} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
+            <span>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
+            {streakDays > 0 && milestone.remaining > 0 && (
+              <span style={{ fontSize: '10px', fontWeight: 600, color: '#9A3412', borderLeft: '1px solid #FDBA74', paddingLeft: '4px' }}>
+                {milestone.remaining}d to {milestone.label}
               </span>
             )}
           </div>
@@ -566,27 +565,28 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
           >
             {/* Symptom Selector Chips */}
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
               {suggestedSymptoms.map((symptom) => {
                 const isSelected = selectedSymptom === symptom;
                 return (
                   <button
                     key={symptom}
+                    type="button"
                     onClick={() => {
                       triggerHapticLight();
                       setSelectedSymptom(symptom);
                     }}
                     style={{
-                      background: isSelected ? '#0F172A' : '#FFFFFF',
+                      background: isSelected ? '#0F172A' : '#F8FAFC',
                       color: isSelected ? '#FFFFFF' : '#475569',
                       border: isSelected ? '1px solid #0F172A' : '1px solid #E2E8F0',
-                      boxShadow: isSelected ? '0 2px 6px rgba(15, 23, 42, 0.15)' : 'none',
-                      padding: '6px 14px',
+                      boxShadow: isSelected ? '0 2px 4px rgba(15, 23, 42, 0.12)' : 'none',
+                      padding: '5px 12px',
                       borderRadius: '999px',
-                      fontSize: '12.5px',
+                      fontSize: '12px',
                       fontWeight: isSelected ? 700 : 500,
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
@@ -600,86 +600,102 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
               })}
             </div>
 
-            {/* 1-Tap Severity Grid */}
+            {/* 1-Tap Severity Grid: Minimalist, Single-Row Apple Health Segmented Control */}
             <div
+              role="group"
+              aria-label="Select symptom severity"
               style={{
                 display: 'grid',
-                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-                gap: isMobile ? '8px' : '10px',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: isMobile ? '6px' : '8px',
               }}
             >
               {SEVERITY_OPTIONS.map((option) => {
-                const Icon = option.icon;
                 return (
                   <button
                     key={option.label}
+                    type="button"
                     onClick={() => handleSelectSeverity(option)}
+                    title={`${option.label}: ${option.desc}`}
                     style={{
-                      padding: isMobile ? '10px 12px' : '10px 8px',
-                      background: option.bg,
-                      border: `1.5px solid ${option.border}`,
-                      borderRadius: '14px',
+                      padding: isMobile ? '9px 4px' : '10px 8px',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '12px',
                       display: 'flex',
-                      flexDirection: isMobile ? 'row' : 'column',
+                      flexDirection: isMobile ? 'column' : 'row',
                       alignItems: 'center',
-                      justifyContent: isMobile ? 'flex-start' : 'center',
-                      gap: isMobile ? '8px' : '3px',
+                      justifyContent: 'center',
+                      gap: isMobile ? '4px' : '6px',
                       cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                      textAlign: isMobile ? 'left' : 'center',
+                      transition: 'all 0.15s ease',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.06)';
-                      e.currentTarget.style.background = option.activeBg;
+                      e.currentTarget.style.borderColor = option.border;
+                      e.currentTarget.style.background = option.bg;
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E2E8F0';
+                      e.currentTarget.style.background = '#FFFFFF';
                       e.currentTarget.style.transform = 'none';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
-                      e.currentTarget.style.background = option.bg;
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        width: isMobile ? '28px' : '26px',
-                        height: isMobile ? '28px' : '26px',
+                        width: '8px',
+                        height: '8px',
                         borderRadius: '50%',
-                        background: option.iconBg,
-                        color: option.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        background: option.color,
                         flexShrink: 0,
                       }}
+                    />
+                    <span
+                      style={{
+                        fontSize: isMobile ? '12px' : '13px',
+                        fontWeight: 600,
+                        color: '#1E293B',
+                        lineHeight: 1,
+                        whiteSpace: 'nowrap',
+                      }}
                     >
-                      <Icon size={15} strokeWidth={2.5} />
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 800, color: option.color, lineHeight: 1.2 }}>
-                        {option.label}
-                      </div>
-                      <div style={{ fontSize: '10.5px', color: '#64748B', lineHeight: 1.15, marginTop: '1px' }}>
-                        {option.desc}
-                      </div>
-                    </div>
+                      {option.label}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
             {/* Optional Trigger Note */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '-2px' }}>
               <button
+                type="button"
                 onClick={() => setShowNoteInput(prev => !prev)}
-                style={{ background: 'none', border: 'none', color: '#64748B', fontSize: '12px', cursor: 'pointer', padding: 0, fontWeight: 500, textDecoration: 'underline' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748B',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  padding: '2px 0',
+                  fontWeight: 500,
+                }}
               >
-                {showNoteInput ? 'Hide note' : '+ Add optional trigger / context'}
+                {showNoteInput ? 'Hide note' : '+ Add note (optional)'}
               </button>
               {isEditing && todayCheckin && (
                 <button
+                  type="button"
                   onClick={() => setIsEditing(false)}
-                  style={{ background: 'none', border: 'none', color: '#64748B', fontSize: '12px', cursor: 'pointer', padding: 0 }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94A3B8',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    padding: '2px 0',
+                  }}
                 >
                   Cancel
                 </button>
@@ -693,13 +709,15 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 style={{
-                  padding: '10px 14px',
+                  padding: '8px 12px',
                   borderRadius: '10px',
                   border: '1px solid #CBD5E1',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                   width: '100%',
                   outline: 'none',
                   background: '#FFFFFF',
+                  color: '#0F172A',
+                  boxSizing: 'border-box',
                 }}
               />
             )}

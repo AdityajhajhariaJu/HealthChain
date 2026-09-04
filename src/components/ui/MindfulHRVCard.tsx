@@ -104,29 +104,27 @@ export default function MindfulHRVCard() {
 
   return (
     <div
-        className="bento-card"
       style={{
         borderRadius: isMobile ? '20px' : '24px',
-        background: 'linear-gradient(135deg, #0B132B 0%, #1C2541 60%, #0F3B36 100%)',
-        border: '1px solid rgba(52, 211, 153, 0.2)',
-        boxShadow: '0 12px 36px -8px rgba(11, 19, 43, 0.35)',
-        padding: isMobile ? '20px 16px' : '26px 28px',
-        color: '#FFFFFF',
-        
+        background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 55%, #FAF5FF 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.22)',
+        boxShadow: '0 4px 20px -2px rgba(16, 185, 129, 0.08)',
+        padding: isMobile ? '16px' : '20px 24px',
+        color: '#0F172A',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Ambient background glow ring */}
+      {/* Subtle ambient accent glow */}
       <div
         style={{
           position: 'absolute',
-          top: '-40px',
-          right: '-40px',
-          width: '200px',
-          height: '200px',
+          top: '-30px',
+          right: '-30px',
+          width: '140px',
+          height: '140px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, rgba(52, 211, 153, 0.12) 50%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, rgba(167, 139, 250, 0.08) 60%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -137,112 +135,110 @@ export default function MindfulHRVCard() {
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: isMobile ? 'stretch' : 'center',
           justifyContent: 'space-between',
-          gap: isMobile ? '20px' : '32px',
+          gap: isMobile ? '16px' : '24px',
         }}
       >
         {/* Left Side: Info & Controls */}
         <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px',  flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 800,
-                color: '#34D399',
-                background: 'rgba(52, 211, 153, 0.15)',
-                border: '1px solid rgba(52, 211, 153, 0.3)',
-                padding: '3px 10px',
+                fontWeight: 700,
+                color: '#059669',
+                background: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                padding: '2px 8px',
                 borderRadius: '999px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.8px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '4px',
               }}
             >
-              <Wind size={13} /> Vagal Nerve Optimization
+              <Wind size={12} /> 1-Min Reset
             </span>
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 800,
-                color: '#DDD6FE',
-                background: 'rgba(167, 139, 250, 0.15)',
-                border: '1px solid rgba(167, 139, 250, 0.3)',
-                padding: '3px 10px',
+                fontWeight: 700,
+                color: '#7C3AED',
+                background: '#F5F3FF',
+                border: '1px solid #DDD6FE',
+                padding: '2px 8px',
                 borderRadius: '999px',
               }}
             >
-              +3 PTS Daily Reward
+              +3 PTS
             </span>
           </div>
 
-          <h3 style={{ margin: '0 0 6px', fontSize: isMobile ? '18px' : '22px', fontWeight: 800, letterSpacing: '-0.3px', color: '#FFFFFF' }}>
+          <h3 style={{ margin: '0 0 4px', fontSize: isMobile ? '17px' : '19px', fontWeight: 800, letterSpacing: '-0.3px', color: '#0F172A' }}>
             60-Second Mindful HRV Reset
           </h3>
-          <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: '#94A3B8', lineHeight: 1.5, maxWidth: '540px' }}>
+          <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#64748B', lineHeight: 1.45, maxWidth: '460px' }}>
             {breathActive
               ? getPhaseInstruction()
               : breathCompletedToday
-              ? '✨ Today’s parasympathetic recovery session is complete (+3 PTS awarded). Practice again anytime to de-stress.'
-              : 'Follow the 4-4-4 box breathing sphere for 3 cycles (1 minute) to boost Heart Rate Variability, lower cortisol, and steady your pulse.'}
+              ? '✨ Session completed today (+3 PTS awarded). Practice again anytime.'
+              : 'Follow the 4-4-4 box breathing rhythm to calm your nervous system and steady your pulse.'}
           </p>
 
           {/* Action Row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {!breathActive ? (
               <button
                 onClick={startBreathwork}
                 style={{
-                  padding: isMobile ? '10px 18px' : '11px 22px',
+                  padding: '9px 18px',
                   borderRadius: '12px',
                   background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                   color: '#FFFFFF',
                   border: 'none',
-                  fontSize: '13.5px',
-                  fontWeight: 800,
+                  fontSize: '13px',
+                  fontWeight: 700,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 16px rgba(16, 185, 129, 0.35)',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Play size={15} fill="#FFFFFF" /> {breathCompletedToday ? 'Practice Again (60s)' : 'Begin 60s HRV Reset'}
+                <Play size={14} fill="#FFFFFF" /> {breathCompletedToday ? 'Practice Again' : 'Begin 60s Reset'}
               </button>
             ) : (
               <button
                 onClick={resetBreathwork}
                 style={{
-                  padding: isMobile ? '10px 16px' : '11px 18px',
+                  padding: '9px 16px',
                   borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  color: '#CBD5E1',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: '1px solid #E2E8F0',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
                 }}
               >
-                <RotateCcw size={14} /> Stop / Reset
+                <RotateCcw size={13} /> Stop / Reset
               </button>
             )}
 
             {breathActive && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.06)', padding: '6px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                <Activity size={14} color="#34D399" />
-                <span style={{ fontSize: '12.5px', color: '#E2E8F0', fontWeight: 700 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', padding: '6px 12px', borderRadius: '10px', border: '1px solid #A7F3D0' }}>
+                <Activity size={13} color="#059669" />
+                <span style={{ fontSize: '12px', color: '#065F46', fontWeight: 700 }}>
                   Cycle {cycleCount + 1} of 3
                 </span>
               </div>
             )}
 
             {breathCompletedToday && !breathActive && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34D399', fontSize: '13px', fontWeight: 700 }}>
-                <CheckCircle2 size={16} /> Session Completed Today
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontSize: '12.5px', fontWeight: 700 }}>
+                <CheckCircle2 size={15} /> Completed Today
               </div>
             )}
           </div>
@@ -254,14 +250,14 @@ export default function MindfulHRVCard() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            minWidth: isMobile ? '100%' : '180px',
-            padding: isMobile ? '10px 0' : '0',
+            minWidth: isMobile ? '100%' : '110px',
+            padding: isMobile ? '6px 0 0' : '0',
           }}
         >
           <div
             style={{
-              width: '140px',
-              height: '140px',
+              width: '90px',
+              height: '90px',
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
@@ -273,10 +269,10 @@ export default function MindfulHRVCard() {
               animate={{
                 scale: breathActive
                   ? breathPhase === 'Inhale' || breathPhase === 'Hold'
-                    ? [1, 1.4, 1.3]
-                    : [1.3, 0.85, 0.9]
+                    ? [1, 1.35, 1.25]
+                    : [1.25, 0.85, 0.9]
                   : [1, 1.08, 1],
-                opacity: breathActive ? [0.3, 0.7, 0.4] : 0.25,
+                opacity: breathActive ? [0.25, 0.5, 0.3] : 0.2,
               }}
               transition={{
                 duration: breathActive ? 4 : 3,
@@ -288,51 +284,51 @@ export default function MindfulHRVCard() {
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(52, 211, 153, 0.3) 0%, rgba(167, 139, 250, 0.1) 70%, transparent 100%)',
+                background: 'radial-gradient(circle, rgba(52, 211, 153, 0.35) 0%, rgba(167, 139, 250, 0.15) 70%, transparent 100%)',
               }}
             />
 
             {/* Main Interactive Core Orb Button */}
             <motion.button
               onClick={breathActive ? resetBreathwork : startBreathwork}
-              whileHover={{ scale: breathActive ? 1.05 : 1.08 }}
-              whileTap={{ scale: 0.94 }}
+              whileHover={{ scale: breathActive ? 1.05 : 1.06 }}
+              whileTap={{ scale: 0.95 }}
               animate={{
                 scale: breathActive
                   ? breathPhase === 'Inhale'
-                    ? 1.25
+                    ? 1.2
                     : breathPhase === 'Exhale'
-                    ? 0.8
+                    ? 0.85
                     : breathPhase === 'Hold'
-                    ? 1.25
-                    : 0.8
+                    ? 1.2
+                    : 0.85
                   : 1,
               }}
               transition={{ duration: breathActive ? 4 : 0.2, ease: 'easeInOut' }}
               title={breathActive ? 'Click to stop / reset' : 'Click to begin 60s HRV reset'}
               style={{
-                width: '100px',
-                height: '100px',
+                width: '74px',
+                height: '74px',
                 borderRadius: '50%',
                 background: breathActive
                   ? breathPhase === 'Inhale'
-                    ? 'radial-gradient(circle, #34D399 0%, #059669 85%)'
+                    ? 'radial-gradient(circle, #34D399 0%, #059669 90%)'
                     : breathPhase === 'Hold'
-                    ? 'radial-gradient(circle, #60A5FA 0%, #2563EB 85%)'
+                    ? 'radial-gradient(circle, #60A5FA 0%, #2563EB 90%)'
                     : breathPhase === 'Exhale'
-                    ? 'radial-gradient(circle, #C084FC 0%, #7C3AED 85%)'
-                    : 'radial-gradient(circle, #38BDF8 0%, #0284C7 85%)'
-                  : 'radial-gradient(circle, rgba(52, 211, 153, 0.5) 0%, rgba(5, 150, 105, 0.25) 85%)',
+                    ? 'radial-gradient(circle, #C084FC 0%, #7C3AED 90%)'
+                    : 'radial-gradient(circle, #38BDF8 0%, #0284C7 90%)'
+                  : 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
                 boxShadow: breathActive
-                  ? '0 0 35px rgba(52, 211, 153, 0.55)'
-                  : '0 0 22px rgba(52, 211, 153, 0.35)',
+                  ? '0 0 24px rgba(52, 211, 153, 0.45)'
+                  : '0 2px 10px rgba(5, 150, 105, 0.12)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#FFFFFF',
+                color: breathActive ? '#FFFFFF' : '#059669',
                 textAlign: 'center',
-                border: '2px solid rgba(255, 255, 255, 0.45)',
+                border: breathActive ? '2px solid rgba(255, 255, 255, 0.6)' : '1.5px solid #A7F3D0',
                 zIndex: 2,
                 cursor: 'pointer',
                 outline: 'none',
@@ -340,15 +336,15 @@ export default function MindfulHRVCard() {
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
-              <span style={{ fontSize: '11.5px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {breathActive ? breathPhase : 'Calm'}
               </span>
               {breathActive ? (
-                <span style={{ fontSize: '18px', fontWeight: 900, marginTop: '2px', lineHeight: 1 }}>
+                <span style={{ fontSize: '15px', fontWeight: 900, marginTop: '1px', lineHeight: 1 }}>
                   {secondsRemaining}s
                 </span>
               ) : (
-                <Heart size={18} style={{ marginTop: '3px' }} fill="rgba(255,255,255,0.85)" />
+                <Heart size={14} style={{ marginTop: '2px' }} fill="#059669" color="#059669" />
               )}
             </motion.button>
           </div>
