@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Apple, CheckCircle2, RefreshCw, Smartphone } from 'lucide-react';
+import { LivingHeartIcon } from './LivingHeartIcon';
 import { isHealthSupported, checkHealthPermissions, requestHealthPermissions, syncHealthData } from '../../services/HealthTrackingService';
 import { useToast } from './ToastProvider';
 import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
@@ -113,8 +114,8 @@ export function HealthDeviceIntegrations() {
               Connect
             </button>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10B981', fontSize: '14px', fontWeight: 600, padding: '4px 12px', background: '#ECFDF5', borderRadius: '99px' }}>
-              <CheckCircle2 size={16} /> Connected
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10B981', fontSize: '14px', fontWeight: 600, padding: '4px 12px', background: '#ECFDF5', borderRadius: '99px' }}>
+              <LivingHeartIcon size={16} color="#10B981" /> Connected
             </div>
           )}
         </div>

@@ -360,7 +360,7 @@ export default function JarvisInvestigator() {
               🧠 Elevate to Board
             </button>
             <button 
-              onClick={() => createdCaseId ? navigate(`/app/cases/${createdCaseId}`) : navigate('/app/cases')}
+              onClick={() => createdCaseId ? navigate(`/app/cases/${createdCaseId}`) : navigate('/app/my-cases')}
               style={{ padding: '14px 18px', background: '#0F172A', color: '#FFF', border: 'none', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
               📋 Open Case File <ArrowRight size={16} />

@@ -12,6 +12,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
+import InvestigationBoard from '../../components/ui/InvestigationBoard';
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
@@ -33,6 +34,33 @@ export default function CaseDetail() {
   const [activeTab, setActiveTab] = useState<'reviews' | 'map' | 'records'>('reviews');
   const [caseItem, setCaseItem] = useState<CaseItem | undefined>(undefined);
   const [activeCaseId, setActiveCaseIdState] = useState<string | null>(null);
+
+  const caseAnalysis = React.useMemo(() => {
+    if (!caseItem) return null;
+    if (caseItem.currentSummary?.flowchart) return caseItem.currentSummary;
+    const reviewWithFlowchart = caseItem.reviews?.find(r => r.report?.flowchart);
+    if (reviewWithFlowchart) return reviewWithFlowchart.report;
+
+    const topDiagnoses = caseItem.currentSummary?.topDiagnoses || caseItem.reviews?.[0]?.report?.topDiagnoses;
+    if (topDiagnoses && topDiagnoses.length > 0) {
+      const primary = topDiagnoses[0];
+      const conditionName = typeof primary === 'string' ? primary : primary.condition || caseItem.title;
+      const specialtyName = typeof primary === 'string' ? 'Specialist Review' : primary.specialty || 'Leading Pathway';
+      const rationaleText = typeof primary === 'string' ? 'Cross-system physiological interaction' : primary.rationale || 'Interconnected symptom mechanisms';
+      return {
+        chain_name: conditionName,
+        normal_terms_explanation: caseItem.currentSummary?.executiveSummary || caseItem.reviews?.[0]?.report?.executiveSummary || 'Clinical review findings and potential pathways to evaluate with your physician.',
+        flowchart: {
+          root: conditionName,
+          root_sub: specialtyName,
+          mechanism: rationaleText,
+          mechanism_sub: 'Targeted clinical area to evaluate',
+          symptoms: (caseItem.intakeData?.symptoms || ['Reported clinical indications']).map((s: string) => ({ name: s, sub: 'Reported sign' }))
+        }
+      };
+    }
+    return null;
+  }, [caseItem]);
 
   useEffect(() => {
     if (!id) return;
@@ -335,6 +363,11 @@ export default function CaseDetail() {
       {activeTab === 'map' && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
           <DDxBoard item={caseItem} profile={profile} />
+          {caseAnalysis && (
+            <div style={{ marginTop: 24 }}>
+              <InvestigationBoard analysis={caseAnalysis} />
+            </div>
+          )}
         </motion.div>
       )}
 

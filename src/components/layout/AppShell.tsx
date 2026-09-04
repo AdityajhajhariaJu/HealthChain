@@ -305,7 +305,7 @@ const enforceSafeArea = () => {
                 <BrandPulseBanner />
               </div>
             )}
-            {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/sports', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
+            {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/sports', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
               <ActiveCaseBar navigate={navigate} />
             )}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>

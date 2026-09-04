@@ -613,6 +613,7 @@ export default function App() {
           />
           
           {/* Redirects for old routes */}
+          <Route path="/app/cases" element={<Navigate to="/app/my-cases" replace />} />
           <Route path="/app/multi" element={<Navigate to="/app/consult" replace />} />
           <Route path="/app/mdthub" element={<Navigate to="/app/collab" replace />} />
           <Route path="/app/mdt" element={<Navigate to="/app/consult" replace />} />

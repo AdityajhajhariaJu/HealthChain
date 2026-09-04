@@ -43,6 +43,7 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
+import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
@@ -423,8 +424,14 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
     }}>
       <FatigueModeToggle />
         
-                  <div style={{ padding: '0 24px 24px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 16px', color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
+        <div style={{ padding: '0 24px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+              <LivingHeartIcon size={16} color="#F43F5E" />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
+            </div>
+          </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
             
