@@ -1,13 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GitMerge, Sparkles, Clock, AlertTriangle, CheckCircle, Activity, Info, X } from 'lucide-react';
+import { GitMerge, Sparkles, Clock, AlertTriangle, CheckCircle, Activity, Info, X, MessageCircle } from 'lucide-react';
 import { simulatePathway } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 export default function PathwaySimulator({ actionItem, onClose }: { actionItem: any, onClose: () => void }) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toast = useToast();
   const [isSimulating, setIsSimulating] = useState(false);
@@ -35,6 +39,8 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
         if (result) {
           setSimulation(result);
           try { sessionStorage.setItem(cacheKey, JSON.stringify(result)); } catch(e) {}
+          awardPoints(10, `Created Discussion Guide: ${(actionItem.step || actionItem.title || 'Topic').slice(0, 24)}`, 'consult', `pathway_${actionItem.id || Date.now()}`);
+          triggerHapticSuccess();
           recordHealthMemory({ kind: 'discussion_guide', source: 'pathway_guide', title: `Discussion guide: ${actionItem.step || actionItem.title || 'Appointment topic'}`, occurredAt: new Date().toISOString(), payload: { actionItem, result }, dedupeKey: `discussion-guide:${actionItem.id || actionItem.step || 'guide'}` });
         }
       }
@@ -163,6 +169,35 @@ export default function PathwaySimulator({ actionItem, onClose }: { actionItem: 
                     
                     <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: 12, lineHeight: 1.6 }}>This guide does not estimate outcomes, success rates, recovery, or cost. Confirm decisions with a qualified clinician.</p>
                   </div>
+                </div>
+
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      onClose();
+                      const topicName = actionItem?.step || actionItem?.title || 'clinical discussion guide';
+                      const prompt = `I generated a doctor discussion guide for: "${topicName}". Recommended timing: ${simulation.timelineDescription || 'Standard appointment'}. Key cautions: ${(simulation.risks || []).slice(0, 2).map((r: any) => typeof r === 'string' ? r : r?.risk).filter(Boolean).join('; ') || 'Standard clinical review'}. Can you help me practice asking my doctor about this?`;
+                      navigate('/app/ava', { state: { initialPrompt: prompt } });
+                    }}
+                    style={{
+                      padding: '12px 20px',
+                      background: '#EEF2FF',
+                      color: '#4F46E5',
+                      border: '1px solid #C7D2FE',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 2px 6px rgba(79, 70, 229, 0.12)'
+                    }}
+                  >
+                    <MessageCircle size={16} /> Discuss Guide with Ava
+                  </button>
                 </div>
               </motion.div>
             )}

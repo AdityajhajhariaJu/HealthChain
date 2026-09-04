@@ -10,6 +10,7 @@ import {
   Activity,
   Scan,
   Search,
+  MessageCircle,
 } from 'lucide-react';
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
@@ -22,6 +23,8 @@ import { getRunScope } from '../../services/RunContext';
 import { getActiveSession } from '../../services/authSession';
 import { openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 const cachedReportAnalyzerState: Record<string, any> = {};
 const fileReportCache: Record<string, any> = {};
@@ -137,6 +140,8 @@ export default function ClinicalReportAnalyzer() {
       if (data) {
         fileReportCache[fileHash] = data; // Cache the result!
         setResult(data);
+        awardPoints(15, `Analyzed Clinical Lab Report: ${data.testName || 'Lab Data'}`, 'research', `lab_report_${Date.now()}`);
+        triggerHapticSuccess();
         addEvent('lab_report', 'report_analyzer', `Analyzed ${data.testName}`, data, true);
 
         if (data.biomarkers && Object.keys(data.biomarkers).length > 0) {
@@ -735,6 +740,35 @@ export default function ClinicalReportAnalyzer() {
                         >
                           {displayData.recommendations}
                         </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            const recText = typeof displayData.recommendations === 'string' ? displayData.recommendations : JSON.stringify(displayData.recommendations);
+                            navigate('/app/ava', {
+                              state: {
+                                initialPrompt: `My clinical report (${displayData.testName || 'Lab Report'}) recommended the following next steps: "${recText.slice(0, 300)}". Can you help me break this down into an actionable preparation checklist for my doctor?`
+                              }
+                            });
+                          }}
+                          style={{
+                            marginTop: '14px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            background: '#FFFFFF',
+                            color: '#166534',
+                            border: '1px solid #BBF7D0',
+                            borderRadius: '10px',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 6px rgba(22, 101, 52, 0.08)'
+                          }}
+                        >
+                          <MessageCircle size={14} /> Discuss Next Steps with Ava
+                        </button>
                       </div>
                     </div>
 
@@ -762,21 +796,52 @@ export default function ClinicalReportAnalyzer() {
                           <AlertCircle size={18} color="#DC2626" /> Abnormalities Noted
                         </h3>
                         {displayData.abnormalities?.length > 0 ? (
-                          <ul
-                            style={{
-                              margin: 0,
-                              paddingLeft: '20px',
-                              color: '#B91C1C',
-                              fontSize: '14px',
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            {displayData.abnormalities.map((item, i) => (
-                              <li key={i} style={{ marginBottom: '8px' }}>
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
+                          <>
+                            <ul
+                              style={{
+                                margin: 0,
+                                paddingLeft: '20px',
+                                color: '#B91C1C',
+                                fontSize: '14px',
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              {displayData.abnormalities.map((item, i) => (
+                                <li key={i} style={{ marginBottom: '8px' }}>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                triggerHapticLight();
+                                const abnList = displayData.abnormalities.slice(0, 3).join('; ');
+                                navigate('/app/ava', {
+                                  state: {
+                                    initialPrompt: `My clinical lab report flagged the following abnormalities: ${abnList}. Can you explain what physiological mechanisms might cause these variations and what follow-up questions I should ask my doctor?`
+                                  }
+                                });
+                              }}
+                              style={{
+                                marginTop: '14px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 14px',
+                                background: '#FFFFFF',
+                                color: '#DC2626',
+                                border: '1px solid #FECACA',
+                                borderRadius: '10px',
+                                fontSize: '12.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 6px rgba(220, 38, 38, 0.08)'
+                              }}
+                            >
+                              <MessageCircle size={14} /> Discuss Abnormalities with Ava
+                            </button>
+                          </>
                         ) : (
                           <p style={{ fontSize: '14px', color: '#B91C1C', margin: 0 }}>
                             All within normal limits.

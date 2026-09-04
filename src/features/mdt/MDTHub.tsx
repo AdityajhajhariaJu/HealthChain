@@ -22,8 +22,10 @@ import {
   StopCircle,
   GitMerge,
   RotateCcw,
-  ChevronLeft
+  ChevronLeft,
+  MessageCircle
 } from 'lucide-react';
+import { triggerHapticLight } from '../../services/haptics';
 import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getActiveSession } from '../../services/authSession';
@@ -477,7 +479,7 @@ useEffect(() => {
       const report = await generateMDTReport(intakeData, conferenceData, answers, activeCase?.medicalRecords || [], isImportedFollowUp ? specialistTranscripts : undefined);
                 setHistoryReport(report);
           if (activeCase?.id) {
-            navigate('/app/cases/' + activeCase.id);
+            navigate(`/app/cases/${activeCase.id}`);
           } else {
             setPhase('report');
           }
@@ -550,7 +552,7 @@ useEffect(() => {
 
                     setHistoryReport(report);
           if (activeCase?.id) {
-            navigate('/app/cases/' + activeCase.id);
+            navigate(`/app/cases/${activeCase.id}`);
           } else {
             setPhase('report');
           }
@@ -1111,8 +1113,38 @@ useEffect(() => {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>
+                  <button
+                    onClick={() => {
+                      triggerHapticLight();
+                      const prompt = `The Multi-Disciplinary Team just finalized their consensus report for my case. ${historyReport?.executiveSummary ? `Consensus Summary: "${historyReport.executiveSummary}". ` : ''}Can you help me understand what tests or questions I should prioritize with my primary doctor?`;
+                      navigate('/app/ava', { state: { initialPrompt: prompt } });
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      background: '#EEF2FF',
+                      border: '2px solid #C7D2FE',
+                      borderRadius: '16px',
+                      fontWeight: 700,
+                      color: '#4F46E5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      fontSize: '15px',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.1)'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.borderColor = '#A5B4FC'; e.currentTarget.style.background = '#E0E7FF'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.borderColor = '#C7D2FE'; e.currentTarget.style.background = '#EEF2FF'; }}
+                  >
+                    <MessageCircle size={18} />
+                    Discuss Consensus with Ava
+                  </button>
+
                   <button 
-                    onClick={() => navigate(`/app/cases/${activeCase?.id}`)}
+                    onClick={() => navigate(activeCase?.id ? `/app/cases/${activeCase.id}` : '/app/my-cases')}
                     style={{
                       width: '100%',
                       padding: '16px',

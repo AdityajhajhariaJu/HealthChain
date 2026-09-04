@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, Stethoscope, Sparkles, MessageCircle, ArrowLeft, Pin } from 'lucide-react';
+import { User, Stethoscope, Sparkles, MessageCircle, ArrowLeft, Pin, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { triggerHapticLight } from '../../services/haptics';
 
@@ -77,17 +77,34 @@ export default function WarRoom() {
             </div>
           </div>
           
-          <div style={{ background: '#F1F5F9', border: '1px dashed #CBD5E1', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div 
+            onClick={() => {
+              triggerHapticLight();
+              navigate('/app/medicine-lab#clinical-report-analyzer');
+            }}
+            style={{ 
+              background: '#F1F5F9', 
+              border: '1px dashed #CBD5E1', 
+              borderRadius: '16px', 
+              padding: '16px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px',
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+          >
             <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: '#FFF', fontWeight: 700, fontSize: '12px' }}>PDF</span>
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>Q3_Bloodwork_Results.pdf</div>
-              <div style={{ fontSize: '12px', color: '#64748B' }}>Processed by Ava AI</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>Processed by Ava AI · Tap to view in Analyzer</div>
             </div>
+            <FileText size={16} color="#64748B" />
           </div>
 
-          <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button 
               onClick={() => {
                 triggerHapticLight();
@@ -97,9 +114,18 @@ export default function WarRoom() {
                   } 
                 });
               }}
-              style={{ flex: 1, padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)' }}
+              style={{ flex: 1, minWidth: '160px', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)' }}
             >
               <MessageCircle size={16} /> Discuss with Ava
+            </button>
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                navigate('/app/medicine-lab#clinical-report-analyzer');
+              }}
+              style={{ flex: 1, minWidth: '160px', padding: '12px', borderRadius: '14px', background: '#F8FAFC', color: '#0F172A', border: '1px solid #CBD5E1', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
+            >
+              <FileText size={16} /> Open in Analyzer
             </button>
           </div>
         </motion.div>

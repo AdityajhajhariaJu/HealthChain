@@ -1053,7 +1053,7 @@ export default function MultiSpecialist() {
               initialReport={finalReport}
               onCorrelateInMDT={() =>
                 navigate(
-                  `/app/mdthub${savedCaseId || activeCase?.id ? `?caseId=${savedCaseId || activeCase?.id}` : ''}`
+                  `/app/collab${savedCaseId || activeCase?.id ? `?caseId=${savedCaseId || activeCase?.id}` : ''}`
                 )
               }
               onRestart={restartParallelReview}

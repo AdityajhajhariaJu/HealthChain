@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Edit3, HeartPulse, Sparkles, Zap, Trophy, Award, CheckCircle2, Activity, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Flame, Edit3, HeartPulse, Sparkles, Zap, Trophy, Award, CheckCircle2, Activity, AlertCircle, AlertTriangle, MessageCircle } from 'lucide-react';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -22,6 +23,7 @@ const SEVERITY_OPTIONS = [
 
 export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySymptomCheckinWidgetProps) {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(getProfile());
   const [todayCheckin, setTodayCheckin] = useState<any>(getTodayCheckin());
   const [recentCheckins, setRecentCheckins] = useState<any[]>(getRecentCheckins(7));
@@ -335,27 +337,103 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  triggerHapticLight();
-                  setSelectedSymptom(todayCheckin.symptom);
-                  setNote(todayCheckin.note || '');
-                  setIsEditing(true);
-                }}
-                className="btn btn-outline btn-sm"
-                style={{
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  borderRadius: '10px',
-                  padding: '8px 14px',
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    triggerHapticLight();
+                    const prompt = `I just logged my daily symptom check-in: ${todayCheckin.severity} discomfort for ${todayCheckin.symptom}${todayCheckin.note ? ` (Note: "${todayCheckin.note}")` : ''}. What clinical steps or lifestyle adjustments can help manage this?`;
+                    navigate('/app/ava', { state: { initialPrompt: prompt } });
+                  }}
+                  className="btn btn-sm"
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    borderRadius: '10px',
+                    padding: '8px 14px',
+                    background: '#EEF2FF',
+                    color: '#4F46E5',
+                    border: '1px solid #C7D2FE',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <MessageCircle size={14} /> Discuss with Ava
+                </button>
+
+                <button
+                  onClick={() => {
+                    triggerHapticLight();
+                    setSelectedSymptom(todayCheckin.symptom);
+                    setNote(todayCheckin.note || '');
+                    setIsEditing(true);
+                  }}
+                  className="btn btn-outline btn-sm"
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    borderRadius: '10px',
+                    padding: '8px 14px',
+                  }}
+                >
+                  <Edit3 size={14} /> Update Rating
+                </button>
+              </div>
+            </div>
+
+            {/* Clinical Relief Triage Banner if Moderate or Severe */}
+            {(todayCheckin.severity === 'Moderate' || todayCheckin.severity === 'Severe') && (
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between', 
+                  padding: '12px 16px', 
+                  background: '#FEF2F2', 
+                  border: '1px solid #FECACA', 
+                  borderRadius: '14px', 
+                  gap: '12px', 
+                  flexWrap: 'wrap' 
                 }}
               >
-                <Edit3 size={14} /> Update Rating
-              </button>
-            </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <AlertTriangle size={16} color="#DC2626" />
+                  <span style={{ fontSize: '13px', color: '#991B1B', fontWeight: 600 }}>
+                    You reported {todayCheckin.severity.toLowerCase()} discomfort. Would you like clinical management guidance?
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    triggerHapticLight();
+                    navigate('/app/ava', {
+                      state: {
+                        initialPrompt: `I reported ${todayCheckin.severity} discomfort for ${todayCheckin.symptom}${todayCheckin.note ? ` ("${todayCheckin.note}")` : ''}. Can you guide me through clinical relief strategies, safety red flags to watch for, and what questions to prepare for my physician?`
+                      }
+                    });
+                  }}
+                  style={{
+                    background: '#DC2626',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 14px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(220, 38, 38, 0.25)'
+                  }}
+                >
+                  <MessageCircle size={13} /> Immediate Relief with Ava
+                </button>
+              </div>
+            )}
 
             {/* Optional 1-Tap Lifestyle Quick Chips */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', padding: '12px 16px', background: '#F8FAFC', borderRadius: '14px', border: '1px solid #F1F5F9' }}>

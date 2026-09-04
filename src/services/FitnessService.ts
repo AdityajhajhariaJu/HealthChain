@@ -250,16 +250,6 @@ export const FitnessService = {
       .order('taken_at', { ascending: false });
     if (error) throw error;
     return data;
-  },
-  async getSports() {
-    const { data, error } = await supabase
-      .from('fitness_sports')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
-    
-    if (error) throw error;
-    return data;
   }
 };
 

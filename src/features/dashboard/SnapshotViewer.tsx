@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
-import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText, Sparkles, MessageCircle } from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
+import { triggerHapticLight } from '../../services/haptics';
 import PathwaySimulator from './PathwaySimulator';
 
 const formatDate = (value: string) => {
@@ -16,6 +18,7 @@ const formatDate = (value: string) => {
 };
 
 export default function SnapshotViewer({ item }: { item: CaseItem }) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toast = useToast();
   const reviews = item.reviews || [];
@@ -139,7 +142,31 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                       </span>
                    </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                   <button 
+                     className="btn btn-outline"
+                     style={{
+                       display: 'inline-flex',
+                       alignItems: 'center',
+                       gap: 6,
+                       color: '#4F46E5',
+                       borderColor: '#C7D2FE',
+                       background: '#EEF2FF',
+                       fontWeight: 600
+                     }}
+                     onClick={() => {
+                       triggerHapticLight();
+                       const conditions = (activeReview.report?.topDiagnoses || [])
+                         .slice(0, 2)
+                         .map((d: any) => typeof d === 'string' ? d : d?.condition)
+                         .filter(Boolean)
+                         .join(', ');
+                       const prompt = `I am reviewing a saved clinical report (${activeReview.type === 'parallel' ? 'Quick Consult' : activeReview.type === 'jarvis' ? 'J.A.R.V.I.S.' : 'MDT Consensus'}). ${activeReview.report?.executiveSummary ? `Summary: "${activeReview.report.executiveSummary}". ` : ''}${conditions ? `Key pathways: ${conditions}. ` : ''}Can you help me prepare a list of targeted questions for my upcoming clinician visit?`;
+                       navigate('/app/ava', { state: { initialPrompt: prompt } });
+                     }}
+                   >
+                     <MessageCircle size={16} /> Discuss with Ava
+                   </button>
                    <button 
                      className={`btn ${elifMode ? 'btn-primary' : 'btn-outline'}`}
                      onClick={() => setElifMode(!elifMode)}
