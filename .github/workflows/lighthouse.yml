@@ -12,24 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: 'npm'
           
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile=false
+        run: npm ci
         
       - name: Build project
-        run: pnpm run build
+        run: npm run build
 
       - name: Run unit tests
-        run: pnpm test --run
+        run: npm test -- --run
         
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v11

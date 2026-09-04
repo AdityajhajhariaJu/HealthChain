@@ -12,6 +12,8 @@ export const SensualLineChart = memo(() => {
   const height = 140;
   const padding = 20;
 
+  // ⚡ Bolt: Cache SVG path generation to prevent recalculating on every hover/scrub re-render.
+  // 📊 Impact: Prevents O(N) path data string generation and array mapping loops per interactive frame.
   const { points, pathData, areaData } = useMemo(() => {
     const pts = data.map((val, i) => ({
       x: padding + (i * (width - padding * 2)) / (data.length - 1),
