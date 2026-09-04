@@ -127,7 +127,7 @@ export function ClinicalArticleSection() {
     }
 
     window.speechSynthesis.cancel();
-    const narrationText = `Clinical review: ${selectedArticle.title}. Written by ${selectedArticle.author}, ${selectedArticle.role}. Key Takeaways: ${selectedArticle.keyTakeaways.join('. ')}. ${selectedArticle.sections.map(s => `${s.heading}. ${s.body}`).join(' ')}`;
+    const narrationText = `Clinical guide: ${selectedArticle.title}. Key Takeaways: ${selectedArticle.keyTakeaways.join('. ')}. ${selectedArticle.sections.map(s => `${s.heading}. ${s.body}`).join(' ')}`;
     const utterance = new SpeechSynthesisUtterance(narrationText);
     utterance.rate = 0.95;
     utterance.pitch = 1.0;
@@ -164,7 +164,7 @@ export function ClinicalArticleSection() {
     triggerHapticLight();
     const shareData = {
       title: article.title,
-      text: `${article.title} — Clinical Article by ${article.author}`,
+      text: `${article.title} — HealthChain Clinical Guide`,
       url: window.location.href.split('#')[0]
     };
     if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
@@ -174,7 +174,7 @@ export function ClinicalArticleSection() {
       } catch {}
     }
     try {
-      await navigator.clipboard.writeText(`${article.title}\n${article.subtitle}\nBy ${article.author}\nAvailable on HealthChain360`);
+      await navigator.clipboard.writeText(`${article.title}\n${article.subtitle}\nHealthChain360 Clinical Intelligence`);
       toast.success('Summary Copied', 'Article details copied to clipboard.');
     } catch {
       toast.info('Article Shared', article.title);
@@ -203,7 +203,7 @@ export function ClinicalArticleSection() {
     stopNarration();
     setSelectedArticle(null);
     setShowLibraryModal(false);
-    const prompt = `I just read Dr. ${article.author}'s clinical article "${article.title}" covering ${article.subtitle}. Can you analyze how its medical takeaways apply to my biomarkers, daily habits, and active health profile?`;
+    const prompt = `I just read the clinical article "${article.title}" covering ${article.subtitle}. Can you analyze how its medical takeaways apply to my biomarkers, daily habits, and active health profile?`;
     navigate('/app/ava', { state: { initialPrompt: prompt } });
   };
 
@@ -240,7 +240,6 @@ export function ClinicalArticleSection() {
       const matchesQuery = 
         art.title.toLowerCase().includes(q) ||
         art.subtitle.toLowerCase().includes(q) ||
-        art.author.toLowerCase().includes(q) ||
         (art.tags || []).some(t => t.toLowerCase().includes(q)) ||
         art.keyTakeaways.some(k => k.toLowerCase().includes(q));
 
@@ -612,7 +611,7 @@ export function ClinicalArticleSection() {
                     </p>
                   </div>
 
-                  {/* Author Credential & Action Row */}
+                  {/* Action & Category Row */}
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -620,45 +619,42 @@ export function ClinicalArticleSection() {
                     paddingTop: '10px',
                     borderTop: '1px solid #F1F5F9'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ 
-                        width: '26px', 
-                        height: '26px', 
-                        borderRadius: '50%', 
-                        background: 'linear-gradient(135deg, #0EA5E9, #2563EB)', 
-                        color: 'white', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        fontSize: '11px', 
-                        fontWeight: 800 
-                      }}>
-                        {art.author.split(' ')[1]?.charAt(0) || 'D'}
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ 
-                        fontSize: '12px', 
-                        color: '#334155', 
-                        fontWeight: 600,
-                        maxWidth: '160px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        fontSize: '11px', 
+                        fontWeight: 700, 
+                        color: '#0284C7', 
+                        background: '#F0F9FF', 
+                        padding: '3px 8px', 
+                        borderRadius: '6px',
+                        border: '1px solid #BAE6FD',
+                        letterSpacing: '0.2px'
                       }}>
-                        {art.author}
+                        Clinical Guide
                       </span>
                     </div>
 
                     <div style={{ 
-                      width: '28px', 
-                      height: '28px', 
-                      borderRadius: '50%', 
-                      background: '#F8FAFC', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      color: '#0EA5E9'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: '#0EA5E9',
+                      fontSize: '12px',
+                      fontWeight: 700,
                     }}>
-                      <ChevronRight size={16} />
+                      <span>Read Guide</span>
+                      <div style={{ 
+                        width: '26px', 
+                        height: '26px', 
+                        borderRadius: '50%', 
+                        background: '#F0F9FF', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        color: '#0EA5E9'
+                      }}>
+                        <ChevronRight size={14} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -864,7 +860,7 @@ export function ClinicalArticleSection() {
                         </h4>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', color: '#64748B' }}>{art.author}</span>
+                        <span style={{ fontSize: '11.5px', color: '#0284C7', fontWeight: 600 }}>Clinical Guide</span>
                         {isRead && <span style={{ fontSize: '11px', fontWeight: 700, color: '#10B981' }}>✓ Read</span>}
                       </div>
                     </div>
@@ -1149,41 +1145,38 @@ export function ClinicalArticleSection() {
               </div>
             </div>
 
-            {/* Author Credential Card */}
+            {/* Clinical Evidence Credential Badge */}
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '12px', 
               padding: '12px 16px', 
               borderRadius: '16px', 
-              background: '#F8FAFC', 
-              border: '1px solid #E2E8F0', 
+              background: '#F0FDF4', 
+              border: '1px solid #BBF7D0', 
               marginBottom: '20px' 
             }}>
               <div style={{ 
-                width: '42px', 
-                height: '42px', 
-                borderRadius: '50%', 
-                background: 'linear-gradient(135deg, #0EA5E9, #2563EB)', 
-                color: 'white', 
+                width: '38px', 
+                height: '38px', 
+                borderRadius: '12px', 
+                background: '#DCFCE7', 
+                color: '#16A34A', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                fontWeight: 800, 
-                fontSize: '16px',
                 flexShrink: 0
               }}>
-                {selectedArticle.author.split(' ')[1]?.charAt(0) || 'D'}
+                <ShieldCheck size={20} color="#16A34A" />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
-                    {selectedArticle.author}
+                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                    HealthChain Clinical Intelligence
                   </span>
-                  <ShieldCheck size={16} color="#0EA5E9" />
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748B' }}>
-                  {selectedArticle.role}
+                <div style={{ fontSize: '11.5px', color: '#15803D', fontWeight: 500 }}>
+                  Peer-reviewed, evidence-based research & clinical protocols
                 </div>
               </div>
             </div>
