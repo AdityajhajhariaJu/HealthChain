@@ -7,6 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { getTodayCheckin, recordDailyCheckin } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
+import DailySymptomCheckinWidget from '../../features/dashboard/DailySymptomCheckinWidget';
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -60,6 +61,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const [reminderTime, setReminderTime] = useState<string>(getDailyReminderTime());
   const [testAlertStatus, setTestAlertStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [isSavingReminder, setIsSavingReminder] = useState<boolean>(false);
+  const [showDetailedWidget, setShowDetailedWidget] = useState<boolean>(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -392,7 +394,10 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                       1-Tap Quick Fill:
                     </span>
                     <button
-                      onClick={() => handleNavigate('/app/today')}
+                      onClick={() => {
+                        triggerHapticLight();
+                        setShowDetailedWidget(!showDetailedWidget);
+                      }}
                       style={{
                         background: 'none',
                         border: 'none',
@@ -406,7 +411,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                         padding: 0,
                       }}
                     >
-                      Full Form <ArrowRight size={11} />
+                      {showDetailedWidget ? 'Simple View ▲' : 'Detailed Log ▾'}
                     </button>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
@@ -437,13 +442,28 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                       </button>
                     ))}
                   </div>
+
+                  {showDetailedWidget && (
+                    <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #FDE68A' }}>
+                      <DailySymptomCheckinWidget
+                        hideAlertsShortcut={true}
+                        onCheckinComplete={(entry) => {
+                          setTodayCheckin(entry);
+                          setShowDetailedWidget(false);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
               {!isCheckinPending && (
                 <div style={{ marginBottom: '12px' }}>
                   <button
-                    onClick={() => handleNavigate('/app/today')}
+                    onClick={() => {
+                      triggerHapticLight();
+                      setShowDetailedWidget(!showDetailedWidget);
+                    }}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -458,8 +478,18 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                       cursor: 'pointer',
                     }}
                   >
-                    Review Daily Hub <ArrowRight size={13} />
+                    {showDetailedWidget ? 'Hide 7-Day Rhythm ▲' : 'View 7-Day Rhythm & Log ▾'}
                   </button>
+                  {showDetailedWidget && (
+                    <div style={{ marginTop: '12px' }}>
+                      <DailySymptomCheckinWidget
+                        hideAlertsShortcut={true}
+                        onCheckinComplete={(entry) => {
+                          setTodayCheckin(entry);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 

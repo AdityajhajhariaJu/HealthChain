@@ -10,6 +10,7 @@ import { trackFeatureUsed } from '../../services/analytics';
 
 interface DailySymptomCheckinWidgetProps {
   onCheckinComplete?: (checkin: any) => void;
+  hideAlertsShortcut?: boolean;
 }
 
 const DEFAULT_SYMPTOMS = ['Headache', 'Dizziness', 'Fatigue', 'Neck Pain', 'Overall Energy'];
@@ -21,7 +22,7 @@ const SEVERITY_OPTIONS = [
   { label: 'Severe', score: 3, desc: 'Intense / disruptive', color: '#DC2626', bg: '#FEF2F2', border: '#FCA5A5', activeBg: '#FEE2E2' },
 ];
 
-export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySymptomCheckinWidgetProps) {
+export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlertsShortcut = false }: DailySymptomCheckinWidgetProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(getProfile());
@@ -227,32 +228,34 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
           </div>
 
           {/* Everyday Reminder Pill Button */}
-          <button
-            onClick={() => {
-              triggerHapticLight();
-              window.dispatchEvent(new CustomEvent('hc_open_notifications_panel'));
-            }}
-            title="Configure everyday daily check-in notifications"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              background: '#F0FDF4',
-              border: '1px solid #BBF7D0',
-              padding: '3px 8px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#15803D',
-              cursor: 'pointer',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <BellRing size={11} color="#16A34A" />
-            <span>Alerts</span>
-          </button>
+          {!hideAlertsShortcut && (
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                window.dispatchEvent(new CustomEvent('hc_open_notifications_panel'));
+              }}
+              title="Configure everyday daily check-in notifications"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
+                padding: '3px 8px',
+                borderRadius: '999px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#15803D',
+                cursor: 'pointer',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <BellRing size={11} color="#16A34A" />
+              <span>Alerts</span>
+            </button>
+          )}
         </div>
       </div>
 

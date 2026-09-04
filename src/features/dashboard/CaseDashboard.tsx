@@ -42,7 +42,6 @@ import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
 import { VitalityNav } from '../../components/ui/FitnessNav';
-import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 import MindfulHRVCard from '../../components/ui/MindfulHRVCard';
 import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
@@ -846,10 +845,6 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        {/* Point 1: Clinical Symptom & Energy Check-in Widget */}
-        <div style={{ padding: isMobile ? '0 12px 24px' : '0 24px 28px' }}>
-          <DailySymptomCheckinWidget />
-        </div>
 
         <div style={{ position: 'relative', margin: '0 0 16px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
