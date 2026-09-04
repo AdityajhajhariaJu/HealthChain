@@ -15,6 +15,37 @@ export interface MedicalArticle {
 
 export const CLINICAL_ARTICLES: MedicalArticle[] = [
   {
+    id: 'art-gut-microbiome-axis',
+    title: 'The Gut-Brain Axis — Short-Chain Fatty Acids, Serotonin & Microbial Diversity',
+    subtitle: 'How Akkermansia Muciniphila & Butyrate Dictate Neuroinflammation and Mood',
+    author: 'Dr. Priya Nair, MD, FACG',
+    role: 'Gastroenterologist & Microbiome Clinical Investigator',
+    readTime: '6 min read',
+    img: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80',
+    category: 'Gut Health',
+    categoryLabel: 'Gastroenterology',
+    tags: ['Akkermansia', 'Short-Chain Fatty Acids', 'Serotonin', 'Intestinal Permeability'],
+    keyTakeaways: [
+      'Over 90% of the body’s serotonin is synthesized by enterochromaffin cells in the gastrointestinal mucosa under microbial regulation.',
+      'Butyrate fuels colonocytes, upregulates tight junction claudin proteins, and prevents systemic lipopolysaccharide (LPS) endotoxemia.',
+      'Consuming 30 or more distinct plant species each week doubles microbial diversity compared to consuming fewer than 10.'
+    ],
+    sections: [
+      {
+        heading: '1. The Vagal Superhighway: Direct Gut-to-Brain Signaling',
+        body: 'The enteric nervous system communicates bidirectionally with the central nervous system through 100,000 nerve fibers of the vagus nerve. Bacterial metabolites, including short-chain fatty acids (acetate, propionate, and butyrate), interact with mucosal receptors to modulate neurochemical production, influencing emotional valence, stress tolerance, and cognitive clarity.'
+      },
+      {
+        heading: '2. The Epithelial Mucosal Shield & Akkermansia',
+        body: 'A single layer of intestinal epithelial cells separates trillions of gut microbes from systemic circulation. Keystones species like Akkermansia muciniphila graze on the outer mucus layer, stimulating goblet cells to continuously replenish fresh mucin. When microbial starvation occurs due to ultra-processed low-fiber diets, bacteria consume the protective mucus lining, precipitating systemic micro-inflammation.'
+      },
+      {
+        heading: '3. Clinical Dietary Diversity Protocol',
+        body: 'Maximize microbiome resilience not through excessive probiotic pills, but through fermentable dietary prebiotics: inulin (garlic, leeks, onions), resistant starch (cooled legumes, cooked and cooled potatoes), and polyphenols (berries, green tea, cocoa). Target 30 unique botanical plants weekly across vegetables, herbs, seeds, and whole legumes.'
+      }
+    ]
+  },
+  {
     id: 'art-overthinking',
     title: 'Overcome Overthinking — 10 Evidence-Based Strategies',
     subtitle: 'Clinical Cognitive Restructuring & Somatic Vagal Regulation',
@@ -104,37 +135,6 @@ export const CLINICAL_ARTICLES: MedicalArticle[] = [
       {
         heading: '3. Thermal & Photobiological Sleep Priming',
         body: 'To trigger endogenous melatonin synthesis and vasodilation, ambient room temperatures should be kept between 18°C and 20°C (65–68°F). Taking a warm bath or shower 90 minutes before bedtime draws blood to the skin’s surface; when you exit, rapid peripheral heat dissipation accelerates the core temperature plunge needed for deep slow-wave entry.'
-      }
-    ]
-  },
-  {
-    id: 'art-gut-microbiome-axis',
-    title: 'The Gut-Brain Axis — Short-Chain Fatty Acids, Serotonin & Microbial Diversity',
-    subtitle: 'How Akkermansia Muciniphila & Butyrate Dictate Neuroinflammation and Mood',
-    author: 'Dr. Priya Nair, MD, FACG',
-    role: 'Gastroenterologist & Microbiome Clinical Investigator',
-    readTime: '6 min read',
-    img: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&q=80',
-    category: 'Gut Health',
-    categoryLabel: 'Gastroenterology',
-    tags: ['Akkermansia', 'Short-Chain Fatty Acids', 'Serotonin', 'Intestinal Permeability'],
-    keyTakeaways: [
-      'Over 90% of the body’s serotonin is synthesized by enterochromaffin cells in the gastrointestinal mucosa under microbial regulation.',
-      'Butyrate fuels colonocytes, upregulates tight junction claudin proteins, and prevents systemic lipopolysaccharide (LPS) endotoxemia.',
-      'Consuming 30 or more distinct plant species each week doubles microbial diversity compared to consuming fewer than 10.'
-    ],
-    sections: [
-      {
-        heading: '1. The Vagal Superhighway: Direct Gut-to-Brain Signaling',
-        body: 'The enteric nervous system communicates bidirectionally with the central nervous system through 100,000 nerve fibers of the vagus nerve. Bacterial metabolites, including short-chain fatty acids (acetate, propionate, and butyrate), interact with mucosal receptors to modulate neurochemical production, influencing emotional valence, stress tolerance, and cognitive clarity.'
-      },
-      {
-        heading: '2. The Epithelial Mucosal Shield & Akkermansia',
-        body: 'A single layer of intestinal epithelial cells separates trillions of gut microbes from systemic circulation. Keystones species like Akkermansia muciniphila graze on the outer mucus layer, stimulating goblet cells to continuously replenish fresh mucin. When microbial starvation occurs due to ultra-processed low-fiber diets, bacteria consume the protective mucus lining, precipitating systemic micro-inflammation.'
-      },
-      {
-        heading: '3. Clinical Dietary Diversity Protocol',
-        body: 'Maximize microbiome resilience not through excessive probiotic pills, but through fermentable dietary prebiotics: inulin (garlic, leeks, onions), resistant starch (cooled legumes, cooked and cooled potatoes), and polyphenols (berries, green tea, cocoa). Target 30 unique botanical plants weekly across vegetables, herbs, seeds, and whole legumes.'
       }
     ]
   },
