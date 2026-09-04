@@ -9,9 +9,24 @@ interface BottomSheetOverlayProps {
   onClose: () => void;
   children: React.ReactNode;
   bgImage?: string;
+  theme?: 'dark' | 'light';
+  backgroundColor?: string;
+  noPadding?: boolean;
+  hideDefaultClose?: boolean;
+  title?: string;
 }
 
-export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: BottomSheetOverlayProps) {
+export function BottomSheetOverlay({ 
+  isOpen, 
+  onClose, 
+  children, 
+  bgImage,
+  theme = 'dark',
+  backgroundColor,
+  noPadding = false,
+  hideDefaultClose = false,
+  title = 'Bottom Sheet Menu'
+}: BottomSheetOverlayProps) {
   
   useEffect(() => {
     if (isOpen) {
@@ -45,6 +60,12 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  const isLight = theme === 'light';
+  const resolvedBg = backgroundColor || (isLight ? '#FFFFFF' : '#0F0F11');
+  const resolvedTextColor = isLight ? '#0F172A' : 'white';
+  const resolvedBorder = isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.1)';
+  const handleColor = isLight ? 'rgba(0, 0, 0, 0.18)' : 'rgba(255, 255, 255, 0.2)';
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -69,7 +90,7 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Bottom Sheet Menu"
+            aria-label={title}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -83,12 +104,12 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
               height: '92vh',
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#0F0F11',
+              backgroundColor: resolvedBg,
               borderTopLeftRadius: '32px',
               borderTopRightRadius: '32px',
               overflow: 'hidden',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+              borderTop: resolvedBorder
             }}
           >
             <div 
@@ -98,7 +119,7 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
                 top: 0,
                 left: 0,
                 right: 0,
-                height: '48px',
+                height: '40px',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -106,30 +127,33 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
                 cursor: 'pointer'
               }}
             >
-              <div style={{ width: '48px', height: '6px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '9999px', marginTop: '8px' }} />
+              <div style={{ width: '48px', height: '5px', backgroundColor: handleColor, borderRadius: '9999px', marginTop: '6px' }} />
             </div>
 
-            <button 
-              onClick={() => {
-                triggerHapticLight();
-                onClose();
-              }}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                zIndex: 20,
-                backgroundColor: 'rgba(0,0,0,0.4)',
-                backdropFilter: 'blur(12px)',
-                padding: '8px',
-                borderRadius: '9999px',
-                color: 'rgba(255,255,255,0.8)',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <X size={20} />
-            </button>
+            {!hideDefaultClose && (
+              <button 
+                onClick={() => {
+                  triggerHapticLight();
+                  onClose();
+                }}
+                aria-label="Close sheet"
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  zIndex: 20,
+                  backgroundColor: isLight ? '#F1F5F9' : 'rgba(0,0,0,0.4)',
+                  backdropFilter: 'blur(12px)',
+                  padding: '8px',
+                  borderRadius: '9999px',
+                  color: isLight ? '#475569' : 'rgba(255,255,255,0.8)',
+                  border: isLight ? '1px solid #E2E8F0' : 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={20} />
+              </button>
+            )}
 
             {bgImage && (
               <div 
@@ -146,19 +170,24 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
                 <div style={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.2), #0F0F11)'
+                  background: isLight 
+                    ? 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), #FFFFFF)'
+                    : 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.2), #0F0F11)'
                 }} />
               </div>
             )}
 
             <div style={{
               flex: 1,
-              overflowY: 'auto',
-              padding: '24px 24px 96px',
-              color: 'white',
-              position: 'relative'
+              overflowY: noPadding ? 'hidden' : 'auto',
+              padding: noPadding ? 0 : '24px 24px 96px',
+              color: resolvedTextColor,
+              position: 'relative',
+              display: noPadding ? 'flex' : 'block',
+              flexDirection: noPadding ? 'column' : 'unset',
+              minHeight: 0
             }}>
-               {!bgImage && <div style={{ marginTop: '32px' }} />}
+               {!bgImage && !noPadding && <div style={{ marginTop: '32px' }} />}
                {children}
             </div>
           </motion.div>

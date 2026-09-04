@@ -5,6 +5,7 @@ import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import PathwaySimulator from './PathwaySimulator';
 
 const formatDate = (value: string) => {
@@ -39,8 +40,11 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     };
     try {
+      triggerHapticLight();
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set(opt).from(reportRef.current).save();
+      awardPoints(10, 'Exported Clinical Report PDF 📄', 'research');
+      toast.success('Report Exported', 'Clinical snapshot PDF has been generated.');
     } catch (e) {
       console.error('Failed to load PDF library, falling back to print dialog:', e);
       toast.info('Opening Print View', 'Select "Save as PDF" in your print options.');
@@ -82,7 +86,21 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
               return (
                 <div
                   key={review.id}
-                  onClick={() => setActiveReviewId(review.id)}
+                  role="button"
+                  tabIndex={0}
+                  aria-selected={isSelected}
+                  aria-label={`Select ${label} snapshot from ${formatDate(review.createdAt)}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      triggerHapticLight();
+                      setActiveReviewId(review.id);
+                    }
+                  }}
+                  onClick={() => {
+                    triggerHapticLight();
+                    setActiveReviewId(review.id);
+                  }}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '32px 1fr',

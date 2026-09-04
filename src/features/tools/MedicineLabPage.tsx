@@ -54,6 +54,8 @@ export default function MedicineLabPage() {
         }}
       >
         <div 
+          role="tablist"
+          aria-label="Medicine and Lab Tools"
           style={{ 
             display: 'inline-flex', 
             background: 'rgba(255, 255, 255, 0.85)', 
@@ -68,6 +70,8 @@ export default function MedicineLabPage() {
         >
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'all'}
             onClick={() => { triggerHapticLight(); setActiveTab('all'); }}
             style={{
               padding: isMobile ? '8px 14px' : '10px 20px',
@@ -88,6 +92,8 @@ export default function MedicineLabPage() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'pharmacy'}
             onClick={() => { triggerHapticLight(); setActiveTab('pharmacy'); }}
             style={{
               padding: isMobile ? '8px 14px' : '10px 20px',
@@ -108,6 +114,8 @@ export default function MedicineLabPage() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'reports'}
             onClick={() => { 
               triggerHapticLight(); 
               setActiveTab('reports'); 

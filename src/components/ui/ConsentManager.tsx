@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { triggerHapticLight } from '../../services/haptics';
 
 const GA_ID = 'G-0JPQJJHTB6';
 
@@ -34,14 +35,26 @@ export default function ConsentManager() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!showCookies) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        declineOptionalCookies();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCookies]);
+
   const acceptCookies = () => {
-    try { if (window.navigator?.vibrate) window.navigator.vibrate(50); } catch(e) {}
+    triggerHapticLight();
     try { localStorage.setItem('hc_cookies_accepted', 'accepted'); } catch(e) {}
     enableAnalytics();
     setShowCookies(false);
   };
 
   const declineOptionalCookies = () => {
+    triggerHapticLight();
     try { localStorage.setItem('hc_cookies_accepted', 'declined'); } catch(e) {}
     setShowCookies(false);
   };
@@ -52,6 +65,8 @@ export default function ConsentManager() {
       <AnimatePresence>
         {showCookies && (
           <motion.div
+            role="region"
+            aria-label="Privacy and Terms Preferences"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}

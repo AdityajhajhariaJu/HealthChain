@@ -1,12 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { triggerHapticLight, triggerHapticMedium } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { Flame, Moon, ChevronRight, Sparkles, HeartPulse } from 'lucide-react';
 
 export default function OnboardingFlow() {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && step > 0) {
+        triggerHapticLight();
+        setStep(0);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [step]);
 
   const handleSelect = (route: string, title: string) => {
     triggerHapticMedium();
@@ -14,24 +26,30 @@ export default function OnboardingFlow() {
       localStorage.setItem('hc_onboarded', 'true');
       localStorage.setItem('hc_primary_focus', title);
     } catch(e) {}
+    awardPoints(20, 'Welcome to HealthChain360! 🌟', 'welcome');
     navigate(route, { replace: true });
   };
 
   return (
-    <div style={{ 
-      position: 'fixed', 
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: '100%',
-      height: '100%',
-      minHeight: '100dvh',
-      background: 'url("/ava-floral-bg.jpg") center/cover no-repeat, #FAF5F0',
-      zIndex: 9999, 
-      display: 'flex', 
-      flexDirection: 'column'
-    }}>
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-label="Welcome Onboarding Flow"
+      style={{ 
+        position: 'fixed', 
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        minHeight: '100dvh',
+        background: 'url("/ava-floral-bg.jpg") center/cover no-repeat, #FAF5F0',
+        zIndex: 9999, 
+        display: 'flex', 
+        flexDirection: 'column'
+      }}
+    >
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} />
 
       <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', padding: '32px', overflowY: 'auto' }}>

@@ -300,6 +300,8 @@ export function ClinicalArticleSection() {
       {/* Category Filter Pills Bar */}
       <div 
         className="hide-scrollbar" 
+        role="tablist"
+        aria-label="Clinical Article Categories"
         style={{ 
           display: 'flex', 
           gap: '8px', 
@@ -320,6 +322,8 @@ export function ClinicalArticleSection() {
           return (
             <button
               key={cat}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => {
                 triggerHapticLight();
                 setSelectedCategory(cat);
@@ -330,6 +334,8 @@ export function ClinicalArticleSection() {
                 fontSize: '13px',
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
+                minWidth: 'max-content',
                 cursor: 'pointer',
                 border: isActive ? '1px solid rgba(14, 165, 233, 0.4)' : '1px solid rgba(226, 232, 240, 0.8)',
                 background: isActive 
@@ -350,7 +356,8 @@ export function ClinicalArticleSection() {
                 opacity: 0.75,
                 background: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)',
                 padding: '1px 6px',
-                borderRadius: '8px'
+                borderRadius: '8px',
+                flexShrink: 0
               }}>
                 {count}
               </span>
@@ -420,13 +427,14 @@ export function ClinicalArticleSection() {
                 style={{ 
                   width: isMobile ? '280px' : '300px', 
                   minWidth: isMobile ? '280px' : '300px', 
+                  flexShrink: 0,
                   background: '#FFFFFF', 
                   borderRadius: '24px', 
                   boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0,0,0,0.03)', 
                   display: 'flex', 
                   flexDirection: 'column', 
                   overflow: 'hidden', 
-                  cursor: 'pointer',
+                  cursor: 'pointer', 
                   border: '1px solid rgba(226, 232, 240, 0.8)',
                   position: 'relative'
                 }}
@@ -629,10 +637,24 @@ export function ClinicalArticleSection() {
 
       {/* Full Clinical Library Explorer Modal */}
       {showLibraryModal && (
-        <BottomSheetOverlay isOpen={showLibraryModal} onClose={() => setShowLibraryModal(false)}>
-          <div style={{ padding: '20px 24px 60px', maxHeight: '88vh', overflowY: 'auto' }}>
+        <BottomSheetOverlay 
+          isOpen={showLibraryModal} 
+          onClose={() => setShowLibraryModal(false)}
+          theme="light"
+          backgroundColor="#FFFFFF"
+          noPadding={true}
+          hideDefaultClose={true}
+          title="Clinical Evidence Library"
+        >
+          <div style={{ 
+            padding: isMobile ? '20px 16px 80px' : '24px 28px 80px', 
+            height: '100%',
+            overflowY: 'auto',
+            background: '#FFFFFF',
+            boxSizing: 'border-box'
+          }}>
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', marginTop: '8px' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px' }}>
                   Clinical Evidence Library
@@ -700,6 +722,8 @@ export function ClinicalArticleSection() {
             {/* Modal Category Filter Chips */}
             <div 
               className="hide-scrollbar" 
+              role="tablist"
+              aria-label="Filter Library by Category"
               style={{ 
                 display: 'flex', 
                 gap: '8px', 
@@ -713,6 +737,8 @@ export function ClinicalArticleSection() {
                 return (
                   <button
                     key={cat}
+                    role="tab"
+                    aria-selected={isActive}
                     onClick={() => {
                       triggerHapticLight();
                       setLibraryCategory(cat);
@@ -723,6 +749,8 @@ export function ClinicalArticleSection() {
                       fontSize: '12px',
                       fontWeight: 600,
                       whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      minWidth: 'max-content',
                       cursor: 'pointer',
                       border: 'none',
                       background: isActive ? '#0F172A' : '#F1F5F9',
@@ -799,10 +827,18 @@ export function ClinicalArticleSection() {
 
       {/* Immersive Article Reader Sheet */}
       {selectedArticle && (
-        <BottomSheetOverlay isOpen={!!selectedArticle} onClose={() => {
-          stopNarration();
-          setSelectedArticle(null);
-        }}>
+        <BottomSheetOverlay 
+          isOpen={!!selectedArticle} 
+          onClose={() => {
+            stopNarration();
+            setSelectedArticle(null);
+          }}
+          theme="light"
+          backgroundColor="#FFFFFF"
+          noPadding={true}
+          hideDefaultClose={true}
+          title={`Clinical Article: ${selectedArticle.title}`}
+        >
           {/* Top Reading Progress Bar */}
           <div style={{
             position: 'sticky',
@@ -827,9 +863,15 @@ export function ClinicalArticleSection() {
             ref={readerContentRef}
             onScroll={handleReaderScroll}
             style={{ 
-              padding: '16px 24px 70px', 
-              maxHeight: '88vh', 
-              overflowY: 'auto' 
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              padding: isMobile ? '20px 16px 80px' : '24px 32px 80px',
+              background: '#FFFFFF',
+              boxSizing: 'border-box'
             }}
           >
             {/* Quick Action Utility Bar */}
@@ -837,6 +879,7 @@ export function ClinicalArticleSection() {
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center', 
+              marginTop: '8px',
               marginBottom: '16px',
               paddingBottom: '12px',
               borderBottom: '1px solid #F1F5F9'
@@ -1095,11 +1138,13 @@ export function ClinicalArticleSection() {
             {/* Key Clinical Takeaways Frosted Card */}
             {(selectedArticle.keyTakeaways || []).length > 0 && (
               <div style={{ 
-                background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.9) 0%, rgba(240, 253, 250, 0.9) 100%)', 
+                background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(240, 253, 250, 0.95) 100%)', 
                 borderRadius: '20px', 
                 padding: '18px', 
                 border: '1px solid #BFDBFE', 
-                marginBottom: '28px' 
+                marginBottom: '28px',
+                width: '100%',
+                boxSizing: 'border-box'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
                   <Sparkles size={16} color="#2563EB" />

@@ -16,6 +16,8 @@ import { MDTReportPanel } from './MDTComponents';
 import { SpecialistPanel } from './MultiSpecialistComponents';
 import { saveReviewSnapshot, setActiveCase } from '../../services/CaseEngine';
 import { getRunScope, clearRunStorage } from '../../services/RunContext';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 const cachedMDTSpecialistStreams: any = {};
 
@@ -39,7 +41,7 @@ export function MDTHubDashboard({
   mobileActiveTab,
   setMobileActiveTab,
   onSpecialistComplete
-}) {
+}: any) {
   const navigate = useNavigate();
     const [completedSpecialists, setCompletedSpecialists] = React.useState<Set<string>>(new Set());
 
@@ -88,11 +90,20 @@ export function MDTHubDashboard({
               transition: 'all 0.3s'
             }}
           >
-            <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '12px', WebkitOverflowScrolling: 'touch', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div 
+              role="tablist"
+              aria-label="Participating Specialists"
+              style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '12px', WebkitOverflowScrolling: 'touch', flexWrap: 'wrap', justifyContent: 'center' }}
+            >
                 {selectedSpecialists.map((s, i) => (
                   <button
                     key={s.id}
-                    onClick={() => setMobileActiveTab(i)}
+                    role="tab"
+                    aria-selected={mobileActiveTab === i}
+                    onClick={() => {
+                      triggerHapticLight();
+                      setMobileActiveTab(i);
+                    }}
                     style={{
                       padding: '8px 16px',
                       borderRadius: '99px',
@@ -101,8 +112,8 @@ export function MDTHubDashboard({
                       background: mobileActiveTab === i ? s.color : '#FFF',
                       color: mobileActiveTab === i ? '#FFF' : '#64748B',
                       fontWeight: 700,
-                        fontSize: '13px',
-                        cursor: 'pointer',
+                      fontSize: '13px',
+                      cursor: 'pointer',
                     }}
                   >
                     {s.label}
@@ -174,6 +185,8 @@ export function MDTHubDashboard({
               specialists: selectedSpecialists.map((s) => s.label),
               caseId: activeCase?.id || '',
             });
+            triggerHapticSuccess();
+            awardPoints(25, 'MDT Consensus Snapshot Saved 🌟', 'consult');
           }}
           onRestart={() => {
               // 1. Wipe the module-level stream cache to prevent infinite compiling loops

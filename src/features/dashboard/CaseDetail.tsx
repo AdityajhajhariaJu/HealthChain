@@ -10,6 +10,7 @@ import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import InvestigationBoard from '../../components/ui/InvestigationBoard';
@@ -69,12 +70,25 @@ export default function CaseDetail() {
     setActiveCaseIdState(getActiveCaseId());
   }, [id]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        triggerHapticLight();
+        navigate('/app/my-cases');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
+
   const handleMakeActive = () => {
     if (!caseItem) return;
     triggerHapticSuccess();
     setActiveCase(caseItem.id);
     setActiveCaseIdState(caseItem.id);
-    toast.success('Active Case Updated', `"${caseItem.title}" is now your active workspace.`);
+    awardPoints(5, `Active Workspace: ${caseItem.title.slice(0, 25)}`, 'lifestyle');
+    toast.success('Workspace Set to Active', `"${caseItem.title}" is now your active clinical context across HealthChain.`);
   };
 
   if (!caseItem) {
@@ -262,15 +276,21 @@ export default function CaseDetail() {
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ 
-          display: 'flex', 
-          borderBottom: '1px solid #E2E8F0', 
-          marginTop: 24, 
-          gap: isMobile ? 12 : 24,
-          overflowX: 'auto',
-          paddingBottom: 2
-        }}>
+        <div 
+          role="tablist"
+          aria-label="Clinical Case Views"
+          style={{ 
+            display: 'flex', 
+            borderBottom: '1px solid #E2E8F0', 
+            marginTop: 24, 
+            gap: isMobile ? 12 : 24,
+            overflowX: 'auto',
+            paddingBottom: 2
+          }}
+        >
           <button
+            role="tab"
+            aria-selected={activeTab === 'reviews'}
             onClick={() => { triggerHapticLight(); setActiveTab('reviews'); }}
             style={{
               background: 'none',
@@ -301,6 +321,8 @@ export default function CaseDetail() {
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'map'}
             onClick={() => { triggerHapticLight(); setActiveTab('map'); }}
             style={{
               background: 'none',
@@ -321,6 +343,8 @@ export default function CaseDetail() {
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'records'}
             onClick={() => { triggerHapticLight(); setActiveTab('records'); }}
             style={{
               background: 'none',

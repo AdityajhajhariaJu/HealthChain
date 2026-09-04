@@ -95,6 +95,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
         onClick={onClose}
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Daily Notifications and Care Reminders"
           initial={isMobile ? { y: '100%' } : { x: '100%' }}
           animate={isMobile ? { y: 0 } : { x: 0 }}
           exit={isMobile ? { y: '100%' } : { x: '100%' }}
