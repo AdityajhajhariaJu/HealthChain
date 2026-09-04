@@ -40,64 +40,7 @@ import {
 
 export type AtmosphereTheme = 'meditation' | 'sleep' | 'focus' | 'energy' | 'rain' | 'frequency' | 'forest';
 
-// Point 1: Clinical Breathwork Presets
-export type BreathModeKey = 'sleep_478' | 'box_4444' | 'hrv_coherent' | 'energize_22';
-
-export interface BreathworkPatternConfig {
-  key: BreathModeKey;
-  label: string;
-  shortName: string;
-  inhale: number;
-  hold: number;
-  exhale: number;
-  rest: number;
-  benefit: string;
-}
-
-export const CLINICAL_BREATH_PRESETS: Record<BreathModeKey, BreathworkPatternConfig> = {
-  sleep_478: {
-    key: 'sleep_478',
-    label: '4-7-8 Sleep Method',
-    shortName: '4-7-8 Sleep',
-    inhale: 4,
-    hold: 7,
-    exhale: 8,
-    rest: 0,
-    benefit: 'Vagus nerve stimulation for parasympathetic deep sleep'
-  },
-  box_4444: {
-    key: 'box_4444',
-    label: 'Box Breathing (4-4-4-4)',
-    shortName: 'Box 4-4',
-    inhale: 4,
-    hold: 4,
-    exhale: 4,
-    rest: 4,
-    benefit: 'Navy SEAL protocol to balance nervous system & focus'
-  },
-  hrv_coherent: {
-    key: 'hrv_coherent',
-    label: 'HRV Resonance (5.5s)',
-    shortName: 'HRV 5.5s',
-    inhale: 5.5,
-    hold: 0,
-    exhale: 5.5,
-    rest: 0,
-    benefit: 'Optimal cardiovascular resonance & baroreflex gain'
-  },
-  energize_22: {
-    key: 'energize_22',
-    label: 'Awaken Rhythm (2-2)',
-    shortName: 'Awaken 2-2',
-    inhale: 2,
-    hold: 0,
-    exhale: 2,
-    rest: 0,
-    benefit: 'Rapid cellular oxygenation & morning alertness'
-  }
-};
-
-// Point 2: Dual-Layer Ambient Soundscape Mixer
+// Dual-Layer Ambient Soundscape Mixer
 export type AmbientLayerKey = 'off' | 'rain' | 'forest' | 'frequency';
 
 export const AMBIENT_LAYERS: Record<AmbientLayerKey, { label: string; icon: string; url: string }> = {
@@ -109,13 +52,11 @@ export const AMBIENT_LAYERS: Record<AmbientLayerKey, { label: string; icon: stri
 
 interface LivingAtmosphereCanvasProps {
   theme: AtmosphereTheme;
-  phase: 'Prepare' | 'Inhale' | 'Hold' | 'Exhale' | 'Rest';
   isPlaying: boolean;
 }
 
 export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
   theme,
-  phase,
   isPlaying,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -238,18 +179,9 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       time += 0.016;
       ctx.clearRect(0, 0, width, height);
 
-      let breathScale = 1;
-      let breathGlow = 1;
-      if (phase === 'Inhale') {
-        breathScale = 1.15;
-        breathGlow = 1.35;
-      } else if (phase === 'Hold') {
-        breathScale = 1.18;
-        breathGlow = 1.4;
-      } else if (phase === 'Exhale') {
-        breathScale = 0.92;
-        breathGlow = 0.85;
-      }
+      const naturalWave = Math.sin(time * 0.75);
+      const ambientScale = 1 + naturalWave * 0.05;
+      const ambientGlow = 1 + naturalWave * 0.12;
 
       if (theme === 'rain') {
         for (const p of particles) {
@@ -305,8 +237,8 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
 
           const currentAlpha = (Math.sin(time * 3 + p.pulseOffset) * 0.3 + 0.7) * p.baseAlpha;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * breathScale, 0, Math.PI * 2);
-          ctx.fillStyle = `${p.color}${currentAlpha * breathGlow})`;
+          ctx.arc(p.x, p.y, p.size * ambientScale, 0, Math.PI * 2);
+          ctx.fillStyle = `${p.color}${currentAlpha * ambientGlow})`;
           ctx.shadowBlur = 12;
           ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
           ctx.fill();
@@ -376,11 +308,11 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
           if (p.y > height) p.y = 0;
 
           const currentAlpha = (Math.sin(time * 2 + p.pulseOffset) * 0.35 + 0.65) * p.baseAlpha;
-          const currentSize = p.baseSize * breathScale * (theme === 'forest' ? (Math.sin(time * 3 + p.pulseOffset) * 0.4 + 1.1) : 1);
+          const currentSize = p.baseSize * ambientScale * (theme === 'forest' ? (Math.sin(time * 3 + p.pulseOffset) * 0.4 + 1.1) : 1);
 
           ctx.beginPath();
           ctx.arc(p.x, p.y, Math.max(0.5, currentSize), 0, Math.PI * 2);
-          ctx.fillStyle = `${p.color}${currentAlpha * breathGlow})`;
+          ctx.fillStyle = `${p.color}${currentAlpha * ambientGlow})`;
           
           if (theme === 'forest' || theme === 'sleep') {
             ctx.shadowBlur = 8;
@@ -421,7 +353,7 @@ export const LivingAtmosphereCanvas: React.FC<LivingAtmosphereCanvasProps> = ({
       window.removeEventListener('resize', handleResize);
       clearInterval(shootingStarInterval);
     };
-  }, [theme, phase, isPlaying]);
+  }, [theme, isPlaying]);
 
   return (
     <canvas
@@ -448,8 +380,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [isPlaying, setIsPlaying] = useState(true);
   const toast = useToast();
   const [timeRemaining, setTimeRemaining] = useState((content?.duration_minutes || 5) * 60);
-  const [phase, setPhase] = useState<"Prepare" | "Inhale" | "Hold" | "Exhale" | "Rest">("Prepare");
-  const [phaseSecondsLeft, setPhaseSecondsLeft] = useState(3);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
@@ -457,7 +387,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [enableBreathingGuide, setEnableBreathingGuide] = useState(true);
   const [showSleepTimerSheet, setShowSleepTimerSheet] = useState(false);
   const [sleepTimerOption, setSleepTimerOption] = useState<'off' | '15' | '30' | '45' | '60' | 'end_of_track'>('off');
 
@@ -483,20 +412,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     isFocus ? 'Deep Focus' :
     isEnergy ? 'Morning Energy' :
     (content?.title || 'Full Meditation');
-
-  // Point 1: Clinical Breathwork Presets
-  const defaultBreathMode: BreathModeKey = 
-    isSleep ? 'sleep_478' :
-    isFocus ? 'box_4444' :
-    isEnergy ? 'energize_22' :
-    'hrv_coherent';
-
-  const [activeBreathMode, setActiveBreathMode] = useState<BreathModeKey>(defaultBreathMode);
-  const [showBreathSelector, setShowBreathSelector] = useState(false);
-
-  useEffect(() => {
-    setActiveBreathMode(defaultBreathMode);
-  }, [content?.id]);
 
   // Point 2: Dual-Layer Ambient Soundscape Mixer
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -607,27 +522,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     }, 80);
   };
 
-  // Point 3: Tactile Breath Haptics for Eyes-Closed Meditation
-  const previousPhase = useRef<string>(phase);
-  useEffect(() => {
-    if (!enableBreathingGuide || !isPlaying) {
-      previousPhase.current = phase;
-      return;
-    }
-
-    if (previousPhase.current !== phase && phase !== 'Prepare') {
-      previousPhase.current = phase;
-      if (phase === 'Inhale') {
-        triggerHapticLight();
-      } else if (phase === 'Hold') {
-        triggerHapticLight();
-        setTimeout(() => triggerHapticLight(), 120);
-      } else if (phase === 'Exhale') {
-        triggerHapticMedium();
-      }
-    }
-  }, [phase, enableBreathingGuide, isPlaying]);
-
   // Point 5: iOS Lock Screen & Dynamic Island MediaSession Integration
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
@@ -704,7 +598,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     }
   }, [isPlaying, activeTrackIndex, content, isMuted]);
 
-  const pattern = CLINICAL_BREATH_PRESETS[activeBreathMode];
   const totalDuration = (content?.duration_minutes || 5) * 60;
 
   useEffect(() => {
@@ -712,7 +605,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       setTimeRemaining(totalDuration);
       setIsPlaying(true);
       setIsCompleted(false);
-      setPhase("Prepare");
       setActiveTrackIndex(0);
     }
   }, [content, totalDuration]);
@@ -740,7 +632,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
     if (isPlaying) {
       hideControlsTimer.current = setTimeout(() => {
-        if (!showPlaylist && !showAmbientMixer && !showBreathSelector) setShowControls(false);
+        if (!showPlaylist && !showAmbientMixer) setShowControls(false);
       }, 4500);
     }
   };
@@ -750,7 +642,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     return () => {
       if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
     };
-  }, [isPlaying, showPlaylist, showAmbientMixer, showBreathSelector]);
+  }, [isPlaying, showPlaylist, showAmbientMixer]);
 
   // Point 4: Session Countdown Timer & 10s Exponential Volume Fade-Out
   useEffect(() => {
@@ -778,43 +670,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     }
   }, [timeRemaining, isPlaying, isCompleted]);
 
-  // Breathwork Guidance State Machine with Per-Second Countdown
-  useEffect(() => {
-    if (!isPlaying || isCompleted || !enableBreathingGuide) return;
-
-    let targetDuration = 3;
-    if (phase === 'Prepare') targetDuration = 3;
-    else if (phase === 'Inhale') targetDuration = Math.round(pattern.inhale);
-    else if (phase === 'Hold') targetDuration = Math.round(pattern.hold);
-    else if (phase === 'Exhale') targetDuration = Math.round(pattern.exhale);
-    else if (phase === 'Rest') targetDuration = Math.round(pattern.rest || 0);
-
-    setPhaseSecondsLeft(targetDuration);
-
-    const secondInterval = setInterval(() => {
-      setPhaseSecondsLeft((prev) => Math.max(1, prev - 1));
-    }, 1000);
-
-    const phaseTimer = setTimeout(() => {
-      triggerHapticLight();
-      setPhase((current) => {
-        switch (current) {
-          case 'Prepare': return 'Inhale';
-          case 'Inhale': return pattern.hold > 0 ? 'Hold' : 'Exhale';
-          case 'Hold': return 'Exhale';
-          case 'Exhale': return pattern.rest > 0 ? 'Rest' : 'Inhale';
-          case 'Rest': return 'Inhale';
-          default: return 'Inhale';
-        }
-      });
-    }, targetDuration * 1000);
-
-    return () => {
-      clearInterval(secondInterval);
-      clearTimeout(phaseTimer);
-    };
-  }, [isPlaying, phase, pattern, isCompleted, enableBreathingGuide]);
-
   // Point 3: Post-Session Mindful Summary & Streak Celebration
   const handleComplete = async () => {
     setIsCompleted(true);
@@ -832,7 +687,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     });
     setShowSummaryModal(true);
 
-    awardPoints(pointsAwarded, 'Completed Mindful Breathing Session', 'mindful');
+    awardPoints(pointsAwarded, 'Completed Mindful Meditation Session', 'mindful');
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user && content) {
@@ -913,8 +768,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
           setShowSleepTimerSheet(false);
         } else if (showPlaylist) {
           setShowPlaylist(false);
-        } else if (showBreathSelector) {
-          setShowBreathSelector(false);
         } else if (isZenMode) {
           setIsZenMode(false);
           setShowControls(true);
@@ -925,7 +778,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSummaryModal, showAmbientMixer, showSleepTimerSheet, showPlaylist, showBreathSelector, isZenMode, isPlaying, isPlaylistMode, currentTrack, content, playlistTitle]);
+  }, [showSummaryModal, showAmbientMixer, showSleepTimerSheet, showPlaylist, isZenMode, isPlaying, isPlaylistMode, currentTrack, content, playlistTitle]);
 
   // Point 5: Haptic Precision Scrubber with Floating Time Bubble
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -1154,7 +1007,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   background: 'linear-gradient(to bottom, rgba(5, 8, 17, 0.6) 0%, transparent 25%, transparent 65%, rgba(5, 8, 17, 0.95) 100%)' 
                 }} />
                 {/* 60fps Living Particle Atmosphere Engine */}
-                <LivingAtmosphereCanvas theme={atmosphereTheme} phase={phase} isPlaying={isPlaying} />
+                <LivingAtmosphereCanvas theme={atmosphereTheme} isPlaying={isPlaying} />
               </div>
 
               {/* Native Audio Element with Auto-Recovery */}
@@ -1315,199 +1168,123 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                 )}
               </AnimatePresence>
 
-              {/* Centerpiece: Sacred Breathing Mandala & Guidance */}
+              {/* Centerpiece: Living Acoustic Resonance & Organic Vibration Engine */}
               <div style={{ 
                 flex: 1, 
                 position: 'relative', 
                 display: 'flex', 
-                flexDirection: 'column',
+                flexDirection: 'column', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 zIndex: 10,
-                padding: '0 24px'
+                padding: '0 24px',
+                width: '100%'
               }}>
-                {/* Point 1: Clinical Breathwork Rhythm Mode Pill */}
-                <AnimatePresence>
-                  {showControls && (
-                    <motion.button
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerHapticLight();
-                        setShowBreathSelector(true);
-                      }}
-                      style={{
-                        marginBottom: '22px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 14px',
-                        borderRadius: '20px',
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: `1px solid ${vibrationThemeColors.ring}`,
-                        boxShadow: `0 0 16px ${vibrationThemeColors.glow}`,
-                        color: 'white',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        letterSpacing: '-0.2px'
-                      }}
-                      aria-label="Select Clinical Breathwork Rhythm"
-                    >
-                      <Sparkles size={13} color={vibrationThemeColors.ring} />
-                      <span>{CLINICAL_BREATH_PRESETS[activeBreathMode].label}</span>
-                      <Sliders size={12} style={{ opacity: 0.75, marginLeft: '2px' }} />
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-
-                {/* Center Living Acoustic Mandala & Vibration Waves Engine */}
-                <div style={{ position: 'relative', width: '260px', height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {/* Center Living Acoustic Resonance & Organic Vibration Waves Engine */}
+                <div style={{ position: 'relative', width: '280px', height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   
-                  {/* Atmospheric Glow Aura */}
+                  {/* Deep Atmospheric Glow Aura */}
                   <motion.div
                     animate={{ 
-                      scale: !isPlaying ? 1 : 
-                             phase === 'Inhale' ? 1.75 : 
-                             phase === 'Hold' ? [1.75, 1.8, 1.75] : 
-                             phase === 'Exhale' ? 1.05 : [1.1, 1.25, 1.1],
-                      opacity: isPlaying ? [0.45, 0.8, 0.45] : 0.25
+                      scale: isPlaying ? [1, 1.25, 1] : 1,
+                      opacity: isPlaying ? [0.35, 0.65, 0.35] : 0.2
                     }}
                     transition={{ 
-                      duration: phase === 'Prepare' ? 2.4 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
-                      repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0,
+                      duration: 7.2, 
+                      repeat: Infinity,
                       ease: 'easeInOut'
                     }}
                     style={{ 
                       position: 'absolute', 
-                      inset: '-25px', 
-                      borderRadius: '50%',
-                      background: `radial-gradient(circle, ${vibrationThemeColors.glow} 0%, rgba(0, 0, 0, 0) 70%)`,
-                      filter: 'blur(30px)',
+                      width: '320px',
+                      height: '320px',
+                      borderRadius: '50%', 
+                      background: `radial-gradient(circle, ${vibrationThemeColors.glow} 0%, rgba(0, 0, 0, 0) 72%)`,
+                      filter: 'blur(45px)',
                       pointerEvents: 'none'
                     }}
                   />
 
-                  {/* 4 Continuous Radiating Acoustic Vibration Waves (Never frozen, rippling outward) */}
-                  {isPlaying && [0, 1, 2, 3].map((waveIndex) => (
+                  {/* 5 Expansive, Silky Natural Acoustic Vibration Waves (Ripples smoothly across the entire screen) */}
+                  {isPlaying && [0, 1, 2, 3, 4].map((waveIndex) => (
                     <motion.div
-                      key={`acoustic-vibration-wave-${waveIndex}`}
+                      key={`natural-acoustic-vibration-wave-${waveIndex}`}
                       animate={{ 
-                        scale: [1, 1.65, 2.45],
-                        opacity: [0.75, 0.35, 0],
-                        borderWidth: ['2px', '1.5px', '1px']
+                        scale: [1, 2.2, 3.8, 5.5],
+                        opacity: [0, 0.55, 0.32, 0],
+                        borderWidth: ['1.5px', '1.2px', '1px', '0.75px']
                       }}
                       transition={{ 
-                        duration: 3.6,
+                        duration: 8.5,
                         repeat: Infinity,
-                        ease: [0.22, 1, 0.36, 1],
-                        delay: waveIndex * 0.9,
+                        ease: [0.25, 0.1, 0.25, 1],
+                        delay: waveIndex * 1.7,
                       }}
                       style={{ 
                         position: 'absolute', 
-                        width: '135px', 
-                        height: '135px', 
+                        width: '136px', 
+                        height: '136px', 
                         borderRadius: '50%', 
                         borderStyle: 'solid',
                         borderColor: vibrationThemeColors.ring,
-                        boxShadow: `0 0 24px ${vibrationThemeColors.glow}, inset 0 0 12px ${vibrationThemeColors.glow}`,
+                        boxShadow: `0 0 35px ${vibrationThemeColors.glow}, inset 0 0 15px ${vibrationThemeColors.glow}`,
+                        filter: 'blur(0.5px)',
                         pointerEvents: 'none'
                       }}
                     />
                   ))}
 
-                  {/* Outer Harmonic Resonance Shell */}
+                  {/* Outer Harmonic Sheer Ring */}
                   <motion.div
                     animate={{ 
-                      scale: !isPlaying ? 1 : 
-                             phase === 'Inhale' ? [1.1, 1.55] : 
-                             phase === 'Hold' ? [1.55, 1.59, 1.55] : 
-                             phase === 'Exhale' ? [1.55, 1.0] : [1.02, 1.1, 1.02],
-                      opacity: !isPlaying ? 0.3 :
-                               phase === 'Inhale' ? [0.4, 0.85] : 
-                               phase === 'Hold' ? [0.85, 0.95, 0.85] : 
-                               phase === 'Exhale' ? [0.85, 0.35] : [0.4, 0.75, 0.4]
+                      scale: isPlaying ? [1, 1.08, 1] : 1,
+                      opacity: isPlaying ? [0.4, 0.7, 0.4] : 0.25
                     }}
                     transition={{ 
-                      duration: phase === 'Prepare' ? 2.2 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
-                      ease: 'easeInOut',
-                      repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0
+                      duration: 6.0, 
+                      repeat: Infinity,
+                      ease: 'easeInOut'
                     }}
                     style={{ 
                       position: 'absolute', 
-                      width: '230px', 
-                      height: '230px', 
+                      width: '210px', 
+                      height: '210px', 
                       borderRadius: '50%', 
-                      border: `1.5px solid ${vibrationThemeColors.ring}`,
-                      boxShadow: `0 0 35px ${vibrationThemeColors.glow}, inset 0 0 20px rgba(255, 255, 255, 0.15)`,
+                      border: `1px solid rgba(255, 255, 255, 0.3)`,
+                      boxShadow: `0 0 28px ${vibrationThemeColors.glow}, inset 0 0 16px rgba(255, 255, 255, 0.1)`,
                       pointerEvents: 'none'
                     }}
                   />
 
-                  {/* Inner Harmonic Resonance Wave */}
-                  <motion.div
-                    animate={{ 
-                      scale: !isPlaying ? 1 : 
-                             phase === 'Inhale' ? [1.05, 1.3] : 
-                             phase === 'Hold' ? [1.3, 1.33, 1.3] : 
-                             phase === 'Exhale' ? [1.3, 0.92] : [0.96, 1.05, 0.96],
-                      opacity: !isPlaying ? 0.35 : [0.5, 0.85, 0.5]
-                    }}
-                    transition={{ 
-                      duration: phase === 'Prepare' ? 1.8 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3), 
-                      ease: 'easeInOut',
-                      repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0,
-                      delay: 0.15
-                    }}
-                    style={{ 
-                      position: 'absolute', 
-                      width: '180px', 
-                      height: '180px', 
-                      borderRadius: '50%', 
-                      border: '1.5px solid rgba(255, 255, 255, 0.5)',
-                      background: vibrationThemeColors.fill,
-                      boxShadow: `0 0 20px ${vibrationThemeColors.glow}, inset 0 0 15px rgba(255, 255, 255, 0.2)`,
-                      pointerEvents: 'none'
-                    }}
-                  />
-
-                  {/* Inner Breathing Core with Text & Reactive Pulse */}
+                  {/* Center Acoustic Sanctuary Core (Tap to Play/Pause) */}
                   <motion.div
                     animate={{
-                      scale: !isPlaying ? 1 :
-                             phase === 'Inhale' ? [1, 1.12] :
-                             phase === 'Hold' ? [1.12, 1.15, 1.12] :
-                             phase === 'Exhale' ? [1.12, 0.98] :
-                             [1, 1.04, 1],
+                      scale: isPlaying ? [1, 1.035, 1] : 1,
                       boxShadow: isPlaying
                         ? [
-                            `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 25px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.8)`,
-                            `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 45px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.9)`,
-                            `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 25px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.8)`,
+                            `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 30px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.85)`,
+                            `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 48px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.95)`,
+                            `0 12px 36px rgba(0, 0, 0, 0.4), 0 0 30px ${vibrationThemeColors.glow}, inset 0 1px 2px rgba(255, 255, 255, 0.85)`,
                           ]
                         : '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.7)'
                     }}
                     transition={{
                       scale: {
-                        duration: phase === 'Prepare' ? 2 : phase === 'Inhale' ? pattern.inhale : phase === 'Exhale' ? pattern.exhale : (pattern.hold || 3),
-                        repeat: phase === 'Prepare' || phase === 'Hold' ? Infinity : 0,
+                        duration: 5.5,
+                        repeat: Infinity,
                         ease: 'easeInOut'
                       },
                       boxShadow: {
-                        duration: 2.2,
+                        duration: 3.5,
                         repeat: Infinity,
                         ease: 'easeInOut'
                       }
                     }}
                     style={{
-                      width: '132px',
-                      height: '132px',
+                      width: '136px',
+                      height: '136px',
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.12) 100%)',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.1) 100%)',
                       backdropFilter: 'blur(32px)',
                       WebkitBackdropFilter: 'blur(32px)',
                       border: '1.5px solid rgba(255, 255, 255, 0.65)',
@@ -1521,90 +1298,46 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     }}
                     role="button"
                     tabIndex={0}
-                    aria-label={enableBreathingGuide ? "Disable breathing guide" : "Enable breathing guide"}
-                    aria-pressed={enableBreathingGuide}
+                    aria-label={isPlaying ? "Pause playback" : "Resume playback"}
                     whileTap={{ scale: 0.96 }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setEnableBreathingGuide(!enableBreathingGuide);
                       triggerHapticLight();
+                      setIsPlaying(!isPlaying);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         e.stopPropagation();
-                        setEnableBreathingGuide(!enableBreathingGuide);
                         triggerHapticLight();
+                        setIsPlaying(!isPlaying);
                       }
                     }}
                   >
+                    {isPlaying ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '28px' }}>
+                        <motion.span animate={{ height: ['8px', '24px', '10px', '22px', '8px'] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }} style={{ width: '3.5px', background: '#FFFFFF', borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
+                        <motion.span animate={{ height: ['16px', '8px', '28px', '12px', '16px'] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }} style={{ width: '3.5px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
+                        <motion.span animate={{ height: ['10px', '26px', '14px', '20px', '10px'] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }} style={{ width: '3.5px', background: '#FFFFFF', borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
+                        <motion.span animate={{ height: ['22px', '10px', '18px', '8px', '22px'] }} transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }} style={{ width: '3.5px', background: vibrationThemeColors.ring, borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
+                        <motion.span animate={{ height: ['12px', '20px', '8px', '16px', '12px'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.25 }} style={{ width: '3.5px', background: '#FFFFFF', borderRadius: '3px', boxShadow: `0 0 10px ${vibrationThemeColors.glow}` }} />
+                      </div>
+                    ) : (
+                      <Play size={28} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: '4px' }} />
+                    )}
+
                     <span style={{ 
-                      fontSize: '18px', 
+                      fontSize: '11px', 
                       fontWeight: 700, 
-                      color: '#FFFFFF',
-                      letterSpacing: '-0.3px',
+                      color: 'rgba(255, 255, 255, 0.9)',
+                      letterSpacing: '1.4px',
+                      textTransform: 'uppercase',
+                      marginTop: '8px',
                       textShadow: '0 2px 8px rgba(0,0,0,0.5)'
                     }}>
-                      {enableBreathingGuide ? phase : 'Listening'}
+                      {isPlaying ? (isFrequency ? 'Resonance' : isSleep ? 'Delta Waves' : 'Flow') : 'Paused'}
                     </span>
-                    {enableBreathingGuide && isPlaying && (
-                      <span style={{ 
-                        fontSize: '13px', 
-                        color: vibrationThemeColors.ring, 
-                        fontWeight: 600,
-                        marginTop: '2px',
-                        textShadow: `0 0 10px ${vibrationThemeColors.glow}`
-                      }}>
-                        {phaseSecondsLeft}s
-                      </span>
-                    )}
                   </motion.div>
-                </div>
-
-                {/* Rhythmic Affirmation / Breathing Instruction */}
-                <div style={{ marginTop: '36px', textAlign: 'center', maxWidth: '300px' }}>
-                  <motion.p
-                    key={phase}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{ 
-                      margin: 0, 
-                      fontSize: '15px', 
-                      fontWeight: 500, 
-                      color: 'rgba(255, 255, 255, 0.85)', 
-                      letterSpacing: '-0.2px',
-                      textShadow: '0 2px 10px rgba(0,0,0,0.6)'
-                    }}
-                  >
-                    {enableBreathingGuide ? (
-                      phase === 'Prepare' ? 'Settle in and relax your shoulders...' :
-                      phase === 'Inhale' ? 'Breathe in slowly through your nose...' :
-                      phase === 'Hold' ? 'Hold softly, suspended in stillness...' :
-                      phase === 'Exhale' ? 'Gently release all tension and breath...' :
-                      'Rest peacefully before the next rhythm...'
-                    ) : (
-                      'Immerse in ambient frequency flow...'
-                    )}
-                  </motion.p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEnableBreathingGuide(!enableBreathingGuide);
-                      triggerHapticLight();
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: '12px',
-                      marginTop: '8px',
-                      cursor: 'pointer',
-                      textDecoration: 'underline'
-                    }}
-                  >
-                    {enableBreathingGuide ? 'Switch to Soundscape Only' : 'Enable Guided Breathing'}
-                  </button>
                 </div>
               </div>
 
@@ -2253,125 +1986,6 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                               {isSelected && (
                                 <Check size={18} color={vibrationThemeColors.ring} />
                               )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-
-              {/* Point 1: Clinical Breathwork Rhythm Sheet */}
-              <AnimatePresence>
-                {showBreathSelector && (
-                  <>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowBreathSelector(false)}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(0, 0, 0, 0.65)',
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)',
-                        zIndex: 45
-                      }}
-                    />
-                    <motion.div
-                      initial={{ y: '100%' }}
-                      animate={{ y: 0 }}
-                      exit={{ y: '100%' }}
-                      transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.94) 0%, rgba(10, 15, 29, 0.98) 100%)',
-                        backdropFilter: 'blur(32px)',
-                        WebkitBackdropFilter: 'blur(32px)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                        boxShadow: '0 -20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                        borderTopLeftRadius: '28px',
-                        borderTopRightRadius: '28px',
-                        padding: '16px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)',
-                        zIndex: 50
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                        <div style={{ width: '40px', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.3)' }} />
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Sparkles size={20} color={vibrationThemeColors.ring} />
-                          <div>
-                            <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'white' }}>
-                              Clinical Breathwork Modes
-                            </h4>
-                            <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
-                              Autonomic regulation & heart rate variability
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setShowBreathSelector(false)}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '32px',
-                            height: '32px',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {(Object.keys(CLINICAL_BREATH_PRESETS) as BreathModeKey[]).map((key) => {
-                          const config = CLINICAL_BREATH_PRESETS[key];
-                          const isSelected = activeBreathMode === key;
-                          return (
-                            <button
-                              key={key}
-                              onClick={() => {
-                                triggerHapticLight();
-                                setActiveBreathMode(key);
-                                setPhase('Prepare');
-                                setShowBreathSelector(false);
-                              }}
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px',
-                                padding: '14px 18px',
-                                borderRadius: '16px',
-                                background: isSelected ? `${vibrationThemeColors.glow}` : 'rgba(255, 255, 255, 0.06)',
-                                border: isSelected ? `1.5px solid ${vibrationThemeColors.ring}` : '1px solid rgba(255, 255, 255, 0.12)',
-                                color: 'white',
-                                cursor: 'pointer',
-                                textAlign: 'left'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                <span style={{ fontSize: '15px', fontWeight: 700, color: isSelected ? vibrationThemeColors.ring : 'white' }}>
-                                  {config.label}
-                                </span>
-                                {isSelected && <Check size={18} color={vibrationThemeColors.ring} />}
-                              </div>
-                              <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
-                                {config.benefit}
-                              </span>
                             </button>
                           );
                         })}
