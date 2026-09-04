@@ -68,6 +68,9 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
     setIsPlaying(false);
     triggerHapticMedium();
     
+    // Point 3: Award Vitality Points for physical training session
+    awardPoints(15, `Completed Workout: ${workout.title || 'Session'}`, 'lifestyle');
+
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user && workout?.id) {
       try {
@@ -118,10 +121,27 @@ export const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ isOpen, onClose, w
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0F172A', color: 'white', padding: '24px', textAlign: 'center' }}>
             <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} />
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', bounce: 0.5 }}>
-              <div style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+              <div style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                 <CheckCircle size={48} color="white" />
               </div>
             </motion.div>
+
+            {/* Point 3: Vitality Points Minted Badge */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(245, 158, 11, 0.2)',
+              border: '1px solid rgba(245, 158, 11, 0.5)',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              marginBottom: '16px'
+            }}>
+              <span style={{ color: '#FCD34D', fontSize: '13px', fontWeight: 800, letterSpacing: '0.5px' }}>
+                +15 VITALITY POINTS MINTED
+              </span>
+            </div>
+
             <h2 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 16px' }}>Workout Complete!</h2>
             <p style={{ fontSize: '18px', color: '#94A3B8', marginBottom: '40px', maxWidth: '300px' }}>
               Awesome job! You've crushed the {workout.title} routine.

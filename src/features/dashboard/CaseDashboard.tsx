@@ -41,6 +41,7 @@ import { ContentDetailPage } from '../../components/ui/ContentDetailPage';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { FatigueModeToggle } from '../../components/ui/FatigueModeToggle';
+import DailySymptomCheckinWidget from './DailySymptomCheckinWidget';
 
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
@@ -675,7 +676,12 @@ const MindfulnessGridItem = ({ item, onClick, getFallbackImage }: any) => (
           {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
         </div>
 
-          <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
+        {/* Point 1: Clinical Symptom & Energy Check-in Widget */}
+        <div style={{ padding: '0 24px 28px' }}>
+          <DailySymptomCheckinWidget />
+        </div>
+
+        <div style={{ position: 'relative', margin: '0 0 40px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />

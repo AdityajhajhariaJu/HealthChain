@@ -88,8 +88,18 @@ export default function WarRoom() {
           </div>
 
           <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-            <button style={{ flex: 1, padding: '10px', borderRadius: '12px', background: '#10B981', color: '#FFF', border: 'none', fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              <MessageCircle size={16} /> Discuss
+            <button 
+              onClick={() => {
+                triggerHapticLight();
+                navigate('/app/health-buddy', { 
+                  state: { 
+                    initialPrompt: "I'd like to discuss the recent clinical note from Dr. Sarah Jenkins and my Q3 Bloodwork Results regarding my lipid panel and sodium reduction." 
+                  } 
+                });
+              }}
+              style={{ flex: 1, padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)' }}
+            >
+              <MessageCircle size={16} /> Discuss with Ava
             </button>
           </div>
         </motion.div>

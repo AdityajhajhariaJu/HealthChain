@@ -730,6 +730,10 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
 
   // Auto-hide controls when playing
   const resetControlsTimeout = () => {
+    if (isZenMode) {
+      setShowControls(false);
+      return;
+    }
     setShowControls(true);
     if (hideControlsTimer.current) clearTimeout(hideControlsTimer.current);
     if (isPlaying) {
@@ -867,6 +871,29 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  // Point 8: Eyes-Closed Zen Mode (Double-tap canvas gesture)
+  const [isZenMode, setIsZenMode] = useState(false);
+  const [zenToastVisible, setZenToastVisible] = useState(false);
+  const zenToastTimeoutRef = useRef<any>(null);
+
+  const toggleZenMode = (e?: React.MouseEvent) => {
+    e?.stopPropagation?.();
+    triggerHapticLight();
+    setIsZenMode((prev) => {
+      const next = !prev;
+      if (next) {
+        setShowControls(false);
+        setZenToastVisible(true);
+        if (zenToastTimeoutRef.current) clearTimeout(zenToastTimeoutRef.current);
+        zenToastTimeoutRef.current = setTimeout(() => setZenToastVisible(false), 3200);
+      } else {
+        setShowControls(true);
+        setZenToastVisible(false);
+      }
+      return next;
+    });
+  };
+
   // Point 5: Haptic Precision Scrubber with Floating Time Bubble
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [scrubValue, setScrubValue] = useState(0);
@@ -957,13 +984,56 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
             userSelect: 'none',
             WebkitUserSelect: 'none'
           }}
+          onDoubleClick={toggleZenMode}
           onClick={() => {
+            if (isZenMode) {
+              setZenToastVisible(true);
+              if (zenToastTimeoutRef.current) clearTimeout(zenToastTimeoutRef.current);
+              zenToastTimeoutRef.current = setTimeout(() => setZenToastVisible(false), 2600);
+              return;
+            }
             resetControlsTimeout();
             if (audioRef.current && isPlaying && audioRef.current.paused) {
               audioRef.current.play().catch(() => {});
             }
           }}
         >
+          {/* Point 8: Zen Mode Floating Feedback Pill */}
+          <AnimatePresence>
+            {zenToastVisible && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
+                style={{
+                  position: 'absolute',
+                  top: 'calc(env(safe-area-inset-top, 24px) + 24px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 100,
+                  background: 'rgba(15, 23, 42, 0.82)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  borderRadius: '24px',
+                  padding: '8px 18px',
+                  color: 'rgba(255, 255, 255, 0.95)',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  pointerEvents: 'none',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                }}
+              >
+                <Sparkles size={14} color="#38BDF8" />
+                <span>{isZenMode ? 'Zen Mode Active • Double-tap canvas to restore controls' : 'Controls Restored'}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {isCompleted ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}

@@ -21,9 +21,12 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
 
   useEffect(() => {
+    let activeStream: MediaStream | null = null;
+
     // Start camera
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       .then((s) => {
+        activeStream = s;
         setStream(s);
         if (videoRef.current) {
           videoRef.current.srcObject = s;
@@ -34,8 +37,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       });
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
+      if (activeStream) {
+        activeStream.getTracks().forEach(t => t.stop());
       }
     };
   }, []);

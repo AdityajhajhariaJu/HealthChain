@@ -29,6 +29,28 @@ const CASE_RECHECK_SUGGESTIONS = [
 
 import { getProfileEngineState, getProfileKey, getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { GlassBoxExplanation } from '../../components/ui/GlassBoxExplanation';
+import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
+import { FitnessContent } from '../../services/FitnessService';
+
+const DEFAULT_CALM_TRACK: FitnessContent = {
+  id: 'ava-calm-reset-1',
+  category_id: 'mindfulness',
+  is_active: true,
+  type: 'breathwork',
+  title: 'Autonomic 4-7-8 Calm Reset',
+  subtitle: 'Parasympathetic Vagal Tone Activation',
+  description: 'Evidence-based rhythmic breathwork specifically engineered to reduce acute adrenergic stress and settle cognitive overactivation.',
+  cover_image_url: '/images/nature_calm.webp',
+  audio_url: 'https://cdn.freesound.org/previews/518/518888_11504996-lq.mp3',
+  video_url: '',
+  duration_minutes: 5,
+  calories_estimate: 15,
+  difficulty: 'Beginner',
+  equipment: [],
+  is_premium: false,
+  is_featured: true,
+  music_genre: 'Ambient Tibetan Singing Bowl & Drone',
+};
 
 const getAvaVaultKey = () => {
   const state = getProfileEngineState();
@@ -122,6 +144,7 @@ export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const toast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const sessionId = useRef(typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => {
     const main = document.getElementById('main-content');
@@ -139,7 +162,14 @@ export default function AvaHealthBuddy() {
     };
   }, []);
   const [messages, setMessages] = useState(getSavedMessages());
-  const [input, setInput] = useState(() => { try { return sessionStorage.getItem('hc_ava_draft') || ''; } catch { return ''; } });
+  const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
+  const [input, setInput] = useState(() => { 
+    try { 
+      return location.state?.initialPrompt || sessionStorage.getItem('hc_ava_draft') || ''; 
+    } catch { 
+      return ''; 
+    } 
+  });
   useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -658,7 +688,80 @@ export default function AvaHealthBuddy() {
                         }} 
                       />
                     ) : (
-                      msg.content ? <><MessageRenderer content={msg.content} />{msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}</> : <span style={{ opacity: 0.5 }}>...</span>
+                      msg.content ? (
+                        <>
+                          <MessageRenderer content={msg.content} />
+                          {msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}
+                          {msg.role === 'model' && /(mental peace|calm space|de-stress|relax|anxiety|breathe|breathing|4-7-8|meditat|insomnia)/i.test(msg.content) && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              style={{
+                                marginTop: '14px',
+                                background: 'linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(204, 251, 241, 0.75) 100%)',
+                                border: '1px solid #99F6E4',
+                                borderRadius: '16px',
+                                padding: '14px 16px',
+                                boxShadow: '0 8px 20px rgba(13, 148, 136, 0.12)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{
+                                  width: '36px',
+                                  height: '36px',
+                                  borderRadius: '10px',
+                                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#FFF',
+                                  boxShadow: '0 4px 10px rgba(13, 148, 136, 0.3)',
+                                  flexShrink: 0
+                                }}>
+                                  <Sparkles size={18} />
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                                    Recommended Clinical Protocol
+                                  </div>
+                                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>
+                                    Autonomic 4-7-8 Calm Reset
+                                  </div>
+                                </div>
+                              </div>
+                              <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
+                                Vagal nerve stimulation to rapidly down-regulate sympathetic fight-or-flight arousal in 5 minutes.
+                              </p>
+                              <button
+                                onClick={() => {
+                                  triggerHapticLight();
+                                  setActiveMeditation(DEFAULT_CALM_TRACK);
+                                }}
+                                style={{
+                                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                                  color: '#FFF',
+                                  border: 'none',
+                                  borderRadius: '12px',
+                                  padding: '10px 16px',
+                                  fontSize: '13.5px',
+                                  fontWeight: 700,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '8px',
+                                  cursor: 'pointer',
+                                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+                                }}
+                              >
+                                <Play size={15} fill="#FFF" /> Begin Calm Session Now
+                              </button>
+                            </motion.div>
+                          )}
+                        </>
+                      ) : <span style={{ opacity: 0.5 }}>...</span>
                     )}
                   </div>
                 </motion.div>
@@ -962,6 +1065,14 @@ export default function AvaHealthBuddy() {
           </div>
           <div>AI COMPANION • FOR SEVERE CRISES, PLEASE CONTACT A PROFESSIONAL HELPLINE</div>
         </div>
+      )}
+
+      {/* Point 7: Interactive In-Chat Meditation Player Modal */}
+      {activeMeditation && (
+        <MeditationPlayer
+          content={activeMeditation}
+          onClose={() => setActiveMeditation(null)}
+        />
       )}
     </div>
   );

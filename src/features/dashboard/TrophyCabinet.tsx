@@ -1,4 +1,4 @@
-﻿import { FitnessNav } from '../../components/ui/FitnessNav';
+import { FitnessNav } from '../../components/ui/FitnessNav';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Share, X, Award, Star, Zap, Activity } from 'lucide-react';
@@ -6,6 +6,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight } from '../../services/haptics';
+import { getVitalityState } from '../../services/VitalityPointsEngine';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [
@@ -60,11 +61,12 @@ export const TrophyCabinet: React.FC = () => {
 
   const earnedCount = earnedSlugs.size;
   const totalCount = BADGE_DICTIONARY.length;
+  const vitalityState = getVitalityState();
 
   return (
     <div style={{
       width: '100%',
-      backgroundColor: '#FBF9F6', // Dark cinematic theme
+      backgroundColor: '#FBF9F6',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -88,13 +90,13 @@ export const TrophyCabinet: React.FC = () => {
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A' }}>{earnedCount}/{totalCount}</div>
             <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Unlocked</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderLeft: '1px solid rgba(0,0,0,0.05)', borderRight: '1px solid rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#8B5CF6' }}>Top 5%</div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Ranking</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderLeft: '1px solid rgba(0,0,0,0.05)', borderRight: '1px solid rgba(0,0,0,0.05)', padding: '0 4px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#8B5CF6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{vitalityState.tier}</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Tier</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#10B981' }}>{earnedCount * 150}</div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Points</div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#10B981' }}>{vitalityState.points}</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Vitality Pts</div>
           </div>
         </div>
 
