@@ -9,7 +9,7 @@ export const PredictiveTimeline = () => {
   const timelineData = [
     { time: '11:30 AM', title: 'Post-Meal Glucose Peak', type: 'past', desc: 'Spiked to 142 mg/dL after lunch.', icon: Activity, color: '#F59E0B' },
     { time: '2:15 PM', title: 'Current Baseline', type: 'now', desc: 'Glucose stabilized. Heart rate 68 bpm.', icon: Activity, color: '#10B981' },
-    { time: '5:00 PM', title: 'Optimal Workout Window', type: 'future', desc: 'Predicted peak metabolic rate. High absorption.', icon: Coffee, color: '#3B82F6' },
+    { time: '5:00 PM', title: 'Optimal Circadian Window', type: 'future', desc: 'Predicted peak cognitive & metabolic alignment. Ideal for deep focus or a brisk walk.', icon: Coffee, color: '#3B82F6' },
   ];
 
   const current = timelineData[timeIndex];

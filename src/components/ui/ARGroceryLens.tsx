@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle } from 'lucide-react';
+import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
 import { analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
@@ -9,7 +9,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const profile = getProfile();
   const [analysis, setAnalysis] = useState<any>(null);
 
@@ -19,21 +21,22 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const targetFats = Math.round((targetCalories * 0.3) / 9);
   const targetSugar = 36;
 
-
   useEffect(() => {
     let activeStream: MediaStream | null = null;
 
     // Start camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    navigator.mediaDevices?.getUserMedia?.({ video: { facingMode: 'environment' } })
       .then((s) => {
         activeStream = s;
         setStream(s);
+        setCameraError(null);
         if (videoRef.current) {
           videoRef.current.srcObject = s;
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Camera access denied or unavailable", err);
+        setCameraError("Camera is unavailable or permission was not granted. You can upload a photo of the food or nutrition facts label instead.");
       });
 
     return () => {
@@ -42,6 +45,32 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       }
     };
   }, []);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsScanning(true);
+    triggerHapticLight();
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const base64 = (event.target?.result as string).split(',')[1] || (event.target?.result as string);
+        const result = await analyzeFoodImage(base64, profile);
+        setAnalysis(result);
+        if (result.warning) {
+          triggerHapticWarning();
+        } else {
+          triggerHapticSuccess();
+        }
+        setShowResults(true);
+      } catch (err) {
+        console.error('File scan error:', err);
+      } finally {
+        setIsScanning(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleScan = async () => {
     if (!videoRef.current) return;
@@ -241,37 +270,118 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               </div>
             )}
 
-            {/* Log Food Button */}
-            {onLogFood && analysis?.foodName && (
-              <button 
+            {/* Action Buttons: Scan Another & Log Food */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
                 onClick={() => {
-                  onLogFood({
-                    name: analysis.foodName,
-                    calories: analysis.calories,
-                    protein: analysis.protein,
-                    carbs: analysis.carbs,
-                    fat: analysis.fats,
-                    sugar: analysis.sugar,
-                    fibre: analysis.fibre,
-                    type: 'Snack' // Default type, user can change later or we just append it
-                  });
+                  triggerHapticLight();
+                  setShowResults(false);
+                  setAnalysis(null);
                 }}
                 style={{
-                  background: '#10B981', color: '#FFF', border: 'none', padding: '16px', borderRadius: '16px', 
-                  fontSize: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
-                  boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)'
-                }}>
-                <Scan size={18} />
-                Log {analysis.foodName}
+                  flex: 1,
+                  background: 'rgba(255,255,255,0.9)',
+                  color: '#0F172A',
+                  border: '1px solid #CBD5E1',
+                  padding: '14px',
+                  borderRadius: '16px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <RefreshCw size={15} /> Scan Another
               </button>
-            )}
+
+              {onLogFood && analysis?.foodName && (
+                <button 
+                  onClick={() => {
+                    onLogFood({
+                      name: analysis.foodName,
+                      calories: analysis.calories,
+                      protein: analysis.protein,
+                      carbs: analysis.carbs,
+                      fat: analysis.fats,
+                      sugar: analysis.sugar,
+                      fibre: analysis.fibre,
+                      type: 'Snack'
+                    });
+                  }}
+                  style={{
+                    flex: 1.5,
+                    background: '#10B981', color: '#FFF', border: 'none', padding: '14px', borderRadius: '16px', 
+                    fontSize: '15px', fontWeight: 800, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
+                    boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)'
+                  }}>
+                  <Scan size={18} />
+                  Log {analysis.foodName}
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Capture Button */}
-      {!showResults && (
-        <div style={{ position: 'absolute', bottom: '40px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 10 }}>
+      {/* Hidden File Input for Device/Gallery Photo Selection */}
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        style={{ display: 'none' }}
+      />
+
+      {/* Camera Unavailable Glassmorphic Card */}
+      {cameraError && !showResults && (
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 15
+        }}>
+          <div style={{
+            background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(20px)',
+            borderRadius: '24px', padding: '32px 24px', maxWidth: '420px', textAlign: 'center',
+            border: '1px solid rgba(255,255,255,0.15)', color: '#FFF'
+          }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', color: '#F87171', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Camera size={28} />
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>Camera Not Available</h3>
+            <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#94A3B8', lineHeight: 1.5 }}>
+              {cameraError}
+            </p>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="btn btn-primary"
+              style={{ padding: '12px 24px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              <Upload size={16} /> Choose Photo from Device
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Capture & Upload Bar */}
+      {!showResults && !cameraError && (
+        <div style={{ position: 'absolute', bottom: '40px', left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '24px', zIndex: 10 }}>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload from Gallery"
+            style={{
+              width: '48px', height: '48px', borderRadius: '24px',
+              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
+              color: '#FFF'
+            }}
+          >
+            <ImageIcon size={20} />
+          </button>
+          
           <button 
             onClick={handleScan}
             disabled={isScanning}
@@ -287,6 +397,8 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           >
             {!isScanning && <Scan size={28} color="#0F172A" />}
           </button>
+
+          <div style={{ width: '48px' }} />
         </div>
       )}
     </div>

@@ -3,8 +3,10 @@ import '../../admin.css';
 import { Plus, Edit2, Trash2, UploadCloud, Save, X, Image as ImageIcon, Play, CheckCircle } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
+import { useToast } from '../../components/ui/ToastProvider';
 
 export const AdminContentDashboard: React.FC = () => {
+  const toast = useToast();
   const [contentList, setContentList] = useState<FitnessContent[]>([]);
   const [categories, setCategories] = useState<FitnessCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +54,11 @@ export const AdminContentDashboard: React.FC = () => {
 
       setIsEditing(false);
       setEditForm({});
+      toast.success('Saved', 'Content updated successfully.');
       loadData();
     } catch (err) {
       console.error('Save failed', err);
-      alert('Save failed. See console.');
+      toast.error('Save Failed', err instanceof Error ? err.message : 'Failed to save content.');
     }
   };
 
@@ -96,9 +99,10 @@ export const AdminContentDashboard: React.FC = () => {
 
       const { data } = supabase.storage.from('fitness-content').getPublicUrl(filePath);
       setEditForm({ ...editForm, cover_image_url: data.publicUrl });
+      toast.success('Uploaded', 'Cover image uploaded successfully.');
     } catch (error) {
       console.error('Error uploading image: ', error);
-      alert('Upload failed');
+      toast.error('Upload Failed', error instanceof Error ? error.message : 'Error uploading image to storage.');
     }
   };
 

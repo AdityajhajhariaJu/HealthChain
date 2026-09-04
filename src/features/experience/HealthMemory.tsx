@@ -171,7 +171,17 @@ export default function HealthMemory() {
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'end', flexWrap: 'wrap' }}>
           <div><h2 style={{ margin: 0, fontSize: 24 }}>Your timeline</h2><p style={{ margin: '6px 0 0', color: '#64748b' }}>{items.length} saved health memory item{items.length === 1 ? '' : 's'}</p></div>
           <select value={filter} onChange={(event) => setFilter(event.target.value as any)} style={{ padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 10, background: '#fff' }}>
-            <option value="all">Everything</option><option value="case_prep">Case Prep</option><option value="quick_consult">Quick Consult</option><option value="deep_collab">Collaborative</option><option value="lab_report">Lab reports</option><option value="diet">Diet</option><option value="health_buddy">Ava</option>
+            <option value="all">Everything</option>
+            <option value="case_prep">Case Prep</option>
+            <option value="quick_consult">Quick Consult</option>
+            <option value="deep_collab">Collaborative</option>
+            <option value="lab_report">Lab reports</option>
+            <option value="diet">Diet</option>
+            <option value="health_buddy">Ava</option>
+            <option value="pharmacy">Medication & Pharmacy</option>
+            <option value="research">Clinical Trials & Evidence</option>
+            <option value="jarvis_analysis">J.A.R.V.I.S. Analysis</option>
+            <option value="discussion_guide">Discussion Guides</option>
           </select>
         </div>
         <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>

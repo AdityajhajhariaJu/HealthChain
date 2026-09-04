@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowLeft, Send } from 'lucide-react';
+import { Sparkles, ArrowLeft, Send, ArrowRight } from 'lucide-react';
 import { analyzeFoodEntry } from '../../services/geminiService';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate } from 'react-router-dom';
+import { getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
+import { recordHealthMemory } from '../../services/HealthMemory';
 
 export const NutritionInterceptor: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +25,44 @@ export const NutritionInterceptor: React.FC = () => {
         setRecentLog(result);
         triggerHapticSuccess();
         awardPoints(2, '🥗 Quick Nutrition Log', 'lifestyle', 'quick_diet_' + Date.now());
+
+        // Persist directly into dietFoodLogs so it reflects in Diet Tracker & Profile
+        try {
+          const profile = getProfile();
+          const today = new Date().toISOString().split('T')[0];
+          const existingLogs = profile?.dietFoodLogs ? { ...profile.dietFoodLogs } : {};
+          const dayLogs = Array.isArray(existingLogs[today]) ? [...existingLogs[today]] : [];
+
+          const newItems = result.items.map((it: any) => ({
+            id: Date.now() + Math.random(),
+            name: it.name || input.slice(0, 30),
+            calories: it.calories || 0,
+            protein: it.protein || 0,
+            carbs: it.carbs || 0,
+            fat: it.fat || it.fats || 0,
+            sugar: it.sugar || 0,
+            fibre: it.fibre || 0,
+            type: 'Meal'
+          }));
+
+          existingLogs[today] = [...dayLogs, ...newItems];
+          updateProfileFeatureData('dietFoodLogs', existingLogs);
+
+          recordHealthMemory({
+            kind: 'diet',
+            source: 'ambient_tracking',
+            title: `Nutrition Log: ${newItems.map((n: any) => n.name).join(', ').slice(0, 50)}`,
+            occurredAt: new Date().toISOString(),
+            payload: {
+              summary: result.clinical_insight || 'Ambient meal entry recorded.',
+              items: newItems,
+              total: result.total
+            }
+          });
+        } catch (storageErr) {
+          console.error('Failed to persist diet log:', storageErr);
+        }
+
         setInput('');
       }
     } catch (err) {
@@ -111,6 +151,30 @@ export const NutritionInterceptor: React.FC = () => {
                 <span className="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Cals</span>
                 <span className="text-white text-2xl font-black">{recentLog.total?.calories || 0}</span>
               </div>
+            </div>
+
+            <div style={{ marginTop: '20px', display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/app/dietician')}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  borderRadius: '16px',
+                  background: '#10B981',
+                  color: '#020617',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                View in Diet Tracker <ArrowRight size={16} />
+              </button>
             </div>
           </motion.div>
         )}

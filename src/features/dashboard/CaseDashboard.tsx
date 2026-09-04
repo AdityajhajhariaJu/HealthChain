@@ -858,45 +858,47 @@ export default function CaseDashboard() {
             {/* Author Credential Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '16px', background: '#F8FAFC', border: '1px solid #E2E8F0', marginBottom: '20px' }}>
               <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#0EA5E9', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '16px' }}>
-                {selectedArticle.author.split(' ')[1]?.charAt(0) || 'D'}
+                {(selectedArticle?.author || 'Doctor').split(' ')[1]?.charAt(0) || (selectedArticle?.author || 'D').charAt(0)}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{selectedArticle.author}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{selectedArticle?.author || 'Medical Staff'}</span>
                   <ShieldCheck size={16} color="#0EA5E9" />
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748B' }}>{selectedArticle.role}</div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>{selectedArticle?.role || 'Clinical Team'}</div>
               </div>
             </div>
 
             <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px', lineHeight: 1.2, letterSpacing: '-0.5px' }}>
-              {selectedArticle.title}
+              {selectedArticle?.title}
             </h2>
             <p style={{ fontSize: '15px', color: '#64748B', margin: '0 0 24px', lineHeight: 1.4, fontWeight: 500 }}>
-              {selectedArticle.subtitle}
+              {selectedArticle?.subtitle}
             </p>
 
             {/* Key Clinical Takeaways */}
-            <div style={{ background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.8) 0%, rgba(240, 253, 250, 0.8) 100%)', borderRadius: '20px', padding: '18px', border: '1px solid #BFDBFE', marginBottom: '28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-                <Sparkles size={16} color="#2563EB" />
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#1E40AF', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Key Clinical Takeaways
-                </span>
+            {(selectedArticle?.keyTakeaways || []).length > 0 && (
+              <div style={{ background: 'linear-gradient(135deg, rgba(239, 246, 255, 0.8) 0%, rgba(240, 253, 250, 0.8) 100%)', borderRadius: '20px', padding: '18px', border: '1px solid #BFDBFE', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                  <Sparkles size={16} color="#2563EB" />
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#1E40AF', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    Key Clinical Takeaways
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(selectedArticle?.keyTakeaways || []).map((takeaway, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563EB', marginTop: '6px', flexShrink: 0 }} />
+                      <span style={{ fontSize: '13px', color: '#1E3A8A', lineHeight: 1.4, fontWeight: 500 }}>{takeaway}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {selectedArticle.keyTakeaways.map((takeaway, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563EB', marginTop: '6px', flexShrink: 0 }} />
-                    <span style={{ fontSize: '13px', color: '#1E3A8A', lineHeight: 1.4, fontWeight: 500 }}>{takeaway}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* Article Sections */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
-              {selectedArticle.sections.map((section, idx) => (
+              {(selectedArticle?.sections || []).map((section, idx) => (
                 <div key={idx}>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px', letterSpacing: '-0.3px' }}>
                     {section.heading}

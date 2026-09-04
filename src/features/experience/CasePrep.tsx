@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief } from '../../services/CaseEngine';
+import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, getActiveCase } from '../../services/CaseEngine';
 import { generateDeterministicBrief, isBriefUpToDate } from '../../services/AppointmentBriefService';
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
-import { ArrowRight, Briefcase, ChevronRight, FileText, Loader2, Printer, Sparkles, AlertCircle, Eye, Info, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Briefcase, ChevronRight, FileText, Loader2, Printer, Sparkles, AlertCircle, Eye, Info, CheckCircle2, Copy } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
+import { triggerHapticSuccess } from '../../services/haptics';
 
 export default function CasePrep() {
   const navigate = useNavigate();
@@ -30,6 +31,11 @@ export default function CasePrep() {
         setSelectedCase(match);
         return;
       }
+    }
+    const active = getActiveCase();
+    if (active && allCases.some(c => c.id === active.id)) {
+      setSelectedCase(active);
+      return;
     }
     if (allCases.length === 1) {
       setSelectedCase(allCases[0]);
@@ -65,6 +71,41 @@ export default function CasePrep() {
     } finally {
       setIsRefining(false);
     }
+  };
+
+  const handleCopyBrief = () => {
+    if (!brief) return;
+    const lines = [
+      `HEALTHCHAIN CLINICAL APPOINTMENT BRIEF`,
+      `Case: ${selectedCase?.title || 'Patient Health Dossier'}`,
+      `Date: ${brief.generatedAt ? new Date(brief.generatedAt).toLocaleDateString() : new Date().toLocaleDateString()}`,
+      `----------------------------------------`,
+      `1. WHAT I NEED HELP WITH:`,
+      brief.mainConcern?.text || 'No concern specified.',
+      ``,
+      `2. TIMELINE & RECENT CHANGES:`,
+      (brief.timeline || []).map((t: any) => `• ${t.date ? `[${t.date}] ` : ''}${t.event || t.text}`).join('\n') || 'None recorded.',
+      ``,
+      `3. IMPORTANT CONTEXT & FACTS:`,
+      (brief.knownFacts || []).map((f: any) => `• ${typeof f === 'string' ? f : f?.text || 'Context item'}`).join('\n') || 'None recorded.',
+      ...(brief.missingInformation?.length ? [
+        ``,
+        `MISSING INFORMATION:`,
+        (brief.missingInformation || []).map((m: any) => `• ${typeof m === 'string' ? m : m?.missingText || 'Missing information'}`).join('\n')
+      ] : []),
+      ``,
+      `4. QUESTIONS FOR CLINICIAN:`,
+      (brief.questionsForClinician || []).map((q: any, i: number) => `${i + 1}. ${typeof q === 'string' ? q : q?.question || q?.text}`).join('\n') || 'None recorded.',
+      `----------------------------------------`,
+      `Prepared with HealthChain Clinical Dossier`
+    ].join('\n');
+
+    navigator.clipboard.writeText(lines).then(() => {
+      triggerHapticSuccess();
+      toast.success('Brief Copied', 'Ready to paste into MyChart, patient portal, or message your clinician.');
+    }).catch(() => {
+      toast.error('Copy Failed', 'Unable to copy text to clipboard.');
+    });
   };
 
   if (!selectedCase && !showPicker) {
@@ -136,7 +177,10 @@ export default function CasePrep() {
         <button className="btn btn-outline btn-sm" onClick={() => { setSelectedCase(null); setShowPicker(true); }}>
           &larr; Change case
         </button>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button className="btn btn-outline btn-sm" onClick={handleCopyBrief}>
+            <Copy size={16} style={{ marginRight: 6 }} /> Copy Brief
+          </button>
           <button className="btn btn-primary btn-sm" onClick={() => window.print()}>
             <Printer size={16} style={{ marginRight: 6 }} /> Print Brief
           </button>

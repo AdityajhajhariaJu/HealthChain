@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
-import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
+import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase, setActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -31,8 +31,17 @@ export default function ClinicalReportAnalyzer() {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const searchParams = new URLSearchParams(location.search);
+  const caseIdParam = searchParams.get('caseId');
+  const returnTo = searchParams.get('returnTo');
+
+  useEffect(() => {
+    if (caseIdParam) {
+      setActiveCase(caseIdParam);
+    }
+  }, [caseIdParam]);
+
   const activeCase = getActiveCase();
-  const returnTo = new URLSearchParams(location.search).get('returnTo');
   const reportCacheKey = getRunScope('lab', 'draft', 'ui');
   const cached = cachedReportAnalyzerState[reportCacheKey];
   const [file, setFile] = useState(cached?.file || null);
@@ -554,7 +563,7 @@ export default function ClinicalReportAnalyzer() {
                         </span>
                       </div>
                       <button
-                        onClick={() => navigate(returnTo || `/app/mdthub?caseId=${activeCase.id}`)}
+                        onClick={() => navigate(returnTo || (activeCase ? `/app/cases/${activeCase.id}` : '/app/my-cases'))}
                         style={{
                           padding: '11px 16px',
                           border: 'none',

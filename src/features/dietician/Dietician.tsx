@@ -249,8 +249,9 @@ export default function Dietician() {
           return;
         }
         const unified = getCoreProfile() || {};
-          const profileKey = getProfileKey();
-          
+        const profileKey = getProfileKey();
+        
+        try {
           if (localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'))) {
              unified.dietProfile = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile')) || '{}');
              unified.dietFoodLogs = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs')) || '{}');
@@ -273,6 +274,9 @@ export default function Dietician() {
              localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
              localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
           }
+        } catch (migErr) {
+          console.error('Diet migration error, skipping corrupted legacy entries:', migErr);
+        }
   
           const savedProfile = unified.dietProfile ? JSON.stringify(unified.dietProfile) : null;
           const savedLogs = unified.dietFoodLogs ? JSON.stringify(unified.dietFoodLogs) : null;

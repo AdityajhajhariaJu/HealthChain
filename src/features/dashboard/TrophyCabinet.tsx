@@ -12,14 +12,14 @@ import VitalityPlayground from '../../components/ui/VitalityPlayground';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [
-  { slug: 'first_workout', title: 'First Step', desc: 'Completed your first ever session.', icon: '🥉', color: '#F59E0B', rarity: 'Common' },
-  { slug: '3_day_streak', title: 'Momentum', desc: 'Maintained a 3-day active streak.', icon: '🔥', color: '#EF4444', rarity: 'Uncommon' },
-  { slug: '10_workouts', title: 'Dedicated', desc: 'Completed 10 total sessions.', icon: '🥇', color: '#10B981', rarity: 'Rare' },
-  { slug: 'mindful_master', title: 'Zen Master', desc: 'Logged 5 mindfulness minutes.', icon: '🧘', color: '#8B5CF6', rarity: 'Rare' },
-  { slug: 'early_bird', title: 'Early Bird', desc: 'Completed a workout before 6 AM.', icon: '🌅', color: '#3B82F6', rarity: 'Epic' },
-  { slug: 'night_owl', title: 'Night Owl', desc: 'Completed a workout after 9 PM.', icon: '🦉', color: '#6366F1', rarity: 'Epic' },
-  { slug: 'iron_lungs', title: 'Iron Lungs', desc: 'Finished the advanced breathing track.', icon: '💨', color: '#06B6D4', rarity: 'Legendary' },
-  { slug: 'marathoner', title: 'Marathoner', desc: 'Burned over 10,000 active calories.', icon: '👟', color: '#F43F5E', rarity: 'Legendary' }
+  { slug: 'first_checkin', title: 'First Health Check-in', desc: 'Completed your first comprehensive health assessment.', icon: '🥉', color: '#F59E0B', rarity: 'Common' },
+  { slug: '3_day_streak', title: 'Consistency Streak', desc: 'Maintained a 3-day active health tracking streak.', icon: '🔥', color: '#EF4444', rarity: 'Uncommon' },
+  { slug: 'clinical_scholar', title: 'Clinical Scholar', desc: 'Explored clinical trials and research literature.', icon: '🧬', color: '#10B981', rarity: 'Rare' },
+  { slug: 'mindful_master', title: 'Autonomic Calm', desc: 'Logged 5 mindfulness minutes.', icon: '🧘', color: '#8B5CF6', rarity: 'Rare' },
+  { slug: 'early_bird', title: 'Morning Vitals', desc: 'Logged morning vitals before 9 AM.', icon: '🌅', color: '#3B82F6', rarity: 'Epic' },
+  { slug: 'night_owl', title: 'Evening Reflection', desc: 'Recorded health log and reflections after 8 PM.', icon: '🦉', color: '#6366F1', rarity: 'Epic' },
+  { slug: 'iron_lungs', title: 'Respiratory Calm', desc: 'Finished evidence-based vagal tone breathwork reset.', icon: '💨', color: '#06B6D4', rarity: 'Legendary' },
+  { slug: 'profile_complete', title: 'Master Health Dossier', desc: 'Achieved a fully comprehensive health and biomarker profile.', icon: '🛡️', color: '#F43F5E', rarity: 'Legendary' }
 ];
 
 export const TrophyCabinet: React.FC = () => {
@@ -45,11 +45,11 @@ export const TrophyCabinet: React.FC = () => {
         
         // Mock data if none earned yet
         if (slugs.size === 0) {
-          setEarnedSlugs(new Set(['first_workout', 'early_bird']));
+          setEarnedSlugs(new Set(['first_checkin', 'early_bird']));
         }
       } else {
         // Mock data for preview
-        setEarnedSlugs(new Set(['first_workout', '3_day_streak', 'mindful_master']));
+        setEarnedSlugs(new Set(['first_checkin', '3_day_streak', 'mindful_master']));
       }
     } catch (err) {
       console.error(err);

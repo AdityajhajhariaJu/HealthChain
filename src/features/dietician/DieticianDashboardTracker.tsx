@@ -1,5 +1,6 @@
 import React from 'react';
-import { Camera, Plus, BarChart2, BookOpen, Clock, Activity } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Camera, Plus, BarChart2, BookOpen, Clock, Activity, Sparkles } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export function DieticianDashboardTracker({ 
@@ -12,6 +13,7 @@ export function DieticianDashboardTracker({
   onOpenGallery,
   onOpenSavedMeals
 }: any) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   
   const targetCalories = profile?.targetCalories || 1850;
@@ -138,7 +140,13 @@ export function DieticianDashboardTracker({
         </div>
 
       {/* 3. Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px' }}>
+        <button onClick={() => navigate('/app/nutrition-log')} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+          <div style={{ background: '#8B5CF6', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkles size={16} color="#FFF" />
+          </div>
+          ⚡ Ambient Log
+        </button>
         <button onClick={onOpenGallery} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
           <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Camera size={16} color="#FFF" />
