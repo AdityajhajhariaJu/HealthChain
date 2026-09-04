@@ -2031,3 +2031,61 @@ Return ONLY a valid JSON object matching this schema:
   }
   return JSON.parse(cleanJson);
 }
+
+export async function analyzeMedicineImage(base64Image: string): Promise<{ medicineName: string; confidence: number; details?: string }> {
+  const mimeType = base64Image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+  const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: `You are an expert clinical pharmacist and pharmaceutical OCR system.
+Analyze this photo of a medicine box, strip, prescription slip, or bottle label.
+Identify the primary medication name (prefer active generic molecule name, or well-known brand name), along with any identified strength (e.g. "Paracetamol 500mg" or "Metformin 500mg").
+If multiple medicines appear, identify the most prominent one.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "medicineName": "Primary medicine name and dosage (e.g., Metformin 500mg or Amoxicillin)",
+  "confidence": 0.95,
+  "details": "Brief 1-sentence description of what was detected (e.g., Tablet blister pack of Metformin HCl 500mg)"
+}
+If no medicine or readable text is visible, return:
+{
+  "medicineName": "",
+  "confidence": 0,
+  "details": "No readable medication label detected"
+}` },
+          { inline_data: { mime_type: mimeType, data: cleanBase64 } }
+        ]
+      }
+    ],
+    generationConfig: { temperature: 0.1 }
+  };
+
+  const response = await fetchWithTimeout(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'medicine_vision' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    console.error("Gemini Vision API Error:", err);
+    throw new Error('API Error');
+  }
+
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Empty response');
+
+  let cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  const startIdx = cleanJson.indexOf('{');
+  const endIdx = cleanJson.lastIndexOf('}');
+  if (startIdx !== -1 && endIdx !== -1) {
+    cleanJson = cleanJson.substring(startIdx, endIdx + 1);
+  }
+  return JSON.parse(cleanJson);
+}
+

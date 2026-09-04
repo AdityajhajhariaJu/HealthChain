@@ -9,9 +9,10 @@ import {
   Repeat2,
   BookmarkPlus,
   AlertOctagon,
+  Search,
 } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { fetchMedicineData, checkDrugInteractions } from '../../services/geminiService';
+import { fetchMedicineData, checkDrugInteractions, analyzeMedicineImage } from '../../services/geminiService';
 import { addMedication, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
@@ -19,6 +20,9 @@ import { Sunrise, Sun, Moon, CheckCircle } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { trackFeatureUsed } from '../../services/analytics';
+import { useToast } from '../../components/ui/ToastProvider';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 let cachedPharmacyState: any = null;
 
@@ -37,7 +41,49 @@ export default function PharmacyHub() {
   const [activeInteractions, setActiveInteractions] = useState<any[]>([]);
   const [isCheckingInteraction, setIsCheckingInteraction] = useState(false);
 
+  const toast = useToast();
+  const [isScanning, setIsScanning] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const searchedRef = useRef<string>('');
+
+  const handleCameraScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsScanning(true);
+    triggerHapticLight();
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) {
+        setIsScanning(false);
+        return;
+      }
+      try {
+        const detected = await analyzeMedicineImage(dataUrl);
+        if (detected?.medicineName && detected.medicineName.trim()) {
+          const medName = detected.medicineName.trim();
+          setQuery(medName);
+          triggerHapticSuccess();
+          toast.success('Medicine Identified', `Detected: ${medName}`);
+          awardPoints(5, '📷 Prescription Label Scanned', 'research', `pharmacy_scan_${Date.now()}`);
+          executeSearch(medName);
+        } else {
+          toast.error('Scan Inconclusive', 'Could not read a clear medication label. Try a closer, well-lit photo.');
+        }
+      } catch (err) {
+        console.error('Failed to scan medicine image:', err);
+        toast.error('Scan Failed', 'Image analysis failed. Please try typing the medicine name.');
+      } finally {
+        setIsScanning(false);
+        if (cameraInputRef.current) cameraInputRef.current.value = '';
+      }
+    };
+    reader.onerror = () => {
+      setIsScanning(false);
+      toast.error('File Error', 'Could not read the selected image file.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const executeSearch = async (term: string) => {
     if (!term.trim()) return;
@@ -248,22 +294,53 @@ export default function PharmacyHub() {
 
         <form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px' }}>
           <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <div
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={handleCameraScan}
+            />
+            <button
+              type="button"
+              onClick={() => { triggerHapticLight(); cameraInputRef.current?.click(); }}
+              disabled={isScanning || loading}
+              title="Scan medication label, prescription, or pill bottle"
+              aria-label="Scan medication with camera"
               style={{
                 position: 'absolute',
-                left: '16px',
-                color: '#10B981',
+                left: '14px',
+                color: isScanning ? '#059669' : '#10B981',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
                 background: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                cursor: isScanning || loading ? 'wait' : 'pointer',
+                transition: 'all 0.2s',
+                zIndex: 2,
               }}
             >
-              <Camera size={16} />
-            </div>
+              {isScanning ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid rgba(16, 185, 129, 0.3)',
+                    borderTopColor: '#059669',
+                    borderRadius: '50%',
+                  }}
+                />
+              ) : (
+                <Camera size={18} />
+              )}
+            </button>
             <input
               type="text"
               value={query}
@@ -539,8 +616,14 @@ export default function PharmacyHub() {
                         {displayData.alternatives.length > 0 ? (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {displayData.alternatives.map((alt) => (
-                              <div
+                              <button
                                 key={alt}
+                                type="button"
+                                onClick={() => {
+                                  triggerHapticLight();
+                                  setQuery(alt);
+                                  executeSearch(alt);
+                                }}
                                 style={{
                                   padding: '6px 12px',
                                   background: '#EFF6FF',
@@ -548,10 +631,22 @@ export default function PharmacyHub() {
                                   borderRadius: '99px',
                                   fontSize: '13px',
                                   fontWeight: 500,
+                                  border: '1px solid #BFDBFE',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#DBEAFE';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = '#EFF6FF';
                                 }}
                               >
-                                {alt}
-                              </div>
+                                <Search size={12} /> {alt}
+                              </button>
                             ))}
                           </div>
                         ) : (
@@ -615,12 +710,48 @@ export default function PharmacyHub() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '24px', borderLeft: '2px solid #F1F5F9' }}>
                   {schedule.meds.map((med, i) => (
-                    <div key={i} style={{ padding: '10px 12px', background: '#F8FAFC', borderRadius: '8px', fontSize: '13px', color: '#475569', border: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
-                      {med}
-                      {med.includes('Warfarin') || med.includes('Aspirin') ? (
-                         <AlertTriangle size={14} color="#EF4444" />
-                      ) : null}
-                    </div>
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setQuery(med);
+                        executeSearch(med);
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        background: '#F8FAFC',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        color: '#475569',
+                        border: '1px solid #E2E8F0',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '12px',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#F1F5F9';
+                        e.currentTarget.style.borderColor = '#CBD5E1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#F8FAFC';
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                      }}
+                    >
+                      <span style={{ fontWeight: 500, color: '#1E293B' }}>{med}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {med.includes('Warfarin') || med.includes('Aspirin') ? (
+                           <AlertTriangle size={14} color="#EF4444" />
+                        ) : null}
+                        <span style={{ fontSize: '11px', color: '#3B82F6', fontWeight: 600 }}>Lookup →</span>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </div>

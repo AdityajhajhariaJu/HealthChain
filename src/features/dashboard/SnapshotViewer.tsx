@@ -39,8 +39,13 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set(opt).from(reportRef.current).save();
     } catch (e) {
-      console.error('Failed to load PDF library:', e);
-      toast.error('Export Error', 'Could not generate PDF. Please check your network connection.');
+      console.error('Failed to load PDF library, falling back to print dialog:', e);
+      toast.info('Opening Print View', 'Select "Save as PDF" in your print options.');
+      try {
+        window.print();
+      } catch (err) {
+        toast.error('Export Error', 'Could not generate PDF. Please try again.');
+      }
     }
   };
 

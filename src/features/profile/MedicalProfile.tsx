@@ -43,6 +43,7 @@ import {
 import {
   getProfile,
   updateDemographics,
+  addCondition,
   removeCondition,
   removeMedication,
   addAllergy,
@@ -95,6 +96,7 @@ export default function MedicalProfile() {
       try { sessionStorage.removeItem('hc_profile_demo_form'); } catch(e) {}
     }
   }, [isEditingDemo, demoForm]);
+  const [newCondition, setNewCondition] = useState('');
   const [newAllergy, setNewAllergy] = useState('');
   const [newFamilyHist, setNewFamilyHist] = useState('');
   const [activeCase, setActiveCase] = useState(getActiveCase());
@@ -923,7 +925,7 @@ export default function MedicalProfile() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', alignItems: 'center' }}>
               <AnimatePresence>
-              {profile.allergies.map((allergy) => (
+              {(profile?.allergies || []).map((allergy) => (
                 <motion.div
                   key={`a-${allergy}`}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -1011,16 +1013,53 @@ export default function MedicalProfile() {
           </div>
 
           {/* 2.5 Active Health Conditions */}
-          {profile.conditions && profile.conditions.length > 0 && (
-            <div className="card" style={{ padding: '16px 20px', borderRadius: '16px', background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Activity size={15} color="var(--teal)" /> Active Health Conditions ({profile.conditions.length})
-                </div>
+          <div className="card" style={{ padding: '16px 20px', borderRadius: '16px', background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(15,23,42,0.02)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Activity size={15} color="var(--teal)" /> Active Health Conditions ({(profile?.conditions || []).length})
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  placeholder="Add diagnosed condition..."
+                  value={newCondition}
+                  onChange={(e) => setNewCondition(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newCondition.trim()) {
+                      addCondition(newCondition.trim());
+                      awardPoints(5, 'Condition Added to Health Profile', 'milestone');
+                      triggerHapticLight();
+                      setNewCondition('');
+                    }
+                  }}
+                  style={{ padding: '6px 12px', borderRadius: '99px', border: '1px solid var(--border)', fontSize: '13px', width: isMobile ? '160px' : '220px' }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '99px' }}
+                  onClick={() => {
+                    if (newCondition.trim()) {
+                      addCondition(newCondition.trim());
+                      awardPoints(5, 'Condition Added to Health Profile', 'milestone');
+                      triggerHapticLight();
+                      setNewCondition('');
+                    }
+                  }}
+                  disabled={!newCondition.trim()}
+                >
+                  <Plus size={14} /> Add
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+              {(profile?.conditions || []).length === 0 ? (
+                <p style={{ fontSize: '13px', color: '#64748B', margin: 0, fontStyle: 'italic' }}>
+                  No active conditions recorded yet. Type above to record a verified health condition.
+                </p>
+              ) : (
                 <AnimatePresence>
-                  {profile.conditions.map((condition) => (
+                  {(profile?.conditions || []).map((condition) => (
                     <motion.div
                       key={`c-${condition}`}
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -1064,9 +1103,9 @@ export default function MedicalProfile() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* 5. Action Items */}
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>

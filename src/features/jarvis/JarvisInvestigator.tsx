@@ -348,13 +348,19 @@ export default function JarvisInvestigator() {
           
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
             <button 
-              onClick={() => navigate('/app/ava')}
+              onClick={() => {
+                const diagnosesList = (report?.topDiagnoses || []).slice(0, 2).map((d: any) => d.condition).join(', ');
+                const initialPrompt = `I just completed a J.A.R.V.I.S. investigation regarding: ${history ? history.slice(0, 100) : 'my health symptoms'}${diagnosesList ? `. The top considerations identified were: ${diagnosesList}` : ''}. Let's review these clinical findings.`;
+                navigate('/app/ava', { state: { initialPrompt } });
+              }}
               style={{ padding: '14px 18px', background: 'linear-gradient(135deg, #0EA5E9, #0284C7)', color: '#FFF', border: 'none', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(14,165,233,0.25)' }}
             >
               💬 Discuss with Ava
             </button>
             <button 
-              onClick={() => navigate('/app/mdt')}
+              onClick={() => {
+                navigate(createdCaseId ? `/app/consult?caseId=${createdCaseId}` : '/app/consult');
+              }}
               style={{ padding: '14px 18px', background: '#F8FAFC', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
               🧠 Elevate to Board
