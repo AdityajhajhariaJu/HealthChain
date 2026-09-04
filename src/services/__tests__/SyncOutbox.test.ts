@@ -90,4 +90,55 @@ describe('SyncOutbox', () => {
       expect.objectContaining({ id: 'queued-1' }),
     ]));
   });
+
+  it('preserves outbox items without incrementing attempts on network errors', async () => {
+    const query = {
+      select: vi.fn(() => query),
+      eq: vi.fn(() => query),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      upsert: vi.fn(async () => {
+        throw new Error('Failed to fetch (network drop)');
+      }),
+    };
+    from.mockReturnValue(query);
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-network' } } } });
+
+    await enqueueSync('profile_upsert', 'user-network', {
+      id: 'user-network',
+      full_name: 'Offline User',
+    });
+
+    await flushSyncOutbox('user-network');
+
+    expect(await getPendingSyncCount('user-network')).toBe(1);
+    const queue = idbStore.get('hc_sync_outbox_user-network') as any[];
+    expect(queue[0].attempts).toBe(0); // Kept at 0 attempts, not incremented!
+    expect(queue[0].lastError).toContain('Failed to fetch');
+  });
+
+  it('skips flushing if navigator is offline', async () => {
+    const query = {
+      upsert: vi.fn(async () => ({ error: null })),
+    };
+    from.mockReturnValue(query);
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'user-offline' } } } });
+
+    await enqueueSync('profile_upsert', 'user-offline', {
+      id: 'user-offline',
+      full_name: 'Offline User',
+    });
+
+    const originalOnLine = navigator.onLine;
+    Object.defineProperty(navigator, 'onLine', { value: false, configurable: true });
+
+    try {
+      await flushSyncOutbox('user-offline');
+      // Should not have called upsert because navigator is offline
+      expect(query.upsert).not.toHaveBeenCalled();
+      expect(await getPendingSyncCount('user-offline')).toBe(1);
+    } finally {
+      Object.defineProperty(navigator, 'onLine', { value: originalOnLine, configurable: true });
+    }
+  });
 });
+

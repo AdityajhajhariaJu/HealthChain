@@ -16,14 +16,20 @@ export function HealthDeviceIntegrations() {
     isHealthSupported().then(supported => {
       setIsSupported(supported);
       if (supported) {
-        checkHealthPermissions().then(granted => setIsConnected(granted));
+        checkHealthPermissions()
+          .then(granted => setIsConnected(granted))
+          .catch(() => setIsConnected(false));
       }
+    }).catch(() => {
+      setIsSupported(false);
     });
 
     const handleSyncComplete = (e: any) => {
       const time = new Date(e.detail.at).toLocaleTimeString();
       setLastSync(time);
-      localStorage.setItem('hc_last_health_sync', time);
+      try {
+        localStorage.setItem('hc_last_health_sync', time);
+      } catch {}
     };
 
     window.addEventListener('hc_health_sync_complete', handleSyncComplete);

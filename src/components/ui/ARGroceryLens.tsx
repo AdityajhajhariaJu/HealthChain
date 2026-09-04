@@ -79,8 +79,14 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
   const handleScan = async () => {
     if (!videoRef.current) return;
     
+    if (!videoRef.current.videoWidth || !videoRef.current.videoHeight) {
+      setCameraError("Camera is still warming up. Please wait a moment and try scanning again.");
+      return;
+    }
+    
     triggerHapticLight();
     setIsScanning(true);
+    setCameraError(null);
     
     try {
       const canvas = document.createElement('canvas');
@@ -104,7 +110,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
       }
     } catch (e) {
       console.error(e);
-      // Fallback or handle error
+      setCameraError("Could not analyze this scan. Please try again or upload a photo instead.");
     } finally {
       setIsScanning(false);
     }

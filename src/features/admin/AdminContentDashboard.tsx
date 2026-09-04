@@ -50,6 +50,8 @@ export const AdminContentDashboard: React.FC = () => {
   };
 
   const handleSave = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
@@ -62,21 +64,33 @@ export const AdminContentDashboard: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ action, payload: editForm, table: 'fitness_content' })
+        body: JSON.stringify({ action, payload: editForm, table: 'fitness_content' }),
+        signal: controller.signal
       });
 
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to save content');
+        let errMsg = 'Failed to save content';
+        try {
+          const errData = await res.json();
+          errMsg = errData.error || errMsg;
+        } catch {
+          errMsg = `Server returned status ${res.status}`;
+        }
+        throw new Error(errMsg);
       }
 
       setIsEditing(false);
       setEditForm({});
       toast.success('Saved', 'Content updated successfully.');
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Save failed', err);
-      toast.error('Save Failed', err instanceof Error ? err.message : 'Failed to save content.');
+      const msg = err?.name === 'AbortError' 
+        ? 'Request timed out. Please check your network.' 
+        : (err instanceof Error ? err.message : 'Failed to save content.');
+      toast.error('Save Failed', msg);
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
@@ -86,25 +100,45 @@ export const AdminContentDashboard: React.FC = () => {
   };
 
   const executeDelete = async (id: string) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
       triggerHapticLight();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      await fetch('/api/admin-content', {
+      const res = await fetch('/api/admin-content', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ action: 'delete', payload: { id }, table: 'fitness_content' })
+        body: JSON.stringify({ action: 'delete', payload: { id }, table: 'fitness_content' }),
+        signal: controller.signal
       });
+
+      if (!res.ok) {
+        let errMsg = 'Failed to deactivate content item';
+        try {
+          const errData = await res.json();
+          errMsg = errData.error || errMsg;
+        } catch {
+          errMsg = `Server returned status ${res.status}`;
+        }
+        throw new Error(errMsg);
+      }
+
       triggerHapticSuccess();
       toast.success('Deactivated', 'Content item has been successfully deactivated.');
       loadData();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Deactivation Failed', 'Failed to deactivate content item.');
+      const msg = err?.name === 'AbortError'
+        ? 'Request timed out. Please check your network.'
+        : (err instanceof Error ? err.message : 'Failed to deactivate content item.');
+      toast.error('Deactivation Failed', msg);
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 

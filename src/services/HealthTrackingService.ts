@@ -1,14 +1,21 @@
 import { Health } from '@capgo/capacitor-health';
 import { enqueueSync } from './SyncOutbox';
+import { supabase } from './supabaseClient';
 
 export type SupportedHealthMetric = 'steps' | 'sleep' | 'heartRate' | 'calories';
 
-function accountId(): string | null {
+async function getActiveUserId(): Promise<string | null> {
   try {
     const acct = localStorage.getItem('hc_account');
-    if (!acct) return null;
-    const parsed = JSON.parse(acct);
-    return parsed?.id || parsed?.user?.id || null;
+    if (acct) {
+      const parsed = JSON.parse(acct);
+      const id = parsed?.id || parsed?.user?.id;
+      if (id) return id;
+    }
+  } catch {}
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id || null;
   } catch {
     return null;
   }
@@ -48,7 +55,7 @@ export async function requestHealthPermissions(): Promise<boolean> {
 }
 
 export async function syncHealthData(daysBack: number = 7): Promise<void> {
-  const userId = accountId();
+  const userId = await getActiveUserId();
   if (!userId) return;
 
   const endDate = new Date();

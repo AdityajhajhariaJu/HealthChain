@@ -20,17 +20,27 @@ export class PsychoacousticEngine {
       this.oscLeft = this.context.createOscillator();
       this.oscLeft.type = 'sine';
       this.oscLeft.frequency.value = 432;
-      const panLeft = this.context.createStereoPanner();
-      panLeft.pan.value = -1;
-      this.oscLeft.connect(panLeft).connect(this.masterGain);
+      if (typeof this.context.createStereoPanner === 'function') {
+        const panLeft = this.context.createStereoPanner();
+        panLeft.pan.value = -1;
+        this.oscLeft.connect(panLeft).connect(this.masterGain);
+      } else {
+        // Fallback for older Safari and WebKit builds without StereoPannerNode
+        this.oscLeft.connect(this.masterGain);
+      }
 
       // Right Ear - 436 Hz (4 Hz difference = Delta wave)
       this.oscRight = this.context.createOscillator();
       this.oscRight.type = 'sine';
       this.oscRight.frequency.value = 436;
-      const panRight = this.context.createStereoPanner();
-      panRight.pan.value = 1;
-      this.oscRight.connect(panRight).connect(this.masterGain);
+      if (typeof this.context.createStereoPanner === 'function') {
+        const panRight = this.context.createStereoPanner();
+        panRight.pan.value = 1;
+        this.oscRight.connect(panRight).connect(this.masterGain);
+      } else {
+        // Fallback for older Safari and WebKit builds without StereoPannerNode
+        this.oscRight.connect(this.masterGain);
+      }
 
       this.oscLeft.start();
       this.oscRight.start();
@@ -67,7 +77,9 @@ export class PsychoacousticEngine {
 
   static triggerManualCalm() {
     if (!this.initialized) this.initialize();
-    if (this.context?.state === 'suspended') this.context.resume();
+    if (this.context?.state === 'suspended') {
+      this.context.resume().catch(() => {});
+    }
     
     // Ramp up to 25% volume for an acute calm-down session
     if (this.masterGain && this.context) {
@@ -81,5 +93,15 @@ export class PsychoacousticEngine {
         }
       }, 60000);
     }
+  }
+
+  static stopAudio() {
+    this.stopBiometricLoop();
+    try {
+      if (this.masterGain && this.context) {
+        this.masterGain.gain.cancelScheduledValues(this.context.currentTime);
+        this.masterGain.gain.setValueAtTime(0, this.context.currentTime);
+      }
+    } catch {}
   }
 }

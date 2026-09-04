@@ -163,6 +163,9 @@ async function send(entry: OutboxEntry) {
 export async function flushSyncOutbox(userId?: string) {
   if (flushInFlight) return flushInFlight;
   flushInFlight = (async () => {
+    // If offline, pause sync until connection is restored to avoid churning attempts
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
     const { data: { session } } = await supabase.auth.getSession();
     const accountId = userId || session?.user?.id;
     if (!accountId) return;
@@ -175,7 +178,20 @@ export async function flushSyncOutbox(userId?: string) {
         const { error } = await send(entry);
         if (error) throw error;
       } catch (error: any) {
-        if (entry.attempts + 1 <= 25) {
+        const isNetworkError =
+          (typeof navigator !== 'undefined' && !navigator.onLine) ||
+          error?.message?.includes('Failed to fetch') ||
+          error?.message?.includes('NetworkError') ||
+          error?.message?.includes('network') ||
+          error?.message?.includes('fetch failed') ||
+          error?.name === 'AbortError' ||
+          error?.code === 'PGRST000';
+
+        if (isNetworkError) {
+          // Network drop or offline: preserve queue item without incrementing attempts
+          // so medical records and memories are never permanently dropped while disconnected
+          remaining.push({ ...entry, lastError: error?.message || 'Network unavailable' });
+        } else if (entry.attempts + 1 <= 25) {
           remaining.push({ ...entry, attempts: entry.attempts + 1, lastError: error?.message || 'Sync failed' });
         } else {
           console.error(`[SyncOutbox] Dropping unrecoverable outbox entry after 25 attempts: ${entry.id} (${entry.kind})`, error);
@@ -185,13 +201,16 @@ export async function flushSyncOutbox(userId?: string) {
     await writeQueue(accountId, remaining);
     if (remaining.length) {
       window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: remaining.length } }));
-      const attempts = Math.min(...remaining.map((entry) => entry.attempts));
-      const delay = Math.min(5 * 60 * 1000, Math.max(5000, 5000 * (2 ** Math.min(attempts, 5))));
-      if (!retryTimer) {
-        retryTimer = setTimeout(() => {
-          retryTimer = null;
-          flushSyncOutbox().catch(() => {});
-        }, delay);
+      // Only schedule automated timer retry if we are currently online
+      if (typeof navigator === 'undefined' || navigator.onLine) {
+        const attempts = Math.min(...remaining.map((entry) => entry.attempts));
+        const delay = Math.min(5 * 60 * 1000, Math.max(5000, 5000 * (2 ** Math.min(attempts, 5))));
+        if (!retryTimer) {
+          retryTimer = setTimeout(() => {
+            retryTimer = null;
+            flushSyncOutbox().catch(() => {});
+          }, delay);
+        }
       }
     }
   })().finally(() => { flushInFlight = null; });

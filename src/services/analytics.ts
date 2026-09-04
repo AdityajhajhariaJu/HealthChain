@@ -14,14 +14,26 @@ declare global {
 }
 
 
+let inMemoryAnonId: string | null = null;
+
 const getAnonymousId = () => {
   if (typeof window === 'undefined') return 'unknown';
-  let anonId = localStorage.getItem('hc_anon_id');
-  if (!anonId) {
-    anonId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    localStorage.setItem('hc_anon_id', anonId);
+  try {
+    let anonId = localStorage.getItem('hc_anon_id');
+    if (!anonId) {
+      anonId = inMemoryAnonId || `anon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      inMemoryAnonId = anonId;
+      try {
+        localStorage.setItem('hc_anon_id', anonId);
+      } catch {}
+    }
+    return anonId;
+  } catch {
+    if (!inMemoryAnonId) {
+      inMemoryAnonId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    }
+    return inMemoryAnonId;
   }
-  return anonId;
 };
 
 export const trackEvent = (eventName: string, payload: any = {}) => {

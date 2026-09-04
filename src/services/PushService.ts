@@ -23,8 +23,12 @@ export const registerPushNotifications = async () => {
   }
 };
 
+let pushListenersSetUp = false;
+
 export const setupPushListeners = () => {
   if (Capacitor.getPlatform() === 'web') return;
+  if (pushListenersSetUp) return;
+  pushListenersSetUp = true;
 
   PushNotifications.addListener('registration', async (token) => {
     if (import.meta.env.DEV) console.log('Push registration success');

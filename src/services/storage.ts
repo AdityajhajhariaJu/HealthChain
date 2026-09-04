@@ -24,7 +24,9 @@ export async function syncStorageFromPreferences() {
     for (const key of keys.keys) {
       const { value } = await Preferences.get({ key });
       if (value) {
-        localStorage.setItem(key, value);
+        try {
+          localStorage.setItem(key, value);
+        } catch {}
       }
     }
     console.log('✨ Storage synced from Capacitor Preferences');
