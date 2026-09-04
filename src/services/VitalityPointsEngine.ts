@@ -1,5 +1,6 @@
 import { getProfile, saveProfile } from './ProfileEngine';
 import { triggerHapticSuccess } from './haptics';
+import { getItemSync } from './storage';
 
 export interface PointsTransaction {
   id: string;
@@ -214,3 +215,85 @@ export function awardMicroMovementPoints(): boolean {
   const todayStr = new Date().toISOString().split('T')[0];
   return awardPoints(2, '⚡ 90s Posture & Metabolic Flow', 'lifestyle', `movement_${todayStr}`);
 }
+
+export interface DailyStreakInfo {
+  currentStreak: number;
+  todayCompleted: boolean;
+  isMysteryClaimedToday: boolean;
+  weekActivity: {
+    dayLabel: string;
+    dateStr: string;
+    isCompleted: boolean;
+    isToday: boolean;
+  }[];
+}
+
+export function getDailyStreak(): DailyStreakInfo {
+  ensureWelcomeGrant();
+  const profile = getProfile();
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  const checkDayActive = (dateStr: string): boolean => {
+    const hasCheckin = (profile?.dailyCheckins || []).some((c: any) => c?.date && c.date.startsWith(dateStr));
+    if (hasCheckin) return true;
+
+    const hasPoints = (profile?.pointsHistory || []).some((h: any) => 
+      h?.date && h.date.startsWith(dateStr) && 
+      (h.category === 'checkin' || h.category === 'lifestyle' || h.category === 'mindful' || h.category === 'streak' || h.category === 'mystery')
+    );
+    if (hasPoints) return true;
+
+    try {
+      const stored = getItemSync(`healthchain_habits_${dateStr}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Object.values(parsed).some(Boolean)) return true;
+      }
+    } catch {}
+
+    return false;
+  };
+
+  const todayCompleted = checkDayActive(todayStr);
+  const isMysteryClaimedToday = (profile?.pointsHistory || []).some((h: any) => h?.dedupeKey === `mystery_${todayStr}`);
+
+  let streak = 0;
+  const startOffset = todayCompleted ? 0 : 1;
+
+  for (let i = startOffset; i < 60; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    if (checkDayActive(dateStr)) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekActivity: DailyStreakInfo['weekActivity'] = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const isToday = i === 0;
+    const isCompleted = checkDayActive(dateStr);
+    weekActivity.push({
+      dayLabel: dayNames[d.getDay()],
+      dateStr,
+      isCompleted,
+      isToday,
+    });
+  }
+
+  return {
+    currentStreak: streak,
+    todayCompleted,
+    isMysteryClaimedToday,
+    weekActivity,
+  };
+}
+

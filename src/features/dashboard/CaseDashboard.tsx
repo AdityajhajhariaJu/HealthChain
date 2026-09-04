@@ -53,6 +53,7 @@ import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
+import { VitalityStreakBanner } from './VitalityStreakBanner';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -207,6 +208,9 @@ export default function CaseDashboard() {
             </div>
           </div>
           
+          {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
+          <VitalityStreakBanner completedHabits={completedHabits} />
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
             {/* The Rajasthani Palace Gate Health Canvas Tile */}
