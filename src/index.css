@@ -968,8 +968,10 @@ html.dark-theme body {
     font-size: 16px !important; 
   }
   
-  /* Touch targets */
-  button, a, [role="button"] { 
+  /* Touch targets (excluding compact buttons, badges, and micro-controls) */
+  button:not([data-compact="true"], .btn-compact), 
+  a:not([data-compact="true"], .btn-compact), 
+  [role="button"]:not([data-compact="true"], .btn-compact) { 
     min-height: 44px; 
     min-width: 44px; 
   }

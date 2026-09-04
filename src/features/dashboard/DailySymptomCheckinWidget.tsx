@@ -159,7 +159,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
         boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.05)',
-        padding: isMobile ? '16px' : '20px 22px',
+        padding: isMobile ? '14px' : '20px 22px',
         marginBottom: isMobile ? '16px' : '24px',
         position: 'relative',
         overflow: 'hidden',
@@ -173,9 +173,10 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
           justifyContent: 'space-between',
           marginBottom: '10px',
           gap: '8px',
+          flexWrap: 'wrap',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <div
             style={{
               width: '30px',
@@ -192,11 +193,11 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
           >
             <HeartPulse size={16} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px', whiteSpace: 'nowrap' }}>
               Daily Check-in
             </span>
-            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#7C3AED', background: '#F5F3FF', border: '1px solid #DDD6FE', padding: '1px 6px', borderRadius: '999px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 700, color: '#7C3AED', background: '#F5F3FF', border: '1px solid #DDD6FE', padding: '1px 6px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0 }}>
               +2 PTS
             </span>
           </div>
@@ -216,10 +217,11 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
             fontWeight: 700,
             color: streakDays > 0 ? '#C2410C' : '#64748B',
             flexShrink: 0,
+            whiteSpace: 'nowrap',
           }}
         >
           <Flame size={12} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
-          <span>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
+          <span style={{ whiteSpace: 'nowrap' }}>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
         </div>
       </div>
 
