@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Brain, CalendarDays, CheckCircle2, Cloud, FileText, Heart, Utensils, Users } from 'lucide-react';
+import { Brain, CalendarDays, CheckCircle2, Cloud, FileText, Heart, Utensils, Users, Pill, FlaskConical, Cpu, BookOpen, Sparkles } from 'lucide-react';
 import { getHealthMemory, HealthMemoryItem, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { getProfile } from '../../services/ProfileEngine';
 
@@ -8,12 +8,25 @@ const iconFor = (kind: HealthMemoryItem['kind']) => {
   if (kind === 'diet') return Utensils;
   if (kind === 'health_buddy') return Heart;
   if (kind === 'deep_collab') return Users;
+  if (kind === 'pharmacy') return Pill;
+  if (kind === 'research') return FlaskConical;
+  if (kind === 'jarvis_analysis') return Cpu;
+  if (kind === 'discussion_guide') return BookOpen;
   return Brain;
 };
 
 const labelFor = (kind: HealthMemoryItem['kind']) => ({
-  case_prep: 'Case preparation', quick_consult: 'Quick Consult', deep_collab: 'Collaborative brief',
-  lab_report: 'Lab report', diet: 'Diet', health_buddy: 'Ava Health Buddy', profile_event: 'Health profile',
+  case_prep: 'Case preparation',
+  quick_consult: 'Quick Consult',
+  deep_collab: 'Collaborative brief',
+  lab_report: 'Lab report',
+  diet: 'Diet',
+  health_buddy: 'Ava Health Buddy',
+  profile_event: 'Health profile',
+  pharmacy: 'Medication & Pharmacy',
+  research: 'Clinical Trials & Evidence',
+  jarvis_analysis: 'J.A.R.V.I.S. Root-Cause Analysis',
+  discussion_guide: 'Clinical Discussion Guide',
 }[kind] || kind);
 
 function formatTranscript(value: any[]) {

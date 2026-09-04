@@ -12,6 +12,8 @@ import { getActiveSession } from '../../services/authSession';
 import { getProfile } from '../../services/ProfileEngine';
 import { openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { recordHealthMemory } from '../../services/HealthMemory';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
@@ -184,6 +186,24 @@ export default function JarvisInvestigator() {
           report: result,
           specialists: ['J.A.R.V.I.S.']
         });
+
+        // 3. Record to Health Memory
+        recordHealthMemory({
+          kind: 'jarvis_analysis',
+          source: 'jarvis_root_cause',
+          title: `J.A.R.V.I.S. Root-Cause: ${(history || 'Investigation').trim().slice(0, 36)}`,
+          occurredAt: new Date().toISOString(),
+          caseId: newCase.id,
+          payload: {
+            topHypotheses: result.topDifferentials || result.primaryDifferentials || result.differentials || [],
+            rootCauseNarrative: result.rootCauseNarrative || result.summary || '',
+            documentCount: mappedFiles.length
+          },
+          dedupeKey: `jarvis:${newCase.id}`
+        });
+
+        // 4. Award Vitality Points for comprehensive analysis
+        awardPoints(25, 'J.A.R.V.I.S. Deep Clinical Investigation', 'checkin');
         
         setPhase('done');
       } else {

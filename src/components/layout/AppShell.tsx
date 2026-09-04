@@ -38,6 +38,8 @@ const links: any[] = [
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
   { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
   { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
+  { to: '/app/sports', label: 'Sports & Training', icon: Dumbbell },
+  { to: '/app/trophies', label: 'Trophy Cabinet', icon: Trophy },
   { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
   { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },
 ];
@@ -118,7 +120,7 @@ export default function AppShell() {
 
   const [points, setPoints] = useState(getVitalityPoints());
   const [vitalityState, setVitalityState] = useState(() => getVitalityState());
-  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || 'Ã°Å¸Â¥â€°';
+  const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
 
   const handleNavClick = (path: string, label?: string) => {
     triggerHapticLight();
@@ -245,7 +247,7 @@ const enforceSafeArea = () => {
               <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46' }}>{points} PTS</span>
               <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards Ã¢â€ â€™</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
           </button>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
@@ -386,7 +388,7 @@ const enforceSafeArea = () => {
                           {profile?.demographics?.name || 'My Health'}
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748B' }}>
-                          {profile?.isPro ? 'Ã¢Å“Â¨ Pro Member' : 'Free Starter'}
+                          {profile?.isPro ? '✨ Pro Member' : 'Free Starter'}
                         </div>
                       </div>
 
@@ -703,10 +705,10 @@ export function ActiveCaseBar({ navigate }: any) {
         <BriefcaseBusiness size={18} />
       </div>
       <div className="active-case-bar__copy">
-        <span>ACTIVE CASE Ã‚Â· {profile?.demographics?.name || 'Your health record'}</span>
+        <span>ACTIVE CASE · {profile?.demographics?.name || 'Your health record'}</span>
         <strong>{activeCase.title}</strong>
         <small>
-          {(activeCase.medicalRecords || []).length} evidence items Ã‚Â· {pending} open actions Ã‚Â·
+          {(activeCase.medicalRecords || []).length} evidence items · {pending} open actions ·
           Updated {new Date(activeCase.updatedAt).toLocaleDateString()}
         </small>
       </div>

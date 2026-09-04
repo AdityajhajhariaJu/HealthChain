@@ -363,6 +363,10 @@ export default function Settings() {
             </label>
           </div>
 
+        <div style={{ marginTop: '24px' }}>
+          <HealthDeviceIntegrations />
+        </div>
+
         <h2
           style={{
             fontSize: '18px',

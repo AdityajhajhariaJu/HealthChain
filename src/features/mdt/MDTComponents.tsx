@@ -152,7 +152,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             Active case handoff
           </div>
           <h2 style={{ margin: 0, color: '#0F172A', fontSize: isMobile ? '24px' : '30px', letterSpacing: '-0.7px' }}>
-            Correlate, donÃ¢â¬â¢t start over.
+            Correlate, don't start over.
           </h2>
           <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '14px', lineHeight: 1.6 }}>
             The collaborative board will use your Parallel Specialists findings and saved evidence as one case file. It
@@ -201,7 +201,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             {pathways
               .map((pathway) => pathway.condition || pathway.name)
               .filter(Boolean)
-              .join(' ÃÂ· ')}
+              .join(' · ')}
           </div>
         )}
       </div>
@@ -239,9 +239,9 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             what conflicts, and what is still missing.
           </p>
           <div style={{ display: 'grid', gap: 7, color: '#334155', fontSize: 13, fontWeight: 650 }}>
-            <span>Ã¢â¬Â¢ shared signals across perspectives</span>
-            <span>Ã¢â¬Â¢ disagreements and evidence gaps</span>
-            <span>Ã¢â¬Â¢ clearer questions for your clinician</span>
+            <span>• shared signals across perspectives</span>
+            <span>• disagreements and evidence gaps</span>
+            <span>• clearer questions for your clinician</span>
           </div>
           <button
             onClick={onBegin}
@@ -322,7 +322,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
           fontSize: 13,
         }}
       >
-        This is a completely unrelated health concern Ã¢â¬â create a separate case
+        This is a completely unrelated health concern — create a separate case
       </button>
     </div>
   );
