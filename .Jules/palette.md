@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing Accessibility Attributes on Custom Inline Modals
+**Learning:** React components (specifically modals like AuthModal) created using raw `motion.div` and styled via inline properties often omit necessary accessibility basics, like `aria-label` for icon-only close buttons, and lack visible keyboard focus states because they sidestep standard CSS classes or design system components that usually provide them by default.
+**Action:** When building or auditing custom inline-styled modals or overlays, always explicitly add an `aria-label` to icon-only buttons (like an `X` icon) and use React `onFocus` and `onBlur` handlers to synthesize a visual focus indicator (such as an outline or `boxShadow`) to ensure keyboard navigability.
