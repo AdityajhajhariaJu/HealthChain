@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sparkles, Loader2, X } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
 import { trackPurchase } from '../../services/analytics';
 import { loadRazorpaySDK } from '../../services/razorpay';
+import { triggerHapticLight } from '../../services/haptics';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'pharmacy_hub' | 'lab_report';
@@ -21,9 +23,21 @@ const TOPUPS = {
 };
 
 export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalProps) {
+  const navigate = useNavigate();
   const toast = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const plan = TOPUPS[feature];
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleCheckout = async () => {
     if (isProcessing) return;
@@ -118,7 +132,13 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }}>
-      <div className="card" style={{ width: '100%', maxWidth: 400, padding: 24, margin: 16, position: 'relative' }}>
+      <div 
+        className="card" 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Unlock Feature Top-Up"
+        style={{ width: '100%', maxWidth: 400, padding: 24, margin: 16, position: 'relative' }}
+      >
         <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
           <X size={20} />
         </button>
@@ -150,6 +170,29 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
           {isProcessing ? <Loader2 size={18} className="spin" /> : null}
           {isProcessing ? 'Processing...' : 'Buy Now'}
         </button>
+
+        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              onClose();
+              navigate('/pricing');
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--teal)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 0
+            }}
+          >
+            Looking for unlimited usage? Compare Pro Plans
+          </button>
+        </div>
       </div>
     </div>
   );

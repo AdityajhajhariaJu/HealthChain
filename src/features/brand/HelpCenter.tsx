@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';
 import { trackButtonClick } from '../../services/analytics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 const faqs = [
   {
@@ -65,6 +67,8 @@ export default function HelpCenter() {
       });
 
       trackButtonClick('feedback_submitted', 'help_center');
+      awardPoints(5, 'Submitted Platform Feedback & Community Insights', 'research');
+      triggerHapticSuccess();
       setIsSubmitted(true);
     } catch (err) {
       console.error('Error submitting feedback:', err);

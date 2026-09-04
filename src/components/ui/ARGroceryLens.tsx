@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw } from 'lucide-react';
+import { Camera, X, Zap, ArrowRight, Scan, AlertTriangle, Image as ImageIcon, Upload, RefreshCw, Sparkles } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
 import { analyzeFoodImage } from '../../services/geminiService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticWarning } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
 
 export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onLogFood?: (food: any) => void }) => {
+  const navigate = useNavigate();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -62,6 +65,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         } else {
           triggerHapticSuccess();
         }
+        awardPoints(5, 'Scanned Nutrition Facts via AR Lens', 'lifestyle');
         setShowResults(true);
       } catch (err) {
         console.error('File scan error:', err);
@@ -95,6 +99,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
         } else {
           triggerHapticSuccess();
         }
+        awardPoints(5, 'Scanned Nutrition Facts via AR Lens', 'lifestyle');
         setShowResults(true);
       }
     } catch (e) {
@@ -112,15 +117,31 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     onClose();
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stream]);
+
   const dailySugarLimit = 36; // grams (AHA recommendation for men, roughly)
   const scannedSugar = 28; // Example for Sugar Loops
   const sugarPercentage = Math.min((scannedSugar / dailySugarLimit) * 100, 100);
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: '#000', zIndex: 9999, display: 'flex', flexDirection: 'column'
-    }}>
+    <div 
+      role="dialog"
+      aria-modal="true"
+      aria-label="AR Grocery Nutrition Scanner"
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: '#000', zIndex: 9999, display: 'flex', flexDirection: 'column'
+      }}
+    >
       {/* Live Camera Feed */}
       <video 
         ref={videoRef}
@@ -268,6 +289,38 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   <ArrowRight size={16} />
                 </div>
               </div>
+            )}
+
+            {/* Consult Ava Action */}
+            {analysis && (
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  handleClose();
+                  const prompt = `Hi Ava, I just scanned "${analysis.foodName || 'this packaged food'}" in the grocery aisle: ${analysis.calories || 0} kcal, ${analysis.protein || 0}g protein, ${analysis.carbs || 0}g carbs (${analysis.sugar || 0}g sugar), and ${analysis.fats || 0}g fat. Does this food spike insulin or conflict with my active metabolic profile, glycemic goals, and condition history?`;
+                  navigate('/app/ava', { state: { initialPrompt: prompt } });
+                }}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)',
+                  color: '#FFF',
+                  border: 'none',
+                  padding: '14px',
+                  borderRadius: '16px',
+                  fontSize: '14.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(14, 165, 233, 0.3)',
+                  marginBottom: '10px'
+                }}
+              >
+                <Sparkles size={16} /> Consult Ava on this Item
+              </button>
             )}
 
             {/* Action Buttons: Scan Another & Log Food */}

@@ -41,6 +41,18 @@ export default function VitalityPointsModal() {
     navigate(route);
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const currentTierObj = TIERS.find(t => t.name === state.tier) || TIERS[0];
@@ -62,6 +74,9 @@ export default function VitalityPointsModal() {
         onClick={handleClose}
       >
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vitality Points & Rewards"
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -140,6 +155,43 @@ export default function VitalityPointsModal() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Ava Tier Strategy Concierge Bridge */}
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  handleClose();
+                  navigate('/app/ava', {
+                    state: {
+                      initialPrompt: `Hi Ava, I currently have ${state.points} Vitality Points at ${state.tier} (Level ${state.tierLevel}). I need ${state.pointsToNextTier} more points to reach the next tier (${TIERS[state.tierLevel]?.name || 'Next Tier'}). Could you review my clinical profile and build an achievable 7-day personalized habit roadmap to help me advance?`
+                    }
+                  });
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '999px',
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  backdropFilter: 'blur(8px)',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)'}
+              >
+                <Sparkles size={14} color="#A7F3D0" />
+                <span>Strategize Health Tier with Ava</span>
+                <ChevronRight size={13} />
+              </button>
             </div>
           </div>
 

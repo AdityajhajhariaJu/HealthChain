@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import FocusTrap from './FocusTrap';
 import { getActiveSession } from '../../services/authSession';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 const TOUR_STEPS = [
   {
@@ -47,15 +49,31 @@ export default function ProductTour() {
     try { localStorage.setItem('hc_product_tour_seen', 'true'); } catch(e) {}
   };
 
+  useEffect(() => {
+    if (!isVisible) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        dismiss();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isVisible]);
+
   const nextStep = () => {
+    triggerHapticLight();
     if (currentStep < TOUR_STEPS.length - 1) {
       setCurrentStep(c => c + 1);
     } else {
+      awardPoints(10, 'Completed Product Onboarding Tour', 'research');
+      triggerHapticSuccess();
       dismiss();
     }
   };
 
   const prevStep = () => {
+    triggerHapticLight();
     if (currentStep > 0) {
       setCurrentStep(c => c - 1);
     }
@@ -82,6 +100,9 @@ export default function ProductTour() {
         >
           <FocusTrap isActive={isVisible}>
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Welcome Tour"
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}

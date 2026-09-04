@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from './ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 export default function FeedbackWidget() {
   const location = useLocation();
@@ -11,6 +13,18 @@ export default function FeedbackWidget() {
   const [feedback, setFeedback] = useState('');
   const { success } = useToast();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   // Hide floating feedback on full-screen chats and onboarding to prevent input obstruction
   if (
@@ -28,7 +42,9 @@ export default function FeedbackWidget() {
     const msg = feedback.trim();
     setFeedback('');
     setIsOpen(false);
-    success('Feedback sent', 'Thank you for helping us improve HealthChain!');
+    awardPoints(5, 'Shared Platform Feedback', 'research');
+    triggerHapticSuccess();
+    success('Feedback Sent (+5 PTS)', 'Thank you for contributing to HealthChain research & development!');
 
     try {
       const { supabase } = await import('../../services/supabaseClient');
@@ -83,6 +99,9 @@ export default function FeedbackWidget() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Send Feedback"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}

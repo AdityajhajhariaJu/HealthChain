@@ -4,6 +4,7 @@ import { Plus, Edit2, Trash2, UploadCloud, Save, X, Image as ImageIcon, Play, Ch
 import { supabase } from '../../services/supabaseClient';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
 import { useToast } from '../../components/ui/ToastProvider';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 export const AdminContentDashboard: React.FC = () => {
   const toast = useToast();
@@ -12,10 +13,27 @@ export const AdminContentDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<FitnessContent>>({});
+  const [contentToDelete, setContentToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (contentToDelete) {
+          e.preventDefault();
+          setContentToDelete(null);
+        } else if (isEditing) {
+          e.preventDefault();
+          setIsEditing(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [contentToDelete, isEditing]);
 
   const loadData = async () => {
     setLoading(true);
@@ -62,9 +80,14 @@ export const AdminContentDashboard: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to deactivate this content?')) return;
+  const handleDelete = (id: string) => {
+    triggerHapticLight();
+    setContentToDelete(id);
+  };
+
+  const executeDelete = async (id: string) => {
     try {
+      triggerHapticLight();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
@@ -76,9 +99,12 @@ export const AdminContentDashboard: React.FC = () => {
         },
         body: JSON.stringify({ action: 'delete', payload: { id }, table: 'fitness_content' })
       });
+      triggerHapticSuccess();
+      toast.success('Deactivated', 'Content item has been successfully deactivated.');
       loadData();
     } catch (err) {
       console.error(err);
+      toast.error('Deactivation Failed', 'Failed to deactivate content item.');
     }
   };
 
@@ -394,6 +420,92 @@ export const AdminContentDashboard: React.FC = () => {
           </div>
         )}
         </div>
+
+        {/* Deactivation Confirmation Modal */}
+        {contentToDelete && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Deactivate Content Confirmation"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.6)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 99999,
+              padding: '20px'
+            }}
+            onClick={() => setContentToDelete(null)}
+          >
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: '28px',
+                maxWidth: '420px',
+                width: '100%',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                border: '1px solid #E2E8F0'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <Trash2 size={24} />
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px' }}>
+                Deactivate Content
+              </h3>
+              <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: '0 0 24px' }}>
+                Are you sure you want to deactivate this content item? It will be safely archived from patient dashboards.
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => setContentToDelete(null)}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: '#F1F5F9',
+                    border: '1px solid #E2E8F0',
+                    color: '#475569',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (contentToDelete) {
+                      executeDelete(contentToDelete);
+                      setContentToDelete(null);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: '#EF4444',
+                    border: 'none',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.3)'
+                  }}
+                >
+                  Deactivate
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

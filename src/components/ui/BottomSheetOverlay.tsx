@@ -33,6 +33,18 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -55,6 +67,9 @@ export function BottomSheetOverlay({ isOpen, onClose, children, bgImage }: Botto
           />
 
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Bottom Sheet Menu"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
