@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 import { getAllProfiles, getProfileEngineState, verifyProStatus, isProUser } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock, Trophy, Zap, ChevronRight, Award } from 'lucide-react';
+import { Star, AlertTriangle, Trash2, X, ShieldCheck, Lock, Trophy, Zap, ChevronRight, Award, Bell, Clock, Send, Check } from 'lucide-react';
 import { useToast } from '../../components/ui/ToastProvider';
 import { supabase } from '../../services/supabaseClient';
 import { clearSyncOutbox } from '../../services/SyncOutbox';
@@ -14,6 +14,13 @@ import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegr
 import { getVitalityPoints, getVitalityState, awardPoints, TIERS } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { getItemSync, setItemSync, removeItemSync, clearSync } from '../../services/storage';
+import {
+  isDailyReminderEnabled,
+  getDailyReminderTime,
+  setDailyReminderEnabled,
+  setDailyReminderTime,
+  sendTestNotification
+} from '../../services/DailyCheckinNotificationService';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
   'hc_unified_profile',
@@ -47,6 +54,45 @@ export default function Settings() {
   const currentTierBadge = TIERS.find(t => t.name === vitalityState.tier)?.badge || '🥉';
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast, success, error: toastError } = useToast();
+  const [reminderEnabled, setReminderEnabled] = useState<boolean>(isDailyReminderEnabled());
+  const [reminderTime, setReminderTime] = useState<string>(getDailyReminderTime());
+  const [testAlertStatus, setTestAlertStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  useEffect(() => {
+    const handleReminderUpdated = (e: any) => {
+      if (e.detail) {
+        setReminderEnabled(e.detail.enabled);
+        setReminderTime(e.detail.time);
+      }
+    };
+    window.addEventListener('hc_reminder_updated', handleReminderUpdated);
+    return () => window.removeEventListener('hc_reminder_updated', handleReminderUpdated);
+  }, []);
+
+  const handleToggleReminder = async (enabled: boolean) => {
+    triggerHapticLight();
+    setReminderEnabled(enabled);
+    await setDailyReminderEnabled(enabled);
+  };
+
+  const handleSelectReminderTime = async (time: string) => {
+    triggerHapticLight();
+    setReminderTime(time);
+    await setDailyReminderTime(time);
+  };
+
+  const handleTestAlert = async () => {
+    triggerHapticLight();
+    setTestAlertStatus('sending');
+    try {
+      const ok = await sendTestNotification();
+      setTestAlertStatus(ok ? 'sent' : 'error');
+      setTimeout(() => setTestAlertStatus('idle'), 3500);
+    } catch {
+      setTestAlertStatus('error');
+      setTimeout(() => setTestAlertStatus('idle'), 3500);
+    }
+  };
 
   useEffect(() => {
     const handlePoints = () => {
@@ -376,6 +422,180 @@ export default function Settings() {
                 />
               </div>
             </label>
+          </div>
+
+          {/* Daily Check-in Everyday Reminder Card */}
+          <div
+            style={{
+              padding: '16px',
+              background: 'var(--bg)',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border)',
+              marginBottom: '20px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                justifyContent: 'space-between',
+                gap: isMobile ? 12 : 0,
+                marginBottom: reminderEnabled ? '14px' : '0',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                  <Bell size={16} color="#059669" />
+                  <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
+                    Daily Check-in Reminder
+                  </span>
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  Automated everyday notification to log symptoms, energy & protect your streak.
+                </div>
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  aria-label="Daily Check-in everyday notification reminder"
+                  style={{ display: 'none' }}
+                  checked={reminderEnabled}
+                  onChange={(e) => handleToggleReminder(e.target.checked)}
+                />
+                <div
+                  style={{
+                    width: '44px',
+                    height: '24px',
+                    background: reminderEnabled ? '#10B981' : '#E2E8F0',
+                    borderRadius: '999px',
+                    position: 'relative',
+                    transition: 'background 0.3s ease',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      background: '#FFF',
+                      borderRadius: '50%',
+                      position: 'absolute',
+                      top: '2px',
+                      left: reminderEnabled ? '22px' : '2px',
+                      transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  />
+                </div>
+              </label>
+            </div>
+
+            {reminderEnabled && (
+              <div
+                style={{
+                  paddingTop: '12px',
+                  borderTop: '1px solid var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-main)' }}>
+                    Scheduled Everyday At:
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    {[
+                      { label: '9:00 AM', val: '09:00' },
+                      { label: '1:00 PM', val: '13:00' },
+                      { label: '8:00 PM', val: '20:00' },
+                    ].map((p) => (
+                      <button
+                        key={p.val}
+                        type="button"
+                        onClick={() => handleSelectReminderTime(p.val)}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: reminderTime === p.val ? 700 : 500,
+                          background: reminderTime === p.val ? 'var(--text-main)' : 'transparent',
+                          color: reminderTime === p.val ? 'var(--bg)' : 'var(--text-muted)',
+                          border: '1px solid var(--border)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'transparent',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        padding: '2px 6px',
+                      }}
+                    >
+                      <Clock size={12} color="var(--text-muted)" />
+                      <input
+                        type="time"
+                        value={reminderTime}
+                        onChange={(e) => handleSelectReminderTime(e.target.value)}
+                        aria-label="Custom daily check-in time"
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: 'var(--text-main)',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={handleTestAlert}
+                    disabled={testAlertStatus === 'sending'}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      background: 'transparent',
+                      border: '1px solid var(--border)',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: 'var(--text-main)',
+                      cursor: testAlertStatus === 'sending' ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {testAlertStatus === 'sent' ? (
+                      <>
+                        <Check size={13} color="#10B981" />
+                        <span style={{ color: '#10B981' }}>Alert Sent!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={12} />
+                        <span>{testAlertStatus === 'sending' ? 'Sending...' : 'Send Test Alert'}</span>
+                      </>
+                    )}
+                  </button>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Local device push notification
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
         <div style={{ marginTop: '24px' }}>

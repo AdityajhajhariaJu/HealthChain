@@ -23,6 +23,7 @@ import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
+import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -93,13 +94,17 @@ export default function AppShell() {
       }
     };
     checkCheckin();
+    const handleOpenNotifications = () => setShowNotifications(true);
     window.addEventListener('hc_daily_checkin_completed', checkCheckin);
     window.addEventListener('hc_profile_updated', checkCheckin);
+    window.addEventListener('hc_open_notifications_panel', handleOpenNotifications);
+    initDailyReminderService((route) => navigate(route));
     return () => {
       window.removeEventListener('hc_daily_checkin_completed', checkCheckin);
       window.removeEventListener('hc_profile_updated', checkCheckin);
+      window.removeEventListener('hc_open_notifications_panel', handleOpenNotifications);
     };
-  }, []);
+  }, [navigate]);
 
   const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;

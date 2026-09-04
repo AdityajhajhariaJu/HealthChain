@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, HeartPulse, CheckCircle2 } from 'lucide-react';
+import { Flame, HeartPulse, CheckCircle2, BellRing } from 'lucide-react';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -203,25 +203,56 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete }: DailySy
           </div>
         </div>
 
-        {/* Aligned Streak Pill */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            background: streakDays > 0 ? '#FFF7ED' : '#F8FAFC',
-            border: `1px solid ${streakDays > 0 ? '#FED7AA' : '#E2E8F0'}`,
-            padding: '3px 9px',
-            borderRadius: '999px',
-            fontSize: '11px',
-            fontWeight: 700,
-            color: streakDays > 0 ? '#C2410C' : '#64748B',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <Flame size={12} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
-          <span style={{ whiteSpace: 'nowrap' }}>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
+        {/* Right Action Area: Streak & Everyday Reminder Pill */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {/* Aligned Streak Pill */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: streakDays > 0 ? '#FFF7ED' : '#F8FAFC',
+              border: `1px solid ${streakDays > 0 ? '#FED7AA' : '#E2E8F0'}`,
+              padding: '3px 9px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: streakDays > 0 ? '#C2410C' : '#64748B',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Flame size={12} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
+            <span style={{ whiteSpace: 'nowrap' }}>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
+          </div>
+
+          {/* Everyday Reminder Pill Button */}
+          <button
+            onClick={() => {
+              triggerHapticLight();
+              window.dispatchEvent(new CustomEvent('hc_open_notifications_panel'));
+            }}
+            title="Configure everyday daily check-in notifications"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              padding: '3px 8px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#15803D',
+              cursor: 'pointer',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <BellRing size={11} color="#16A34A" />
+            <span>Alerts</span>
+          </button>
         </div>
       </div>
 
