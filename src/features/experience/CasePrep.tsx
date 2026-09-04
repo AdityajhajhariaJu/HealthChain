@@ -4,13 +4,16 @@ import { generateDeterministicBrief, isBriefUpToDate } from '../../services/Appo
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
 import { ArrowRight, Briefcase, ChevronRight, FileText, Loader2, Printer, Sparkles, AlertCircle, Eye, Info, CheckCircle2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
 
 export default function CasePrep() {
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams] = useSearchParams();
+  const caseIdParam = searchParams.get('caseId');
+
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [selectedCase, setSelectedCase] = useState<CaseItem | null>(null);
   const [brief, setBrief] = useState<AppointmentBrief | null>(null);
@@ -21,10 +24,17 @@ export default function CasePrep() {
   useEffect(() => {
     const allCases = getCases().filter(c => c.status === 'active');
     setCases(allCases);
+    if (caseIdParam) {
+      const match = allCases.find(c => c.id === caseIdParam) || getCase(caseIdParam);
+      if (match) {
+        setSelectedCase(match);
+        return;
+      }
+    }
     if (allCases.length === 1) {
       setSelectedCase(allCases[0]);
     }
-  }, []);
+  }, [caseIdParam]);
 
   useEffect(() => {
     if (selectedCase) {
