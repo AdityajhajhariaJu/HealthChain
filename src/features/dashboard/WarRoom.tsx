@@ -78,6 +78,16 @@ export default function WarRoom() {
           </div>
           
           <div 
+            role="button"
+            tabIndex={0}
+            aria-label="View Q3 Bloodwork Results in Lab Analyzer"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                triggerHapticLight();
+                navigate('/app/medicine-lab#clinical-report-analyzer');
+              }
+            }}
             onClick={() => {
               triggerHapticLight();
               navigate('/app/medicine-lab#clinical-report-analyzer');

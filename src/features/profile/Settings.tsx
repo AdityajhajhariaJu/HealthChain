@@ -11,7 +11,7 @@ import FocusTrap from '../../components/ui/FocusTrap';
 import { getActiveSession } from '../../services/authSession';
 import UpgradeToProCard from '../../components/ui/UpgradeToProCard';
 import { HealthDeviceIntegrations } from '../../components/ui/HealthDeviceIntegrations';
-import { getVitalityPoints, getVitalityState, TIERS } from '../../services/VitalityPointsEngine';
+import { getVitalityPoints, getVitalityState, awardPoints, TIERS } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
 
 const EXPORTABLE_STORAGE_PREFIXES = [
@@ -90,6 +90,20 @@ export default function Settings() {
       window.removeEventListener('hc_profile_updated', handleProfileUpdate);
     };
   }, []);
+
+  useEffect(() => {
+    if (!showDeleteModal && !showLogoutConfirm) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowDeleteModal(false);
+        setDeleteConfirmation('');
+        setShowLogoutConfirm(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDeleteModal, showLogoutConfirm]);
 
   const executeLogout = async () => {
     try {
@@ -715,7 +729,8 @@ export default function Settings() {
               linkElement.setAttribute('download', 'healthchain_export.json');
               linkElement.click();
               window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-              success('Export Complete', cloudData ? 'Your local cache and cloud records were downloaded.' : 'Your local data was downloaded. Sign in to include cloud records.');
+              awardPoints(10, 'Exported Patient Health Archive', 'research');
+              success('Export Complete', cloudData ? 'Your local cache and cloud records were downloaded (+10 Vitality Points).' : 'Your local data was downloaded (+10 Vitality Points).');
             }}
           >
             Export JSON
@@ -895,13 +910,16 @@ export default function Settings() {
           <FocusTrap isActive={showDeleteModal}>
             <div
               className="card"
-            style={{
-              width: '100%',
-              maxWidth: '400px',
-              padding: '24px',
-              position: 'relative',
-            }}
-          >
+              role="dialog"
+              aria-modal="true"
+              aria-label="Delete Account Confirmation"
+              style={{
+                width: '100%',
+                maxWidth: '400px',
+                padding: '24px',
+                position: 'relative',
+              }}
+            >
             <button
               onClick={() => {
                 setShowDeleteModal(false);
@@ -1004,6 +1022,9 @@ export default function Settings() {
           <FocusTrap>
             <div
               className="card"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Unsynced Offline Changes Confirmation"
               style={{
                 maxWidth: '440px',
                 width: '100%',

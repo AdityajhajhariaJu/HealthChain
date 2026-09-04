@@ -353,6 +353,16 @@ export function IntakePhase({ onComplete, onUploadClick, activeCase, isPreparing
     } catch (e) {}
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showImportModal) {
+        setShowImportModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showImportModal]);
+
 
   const formatTitle = (title: string) => {
     if (!title) return 'Untitled Case';
@@ -668,6 +678,9 @@ New Information / Changes in Symptoms since last evaluation:
             padding: '20px'
           }}>
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Import Existing Case"
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               style={{
                 background: '#FFF', borderRadius: '24px', padding: '24px',
@@ -693,6 +706,15 @@ New Information / Changes in Symptoms since last evaluation:
                   {historyCases.map(hc => (
                     <div
                       key={hc.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Import case: ${formatTitle(hc.title)}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleImportCase(hc);
+                        }
+                      }}
                       onClick={() => handleImportCase(hc)}
                       style={{
                         padding: '16px', background: '#FFF', border: '1px solid rgba(255, 255, 255, 0.8)',

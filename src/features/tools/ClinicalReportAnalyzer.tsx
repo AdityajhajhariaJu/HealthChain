@@ -369,6 +369,15 @@ export default function ClinicalReportAnalyzer() {
 
       {/* Upload Dropzone */}
       <motion.div
+        role="button"
+        tabIndex={0}
+        aria-label="Upload bloodwork or lab report PDF/image"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}

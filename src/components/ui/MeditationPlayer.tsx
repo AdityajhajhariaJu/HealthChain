@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from './ToastProvider';
@@ -443,6 +444,7 @@ interface MeditationPlayerProps {
 }
 
 export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onClose }) => {
+  const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(true);
   const toast = useToast();
   const [timeRemaining, setTimeRemaining] = useState((content?.duration_minutes || 5) * 60);
@@ -896,6 +898,34 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       return next;
     });
   };
+
+  // Keyboard Navigation & Escape Dismissal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (showSummaryModal) {
+          setShowSummaryModal(false);
+          setShowConfetti(false);
+        } else if (showAmbientMixer) {
+          setShowAmbientMixer(false);
+        } else if (showSleepTimerSheet) {
+          setShowSleepTimerSheet(false);
+        } else if (showPlaylist) {
+          setShowPlaylist(false);
+        } else if (showBreathSelector) {
+          setShowBreathSelector(false);
+        } else if (isZenMode) {
+          setIsZenMode(false);
+          setShowControls(true);
+        } else {
+          handleClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showSummaryModal, showAmbientMixer, showSleepTimerSheet, showPlaylist, showBreathSelector, isZenMode, isPlaying, isPlaylistMode, currentTrack, content, playlistTitle]);
 
   // Point 5: Haptic Precision Scrubber with Floating Time Bubble
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -2487,6 +2517,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                     )}
 
                     <motion.div
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="Session Completed"
                       initial={{ scale: 0.9, opacity: 0, y: 20 }}
                       animate={{ scale: 1, opacity: 1, y: 0 }}
                       exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -2566,28 +2599,58 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => {
-                          triggerHapticLight();
-                          setShowSummaryModal(false);
-                          setShowConfetti(false);
-                          onClose();
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '16px',
-                          borderRadius: '18px',
-                          background: 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)',
-                          border: 'none',
-                          color: 'white',
-                          fontSize: '16px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          boxShadow: '0 8px 24px rgba(14, 165, 233, 0.4)'
-                        }}
-                      >
-                        Done
-                      </button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <button
+                          onClick={() => {
+                            triggerHapticLight();
+                            setShowSummaryModal(false);
+                            setShowConfetti(false);
+                            onClose();
+                            const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you analyze how this parasympathetic activation affects my autonomic nervous system, vagal tone, and resting heart rate metrics?`;
+                            navigate('/chat', { state: { initialMessage: calmPrompt } });
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '16px',
+                            borderRadius: '18px',
+                            background: 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)',
+                            border: 'none',
+                            color: 'white',
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            boxShadow: '0 8px 24px rgba(14, 165, 233, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          💬 Discuss Autonomic Reset with Ava
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            triggerHapticLight();
+                            setShowSummaryModal(false);
+                            setShowConfetti(false);
+                            onClose();
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '14px',
+                            borderRadius: '18px',
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: 'white',
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Done
+                        </button>
+                      </div>
                     </motion.div>
                   </div>
                 )}

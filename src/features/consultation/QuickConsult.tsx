@@ -516,6 +516,16 @@ export default function QuickConsult() {
                   return (
                     <div
                       key={s.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
+                      aria-label={s.name}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedSpecialist(s);
+                        }
+                      }}
                       onClick={() => setSelectedSpecialist(s)}
                       style={{
                         flexShrink: 0,

@@ -55,6 +55,8 @@ import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel, SpecialistPill } from './MultiSpecialistComponents';
 import { getRunScope, readRunJson, clearRunStorage } from '../../services/RunContext';
 import { useToast } from '../../components/ui/ToastProvider';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { triggerHapticSuccess, triggerHapticLight } from '../../services/haptics';
 
 // Global cache
 let cachedMultiSpecialistState: any = null;
@@ -164,8 +166,18 @@ export default function MultiSpecialist() {
     customSpecialists,
     completedSpecialists,
     activeSpecialistId,
-    aiSuggestion,
   ]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (activeSpecialistId) setActiveSpecialistId(null);
+        else if (phase === 'report') setPhase('running');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeSpecialistId, phase]);
 
   const handleForceConsensus = async () => {
     if (consensusInFlightRef.current || phase === 'correlating' || phase === 'report') return;
@@ -189,6 +201,9 @@ export default function MultiSpecialist() {
       );
       setFinalReport(report);
       setPhase('done');
+      awardPoints(25, 'Convened Multi-Disciplinary Specialist Board', 'consult', `mdt_force_${Date.now()}`);
+      triggerHapticSuccess();
+      toast.success('MDT Consensus Complete! ✨', 'Multi-specialist clinical findings synthesized (+25 PTS)');
       setTimeout(() => setPhase('report'), 800);
     } catch (error) {
       console.error('Failed to force consensus:', error);
@@ -348,6 +363,9 @@ export default function MultiSpecialist() {
           if (reportData) {
             setFinalReport(reportData);
             setPhase('report');
+            awardPoints(25, 'Convened Multi-Disciplinary Specialist Board', 'consult', `mdt_${Date.now()}`);
+            triggerHapticSuccess();
+            toast.success('MDT Consensus Complete! ✨', 'Multi-specialist clinical findings synthesized (+25 PTS)');
             if (reportData.topDiagnoses?.[0]?.condition) {
               addCondition(reportData.topDiagnoses[0].condition, 'multi_specialist');
             }
@@ -1031,7 +1049,7 @@ export default function MultiSpecialist() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
+            <div style={{ marginBottom: '24px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                <button 
                  onClick={() => setPhase('running')} 
                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '999px', background: 'rgba(255, 255, 255, 0.4)', border: '1px solid #E2E8F0', color: '#475569', fontWeight: 700, fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
@@ -1039,6 +1057,21 @@ export default function MultiSpecialist() {
                  onMouseOut={e => { e.currentTarget.style.background = '#FFF'; e.currentTarget.style.color = '#475569'; }}
                >
                  <ArrowLeft size={16} /> Back to Specialists Chat
+               </button>
+               <button 
+                 type="button"
+                 onClick={() => {
+                   triggerHapticLight();
+                   const topConditions = (finalReport as any)?.topDiagnoses?.map((d: any) => d.condition).filter(Boolean).join(', ') || 'differential pathways';
+                   navigate('/app/ava', {
+                     state: {
+                       initialPrompt: `Hi Ava, my Multi-Disciplinary Specialist Board completed an assessment for "${caseTitle || symptomInput || 'Clinical Case'}". Leading pathways: ${topConditions}. Can you help me rehearse how to present these findings and specialist questions to my primary doctor?`
+                     }
+                   });
+                 }}
+                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '999px', background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)', color: '#FFF', fontWeight: 700, fontSize: '14px', cursor: 'pointer', border: 'none', boxShadow: '0 4px 14px rgba(79, 70, 229, 0.25)', transition: 'all 0.2s' }}
+               >
+                 <Sparkles size={16} /> Rehearse Consensus with Ava
                </button>
             </div>
             <MDTReportPanel
