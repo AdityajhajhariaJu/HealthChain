@@ -81,16 +81,16 @@ const PRO_90_FEATURES: FeatureItem[] = [
 const TOPUP_PLANS = [
   { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '+10 Replies', desc: 'Instant AI Chief of Staff consultation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '+1 Session', desc: 'Single-specialist acute review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
-  { id: 'topup_deep_collab', name: 'Deep Collab Board', price: 149, qty: '+1 Session', desc: '4-Specialist clinical debate & consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
-  { id: 'topup_jarvis', name: 'J.A.R.V.I.S. Root-Cause', price: 169, qty: '+1 Session', desc: 'Autonomous biomarker pattern scan', icon: BrainCircuit, color: '#7C3AED', bg: '#F5F3FF' },
+  { id: 'topup_deep_collab', name: 'Specialist Consensus Board', price: 149, qty: '+1 Session', desc: 'Multi-specialist clinical review & consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
+  { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '+1 Session', desc: 'Autonomous root-cause biomarker scan', icon: BrainCircuit, color: '#7C3AED', bg: '#F5F3FF' },
   { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Real-time drug clash & safety checks', icon: Pill, color: '#EA580C', bg: '#FFF7ED' },
   { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
 
 const FAQS = [
   {
-    q: 'How do J.A.R.V.I.S. Investigations and Deep Collab Boards work?',
-    a: 'Deep Collab convenes up to 4 AI specialists simultaneously to debate symptoms, lab markers, and differential diagnoses. J.A.R.V.I.S. acts as our autonomous investigator, uncovering non-obvious sub-clinical patterns across multiple body systems.',
+    q: 'How do Clinical Data Engine Investigations work?',
+    a: 'Clinical Data Engine acts as our autonomous diagnostic intelligence system, cross-analyzing blood labs, clinical notes, and vitals to uncover root-cause multi-system connections.',
   },
   {
     q: 'What happens if I finish my consult quotas early?',

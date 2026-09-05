@@ -25,7 +25,7 @@ const labelFor = (kind: HealthMemoryItem['kind']) => ({
   profile_event: 'Health profile',
   pharmacy: 'Medication & Pharmacy',
   research: 'Clinical Trials & Evidence',
-  jarvis_analysis: 'J.A.R.V.I.S. Root-Cause Analysis',
+  jarvis_analysis: 'Clinical Data Engine Analysis',
   discussion_guide: 'Clinical Discussion Guide',
 }[kind] || kind);
 
@@ -185,7 +185,7 @@ export default function HealthMemory() {
             <option value="health_buddy">Ava</option>
             <option value="pharmacy">Medication & Pharmacy</option>
             <option value="research">Clinical Trials & Evidence</option>
-            <option value="jarvis_analysis">J.A.R.V.I.S. Analysis</option>
+            <option value="jarvis_analysis">Clinical Data Engine Analysis</option>
             <option value="discussion_guide">Discussion Guides</option>
           </select>
         </div>

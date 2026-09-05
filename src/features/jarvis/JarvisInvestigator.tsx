@@ -64,7 +64,7 @@ export default function JarvisInvestigator() {
     
     // Limits: Max 10 files total
     if (files.length + selected.length > 10) {
-      toast.error("Document Limit", "JARVIS is currently limited to processing 10 documents at a time.");
+      toast.error("Document Limit", "Clinical Data Engine is currently limited to processing 10 documents at a time.");
       return;
     }
 
@@ -203,12 +203,12 @@ export default function JarvisInvestigator() {
         });
 
         // 4. Award Vitality Points for comprehensive analysis
-        awardPoints(25, 'J.A.R.V.I.S. Deep Clinical Investigation', 'checkin');
+        awardPoints(25, 'Clinical Data Engine Deep Investigation', 'checkin');
         
         setPhase('done');
       } else {
         if (!isMounted.current) return;
-        toast.error("Analysis Disrupted", "JARVIS encountered a network disruption. Please try again.");
+        toast.error("Analysis Disrupted", "Clinical Data Engine encountered a network disruption. Please try again.");
         setPhase('input');
       }
     } catch (e) {
@@ -341,7 +341,7 @@ export default function JarvisInvestigator() {
           )}
         </div>
 
-        {/* J.A.R.V.I.S. Next-Step Bridge */}
+        {/* Clinical Data Engine Next-Step Bridge */}
         <div style={{ marginTop: '36px', background: '#FFF', padding: isMobile ? '20px' : '28px', borderRadius: '24px', border: '1px solid #E2E8F0', boxShadow: '0 8px 30px rgba(15,23,42,0.04)' }}>
           <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>Next Steps with Your Findings</h3>
           <p style={{ color: '#64748B', fontSize: '14px', margin: '0 0 20px 0' }}>Take these insights further with our AI care team or prepare for your physician visit.</p>
@@ -350,7 +350,7 @@ export default function JarvisInvestigator() {
             <button 
               onClick={() => {
                 const diagnosesList = (report?.topDiagnoses || []).slice(0, 2).map((d: any) => d.condition).join(', ');
-                const initialPrompt = `I just completed a J.A.R.V.I.S. investigation regarding: ${history ? history.slice(0, 100) : 'my health symptoms'}${diagnosesList ? `. The top considerations identified were: ${diagnosesList}` : ''}. Let's review these clinical findings.`;
+                const initialPrompt = `I just completed a Clinical Data Engine investigation regarding: ${history ? history.slice(0, 100) : 'my health symptoms'}${diagnosesList ? `. The top considerations identified were: ${diagnosesList}` : ''}. Let's review these clinical findings.`;
                 navigate('/app/ava', { state: { initialPrompt } });
               }}
               style={{ padding: '14px 18px', background: 'linear-gradient(135deg, #0EA5E9, #0284C7)', color: '#FFF', border: 'none', borderRadius: '14px', fontWeight: 700, fontSize: '14.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(14,165,233,0.25)' }}
@@ -418,11 +418,11 @@ export default function JarvisInvestigator() {
               <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#FFEDD5', color: '#EA580C' }}>
                 <BrainCircuit size={18} />
               </div>
-              <span style={{ color: '#EA580C', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>J.A.R.V.I.S. DATA ENGINE</span>
+              <span style={{ color: '#EA580C', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>CLINICAL DATA ENGINE</span>
             </div>
             
             <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
-              Uncover the missing link.
+              Uncover root-cause connections.
             </h2>
             
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>

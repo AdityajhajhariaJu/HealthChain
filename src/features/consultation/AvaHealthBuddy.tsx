@@ -226,6 +226,86 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   return <span>{displayed}</span>;
 };
 
+function extractBalancedWidget(text: string, tag: string): { payload: any | null; before: string; after: string; found: boolean } {
+  const prefix = `[WIDGET:${tag}`;
+  const startIdx = text.indexOf(prefix);
+  if (startIdx === -1) {
+    return { payload: null, before: text, after: '', found: false };
+  }
+
+  const before = text.substring(0, startIdx).trim();
+  const rest = text.substring(startIdx + prefix.length);
+
+  // If it's just [WIDGET:TAG]
+  if (rest.startsWith(']')) {
+    return { payload: null, before, after: rest.substring(1).trim(), found: true };
+  }
+
+  // If it has colon: [WIDGET:TAG:...
+  if (rest.startsWith(':')) {
+    const jsonStr = rest.substring(1);
+    let openCount = 0;
+    let endIdx = -1;
+    let inString = false;
+    let escape = false;
+
+    for (let i = 0; i < jsonStr.length; i++) {
+      const char = jsonStr[i];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (char === '\\') {
+        escape = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (!inString) {
+        if (char === '{' || char === '[') {
+          openCount++;
+        } else if (char === '}' || char === ']') {
+          openCount--;
+          if (openCount < 0 && char === ']') {
+            endIdx = i;
+            break;
+          }
+          if (openCount === 0 && i + 1 < jsonStr.length && jsonStr[i + 1] === ']') {
+            endIdx = i + 1;
+            break;
+          }
+        }
+      }
+    }
+
+    if (endIdx !== -1) {
+      const payloadText = jsonStr.substring(0, endIdx).trim();
+      let afterStart = endIdx;
+      if (afterStart < jsonStr.length && jsonStr[afterStart] === ']') {
+        afterStart += 1;
+      }
+      const after = jsonStr.substring(afterStart).trim();
+      let payload = null;
+      try {
+        payload = JSON.parse(payloadText);
+      } catch (e) {
+        console.warn(`Failed to parse widget ${tag} JSON:`, e, payloadText);
+      }
+      return { payload, before, after, found: true };
+    }
+  }
+
+  // Fallback: strip to the last bracket so raw JSON doesn't leak into view
+  const lastBracket = text.lastIndexOf(']');
+  if (lastBracket > startIdx) {
+    return { payload: null, before, after: text.substring(lastBracket + 1).trim(), found: true };
+  }
+
+  return { payload: null, before, after: '', found: true };
+}
+
 const MessageRenderer = ({
   content,
   onOpenCalm,
@@ -246,69 +326,45 @@ const MessageRenderer = ({
 
   // DIARY TIMELINE WIDGET (Triggerbites Diary Reference)
   if (content.includes('[WIDGET:DIARY_TIMELINE')) {
-    const match = content.match(/\[WIDGET:DIARY_TIMELINE(?::([\s\S]*?))?\]/);
-    if (match) {
-      let parsed: any = null;
-      if (match[1]) {
-        try {
-          parsed = JSON.parse(match[1].trim());
-        } catch (e) {
-          console.warn('Failed to parse DIARY_TIMELINE JSON', e);
-        }
-      }
-      if (!parsed || !parsed.entries) {
-        parsed = {
-          title: 'Logged in your diary',
-          date: 'Today',
-          entries: [
-            { time: '08:00', category: 'Breakfast', items: ['🥣 Oats', '🫐 Blueberries', '☕ Coffee'] },
-            { time: '13:00', category: 'Lunch', items: ['🥩 Salami', '🍞 Wheat', '🧀 Aged Cheese', '🍷 Red Wine'] },
-            { time: '15:00', category: 'Symptoms', items: ['💨 Bloating', '🌫️ Brain Fog'] },
-          ],
-        };
-      }
-      const parts = content.split(match[0]);
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-          {parts[0] && <span>{parts[0]}</span>}
-          <DiaryTimelineCard
-            title={parsed.title}
-            date={parsed.date}
-            entries={parsed.entries}
-          />
-          {parts[1] && <span>{parts[1]}</span>}
-        </div>
-      );
-    }
+    const { payload, before, after } = extractBalancedWidget(content, 'DIARY_TIMELINE');
+    const parsed = payload && payload.entries ? payload : {
+      title: 'Logged in your diary',
+      date: 'Today',
+      entries: [
+        { time: '08:00', category: 'Breakfast', items: ['🥣 Oats', '🫐 Blueberries', '☕ Coffee'] },
+        { time: '13:00', category: 'Lunch', items: ['🥩 Salami', '🍞 Wheat', '🧀 Aged Cheese', '🍷 Red Wine'] },
+        { time: '15:00', category: 'Symptoms', items: ['💨 Bloating', '🌫️ Brain Fog'] },
+      ],
+    };
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        {before && <span>{before}</span>}
+        <DiaryTimelineCard
+          title={parsed.title}
+          date={parsed.date}
+          entries={parsed.entries}
+        />
+        {after && <span>{after}</span>}
+      </div>
+    );
   }
 
   // TRIGGER SENSITIVITY CARD WIDGET (Triggerbites Symptom Reference)
   if (content.includes('[WIDGET:TRIGGER_CARD')) {
-    const match = content.match(/\[WIDGET:TRIGGER_CARD(?::([\s\S]*?))?\]/);
-    if (match) {
-      let parsed: any = null;
-      if (match[1]) {
-        try {
-          parsed = JSON.parse(match[1].trim());
-        } catch (e) {
-          console.warn('Failed to parse TRIGGER_CARD JSON', e);
-        }
-      }
-      const parts = content.split(match[0]);
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-          {parts[0] && <span>{parts[0]}</span>}
-          <TriggerSensitivityCard
-            symptom={parsed?.symptom || 'Bloating'}
-            reactionWindow={parsed?.reactionWindow || 'within 1 day'}
-            sensitivities={parsed?.sensitivities}
-            ingredients={parsed?.ingredients}
-            onOpenWholeHealth={onOpenWholeHealth}
-          />
-          {parts[1] && <span>{parts[1]}</span>}
-        </div>
-      );
-    }
+    const { payload, before, after } = extractBalancedWidget(content, 'TRIGGER_CARD');
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        {before && <span>{before}</span>}
+        <TriggerSensitivityCard
+          symptom={payload?.symptom || 'Bloating'}
+          reactionWindow={payload?.reactionWindow || 'within 1 day'}
+          sensitivities={payload?.sensitivities}
+          ingredients={payload?.ingredients}
+          onOpenWholeHealth={onOpenWholeHealth}
+        />
+        {after && <span>{after}</span>}
+      </div>
+    );
   }
 
   if (content.includes('[WIDGET:CALM]') || content.includes('[WIDGET:BREATHWORK]')) {
@@ -844,114 +900,115 @@ export default function AvaHealthBuddy() {
           boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.35)',
         }}
       >
-        {/* Header - Triggerbites Aesthetic */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: isMobile ? '12px 16px' : '18px 28px',
-            background: 'rgba(255, 255, 255, 0.75)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderBottom: '1.5px solid rgba(254, 215, 195, 0.6)',
-            flexShrink: 0,
-            zIndex: 10,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button
-              aria-label="Go back"
-              onClick={() => navigate(-1)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#E11D48',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '6px',
-                marginRight: isMobile ? '8px' : '14px',
-              }}
-            >
-              <ArrowLeft size={isMobile ? 18 : 20} />
-            </button>
-
-            <div
-              style={{
-                width: isMobile ? '36px' : '40px',
-                height: isMobile ? '36px' : '40px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: isMobile ? '10px' : '14px',
-                boxShadow: '0 4px 14px rgba(255, 107, 74, 0.32)',
-              }}
-            >
-              <Heart size={isMobile ? 18 : 20} fill="#FFFFFF" color="#FFFFFF" />
-            </div>
-
-            <div>
-              <h1
-                style={{
-                  fontSize: isMobile ? '17px' : '19px',
-                  fontWeight: 800,
-                  color: '#1C1917',
-                  margin: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  letterSpacing: '-0.3px',
-                }}
-              >
-                Ask <span style={{ color: '#E11D48' }}>Ava</span>
-              </h1>
-              <p
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: '#94A3B8',
-                  letterSpacing: '0.6px',
-                  textTransform: 'uppercase',
-                  margin: 0,
-                }}
-              >
-                MEDICAL CHIEF OF STAFF
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              triggerHapticLight();
-              setWholeHealthTab('picture');
-              setIsWholeHealthOpen(true);
-            }}
+        {/* Header - Desktop Only (Mobile uses AppShell's clean top bar) */}
+        {!isMobile && (
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: isMobile ? '6px 12px' : '8px 16px',
-              borderRadius: '999px',
-              background: '#FFFFFF',
-              border: '1.5px solid #FCD9C6',
-              color: '#E11D48',
-              fontSize: isMobile ? '12px' : '13px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
-              transition: 'transform 0.15s ease',
+              justifyContent: 'space-between',
+              padding: '18px 28px',
+              background: 'rgba(255, 255, 255, 0.75)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderBottom: '1.5px solid rgba(254, 215, 195, 0.6)',
+              flexShrink: 0,
+              zIndex: 10,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
           >
-            <Activity size={14} color="#E11D48" /> Whole Health
-          </button>
-        </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <button
+                aria-label="Go back"
+                onClick={() => navigate(-1)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: theme.primary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '6px',
+                  marginRight: '14px',
+                }}
+              >
+                <ArrowLeft size={20} />
+              </button>
+
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: theme.light,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: '14px',
+                  boxShadow: '0 4px 14px rgba(244, 63, 94, 0.15)',
+                }}
+              >
+                <Heart size={20} color={theme.primary} />
+              </div>
+
+              <div>
+                <h1
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    margin: '0 0 2px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  Ava Pro <span style={{ background: 'linear-gradient(135deg, #14B8A6, #0D9488)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Plus</span>
+                </h1>
+                <p
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: theme.primary,
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    margin: 0,
+                  }}
+                >
+                  MEDICAL CHIEF OF STAFF
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                setWholeHealthTab('picture');
+                setIsWholeHealthOpen(true);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                borderRadius: '999px',
+                background: '#FFFFFF',
+                border: '1.5px solid #FCD9C6',
+                color: '#E11D48',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
+                transition: 'transform 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+            >
+              <Activity size={14} color="#E11D48" /> Whole Health
+            </button>
+          </div>
+        )}
 
         {/* Chat Area */}
         <div

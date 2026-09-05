@@ -63,11 +63,11 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               width: '100%',
               maxWidth: '640px',
               maxHeight: '94vh',
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF8F3 40%, #FEF2E8 100%)',
               borderTopLeftRadius: '32px',
               borderTopRightRadius: '32px',
-              border: '1.5px solid #CBD5E1',
-              boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.22)',
+              border: '1.5px solid rgba(254, 215, 195, 0.95)',
+              boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.18)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
@@ -75,7 +75,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           >
             {/* Grab Handle */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
-              <div style={{ width: '42px', height: '5px', borderRadius: '999px', background: '#CBD5E1' }} />
+              <div style={{ width: '42px', height: '5px', borderRadius: '999px', background: '#FCD9C6' }} />
             </div>
 
             {/* Header */}
@@ -88,11 +88,11 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               }}
             >
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284C7', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                  HEALTHCHAIN ROOT-CAUSE ENGINE
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  MULTI-SYSTEM CLINICAL DETECTIVE
                 </span>
-                <h2 style={{ margin: '2px 0 0 0', fontSize: '22px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.4px' }}>
-                  Connection <span style={{ color: '#0284C7' }}>Detective</span>
+                <h2 style={{ margin: '2px 0 0 0', fontSize: '22px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px' }}>
+                  Connection <span style={{ color: '#E11D48' }}>Detective</span>
                 </h2>
               </div>
 

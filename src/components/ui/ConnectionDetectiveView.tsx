@@ -117,19 +117,31 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       <div
         style={{
           position: 'relative',
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 55%, #FFEDD5 100%)',
           borderRadius: '24px',
           padding: isMobile ? '18px 16px' : '22px 24px',
-          color: '#FFFFFF',
-          border: '1.5px solid #334155',
-          boxShadow: '0 16px 36px rgba(15, 23, 42, 0.25)',
+          color: '#1C1917',
+          border: '1.5px solid #FCD9C6',
+          boxShadow: '0 12px 32px rgba(249, 115, 22, 0.08)',
           overflow: 'hidden',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }} />
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#38BDF8', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#E11D48',
+                letterSpacing: '0.8px',
+                textTransform: 'uppercase',
+                background: '#FFF1F2',
+                padding: '2px 8px',
+                borderRadius: '999px',
+                border: '1px solid #FECDD3',
+              }}
+            >
               CROSS-SYSTEM CLINICAL CONVERGENCE
             </span>
           </div>
@@ -140,19 +152,19 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               fontWeight: 800,
               padding: '3px 10px',
               borderRadius: '999px',
-              background: 'rgba(56, 189, 248, 0.15)',
-              color: '#38BDF8',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
+              background: '#ECFDF5',
+              color: '#059669',
+              border: '1px solid #A7F3D0',
             }}
           >
-            {report.matchConfidence}% Board Consensus
+            {report.matchConfidence}% Panel Consensus
           </span>
         </div>
 
-        <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '17px' : '20px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
+        <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '17px' : '20px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
           {report.primaryHypothesis}
         </h3>
-        <p style={{ margin: 0, fontSize: '12.5px', color: '#94A3B8', lineHeight: 1.4 }}>
+        <p style={{ margin: 0, fontSize: '12.5px', color: '#57534E', lineHeight: 1.4 }}>
           {report.mapData.narrative}
         </p>
 
@@ -169,18 +181,19 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             <div
               key={stream.id}
               style={{
-                background: 'rgba(255, 255, 255, 0.06)',
+                background: '#FFFFFF',
                 borderRadius: '14px',
                 padding: '10px 12px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: '1px solid #FCD9C6',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
               }}
             >
               <span style={{ fontSize: '18px' }}>{stream.icon}</span>
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#F1F5F9' }}>{stream.title}</div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#1C1917' }}>{stream.title}</div>
                 <div style={{ fontSize: '10px', color: stream.color, fontWeight: 700 }}>{stream.status}</div>
               </div>
             </div>
@@ -216,7 +229,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             />
             <motion.path
               d="M 350 0 C 350 20, 210 20, 200 36"
-              stroke="#8B5CF6"
+              stroke="#F97316"
               strokeWidth="2"
               strokeDasharray="4 4"
               animate={{ strokeDashoffset: [20, 0] }}
@@ -289,7 +302,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           { id: 'map', label: 'Connection Map', icon: '🌐' },
           { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
           { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
-          { id: 'consensus', label: 'Specialist Debate', icon: '👨‍⚕️' },
+          { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
           { id: 'misses', label: 'What Doctors Missed', icon: '⚠️' },
           { id: 'dossier', label: 'Doctor Dossier (<60s)', icon: '📋' },
         ].map((t) => {
@@ -313,10 +326,10 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
-                border: isActive ? '1.5px solid #0284C7' : '1.5px solid #E2E8F0',
-                background: isActive ? 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)' : '#FFFFFF',
-                color: isActive ? '#FFFFFF' : '#475569',
-                boxShadow: isActive ? '0 4px 12px rgba(2, 132, 199, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
+                border: isActive ? '1.5px solid #F43F5E' : '1.5px solid #FCD9C6',
+                background: isActive ? 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)' : '#FFFFFF',
+                color: isActive ? '#FFFFFF' : '#78716C',
+                boxShadow: isActive ? '0 4px 12px rgba(244, 63, 94, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -962,11 +975,11 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {activeTab === 'consensus' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              6-DISCIPLINE CLINICAL CONSENSUS BOARD
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              6-DISCIPLINE CLINICAL CONSENSUS PANELS
             </span>
             <span style={{ fontSize: '11px', color: '#059669', fontWeight: 800 }}>
-              ● All 6 Specialists Aligned
+              ● All 6 Medical Panels Aligned
             </span>
           </div>
 
@@ -980,7 +993,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 background: '#FFFFFF',
                 borderRadius: '20px',
                 padding: '16px 18px',
-                border: '1.5px solid #F1F5F9',
+                border: '1.5px solid #FCD9C6',
                 boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1026,7 +1039,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     border: '1px solid #A7F3D0',
                   }}
                 >
-                  Verified Chair
+                  Consensus Panel
                 </span>
               </div>
 

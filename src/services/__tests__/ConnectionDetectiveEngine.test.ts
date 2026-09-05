@@ -31,16 +31,15 @@ describe('ConnectionDetectiveEngine', () => {
     expect(labsStream?.items.length).toBeGreaterThan(0);
   });
 
-  it('generates multi-specialist consensus dialogue across 6 renowned chairs', () => {
+  it('generates multi-specialist consensus dialogue across 6 clinical disciplines', () => {
     const dialogue = getSpecialistDialogue();
     expect(dialogue.length).toBeGreaterThanOrEqual(6);
     const roles = dialogue.map((d) => d.role);
-    expect(roles).toContain('Cardiologist');
-    expect(roles).toContain('Neurologist');
-    expect(roles).toContain('Endocrinologist');
-    expect(roles).toContain('Gastroenterologist');
-    expect(roles).toContain('Immunologist');
-    expect(roles).toContain('Clinic Director');
+    expect(roles.some((r) => r.includes('Cardiology'))).toBe(true);
+    expect(roles.some((r) => r.includes('Neurology'))).toBe(true);
+    expect(roles.some((r) => r.includes('Endocrinology'))).toBe(true);
+    expect(roles.some((r) => r.includes('Gastroenterology'))).toBe(true);
+    expect(roles.some((r) => r.includes('Immunology'))).toBe(true);
 
     dialogue.forEach((d) => {
       expect(d.doctorName).toBeDefined();
@@ -129,19 +128,33 @@ describe('ConnectionDetectiveEngine', () => {
     expect(evaluated.summaryNote).toContain('Cross-referencing');
   });
 
-  it('retrieves detailed node breakdown for conditions and symptoms', () => {
+  it('retrieves detailed node breakdown for conditions and symptoms including dural kinetic axis', () => {
     const ferritinDetail = getNodeDetail('cond_ferritin');
     expect(ferritinDetail).toBeDefined();
     expect(ferritinDetail?.title).toBe('Subclinical Ferritin Depletion');
     expect(ferritinDetail?.biomarkers.length).toBeGreaterThan(0);
     expect(ferritinDetail?.dietaryTriggers.length).toBeGreaterThan(0);
-    expect(ferritinDetail?.specialistQuote.doctor).toContain('Elena Chen');
+    expect(ferritinDetail?.specialistQuote.doctor).toContain('Endocrine');
     expect(ferritinDetail?.confirmatoryWorkup.length).toBeGreaterThan(0);
 
     const potsDetail = getNodeDetail('cond_pots');
     expect(potsDetail).toBeDefined();
     expect(potsDetail?.title).toContain('POTS');
-    expect(potsDetail?.specialistQuote.doctor).toContain('Marcus Vance');
+    expect(potsDetail?.specialistQuote.doctor).toContain('Cardiology');
+
+    const duralDetail = getNodeDetail('cond_dural_kinetic');
+    expect(duralDetail).toBeDefined();
+    expect(duralDetail?.title).toContain('Ascending Craniosacral Dural Traction');
+
+    const backDetail = getNodeDetail('symp_back');
+    expect(backDetail).toBeDefined();
+    expect(backDetail?.biochemicalMechanism).toContain('Sacroiliac pelvic torsion');
+  });
+
+  it('detects Craniosacral Dural Kinetic Axis when lower back and headache are selected together', () => {
+    const result = evaluateSymptomCluster(['symp_back', 'symp_headache']);
+    expect(result.summaryNote).toContain('Craniosacral Dural Kinetic Axis');
+    expect(result.summaryNote).toContain('Greater Occipital Nerve');
   });
 });
 

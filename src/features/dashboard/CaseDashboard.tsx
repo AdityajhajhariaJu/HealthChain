@@ -270,16 +270,16 @@ export default function CaseDashboard() {
           <div
             style={{
               marginBottom: '16px',
-              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 55%, #FFEDD5 100%)',
               borderRadius: isMobile ? '24px' : '28px',
-              padding: isMobile ? '16px' : '22px',
-              border: '1.5px solid rgba(56, 189, 248, 0.25)',
-              boxShadow: '0 16px 36px rgba(15, 23, 42, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              padding: isMobile ? '18px' : '22px',
+              border: '1.5px solid #FCD9C6',
+              boxShadow: '0 12px 32px rgba(249, 115, 22, 0.08), 0 2px 8px rgba(0, 0, 0, 0.03)',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
-            {/* Background Conduit Glow */}
+            {/* Background Conduit Warm Glow */}
             <div
               style={{
                 position: 'absolute',
@@ -288,7 +288,7 @@ export default function CaseDashboard() {
                 width: '180px',
                 height: '180px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, rgba(244, 63, 94, 0.12) 0%, transparent 70%)',
                 pointerEvents: 'none',
               }}
             />
@@ -303,26 +303,26 @@ export default function CaseDashboard() {
                     textTransform: 'uppercase',
                     padding: '3px 9px',
                     borderRadius: '999px',
-                    background: 'rgba(56, 189, 248, 0.15)',
-                    color: '#38BDF8',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                    background: '#FFF1F2',
+                    color: '#E11D48',
+                    border: '1px solid #FECDD3',
                   }}
                 >
                   CLINIC USP ENGINE
                 </span>
-                <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
-                  4-Stream Multi-Specialist Convergence
+                <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>
+                  Multi-System Diagnostic Convergence
                 </span>
               </div>
               <span
                 style={{
                   fontSize: '10px',
                   fontWeight: 700,
-                  color: '#34D399',
-                  background: 'rgba(52, 211, 153, 0.12)',
-                  padding: '2px 8px',
+                  color: '#059669',
+                  background: '#ECFDF5',
+                  padding: '3px 9px',
                   borderRadius: '999px',
-                  border: '1px solid rgba(52, 211, 153, 0.3)',
+                  border: '1px solid #A7F3D0',
                 }}
               >
                 ● 48 Biomarkers Synced
@@ -331,11 +331,11 @@ export default function CaseDashboard() {
 
             <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '14px' }}>
               <div style={{ maxWidth: '540px' }}>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '18px' : '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.3px' }}>
-                  Connection Detective: <span style={{ color: '#38BDF8' }}>What 15-Minute Visits Missed</span>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '18px' : '20px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
+                  Connection Detective: <span style={{ color: '#E11D48' }}>What 15-Minute Visits Missed</span>
                 </h3>
-                <p style={{ margin: 0, fontSize: isMobile ? '12px' : '13px', color: '#CBD5E1', lineHeight: 1.45 }}>
-                  Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered root-cause subclinical ferritin depletion mimicking refractory dysautonomia.
+                <p style={{ margin: 0, fontSize: isMobile ? '12px' : '13px', color: '#57534E', lineHeight: 1.45 }}>
+                  Cross-analyzing blood labs, cardiology notes, orthostatic vitals, and biomechanics uncovered how sacral tension provokes occipital headaches, while subclinical ferritin starves mitochondrial ATP.
                 </p>
               </div>
 
@@ -354,13 +354,13 @@ export default function CaseDashboard() {
                     gap: '6px',
                     padding: '10px 18px',
                     borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%)',
+                    background: 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)',
                     color: '#FFFFFF',
                     border: 'none',
                     fontSize: '13px',
                     fontWeight: 700,
                     cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(14, 165, 233, 0.35)',
+                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.3)',
                   }}
                 >
                   <span>🌐</span>
@@ -377,28 +377,28 @@ export default function CaseDashboard() {
                 gap: '8px',
                 marginTop: '14px',
                 paddingTop: '12px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                borderTop: '1px solid #FCD9C6',
               }}
             >
-              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>🧪 LABS CONDUIT</div>
-                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>Ferritin 14 ng/mL</div>
-                <div style={{ fontSize: '10px', color: '#EF4444' }}>Bone marrow gap</div>
+              <div style={{ background: '#FFF1F2', borderRadius: '12px', padding: '9px 11px', border: '1px solid #FECDD3' }}>
+                <div style={{ fontSize: '10px', color: '#9F1239', fontWeight: 800 }}>🧪 LABS CONDUIT</div>
+                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>Ferritin 14 ng/mL</div>
+                <div style={{ fontSize: '10px', color: '#E11D48', fontWeight: 600 }}>Cellular ATP deficit</div>
               </div>
-              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>🩺 CLINIC NOTES</div>
-                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>Cardio × GI Vagal</div>
-                <div style={{ fontSize: '10px', color: '#38BDF8' }}>Roemheld reflex</div>
+              <div style={{ background: '#EFF6FF', borderRadius: '12px', padding: '9px 11px', border: '1px solid #BFDBFE' }}>
+                <div style={{ fontSize: '10px', color: '#1E40AF', fontWeight: 800 }}>🦴 KINETIC AXIS</div>
+                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>Lower Back → Head</div>
+                <div style={{ fontSize: '10px', color: '#0284C7', fontWeight: 600 }}>Dural C2 entrapment</div>
               </div>
-              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>💓 VITALS STREAM</div>
-                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>+38 bpm Standing</div>
-                <div style={{ fontSize: '10px', color: '#F59E0B' }}>Orthostatic surge</div>
+              <div style={{ background: '#FEF3C7', borderRadius: '12px', padding: '9px 11px', border: '1px solid #FDE68A' }}>
+                <div style={{ fontSize: '10px', color: '#92400E', fontWeight: 800 }}>💓 VITALS STREAM</div>
+                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>+38 bpm Standing</div>
+                <div style={{ fontSize: '10px', color: '#D97706', fontWeight: 600 }}>Splanchnic pooling</div>
               </div>
-              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>🍎 DIET SENSITIVITY</div>
-                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>Histamine / Fructan</div>
-                <div style={{ fontSize: '10px', color: '#E11D48' }}>Mast cell flare</div>
+              <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '9px 11px', border: '1px solid #BBF7D0' }}>
+                <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>🥗 ENTERIC DAO</div>
+                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>Histamine / FODMAP</div>
+                <div style={{ fontSize: '10px', color: '#059669', fontWeight: 600 }}>Roemheld gut-vagal</div>
               </div>
             </div>
           </div>

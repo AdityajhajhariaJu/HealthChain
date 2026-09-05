@@ -100,7 +100,7 @@ export interface ConnectionMapGraph {
     label: string;
     confidence: number;
     specialty: string;
-    category: 'metabolic' | 'autonomic' | 'gastrointestinal' | 'inflammatory' | 'vascular';
+    category: 'metabolic' | 'autonomic' | 'gastrointestinal' | 'inflammatory' | 'vascular' | 'neuro';
     rationale: string;
   }[];
   connections: {
@@ -212,12 +212,12 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     },
   ];
 
-  // 6 Renowned Medical Board Chairs
+  // Objective Clinical Disciplines & Specialist Boards
   const consensusDialogue: SpecialistDialogue[] = [
     {
-      role: 'Cardiologist',
-      doctorName: 'Dr. Marcus Vance',
-      credentials: 'MD, FACC • Autonomic & Arrhythmia Board',
+      role: 'Cardiology & Autonomic Evaluation',
+      doctorName: 'Autonomic & Arrhythmia Board',
+      credentials: 'FACC Clinical Discipline',
       specialty: 'Autonomic & Arrhythmia Board',
       icon: '🫀',
       color: '#EF4444',
@@ -226,9 +226,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       organ: 'Cardiovascular & Autonomic Axis',
     },
     {
-      role: 'Endocrinologist',
-      doctorName: 'Dr. Elena Chen',
-      credentials: 'MD, PhD • Metabolic & Mitochondrial Board',
+      role: 'Endocrinology & Cellular Metabolism',
+      doctorName: 'Metabolic & Mitochondrial Board',
+      credentials: 'Endocrine Society Clinical Discipline',
       specialty: 'Metabolic & Mitochondrial Board',
       icon: '🔬',
       color: '#0284C7',
@@ -237,20 +237,20 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       organ: 'Endocrine & Cellular Energy Axis',
     },
     {
-      role: 'Gastroenterologist',
-      doctorName: 'Dr. Priya Patel',
-      credentials: 'MD, FACG • Gut-Brain & Enteric Board',
+      role: 'Gastroenterology & Enteric Neurobiology',
+      doctorName: 'Enteric Nervous System Board',
+      credentials: 'FACG Clinical Discipline',
       specialty: 'Gut-Brain & Microbiome Board',
       icon: '🩺',
       color: '#059669',
       bg: '#ECFDF5',
-      finding: 'Bloating occurs reliably 60–90 minutes after high-biogenic amine dinners. Diamine oxidase (DAO) enzyme reserves are saturated by aged proteins and sulfites, allowing free histamine to degranulate mucosal mast cells and trigger mechanical diaphragmatic upward displacement (Roemheld syndrome).',
+      finding: 'Bloating occurs reliably 60–90 minutes after high-biogenic amine meals. Diamine oxidase (DAO) enzyme reserves are saturated by aged proteins and sulfites, allowing free histamine to trigger mucosal distension and upward left hemidiaphragmatic displacement (Roemheld syndrome).',
       organ: 'Gastrointestinal & Enteric Axis',
     },
     {
-      role: 'Neurologist',
-      doctorName: 'Dr. Arthur Thorne',
-      credentials: 'MD, FAAN • Neuro-Vascular & Dysautonomia Board',
+      role: 'Neurology & Neurovascular Health',
+      doctorName: 'Neurovascular & Dysautonomia Board',
+      credentials: 'FAAN Clinical Discipline',
       specialty: 'Neuro-Vascular & Vagal Tone Board',
       icon: '🧠',
       color: '#7C3AED',
@@ -259,25 +259,36 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       organ: 'Neurological & Vagal Axis',
     },
     {
-      role: 'Immunologist',
-      doctorName: 'Dr. Claire Moreau',
-      credentials: 'MD • Allergy & Mast Cell Biology Board',
+      role: 'Physical Medicine & Biomechanics',
+      doctorName: 'Craniosacral & Kinetic Chain Board',
+      credentials: 'Physiatry & Musculoskeletal Discipline',
+      specialty: 'Craniosacral Dural Axis',
+      icon: '🦴',
+      color: '#0D9488',
+      bg: '#F0FDFA',
+      finding: 'The Dura Mater is anchored firmly at S2 in the sacrum and at the foramen magnum / C1-C2. Sacroiliac pelvic torsion exerts reciprocal upward dural traction, locking suboccipital muscles into chronic compensatory spasm and entrapping the Greater Occipital Nerve (C2). Lower back strain and occipital headaches are the exact same kinetic pathology.',
+      organ: 'Craniosacral & Musculoskeletal Axis',
+    },
+    {
+      role: 'Immunology & Mast Cell Activation',
+      doctorName: 'Allergy & Mast Cell Biology Board',
+      credentials: 'Clinical Immunology Discipline',
       specialty: 'Allergy & Mast Cell Activation Board',
       icon: '🛡️',
       color: '#D97706',
       bg: '#FFFBEB',
-      finding: 'The combination of episodic facial flushing, dermographia, and sudden postprandial temperature swings confirms hyper-reactive mast cell mediator release (histamine, prostaglandins, tryptase). The immune response is amplifying the autonomic heart rate volatility.',
+      finding: 'The combination of episodic facial flushing, dermographia, and sudden postprandial temperature swings confirms hyper-reactive mast cell mediator release (histamine, prostaglandins, leukotrienes). The immune response amplifies the autonomic heart rate volatility and splanchnic vasodilation.',
       organ: 'Immune & Mast Cell Axis',
     },
     {
-      role: 'Clinic Director',
-      doctorName: 'Dr. Julian Sterling',
-      credentials: 'MD • Complex Case Chief Medical Officer',
+      role: 'Clinical Data Engine Synthesis',
+      doctorName: 'Cross-System Diagnostic Consensus',
+      credentials: 'Autonomous Multi-Stream Intelligence',
       specialty: 'Complex Case Integration Board',
       icon: '✨',
       color: '#0F766E',
       bg: '#F0FDFA',
-      finding: 'Consensus synthesis: The patient does not suffer from 5 distinct ailments. A single unified pathophysiological triad connects all findings: Subclinical Ferritin starvation destabilizes cellular energy, while Gut Histamine Overload mechanically and neurologically triggers compensatory Autonomic POTS.',
+      finding: 'Consensus synthesis: The patient does not suffer from disconnected ailments. A single unified pathophysiological cascade connects all findings: Subclinical Ferritin starvation destabilizes cellular ATP, while Gut Histamine Overload mechanically and neurologically triggers compensatory Autonomic POTS and ascending dural tension.',
       organ: 'Systemic Root-Cause Convergence',
     },
   ];
@@ -297,6 +308,13 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       whatWasMissed: 'Did not conduct an active 10-minute orthostatic standing test or link palpitations to postprandial splanchnic blood pooling.',
       clinicalImpact: 'Patient was prescribed ineffective beta-blockers that worsened fatigue rather than addressing venous pooling.',
       hiddenConnection: 'Gastrocardiac Roemheld syndrome compresses the inferior cardiac vagal plexus following meals.',
+    },
+    {
+      overlookedBy: 'Standard Orthopedics & Neurology (15-min Visits)',
+      standardFinding: 'Brain MRI clear; Sumatriptan prescribed for migraine. Lumbar X-ray showed mild L5-S1 disc wear; NSAIDs prescribed for back pain.',
+      whatWasMissed: 'Overlooked the craniosacral dural tube and ascending kinetic chain connecting sacral unleveling directly to suboccipital greater occipital nerve entrapment.',
+      clinicalImpact: 'Migraine triptans constricted cranial arteries without relieving the mechanical upward dural traction pulling from the pelvis.',
+      hiddenConnection: 'The myodural bridge links C1-C2 suboccipital spasm directly to spinal dural tension initiated at the lumbosacral junction.',
     },
     {
       overlookedBy: 'Standard Gastroenterology Consult (15-min Visit)',
@@ -383,7 +401,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     },
   ];
 
-  // 7 Patient Symptom Cluster Items
+  // 8 Patient Symptom Cluster Items
   const symptomCluster: SymptomClusterItem[] = [
     {
       id: 'symp_fatigue',
@@ -414,8 +432,16 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       name: 'Occipital Throbbing Morning Headaches',
       icon: '🤕',
       commonMisattribution: 'Dismissed as "tension headaches or dehydration"',
-      rootCauseAxis: 'Neuro-Vascular Cerebral Perfusion Rebound',
-      involvedBoards: ['Neurology', 'Cardiology'],
+      rootCauseAxis: 'Neuro-Vascular & Craniosacral Dural Tension',
+      involvedBoards: ['Neurology', 'Physical Medicine & Biomechanics'],
+    },
+    {
+      id: 'symp_back',
+      name: 'Lower Back & Sacral Tension',
+      icon: '🦴',
+      commonMisattribution: 'Dismissed as "localized muscle pull or disc wear"',
+      rootCauseAxis: 'Craniosacral Dural & Biomechanical Axis',
+      involvedBoards: ['Physical Medicine & Biomechanics', 'Neurology', 'Orthopedics'],
     },
     {
       id: 'symp_dizziness',
@@ -485,8 +511,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Phytates in Unsoaked Grains', category: 'Mineral Chelator', icon: '🌾', impact: 'Binds free iron in the duodenum, preventing enterocyte transport.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Elena Chen, MD, PhD',
-        role: 'Endocrinology & Mitochondrial Board Chair',
+        doctor: 'Endocrine & Cellular Metabolism Panel',
+        role: 'Mitochondrial Medicine Consensus',
         quote: 'Standard labs call 14 ng/mL normal simply because it falls between 13 and 150. In functional clinical practice, any level under 50 ng/mL starves brain and cardiac mitochondria of ATP.',
       },
       whatDoctorsMissed:
@@ -537,8 +563,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Inadequate Sodium / Hydration', category: 'Hypovolemia', icon: '🧂', impact: 'Low plasma volume accelerates baroreflex tachycardia.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Marcus Vance, MD, FACC',
-        role: 'Autonomic Cardiology & Electrophysiology Chair',
+        doctor: 'Autonomic Cardiology & Electrophysiology Panel',
+        role: 'FACC Clinical Consensus',
         quote: 'A resting 12-lead ECG in a lying patient is completely useless for dysautonomia. You must stand the patient up for 10 minutes. The +38 bpm jump explains the heart flutters completely.',
       },
       whatDoctorsMissed:
@@ -581,8 +607,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Cured Meats (Salami, Pepperoni)', category: 'Biogenic Amine', icon: '🥩', impact: 'High bacterial degradation amine concentration provokes delayed flushing.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Priya Patel, MD, FACG',
-        role: 'Neuro-Gastroenterology Board Chair',
+        doctor: 'Neuro-Gastroenterology & Enteric Panel',
+        role: 'FACG Enteric Consensus',
         quote: 'When patients report gut bloating that alternates with heart flutters and morning headaches, the culprit is almost universally biogenic amine accumulation and impaired DAO clearance.',
       },
       whatDoctorsMissed:
@@ -625,8 +651,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Carbonated Beverages & Soda', category: 'Mechanical Distension', icon: '🥤', impact: 'Introduces acute gastric volume, aggravating vagal irritation.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Julian Sterling, MD',
-        role: 'Complex Internal Medicine Chief Medical Officer',
+        doctor: 'Complex Internal Medicine Clinical Consensus',
+        role: 'Multi-System Diagnostic Guideline',
         quote: 'Roemheld syndrome is the great imitator. Patients are terrified they are having a heart attack, but the root cause is gastric air pushing against the pericardial vagal nerve.',
       },
       whatDoctorsMissed:
@@ -635,6 +661,49 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         'Concurrent Holter ECG with Time-Stamped Meal Diary',
         'Abdominal Ultrasound / X-Ray demonstrating splenic flexure gas displacement',
         'Fructose & Lactulose Hydrogen-Methane Breath Test (SIBO)',
+      ],
+    },
+    cond_dural_kinetic: {
+      id: 'cond_dural_kinetic',
+      title: 'Ascending Craniosacral Dural Traction',
+      system: 'neuro',
+      systemName: 'Craniosacral & Kinetic Axis',
+      systemIcon: '🦴',
+      confidence: 91,
+      biochemicalMechanism:
+        'The continuous spinal dural sleeve anchors at S2 in the sacrum and at the foramen magnum / C1-C2 at the skull base. Sacral unleveling, pelvic torsion, or L5-S1 disc injury transmits continuous upward mechanical traction (dural tug). Compensatory forward head posture locks suboccipital muscles into chronic spasm, directly entrapping the Greater Occipital Nerve (C2) and radiating retro-orbital throbbing headaches.',
+      biomarkers: [
+        {
+          name: 'Craniosacral Dural Tension Sign',
+          standardRange: 'Negative',
+          optimalRange: 'Negative',
+          userValue: 'Positive Slump / Straight Leg Traction',
+          status: 'elevated',
+          clinicalNote: 'Confirms reciprocal dural tension along the spinal axis.',
+        },
+        {
+          name: 'Suboccipital Muscle Tone',
+          standardRange: 'Supple',
+          optimalRange: 'Supple',
+          userValue: 'Severe Myofascial Trigger Band (C1-C2)',
+          status: 'elevated',
+          clinicalNote: 'Entrapment point for greater occipital nerve.',
+        },
+      ],
+      dietaryTriggers: [
+        { name: 'Systemic Pro-Inflammatory Seed Oils', category: 'Inflammatory Cascade', icon: '🧈', impact: 'Amplifies neurogenic inflammation along entrapped nerve roots.' },
+      ],
+      specialistQuote: {
+        doctor: 'Physical Medicine & Neuro-Biomechanics Panel',
+        role: 'Craniosacral Kinetic Discipline',
+        quote: 'You cannot treat an occipital headache in isolation from the pelvis. The dural sleeve connects S2 directly to the skull base. Releasing pelvic torsion releases the headache.',
+      },
+      whatDoctorsMissed:
+        'Neurologists prescribed Sumatriptan for migraine; Orthopedists prescribed NSAIDs for back strain. Neither doctor assessed the ascending kinetic chain or reciprocal dural traction.',
+      confirmatoryWorkup: [
+        'Standing Full-Spine Pelvic Unleveling Radiograph',
+        'Seated Slump Test for Neural Dural Mobility',
+        'Palpation of Greater Occipital Nerve at the Suboccipital Interspace',
       ],
     },
     cond_mcas: {
@@ -669,8 +738,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Artificial Preservatives & Dyes', category: 'Chemical Trigger', icon: '🧪', impact: 'Bypasses IgE receptors to provoke non-allergic mast cell activation.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Claire Moreau, MD',
-        role: 'Clinical Immunology & MCAS Board Chair',
+        doctor: 'Clinical Immunology & MCAS Consensus',
+        role: 'Allergy & Mast Cell Activation Discipline',
         quote: 'Mast cell mediators do not just cause hives. They cause vascular permeability, brain fog, smooth muscle cramping, and sudden tachycardia. Treating mast cells calms the autonomic nervous system.',
       },
       whatDoctorsMissed:
@@ -697,8 +766,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'High Glycemic Sugars', category: 'Energy Crash', icon: '🍬', impact: 'Triggers reactive hypoglycemia on top of existing mitochondrial deficit.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Elena Chen, MD, PhD',
-        role: 'Endocrinology Chair',
+        doctor: 'Endocrine & Cellular Energy Panel',
+        role: 'Cellular Metabolism Discipline',
         quote: 'Brain fog is cellular starvation in real time. Replenishing ferritin stores restores mitochondrial electron transport.',
       },
       whatDoctorsMissed: 'Attributed to lifestyle stress without testing intracellular ferritin.',
@@ -720,8 +789,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Red Wine & Aged Cheeses', category: 'Histamine Amine', icon: '🍷', impact: 'Accelerates vascular dilation and heart rate spikes.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Marcus Vance, MD, FACC',
-        role: 'Cardiology Chair',
+        doctor: 'Cardiology & Autonomic Panel',
+        role: 'Electrophysiology Discipline',
         quote: 'The heart is an innocent bystander reacting to gastrocardiac and autonomic signals.',
       },
       whatDoctorsMissed: 'Evaluated supine ECG only; missed postprandial and postural dynamics.',
@@ -743,8 +812,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Garlic & Onions', category: 'FODMAPs', icon: '🧄', impact: 'Rapid cecal gas production.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Priya Patel, MD, FACG',
-        role: 'Gastroenterology Chair',
+        doctor: 'Gastroenterology & Enteric Panel',
+        role: 'Neuro-Gastroenterology Discipline',
         quote: 'Bloating is a biochemical warning sign of amine intolerance, not just bad digestion.',
       },
       whatDoctorsMissed: 'Prescribed PPIs that worsened hypochlorhydria and microbial dysbiosis.',
@@ -752,13 +821,13 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     },
     symp_headache: {
       id: 'symp_headache',
-      title: 'Occipital Throbbing Morning Headaches',
+      title: 'Occipital Throbbing Headaches',
       system: 'neuro',
-      systemName: 'Neuro-Vascular Axis',
+      systemName: 'Neuro-Vascular & Kinetic Axis',
       systemIcon: '🤕',
       confidence: 86,
       biochemicalMechanism:
-        'Histamine-mediated cerebral vasodilation followed by early-morning sympathetic rebound causes rapid intracranial pressure fluctuations.',
+        'Mechanical upward traction along the spinal dural sleeve combines with suboccipital myodural bridge spasm to pinch the Greater Occipital Nerve (C2). Splanchnic blood pooling additionally provokes compensatory intracranial arteriolar dilation upon standing.',
       biomarkers: [
         { name: 'Diurnal HRV', standardRange: '35-70 ms', optimalRange: '50-85 ms', userValue: '28 ms', status: 'depleted', clinicalNote: 'Autonomic dysregulation.' },
       ],
@@ -766,12 +835,33 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         { name: 'Fermented Evening Meals', category: 'Histamine Stack', icon: '🧀', impact: 'Triggers 03:00 AM histamine release and morning headache.' },
       ],
       specialistQuote: {
-        doctor: 'Dr. Arthur Thorne, MD, FAAN',
-        role: 'Neurology Chair',
-        quote: 'Morning headaches linked to afternoon fatigue are vascular dysregulation, not simple tension.',
+        doctor: 'Neurology & Biomechanics Panel',
+        role: 'Neuro-Vascular Discipline',
+        quote: 'Occipital headaches are often ascending kinetic tension from the sacral dural sleeve, not simple tension.',
       },
-      whatDoctorsMissed: 'Prescribed pain killers without investigating histamine or orthostatic links.',
-      confirmatoryWorkup: ['Cranial MRI/MRV with contrast to rule out structural anomalies', 'Orthostatic Vitals'],
+      whatDoctorsMissed: 'Prescribed migraine triptans without investigating ascending dural tension from the lumbosacral spine.',
+      confirmatoryWorkup: ['Craniosacral Slump Mobility Test', 'Cranial MRI/MRV with contrast', 'Orthostatic Vitals'],
+    },
+    symp_back: {
+      id: 'symp_back',
+      title: 'Lower Back Strain & Sacral Unleveling',
+      system: 'neuro',
+      systemName: 'Craniosacral & Musculoskeletal Axis',
+      systemIcon: '🦴',
+      confidence: 90,
+      biochemicalMechanism:
+        'Sacroiliac pelvic torsion and lumbar lordosis flattening exert mechanical upward dural traction along the spinal axis, driving compensatory suboccipital cervical hyperextension.',
+      biomarkers: [
+        { name: 'Pelvic Sacral Tilt', standardRange: '<2 mm', optimalRange: '0 mm', userValue: '7 mm Unleveling', status: 'elevated', clinicalNote: 'Mechanical foundation of ascending dural tug.' },
+      ],
+      dietaryTriggers: [],
+      specialistQuote: {
+        doctor: 'Physiatry & Spinal Biomechanics Consensus',
+        role: 'Spinal Biomechanics Discipline',
+        quote: 'Pelvic unleveling forces the suboccipital triangle into permanent contraction to keep the eyes horizontal, pinching the greater occipital nerve.',
+      },
+      whatDoctorsMissed: 'Treated with muscle relaxers without recognizing the dural anchor transmitting tension to the cranium.',
+      confirmatoryWorkup: ['Bilateral Standing Pelvic Radiograph', 'Dynamic Sacroiliac Motion Analysis'],
     },
   };
 
@@ -782,6 +872,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       { id: 'symp_palpitations', label: 'Post-Meal Palpitations', severity: 'high', system: 'autonomic' },
       { id: 'symp_bloat', label: 'Recurrent Gut Bloating', severity: 'medium', system: 'gut' },
       { id: 'symp_headache', label: 'Occipital Throbbing Headache', severity: 'medium', system: 'neuro' },
+      { id: 'symp_back', label: 'Lower Back & Sacral Strain', severity: 'medium', system: 'neuro' },
     ],
     conditions: [
       {
@@ -794,7 +885,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       },
       {
         id: 'cond_pots',
-        label: 'Hyperadrenergic POTS / Autonomic Shift',
+        label: 'Hyperadrenergic POTS',
         confidence: 92,
         specialty: 'Cardiology',
         category: 'autonomic',
@@ -810,11 +901,19 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       },
       {
         id: 'cond_roemheld',
-        label: 'Gastrocardiac Roemheld Syndrome',
+        label: 'Gastrocardiac Roemheld',
         confidence: 87,
         specialty: 'Cardiology & GI',
         category: 'vascular',
         rationale: 'Gastric distension applies diaphragmatic mechanical pressure on the vagus nerve.',
+      },
+      {
+        id: 'cond_dural_kinetic',
+        label: 'Ascending Dural Traction',
+        confidence: 91,
+        specialty: 'Biomechanics & Neuro',
+        category: 'neuro',
+        rationale: 'Sacral unleveling at S2 transmits reciprocal mechanical tension through the dural sleeve to suboccipital roots.',
       },
       {
         id: 'cond_mcas',
@@ -852,6 +951,20 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         to: 'symp_headache',
         type: 'causal_progression',
         label: 'Vasoactive histamine triggers cranial cerebral rebound',
+        strength: 'strong',
+      },
+      {
+        from: 'cond_dural_kinetic',
+        to: 'symp_headache',
+        type: 'causal_progression',
+        label: 'Reciprocal upward dural traction entraps Greater Occipital Nerve (C2)',
+        strength: 'strong',
+      },
+      {
+        from: 'cond_dural_kinetic',
+        to: 'symp_back',
+        type: 'causal_progression',
+        label: 'Sacral unleveling and pelvic rotation initiate spinal dural tug',
         strength: 'strong',
       },
       {
@@ -1011,14 +1124,20 @@ export function evaluateSymptomCluster(selectedIds: string[]): {
   const summonedBoards = Array.from(boardsSet);
   const primaryAxes = Array.from(axesSet);
 
+  let summaryNote = 'Select symptoms to observe real-time multi-specialist convergence.';
+  if (selectedIds.includes('symp_back') && selectedIds.includes('symp_headache')) {
+    summaryNote = `Cross-referencing Lower Back & Sacral Strain with Occipital Headache reveals the Craniosacral Dural Kinetic Axis: pelvic unleveling transmits reciprocal mechanical tension up the spinal dural sleeve to the C1-C2 suboccipital triangle, entrapping the Greater Occipital Nerve.`;
+  } else if (count >= 3) {
+    summaryNote = `Cross-referencing ${count} symptoms links ${summonedBoards.length} specialist panels to a single unified root-cause cascade.`;
+  } else if (count > 0) {
+    summaryNote = `Tracking ${count} symptoms across ${summonedBoards.length} clinical disciplines.`;
+  }
+
   return {
     matchConfidence,
     summonedBoards,
     primaryAxes,
-    summaryNote:
-      count >= 3
-        ? `Cross-referencing ${count} symptoms links ${summonedBoards.length} specialist boards to a single root-cause mechanism.`
-        : 'Select symptoms to observe real-time multi-specialist convergence.',
+    summaryNote,
   };
 }
 
