@@ -237,7 +237,7 @@ export default function JarvisInvestigator() {
             <NetworkHubIcon size={32} color="#38BDF8" />
           </div>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0 }}>J.A.R.V.I.S. Analysis Complete</h1>
+            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', margin: 0 }}>Clinical Data Engine Analysis</h1>
             <p style={{ color: '#475569', margin: '4px 0 0 0', fontSize: '15px' }}>The missing links and systemic patterns have been identified.</p>
           </div>
         </div>
