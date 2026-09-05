@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Droplets, 
   X, 
   Plus, 
+  Minus, 
   Trash2, 
   Bell, 
   BellOff, 
   Check, 
-  Award, 
   Sparkles, 
-  Coffee, 
-  Zap, 
-  Citrus, 
-  GlassWater,
-  Flame,
+  RotateCcw,
   Info
 } from 'lucide-react';
 import { 
@@ -34,24 +31,6 @@ interface HydrationTrackerModalProps {
   onUpdated?: () => void;
 }
 
-const CONTAINER_PRESETS = [
-  { label: 'Glass', amount: 250, icon: '🥛', desc: 'Standard cup' },
-  { label: 'Mug', amount: 300, icon: '☕', desc: 'Warm tea/infusion' },
-  { label: 'Tall Glass', amount: 350, icon: '💧', desc: 'Large drink' },
-  { label: 'Bottle', amount: 500, icon: '🍶', desc: 'Fitness bottle' },
-  { label: 'Hydro Flask', amount: 750, icon: '🧴', desc: 'Sport flask' },
-  { label: 'Carafe', amount: 1000, icon: '🧊', desc: '1 Liter decanter' },
-];
-
-const BEVERAGE_TYPES: { id: HydrationLogItem['type']; label: string; icon: string; bonus?: string }[] = [
-  { id: 'water', label: 'Pure Water', icon: '💧' },
-  { id: 'electrolyte', label: 'Electrolytes', icon: '⚡', bonus: 'Cellular Ion Flow' },
-  { id: 'lemon', label: 'Lemon Water', icon: '🍋', bonus: 'Bioflavonoids' },
-  { id: 'tea', label: 'Herbal Tea', icon: '🍵', bonus: 'Polyphenols' },
-  { id: 'coconut', label: 'Coconut Water', icon: '🥥', bonus: 'Potassium Rich' },
-  { id: 'sparkling', label: 'Sparkling', icon: '✨' },
-];
-
 const TARGET_PRESETS = [2000, 2500, 3000];
 
 export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
@@ -60,14 +39,21 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
   onUpdated
 }) => {
   const [data, setData] = useState<HydrationDayData>(() => getHydrationData());
-  const [selectedType, setSelectedType] = useState<HydrationLogItem['type']>('water');
-  const [customMl, setCustomMl] = useState<string>('');
-  const [reminderMsg, setReminderMsg] = useState<string | null>(null);
+  const [reminderToast, setReminderToast] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setData(getHydrationData());
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -79,30 +65,30 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
   const glasses = Math.round(currentMl / 250);
   const targetGlasses = Math.round(targetMl / 250);
 
-  const handleAdd = (amount: number) => {
+  const handleAdd = (amount: number, type: HydrationLogItem['type'] = 'water') => {
     triggerHapticSuccess();
-    const updated = addWaterLog(amount, selectedType);
+    const updated = addWaterLog(amount, type);
     setData(updated);
     if (onUpdated) onUpdated();
   };
 
-  const handleAddCustom = (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsed = parseInt(customMl, 10);
-    if (!isNaN(parsed) && parsed > 0) {
-      handleAdd(parsed);
-      setCustomMl('');
-    }
-  };
-
-  const handleRemove = (logId: string) => {
+  const handleUndo = () => {
+    if (data.logs.length === 0) return;
     triggerHapticLight();
-    const updated = removeWaterLog(logId);
+    const lastLog = data.logs[0];
+    const updated = removeWaterLog(lastLog.id);
     setData(updated);
     if (onUpdated) onUpdated();
   };
 
-  const handleTargetSelect = (tgt: number) => {
+  const handleRemoveLog = (id: string) => {
+    triggerHapticLight();
+    const updated = removeWaterLog(id);
+    setData(updated);
+    if (onUpdated) onUpdated();
+  };
+
+  const handleTargetChange = (tgt: number) => {
     triggerHapticSelection();
     setHydrationTarget(tgt);
     setData(getHydrationData());
@@ -114,106 +100,115 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
     const nextState = !data.remindersEnabled;
     await setHydrationReminders(nextState, 2);
     setData(getHydrationData());
-    setReminderMsg(nextState ? 'Hourly hydration nudges scheduled (9am - 9pm)!' : 'Reminders turned off');
-    setTimeout(() => setReminderMsg(null), 3500);
+    setReminderToast(nextState ? 'Hourly reminders active (9 AM - 9 PM) 💧' : 'Reminders disabled');
+    setTimeout(() => setReminderToast(null), 3000);
   };
 
-  // Status message
-  let clinicalStatus = { title: 'Optimal Hydration', color: '#10B981', desc: 'Cellular volume and renal clearance are fully sustained.' };
-  if (percentage < 30) {
-    clinicalStatus = { title: 'Rehydration Needed', color: '#EF4444', desc: 'Elevated morning osmolality. Drink 500ml upon waking.' };
-  } else if (percentage < 70) {
-    clinicalStatus = { title: 'Actively Hydrating', color: '#0284C7', desc: 'Progressing towards optimal systemic hemodynamic balance.' };
-  } else if (percentage < 100) {
-    clinicalStatus = { title: 'Near Target', color: '#06B6D4', desc: 'Excellent intravascular volume and cognitive focus.' };
-  }
-
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div 
+      <div
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 9999,
+          zIndex: 999999,
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          background: 'rgba(15, 23, 42, 0.45)',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)'
         }}
         onClick={onClose}
       >
         <motion.div
-          initial={{ y: '100%', opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: '100%', opacity: 0 }}
-          transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Hydration Tracker"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
           style={{
             width: '100%',
-            maxWidth: '540px',
-            maxHeight: '90vh',
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F0F9FF 100%)',
+            maxWidth: '520px',
+            maxHeight: 'calc(100vh - max(30px, env(safe-area-inset-top, 30px)))',
+            backgroundColor: '#FFFFFF',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
-            boxShadow: '0 -10px 40px rgba(2, 132, 199, 0.18), 0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '1px solid rgba(255, 255, 255, 0.8)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            boxShadow: '0 -15px 45px rgba(2, 132, 199, 0.25)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.9)'
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          {/* Sheet Pull Bar */}
+          <div 
+            style={{ 
+              width: '100%', 
+              height: '24px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              cursor: 'pointer',
+              paddingTop: '6px'
+            }}
+            onClick={onClose}
+          >
+            <div style={{ width: '42px', height: '5px', backgroundColor: '#CBD5E1', borderRadius: '999px' }} />
+          </div>
+
+          {/* Modal Header */}
           <div style={{
-            padding: '20px 24px 16px',
+            padding: '4px 20px 14px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(14, 165, 233, 0.12)',
-            background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.8) 0%, rgba(224, 242, 254, 0.5) 100%)'
+            borderBottom: '1px solid #F1F5F9'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: '16px',
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
                 background: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 6px 16px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255,255,255,0.4)',
-                color: '#FFF'
+                color: '#FFF',
+                boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
               }}>
-                <Droplets size={24} />
+                <Droplets size={20} />
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                  Cellular Hydration Hub
+                  Daily Water Tracker
                 </h3>
                 <p style={{ margin: 0, fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-                  Intravascular volume, renal flush & osmolality
+                  Tap to log sips • Stay hydrated
                 </p>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={() => {
                 triggerHapticLight();
                 onClose();
               }}
               style={{
-                width: '36px',
-                height: '36px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.85)',
-                border: '1px solid rgba(0,0,0,0.06)',
+                background: '#F1F5F9',
+                border: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#64748B',
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                cursor: 'pointer'
               }}
               aria-label="Close"
             >
@@ -221,275 +216,274 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
             </button>
           </div>
 
-          {/* Scrollable Body */}
+          {/* Main Scrollable Content */}
           <div style={{
-            padding: '20px 24px',
+            padding: '16px 20px',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px'
+            gap: '16px'
           }}>
-            {/* Visual Fluid Progress Gauge */}
+            {/* Visual Water Bottle Vessel Card */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 249, 255, 0.9) 100%)',
+              background: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)',
               borderRadius: '24px',
-              padding: '20px',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              boxShadow: '0 8px 24px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
+              padding: '20px 16px',
+              border: '1.5px solid #BAE6FD',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 8px 24px rgba(14, 165, 233, 0.1)',
               position: 'relative',
               overflow: 'hidden'
             }}>
-              {/* Background ambient water glow */}
-              <div style={{
-                position: 'absolute',
-                top: '-40px',
-                right: '-40px',
-                width: '140px',
-                height: '140px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(255, 255, 255, 0) 70%)',
-                pointerEvents: 'none'
-              }} />
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <div>
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    background: 'rgba(14, 165, 233, 0.12)',
-                    color: clinicalStatus.color,
-                    padding: '3px 9px',
-                    borderRadius: '999px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    marginBottom: '8px'
-                  }}>
-                    <Sparkles size={11} /> {clinicalStatus.title}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                    <h2 className="tabular-nums" style={{ margin: 0, fontSize: '32px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.8px' }}>
-                      {currentMl.toLocaleString()}
-                    </h2>
-                    <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>
-                      / {targetMl.toLocaleString()} ml
-                    </span>
-                  </div>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
-                    {remainingMl > 0 ? `${remainingMl.toLocaleString()}ml remaining (${targetGlasses - glasses} glasses)` : 'Daily target completed! 🎉'}
-                  </p>
-                </div>
-
+              {/* Left Side: Large readable numbers */}
+              <div style={{ flex: 1, zIndex: 2 }}>
                 <div style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
-                  border: '3px solid #38BDF8',
-                  display: 'flex',
-                  flexDirection: 'column',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 14px rgba(14, 165, 233, 0.25), inset 0 2px 4px rgba(0,0,0,0.06)'
+                  gap: '4px',
+                  background: percentage >= 100 ? '#DCFCE7' : 'rgba(2, 132, 199, 0.15)',
+                  color: percentage >= 100 ? '#15803D' : '#0369A1',
+                  padding: '3px 10px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  marginBottom: '8px'
                 }}>
-                  <span className="tabular-nums" style={{ fontSize: '17px', fontWeight: 900, color: '#0369A1', lineHeight: 1 }}>
-                    {percentage}%
+                  {percentage >= 100 ? '✓ Daily Goal Met' : `${percentage}% of Daily Target`}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span className="tabular-nums" style={{ fontSize: '38px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1 }}>
+                    {currentMl.toLocaleString()}
                   </span>
-                  <span style={{ fontSize: '9px', fontWeight: 700, color: '#0284C7', marginTop: '2px' }}>
-                    GOAL
+                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#64748B' }}>
+                    / {targetMl.toLocaleString()} ml
                   </span>
+                </div>
+
+                <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+                  {remainingMl > 0 
+                    ? `${remainingMl.toLocaleString()} ml remaining (${targetGlasses - glasses} glasses)` 
+                    : 'Optimal cellular hydration achieved! 🎉'}
+                </p>
+
+                <div style={{ marginTop: '10px', fontSize: '11px', color: '#0284C7', fontWeight: 700 }}>
+                  Equivalent: {glasses} of {targetGlasses} Standard Glasses (250ml)
                 </div>
               </div>
 
-              {/* Progress Bar with Liquid Glow */}
+              {/* Right Side: Visual Water Tumbler Cylinder */}
               <div style={{
-                width: '100%',
-                height: '14px',
-                background: '#E2E8F0',
-                borderRadius: '999px',
-                overflow: 'hidden',
+                width: '74px',
+                height: '110px',
+                borderRadius: '18px',
+                border: '3px solid #0284C7',
+                background: 'rgba(255, 255, 255, 0.65)',
                 position: 'relative',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)'
+                overflow: 'hidden',
+                boxShadow: '0 6px 16px rgba(2, 132, 199, 0.2), inset 0 2px 6px rgba(0,0,0,0.06)',
+                flexShrink: 0,
+                marginLeft: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end'
               }}>
+                {/* Measurement Tick Marks */}
+                <div style={{ position: 'absolute', right: '4px', top: '15px', width: '6px', height: '1.5px', background: '#94A3B8' }} />
+                <div style={{ position: 'absolute', right: '4px', top: '35px', width: '10px', height: '1.5px', background: '#0284C7' }} />
+                <div style={{ position: 'absolute', right: '4px', top: '55px', width: '6px', height: '1.5px', background: '#94A3B8' }} />
+                <div style={{ position: 'absolute', right: '4px', top: '75px', width: '10px', height: '1.5px', background: '#0284C7' }} />
+
+                {/* Animated Rising Water */}
                 <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${percentage}%` }}
-                  transition={{ type: 'spring', damping: 20, stiffness: 120 }}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${percentage}%` }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 120 }}
                   style={{
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 50%, #0369A1 100%)',
-                    borderRadius: '999px',
-                    boxShadow: '0 0 12px rgba(14, 165, 233, 0.6)'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                <span>0 ml</span>
-                <span className="tabular-nums">Equiv: {glasses} / {targetGlasses} Glasses (250ml)</span>
-                <span>{targetMl} ml</span>
-              </div>
-            </div>
-
-            {/* Beverage Type Selection Chips */}
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
-                Beverage Type
-              </label>
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {BEVERAGE_TYPES.map((b) => {
-                  const isSelected = selectedType === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() => {
-                        triggerHapticLight();
-                        setSelectedType(b.id);
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '999px',
-                        border: isSelected ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
-                        background: isSelected ? 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)' : '#FFF',
-                        color: isSelected ? '#0369A1' : '#475569',
-                        fontSize: '12px',
-                        fontWeight: isSelected ? 700 : 500,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                        boxShadow: isSelected ? '0 2px 8px rgba(2, 132, 199, 0.15)' : 'none'
-                      }}
-                    >
-                      <span>{b.icon}</span>
-                      <span>{b.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Quick Logging Vessels (6 Presets) */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Tap Container to Log
-                </label>
-                <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: 600 }}>
-                  +Points with each sip
-                </span>
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '10px'
-              }}>
-                {CONTAINER_PRESETS.map((p) => (
-                  <motion.button
-                    key={p.amount}
-                    whileHover={{ y: -2, scale: 1.02 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="button"
-                    onClick={() => handleAdd(p.amount)}
-                    style={{
-                      background: '#FFFFFF',
-                      borderRadius: '16px',
-                      padding: '12px 8px',
-                      border: '1.5px solid rgba(56, 189, 248, 0.35)',
-                      boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      gap: '4px',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <span style={{ fontSize: '24px' }}>{p.icon}</span>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                      +{p.amount}ml
-                    </span>
-                    <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 500 }}>
-                      {p.label}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Custom Write-in Ml */}
-              <form onSubmit={handleAddCustom} style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                <input
-                  type="number"
-                  placeholder="Custom amount (e.g. 400 ml)..."
-                  value={customMl}
-                  onChange={(e) => setCustomMl(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '10px 14px',
-                    borderRadius: '12px',
-                    border: '1px solid #CBD5E1',
-                    background: '#FFF',
-                    fontSize: '13px',
-                    color: '#0F172A',
-                    outline: 'none'
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={!customMl}
-                  style={{
-                    padding: '10px 16px',
-                    borderRadius: '12px',
-                    background: customMl ? 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)' : '#E2E8F0',
-                    color: customMl ? '#FFF' : '#94A3B8',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                    cursor: customMl ? 'pointer' : 'default'
+                    width: '100%',
+                    background: 'linear-gradient(180deg, #38BDF8 0%, #0284C7 100%)',
+                    boxShadow: '0 -2px 8px rgba(56, 189, 248, 0.6)',
+                    position: 'relative'
                   }}
                 >
-                  Add Custom
-                </button>
-              </form>
+                  {/* Wave surface shimmer */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'rgba(255, 255, 255, 0.75)',
+                    borderRadius: '2px'
+                  }} />
+                </motion.div>
+
+                {/* Center % in tumbler */}
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 900,
+                    color: percentage > 50 ? '#FFFFFF' : '#0369A1',
+                    textShadow: percentage > 50 ? '0 1px 3px rgba(0,0,0,0.4)' : 'none'
+                  }}>
+                    {percentage}%
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Daily Target & Smart Reminders Config */}
+            {/* Tap to Log: 3 Primary Vessels (Big & Easy to Tap) */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Tap to Add Water
+                </span>
+                {data.logs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleUndo}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#0284C7',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                  >
+                    <RotateCcw size={12} /> Undo last
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                {/* 1. Glass 250ml */}
+                <motion.button
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => handleAdd(250)}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '18px',
+                    padding: '14px 10px',
+                    border: '2px solid #BAE6FD',
+                    boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    gap: '4px'
+                  }}
+                >
+                  <span style={{ fontSize: '28px' }}>🥛</span>
+                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                    +250 ml
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                    1 Glass
+                  </span>
+                </motion.button>
+
+                {/* 2. Bottle 500ml */}
+                <motion.button
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => handleAdd(500)}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '18px',
+                    padding: '14px 10px',
+                    border: '2px solid #38BDF8',
+                    boxShadow: '0 4px 14px rgba(14, 165, 233, 0.15)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    gap: '4px'
+                  }}
+                >
+                  <span style={{ fontSize: '28px' }}>🍶</span>
+                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0284C7' }}>
+                    +500 ml
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#0369A1', fontWeight: 700 }}>
+                    1 Bottle
+                  </span>
+                </motion.button>
+
+                {/* 3. Flask 750ml */}
+                <motion.button
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => handleAdd(750)}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '18px',
+                    padding: '14px 10px',
+                    border: '2px solid #BAE6FD',
+                    boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    gap: '4px'
+                  }}
+                >
+                  <span style={{ fontSize: '28px' }}>🧴</span>
+                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                    +750 ml
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                    Big Flask
+                  </span>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Daily Target & Daylight Reminders */}
             <div style={{
-              background: 'rgba(255, 255, 255, 0.8)',
+              background: '#F8FAFC',
               borderRadius: '18px',
-              padding: '16px',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
+              padding: '14px 16px',
+              border: '1px solid #E2E8F0',
               display: 'flex',
               flexDirection: 'column',
               gap: '12px'
             }}>
+              {/* Target Row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                    Daily Hydration Goal
-                  </span>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#64748B' }}>
-                    Clinical recommendation: 30-35ml per kg
-                  </p>
-                </div>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                  Daily Target:
+                </span>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {TARGET_PRESETS.map((t) => (
                     <button
                       key={t}
                       type="button"
-                      onClick={() => handleTargetSelect(t)}
+                      onClick={() => handleTargetChange(t)}
                       style={{
-                        padding: '4px 10px',
-                        borderRadius: '8px',
+                        padding: '4px 12px',
+                        borderRadius: '999px',
                         border: targetMl === t ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
-                        background: targetMl === t ? '#E0F2FE' : '#FFF',
+                        background: targetMl === t ? '#E0F2FE' : '#FFFFFF',
                         color: targetMl === t ? '#0369A1' : '#64748B',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 700,
                         cursor: 'pointer'
                       }}
@@ -500,194 +494,137 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 </div>
               </div>
 
-              <div style={{ height: '1px', background: '#F1F5F9' }} />
-
+              {/* Reminders Row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '28px',
+                    height: '28px',
                     borderRadius: '8px',
-                    background: data.remindersEnabled ? '#E0F2FE' : '#F1F5F9',
+                    background: data.remindersEnabled ? '#E0F2FE' : '#E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: data.remindersEnabled ? '#0284C7' : '#94A3B8'
                   }}>
-                    {data.remindersEnabled ? <Bell size={16} /> : <BellOff size={16} />}
+                    {data.remindersEnabled ? <Bell size={15} /> : <BellOff size={15} />}
                   </div>
-                  <div>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                      Daylight Reminders (9 AM - 9 PM)
-                    </span>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#64748B' }}>
-                      Gentle hourly reminders to maintain blood volume
-                    </p>
-                  </div>
+                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155' }}>
+                    Hourly Reminders (9 AM - 9 PM)
+                  </span>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleToggleReminders}
                   style={{
-                    padding: '6px 14px',
+                    padding: '5px 12px',
                     borderRadius: '999px',
-                    background: data.remindersEnabled ? '#0284C7' : '#E2E8F0',
-                    color: data.remindersEnabled ? '#FFF' : '#64748B',
                     border: 'none',
-                    fontWeight: 700,
+                    background: data.remindersEnabled ? '#0284C7' : '#CBD5E1',
+                    color: '#FFF',
                     fontSize: '11px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    fontWeight: 700,
+                    cursor: 'pointer'
                   }}
                 >
-                  {data.remindersEnabled ? 'Enabled' : 'Disabled'}
+                  {data.remindersEnabled ? 'ON' : 'OFF'}
                 </button>
               </div>
 
-              {reminderMsg && (
+              {reminderToast && (
                 <div style={{
-                  padding: '8px 12px',
-                  borderRadius: '10px',
                   background: '#ECFDF5',
                   color: '#065F46',
+                  padding: '6px 10px',
+                  borderRadius: '8px',
                   fontSize: '11px',
                   fontWeight: 600,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px'
                 }}>
-                  <Check size={14} /> {reminderMsg}
+                  <Check size={12} /> {reminderToast}
                 </div>
               )}
             </div>
 
-            {/* Today's Log History */}
+            {/* Today's Log Timeline (Compact) */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Today's Hydration Log ({data.logs.length})
-                </label>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Today's Logs ({data.logs.length})
+                </span>
                 {data.logs.length > 0 && (
-                  <span style={{ fontSize: '11px', color: '#64748B' }}>
-                    Tap trash to undo
+                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                    Tap trash to delete
                   </span>
                 )}
               </div>
 
               {data.logs.length === 0 ? (
                 <div style={{
-                  padding: '24px',
+                  padding: '16px',
                   textAlign: 'center',
-                  background: 'rgba(255, 255, 255, 0.6)',
-                  borderRadius: '16px',
-                  border: '1px dashed #CBD5E1',
+                  background: '#F8FAFC',
+                  borderRadius: '14px',
                   color: '#94A3B8',
-                  fontSize: '13px'
+                  fontSize: '12px'
                 }}>
-                  No drinks logged yet today. Tap any vessel above to start!
+                  No drinks logged yet today. Tap +250ml to start!
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {data.logs.map((log) => {
-                    const bType = BEVERAGE_TYPES.find(b => b.id === log.type) || BEVERAGE_TYPES[0];
-                    return (
-                      <div
-                        key={log.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '10px 14px',
-                          background: '#FFFFFF',
-                          borderRadius: '12px',
-                          border: '1px solid #E2E8F0',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '18px' }}>{bType.icon}</span>
-                          <div>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                              +{log.amountMl} ml ({bType.label})
-                            </span>
-                            <div style={{ fontSize: '11px', color: '#94A3B8' }}>
-                              {log.timestamp}
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemove(log.id)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#94A3B8',
-                            cursor: 'pointer',
-                            padding: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                          aria-label="Remove drink entry"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto' }}>
+                  {data.logs.map((log) => (
+                    <div
+                      key={log.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        background: '#FFFFFF',
+                        borderRadius: '10px',
+                        border: '1px solid #E2E8F0'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '16px' }}>💧</span>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                          +{log.amountMl} ml
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                          {log.timestamp}
+                        </span>
                       </div>
-                    );
-                  })}
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLog(log.id)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          padding: '4px'
+                        }}
+                        aria-label="Remove drink entry"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-
-            {/* Clinical Mechanism Accordion */}
-            <div style={{
-              background: '#F8FAFC',
-              borderRadius: '14px',
-              padding: '12px 14px',
-              border: '1px solid #E2E8F0',
-              fontSize: '11.5px',
-              color: '#475569',
-              lineHeight: 1.4
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0284C7', fontWeight: 700, marginBottom: '4px' }}>
-                <Info size={14} /> Clinical Impact
-              </div>
-              Optimal hydration prevents nocturnal hemoconcentration, lowering cardiovascular strain and boosting renal glomerular filtration rate (GFR). Drinking 500ml upon waking offsets overnight insensible fluid losses.
-            </div>
           </div>
 
-          {/* Footer CTA */}
+          {/* Footer: Big prominent "Done" button */}
           <div style={{
-            padding: '14px 24px calc(14px + env(safe-area-inset-bottom))',
-            borderTop: '1px solid rgba(14, 165, 233, 0.15)',
-            background: '#FFFFFF',
-            display: 'flex',
-            gap: '10px'
+            padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
+            borderTop: '1px solid #F1F5F9',
+            background: '#FFFFFF'
           }}>
-            <button
-              type="button"
-              onClick={() => handleAdd(250)}
-              style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '14px',
-                background: '#E0F2FE',
-                color: '#0369A1',
-                border: '1px solid rgba(2, 132, 199, 0.25)',
-                fontWeight: 700,
-                fontSize: '13px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                cursor: 'pointer'
-              }}
-            >
-              <span>🥛</span> Quick +250ml Glass
-            </button>
-
             <button
               type="button"
               onClick={() => {
@@ -695,19 +632,15 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 onClose();
               }}
               style={{
-                flex: 1,
-                padding: '12px',
-                borderRadius: '14px',
+                width: '100%',
+                padding: '14px',
+                borderRadius: '16px',
                 background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
                 color: '#FFFFFF',
                 border: 'none',
-                fontWeight: 700,
-                fontSize: '13px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                fontWeight: 800,
+                fontSize: '15px',
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
                 cursor: 'pointer'
               }}
             >
@@ -716,6 +649,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
