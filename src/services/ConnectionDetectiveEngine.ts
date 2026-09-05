@@ -15,12 +15,14 @@ export interface ConnectionStream {
 
 export interface SpecialistDialogue {
   role: string;
+  doctorName: string;
   specialty: string;
   icon: string;
   color: string;
   bg: string;
   finding: string;
   organ: string;
+  credentials: string;
 }
 
 export interface ClinicalMissItem {
@@ -28,10 +30,71 @@ export interface ClinicalMissItem {
   standardFinding: string;
   whatWasMissed: string;
   clinicalImpact: string;
+  hiddenConnection: string;
+}
+
+export interface NodeDetail {
+  id: string;
+  title: string;
+  system: 'autonomic' | 'metabolic' | 'gut' | 'neuro' | 'immune' | 'vascular';
+  systemName: string;
+  systemIcon: string;
+  confidence: number;
+  biochemicalMechanism: string;
+  biomarkers: {
+    name: string;
+    standardRange: string;
+    optimalRange: string;
+    userValue: string;
+    status: 'depleted' | 'elevated' | 'suboptimal' | 'normal';
+    clinicalNote: string;
+  }[];
+  dietaryTriggers: {
+    name: string;
+    category: string;
+    icon: string;
+    impact: string;
+  }[];
+  specialistQuote: {
+    doctor: string;
+    role: string;
+    quote: string;
+  };
+  whatDoctorsMissed: string;
+  confirmatoryWorkup: string[];
+}
+
+export interface CausalCascadeStage {
+  stage: number;
+  title: string;
+  organSystem: string;
+  organIcon: string;
+  mechanism: string;
+  clinicalSigns: string[];
+  biochemicalLag: string;
+  upstreamCause: string;
+  downstreamEffect: string;
+}
+
+export interface SymptomClusterItem {
+  id: string;
+  name: string;
+  icon: string;
+  commonMisattribution: string;
+  rootCauseAxis: string;
+  involvedBoards: string[];
+}
+
+export interface SystemAxis {
+  id: 'all' | 'autonomic' | 'metabolic' | 'gut' | 'neuro' | 'immune';
+  label: string;
+  icon: string;
+  color: string;
+  count: number;
 }
 
 export interface ConnectionMapGraph {
-  centralSymptoms: { id: string; label: string; severity: 'high' | 'medium' | 'low' }[];
+  centralSymptoms: { id: string; label: string; severity: 'high' | 'medium' | 'low'; system?: string }[];
   conditions: {
     id: string;
     label: string;
@@ -62,6 +125,10 @@ export interface ConnectionDetectiveReport {
   consensusDialogue: SpecialistDialogue[];
   clinicalMisses: ClinicalMissItem[];
   mapData: ConnectionMapGraph;
+  systemAxes: SystemAxis[];
+  cascadeStages: CausalCascadeStage[];
+  symptomCluster: SymptomClusterItem[];
+  nodeDetails: Record<string, NodeDetail>;
   doctorDossier: {
     sbar: {
       situation: string;
@@ -145,75 +212,576 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     },
   ];
 
-  // Specialist Board Consensus Dialogue
+  // 6 Renowned Medical Board Chairs
   const consensusDialogue: SpecialistDialogue[] = [
     {
       role: 'Cardiologist',
+      doctorName: 'Dr. Marcus Vance',
+      credentials: 'MD, FACC • Autonomic & Arrhythmia Board',
       specialty: 'Autonomic & Arrhythmia Board',
       icon: '🫀',
       color: '#EF4444',
       bg: '#FEF2F2',
-      finding: 'Resting ECG is normal, but orthostatic telemetry demonstrates a +38 bpm spike without hypotension. Strongly suggestive of compensatory Hyperadrenergic POTS driven by splanchnic pooling.',
-      organ: 'Cardiovascular & Autonomic',
+      finding: 'Resting ECG in supine posture is completely normal (68 bpm), but active orthostatic telemetry demonstrates an immediate +38 bpm surge without hypotension. This tachycardia is not primary cardiac arrhythmia—it is a compensatory hyperadrenergic baroreflex attempting to overcome splanchnic venous pooling.',
+      organ: 'Cardiovascular & Autonomic Axis',
     },
     {
       role: 'Endocrinologist',
+      doctorName: 'Dr. Elena Chen',
+      credentials: 'MD, PhD • Metabolic & Mitochondrial Board',
       specialty: 'Metabolic & Mitochondrial Board',
       icon: '🔬',
       color: '#0284C7',
       bg: '#F0F9FF',
-      finding: 'Standard serum iron is misleadingly "normal" at 65 μg/dL, yet intracellular Ferritin is severely depleted at 14 ng/mL. Without iron cofactors, mitochondrial ATP and tyrosine hydroxylase falter, triggering brain fog.',
-      organ: 'Endocrine & Cellular Energy',
+      finding: 'Routine serum iron is falsely reassuring at 65 μg/dL, but intracellular Ferritin is depleted to 14 ng/mL. Iron is an essential catalytic cofactor for mitochondrial Complex I/IV electron transport and tyrosine hydroxylase. Cellular ATP starvation is the molecular engine of the patient’s afternoon brain fog.',
+      organ: 'Endocrine & Cellular Energy Axis',
     },
     {
       role: 'Gastroenterologist',
+      doctorName: 'Dr. Priya Patel',
+      credentials: 'MD, FACG • Gut-Brain & Enteric Board',
       specialty: 'Gut-Brain & Microbiome Board',
       icon: '🩺',
       color: '#059669',
       bg: '#ECFDF5',
-      finding: 'Post-meal bloating occurs 1-2 hours postprandially. Intestinal diamine oxidase (DAO) is overwhelmed by high-histamine intake (red wine, aged dairy), releasing mast cell mediators that stimulate the diaphragmatic vagus nerve.',
-      organ: 'Gastrointestinal & Enteric',
+      finding: 'Bloating occurs reliably 60–90 minutes after high-biogenic amine dinners. Diamine oxidase (DAO) enzyme reserves are saturated by aged proteins and sulfites, allowing free histamine to degranulate mucosal mast cells and trigger mechanical diaphragmatic upward displacement (Roemheld syndrome).',
+      organ: 'Gastrointestinal & Enteric Axis',
     },
     {
       role: 'Neurologist',
+      doctorName: 'Dr. Arthur Thorne',
+      credentials: 'MD, FAAN • Neuro-Vascular & Dysautonomia Board',
       specialty: 'Neuro-Vascular & Vagal Tone Board',
       icon: '🧠',
       color: '#7C3AED',
       bg: '#F5F3FF',
-      finding: 'The occipital morning headaches and cerebral fog are vascular rebound phenomena. Histamine vasodilation followed by sympathetic epinephrine surges provokes cerebral vasoconstriction.',
+      finding: 'Occipital morning throbbing and cognitive latency represent cerebral autoregulatory rebound. Histamine-induced cerebral vasodilation is followed by reflex sympathetic vasoconstriction, reducing microvascular perfusion by up to 24% during upright activity.',
       organ: 'Neurological & Vagal Axis',
+    },
+    {
+      role: 'Immunologist',
+      doctorName: 'Dr. Claire Moreau',
+      credentials: 'MD • Allergy & Mast Cell Biology Board',
+      specialty: 'Allergy & Mast Cell Activation Board',
+      icon: '🛡️',
+      color: '#D97706',
+      bg: '#FFFBEB',
+      finding: 'The combination of episodic facial flushing, dermographia, and sudden postprandial temperature swings confirms hyper-reactive mast cell mediator release (histamine, prostaglandins, tryptase). The immune response is amplifying the autonomic heart rate volatility.',
+      organ: 'Immune & Mast Cell Axis',
+    },
+    {
+      role: 'Clinic Director',
+      doctorName: 'Dr. Julian Sterling',
+      credentials: 'MD • Complex Case Chief Medical Officer',
+      specialty: 'Complex Case Integration Board',
+      icon: '✨',
+      color: '#0F766E',
+      bg: '#F0FDFA',
+      finding: 'Consensus synthesis: The patient does not suffer from 5 distinct ailments. A single unified pathophysiological triad connects all findings: Subclinical Ferritin starvation destabilizes cellular energy, while Gut Histamine Overload mechanically and neurologically triggers compensatory Autonomic POTS.',
+      organ: 'Systemic Root-Cause Convergence',
     },
   ];
 
-  // What 15-Minute Visits Missed
+  // What 15-Minute Visits Missed (In-Depth Comparative Analysis)
   const clinicalMisses: ClinicalMissItem[] = [
     {
       overlookedBy: 'Standard Primary Care (15-min Visit)',
-      standardFinding: 'Blood iron level 65 μg/dL marked "Normal". Patient told "Everything looks fine".',
-      whatWasMissed: 'Omitted Serum Ferritin (14 ng/mL). Missed depleted cellular storage iron causing mitochondrial ATP exhaustion.',
-      clinicalImpact: 'Explains unrelenting fatigue despite "perfect" routine blood test reports.',
+      standardFinding: 'Serum Iron 65 μg/dL and Hemoglobin 13.8 g/dL marked "Normal". Patient told "Everything looks fine".',
+      whatWasMissed: 'Omitted Serum Ferritin (14 ng/mL). Missed depleted cellular bone marrow storage iron starving mitochondrial ATP.',
+      clinicalImpact: 'Explains unrelenting afternoon fatigue and cognitive latency despite "perfect" routine blood test reports.',
+      hiddenConnection: 'Iron deficiency without anemia impairs thyroid deiodinase and autonomic catecholamine clearance.',
     },
     {
-      overlookedBy: 'Standard Cardiology Check',
-      standardFinding: 'Resting ECG in supine position showed normal sinus rhythm (68 bpm).',
-      whatWasMissed: 'Did not perform active orthostatic standing test or link palpitations to postprandial splanchnic blood pooling.',
-      clinicalImpact: 'Palpitations dismissed as "anxiety" rather than gastrocardiac Roemheld vagal compression.',
+      overlookedBy: 'Standard Cardiology Check (15-min Visit)',
+      standardFinding: 'Supine 12-lead ECG showed normal sinus rhythm (68 bpm). Palpitations dismissed as "stress or anxiety".',
+      whatWasMissed: 'Did not conduct an active 10-minute orthostatic standing test or link palpitations to postprandial splanchnic blood pooling.',
+      clinicalImpact: 'Patient was prescribed ineffective beta-blockers that worsened fatigue rather than addressing venous pooling.',
+      hiddenConnection: 'Gastrocardiac Roemheld syndrome compresses the inferior cardiac vagal plexus following meals.',
     },
     {
-      overlookedBy: 'Standard GI Consult',
-      standardFinding: 'Prescribed generic PPI antacid and diagnosed "mild IBS".',
-      whatWasMissed: 'Failed to cross-correlate meal timing with biogenic amine histamine intake and allium fructan fermentation.',
-      clinicalImpact: 'PPI lowered stomach acid, worsening mineral absorption and bacterial fermentation.',
+      overlookedBy: 'Standard Gastroenterology Consult (15-min Visit)',
+      standardFinding: 'Prescribed daily PPI antacid and diagnosed with generic "mild irritable bowel syndrome (IBS)".',
+      whatWasMissed: 'Failed to cross-correlate meal timing with dietary biogenic amines (histamine) and allium fructan cecal fermentation.',
+      clinicalImpact: 'PPI lowered gastric acid, impairing non-heme iron absorption and further depleting ferritin stores.',
+      hiddenConnection: 'Histamine DAO enzyme lag triggers visceral hypersensitivity and smooth muscle spasm.',
+    },
+    {
+      overlookedBy: 'Standard Neurology Visit (15-min Visit)',
+      standardFinding: 'Diagnosed "chronic tension headache" and prescribed migraine abortives (Triptans).',
+      whatWasMissed: 'Overlooked the temporal coupling between 3 AM histamine surges, morning occipital throbbing, and orthostatic dizziness.',
+      clinicalImpact: 'Triptans caused further cerebral vasoconstriction on top of existing baseline hypoperfusion.',
+      hiddenConnection: 'Dysautonomia-induced cerebral perfusion drops provoke compensatory vascular spasms.',
     },
   ];
+
+  // 6 Systemic Axes
+  const systemAxes: SystemAxis[] = [
+    { id: 'all', label: 'All 6 Systems', icon: '🌐', color: '#0284C7', count: 9 },
+    { id: 'autonomic', label: 'Autonomic & Cardio', icon: '🫀', color: '#EF4444', count: 4 },
+    { id: 'metabolic', label: 'Metabolic & ATP', icon: '🔬', color: '#0284C7', count: 3 },
+    { id: 'gut', label: 'Gut-Brain & Enteric', icon: '🩺', color: '#059669', count: 4 },
+    { id: 'neuro', label: 'Neuro-Vascular', icon: '🧠', color: '#7C3AED', count: 3 },
+    { id: 'immune', label: 'Mast Cell & Allergy', icon: '🛡️', color: '#D97706', count: 2 },
+  ];
+
+  // 5-Stage Causal Cascade
+  const cascadeStages: CausalCascadeStage[] = [
+    {
+      stage: 1,
+      title: 'Subclinical Iron & Mitochondrial Starvation',
+      organSystem: 'Mitochondrial / Bone Marrow',
+      organIcon: '🔬',
+      mechanism: 'Ferritin drops to 14 ng/mL. Without catalytic iron cofactors, mitochondrial respiratory complexes cannot generate cellular ATP, starving high-metabolic tissues (brain and autonomic ganglia).',
+      clinicalSigns: ['Afternoon cognitive fog', 'Cold extremities', 'Exercise intolerance'],
+      biochemicalLag: '3–6 months occult depletion prior to symptom onset',
+      upstreamCause: 'Low dietary bioavailable iron + occult gut mucosal malabsorption',
+      downstreamEffect: 'Impaired sympathetic tone and diminished catecholamine degradation',
+    },
+    {
+      stage: 2,
+      title: 'Dietary Histamine Overload & DAO Saturation',
+      organSystem: 'Gastrointestinal & Enteric',
+      organIcon: '🥗',
+      mechanism: 'Stacked dinner with red wine, aged cheese, and cured meats floods the intestinal lumen. Intestinal diamine oxidase (DAO) capacity is overwhelmed, permitting mucosal mast cell degranulation.',
+      clinicalSigns: ['Gut distension within 90 min', 'Facial flushing', 'Pruritus / itchy skin'],
+      biochemicalLag: 'Peak plasma histamine 45–120 minutes post-ingestion',
+      upstreamCause: 'Enzymatic DAO deficit + gut microbial dysbiosis',
+      downstreamEffect: 'Splanchnic vascular dilation and mucosal fluid extravasation',
+    },
+    {
+      stage: 3,
+      title: 'Roemheld Gastrocardiac Vagal Compression',
+      organSystem: 'Gut-Heart Vagal Axis',
+      organIcon: '🫀',
+      mechanism: 'Gastric fundus distension physically elevates the left hemidiaphragm, exerting mechanical and reflex pressure on the posterior cardiac plexus and vagus nerve.',
+      clinicalSigns: ['Postprandial palpitations', 'Chest tightness without ischemia', 'Shortness of breath'],
+      biochemicalLag: '1–2 hours after large or fermented meals',
+      upstreamCause: 'Intestinal gas entrapment + histamine smooth muscle spasm',
+      downstreamEffect: 'Paradoxical vagal inhibition and sinus tachycardia',
+    },
+    {
+      stage: 4,
+      title: 'Compensatory Hyperadrenergic POTS Surge',
+      organSystem: 'Autonomic Baroreceptor Axis',
+      organIcon: '📈',
+      mechanism: 'Upon standing, up to 700 mL of blood pools in dilated splanchnic and lower-extremity venous beds. The carotid sinus detects reduced stroke volume, firing a norepinephrine surge that spikes heart rate by +38 bpm.',
+      clinicalSigns: ['Heart racing upon standing', 'Lightheadedness / presyncope', 'Tremulousness'],
+      biochemicalLag: 'Occurs within 2–10 minutes of upright posture',
+      upstreamCause: 'Venous pooling + hypovolemia from vascular permeability',
+      downstreamEffect: 'Cerebral hypoperfusion and systemic adrenergic vasoconstriction',
+    },
+    {
+      stage: 5,
+      title: 'Cerebral Hypoperfusion & Morning Throbbing',
+      organSystem: 'Cerebrovascular & Neurological',
+      organIcon: '🧠',
+      mechanism: 'Sympathetic norepinephrine surges trigger cerebral arterial vasoconstriction, decreasing frontal lobe perfusion by 18–24%. Nocturnal histamine spikes trigger reactive cranial vasodilation upon awakening.',
+      clinicalSigns: ['Occipital morning headaches', 'Executive dysfunction / word-finding lag', 'Sensory overload'],
+      biochemicalLag: 'Pronounced between 06:00 and 10:00 AM',
+      upstreamCause: 'Orthostatic intracranial pressure shifts + vascular rebound',
+      downstreamEffect: 'Unrelenting cycle of chronic exhaustion and sensory hypersensitivity',
+    },
+  ];
+
+  // 7 Patient Symptom Cluster Items
+  const symptomCluster: SymptomClusterItem[] = [
+    {
+      id: 'symp_fatigue',
+      name: 'Chronic Brain Fog & Fatigue',
+      icon: '⚡',
+      commonMisattribution: 'Dismissed as "stress, poor sleep, or depression"',
+      rootCauseAxis: 'Metabolic & Mitochondrial (Ferritin 14 ng/mL ATP starvation)',
+      involvedBoards: ['Endocrinology', 'Neurology'],
+    },
+    {
+      id: 'symp_palpitations',
+      name: 'Post-Meal Palpitations & Heart Racing',
+      icon: '💓',
+      commonMisattribution: 'Dismissed as "panic attacks or generalized anxiety"',
+      rootCauseAxis: 'Cardio-Gut Roemheld Reflex & Hyperadrenergic POTS',
+      involvedBoards: ['Cardiology', 'Gastroenterology'],
+    },
+    {
+      id: 'symp_bloat',
+      name: 'Recurrent Gut Distension (1-2h Post-Meal)',
+      icon: '🎈',
+      commonMisattribution: 'Dismissed as "generic irritable bowel syndrome (IBS)"',
+      rootCauseAxis: 'Histamine DAO Clearance Deficit & Fructan Fermentation',
+      involvedBoards: ['Gastroenterology', 'Allergy & Immunology'],
+    },
+    {
+      id: 'symp_headache',
+      name: 'Occipital Throbbing Morning Headaches',
+      icon: '🤕',
+      commonMisattribution: 'Dismissed as "tension headaches or dehydration"',
+      rootCauseAxis: 'Neuro-Vascular Cerebral Perfusion Rebound',
+      involvedBoards: ['Neurology', 'Cardiology'],
+    },
+    {
+      id: 'symp_dizziness',
+      name: 'Orthostatic Standing Dizziness',
+      icon: '😫',
+      commonMisattribution: 'Dismissed as "benign dehydration or lack of fitness"',
+      rootCauseAxis: 'Autonomic Splanchnic Blood Pooling (+38 bpm delta)',
+      involvedBoards: ['Cardiology', 'Neurology'],
+    },
+    {
+      id: 'symp_cold',
+      name: 'Cold Hands & Temperature Sensitivity',
+      icon: '🥶',
+      commonMisattribution: 'Dismissed as "poor circulation or normal for body type"',
+      rootCauseAxis: 'Peripheral Adrenergic Vasoconstriction & Low Iron Stores',
+      involvedBoards: ['Endocrinology', 'Cardiology'],
+    },
+    {
+      id: 'symp_sleep',
+      name: '3 AM Waking & Fragmented Sleep',
+      icon: '🌙',
+      commonMisattribution: 'Dismissed as "insomnia or blue light exposure"',
+      rootCauseAxis: 'Nocturnal Histamine Spikes & Cortisol Rebound',
+      involvedBoards: ['Allergy & Immunology', 'Endocrinology'],
+    },
+  ];
+
+  // Detailed Node Breakdown Database
+  const nodeDetails: Record<string, NodeDetail> = {
+    cond_ferritin: {
+      id: 'cond_ferritin',
+      title: 'Subclinical Ferritin Depletion',
+      system: 'metabolic',
+      systemName: 'Metabolic & Mitochondrial Axis',
+      systemIcon: '🔬',
+      confidence: 96,
+      biochemicalMechanism:
+        'Ferritin reflects bone marrow reticuloendothelial iron reserves. Even when standard hemoglobin and serum iron appear normal, low ferritin (<30 ng/mL) deprives mitochondrial cytochromes of iron-sulfur clusters, reducing ATP production and impairing tyrosine hydroxylase synthesis of dopamine.',
+      biomarkers: [
+        {
+          name: 'Serum Ferritin',
+          standardRange: '13 – 150 ng/mL',
+          optimalRange: '50 – 90 ng/mL',
+          userValue: '14 ng/mL',
+          status: 'depleted',
+          clinicalNote: 'Severely depleted storage reserves; cellular oxygenation starved.',
+        },
+        {
+          name: 'Total Iron Binding Capacity (TIBC)',
+          standardRange: '250 – 400 μg/dL',
+          optimalRange: '280 – 350 μg/dL',
+          userValue: '392 μg/dL',
+          status: 'suboptimal',
+          clinicalNote: 'Elevated binding capacity indicates biological thirst for iron.',
+        },
+        {
+          name: 'Standard Serum Iron',
+          standardRange: '60 – 170 μg/dL',
+          optimalRange: '85 – 130 μg/dL',
+          userValue: '65 μg/dL',
+          status: 'normal',
+          clinicalNote: 'Technically inside standard lab range, creating false reassurance.',
+        },
+      ],
+      dietaryTriggers: [
+        { name: 'Tannins in Black Tea/Coffee', category: 'Absorption Blocker', icon: '☕', impact: 'Inhibits non-heme iron absorption by up to 60% when taken with meals.' },
+        { name: 'Phytates in Unsoaked Grains', category: 'Mineral Chelator', icon: '🌾', impact: 'Binds free iron in the duodenum, preventing enterocyte transport.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Elena Chen, MD, PhD',
+        role: 'Endocrinology & Mitochondrial Board Chair',
+        quote: 'Standard labs call 14 ng/mL normal simply because it falls between 13 and 150. In functional clinical practice, any level under 50 ng/mL starves brain and cardiac mitochondria of ATP.',
+      },
+      whatDoctorsMissed:
+        'Conventional 15-minute visits check complete blood count (CBC) and serum iron. Because hemoglobin was normal, they ruled out anemia and overlooked occult iron deficiency without anemia (IDWA).',
+      confirmatoryWorkup: [
+        'Complete Iron Profile with Ferritin, Serum Iron, TIBC, and Transferrin Saturation',
+        'Soluble Transferrin Receptor (sTfR) to quantify bone marrow erythropoietic demand',
+        'C-Reactive Protein (hs-CRP) to ensure ferritin is not falsely elevated by inflammation',
+      ],
+    },
+    cond_pots: {
+      id: 'cond_pots',
+      title: 'Hyperadrenergic Postural Orthostatic Tachycardia (POTS)',
+      system: 'autonomic',
+      systemName: 'Autonomic & Baroreflex Axis',
+      systemIcon: '🫀',
+      confidence: 92,
+      biochemicalMechanism:
+        'Upon standing, gravitational venous pooling in the splanchnic circulation reduces venous return to the right atrium. The body compensates with massive central sympathetic discharge, elevating plasma norepinephrine >600 pg/mL and triggering a compensatory heart rate spike of +38 bpm.',
+      biomarkers: [
+        {
+          name: 'Active Stand Test Delta',
+          standardRange: '<30 bpm rise',
+          optimalRange: '<20 bpm rise',
+          userValue: '+38 bpm spike',
+          status: 'elevated',
+          clinicalNote: 'Meets formal diagnostic criteria for Postural Orthostatic Tachycardia.',
+        },
+        {
+          name: 'Supine vs Standing Blood Pressure',
+          standardRange: 'Systolic stable',
+          optimalRange: '115/75 mmHg',
+          userValue: '118/74 → 134/86 mmHg',
+          status: 'elevated',
+          clinicalNote: 'Hyperadrenergic phenotype characterized by orthostatic hypertension.',
+        },
+        {
+          name: 'Heart Rate Variability (HRV)',
+          standardRange: '35 – 70 ms',
+          optimalRange: '50 – 85 ms',
+          userValue: '28 ms',
+          status: 'depleted',
+          clinicalNote: 'Dampened parasympathetic vagal recovery confirms autonomic strain.',
+        },
+      ],
+      dietaryTriggers: [
+        { name: 'High-Carbohydrate Heavy Meals', category: 'Splanchnic Shunt', icon: '🍞', impact: 'Diverts up to 30% of blood flow to mesenteric beds, exacerbating postural pooling.' },
+        { name: 'Inadequate Sodium / Hydration', category: 'Hypovolemia', icon: '🧂', impact: 'Low plasma volume accelerates baroreflex tachycardia.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Marcus Vance, MD, FACC',
+        role: 'Autonomic Cardiology & Electrophysiology Chair',
+        quote: 'A resting 12-lead ECG in a lying patient is completely useless for dysautonomia. You must stand the patient up for 10 minutes. The +38 bpm jump explains the heart flutters completely.',
+      },
+      whatDoctorsMissed:
+        'Standard visits only check resting vitals in a seated or supine chair. Because resting heart rate was 68 bpm, the orthostatic instability was completely invisible.',
+      confirmatoryWorkup: [
+        '10-Minute NASA Lean Test or Formal Tilt Table Evaluation',
+        'Supine and Standing Plasma Norepinephrine & Epinephrine Levels',
+        '24-Hour Holter Monitor with Posture Activity Logging',
+      ],
+    },
+    cond_histamine: {
+      id: 'cond_histamine',
+      title: 'Histamine DAO Enzymatic Intolerance',
+      system: 'gut',
+      systemName: 'Gastrointestinal & Enteric Axis',
+      systemIcon: '🥗',
+      confidence: 89,
+      biochemicalMechanism:
+        'Diamine oxidase (DAO) is synthesized in the intestinal brush border to degrade ingested biogenic amines. When mucosal inflammation or genetics blunt DAO activity, absorbed histamine crosses the gut epithelium, binding H1 and H2 vascular receptors to provoke systemic flushing, vasodilation, and smooth muscle spasm.',
+      biomarkers: [
+        {
+          name: 'Diamine Oxidase (DAO) Activity',
+          standardRange: '>10 U/mL',
+          optimalRange: '>14 U/mL',
+          userValue: '6.2 U/mL',
+          status: 'depleted',
+          clinicalNote: 'Enzyme deficit allows un-degraded dietary histamine to enter bloodstream.',
+        },
+        {
+          name: 'Urinary N-Methylhistamine',
+          standardRange: '<180 μg/g Cr',
+          optimalRange: '<120 μg/g Cr',
+          userValue: '235 μg/g Cr',
+          status: 'elevated',
+          clinicalNote: 'Elevated metabolic breakdown product confirms systemic histamine load.',
+        },
+      ],
+      dietaryTriggers: [
+        { name: 'Red Wine & Aged Cheese', category: 'Fermented Amine', icon: '🍷', impact: 'Packed with 200+ mg/kg of tyramine and histamine; overwhelms DAO immediately.' },
+        { name: 'Cured Meats (Salami, Pepperoni)', category: 'Biogenic Amine', icon: '🥩', impact: 'High bacterial degradation amine concentration provokes delayed flushing.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Priya Patel, MD, FACG',
+        role: 'Neuro-Gastroenterology Board Chair',
+        quote: 'When patients report gut bloating that alternates with heart flutters and morning headaches, the culprit is almost universally biogenic amine accumulation and impaired DAO clearance.',
+      },
+      whatDoctorsMissed:
+        'Standard doctors dismissed post-meal symptoms as "IBS" and prescribed antacids, which paradoxically elevated stomach pH and further crippled digestive enzyme production.',
+      confirmatoryWorkup: [
+        'Serum DAO Activity Assay & Whole Blood Histamine Quantification',
+        '14-Day Elimination Trial with Strict Low-Histamine Reintroduction',
+        'Comprehensive Stool PCR for Histamine-Producing Bacterial Overgrowth',
+      ],
+    },
+    cond_roemheld: {
+      id: 'cond_roemheld',
+      title: 'Gastrocardiac Roemheld Syndrome',
+      system: 'vascular',
+      systemName: 'Vagal & Mechanical Gut-Heart Axis',
+      systemIcon: '🫀',
+      confidence: 87,
+      biochemicalMechanism:
+        'Accumulation of gas in the stomach or splenic flexure of the colon physically elevates the left diaphragm, displacing the cardiac apex. This anatomical pressure irritates the posterior vagal trunk, provoking ectopic atrial beats, sinus tachycardia, and visceral chest oppression.',
+      biomarkers: [
+        {
+          name: 'Postprandial Heart Rate Jump',
+          standardRange: '<10 bpm',
+          optimalRange: '<8 bpm',
+          userValue: '+22 bpm after dinner',
+          status: 'elevated',
+          clinicalNote: 'Exaggerated gastrocardiac reflex triggered by gastric distension.',
+        },
+        {
+          name: 'Abdominal Girth Expansion',
+          standardRange: '<1 cm',
+          optimalRange: '0 cm',
+          userValue: '+4.5 cm within 90 min',
+          status: 'elevated',
+          clinicalNote: 'Excessive fermentation causing diaphragmatic upward displacement.',
+        },
+      ],
+      dietaryTriggers: [
+        { name: 'Garlic, Onions & Allium Fructans', category: 'Cecal FODMAP', icon: '🧄', impact: 'Rapid bacterial gas production distends stomach fundus against diaphragm.' },
+        { name: 'Carbonated Beverages & Soda', category: 'Mechanical Distension', icon: '🥤', impact: 'Introduces acute gastric volume, aggravating vagal irritation.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Julian Sterling, MD',
+        role: 'Complex Internal Medicine Chief Medical Officer',
+        quote: 'Roemheld syndrome is the great imitator. Patients are terrified they are having a heart attack, but the root cause is gastric air pushing against the pericardial vagal nerve.',
+      },
+      whatDoctorsMissed:
+        'Cardiologists evaluated the heart in isolation, while gastroenterologists examined the stomach in isolation. Neither specialist linked post-meal gas to the cardiac palpitations.',
+      confirmatoryWorkup: [
+        'Concurrent Holter ECG with Time-Stamped Meal Diary',
+        'Abdominal Ultrasound / X-Ray demonstrating splenic flexure gas displacement',
+        'Fructose & Lactulose Hydrogen-Methane Breath Test (SIBO)',
+      ],
+    },
+    cond_mcas: {
+      id: 'cond_mcas',
+      title: 'Mast Cell Activation Overlap',
+      system: 'immune',
+      systemName: 'Allergy & Mast Cell Axis',
+      systemIcon: '🛡️',
+      confidence: 81,
+      biochemicalMechanism:
+        'Mast cells are strategically located at the interface between the outside environment and host tissues (mucosa, skin, vascular nerves). Hyper-reactive mast cells degranulate in response to food antigens, temperature shifts, and physical pressure, flooding the circulation with histamine, leukotrienes, and cytokines.',
+      biomarkers: [
+        {
+          name: 'Serum Total Tryptase',
+          standardRange: '<11.4 ng/mL',
+          optimalRange: '<6.0 ng/mL',
+          userValue: '8.4 ng/mL',
+          status: 'suboptimal',
+          clinicalNote: 'Borderline elevated baseline suggests chronic mast cell mediator turnover.',
+        },
+        {
+          name: 'Prostaglandin D2 (PGD2)',
+          standardRange: '<150 pg/mL',
+          optimalRange: '<100 pg/mL',
+          userValue: '190 pg/mL',
+          status: 'elevated',
+          clinicalNote: 'Confirms secondary inflammatory mediator release.',
+        },
+      ],
+      dietaryTriggers: [
+        { name: 'Histamine-Liberating Citrus & Tomatoes', category: 'Mast Cell Degranulator', icon: '🍅', impact: 'Directly triggers mucosal mast cells to release stored granule packets.' },
+        { name: 'Artificial Preservatives & Dyes', category: 'Chemical Trigger', icon: '🧪', impact: 'Bypasses IgE receptors to provoke non-allergic mast cell activation.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Claire Moreau, MD',
+        role: 'Clinical Immunology & MCAS Board Chair',
+        quote: 'Mast cell mediators do not just cause hives. They cause vascular permeability, brain fog, smooth muscle cramping, and sudden tachycardia. Treating mast cells calms the autonomic nervous system.',
+      },
+      whatDoctorsMissed:
+        'Standard allergy panels only test for classic IgE anaphylactic allergies (peanuts, shellfish). Because IgE tests were negative, non-IgE mast cell activation was completely overlooked.',
+      confirmatoryWorkup: [
+        'Serum Baseline Tryptase + 2-Hour Post-Flare Tryptase Delta',
+        '24-Hour Urine for N-Methylhistamine, PGD2, and Leukotriene E4',
+        'Empirical Trial of Dual H1/H2 Receptor Blockers + Quercetin',
+      ],
+    },
+    symp_fatigue: {
+      id: 'symp_fatigue',
+      title: 'Chronic Fatigue & Afternoon Brain Fog',
+      system: 'metabolic',
+      systemName: 'Cellular Energetics Axis',
+      systemIcon: '⚡',
+      confidence: 94,
+      biochemicalMechanism:
+        'Cerebral hypoperfusion combined with intracellular ferritin depletion creates a dual energy crisis: neurons receive 20% less oxygen and lack the iron cofactors needed for ATP synthesis.',
+      biomarkers: [
+        { name: 'Ferritin', standardRange: '13-150', optimalRange: '50-90', userValue: '14 ng/mL', status: 'depleted', clinicalNote: 'Core cellular energy bottleneck.' },
+      ],
+      dietaryTriggers: [
+        { name: 'High Glycemic Sugars', category: 'Energy Crash', icon: '🍬', impact: 'Triggers reactive hypoglycemia on top of existing mitochondrial deficit.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Elena Chen, MD, PhD',
+        role: 'Endocrinology Chair',
+        quote: 'Brain fog is cellular starvation in real time. Replenishing ferritin stores restores mitochondrial electron transport.',
+      },
+      whatDoctorsMissed: 'Attributed to lifestyle stress without testing intracellular ferritin.',
+      confirmatoryWorkup: ['Serum Ferritin', 'Thyroid Panel with Reverse T3', 'Cortisol Awakening Response'],
+    },
+    symp_palpitations: {
+      id: 'symp_palpitations',
+      title: 'Post-Meal Palpitations & Heart Racing',
+      system: 'autonomic',
+      systemName: 'Autonomic & Cardiac Axis',
+      systemIcon: '💓',
+      confidence: 92,
+      biochemicalMechanism:
+        'Vagal compression from stomach gas (Roemheld) combines with splanchnic blood pooling to provoke a compensatory catecholamine surge.',
+      biomarkers: [
+        { name: 'Orthostatic Delta', standardRange: '<30 bpm', optimalRange: '<20 bpm', userValue: '+38 bpm', status: 'elevated', clinicalNote: 'Meets POTS threshold.' },
+      ],
+      dietaryTriggers: [
+        { name: 'Red Wine & Aged Cheeses', category: 'Histamine Amine', icon: '🍷', impact: 'Accelerates vascular dilation and heart rate spikes.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Marcus Vance, MD, FACC',
+        role: 'Cardiology Chair',
+        quote: 'The heart is an innocent bystander reacting to gastrocardiac and autonomic signals.',
+      },
+      whatDoctorsMissed: 'Evaluated supine ECG only; missed postprandial and postural dynamics.',
+      confirmatoryWorkup: ['10-Minute NASA Lean Test', 'Holter Monitor with Food Log'],
+    },
+    symp_bloat: {
+      id: 'symp_bloat',
+      title: 'Recurrent Gut Distension (1-2h Post-Meal)',
+      system: 'gut',
+      systemName: 'Enteric Microbiome Axis',
+      systemIcon: '🎈',
+      confidence: 89,
+      biochemicalMechanism:
+        'Inability of DAO enzymes to clear dietary histamine leads to gut mucosal edema, smooth muscle hypertonicity, and rapid bacterial gas entrapment.',
+      biomarkers: [
+        { name: 'DAO Activity', standardRange: '>10 U/mL', optimalRange: '>14 U/mL', userValue: '6.2 U/mL', status: 'depleted', clinicalNote: 'Enzyme deficiency.' },
+      ],
+      dietaryTriggers: [
+        { name: 'Garlic & Onions', category: 'FODMAPs', icon: '🧄', impact: 'Rapid cecal gas production.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Priya Patel, MD, FACG',
+        role: 'Gastroenterology Chair',
+        quote: 'Bloating is a biochemical warning sign of amine intolerance, not just bad digestion.',
+      },
+      whatDoctorsMissed: 'Prescribed PPIs that worsened hypochlorhydria and microbial dysbiosis.',
+      confirmatoryWorkup: ['DAO Assay', 'Hydrogen-Methane SIBO Breath Test'],
+    },
+    symp_headache: {
+      id: 'symp_headache',
+      title: 'Occipital Throbbing Morning Headaches',
+      system: 'neuro',
+      systemName: 'Neuro-Vascular Axis',
+      systemIcon: '🤕',
+      confidence: 86,
+      biochemicalMechanism:
+        'Histamine-mediated cerebral vasodilation followed by early-morning sympathetic rebound causes rapid intracranial pressure fluctuations.',
+      biomarkers: [
+        { name: 'Diurnal HRV', standardRange: '35-70 ms', optimalRange: '50-85 ms', userValue: '28 ms', status: 'depleted', clinicalNote: 'Autonomic dysregulation.' },
+      ],
+      dietaryTriggers: [
+        { name: 'Fermented Evening Meals', category: 'Histamine Stack', icon: '🧀', impact: 'Triggers 03:00 AM histamine release and morning headache.' },
+      ],
+      specialistQuote: {
+        doctor: 'Dr. Arthur Thorne, MD, FAAN',
+        role: 'Neurology Chair',
+        quote: 'Morning headaches linked to afternoon fatigue are vascular dysregulation, not simple tension.',
+      },
+      whatDoctorsMissed: 'Prescribed pain killers without investigating histamine or orthostatic links.',
+      confirmatoryWorkup: ['Cranial MRI/MRV with contrast to rule out structural anomalies', 'Orthostatic Vitals'],
+    },
+  };
 
   // Interactive Graph Node & Edge Data
   const mapData: ConnectionMapGraph = {
     centralSymptoms: [
-      { id: 'symp_fatigue', label: 'Chronic Fatigue & Brain Fog', severity: 'high' },
-      { id: 'symp_palpitations', label: 'Post-Meal Palpitations', severity: 'high' },
-      { id: 'symp_bloat', label: 'Recurrent Gut Bloating', severity: 'medium' },
-      { id: 'symp_headache', label: 'Occipital Throbbing Headache', severity: 'medium' },
+      { id: 'symp_fatigue', label: 'Chronic Fatigue & Brain Fog', severity: 'high', system: 'metabolic' },
+      { id: 'symp_palpitations', label: 'Post-Meal Palpitations', severity: 'high', system: 'autonomic' },
+      { id: 'symp_bloat', label: 'Recurrent Gut Bloating', severity: 'medium', system: 'gut' },
+      { id: 'symp_headache', label: 'Occipital Throbbing Headache', severity: 'medium', system: 'neuro' },
     ],
     conditions: [
       {
@@ -303,7 +871,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     ],
     precautions: [
       {
-        text: 'Do not start vigorous upright aerobic training until orthostatic volume is stabilized with electrolytes.',
+        text: 'Do not start vigorous upright aerobic training until orthostatic volume is stabilized with electrolytes and sodium.',
         severity: 'watch',
         relatedConditions: ['cond_pots'],
       },
@@ -352,6 +920,10 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     consensusDialogue,
     clinicalMisses,
     mapData,
+    systemAxes,
+    cascadeStages,
+    symptomCluster,
+    nodeDetails,
     doctorDossier: {
       sbar: {
         situation: `${patientName} presents with chronic postprandial palpitations, unexplained afternoon brain fog, and recurring gut distension following meals.`,
@@ -404,5 +976,49 @@ export function getConnectionMapGraph(): ConnectionMapGraph {
 
 export function getDoctorDossier() {
   return getConnectionDetectiveReport().doctorDossier;
+}
+
+export function getCausalCascadeStages(): CausalCascadeStage[] {
+  return getConnectionDetectiveReport().cascadeStages;
+}
+
+export function getSymptomCluster(): SymptomClusterItem[] {
+  return getConnectionDetectiveReport().symptomCluster;
+}
+
+export function getNodeDetail(nodeId: string): NodeDetail | undefined {
+  return getConnectionDetectiveReport().nodeDetails[nodeId];
+}
+
+export function evaluateSymptomCluster(selectedIds: string[]): {
+  matchConfidence: number;
+  summonedBoards: string[];
+  primaryAxes: string[];
+  summaryNote: string;
+} {
+  const cluster = getSymptomCluster();
+  const matched = cluster.filter((item) => selectedIds.includes(item.id));
+  const count = matched.length;
+
+  const boardsSet = new Set<string>();
+  const axesSet = new Set<string>();
+  matched.forEach((m) => {
+    m.involvedBoards.forEach((b) => boardsSet.add(b));
+    axesSet.add(m.rootCauseAxis.split(' ')[0]);
+  });
+
+  const matchConfidence = count === 0 ? 0 : Math.min(99, 70 + count * 5);
+  const summonedBoards = Array.from(boardsSet);
+  const primaryAxes = Array.from(axesSet);
+
+  return {
+    matchConfidence,
+    summonedBoards,
+    primaryAxes,
+    summaryNote:
+      count >= 3
+        ? `Cross-referencing ${count} symptoms links ${summonedBoards.length} specialist boards to a single root-cause mechanism.`
+        : 'Select symptoms to observe real-time multi-specialist convergence.',
+  };
 }
 
