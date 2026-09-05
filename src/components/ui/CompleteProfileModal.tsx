@@ -525,25 +525,25 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(243, 232, 225, 0.85)'
+            borderBottom: '1px solid rgba(254, 215, 195, 0.85)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                width: '40px',
+                height: '40px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#FFF',
-                boxShadow: '0 4px 14px rgba(15, 118, 110, 0.25), inset 0 1px 0 rgba(255,255,255,0.4)'
+                boxShadow: '0 6px 18px rgba(255, 107, 74, 0.32), inset 0 1px 0 rgba(255,255,255,0.4)'
               }}>
                 <FolderHeart size={20} />
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
                     Clinical Health Profile
                   </h3>
                   <span style={{
@@ -551,9 +551,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     fontWeight: 800,
                     padding: '2px 8px',
                     borderRadius: '999px',
-                    background: '#FEF3C7',
-                    color: '#B45309',
-                    border: '1px solid #FDE68A'
+                    background: '#ECFDF5',
+                    color: '#059669',
+                    border: '1px solid #A7F3D0'
                   }}>
                     +50 PTS
                   </span>
@@ -574,13 +574,14 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 width: '34px',
                 height: '34px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.85)',
-                border: '1px solid rgba(243, 232, 225, 0.9)',
+                background: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid rgba(254, 215, 195, 0.9)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#64748B',
-                cursor: 'pointer'
+                color: '#78716C',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
               }}
               aria-label="Close"
             >
@@ -591,7 +592,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
           {/* Stepper Progress Bar & Responsive 4-Column Step Tabs (Zero Overflow, Zero Cut-off) */}
           <div style={{
             background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 244, 0.92) 100%)',
-            borderBottom: '1px solid rgba(243, 232, 225, 0.85)',
+            borderBottom: '1px solid rgba(254, 215, 195, 0.85)',
             padding: '8px 16px 8px'
           }}>
             {/* 4-Segment Progress Bar */}
@@ -606,8 +607,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       height: '4px',
                       borderRadius: '999px',
                       background: isPassed 
-                        ? 'linear-gradient(90deg, #0F766E 0%, #0D9488 100%)' 
-                        : '#F3E5D8',
+                        ? 'linear-gradient(90deg, #FF6B4A 0%, #FFA07A 100%)' 
+                        : '#F5E5D9',
                       transition: 'background 0.25s ease'
                     }}
                   />
@@ -637,19 +638,19 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       padding: '7px 4px',
                       borderRadius: '12px',
                       border: isCurrent 
-                        ? '1.5px solid #0F766E' 
+                        ? '1.5px solid #FF7043' 
                         : isDone 
                           ? '1px solid #FED7AA' 
                           : '1px solid rgba(243, 232, 225, 0.9)',
                       background: isCurrent 
-                        ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' 
+                        ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' 
                         : isDone 
                           ? '#FEF3EB' 
-                          : 'rgba(255, 255, 255, 0.75)',
+                          : 'rgba(255, 255, 255, 0.85)',
                       color: isCurrent 
                         ? '#FFFFFF' 
                         : isDone 
-                          ? '#0F766E' 
+                          ? '#EA580C' 
                           : '#78716C',
                       fontSize: '11px',
                       fontWeight: isCurrent ? 800 : 600,
@@ -658,7 +659,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       justifyContent: 'center',
                       gap: '3px',
                       cursor: 'pointer',
-                      boxShadow: isCurrent ? '0 3px 10px rgba(15, 118, 110, 0.25)' : 'none',
+                      boxShadow: isCurrent ? '0 4px 12px rgba(255, 107, 74, 0.28)' : 'none',
                       whiteSpace: 'nowrap',
                       transition: 'all 0.2s ease'
                     }}
@@ -686,21 +687,22 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {/* Clinical Context Banner */}
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 242, 0.88) 100%)',
+                  background: 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)',
                   borderRadius: '16px',
                   padding: '12px 14px',
-                  border: '1.5px solid rgba(243, 232, 225, 0.9)',
+                  border: '1.5px solid #FCD9C6',
+                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)',
                   fontSize: '12px',
                   color: '#57534E',
                   lineHeight: 1.4
                 }}>
-                  💡 <strong style={{ color: '#0F172A' }}>Why this matters:</strong> Age and biological sex determine accurate clinical reference ranges for biomarkers, metabolic rates, and drug dosing.
+                  💡 <strong style={{ color: '#1C1917' }}>Why this matters:</strong> Age and biological sex determine accurate clinical reference ranges for biomarkers, metabolic rates, and drug dosing.
                 </div>
 
                 {/* Name & Age */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
                       Full Name
                     </label>
                     <input
@@ -712,10 +714,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         width: '100%',
                         padding: '11px 13px',
                         borderRadius: '14px',
-                        border: '1.5px solid #F3E5D8',
+                        border: '1.5px solid #F3D9C9',
                         background: 'rgba(255, 255, 255, 0.95)',
                         fontSize: '13.5px',
-                        color: '#0F172A',
+                        color: '#1C1917',
                         outline: 'none',
                         boxSizing: 'border-box'
                       }}
@@ -723,8 +725,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                      Age <span style={{ color: '#EF4444' }}>*</span>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
+                      Age <span style={{ color: '#EA580C' }}>*</span>
                     </label>
                     <input
                       type="number"
@@ -737,10 +739,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         width: '100%',
                         padding: '11px 13px',
                         borderRadius: '14px',
-                        border: '1.5px solid #F3E5D8',
+                        border: '1.5px solid #F3D9C9',
                         background: 'rgba(255, 255, 255, 0.95)',
                         fontSize: '13.5px',
-                        color: '#0F172A',
+                        color: '#1C1917',
                         outline: 'none',
                         boxSizing: 'border-box'
                       }}
@@ -750,8 +752,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
                 {/* Biological Sex (Tactile Reference Grid) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Biological Sex <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '6px' }}>
+                    Biological Sex <span style={{ color: '#EA580C' }}>*</span>
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                     {['Male', 'Female', 'Other'].map(s => {
@@ -767,9 +769,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           style={{
                             padding: '11px 8px',
                             borderRadius: '14px',
-                            border: isSelected ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                            background: isSelected ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' : 'rgba(255, 255, 255, 0.9)',
-                            color: isSelected ? '#FFFFFF' : '#334155',
+                            border: isSelected ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
+                            background: isSelected ? 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)' : 'rgba(255, 255, 255, 0.9)',
+                            color: isSelected ? '#EA580C' : '#44403C',
                             fontWeight: isSelected ? 800 : 600,
                             fontSize: '13px',
                             cursor: 'pointer',
@@ -777,7 +779,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '5px',
-                            boxShadow: isSelected ? '0 3px 10px rgba(15, 118, 110, 0.22)' : '0 1px 3px rgba(0,0,0,0.02)',
+                            boxShadow: isSelected ? '0 3px 10px rgba(255, 112, 67, 0.22)' : '0 1px 3px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
@@ -792,10 +794,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 {/* Blood Group (Architecturally Aligned 4-Column Grid) */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#1C1917' }}>
                       Blood Group
                     </label>
-                    <span style={{ fontSize: '11px', color: '#94A3B8' }}>Select clinical type</span>
+                    <span style={{ fontSize: '11px', color: '#8C7A70' }}>Select clinical type</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                     {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => {
@@ -811,9 +813,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           style={{
                             padding: '10px 4px',
                             borderRadius: '12px',
-                            border: isSelected ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                            background: isSelected ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' : 'rgba(255, 255, 255, 0.9)',
-                            color: isSelected ? '#FFFFFF' : '#334155',
+                            border: isSelected ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
+                            background: isSelected ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : 'rgba(255, 255, 255, 0.9)',
+                            color: isSelected ? '#FFFFFF' : '#44403C',
                             fontWeight: isSelected ? 800 : 600,
                             fontSize: '13px',
                             cursor: 'pointer',
@@ -821,7 +823,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '4px',
-                            boxShadow: isSelected ? '0 3px 10px rgba(15, 118, 110, 0.22)' : '0 1px 3px rgba(0,0,0,0.02)',
+                            boxShadow: isSelected ? '0 3px 10px rgba(255, 112, 67, 0.25)' : '0 1px 3px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
@@ -841,8 +843,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         gridColumn: '1 / -1',
                         padding: '10px 12px',
                         borderRadius: '12px',
-                        border: bloodGroup === 'Unknown' ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                        background: bloodGroup === 'Unknown' ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' : 'rgba(255, 255, 255, 0.9)',
+                        border: bloodGroup === 'Unknown' ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
+                        background: bloodGroup === 'Unknown' ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : 'rgba(255, 255, 255, 0.9)',
                         color: bloodGroup === 'Unknown' ? '#FFFFFF' : '#64748B',
                         fontWeight: bloodGroup === 'Unknown' ? 800 : 600,
                         fontSize: '12.5px',
@@ -851,7 +853,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '6px',
-                        boxShadow: bloodGroup === 'Unknown' ? '0 3px 10px rgba(15, 118, 110, 0.22)' : 'none',
+                        boxShadow: bloodGroup === 'Unknown' ? '0 3px 10px rgba(255, 112, 67, 0.22)' : 'none',
                         transition: 'all 0.15s ease'
                       }}
                     >
@@ -864,8 +866,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 {/* Height & Weight */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                      Height (cm) <span style={{ color: '#EF4444' }}>*</span>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
+                      Height (cm) <span style={{ color: '#EA580C' }}>*</span>
                     </label>
                     <input
                       type="number"
@@ -878,10 +880,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         width: '100%',
                         padding: '11px 13px',
                         borderRadius: '14px',
-                        border: '1.5px solid #F3E5D8',
+                        border: '1.5px solid #F3D9C9',
                         background: 'rgba(255, 255, 255, 0.95)',
                         fontSize: '13.5px',
-                        color: '#0F172A',
+                        color: '#1C1917',
                         outline: 'none',
                         boxSizing: 'border-box'
                       }}
@@ -889,8 +891,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                      Weight (kg) <span style={{ color: '#EF4444' }}>*</span>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
+                      Weight (kg) <span style={{ color: '#EA580C' }}>*</span>
                     </label>
                     <input
                       type="number"
@@ -903,10 +905,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         width: '100%',
                         padding: '11px 13px',
                         borderRadius: '14px',
-                        border: '1.5px solid #F3E5D8',
+                        border: '1.5px solid #F3D9C9',
                         background: 'rgba(255, 255, 255, 0.95)',
                         fontSize: '13.5px',
-                        color: '#0F172A',
+                        color: '#1C1917',
                         outline: 'none',
                         boxSizing: 'border-box'
                       }}
@@ -1062,15 +1064,16 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
             {activeStep === 1 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 242, 0.88) 100%)',
+                  background: 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)',
                   borderRadius: '16px',
                   padding: '12px 14px',
-                  border: '1.5px solid rgba(243, 232, 225, 0.9)',
+                  border: '1.5px solid #FCD9C6',
+                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)',
                   fontSize: '12px',
                   color: '#57534E',
                   lineHeight: 1.4
                 }}>
-                  💡 <strong style={{ color: '#0F172A' }}>Medical Context:</strong> Chronic conditions help your AI specialist board tailor differential diagnoses, care protocols, and drug interactions.
+                  💡 <strong style={{ color: '#1C1917' }}>Medical Context:</strong> Chronic conditions help your AI specialist board tailor differential diagnoses, care protocols, and drug interactions.
                 </div>
 
                 {/* Healthy Toggle Pill Card */}
@@ -1086,9 +1089,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   style={{
                     padding: '12px 16px',
                     borderRadius: '16px',
-                    border: hasNoConditions ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                    background: hasNoConditions ? '#FEF3EB' : 'rgba(255, 255, 255, 0.9)',
-                    color: hasNoConditions ? '#0F766E' : '#334155',
+                    border: hasNoConditions ? '1.5px solid #10B981' : '1.5px solid #F3D9C9',
+                    background: hasNoConditions ? '#ECFDF5' : 'rgba(255, 255, 255, 0.9)',
+                    color: hasNoConditions ? '#059669' : '#334155',
                     fontWeight: 700,
                     fontSize: '13px',
                     display: 'flex',
@@ -1103,8 +1106,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     width: '22px',
                     height: '22px',
                     borderRadius: '7px',
-                    border: hasNoConditions ? '2px solid #0F766E' : '2px solid #CBD5E1',
-                    background: hasNoConditions ? '#0F766E' : 'transparent',
+                    border: hasNoConditions ? '2px solid #059669' : '2px solid #CBD5E1',
+                    background: hasNoConditions ? '#059669' : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1119,7 +1122,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   <>
                     {/* Common Conditions Capsule Chips */}
                     <div>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1C1917', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                         Common Conditions (Tap to Select)
                       </span>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -1133,8 +1136,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                               style={{
                                 padding: '9px 15px',
                                 borderRadius: '999px',
-                                border: isSelected ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                                background: isSelected ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' : 'rgba(255, 255, 255, 0.9)',
+                                border: isSelected ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
+                                background: isSelected ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : 'rgba(255, 255, 255, 0.9)',
                                 color: isSelected ? '#FFFFFF' : '#1E293B',
                                 fontWeight: isSelected ? 800 : 600,
                                 fontSize: '13px',
@@ -1142,7 +1145,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                boxShadow: isSelected ? '0 3px 10px rgba(15, 118, 110, 0.22)' : '0 1px 3px rgba(0,0,0,0.02)',
+                                boxShadow: isSelected ? '0 4px 12px rgba(255, 107, 74, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
                                 transition: 'all 0.15s ease'
                               }}
                             >
@@ -1156,7 +1159,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
                     {/* Write Custom Condition */}
                     <div>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1C1917', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
                         Other Condition
                       </span>
                       <div style={{ display: 'flex', gap: '8px' }}>
@@ -1170,10 +1173,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             flex: 1,
                             padding: '11px 14px',
                             borderRadius: '14px',
-                            border: '1.5px solid #F3E5D8',
+                            border: '1.5px solid #F3D9C9',
                             background: 'rgba(255, 255, 255, 0.95)',
                             fontSize: '13.5px',
-                            color: '#0F172A',
+                            color: '#1C1917',
                             outline: 'none'
                           }}
                         />
@@ -1183,7 +1186,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           style={{
                             padding: '11px 18px',
                             borderRadius: '14px',
-                            background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                            background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
                             color: '#FFFFFF',
                             fontWeight: 700,
                             fontSize: '13px',
@@ -1192,7 +1195,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
-                            boxShadow: '0 3px 10px rgba(15, 118, 110, 0.22)'
+                            boxShadow: '0 4px 12px rgba(255, 107, 74, 0.28)'
                           }}
                         >
                           <Plus size={16} /> Add
@@ -1203,12 +1206,13 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     {/* Selected Summary */}
                     {selectedConditions.length > 0 && (
                       <div style={{
-                        background: 'rgba(255, 255, 255, 0.92)',
+                        background: 'rgba(255, 255, 255, 0.95)',
                         borderRadius: '16px',
                         padding: '14px',
-                        border: '1.5px solid rgba(254, 215, 195, 0.85)'
+                        border: '1.5px solid rgba(254, 215, 195, 0.95)',
+                        boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)'
                       }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           Selected Conditions ({selectedConditions.length})
                         </span>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
@@ -1218,9 +1222,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                               style={{
                                 padding: '6px 12px',
                                 borderRadius: '999px',
-                                background: '#FEF3EB',
+                                background: '#FFF2EB',
                                 border: '1px solid #FED7AA',
-                                color: '#0F766E',
+                                color: '#EA580C',
                                 fontSize: '12px',
                                 fontWeight: 700,
                                 display: 'flex',
@@ -1228,13 +1232,13 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 gap: '6px'
                               }}
                             >
-                              {c}
+                              <span>{c}</span>
                               <button
                                 type="button"
                                 onClick={() => toggleCondition(c)}
-                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#0F766E', padding: 0 }}
+                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: '#EA580C', display: 'flex' }}
                               >
-                                <X size={12} />
+                                <X size={12} strokeWidth={2.5} />
                               </button>
                             </span>
                           ))}
@@ -1294,8 +1298,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     width: '22px',
                     height: '22px',
                     borderRadius: '7px',
-                    border: hasNoMedications ? '2px solid #0F766E' : '2px solid #CBD5E1',
-                    background: hasNoMedications ? '#0F766E' : 'transparent',
+                    border: hasNoMedications ? '2px solid #059669' : '2px solid #CBD5E1',
+                    background: hasNoMedications ? '#059669' : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1310,7 +1314,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   <>
                     {/* Quick Add Prescriptions */}
                     <div>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1C1917', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                         Quick-Add Common Prescriptions
                       </span>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -1325,8 +1329,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                               style={{
                                 padding: '9px 14px',
                                 borderRadius: '999px',
-                                border: isSelected ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                                background: isSelected ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' : 'rgba(255, 255, 255, 0.9)',
+                                border: isSelected ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
+                                background: isSelected ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : 'rgba(255, 255, 255, 0.9)',
                                 color: isSelected ? '#FFFFFF' : '#1E293B',
                                 fontWeight: isSelected ? 800 : 600,
                                 fontSize: '12.5px',
@@ -1334,7 +1338,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                boxShadow: isSelected ? '0 3px 10px rgba(15, 118, 110, 0.22)' : '0 1px 3px rgba(0,0,0,0.02)',
+                                boxShadow: isSelected ? '0 4px 12px rgba(255, 107, 74, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
                                 transition: 'all 0.15s ease'
                               }}
                             >
@@ -1352,10 +1356,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       background: 'rgba(255, 255, 255, 0.95)',
                       borderRadius: '16px',
                       padding: '14px',
-                      border: '1.5px solid rgba(254, 215, 195, 0.9)',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+                      border: '1.5px solid rgba(254, 215, 195, 0.95)',
+                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)'
                     }}>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1C1917', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                         Custom Medication Entry
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1368,10 +1372,11 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           style={{
                             padding: '11px 13px',
                             borderRadius: '12px',
-                            border: '1.5px solid #F3E5D8',
+                            border: '1.5px solid #F3D9C9',
                             fontSize: '13.5px',
                             outline: 'none',
-                            background: '#FFFFFF'
+                            background: '#FFFFFF',
+                            color: '#1C1917'
                           }}
                         />
                         <input
@@ -1383,16 +1388,17 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           style={{
                             padding: '11px 13px',
                             borderRadius: '12px',
-                            border: '1.5px solid #F3E5D8',
+                            border: '1.5px solid #F3D9C9',
                             fontSize: '13.5px',
                             outline: 'none',
-                            background: '#FFFFFF'
+                            background: '#FFFFFF',
+                            color: '#1C1917'
                           }}
                         />
 
                         {/* Circadian Slot Picker */}
                         <div>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#78716C', display: 'block', marginBottom: '4px' }}>
                             Circadian Timing Slot:
                           </span>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
@@ -1410,9 +1416,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                   style={{
                                     padding: '8px 4px',
                                     borderRadius: '12px',
-                                    border: isCur ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                                    background: isCur ? '#FEF3EB' : '#FFFFFF',
-                                    color: isCur ? '#0F766E' : '#64748B',
+                                    border: isCur ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
+                                    background: isCur ? '#FFF2EB' : '#FFFFFF',
+                                    color: isCur ? '#EA580C' : '#78716C',
                                     fontSize: '11px',
                                     fontWeight: isCur ? 800 : 600,
                                     cursor: 'pointer',
@@ -1420,7 +1426,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '2px',
-                                    boxShadow: isCur ? '0 2px 6px rgba(15, 118, 110, 0.15)' : 'none'
+                                    boxShadow: isCur ? '0 2px 6px rgba(255, 112, 67, 0.15)' : 'none'
                                   }}
                                 >
                                   <span>{meta.icon}</span>
@@ -1440,7 +1446,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             marginTop: '4px',
                             padding: '11px',
                             borderRadius: '14px',
-                            background: medName.trim() ? 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)' : '#E2E8F0',
+                            background: medName.trim() ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : '#E2E8F0',
                             color: medName.trim() ? '#FFF' : '#94A3B8',
                             fontWeight: 700,
                             fontSize: '13px',
@@ -1450,7 +1456,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '6px',
-                            boxShadow: medName.trim() ? '0 3px 10px rgba(15, 118, 110, 0.22)' : 'none'
+                            boxShadow: medName.trim() ? '0 4px 12px rgba(255, 107, 74, 0.28)' : 'none'
                           }}
                         >
                           <Plus size={16} /> Add to Chronotherapy Schedule
@@ -1461,7 +1467,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     {/* Active Scheduled Medications with Live Circadian Slot Adjuster */}
                     {medicationsList.length > 0 && (
                       <div>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
                           Scheduled Medications ({medicationsList.length})
                         </span>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1472,17 +1478,17 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 style={{
                                   padding: '12px 14px',
                                   background: 'rgba(255, 255, 255, 0.95)',
-                                  border: '1.5px solid rgba(254, 215, 195, 0.85)',
+                                  border: '1.5px solid rgba(254, 215, 195, 0.95)',
                                   borderRadius: '16px',
                                   boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                                 }}
                               >
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Pill size={16} color="#0F766E" />
+                                    <Pill size={16} color="#EA580C" />
                                     <div>
-                                      <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{m.name}</span>
-                                      <span style={{ fontSize: '12px', color: '#64748B', marginLeft: '6px' }}>({m.dosage})</span>
+                                      <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#1C1917' }}>{m.name}</span>
+                                      <span style={{ fontSize: '12px', color: '#78716C', marginLeft: '6px' }}>({m.dosage})</span>
                                     </div>
                                   </div>
                                   <button
@@ -1509,9 +1515,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                           flex: 1,
                                           padding: '6px 4px',
                                           borderRadius: '10px',
-                                          border: isActive ? `1.5px solid #0F766E` : '1px solid #F3E5D8',
-                                          background: isActive ? '#FEF3EB' : '#FFFFFF',
-                                          color: isActive ? '#0F766E' : '#64748B',
+                                          border: isActive ? `1.5px solid #FF7043` : '1px solid #F3D9C9',
+                                          background: isActive ? '#FFF2EB' : '#FFFFFF',
+                                          color: isActive ? '#EA580C' : '#78716C',
                                           fontSize: '10.5px',
                                           fontWeight: isActive ? 800 : 600,
                                           cursor: 'pointer',
@@ -1545,15 +1551,16 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
             {activeStep === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 247, 242, 0.88) 100%)',
+                  background: 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)',
                   borderRadius: '16px',
                   padding: '12px 14px',
-                  border: '1.5px solid rgba(243, 232, 225, 0.9)',
+                  border: '1.5px solid #FCD9C6',
+                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)',
                   fontSize: '12px',
                   color: '#57534E',
                   lineHeight: 1.4
                 }}>
-                  ⚠️ <strong style={{ color: '#0F172A' }}>Clinical Allergy Guard:</strong> Tag allergens with severity ratings (Mild, Moderate, Severe / Anaphylaxis ⚠️). Ava Health Buddy cross-checks this against all medical and pharmaceutical advice to prevent fatal contraindications!
+                  ⚠️ <strong style={{ color: '#1C1917' }}>Clinical Allergy Guard:</strong> Tag allergens with severity ratings (Mild, Moderate, Severe / Anaphylaxis ⚠️). Ava Health Buddy cross-checks this against all medical and pharmaceutical advice to prevent fatal contraindications!
                 </div>
 
                 {/* NKDA Toggle */}
@@ -1569,9 +1576,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   style={{
                     padding: '12px 16px',
                     borderRadius: '16px',
-                    border: hasNoAllergies ? '1.5px solid #0F766E' : '1.5px solid #F3E5D8',
-                    background: hasNoAllergies ? '#FEF3EB' : 'rgba(255, 255, 255, 0.9)',
-                    color: hasNoAllergies ? '#0F766E' : '#334155',
+                    border: hasNoAllergies ? '1.5px solid #10B981' : '1.5px solid #F3D9C9',
+                    background: hasNoAllergies ? '#ECFDF5' : 'rgba(255, 255, 255, 0.9)',
+                    color: hasNoAllergies ? '#059669' : '#334155',
                     fontWeight: 700,
                     fontSize: '13px',
                     display: 'flex',
@@ -1586,8 +1593,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     width: '22px',
                     height: '22px',
                     borderRadius: '7px',
-                    border: hasNoAllergies ? '2px solid #0F766E' : '2px solid #CBD5E1',
-                    background: hasNoAllergies ? '#0F766E' : 'transparent',
+                    border: hasNoAllergies ? '2px solid #059669' : '2px solid #CBD5E1',
+                    background: hasNoAllergies ? '#059669' : 'transparent',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1602,7 +1609,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   <>
                     {/* Common Allergens Capsule Chips */}
                     <div>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1C1917', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                         Common Allergens (Tap to Add)
                       </span>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -1616,7 +1623,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                               style={{
                                 padding: '9px 14px',
                                 borderRadius: '999px',
-                                border: isSelected ? '1.5px solid #E11D48' : '1.5px solid #F3E5D8',
+                                border: isSelected ? '1.5px solid #E11D48' : '1.5px solid #F3D9C9',
                                 background: isSelected ? '#FFF1F2' : 'rgba(255, 255, 255, 0.9)',
                                 color: isSelected ? '#E11D48' : '#1E293B',
                                 fontWeight: isSelected ? 800 : 600,
@@ -1642,10 +1649,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       background: 'rgba(255, 255, 255, 0.95)',
                       borderRadius: '16px',
                       padding: '14px',
-                      border: '1.5px solid rgba(254, 215, 195, 0.9)',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+                      border: '1.5px solid rgba(254, 215, 195, 0.95)',
+                      boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)'
                     }}>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#1C1917', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
                         Custom Allergen Entry
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1658,16 +1665,17 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           style={{
                             padding: '11px 13px',
                             borderRadius: '12px',
-                            border: '1.5px solid #F3E5D8',
+                            border: '1.5px solid #F3D9C9',
                             fontSize: '13.5px',
                             outline: 'none',
-                            background: '#FFFFFF'
+                            background: '#FFFFFF',
+                            color: '#1C1917'
                           }}
                         />
 
                         {/* Severity Selector */}
                         <div>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#78716C', display: 'block', marginBottom: '4px' }}>
                             Severity Level:
                           </span>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
@@ -1685,7 +1693,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                   style={{
                                     padding: '8px 4px',
                                     borderRadius: '12px',
-                                    border: isCur ? `1.5px solid ${meta.color}` : '1px solid #F3E5D8',
+                                    border: isCur ? `1.5px solid ${meta.color}` : '1px solid #F3D9C9',
                                     background: isCur ? meta.bg : '#FFFFFF',
                                     color: isCur ? meta.color : '#64748B',
                                     fontSize: '11px',
@@ -1709,7 +1717,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             marginTop: '4px',
                             padding: '11px',
                             borderRadius: '14px',
-                            background: customAllergy.trim() ? '#E11D48' : '#E2E8F0',
+                            background: customAllergy.trim() ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : '#E2E8F0',
                             color: customAllergy.trim() ? '#FFF' : '#94A3B8',
                             fontWeight: 700,
                             fontSize: '13px',
@@ -1719,7 +1727,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '6px',
-                            boxShadow: customAllergy.trim() ? '0 3px 10px rgba(225, 29, 72, 0.22)' : 'none'
+                            boxShadow: customAllergy.trim() ? '0 4px 12px rgba(255, 107, 74, 0.28)' : 'none'
                           }}
                         >
                           <Plus size={16} /> Add to Allergy Guard
@@ -1750,20 +1758,34 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <AlertTriangle size={16} color={curMeta.color} />
-                                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>{a.name}</span>
+                                    <div>
+                                      <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#1C1917' }}>{a.name}</span>
+                                      <span style={{
+                                        fontSize: '10.5px',
+                                        fontWeight: 800,
+                                        marginLeft: '8px',
+                                        padding: '2px 8px',
+                                        borderRadius: '999px',
+                                        background: curMeta.bg,
+                                        color: curMeta.color,
+                                        border: `1px solid ${curMeta.border}`
+                                      }}>
+                                        {curMeta.chipLabel}
+                                      </span>
+                                    </div>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => removeAllergy(idx)}
-                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#E11D48', padding: '4px' }}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}
                                     aria-label="Remove allergen"
                                   >
                                     <Trash2 size={15} />
                                   </button>
                                 </div>
 
-                                {/* Severity Toggle Chips on Item */}
-                                <div style={{ display: 'flex', gap: '6px' }}>
+                                {/* Live Severity Segmented Adjuster */}
+                                <div style={{ display: 'flex', gap: '5px' }}>
                                   {(['mild', 'moderate', 'severe'] as AllergySeverity[]).map(sev => {
                                     const meta = ALLERGY_SEVERITY_META[sev];
                                     const isActive = a.severity === sev;
@@ -1776,7 +1798,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                           flex: 1,
                                           padding: '6px 4px',
                                           borderRadius: '10px',
-                                          border: isActive ? `1.5px solid ${meta.color}` : '1px solid #F3E5D8',
+                                          border: isActive ? `1.5px solid ${meta.color}` : '1px solid #F3D9C9',
                                           background: isActive ? meta.bg : '#FFFFFF',
                                           color: isActive ? meta.color : '#64748B',
                                           fontSize: '11px',
@@ -1827,9 +1849,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 style={{
                   padding: '13px 18px',
                   borderRadius: '14px',
-                  border: '1.5px solid #F3E5D8',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#475569',
+                  border: '1.5px solid #F3D9C9',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  color: '#57534E',
                   fontWeight: 700,
                   fontSize: '13px',
                   display: 'flex',
@@ -1851,9 +1873,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 style={{
                   padding: '13px 18px',
                   borderRadius: '14px',
-                  border: '1.5px solid #F3E5D8',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#64748B',
+                  border: '1.5px solid #F3D9C9',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  color: '#78716C',
                   fontWeight: 600,
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -1876,7 +1898,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     flex: 1,
                     padding: '13px 20px',
                     borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                    background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '14px',
@@ -1886,7 +1908,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     justifyContent: 'center',
                     gap: '8px',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(15, 118, 110, 0.25)'
+                    boxShadow: '0 6px 20px rgba(255, 107, 74, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)'
                   }}
                 >
                   {activeStep === 0 && 'Next: Conditions'}
@@ -1903,7 +1925,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     width: '100%',
                     padding: '14px 20px',
                     borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)',
+                    background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '14.5px',
@@ -1914,7 +1936,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     gap: '8px',
                     cursor: isSaving ? 'default' : 'pointer',
                     opacity: isSaving ? 0.7 : 1,
-                    boxShadow: '0 6px 20px rgba(15, 118, 110, 0.28), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    boxShadow: '0 8px 24px rgba(255, 107, 74, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
                   }}
                 >
                   <Sparkles size={16} /> {isSaving ? 'Saving Profile...' : 'Save & Activate (+50 PTS)'}

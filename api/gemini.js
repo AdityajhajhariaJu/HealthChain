@@ -87,8 +87,10 @@ export default async function handler(req, res) {
 
   // Validate before charging a daily request slot. Invalid or oversized
   // payloads must never consume metered AI capacity.
+  const isVision = operation.includes('vision') || operation.includes('lab') || operation.includes('image');
+  const maxBytes = isVision ? 4194304 : 250000;
   const contentLength = Number(req.headers['content-length'] || 0);
-  if (contentLength > 250000) return res.status(413).json({ error: 'AI request is too large' });
+  if (contentLength > maxBytes) return res.status(413).json({ error: 'AI request is too large' });
   let bodyPayload;
   try {
     bodyPayload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -98,7 +100,7 @@ export default async function handler(req, res) {
   if (!bodyPayload || typeof bodyPayload !== 'object' || Array.isArray(bodyPayload)) {
     return res.status(400).json({ error: 'Invalid AI request body' });
   }
-  if (Buffer.byteLength(JSON.stringify(bodyPayload), 'utf8') > 250000) {
+  if (Buffer.byteLength(JSON.stringify(bodyPayload), 'utf8') > maxBytes) {
     return res.status(413).json({ error: 'AI request is too large' });
   }
 

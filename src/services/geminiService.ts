@@ -1961,38 +1961,72 @@ Example: ["Patient reported persistent lower back pain starting 2 days ago", "Pa
     return [];
   }
 }
-export async function analyzeFoodImage(base64Image: string, profile: any): Promise<any> {
+export interface FoodAnalysisResult {
+  detected: boolean;
+  foodName?: string;
+  servingSize?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+  sugar?: number;
+  fibre?: number;
+  warning?: string | null;
+  betterAlternative?: {
+    name: string;
+    reason: string;
+  } | null;
+  errorMessage?: string;
+}
+
+export async function analyzeFoodImage(base64Image: string, profile: any): Promise<FoodAnalysisResult> {
+  const mimeType = base64Image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+  const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+
+  const conditionsList = Array.isArray(profile?.medicalConditions) 
+    ? profile.medicalConditions.join(', ') 
+    : (Array.isArray(profile?.conditions) ? profile.conditions.join(', ') : 'None');
+
   const payload = {
     contents: [
       {
         parts: [
-          { text: `You are an expert clinical dietician AI. Analyze this image of food.
-Identify the food item and estimate its macronutrients based on a standard serving.
-Compare it against the user's profile:
-- Diet/Conditions: ${profile?.medicalConditions?.join(', ') || 'None'}
-- Target Calories: ${profile?.targetCalories || 2000}
+          { text: `You are an expert clinical dietician and biomedical OCR system. Analyze this camera frame or photo.
+STEP 1: Determine whether a food item, prepared meal, grocery product, beverage, or nutrition facts label is visible in this image.
+- If the image is pitch-black, dark, covered lens, blurry, or shows non-food objects (e.g. keyboard, desk, clothes, room, floor, hands, documents, walls, or random objects with no food/beverage):
+  You MUST return ONLY this JSON:
+  {
+    "detected": false,
+    "errorMessage": "No food, beverage, or nutrition facts label detected in this frame. Please aim directly at your meal or product label with good lighting."
+  }
+
+STEP 2: If a food item, meal, beverage, or nutrition label IS recognized:
+Analyze its nutritional breakdown based on a standard serving portion, cross-referenced against the patient's clinical profile:
+- Patient Conditions: ${conditionsList}
+- Target Daily Calories: ${profile?.targetCalories || 2000} kcal
 
 Return ONLY a valid JSON object matching this schema:
 {
-  "foodName": "Name of the food",
-  "servingSize": "Estimated serving size (e.g. 1 plate, 1 bowl, 200g)",
-  "calories": number,
-  "protein": number,
-  "carbs": number,
-  "fats": number,
-  "sugar": number,
-  "fibre": number,
-  "warning": "Warning about glycemic spike, allergens, or non-compliance (or null if it's healthy)",
+  "detected": true,
+  "foodName": "Specific name of the food or dish (e.g., Avocado Toast with Poached Egg, Chicken Caesar Salad, Greek Yogurt)",
+  "servingSize": "Estimated portion (e.g. 1 bowl, 250g, 1 plate, 1 container)",
+  "calories": <integer kcal>,
+  "protein": <number in grams>,
+  "carbs": <number in grams>,
+  "fats": <number in grams>,
+  "sugar": <number in grams>,
+  "fibre": <number in grams>,
+  "warning": "<1 concise medical warning regarding glycemic spike, sodium, allergens, or condition conflict, or null if healthy>",
   "betterAlternative": {
-    "name": "Name of a healthier alternative",
-    "reason": "Why it is better"
-  }
+    "name": "<Healthier clinical alternative>",
+    "reason": "<Why it is clinically superior for their profile>"
+  } // or null if optimal
 }` },
-          { inline_data: { mime_type: "image/jpeg", data: base64Image.split(',')[1] || base64Image } }
+          { inline_data: { mime_type: mimeType, data: cleanBase64 } }
         ]
       }
     ],
-    generationConfig: { temperature: 0.2 }
+    generationConfig: { temperature: 0.15 }
   };
 
   const response = await fetchWithTimeout(API_URL, {
@@ -2004,35 +2038,67 @@ Return ONLY a valid JSON object matching this schema:
   if (!response.ok) {
     const err = await response.text();
     console.error("Gemini Vision API Error:", err);
-    throw new Error('API Error');
+    return {
+      detected: false,
+      errorMessage: 'AI vision service is temporarily unavailable. Please try again in a moment.'
+    };
   }
 
   const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Empty response');
-
-  const parsed = parseModelJson<any>(text, null);
-  if (parsed && typeof parsed === 'object') {
-    return parsed;
+  if (!text) {
+    return {
+      detected: false,
+      errorMessage: 'Could not extract nutritional information. Please ensure the dish is clearly visible.'
+    };
   }
 
-  try {
-    let cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const startIdx = cleanJson.indexOf('{');
-    const endIdx = cleanJson.lastIndexOf('}');
-    if (startIdx !== -1 && endIdx !== -1) {
-      cleanJson = cleanJson.substring(startIdx, endIdx + 1);
-      return JSON.parse(cleanJson);
+  let parsed: any = parseModelJson<any>(text, null);
+
+  if (!parsed || typeof parsed !== 'object') {
+    try {
+      let cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const startIdx = cleanJson.indexOf('{');
+      const endIdx = cleanJson.lastIndexOf('}');
+      if (startIdx !== -1 && endIdx !== -1) {
+        cleanJson = cleanJson.substring(startIdx, endIdx + 1);
+        parsed = JSON.parse(cleanJson);
+      }
+    } catch {}
+  }
+
+  if (parsed && typeof parsed === 'object') {
+    if (parsed.detected === false || !parsed.foodName) {
+      return {
+        detected: false,
+        errorMessage: parsed.errorMessage || 'No food or nutrition label was detected. Please point the camera directly at your food under good lighting.'
+      };
     }
-  } catch {}
+
+    const rawFats = parsed.fats ?? parsed.fat;
+    return {
+      detected: true,
+      foodName: String(parsed.foodName || 'Identified Food'),
+      servingSize: parsed.servingSize ? String(parsed.servingSize) : 'Standard serving',
+      calories: Math.round(Number(parsed.calories) || 0),
+      protein: Math.round((Number(parsed.protein) || 0) * 10) / 10,
+      carbs: Math.round((Number(parsed.carbs) || 0) * 10) / 10,
+      fats: Math.round((Number(rawFats) || 0) * 10) / 10,
+      sugar: Math.round((Number(parsed.sugar) || 0) * 10) / 10,
+      fibre: Math.round((Number(parsed.fibre) || 0) * 10) / 10,
+      warning: typeof parsed.warning === 'string' && parsed.warning.trim() ? parsed.warning.trim() : null,
+      betterAlternative: parsed.betterAlternative && typeof parsed.betterAlternative === 'object' && parsed.betterAlternative.name
+        ? {
+            name: String(parsed.betterAlternative.name),
+            reason: String(parsed.betterAlternative.reason || '')
+          }
+        : null
+    };
+  }
 
   return {
-    foodName: 'Recognized Dish',
-    calories: 280,
-    protein: 12,
-    carbs: 35,
-    fat: 9,
-    details: 'Visual nutritional estimation'
+    detected: false,
+    errorMessage: 'No food detected. Please aim the camera at a meal or food packaging label.'
   };
 }
 
