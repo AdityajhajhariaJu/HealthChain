@@ -192,3 +192,62 @@ export function triggerPillNotification(item?: Partial<VitaminItem>): void {
 
   window.dispatchEvent(new CustomEvent('hc_pill_reminder_triggered', { detail: payload }));
 }
+
+/**
+ * Synchronize prescription medications from the clinical health profile into the vitamins & medication schedule.
+ */
+export async function syncMedicationsFromProfile(medications: any[]): Promise<VitaminItem[]> {
+  if (!Array.isArray(medications) || medications.length === 0) return getVitaminSchedule();
+
+  const current = getVitaminSchedule();
+  const existingNames = new Set(current.map(c => c.name.toLowerCase()));
+  let hasChanges = false;
+  const updated = [...current];
+
+  medications.forEach((med, idx) => {
+    let name = '';
+    let dosage = '';
+    let time = '09:00';
+    let slot = 'morning';
+
+    if (typeof med === 'string') {
+      // Parse "Metformin (500mg daily)"
+      const match = med.match(/^([^(]+)(?:\(([^)]+)\))?/);
+      name = match ? match[1].trim() : med.trim();
+      dosage = match && match[2] ? match[2].trim() : 'As prescribed';
+    } else if (med && typeof med === 'object') {
+      name = med.name || '';
+      dosage = med.dosage || 'As directed';
+      time = med.time || (med.circadianSlot === 'bedtime' ? '21:30' : med.circadianSlot === 'evening' ? '18:30' : med.circadianSlot === 'midday' ? '13:00' : '09:00');
+      slot = med.circadianSlot || 'morning';
+    }
+
+    if (!name || existingNames.has(name.toLowerCase())) return;
+
+    // Circadian default times if not provided
+    if (!time) {
+      if (slot === 'bedtime') time = '21:30';
+      else if (slot === 'evening') time = '18:30';
+      else if (slot === 'midday') time = '13:00';
+      else time = '09:00';
+    }
+
+    const newItem: VitaminItem = {
+      id: `rx_${Date.now()}_${idx}`,
+      name,
+      dosage,
+      time,
+      enabled: true
+    };
+
+    updated.push(newItem);
+    existingNames.add(name.toLowerCase());
+    hasChanges = true;
+  });
+
+  if (hasChanges) {
+    await saveVitaminSchedule(updated);
+  }
+
+  return updated;
+}

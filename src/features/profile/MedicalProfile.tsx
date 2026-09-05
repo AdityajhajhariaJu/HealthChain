@@ -931,9 +931,28 @@ export default function MedicalProfile() {
                 <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
                 <span>{profile.demographics.gender || 'Other'}</span>
                 <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
-                <span>{profile.demographics.height ? `Height ${profile.demographics.height}` : 'Height not set'}</span>
+                <span>{profile.demographics.height ? `Height ${profile.demographics.height}cm` : 'Height not set'}</span>
                 <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
-                <span>{profile.demographics.weight ? `Weight ${profile.demographics.weight}` : 'Weight not set'}</span>
+                <span>{profile.demographics.weight ? `Weight ${profile.demographics.weight}kg` : 'Weight not set'}</span>
+                {profile.demographics.bmi && (
+                  <>
+                    <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      background: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '#ECFDF5' : '#FFF7ED',
+                      color: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '#065F46' : '#C2410C',
+                      border: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '1px solid #A7F3D0' : '1px solid #FED7AA',
+                      fontWeight: 700,
+                      fontSize: '12px'
+                    }}>
+                      BMI {profile.demographics.bmi} ({profile.demographics.bmiCategory || 'Calculated'})
+                    </span>
+                  </>
+                )}
                 <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
                 <span>{profile.demographics.bloodGroup || 'Blood Group not set'}</span>
                 <span style={{ color: '#E2E8F0', margin: '0 2px' }}>•</span>
@@ -1042,35 +1061,55 @@ export default function MedicalProfile() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', alignItems: 'center' }}>
               <AnimatePresence>
-              {(profile?.allergies || []).map((allergy) => (
-                <motion.div
-                  key={`a-${allergy}`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="badge badge-red"
-                  style={{
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    display: 'flex',
-                    gap: '8px',
-                    alignItems: 'center',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <AlertTriangle size={16} /> Allergy: {allergy}
-                  <button
-                    onClick={() => {
-                      triggerHapticLight();
-                      removeAllergy(allergy);
-                      toast.info('Allergy Removed', `"${allergy}" removed from profile.`);
+              {(profile?.allergies || []).map((allergyItem: any) => {
+                const aName = typeof allergyItem === 'string' ? allergyItem : (allergyItem?.name || 'Allergy');
+                const aSev = typeof allergyItem === 'object' && allergyItem?.severity ? allergyItem.severity : 'moderate';
+                const isSevere = String(aSev).toLowerCase() === 'severe';
+                return (
+                  <motion.div
+                    key={`a-${aName}`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className={`badge ${isSevere ? 'badge-red' : 'badge-orange'}`}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '13.5px',
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      whiteSpace: 'nowrap',
+                      background: isSevere ? '#FFE4E6' : '#FFEDD5',
+                      color: isSevere ? '#BE123C' : '#C2410C',
+                      border: isSevere ? '1px solid #FDA4AF' : '1px solid #FED7AA'
                     }}
-                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', marginLeft: '4px', opacity: 0.7 }}
                   >
-                    <X size={14} />
-                  </button>
-                </motion.div>
-              ))}
+                    <AlertTriangle size={15} />
+                    <span>Allergy: {aName}</span>
+                    <span style={{
+                      fontSize: '10px',
+                      textTransform: 'uppercase',
+                      fontWeight: 800,
+                      padding: '1px 6px',
+                      borderRadius: '999px',
+                      background: 'rgba(255,255,255,0.7)',
+                      letterSpacing: '0.4px'
+                    }}>
+                      {aSev}
+                    </span>
+                    <button
+                      onClick={() => {
+                        triggerHapticLight();
+                        removeAllergy(aName);
+                        toast.info('Allergy Removed', `"${aName}" removed from profile.`);
+                      }}
+                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', marginLeft: '4px', opacity: 0.7 }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </motion.div>
+                );
+              })}
               </AnimatePresence>
               <input
                 type="text"
@@ -1711,55 +1750,83 @@ export default function MedicalProfile() {
                 }}
               >
                 <AnimatePresence>
-                {profile.medications.map((m) => (
-                  <motion.div
-                    key={m.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    style={{
-                      padding: '16px',
-                      background: 'var(--surface-hover)',
-                      borderRadius: 'var(--radius-lg)',
-                      borderLeft: '3px solid #8B5CF6',
-                      position: 'relative',
-                    }}
-                  >
-                    <div
+                {profile.medications.map((m: any) => {
+                  const mName = typeof m === 'string' ? m : m.name;
+                  const mDosage = typeof m === 'object' && m.dosage ? m.dosage : '';
+                  const mSlot = typeof m === 'object' && m.circadianSlot ? m.circadianSlot : 'morning';
+                  const slotIcon = mSlot === 'bedtime' ? '🌙' : mSlot === 'evening' ? '🌇' : mSlot === 'midday' ? '☀️' : '🌅';
+                  const slotTime = typeof m === 'object' && m.time ? m.time : (mSlot === 'bedtime' ? '21:30' : mSlot === 'evening' ? '18:30' : mSlot === 'midday' ? '13:00' : '08:30');
+                  
+                  return (
+                    <motion.div
+                      key={mName}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
                       style={{
-                        color: 'var(--text-main)',
-                        fontWeight: 700,
-                        fontSize: '15px',
-                        marginBottom: '4px',
-                        paddingRight: '24px',
+                        padding: '16px',
+                        background: 'var(--surface-hover)',
+                        borderRadius: 'var(--radius-lg)',
+                        borderLeft: '3px solid #8B5CF6',
+                        position: 'relative',
                       }}
                     >
-                      {m.name}
-                    </div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-                      {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : 'Manually added'}
-                    </div>
-                    <button
-                      onClick={() => {
-                        triggerHapticLight();
-                        removeMedication(m.name);
-                        toast.info('Medication Removed', `"${m.name}" removed from clinical records.`);
-                      }}
-                      aria-label={`Remove medication ${m.name}`}
-                      style={{
-                        position: 'absolute',
-                        top: '16px',
-                        right: '16px',
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </motion.div>
-                ))}
+                      <div
+                        style={{
+                          color: 'var(--text-main)',
+                          fontWeight: 700,
+                          fontSize: '15px',
+                          marginBottom: '4px',
+                          paddingRight: '24px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          flexWrap: 'wrap'
+                        }}
+                      >
+                        <span>{mName}</span>
+                        {mDosage && <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>({mDosage})</span>}
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '999px',
+                          background: '#ECFDF5',
+                          color: '#065F46',
+                          border: '1px solid #A7F3D0',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <span>{slotIcon}</span>
+                          <span style={{ textTransform: 'capitalize' }}>{mSlot} ({slotTime})</span>
+                        </span>
+                      </div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                        {m.source === 'pharmacy_hub' ? 'Added via PharmacyHub' : m.source === 'onboarding' ? 'Profile Dossier' : 'Manually added'}
+                      </div>
+                      <button
+                        onClick={() => {
+                          triggerHapticLight();
+                          removeMedication(mName);
+                          toast.info('Medication Removed', `"${mName}" removed from clinical records.`);
+                        }}
+                        aria-label={`Remove medication ${mName}`}
+                        style={{
+                          position: 'absolute',
+                          top: '16px',
+                          right: '16px',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </motion.div>
+                  );
+                })}
                 </AnimatePresence>
               </div>
             )}

@@ -389,8 +389,8 @@ export function updateDemographics(data) {
  * @param {{
  *   demographics?: any,
  *   conditions?: string[],
- *   allergies?: string[],
- *   medications?: string[],
+ *   allergies?: (string | { name: string, severity?: string })[],
+ *   medications?: (string | { name: string, dosage?: string, time?: string, circadianSlot?: string })[],
  *   familyHistory?: string[],
  *   healthFocus?: string
  * }} options
@@ -404,22 +404,90 @@ export function completeProfileOnboarding({
   healthFocus = '',
 }) {
   const profile = getProfile();
-  const normalise = (values) => values.map((value) => value.trim()).filter(Boolean);
+  const normalise = (values) => (Array.isArray(values) ? values : []).map((value) => (typeof value === 'string' ? value.trim() : value)).filter(Boolean);
+
+  // Compute BMI & Metabolic classification if height & weight exist
+  const heightNum = parseFloat(demographics.height);
+  const weightNum = parseFloat(demographics.weight);
+  let bmi = null;
+  let bmiCategory = null;
+  let idealWeightRange = null;
+
+  if (!isNaN(heightNum) && !isNaN(weightNum) && heightNum > 50 && weightNum > 20) {
+    const heightM = heightNum / 100;
+    const computedBmi = weightNum / (heightM * heightM);
+    bmi = Math.round(computedBmi * 10) / 10;
+    
+    if (bmi < 18.5) {
+      bmiCategory = 'Underweight';
+    } else if (bmi <= 24.9) {
+      bmiCategory = 'Normal';
+    } else if (bmi <= 29.9) {
+      bmiCategory = 'Overweight';
+    } else {
+      bmiCategory = 'Obese';
+    }
+
+    const minIdeal = Math.round(18.5 * heightM * heightM);
+    const maxIdeal = Math.round(24.9 * heightM * heightM);
+    idealWeightRange = `${minIdeal} - ${maxIdeal} kg`;
+  }
+
   profile.demographics = {
     ...profile.demographics,
     ...demographics,
+    bmi: bmi || profile.demographics?.bmi,
+    bmiCategory: bmiCategory || profile.demographics?.bmiCategory,
+    idealWeightRange: idealWeightRange || profile.demographics?.idealWeightRange,
     updatedAt: new Date().toISOString(),
   };
-  profile.conditions = [...new Set([...profile.conditions, ...normalise(conditions)])];
-  profile.allergies = [...new Set([...profile.allergies, ...normalise(allergies)])];
-  profile.familyHistory = [...new Set([...profile.familyHistory, ...normalise(familyHistory)])];
-  const existingMedicationNames = new Set(
-    profile.medications.map((medication) => medication.name?.toLowerCase())
-  );
-  normalise(medications).forEach((name) => {
-    if (!existingMedicationNames.has(name.toLowerCase()))
-      profile.medications.push({ name, addedAt: new Date().toISOString(), source: 'onboarding' });
+
+  const normConditions = normalise(conditions).map(c => (typeof c === 'string' ? c : c.name)).filter(Boolean);
+  profile.conditions = [...new Set([...(profile.conditions || []), ...normConditions])];
+
+  // Allergies: support strings or { name, severity }
+  const existingAllergies = Array.isArray(profile.allergies) ? profile.allergies : [];
+  const incomingAllergies = normalise(allergies);
+  const mergedAllergies = [...existingAllergies];
+
+  incomingAllergies.forEach(incoming => {
+    const name = typeof incoming === 'string' ? incoming : incoming.name;
+    const severity = typeof incoming === 'object' ? (incoming.severity || 'moderate') : 'moderate';
+    const idx = mergedAllergies.findIndex(a => (typeof a === 'string' ? a : a.name).toLowerCase() === name.toLowerCase());
+    if (idx >= 0) {
+      mergedAllergies[idx] = typeof incoming === 'object' ? incoming : { name, severity };
+    } else {
+      mergedAllergies.push(typeof incoming === 'object' ? incoming : { name, severity });
+    }
   });
+  profile.allergies = mergedAllergies;
+
+  profile.familyHistory = [...new Set([...(profile.familyHistory || []), ...normalise(familyHistory)])];
+
+  // Medications: support strings or { name, dosage, time, circadianSlot }
+  const existingMedicationNames = new Set(
+    (profile.medications || []).map((m) => (typeof m === 'string' ? m : m.name)?.toLowerCase())
+  );
+
+  normalise(medications).forEach((item) => {
+    if (typeof item === 'string') {
+      if (!existingMedicationNames.has(item.toLowerCase())) {
+        profile.medications.push({ name: item, addedAt: new Date().toISOString(), source: 'onboarding' });
+      }
+    } else if (item && typeof item === 'object' && item.name) {
+      if (!existingMedicationNames.has(item.name.toLowerCase())) {
+        profile.medications.push({
+          name: item.name,
+          dosage: item.dosage || '',
+          time: item.time || '09:00',
+          circadianSlot: item.circadianSlot || 'morning',
+          addedAt: new Date().toISOString(),
+          source: 'onboarding'
+        });
+      }
+    }
+  });
+
   profile.healthFocus = healthFocus.trim();
   profile.onboardingCompletedAt = new Date().toISOString();
   profile.timeline = [
@@ -427,9 +495,9 @@ export function completeProfileOnboarding({
       id: generateId(),
       type: 'onboarding',
       source: 'onboarding',
-      title: 'Health profile created',
+      title: 'Health profile created & verified',
       date: new Date().toISOString(),
-      data: { healthFocus: profile.healthFocus },
+      data: { healthFocus: profile.healthFocus, bmi, bmiCategory },
       significant: true,
     },
     ...(profile.timeline || []),

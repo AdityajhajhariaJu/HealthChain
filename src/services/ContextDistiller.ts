@@ -1,4 +1,4 @@
-﻿import { getProfile } from './ProfileEngine';
+import { getProfile } from './ProfileEngine';
 import { getCases } from './CaseEngine';
 
 export function generateDistilledBiometricContext(): string {
@@ -12,6 +12,8 @@ export function generateDistilledBiometricContext(): string {
   if (demo.gender) demoStr.push(`Sex: ${demo.gender}`);
   if (demo.weight) demoStr.push(`Weight: ${demo.weight}`);
   if (demo.height) demoStr.push(`Height: ${demo.height}`);
+  if (demo.bloodGroup) demoStr.push(`Blood Type: ${demo.bloodGroup}`);
+  if (demo.bmi) demoStr.push(`BMI: ${demo.bmi} (${demo.bmiCategory || 'Calculated'})`);
   const demoLine = demoStr.length > 0 ? `- Demographics: ${demoStr.join(', ')}` : '- Demographics: Unknown';
 
   // Format Conditions & Meds
@@ -20,8 +22,20 @@ export function generateDistilledBiometricContext(): string {
     : 'None reported';
   
   const meds = Array.isArray(profile?.medications) && profile.medications.length > 0
-    ? profile.medications.map((m: any) => typeof m === 'string' ? m : `${m.name} ${m.dosage || ''}`).join(', ')
+    ? profile.medications.map((m: any) => {
+        if (typeof m === 'string') return m;
+        const slot = m.circadianSlot ? ` [${m.circadianSlot.toUpperCase()}]` : '';
+        return `${m.name}${m.dosage ? ` (${m.dosage})` : ''}${slot}`;
+      }).join(', ')
     : 'None';
+
+  // Format Allergies (CRITICAL for Ava's clinical contraindication guards)
+  const allergies = Array.isArray(profile?.allergies) && profile.allergies.length > 0
+    ? profile.allergies.map((a: any) => {
+        if (typeof a === 'string') return a;
+        return `${a.name}${a.severity ? ` (${a.severity.toUpperCase()} ALERT)` : ''}`;
+      }).join(', ')
+    : 'No known allergies';
 
   // Format Diet
   const diet = profile?.dietProfile;
@@ -51,6 +65,7 @@ export function generateDistilledBiometricContext(): string {
 [SYSTEM: DISTILLED_USER_STATE_V1]
 ${demoLine}
 - Conditions: ${conditions}
+- Allergies: ${allergies}
 - Meds: ${meds}
 ${dietLine}
 ${casesBlock}

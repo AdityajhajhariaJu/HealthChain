@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,16 +11,38 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  Syringe,
-  Wind,
-  ShieldAlert,
-  Heart,
-  AlertTriangle
+  AlertTriangle,
+  Scale,
+  Activity,
+  Sunrise,
+  Sun,
+  Sunset,
+  Moon,
+  Clock,
+  ShieldCheck,
+  Zap,
+  Info
 } from 'lucide-react';
 import { getProfile, completeProfileOnboarding } from '../../services/ProfileEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
+
+export type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
+export type AllergySeverity = 'mild' | 'moderate' | 'severe';
+
+export interface ProfileMedicationItem {
+  name: string;
+  dosage: string;
+  circadianSlot: CircadianSlot;
+  time?: string;
+}
+
+export interface ProfileAllergyItem {
+  name: string;
+  severity: AllergySeverity;
+}
 
 interface CompleteProfileModalProps {
   isOpen: boolean;
@@ -41,44 +63,58 @@ const COMMON_CONDITIONS = [
   'Anxiety / Depression'
 ];
 
-const PRESET_MEDICATIONS = [
-  { name: 'Metformin', dosage: '500mg daily' },
-  { name: 'Lisinopril', dosage: '10mg daily' },
-  { name: 'Atorvastatin', dosage: '20mg daily' },
-  { name: 'Levothyroxine', dosage: '50mcg daily' },
-  { name: 'Sertraline', dosage: '50mg daily' },
-  { name: 'Escitalopram', dosage: '10mg daily' },
-  { name: 'Ventolin', dosage: 'Inhaler as directed' },
-  { name: 'Spironolactone', dosage: '25mg daily' },
-  { name: 'Prednisone', dosage: '10mg daily' },
-  { name: 'Insulin', dosage: 'Basal daily' }
+const PRESET_MEDICATIONS: { name: string; dosage: string; defaultSlot: CircadianSlot }[] = [
+  { name: 'Metformin', dosage: '500mg with meal', defaultSlot: 'midday' },
+  { name: 'Lisinopril', dosage: '10mg daily', defaultSlot: 'morning' },
+  { name: 'Atorvastatin', dosage: '20mg at night', defaultSlot: 'bedtime' },
+  { name: 'Levothyroxine', dosage: '50mcg fasting', defaultSlot: 'morning' },
+  { name: 'Sertraline', dosage: '50mg daily', defaultSlot: 'morning' },
+  { name: 'Escitalopram', dosage: '10mg daily', defaultSlot: 'morning' },
+  { name: 'Ventolin', dosage: 'Inhaler as directed', defaultSlot: 'morning' },
+  { name: 'Spironolactone', dosage: '25mg daily', defaultSlot: 'morning' },
+  { name: 'Prednisone', dosage: '10mg with breakfast', defaultSlot: 'morning' },
+  { name: 'Magnesium', dosage: '200mg before sleep', defaultSlot: 'bedtime' }
 ];
 
-const COMMON_ALLERGIES = [
-  'Penicillin',
-  'Sulfa Drugs',
-  'Aspirin / NSAIDs',
-  'Peanuts & Tree Nuts',
-  'Latex',
-  'Shellfish',
-  'Pollen / Seasonal',
-  'Dairy / Lactose'
+const COMMON_ALLERGIES: { name: string; defaultSeverity: AllergySeverity }[] = [
+  { name: 'Penicillin', defaultSeverity: 'severe' },
+  { name: 'Sulfa Drugs', defaultSeverity: 'severe' },
+  { name: 'Aspirin / NSAIDs', defaultSeverity: 'moderate' },
+  { name: 'Peanuts & Tree Nuts', defaultSeverity: 'severe' },
+  { name: 'Latex', defaultSeverity: 'moderate' },
+  { name: 'Shellfish', defaultSeverity: 'severe' },
+  { name: 'Pollen / Seasonal', defaultSeverity: 'mild' },
+  { name: 'Dairy / Lactose', defaultSeverity: 'mild' }
 ];
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
 
 const STEPS = [
-  { id: 0, label: 'Demographics' },
+  { id: 0, label: 'Demographics & BMI' },
   { id: 1, label: 'Conditions' },
-  { id: 2, label: 'Medications' },
-  { id: 3, label: 'Allergies' }
+  { id: 2, label: 'Medications & Clock' },
+  { id: 3, label: 'Allergy Guard' }
 ];
+
+const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; time: string; color: string; bg: string }> = {
+  morning: { label: 'Morning', icon: '🌅', time: '08:30', color: '#B45309', bg: '#FEF3C7' },
+  midday: { label: 'Midday', icon: '☀️', time: '13:00', color: '#D97706', bg: '#FFFBEB' },
+  evening: { label: 'Evening', icon: '🌇', time: '18:30', color: '#C2410C', bg: '#FFEDD5' },
+  bedtime: { label: 'Bedtime', icon: '🌙', time: '21:30', color: '#4338CA', bg: '#EEF2FF' },
+};
+
+const ALLERGY_SEVERITY_META: Record<AllergySeverity, { label: string; chipLabel: string; color: string; bg: string; border: string }> = {
+  mild: { label: 'Mild', chipLabel: 'Mild / Rash', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A' },
+  moderate: { label: 'Moderate', chipLabel: 'Moderate', color: '#C2410C', bg: '#FFEDD5', border: '#FED7AA' },
+  severe: { label: 'Severe ⚠️', chipLabel: 'Severe / Anaphylaxis ⚠️', color: '#BE123C', bg: '#FFE4E6', border: '#FDA4AF' },
+};
 
 export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOpen, onClose, onCompleted }) => {
   const isMobile = useIsMobile();
   const [activeStep, setActiveStep] = useState<0 | 1 | 2 | 3>(0);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Profile form state pre-filled from existing profile
+  // Demographics state pre-filled from existing profile
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
@@ -87,17 +123,22 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
   const [weight, setWeight] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
 
+  // Conditions state
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [customCondition, setCustomCondition] = useState('');
   const [hasNoConditions, setHasNoConditions] = useState(false);
 
-  const [medicationsList, setMedicationsList] = useState<string[]>([]);
+  // Structured Medications state
+  const [medicationsList, setMedicationsList] = useState<ProfileMedicationItem[]>([]);
   const [medName, setMedName] = useState('');
   const [medDosage, setMedDosage] = useState('');
+  const [medSlot, setMedSlot] = useState<CircadianSlot>('morning');
   const [hasNoMedications, setHasNoMedications] = useState(false);
 
-  const [selectedAllergies, setSelectedAllergies] = useState<string[]>([]);
+  // Structured Allergies state
+  const [selectedAllergies, setSelectedAllergies] = useState<ProfileAllergyItem[]>([]);
   const [customAllergy, setCustomAllergy] = useState('');
+  const [customSeverity, setCustomSeverity] = useState<AllergySeverity>('moderate');
   const [hasNoAllergies, setHasNoAllergies] = useState(false);
 
   // Initialize from storage on open & lock background scroll
@@ -117,10 +158,33 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
         setSelectedConditions([...p.conditions]);
       }
       if (Array.isArray(p?.medications)) {
-        setMedicationsList(p.medications.map((m: any) => typeof m === 'string' ? m : `${m.name || ''}${m.dosage ? ' ' + m.dosage : ''}`).filter(Boolean));
+        const parsedMeds: ProfileMedicationItem[] = p.medications.map((m: any) => {
+          if (typeof m === 'string') {
+            const match = m.match(/^([^(]+)(?:\(([^)]+)\))?/);
+            return {
+              name: match ? match[1].trim() : m.trim(),
+              dosage: match && match[2] ? match[2].trim() : 'As prescribed',
+              circadianSlot: 'morning' as CircadianSlot,
+              time: '08:30'
+            };
+          }
+          return {
+            name: m.name || '',
+            dosage: m.dosage || 'As prescribed',
+            circadianSlot: (m.circadianSlot || 'morning') as CircadianSlot,
+            time: m.time || (m.circadianSlot === 'bedtime' ? '21:30' : m.circadianSlot === 'evening' ? '18:30' : m.circadianSlot === 'midday' ? '13:00' : '08:30')
+          };
+        }).filter(m => m.name);
+        setMedicationsList(parsedMeds);
       }
       if (Array.isArray(p?.allergies)) {
-        setSelectedAllergies([...p.allergies]);
+        const parsedAllergies: ProfileAllergyItem[] = p.allergies.map((a: any) => {
+          if (typeof a === 'string') {
+            return { name: a, severity: 'moderate' as AllergySeverity };
+          }
+          return { name: a.name || '', severity: (a.severity || 'moderate') as AllergySeverity };
+        }).filter(a => a.name);
+        setSelectedAllergies(parsedAllergies);
       }
       setActiveStep(0);
       document.body.style.overflow = 'hidden';
@@ -146,8 +210,71 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // LIVE DYNAMIC BMI & METABOLIC GAUGE COMPUTATION
+  const bmiData = useMemo(() => {
+    const h = parseFloat(height);
+    const w = parseFloat(weight);
+    if (isNaN(h) || isNaN(w) || h < 50 || h > 260 || w < 20 || w > 350) {
+      return null;
+    }
+
+    const heightM = h / 100;
+    const bmi = Math.round((w / (heightM * heightM)) * 10) / 10;
+    const minIdeal = Math.round(18.5 * heightM * heightM);
+    const maxIdeal = Math.round(24.9 * heightM * heightM);
+
+    let category = 'Normal';
+    let color = '#059669';
+    let bg = '#ECFDF5';
+    let border = '#A7F3D0';
+    let needlePercent = 38;
+    let takeaway = 'Optimal metabolic range with lowest cardiovascular and metabolic longevity risks.';
+
+    if (bmi < 18.5) {
+      category = 'Underweight';
+      color = '#D97706';
+      bg = '#FEF3C7';
+      border = '#FDE68A';
+      needlePercent = Math.max(6, Math.min(22, (bmi / 18.5) * 25));
+      takeaway = 'Resting caloric and nutrient baseline is below standard clinical reference points.';
+    } else if (bmi <= 24.9) {
+      category = 'Normal Weight';
+      color = '#059669';
+      bg = '#ECFDF5';
+      border = '#A7F3D0';
+      needlePercent = 25 + ((bmi - 18.5) / (24.9 - 18.5)) * 25;
+      takeaway = 'Optimal metabolic equilibrium. Caloric and vascular load are well balanced.';
+    } else if (bmi <= 29.9) {
+      category = 'Overweight';
+      color = '#EA580C';
+      bg = '#FFEDD5';
+      border = '#FED7AA';
+      needlePercent = 50 + ((bmi - 25.0) / (29.9 - 25.0)) * 25;
+      takeaway = 'Modest metabolic elevation. Gentle caloric deficit and resistance training are beneficial.';
+    } else {
+      category = 'Obese';
+      color = '#DC2626';
+      bg = '#FEE2E2';
+      border = '#FECDD3';
+      needlePercent = Math.min(94, 75 + ((bmi - 30.0) / 15) * 25);
+      takeaway = 'Elevated metabolic strain. Clinical collaboration on diet and insulin sensitivity recommended.';
+    }
+
+    return {
+      bmi,
+      category,
+      color,
+      bg,
+      border,
+      needlePercent,
+      takeaway,
+      idealRange: `${minIdeal} - ${maxIdeal} kg`
+    };
+  }, [height, weight]);
+
   if (!isOpen) return null;
 
+  // Step 1: Conditions Handlers
   const toggleCondition = (cond: string) => {
     triggerHapticSelection();
     setHasNoConditions(false);
@@ -166,48 +293,66 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     }
   };
 
-  const toggleAllergy = (all: string) => {
-    triggerHapticSelection();
-    setHasNoAllergies(false);
-    setSelectedAllergies(prev => 
-      prev.includes(all) ? prev.filter(a => a !== all) : [...prev, all]
-    );
-  };
-
-  const handleAddCustomAllergy = () => {
-    const trimmed = customAllergy.trim();
-    if (trimmed && !selectedAllergies.includes(trimmed)) {
-      triggerHapticLight();
-      setSelectedAllergies(prev => [...prev, trimmed]);
-      setCustomAllergy('');
-      setHasNoAllergies(false);
-    }
-  };
-
-  const handleTogglePresetMedication = (preset: { name: string; dosage: string }) => {
+  // Step 2: Medications Handlers
+  const handleTogglePresetMedication = (preset: { name: string; dosage: string; defaultSlot: CircadianSlot }) => {
     triggerHapticSelection();
     setHasNoMedications(false);
-    const label = `${preset.name} (${preset.dosage})`;
-    const exists = medicationsList.some(m => m.toLowerCase().includes(preset.name.toLowerCase()));
-    if (exists) {
-      setMedicationsList(prev => prev.filter(m => !m.toLowerCase().includes(preset.name.toLowerCase())));
+    const existingIndex = medicationsList.findIndex(m => m.name.toLowerCase() === preset.name.toLowerCase());
+    if (existingIndex >= 0) {
+      setMedicationsList(prev => prev.filter((_, i) => i !== existingIndex));
     } else {
-      setMedicationsList(prev => [...prev, label]);
+      const defaultTime = CIRCADIAN_SLOT_META[preset.defaultSlot].time;
+      setMedicationsList(prev => [...prev, {
+        name: preset.name,
+        dosage: preset.dosage,
+        circadianSlot: preset.defaultSlot,
+        time: defaultTime
+      }]);
     }
   };
 
-  const handleAddMedication = () => {
-    const trimmed = medName.trim();
-    if (trimmed) {
+  const handleAddCustomMedication = () => {
+    const trimmedName = medName.trim();
+    if (trimmedName) {
       triggerHapticLight();
-      const entry = medDosage.trim() ? `${trimmed} (${medDosage.trim()})` : trimmed;
-      if (!medicationsList.includes(entry)) {
-        setMedicationsList(prev => [...prev, entry]);
+      const defaultTime = CIRCADIAN_SLOT_META[medSlot].time;
+      const existingIndex = medicationsList.findIndex(m => m.name.toLowerCase() === trimmedName.toLowerCase());
+      const newEntry: ProfileMedicationItem = {
+        name: trimmedName,
+        dosage: medDosage.trim() || 'As prescribed',
+        circadianSlot: medSlot,
+        time: defaultTime
+      };
+
+      if (existingIndex >= 0) {
+        setMedicationsList(prev => {
+          const updated = [...prev];
+          updated[existingIndex] = newEntry;
+          return updated;
+        });
+      } else {
+        setMedicationsList(prev => [...prev, newEntry]);
       }
+
       setMedName('');
       setMedDosage('');
       setHasNoMedications(false);
     }
+  };
+
+  const updateMedicationSlot = (index: number, newSlot: CircadianSlot) => {
+    triggerHapticSelection();
+    setMedicationsList(prev => {
+      const copy = [...prev];
+      if (copy[index]) {
+        copy[index] = {
+          ...copy[index],
+          circadianSlot: newSlot,
+          time: CIRCADIAN_SLOT_META[newSlot].time
+        };
+      }
+      return copy;
+    });
   };
 
   const removeMedication = (index: number) => {
@@ -215,10 +360,74 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     setMedicationsList(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
+  // Step 3: Allergies Handlers
+  const togglePresetAllergy = (preset: { name: string; defaultSeverity: AllergySeverity }) => {
+    triggerHapticSelection();
+    setHasNoAllergies(false);
+    const existingIndex = selectedAllergies.findIndex(a => a.name.toLowerCase() === preset.name.toLowerCase());
+    if (existingIndex >= 0) {
+      setSelectedAllergies(prev => prev.filter((_, i) => i !== existingIndex));
+    } else {
+      setSelectedAllergies(prev => [...prev, {
+        name: preset.name,
+        severity: preset.defaultSeverity
+      }]);
+    }
+  };
+
+  const handleAddCustomAllergy = () => {
+    const trimmed = customAllergy.trim();
+    if (trimmed) {
+      triggerHapticLight();
+      const existingIndex = selectedAllergies.findIndex(a => a.name.toLowerCase() === trimmed.toLowerCase());
+      if (existingIndex >= 0) {
+        setSelectedAllergies(prev => {
+          const copy = [...prev];
+          copy[existingIndex].severity = customSeverity;
+          return copy;
+        });
+      } else {
+        setSelectedAllergies(prev => [...prev, { name: trimmed, severity: customSeverity }]);
+      }
+      setCustomAllergy('');
+      setHasNoAllergies(false);
+    }
+  };
+
+  const updateAllergySeverity = (index: number, newSeverity: AllergySeverity) => {
+    triggerHapticSelection();
+    setSelectedAllergies(prev => {
+      const copy = [...prev];
+      if (copy[index]) {
+        copy[index] = { ...copy[index], severity: newSeverity };
+      }
+      return copy;
+    });
+  };
+
+  const removeAllergy = (index: number) => {
+    triggerHapticLight();
+    setSelectedAllergies(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // COMPLETE PROFILE & CROSS-SYSTEM SYNCHRONIZATION
+  const handleSave = async () => {
+    setIsSaving(true);
     triggerHapticSuccess();
-    
-    // Save to ProfileEngine
+
+    const formattedMeds = hasNoMedications ? [] : medicationsList.map(m => ({
+      name: m.name,
+      dosage: m.dosage || 'As prescribed',
+      circadianSlot: m.circadianSlot,
+      time: m.time || CIRCADIAN_SLOT_META[m.circadianSlot].time
+    }));
+
+    const formattedAllergies = hasNoAllergies ? [] : selectedAllergies.map(a => ({
+      name: a.name,
+      severity: a.severity
+    }));
+
+    // 1. Save to ProfileEngine
     completeProfileOnboarding({
       demographics: {
         name: name.trim() || 'Patient',
@@ -230,14 +439,24 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
         emergencyContact: emergencyContact.trim(),
       },
       conditions: hasNoConditions ? [] : selectedConditions,
-      allergies: hasNoAllergies ? [] : selectedAllergies,
-      medications: hasNoMedications ? [] : medicationsList,
+      allergies: formattedAllergies,
+      medications: formattedMeds,
       healthFocus: selectedConditions.length > 0 ? selectedConditions[0] : 'General Wellness'
     });
 
-    // Award completion points
+    // 2. Synchronize medications with daily VitaminScheduleService & push notifications
+    try {
+      if (formattedMeds.length > 0) {
+        await syncMedicationsFromProfile(formattedMeds);
+      }
+    } catch (err) {
+      console.warn('Failed to sync medications to vitamin schedule:', err);
+    }
+
+    // 3. Award milestone points
     awardPoints(50, 'Medical Dossier Initialized ✨', 'milestone', 'profile_completion_action');
 
+    setIsSaving(false);
     if (onCompleted) {
       onCompleted();
     }
@@ -610,13 +829,15 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                      Height (cm)
+                      Height (cm) <span style={{ color: '#EF4444' }}>*</span>
                     </label>
                     <input
                       type="number"
                       value={height}
                       onChange={e => setHeight(e.target.value)}
                       placeholder="e.g. 175"
+                      min="50"
+                      max="250"
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -633,13 +854,15 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                      Weight (kg)
+                      Weight (kg) <span style={{ color: '#EF4444' }}>*</span>
                     </label>
                     <input
                       type="number"
                       value={weight}
                       onChange={e => setWeight(e.target.value)}
                       placeholder="e.g. 72"
+                      min="20"
+                      max="300"
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -654,6 +877,121 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     />
                   </div>
                 </div>
+
+                {/* DYNAMIC LIVE BMI & METABOLIC GAUGE */}
+                {bmiData ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 50%, #FFEDD5 100%)',
+                      borderRadius: '18px',
+                      padding: '14px 16px',
+                      border: '1.5px solid rgba(251, 146, 60, 0.28)',
+                      boxShadow: '0 8px 24px rgba(234, 88, 12, 0.08)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Scale size={16} color="#EA580C" />
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                          Metabolic BMI & Body Gauge
+                        </span>
+                      </div>
+                      <span style={{
+                        padding: '3px 9px',
+                        borderRadius: '999px',
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        background: bmiData.bg,
+                        color: bmiData.color,
+                        border: `1px solid ${bmiData.border}`
+                      }}>
+                        {bmiData.category}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div>
+                        <span style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                          {bmiData.bmi}
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#78716C', marginLeft: '4px' }}>
+                          kg/m²
+                        </span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '11px', color: '#78716C', display: 'block', fontWeight: 600 }}>Healthy Ideal Range</span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                          {bmiData.idealRange}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Continuous Multi-Color Spectrum Gauge */}
+                    <div style={{ position: 'relative', marginBottom: '8px', paddingTop: '10px' }}>
+                      {/* Needle Indicator */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '0px',
+                          left: `${bmiData.needlePercent}%`,
+                          transform: 'translateX(-50%)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          transition: 'left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                        }}
+                      >
+                        <div style={{
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          backgroundColor: '#0F172A',
+                          border: '2px solid #FFFFFF',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+                        }} />
+                      </div>
+
+                      {/* Spectrum Bar */}
+                      <div style={{
+                        height: '8px',
+                        borderRadius: '999px',
+                        background: 'linear-gradient(90deg, #FBBF24 0%, #34D399 25%, #10B981 50%, #FB923C 75%, #F87171 100%)',
+                        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)'
+                      }} />
+
+                      {/* Spectrum Labels */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '9.5px', color: '#94A3B8', fontWeight: 700 }}>
+                        <span>&lt;18.5 Under</span>
+                        <span>18.5 - 24.9 Normal</span>
+                        <span>25 - 29.9 Over</span>
+                        <span>30+ Obese</span>
+                      </div>
+                    </div>
+
+                    <p style={{ margin: 0, fontSize: '11px', color: '#78716C', lineHeight: 1.4 }}>
+                      ⚡ <strong style={{ color: '#431407' }}>Clinical Insight:</strong> {bmiData.takeaway}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.75)',
+                    borderRadius: '16px',
+                    padding: '12px 14px',
+                    border: '1px dashed #E2D9D2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EA580C', flexShrink: 0 }}>
+                      <Scale size={16} />
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#78716C', lineHeight: 1.35 }}>
+                      Enter your <strong style={{ color: '#0F172A' }}>height</strong> and <strong style={{ color: '#0F172A' }}>weight</strong> above to unlock your real-time Metabolic BMI, body gauge & healthy target range.
+                    </div>
+                  </div>
+                )}
 
                 {/* Emergency Contact */}
                 <div>
@@ -868,7 +1206,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
               </div>
             )}
 
-            {/* STEP 2: Medications */}
+            {/* STEP 2: Medications & Circadian Chronotherapy */}
             {activeStep === 2 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{
@@ -880,7 +1218,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   color: '#57534E',
                   lineHeight: 1.4
                 }}>
-                  💊 <strong style={{ color: '#0F172A' }}>Medications & Protocols:</strong> Medications listed here sync directly with your daily medication schedule and signature pill reminders!
+                  💊 <strong style={{ color: '#0F172A' }}>Circadian Chronotherapy:</strong> Tag medications with their biological circadian slot (🌅 Morning, ☀️ Midday, 🌇 Evening, 🌙 Bedtime). They automatically sync to your daily medication alarms!
                 </div>
 
                 {/* No Medications Toggle */}
@@ -926,14 +1264,15 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
                 {!hasNoMedications && (
                   <>
-                    {/* Quick Add Prescriptions (Matching Reference Screenshot) */}
+                    {/* Quick Add Prescriptions */}
                     <div>
                       <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
-                        Quick-Add Popular Prescriptions
+                        Quick-Add Common Prescriptions
                       </span>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {PRESET_MEDICATIONS.map(med => {
-                          const isSelected = medicationsList.some(m => m.toLowerCase().includes(med.name.toLowerCase()));
+                          const isSelected = medicationsList.some(m => m.name.toLowerCase() === med.name.toLowerCase());
+                          const slotMeta = CIRCADIAN_SLOT_META[med.defaultSlot];
                           return (
                             <button
                               key={med.name}
@@ -955,7 +1294,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 transition: 'all 0.15s ease'
                               }}
                             >
-                              <span>💊</span>
+                              <span>{slotMeta.icon}</span>
                               <span>{med.name}</span>
                               {isSelected && <Check size={13} color="#10B981" strokeWidth={3} />}
                             </button>
@@ -964,23 +1303,24 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       </div>
                     </div>
 
-                    {/* Write Custom Medication */}
+                    {/* Custom Medication & Circadian Slot Input */}
                     <div style={{
                       background: '#FFFFFF',
                       borderRadius: '16px',
-                      padding: '12px 14px',
-                      border: '1px solid rgba(243, 232, 225, 0.9)'
+                      padding: '14px',
+                      border: '1.5px solid rgba(243, 232, 225, 0.95)',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
                     }}>
                       <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
-                        Write Medication & Dosage
+                        Custom Medication Entry
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <input
                           type="text"
                           value={medName}
                           onChange={e => setMedName(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddMedication(); } }}
-                          placeholder="e.g. Metformin, Lisinopril..."
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomMedication(); } }}
+                          placeholder="Medication name (e.g. Metformin, Lisinopril)..."
                           style={{
                             padding: '10px 12px',
                             borderRadius: '10px',
@@ -989,76 +1329,159 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             outline: 'none'
                           }}
                         />
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <input
-                            type="text"
-                            value={medDosage}
-                            onChange={e => setMedDosage(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddMedication(); } }}
-                            placeholder="Dosage (e.g. 500mg with meal)..."
-                            style={{
-                              flex: 1,
-                              padding: '10px 12px',
-                              borderRadius: '10px',
-                              border: '1px solid #E2D9D2',
-                              fontSize: '13.5px',
-                              outline: 'none'
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={handleAddMedication}
-                            disabled={!medName.trim()}
-                            style={{
-                              padding: '10px 18px',
-                              borderRadius: '10px',
-                              background: medName.trim() ? '#10B981' : '#E2E8F0',
-                              color: medName.trim() ? '#FFF' : '#94A3B8',
-                              fontWeight: 700,
-                              fontSize: '13px',
-                              border: 'none',
-                              cursor: medName.trim() ? 'pointer' : 'default'
-                            }}
-                          >
-                            + Add
-                          </button>
+                        <input
+                          type="text"
+                          value={medDosage}
+                          onChange={e => setMedDosage(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomMedication(); } }}
+                          placeholder="Dosage instruction (e.g. 500mg with breakfast)..."
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '10px',
+                            border: '1px solid #E2D9D2',
+                            fontSize: '13.5px',
+                            outline: 'none'
+                          }}
+                        />
+
+                        {/* Circadian Slot Picker */}
+                        <div>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                            Circadian Timing Slot:
+                          </span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                            {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map(slot => {
+                              const meta = CIRCADIAN_SLOT_META[slot];
+                              const isCur = medSlot === slot;
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => {
+                                    triggerHapticSelection();
+                                    setMedSlot(slot);
+                                  }}
+                                  style={{
+                                    padding: '7px 4px',
+                                    borderRadius: '10px',
+                                    border: isCur ? '1.5px solid #10B981' : '1px solid #E2D9D2',
+                                    background: isCur ? '#ECFDF5' : '#FFFFFF',
+                                    color: isCur ? '#065F46' : '#64748B',
+                                    fontSize: '11px',
+                                    fontWeight: isCur ? 800 : 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '2px'
+                                  }}
+                                >
+                                  <span>{meta.icon}</span>
+                                  <span>{meta.label}</span>
+                                  <span style={{ fontSize: '9px', opacity: 0.75 }}>{meta.time}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={handleAddCustomMedication}
+                          disabled={!medName.trim()}
+                          style={{
+                            marginTop: '4px',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            background: medName.trim() ? '#10B981' : '#E2E8F0',
+                            color: medName.trim() ? '#FFF' : '#94A3B8',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            border: 'none',
+                            cursor: medName.trim() ? 'pointer' : 'default',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <Plus size={16} /> Add to Chronotherapy Schedule
+                        </button>
                       </div>
                     </div>
 
-                    {/* Active Medications List */}
+                    {/* Active Scheduled Medications with Live Circadian Slot Adjuster */}
                     {medicationsList.length > 0 && (
                       <div>
                         <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                           Scheduled Medications ({medicationsList.length})
                         </span>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {medicationsList.map((m, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '10px 14px',
-                                background: '#FFFFFF',
-                                border: '1px solid rgba(243, 232, 225, 0.9)',
-                                borderRadius: '12px'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Pill size={16} color="#059669" />
-                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{m}</span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeMedication(idx)}
-                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {medicationsList.map((m, idx) => {
+                            return (
+                              <div
+                                key={idx}
+                                style={{
+                                  padding: '12px 14px',
+                                  background: '#FFFFFF',
+                                  border: '1px solid rgba(243, 232, 225, 0.9)',
+                                  borderRadius: '14px',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                                }}
                               >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
-                          ))}
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Pill size={16} color="#059669" />
+                                    <div>
+                                      <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{m.name}</span>
+                                      <span style={{ fontSize: '12px', color: '#64748B', marginLeft: '6px' }}>({m.dosage})</span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeMedication(idx)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: '4px' }}
+                                    aria-label="Remove medication"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+
+                                {/* Circadian Slot Chips on Item */}
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map(slot => {
+                                    const meta = CIRCADIAN_SLOT_META[slot];
+                                    const isActive = m.circadianSlot === slot;
+                                    return (
+                                      <button
+                                        key={slot}
+                                        type="button"
+                                        onClick={() => updateMedicationSlot(idx, slot)}
+                                        style={{
+                                          flex: 1,
+                                          padding: '5px 4px',
+                                          borderRadius: '8px',
+                                          border: isActive ? `1.5px solid #10B981` : '1px solid #E2E8F0',
+                                          background: isActive ? '#ECFDF5' : '#F8FAFC',
+                                          color: isActive ? '#065F46' : '#64748B',
+                                          fontSize: '10.5px',
+                                          fontWeight: isActive ? 800 : 500,
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          gap: '3px'
+                                        }}
+                                      >
+                                        <span>{meta.icon}</span>
+                                        <span>{meta.label}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -1067,7 +1490,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
               </div>
             )}
 
-            {/* STEP 3: Allergies */}
+            {/* STEP 3: Allergies & Severity Tagging */}
             {activeStep === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{
@@ -1079,7 +1502,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   color: '#57534E',
                   lineHeight: 1.4
                 }}>
-                  ⚠️ <strong style={{ color: '#0F172A' }}>Allergy Guard:</strong> HealthChain cross-checks these against any suggested pharmaceuticals or nutritional plans to prevent adverse events.
+                  ⚠️ <strong style={{ color: '#0F172A' }}>Clinical Allergy Guard:</strong> Tag allergens with severity ratings (Mild, Moderate, Severe / Anaphylaxis ⚠️). Ava Health Buddy cross-checks this against all medical and pharmaceutical advice to prevent fatal contraindications!
                 </div>
 
                 {/* NKDA Toggle */}
@@ -1128,18 +1551,18 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     {/* Common Allergens Capsule Chips */}
                     <div>
                       <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
-                        Common Allergens (Tap to Select)
+                        Common Allergens (Tap to Add)
                       </span>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {COMMON_ALLERGIES.map(all => {
-                          const isSelected = selectedAllergies.includes(all);
+                          const isSelected = selectedAllergies.some(a => a.name.toLowerCase() === all.name.toLowerCase());
                           return (
                             <button
-                              key={all}
+                              key={all.name}
                               type="button"
-                              onClick={() => toggleAllergy(all)}
+                              onClick={() => togglePresetAllergy(all)}
                               style={{
-                                padding: '8px 15px',
+                                padding: '8px 14px',
                                 borderRadius: '999px',
                                 border: isSelected ? '1.5px solid #F43F5E' : '1.5px solid #E8E2DC',
                                 background: isSelected ? '#FEF2F2' : '#FFFFFF',
@@ -1154,97 +1577,165 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                                 transition: 'all 0.15s ease'
                               }}
                             >
-                              <span>{all}</span>
-                              {isSelected && <X size={13} color="#E11D48" strokeWidth={3} />}
+                              <span>{all.name}</span>
+                              {isSelected ? <X size={13} color="#E11D48" strokeWidth={3} /> : <Plus size={13} color="#94A3B8" />}
                             </button>
                           );
                         })}
                       </div>
                     </div>
 
-                    {/* Write Custom Allergy */}
-                    <div>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '6px' }}>
-                        Other Allergy
+                    {/* Custom Allergy Input & Severity Picker */}
+                    <div style={{
+                      background: '#FFFFFF',
+                      borderRadius: '16px',
+                      padding: '14px',
+                      border: '1.5px solid rgba(243, 232, 225, 0.95)'
+                    }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                        Custom Allergen Entry
                       </span>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <input
                           type="text"
                           value={customAllergy}
                           onChange={e => setCustomAllergy(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomAllergy(); } }}
-                          placeholder="e.g. Iodine dye, Ciprofloxacin..."
+                          placeholder="Allergen name (e.g. Iodine dye, Ciprofloxacin)..."
                           style={{
-                            flex: 1,
-                            padding: '10px 14px',
-                            borderRadius: '12px',
+                            padding: '10px 12px',
+                            borderRadius: '10px',
                             border: '1px solid #E2D9D2',
-                            background: '#FFFFFF',
                             fontSize: '13.5px',
-                            color: '#0F172A',
                             outline: 'none'
                           }}
                         />
+
+                        {/* Severity Selector */}
+                        <div>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                            Severity Level:
+                          </span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                            {(['mild', 'moderate', 'severe'] as AllergySeverity[]).map(sev => {
+                              const meta = ALLERGY_SEVERITY_META[sev];
+                              const isCur = customSeverity === sev;
+                              return (
+                                <button
+                                  key={sev}
+                                  type="button"
+                                  onClick={() => {
+                                    triggerHapticSelection();
+                                    setCustomSeverity(sev);
+                                  }}
+                                  style={{
+                                    padding: '7px 4px',
+                                    borderRadius: '10px',
+                                    border: isCur ? `1.5px solid ${meta.color}` : '1px solid #E2D9D2',
+                                    background: isCur ? meta.bg : '#FFFFFF',
+                                    color: isCur ? meta.color : '#64748B',
+                                    fontSize: '11px',
+                                    fontWeight: isCur ? 800 : 600,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  {meta.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
                         <button
                           type="button"
                           onClick={handleAddCustomAllergy}
+                          disabled={!customAllergy.trim()}
                           style={{
-                            padding: '10px 16px',
-                            borderRadius: '12px',
-                            background: '#F43F5E',
-                            color: '#FFFFFF',
+                            marginTop: '4px',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            background: customAllergy.trim() ? '#F43F5E' : '#E2E8F0',
+                            color: customAllergy.trim() ? '#FFF' : '#94A3B8',
                             fontWeight: 700,
                             fontSize: '13px',
                             border: 'none',
-                            cursor: 'pointer',
+                            cursor: customAllergy.trim() ? 'pointer' : 'default',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '4px'
+                            justifyContent: 'center',
+                            gap: '6px'
                           }}
                         >
-                          <Plus size={16} /> Add
+                          <Plus size={16} /> Add to Allergy Guard
                         </button>
                       </div>
                     </div>
 
-                    {/* Selected Allergies Summary */}
+                    {/* Identified Allergens with Live Severity Adjuster */}
                     {selectedAllergies.length > 0 && (
-                      <div style={{
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        borderRadius: '14px',
-                        padding: '12px',
-                        border: '1px solid rgba(243, 232, 225, 0.9)'
-                      }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', textTransform: 'uppercase' }}>
+                      <div>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                           Identified Allergens ({selectedAllergies.length})
                         </span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                          {selectedAllergies.map(a => (
-                            <span
-                              key={a}
-                              style={{
-                                padding: '5px 11px',
-                                borderRadius: '999px',
-                                background: '#FEF2F2',
-                                border: '1px solid #FECDD3',
-                                color: '#9F1239',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                              }}
-                            >
-                              {a}
-                              <button
-                                type="button"
-                                onClick={() => toggleAllergy(a)}
-                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#E11D48', padding: 0 }}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {selectedAllergies.map((a, idx) => {
+                            const curMeta = ALLERGY_SEVERITY_META[a.severity];
+                            return (
+                              <div
+                                key={idx}
+                                style={{
+                                  padding: '12px 14px',
+                                  background: '#FFFFFF',
+                                  border: `1.5px solid ${curMeta.border}`,
+                                  borderRadius: '14px',
+                                  boxShadow: '0 2px 8px rgba(244, 63, 94, 0.06)'
+                                }}
                               >
-                                <X size={12} />
-                              </button>
-                            </span>
-                          ))}
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <AlertTriangle size={16} color={curMeta.color} />
+                                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>{a.name}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeAllergy(idx)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#E11D48', padding: '4px' }}
+                                    aria-label="Remove allergen"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+
+                                {/* Severity Toggle Chips on Item */}
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  {(['mild', 'moderate', 'severe'] as AllergySeverity[]).map(sev => {
+                                    const meta = ALLERGY_SEVERITY_META[sev];
+                                    const isActive = a.severity === sev;
+                                    return (
+                                      <button
+                                        key={sev}
+                                        type="button"
+                                        onClick={() => updateAllergySeverity(idx, sev)}
+                                        style={{
+                                          flex: 1,
+                                          padding: '5px 4px',
+                                          borderRadius: '8px',
+                                          border: isActive ? `1.5px solid ${meta.color}` : '1px solid #E2E8F0',
+                                          background: isActive ? meta.bg : '#F8FAFC',
+                                          color: isActive ? meta.color : '#64748B',
+                                          fontSize: '11px',
+                                          fontWeight: isActive ? 800 : 500,
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        {meta.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -1320,11 +1811,12 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 <button
                   type="button"
                   onClick={handleSave}
+                  disabled={isSaving}
                   style={{
                     width: '100%',
                     padding: '15px',
                     borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)',
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                     color: '#FFFFFF',
                     fontWeight: 800,
                     fontSize: '15px',
@@ -1333,11 +1825,12 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    cursor: 'pointer',
-                    boxShadow: '0 8px 24px rgba(225, 29, 72, 0.28), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    cursor: isSaving ? 'default' : 'pointer',
+                    opacity: isSaving ? 0.7 : 1,
+                    boxShadow: '0 8px 24px rgba(5, 150, 105, 0.28), inset 0 1px 0 rgba(255,255,255,0.2)'
                   }}
                 >
-                  <Sparkles size={16} /> Save & Activate (+50 PTS)
+                  <Sparkles size={16} /> {isSaving ? 'Synchronizing Profile...' : 'Save & Activate (+50 PTS)'}
                 </button>
               )}
             </div>
