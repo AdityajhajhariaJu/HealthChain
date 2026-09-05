@@ -991,27 +991,6 @@ export default function CaseDashboard() {
                 { name: 'Forest Ambience', icon: <Wind size={24} />, color: '#34d399', img: '/images/thumb_water_drop_1788260024692.jpg' }
               ].map((type, i) => (
                 <div key={i} style={{ position: 'relative', flexShrink: 0, width: '144px', height: '144px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {/* Living Vibration Halo Rings */}
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.14, 1],
-                      opacity: [0.35, 0.75, 0.35]
-                    }}
-                    transition={{
-                      duration: 3.2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: i * 0.7
-                    }}
-                    style={{
-                      position: 'absolute',
-                      inset: '-6px',
-                      borderRadius: '50%',
-                      border: `1.5px solid ${type.color}`,
-                      boxShadow: `0 0 22px ${type.color}66`,
-                      pointerEvents: 'none'
-                    }}
-                  />
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
                     style={{
@@ -1044,13 +1023,9 @@ export default function CaseDashboard() {
                       });
                     }}
                   >
-                    <motion.div 
-                      animate={{ scale: [1, 1.12, 1] }} 
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
-                      style={{ color: 'white', marginBottom: '8px' }}
-                    >
+                    <div style={{ color: 'white', marginBottom: '8px' }}>
                       {type.icon}
-                    </motion.div>
+                    </div>
                     <span style={{ color: 'white', fontWeight: 600, fontSize: '14px', textAlign: 'center', lineHeight: '1.2' }}>{type.name}</span>
                   </motion.button>
                 </div>
