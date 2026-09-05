@@ -25,8 +25,9 @@ import { SuspectFoodsView } from './SuspectFoodsView';
 import { EliminationTrialsView } from './EliminationTrialsView';
 import { WellnessZenGardenView } from './WellnessZenGardenView';
 import { DoctorSummaryView } from './DoctorSummaryView';
+import { ConnectionDetectiveView } from './ConnectionDetectiveView';
 
-export type WholeHealthTab = 'picture' | 'detective' | 'suspects' | 'trials' | 'garden' | 'doctor';
+export type WholeHealthTab = 'picture' | 'connection' | 'detective' | 'suspects' | 'trials' | 'garden' | 'doctor';
 
 interface TriggerSensitivityModalProps {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
 
   const tabs: { id: WholeHealthTab; label: string; icon: string }[] = [
     { id: 'picture', label: 'Whole Picture', icon: '📊' },
+    { id: 'connection', label: 'Connection Detective', icon: '🌐' },
     { id: 'detective', label: 'Food Detective', icon: '🔍' },
     { id: 'suspects', label: 'Suspect Foods', icon: '⚠️' },
     { id: 'trials', label: 'Diet Trials', icon: '🔬' },
@@ -222,6 +224,65 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               {/* TAB 1: WHOLE PICTURE */}
               {activeTab === 'picture' && (
                 <>
+                  {/* Connection Detective 4-Conduit Root Cause Banner */}
+                  <div
+                    onClick={() => {
+                      triggerHapticLight();
+                      setActiveTab('connection');
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                      borderRadius: '20px',
+                      padding: '14px 16px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '13px',
+                          background: 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '20px',
+                          boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        🌐
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#38BDF8', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                            CLINIC USP ENGINE
+                          </span>
+                          <span style={{ fontSize: '9px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#7DD3FC' }}>
+                            4-STREAM CONVERGENCE
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#FFFFFF', marginTop: '1px' }}>
+                          Connection Detective
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94A3B8' }}>
+                          Cross-correlating Labs × Notes × Vitals × Sensitivities
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight size={18} color="#94A3B8" />
+                  </div>
+
                   {/* Top Metric Pills */}
                   <div
                     style={{
@@ -585,6 +646,17 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                     </button>
                   </div>
                 </>
+              )}
+
+              {/* TAB: CONNECTION DETECTIVE */}
+              {activeTab === 'connection' && (
+                <ConnectionDetectiveView
+                  onOpenFoodDetective={() => setActiveTab('detective')}
+                  onOpenConsult={() => {
+                    onClose();
+                    window.location.hash = '#/app/consult';
+                  }}
+                />
               )}
 
               {/* TAB 2: FOOD DETECTIVE */}

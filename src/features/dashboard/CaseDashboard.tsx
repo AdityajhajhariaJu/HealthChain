@@ -60,6 +60,7 @@ export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { VitalityStreakBanner } from './VitalityStreakBanner';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -106,6 +107,14 @@ export default function CaseDashboard() {
   }, []);
 
   // Daily Habit & Protocol tracking
+  const [showConnectionDetective, setShowConnectionDetective] = useState(false);
+
+  useEffect(() => {
+    const handleOpenConnection = () => setShowConnectionDetective(true);
+    window.addEventListener('hc_open_connection_detective', handleOpenConnection);
+    return () => window.removeEventListener('hc_open_connection_detective', handleOpenConnection);
+  }, []);
+
   const todayDateStr = new Date().toISOString().split('T')[0];
   const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
   const [showVitaminModal, setShowVitaminModal] = useState(false);
@@ -256,6 +265,143 @@ export default function CaseDashboard() {
           
           {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
           <VitalityStreakBanner completedHabits={completedHabits} />
+
+          {/* Clinic USP Connection Detective Showcase Card */}
+          <div
+            style={{
+              marginBottom: '16px',
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+              borderRadius: isMobile ? '24px' : '28px',
+              padding: isMobile ? '16px' : '22px',
+              border: '1.5px solid rgba(56, 189, 248, 0.25)',
+              boxShadow: '0 16px 36px rgba(15, 23, 42, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Background Conduit Glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                width: '180px',
+                height: '180px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    letterSpacing: '0.8px',
+                    textTransform: 'uppercase',
+                    padding: '3px 9px',
+                    borderRadius: '999px',
+                    background: 'rgba(56, 189, 248, 0.15)',
+                    color: '#38BDF8',
+                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                  }}
+                >
+                  CLINIC USP ENGINE
+                </span>
+                <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+                  4-Stream Multi-Specialist Convergence
+                </span>
+              </div>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  color: '#34D399',
+                  background: 'rgba(52, 211, 153, 0.12)',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(52, 211, 153, 0.3)',
+                }}
+              >
+                ● 48 Biomarkers Synced
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '14px' }}>
+              <div style={{ maxWidth: '540px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '18px' : '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.3px' }}>
+                  Connection Detective: <span style={{ color: '#38BDF8' }}>What 15-Minute Visits Missed</span>
+                </h3>
+                <p style={{ margin: 0, fontSize: isMobile ? '12px' : '13px', color: '#CBD5E1', lineHeight: 1.45 }}>
+                  Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered root-cause subclinical ferritin depletion mimicking refractory dysautonomia.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    setShowConnectionDetective(true);
+                  }}
+                  style={{
+                    flex: isMobile ? 1 : 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '10px 18px',
+                    borderRadius: '14px',
+                    background: 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(14, 165, 233, 0.35)',
+                  }}
+                >
+                  <span>🌐</span>
+                  <span>Investigate Connections</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 4 Live Streams Quick Conduit Pills */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+                gap: '8px',
+                marginTop: '14px',
+                paddingTop: '12px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>🧪 LABS CONDUIT</div>
+                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>Ferritin 14 ng/mL</div>
+                <div style={{ fontSize: '10px', color: '#EF4444' }}>Bone marrow gap</div>
+              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>🩺 CLINIC NOTES</div>
+                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>Cardio × GI Vagal</div>
+                <div style={{ fontSize: '10px', color: '#38BDF8' }}>Roemheld reflex</div>
+              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>💓 VITALS STREAM</div>
+                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>+38 bpm Standing</div>
+                <div style={{ fontSize: '10px', color: '#F59E0B' }}>Orthostatic surge</div>
+              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '10px', padding: '8px 10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 600 }}>🍎 DIET SENSITIVITY</div>
+                <div style={{ fontSize: '12px', color: '#F1F5F9', fontWeight: 700 }}>Histamine / Fructan</div>
+                <div style={{ fontSize: '10px', color: '#E11D48' }}>Mast cell flare</div>
+              </div>
+            </div>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
@@ -1386,6 +1532,12 @@ export default function CaseDashboard() {
           onClose={() => setActiveMeditation(null)} 
         />
       )}
+
+      <ConnectionDetectiveModal
+        isOpen={showConnectionDetective}
+        onClose={() => setShowConnectionDetective(false)}
+        onOpenConsult={() => navigate('/app/consult')}
+      />
     </div>
   );
 };
