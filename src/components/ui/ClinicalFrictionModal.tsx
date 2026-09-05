@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Fingerprint, Lock, CheckCircle2, Activity, X } from 'lucide-react';
 import { triggerHapticHeavy, triggerHapticLight } from '../../services/haptics';
@@ -37,7 +38,7 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
     }
   }, [isOpen, onComplete]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -53,7 +54,7 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
             background: 'rgba(15, 23, 42, 0.9)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            zIndex: 99999,
+            zIndex: 999999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -118,7 +119,8 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
