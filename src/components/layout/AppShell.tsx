@@ -751,7 +751,7 @@ const enforceSafeArea = () => {
                         setShowMoreMenu(false);
                       }}
                       className="more-menu-item"
-                      style={{ border: 'none', background: 'none', outline: 'none', position: 'relative', opacity: isLocked ? 0.6 : 1 }}
+                      style={{ position: 'relative', opacity: isLocked ? 0.6 : 1 }}
                     >
                       <div className="more-menu-icon">
                         <l.icon size={22} />
@@ -762,31 +762,27 @@ const enforceSafeArea = () => {
                   )})}
                   <button 
                     onClick={() => {
+                      triggerHapticLight();
                       setShowMoreMenu(false);
                       navigate('/app/settings');
                     }} 
-                    className="more-menu-item"
-                    style={{ 
-                      border: 'none', 
-                      background: 'rgba(255, 255, 255, 0.55)', 
-                      outline: 'none',
-                      gridColumn: '1 / -1',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      padding: '12px 20px',
-                      borderRadius: '16px'
-                    }}
+                    className="more-menu-settings-card"
+                    aria-label="Open Settings"
                   >
-                    <div className="more-menu-icon" style={{ display: 'flex', alignItems: 'center' }}>
-                      <Settings size={20} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div className="more-menu-icon" style={{ width: '40px', height: '40px', borderRadius: '12px' }}>
+                        <Settings size={20} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '2px' }}>
+                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main, #0F172A)', letterSpacing: '-0.01em' }}>Settings</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted, #64748B)', fontWeight: 500 }}>Preferences, account & security</span>
+                      </div>
                     </div>
-                    <span style={{ fontSize: '13px', fontWeight: 600 }}>Settings</span>
+                    <ChevronRight size={18} style={{ color: '#94A3B8', flexShrink: 0 }} />
                   </button>
                 </div>
 
-                <div style={{ padding: '0 16px 18px 16px', marginTop: 'auto' }}>
+                <div style={{ padding: '0 20px 20px 20px', marginTop: 'auto' }}>
                   <UpgradeToProCard
                     compact
                     isPro={!!profile?.isPro}
