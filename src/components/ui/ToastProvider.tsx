@@ -129,6 +129,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
               <button
                 onClick={() => removeToast(t.id)}
+                aria-label="Dismiss toast"
                 style={{
                   background: 'none',
                   border: 'none',
