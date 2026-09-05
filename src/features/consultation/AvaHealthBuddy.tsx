@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Mic, MicOff, Plus, Pill, Zap } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -12,6 +12,57 @@ import { getActiveSession } from '../../services/authSession';
 import { useToast } from '../../components/ui/ToastProvider';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
+import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
+import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCard';
+import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
+
+const QUICK_ACTION_PILLS = [
+  {
+    id: 'log_day',
+    label: 'Log your day',
+    icon: '⚡',
+    bg: '#CCFBF1',
+    color: '#0F766E',
+    border: '#99F6E4',
+    prompt: 'I slept well last night. For breakfast I had oatmeal with blueberries and a coffee, then a salami pizza and red wine for lunch. By the afternoon I felt bloated and foggy, and by night it got even worse.',
+  },
+  {
+    id: 'food_mood',
+    label: 'Food, sleep & mood',
+    icon: '💗',
+    bg: '#FFE4E6',
+    color: '#BE123C',
+    border: '#FECDD3',
+    prompt: 'Check in on my day: Track my food, sleep duration, and energy levels.',
+  },
+  {
+    id: 'food_triggers',
+    label: 'Find food triggers',
+    icon: '🔬',
+    bg: '#FEF3C7',
+    color: '#B45309',
+    border: '#FDE68A',
+    prompt: "What's been triggering my bloating and food sensitivities lately?",
+  },
+  {
+    id: 'medication',
+    label: 'Medication tracking',
+    icon: '💊',
+    bg: '#EDE9FE',
+    color: '#6D28D9',
+    border: '#DDD6FE',
+    prompt: 'Could any of my active medications be reacting with foods I eat or causing gut symptoms?',
+  },
+  {
+    id: 'mindfulness',
+    label: 'Practice mindfulness',
+    icon: '🍃',
+    bg: '#DCFCE7',
+    color: '#15803D',
+    border: '#BBF7D0',
+    action: 'mindfulness',
+  },
+];
 
 const SUGGESTIONS = [
   "I'm looking for mental peace and a calm space to de-stress.",
@@ -33,6 +84,7 @@ import { GlassBoxExplanation } from '../../components/ui/GlassBoxExplanation';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { FitnessContent } from '../../services/FitnessService';
 import { getItemSync, setItemSync } from '../../services/storage';
+
 
 const DEFAULT_CALM_TRACK: FitnessContent = {
   id: 'ava-calm-reset-1',
@@ -118,7 +170,15 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   return <span>{displayed}</span>;
 };
 
-const MessageRenderer = ({ content, onOpenCalm }: { content: string; onOpenCalm?: () => void }) => {
+const MessageRenderer = ({
+  content,
+  onOpenCalm,
+  onOpenWholeHealth,
+}: {
+  content: string;
+  onOpenCalm?: () => void;
+  onOpenWholeHealth?: () => void;
+}) => {
   const handleStartCalm = () => {
     triggerHapticLight();
     if (onOpenCalm) {
@@ -127,6 +187,73 @@ const MessageRenderer = ({ content, onOpenCalm }: { content: string; onOpenCalm?
       window.dispatchEvent(new CustomEvent('hc_reopen_meditation'));
     }
   };
+
+  // DIARY TIMELINE WIDGET (Triggerbites Diary Reference)
+  if (content.includes('[WIDGET:DIARY_TIMELINE')) {
+    const match = content.match(/\[WIDGET:DIARY_TIMELINE(?::([\s\S]*?))?\]/);
+    if (match) {
+      let parsed: any = null;
+      if (match[1]) {
+        try {
+          parsed = JSON.parse(match[1].trim());
+        } catch (e) {
+          console.warn('Failed to parse DIARY_TIMELINE JSON', e);
+        }
+      }
+      if (!parsed || !parsed.entries) {
+        parsed = {
+          title: 'Logged in your diary',
+          date: 'Today',
+          entries: [
+            { time: '08:00', category: 'Breakfast', items: ['🥣 Oats', '🫐 Blueberries', '☕ Coffee'] },
+            { time: '13:00', category: 'Lunch', items: ['🥩 Salami', '🍞 Wheat', '🧀 Aged Cheese', '🍷 Red Wine'] },
+            { time: '15:00', category: 'Symptoms', items: ['💨 Bloating', '🌫️ Brain Fog'] },
+          ],
+        };
+      }
+      const parts = content.split(match[0]);
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+          {parts[0] && <span>{parts[0]}</span>}
+          <DiaryTimelineCard
+            title={parsed.title}
+            date={parsed.date}
+            entries={parsed.entries}
+          />
+          {parts[1] && <span>{parts[1]}</span>}
+        </div>
+      );
+    }
+  }
+
+  // TRIGGER SENSITIVITY CARD WIDGET (Triggerbites Symptom Reference)
+  if (content.includes('[WIDGET:TRIGGER_CARD')) {
+    const match = content.match(/\[WIDGET:TRIGGER_CARD(?::([\s\S]*?))?\]/);
+    if (match) {
+      let parsed: any = null;
+      if (match[1]) {
+        try {
+          parsed = JSON.parse(match[1].trim());
+        } catch (e) {
+          console.warn('Failed to parse TRIGGER_CARD JSON', e);
+        }
+      }
+      const parts = content.split(match[0]);
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+          {parts[0] && <span>{parts[0]}</span>}
+          <TriggerSensitivityCard
+            symptom={parsed?.symptom || 'Bloating'}
+            reactionWindow={parsed?.reactionWindow || 'within 1 day'}
+            sensitivities={parsed?.sensitivities}
+            ingredients={parsed?.ingredients}
+            onOpenWholeHealth={onOpenWholeHealth}
+          />
+          {parts[1] && <span>{parts[1]}</span>}
+        </div>
+      );
+    }
+  }
 
   if (content.includes('[WIDGET:CALM]') || content.includes('[WIDGET:BREATHWORK]')) {
     const splitKey = content.includes('[WIDGET:CALM]') ? '[WIDGET:CALM]' : '[WIDGET:BREATHWORK]';
@@ -299,7 +426,66 @@ export default function AvaHealthBuddy() {
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isWholeHealthOpen, setIsWholeHealthOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleOpenWholeHealth = () => setIsWholeHealthOpen(true);
+    window.addEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
+    return () => window.removeEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
+  }, []);
+
+  const toggleListening = () => {
+    triggerHapticLight();
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.info('Voice Dictation', 'Voice dictation is not supported in this browser. Please type directly.');
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch(e){}
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((r: any) => r[0].transcript)
+          .join('');
+        setInput(transcript);
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (e) {
+      console.warn('Speech recognition init error:', e);
+      setIsListening(false);
+    }
+  };
+
 
   const [importedCase, setImportedCase] = useState<any>(() => {
     try {
@@ -339,13 +525,18 @@ export default function AvaHealthBuddy() {
     }
   }, [location.search]);
 
-  const currentProfileId = useRef(getProfileEngineState()?.activeId);
+  const currentProfileId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const state = getProfileEngineState();
+    currentProfileId.current = state?.activeId || null;
+  }, []);
 
   useEffect(() => {
     const handleProfileUpdate = () => {
       const state = getProfileEngineState();
       if (state?.activeId !== currentProfileId.current) {
-        currentProfileId.current = state?.activeId;
+        currentProfileId.current = state?.activeId || null;
         setMessages(getSavedMessages());
       }
     };
@@ -374,9 +565,9 @@ export default function AvaHealthBuddy() {
     }
   }, [messages]);
 
-  // Theme colors - Serene Spa Teal
+  // Theme colors - Serene Spa Teal & Radiant Sunset Coral
   const theme = {
-    primary: '#F43F5E', // Rose 500 - Calm & Peaceful
+    primary: '#E11D48', // Coral Red - Radiant & Alert
     light: '#FFE4E6', // Rose 50
     text: '#115E59', // Teal 800
     bg: '#F8FAFC', // Slate 50
@@ -409,8 +600,9 @@ export default function AvaHealthBuddy() {
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, newMessages: any[]) => {
         setIsTyping(false);
-        setIsStreaming(true);
-        const finalMessages = [...newMessages, { role: 'model', content: response, isStreaming: true }];
+        const hasWidget = response && response.includes('[WIDGET:');
+        setIsStreaming(!hasWidget);
+        const finalMessages = [...newMessages, { role: 'model', content: response, isStreaming: !hasWidget }];
         
         if (finalMessages.length >= 10) {
           extractClinicalMemory(finalMessages).then((facts) => {
@@ -580,72 +772,113 @@ export default function AvaHealthBuddy() {
           boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.35)',
         }}
       >
-        {/* Header */}
-        {!isMobile && (
+        {/* Header - Triggerbites Aesthetic */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: isMobile ? 'calc(var(--safe-area-top, 44px) + 16px) 20px 16px 20px' : '20px 32px',
-            background: 'rgba(255, 241, 242, 0.65)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
+            justifyContent: 'space-between',
+            padding: isMobile ? '12px 16px' : '18px 28px',
+            background: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1.5px solid rgba(254, 215, 195, 0.6)',
+            flexShrink: 0,
+            zIndex: 10,
           }}
         >
-          <button
-            aria-label="Go back"
-            onClick={() => navigate(-1)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: theme.primary,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '8px',
-              marginRight: '16px',
-            }}
-          >
-            <ArrowLeft size={20} />
-          </button>
-
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: theme.light,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: '16px',
-            }}
-          >
-            <Heart size={20} color={theme.primary} />
-          </div>
-
-          <div>
-            <h1
-              style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 2px 0', display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              Ava Pro <span style={{ background: 'linear-gradient(135deg, #14B8A6, #0D9488)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Plus</span>
-            </h1>
-            <p
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button
+              aria-label="Go back"
+              onClick={() => navigate(-1)}
               style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                color: theme.primary,
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-                margin: 0,
+                background: 'none',
+                border: 'none',
+                color: '#E11D48',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px',
+                marginRight: isMobile ? '8px' : '14px',
               }}
             >
-              MEDICAL CHIEF OF STAFF
-            </p>
-          </div>
-        </div>
+              <ArrowLeft size={isMobile ? 18 : 20} />
+            </button>
 
-        )}
+            <div
+              style={{
+                width: isMobile ? '36px' : '40px',
+                height: isMobile ? '36px' : '40px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: isMobile ? '10px' : '14px',
+                boxShadow: '0 4px 14px rgba(255, 107, 74, 0.32)',
+              }}
+            >
+              <Heart size={isMobile ? 18 : 20} fill="#FFFFFF" color="#FFFFFF" />
+            </div>
+
+            <div>
+              <h1
+                style={{
+                  fontSize: isMobile ? '17px' : '19px',
+                  fontWeight: 800,
+                  color: '#1C1917',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                Ask <span style={{ color: '#E11D48' }}>Ava</span>
+              </h1>
+              <p
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  color: '#94A3B8',
+                  letterSpacing: '0.6px',
+                  textTransform: 'uppercase',
+                  margin: 0,
+                }}
+              >
+                MEDICAL CHIEF OF STAFF
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              setIsWholeHealthOpen(true);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: isMobile ? '6px 12px' : '8px 16px',
+              borderRadius: '999px',
+              background: '#FFFFFF',
+              border: '1.5px solid #FCD9C6',
+              color: '#E11D48',
+              fontSize: isMobile ? '12px' : '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
+              transition: 'transform 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+          >
+            <Activity size={14} color="#E11D48" /> Whole Health
+          </button>
+        </div>
 
         {/* Chat Area */}
         <div
@@ -781,21 +1014,21 @@ export default function AvaHealthBuddy() {
                   <div
                     style={{
                       background: msg.role === 'user' 
-                        ? 'linear-gradient(135deg, rgba(244, 63, 94, 0.92) 0%, rgba(225, 29, 72, 0.92) 100%)' 
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.42) 100%)',
-                      backdropFilter: 'blur(16px)',
-                      WebkitBackdropFilter: 'blur(16px)',
-                      color: msg.role === 'user' ? '#FFFFFF' : '#0F172A',
+                        ? 'linear-gradient(135deg, #FF5A5F 0%, #E11D48 100%)' 
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.88) 100%)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      color: msg.role === 'user' ? '#FFFFFF' : '#1C1917',
                       padding: isMobile ? '14px 18px' : '16px 22px',
                       borderRadius:
                         msg.role === 'user' ? '22px 22px 6px 22px' : '22px 22px 22px 6px',
-                      fontSize: '15.5px',
+                      fontSize: '15px',
                       lineHeight: 1.5,
                       boxShadow: msg.role === 'user' 
-                        ? '0 12px 32px rgba(244, 63, 94, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
-                        : '0 12px 28px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-                      border: msg.role === 'user' ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.85)',
-                      maxWidth: isMobile ? '86%' : '80%',
+                        ? '0 10px 28px rgba(225, 29, 72, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
+                        : '0 8px 24px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
+                      border: msg.role === 'user' ? '1px solid rgba(255, 255, 255, 0.25)' : '1.5px solid rgba(254, 215, 195, 0.75)',
+                      maxWidth: isMobile ? '88%' : '80%',
                     }}
                   >
                     {msg.isStreaming ? (
@@ -817,7 +1050,11 @@ export default function AvaHealthBuddy() {
                     ) : (
                       msg.content ? (
                         <>
-                          <MessageRenderer content={msg.content} onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)} />
+                          <MessageRenderer
+                            content={msg.content}
+                            onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
+                            onOpenWholeHealth={() => setIsWholeHealthOpen(true)}
+                          />
                           {msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}
                           {msg.role === 'model' && /(mental peace|calm space|de-stress|relax|anxiety|breathe|breathing|4-7-8|meditat|insomnia)/i.test(msg.content) && (
                             <motion.div
@@ -1095,84 +1332,164 @@ export default function AvaHealthBuddy() {
               onClick={() => fileInputRef.current?.click()}
               style={{
                 position: 'absolute',
-                left: '12px',
-                width: '36px',
-                height: '36px',
+                left: '10px',
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
-                background: 'transparent',
+                background: 'rgba(255, 255, 255, 0.9)',
                 color: '#64748B',
-                border: 'none',
+                border: '1px solid #E2E8F0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
                 transition: 'background 0.2s',
+                zIndex: 2,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#F1F5F9')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
-              <Paperclip size={20} />
+              <Plus size={18} />
             </button>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               aria-label="Ask Ava Health Buddy a question"
-              placeholder="Share what's on your mind..."
+              placeholder="Just check in about your day..."
               style={{
                 width: '100%',
-                padding: isMobile ? '12px 46px 12px 44px' : '16px 56px 16px 52px',
+                padding: isMobile ? '13px 84px 13px 48px' : '15px 92px 15px 52px',
                 borderRadius: '99px',
-                border: '1px solid rgba(255, 255, 255, 0.8)',
-                background: 'rgba(255, 255, 255, 0.65)',
+                border: '1.5px solid rgba(254, 215, 195, 0.9)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
-                fontSize: '16px',
+                fontSize: '15px',
                 outline: 'none',
-                boxShadow: '0 8px 32px rgba(244, 63, 94, 0.12)',
-                color: '#1E293B',
-                paddingRight: '60px',
+                boxShadow: '0 8px 28px rgba(234, 88, 12, 0.08)',
+                color: '#1C1917',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
-              onFocus={(e) => { setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300); e.target.style.borderColor = theme.primary; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.25)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.8)'; e.target.style.boxShadow = '0 8px 32px rgba(244, 63, 94, 0.12)'; }}
-            />
-            <button
-              aria-label="Send message"
-              type="submit"
-              disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming}
-              style={{
-                position: 'absolute',
-                right: '8px',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: theme.primary,
-                color: '#FFFFFF',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: (!input.trim() && attachments.length === 0) || isTyping || isStreaming ? 'not-allowed' : 'pointer',
-                opacity: (!input.trim() && attachments.length === 0) || isTyping || isStreaming ? 0.5 : 1,
-                transition: 'opacity 0.2s, transform 0.1s',
+              onFocus={(e) => {
+                setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
+                e.target.style.borderColor = '#FF6B4A';
+                e.target.style.boxShadow = '0 8px 28px rgba(255, 107, 74, 0.22)';
               }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <Send size={18} style={{ marginLeft: '2px' }} />
-            </button>
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(254, 215, 195, 0.9)';
+                e.target.style.boxShadow = '0 8px 28px rgba(234, 88, 12, 0.08)';
+              }}
+            />
+
+            <div style={{ position: 'absolute', right: '8px', display: 'flex', alignItems: 'center', gap: '6px', zIndex: 2 }}>
+              {/* Mic Dictation Button */}
+              <button
+                type="button"
+                aria-label={isListening ? 'Stop listening' : 'Start voice dictation'}
+                onClick={toggleListening}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '50%',
+                  background: isListening ? '#EF4444' : '#F8FAFC',
+                  color: isListening ? '#FFFFFF' : '#64748B',
+                  border: isListening ? 'none' : '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: isListening ? '0 0 12px rgba(239, 68, 68, 0.5)' : 'none',
+                }}
+              >
+                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+              </button>
+
+              {/* Send Button */}
+              <button
+                aria-label="Send message"
+                type="submit"
+                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: (!input.trim() && attachments.length === 0) || isTyping || isStreaming ? 'not-allowed' : 'pointer',
+                  opacity: (!input.trim() && attachments.length === 0) || isTyping || isStreaming ? 0.45 : 1,
+                  boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Send size={15} style={{ marginLeft: '2px' }} />
+              </button>
+            </div>
           </form>
+
+          {/* Floating Quick Action Pastel Pills (Reference Images 1 & 2) */}
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '720px',
+              display: 'flex',
+              gap: '8px',
+              marginTop: '10px',
+              overflowX: 'auto',
+              paddingBottom: '4px',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            {QUICK_ACTION_PILLS.map((pill) => (
+              <button
+                key={pill.id}
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  if (pill.action === 'mindfulness') {
+                    setActiveMeditation(DEFAULT_CALM_TRACK);
+                  } else if (pill.prompt) {
+                    handleSend(pill.prompt);
+                  }
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '999px',
+                  background: pill.bg,
+                  color: pill.color,
+                  border: `1.5px solid ${pill.border}`,
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                  transition: 'transform 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+              >
+                <span>{pill.icon}</span>
+                <span>{pill.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>{' '}
-      {/* Close Outer White Card Container */}
       {/* Close Outer White Card Container */}
       {/* Footer - Hide on mobile */}
       {!isMobile && (
         <div
           style={{
             textAlign: 'center',
-            padding: '24px 0',
+            padding: '20px 0',
             color: '#94A3B8',
             fontSize: '11px',
             fontWeight: 500,
@@ -1182,7 +1499,7 @@ export default function AvaHealthBuddy() {
           <div
             style={{
               color: '#0F172A',
-              marginBottom: '6px',
+              marginBottom: '4px',
               fontSize: '11px',
               fontWeight: 700,
               letterSpacing: '1px',
@@ -1195,13 +1512,20 @@ export default function AvaHealthBuddy() {
         </div>
       )}
 
-      {/* Point 7: Interactive In-Chat Meditation Player Modal */}
+      {/* Interactive In-Chat Meditation Player Modal */}
       {activeMeditation && (
         <MeditationPlayer
           content={activeMeditation}
           onClose={() => setActiveMeditation(null)}
         />
       )}
+
+      {/* Whole Health & Food Sensitivities Modal (Reference Images 3 & 4) */}
+      <TriggerSensitivityModal
+        isOpen={isWholeHealthOpen}
+        onClose={() => setIsWholeHealthOpen(false)}
+        onOpenMindfulness={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
+      />
     </div>
   );
 }
