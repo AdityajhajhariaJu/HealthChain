@@ -3,16 +3,15 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Droplets, 
+  Droplet,
+  Waves,
   X, 
-  Plus, 
-  Minus, 
   Trash2, 
   Bell, 
   BellOff, 
   Check, 
   Sparkles, 
-  RotateCcw,
-  Info
+  RotateCcw
 } from 'lucide-react';
 import { 
   getHydrationData, 
@@ -31,7 +30,11 @@ interface HydrationTrackerModalProps {
   onUpdated?: () => void;
 }
 
-const TARGET_PRESETS = [2000, 2500, 3000];
+const TARGET_PRESETS = [
+  { label: '2.0 L', value: 2000, desc: '8 glasses' },
+  { label: '2.5 L', value: 2500, desc: '10 glasses' },
+  { label: '3.0 L', value: 3000, desc: '12 glasses' }
+];
 
 export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
   isOpen,
@@ -64,6 +67,13 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
   const remainingMl = Math.max(0, targetMl - currentMl);
   const glasses = Math.round(currentMl / 250);
   const targetGlasses = Math.round(targetMl / 250);
+
+  // SVG circular dial parameters
+  const ringSize = 104;
+  const strokeWidth = 8;
+  const radius = (ringSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const handleAdd = (amount: number, type: HydrationLogItem['type'] = 'water') => {
     triggerHapticSuccess();
@@ -100,7 +110,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
     const nextState = !data.remindersEnabled;
     await setHydrationReminders(nextState, 2);
     setData(getHydrationData());
-    setReminderToast(nextState ? 'Hourly reminders active (9 AM - 9 PM) 💧' : 'Reminders disabled');
+    setReminderToast(nextState ? 'Hourly reminders active (9 AM - 9 PM)' : 'Reminders muted');
     setTimeout(() => setReminderToast(null), 3000);
   };
 
@@ -115,9 +125,9 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           flexDirection: 'column',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          backgroundColor: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)'
+          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)'
         }}
         onClick={onClose}
       >
@@ -131,33 +141,33 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
           style={{
             width: '100%',
-            maxWidth: '520px',
-            maxHeight: 'calc(100vh - max(30px, env(safe-area-inset-top, 30px)))',
-            backgroundColor: '#FFFFFF',
+            maxWidth: '500px',
+            maxHeight: 'calc(100vh - max(40px, env(safe-area-inset-top, 40px)))',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FAFCFF 60%, #F0F9FF 100%)',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 -15px 45px rgba(2, 132, 199, 0.25)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.9)'
+            boxShadow: '0 -20px 60px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.95)'
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Sheet Pull Bar */}
+          {/* Subtle Pull Indicator */}
           <div 
             style={{ 
               width: '100%', 
-              height: '24px', 
+              height: '20px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
               cursor: 'pointer',
-              paddingTop: '6px'
+              paddingTop: '8px'
             }}
             onClick={onClose}
           >
-            <div style={{ width: '42px', height: '5px', backgroundColor: '#CBD5E1', borderRadius: '999px' }} />
+            <div style={{ width: '38px', height: '4px', backgroundColor: '#CBD5E1', borderRadius: '999px' }} />
           </div>
 
           {/* Modal Header */}
@@ -166,7 +176,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottom: '1px solid #F1F5F9'
+            borderBottom: '1px solid rgba(226, 232, 240, 0.7)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
@@ -178,16 +188,16 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#FFF',
-                boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
+                boxShadow: '0 4px 14px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255,255,255,0.4)'
               }}>
                 <Droplets size={20} />
               </div>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                  Daily Water Tracker
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.4px' }}>
+                  Hydration Tracker
                 </h3>
                 <p style={{ margin: 0, fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-                  Tap to log sips • Stay hydrated
+                  Optimal cellular blood volume & renal clearance
                 </p>
               </div>
             </div>
@@ -202,8 +212,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 width: '34px',
                 height: '34px',
                 borderRadius: '50%',
-                background: '#F1F5F9',
-                border: 'none',
+                background: 'rgba(241, 245, 249, 0.9)',
+                border: '1px solid rgba(0, 0, 0, 0.04)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -212,11 +222,11 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
               }}
               aria-label="Close"
             >
-              <X size={18} />
+              <X size={17} />
             </button>
           </div>
 
-          {/* Main Scrollable Content */}
+          {/* Scrollable Body */}
           <div style={{
             padding: '16px 20px',
             overflowY: 'auto',
@@ -224,128 +234,129 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
             flexDirection: 'column',
             gap: '16px'
           }}>
-            {/* Visual Water Bottle Vessel Card */}
+            {/* HealthChain Glassmorphic Hero Dial */}
             <div style={{
-              background: 'linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 249, 255, 0.65) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               borderRadius: '24px',
-              padding: '20px 16px',
-              border: '1.5px solid #BAE6FD',
+              padding: '18px 20px',
+              border: '1.5px solid rgba(186, 230, 253, 0.7)',
+              boxShadow: '0 12px 32px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              boxShadow: '0 8px 24px rgba(14, 165, 233, 0.1)',
-              position: 'relative',
-              overflow: 'hidden'
+              gap: '16px'
             }}>
-              {/* Left Side: Large readable numbers */}
-              <div style={{ flex: 1, zIndex: 2 }}>
+              {/* Left Side: Clean Typography & Stats */}
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  background: percentage >= 100 ? '#DCFCE7' : 'rgba(2, 132, 199, 0.15)',
-                  color: percentage >= 100 ? '#15803D' : '#0369A1',
-                  padding: '3px 10px',
+                  background: percentage >= 100 ? '#DCFCE7' : 'rgba(14, 165, 233, 0.12)',
+                  color: percentage >= 100 ? '#15803D' : '#0284C7',
+                  padding: '3px 9px',
                   borderRadius: '999px',
                   fontSize: '11px',
                   fontWeight: 800,
+                  letterSpacing: '0.2px',
                   marginBottom: '8px'
                 }}>
-                  {percentage >= 100 ? '✓ Daily Goal Met' : `${percentage}% of Daily Target`}
+                  <Sparkles size={11} />
+                  {percentage >= 100 ? 'Target Achieved' : 'Cellular Hydration'}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                  <span className="tabular-nums" style={{ fontSize: '38px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1 }}>
+                  <span className="tabular-nums" style={{ fontSize: '36px', fontWeight: 900, color: '#0F172A', letterSpacing: '-1px', lineHeight: 1 }}>
                     {currentMl.toLocaleString()}
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#64748B' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: '#64748B' }}>
                     / {targetMl.toLocaleString()} ml
                   </span>
                 </div>
 
-                <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+                <p style={{ margin: '6px 0 0', fontSize: '12.5px', color: '#475569', fontWeight: 500 }}>
                   {remainingMl > 0 
-                    ? `${remainingMl.toLocaleString()} ml remaining (${targetGlasses - glasses} glasses)` 
-                    : 'Optimal cellular hydration achieved! 🎉'}
+                    ? `${remainingMl.toLocaleString()} ml to go (${targetGlasses - glasses} glasses)` 
+                    : 'Daily cellular hydration met! 🎉'}
                 </p>
 
-                <div style={{ marginTop: '10px', fontSize: '11px', color: '#0284C7', fontWeight: 700 }}>
-                  Equivalent: {glasses} of {targetGlasses} Standard Glasses (250ml)
+                <div style={{
+                  display: 'inline-block',
+                  marginTop: '8px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#0284C7',
+                  background: 'rgba(255, 255, 255, 0.7)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(186, 230, 253, 0.6)'
+                }}>
+                  {glasses} of {targetGlasses} Standard Glasses (250ml)
                 </div>
               </div>
 
-              {/* Right Side: Visual Water Tumbler Cylinder */}
-              <div style={{
-                width: '74px',
-                height: '110px',
-                borderRadius: '18px',
-                border: '3px solid #0284C7',
-                background: 'rgba(255, 255, 255, 0.65)',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 6px 16px rgba(2, 132, 199, 0.2), inset 0 2px 6px rgba(0,0,0,0.06)',
-                flexShrink: 0,
-                marginLeft: '12px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end'
-              }}>
-                {/* Measurement Tick Marks */}
-                <div style={{ position: 'absolute', right: '4px', top: '15px', width: '6px', height: '1.5px', background: '#94A3B8' }} />
-                <div style={{ position: 'absolute', right: '4px', top: '35px', width: '10px', height: '1.5px', background: '#0284C7' }} />
-                <div style={{ position: 'absolute', right: '4px', top: '55px', width: '6px', height: '1.5px', background: '#94A3B8' }} />
-                <div style={{ position: 'absolute', right: '4px', top: '75px', width: '10px', height: '1.5px', background: '#0284C7' }} />
+              {/* Right Side: Circular SVG Hydro Dial */}
+              <div style={{ position: 'relative', width: ringSize, height: ringSize, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width={ringSize} height={ringSize} style={{ transform: 'rotate(-90deg)' }}>
+                  <defs>
+                    <linearGradient id="hcWaterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#38BDF8" />
+                      <stop offset="100%" stopColor="#0284C7" />
+                    </linearGradient>
+                  </defs>
 
-                {/* Animated Rising Water */}
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${percentage}%` }}
-                  transition={{ type: 'spring', damping: 18, stiffness: 120 }}
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(180deg, #38BDF8 0%, #0284C7 100%)',
-                    boxShadow: '0 -2px 8px rgba(56, 189, 248, 0.6)',
-                    position: 'relative'
-                  }}
-                >
-                  {/* Wave surface shimmer */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'rgba(255, 255, 255, 0.75)',
-                    borderRadius: '2px'
-                  }} />
-                </motion.div>
+                  {/* Background Track */}
+                  <circle
+                    cx={ringSize / 2}
+                    cy={ringSize / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="rgba(2, 132, 199, 0.12)"
+                    strokeWidth={strokeWidth}
+                  />
 
-                {/* Center % in tumbler */}
+                  {/* Animated Progress Circle */}
+                  <motion.circle
+                    cx={ringSize / 2}
+                    cy={ringSize / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="url(#hcWaterGradient)"
+                    strokeWidth={strokeWidth}
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    animate={{ strokeDashoffset }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                  />
+                </svg>
+
+                {/* Dial Center Content */}
                 <div style={{
                   position: 'absolute',
                   inset: 0,
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   pointerEvents: 'none'
                 }}>
-                  <span style={{
-                    fontSize: '14px',
-                    fontWeight: 900,
-                    color: percentage > 50 ? '#FFFFFF' : '#0369A1',
-                    textShadow: percentage > 50 ? '0 1px 3px rgba(0,0,0,0.4)' : 'none'
-                  }}>
+                  <span className="tabular-nums" style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>
                     {percentage}%
+                  </span>
+                  <span style={{ fontSize: '9px', fontWeight: 800, color: '#0284C7', letterSpacing: '0.04em', textTransform: 'uppercase', marginTop: '2px' }}>
+                    Goal
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Tap to Log: 3 Primary Vessels (Big & Easy to Tap) */}
+            {/* Quick Logging Section: 3 High-Craft Glassmorphic Tiles */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Tap to Add Water
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Quick Log Sips
                 </span>
                 {data.logs.length > 0 && (
                   <button
@@ -372,163 +383,239 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {/* 1. Glass 250ml */}
                 <motion.button
-                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={() => handleAdd(250)}
                   style={{
                     background: '#FFFFFF',
-                    borderRadius: '18px',
+                    borderRadius: '20px',
                     padding: '14px 10px',
-                    border: '2px solid #BAE6FD',
-                    boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)',
+                    border: '1.5px solid rgba(226, 232, 240, 0.9)',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.9)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    gap: '4px'
+                    gap: '6px',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
-                  <span style={{ fontSize: '28px' }}>🥛</span>
-                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(2, 132, 199, 0.08) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0284C7'
+                  }}>
+                    <Droplet size={19} />
+                  </div>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
                     +250 ml
                   </span>
                   <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                    1 Glass
+                    Standard Glass
                   </span>
                 </motion.button>
 
                 {/* 2. Bottle 500ml */}
                 <motion.button
-                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={() => handleAdd(500)}
                   style={{
-                    background: '#FFFFFF',
-                    borderRadius: '18px',
+                    background: 'linear-gradient(180deg, #FFFFFF 0%, #F0F9FF 100%)',
+                    borderRadius: '20px',
                     padding: '14px 10px',
-                    border: '2px solid #38BDF8',
-                    boxShadow: '0 4px 14px rgba(14, 165, 233, 0.15)',
+                    border: '1.5px solid #38BDF8',
+                    boxShadow: '0 6px 20px rgba(14, 165, 233, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    gap: '4px'
+                    gap: '6px',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
-                  <span style={{ fontSize: '28px' }}>🍶</span>
-                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0284C7' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFFFFF',
+                    boxShadow: '0 3px 10px rgba(14, 165, 233, 0.3)'
+                  }}>
+                    <Droplets size={19} />
+                  </div>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0284C7', letterSpacing: '-0.3px' }}>
                     +500 ml
                   </span>
                   <span style={{ fontSize: '11px', color: '#0369A1', fontWeight: 700 }}>
-                    1 Bottle
+                    Daily Kickstart
                   </span>
                 </motion.button>
 
                 {/* 3. Flask 750ml */}
                 <motion.button
-                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={() => handleAdd(750)}
                   style={{
                     background: '#FFFFFF',
-                    borderRadius: '18px',
+                    borderRadius: '20px',
                     padding: '14px 10px',
-                    border: '2px solid #BAE6FD',
-                    boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)',
+                    border: '1.5px solid rgba(226, 232, 240, 0.9)',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255,255,255,0.9)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     cursor: 'pointer',
-                    gap: '4px'
+                    gap: '6px',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
-                  <span style={{ fontSize: '28px' }}>🧴</span>
-                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(13, 148, 136, 0.08) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0D9488'
+                  }}>
+                    <Waves size={19} />
+                  </div>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
                     +750 ml
                   </span>
                   <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                    Big Flask
+                    Sport Flask
                   </span>
                 </motion.button>
               </div>
             </div>
 
-            {/* Daily Target & Daylight Reminders */}
+            {/* Daily Target & Daylight Reminders Card */}
             <div style={{
-              background: '#F8FAFC',
-              borderRadius: '18px',
-              padding: '14px 16px',
-              border: '1px solid #E2E8F0',
+              background: 'rgba(255, 255, 255, 0.8)',
+              borderRadius: '20px',
+              padding: '16px',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px'
+              gap: '14px'
             }}>
-              {/* Target Row */}
+              {/* iOS-Style Segmented Control for Target */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
-                  Daily Target:
-                </span>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {TARGET_PRESETS.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => handleTargetChange(t)}
-                      style={{
-                        padding: '4px 12px',
-                        borderRadius: '999px',
-                        border: targetMl === t ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
-                        background: targetMl === t ? '#E0F2FE' : '#FFFFFF',
-                        color: targetMl === t ? '#0369A1' : '#64748B',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {t / 1000}L
-                    </button>
-                  ))}
+                <div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                    Daily Hydration Goal
+                  </span>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#64748B' }}>
+                    Target water intake volume
+                  </p>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  background: '#F1F5F9',
+                  borderRadius: '12px',
+                  padding: '3px',
+                  gap: '3px'
+                }}>
+                  {TARGET_PRESETS.map((t) => {
+                    const isSelected = targetMl === t.value;
+                    return (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => handleTargetChange(t.value)}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '9px',
+                          border: 'none',
+                          background: isSelected ? '#FFFFFF' : 'transparent',
+                          color: isSelected ? '#0284C7' : '#64748B',
+                          boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                          fontSize: '12px',
+                          fontWeight: isSelected ? 800 : 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {t.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Reminders Row */}
+              <div style={{ height: '1px', background: '#F1F5F9' }} />
+
+              {/* iOS-Style Switch for Hourly Reminders */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '8px',
-                    background: data.remindersEnabled ? '#E0F2FE' : '#E2E8F0',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '10px',
+                    background: data.remindersEnabled ? '#E0F2FE' : '#F1F5F9',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: data.remindersEnabled ? '#0284C7' : '#94A3B8'
                   }}>
-                    {data.remindersEnabled ? <Bell size={15} /> : <BellOff size={15} />}
+                    {data.remindersEnabled ? <Bell size={16} /> : <BellOff size={16} />}
                   </div>
-                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155' }}>
-                    Hourly Reminders (9 AM - 9 PM)
-                  </span>
+                  <div>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                      Daylight Reminders (9 AM - 9 PM)
+                    </span>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#64748B' }}>
+                      Gentle hourly nudges to maintain hydration
+                    </p>
+                  </div>
                 </div>
 
+                {/* Smooth Animated Toggle Switch */}
                 <button
                   type="button"
                   onClick={handleToggleReminders}
                   style={{
-                    padding: '5px 12px',
+                    width: '46px',
+                    height: '26px',
                     borderRadius: '999px',
                     border: 'none',
-                    background: data.remindersEnabled ? '#0284C7' : '#CBD5E1',
-                    color: '#FFF',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
+                    background: data.remindersEnabled ? '#0284C7' : '#E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '2px',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s ease'
                   }}
+                  aria-label="Toggle daylight reminders"
                 >
-                  {data.remindersEnabled ? 'ON' : 'OFF'}
+                  <motion.div
+                    animate={{ x: data.remindersEnabled ? 20 : 2 }}
+                    transition={{ type: 'spring', damping: 24, stiffness: 350 }}
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      background: '#FFFFFF',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                    }}
+                  />
                 </button>
               </div>
 
@@ -536,20 +623,20 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 <div style={{
                   background: '#ECFDF5',
                   color: '#065F46',
-                  padding: '6px 10px',
-                  borderRadius: '8px',
-                  fontSize: '11px',
+                  padding: '7px 12px',
+                  borderRadius: '10px',
+                  fontSize: '11.5px',
                   fontWeight: 600,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px'
                 }}>
-                  <Check size={12} /> {reminderToast}
+                  <Check size={14} /> {reminderToast}
                 </div>
               )}
             </div>
 
-            {/* Today's Log Timeline (Compact) */}
+            {/* Today's Log Timeline */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -569,12 +656,13 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   background: '#F8FAFC',
                   borderRadius: '14px',
                   color: '#94A3B8',
-                  fontSize: '12px'
+                  fontSize: '12px',
+                  border: '1px dashed #CBD5E1'
                 }}>
-                  No drinks logged yet today. Tap +250ml to start!
+                  No drinks logged yet today. Tap +250ml above to start!
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '130px', overflowY: 'auto' }}>
                   {data.logs.map((log) => (
                     <div
                       key={log.id}
@@ -582,19 +670,31 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '8px 12px',
+                        padding: '9px 12px',
                         background: '#FFFFFF',
-                        borderRadius: '10px',
-                        border: '1px solid #E2E8F0'
+                        borderRadius: '12px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '16px' }}>💧</span>
+                        <div style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '8px',
+                          background: '#E0F2FE',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#0284C7'
+                        }}>
+                          <Droplet size={14} />
+                        </div>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
                           +{log.amountMl} ml
                         </span>
                         <span style={{ fontSize: '11px', color: '#94A3B8' }}>
-                          {log.timestamp}
+                          • {log.timestamp}
                         </span>
                       </div>
 
@@ -619,10 +719,10 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
             </div>
           </div>
 
-          {/* Footer: Big prominent "Done" button */}
+          {/* HealthChain Premium Midnight Action Button */}
           <div style={{
             padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
-            borderTop: '1px solid #F1F5F9',
+            borderTop: '1px solid rgba(226, 232, 240, 0.7)',
             background: '#FFFFFF'
           }}>
             <button
@@ -635,12 +735,12 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 width: '100%',
                 padding: '14px',
                 borderRadius: '16px',
-                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
                 color: '#FFFFFF',
-                border: 'none',
+                border: '1px solid rgba(255,255,255,0.15)',
                 fontWeight: 800,
                 fontSize: '15px',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
+                boxShadow: '0 6px 20px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255,255,255,0.2)',
                 cursor: 'pointer'
               }}
             >
