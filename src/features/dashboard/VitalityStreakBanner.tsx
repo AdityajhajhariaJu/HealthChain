@@ -71,12 +71,12 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(254, 243, 199, 0.45) 50%, rgba(255, 255, 255, 0.82) 100%)',
+        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7F2 45%, #FEEDE2 100%)',
         backdropFilter: 'blur(32px)',
         WebkitBackdropFilter: 'blur(32px)',
         borderRadius: isMobile ? '20px' : '26px',
-        border: '1.5px solid rgba(245, 158, 11, 0.35)',
-        boxShadow: '0 12px 30px rgba(180, 83, 9, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.95), inset 0 0 20px rgba(254, 243, 199, 0.4)',
+        border: '1.5px solid rgba(254, 215, 195, 0.95)',
+        boxShadow: '0 12px 32px rgba(234, 88, 12, 0.06), 0 2px 8px rgba(251, 146, 60, 0.04), inset 0 2px 0 rgba(255, 255, 255, 0.98), inset 0 0 20px rgba(254, 235, 224, 0.5)',
         padding: isMobile ? '12px 14px' : '14px 20px',
         marginBottom: '16px',
         display: 'flex',
@@ -94,7 +94,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
           left: '-20px',
           width: '120px',
           height: '120px',
-          background: 'radial-gradient(circle, rgba(249, 115, 22, 0.18) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(251, 146, 60, 0.16) 0%, transparent 70%)',
           pointerEvents: 'none',
           zIndex: 0
         }}
@@ -227,15 +227,15 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               fontWeight: 700,
               cursor: streak.isMysteryClaimedToday ? 'default' : 'pointer',
               background: streak.isMysteryClaimedToday 
-                ? 'rgba(241, 245, 249, 0.85)' 
-                : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                ? 'rgba(255, 247, 242, 0.92)' 
+                : 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)',
               color: streak.isMysteryClaimedToday ? '#059669' : '#FFFFFF',
               border: streak.isMysteryClaimedToday 
                 ? '1px solid rgba(16, 185, 129, 0.3)' 
-                : '1px solid rgba(217, 119, 6, 0.5)',
+                : '1px solid rgba(234, 88, 12, 0.35)',
               boxShadow: streak.isMysteryClaimedToday 
                 ? 'none' 
-                : '0 4px 12px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)',
+                : '0 4px 14px rgba(234, 88, 12, 0.28), inset 0 1px 0 rgba(255,255,255,0.45)',
               transition: 'all 0.2s ease',
               whiteSpace: 'nowrap'
             }}
@@ -272,17 +272,17 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               borderRadius: '999px',
               fontSize: '11px',
               fontWeight: 700,
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.95) 100%)',
-              color: '#FFFFFF',
-              border: '1px solid rgba(245, 158, 11, 0.45)',
-              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF1E8 100%)',
+              color: '#0F172A',
+              border: '1.5px solid rgba(254, 215, 195, 0.95)',
+              boxShadow: '0 3px 10px rgba(234, 88, 12, 0.08), inset 0 1px 0 #FFFFFF',
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
           >
-            <Trophy size={12} color="#F59E0B" />
-            <span className="tabular-nums" style={{ color: '#FDE68A' }}>{vitality.points} PTS</span>
-            <ChevronRight size={11} color="#94A3B8" />
+            <Trophy size={12} color="#EA580C" />
+            <span className="tabular-nums" style={{ color: '#7C2D12', fontWeight: 800 }}>{vitality.points} PTS</span>
+            <ChevronRight size={11} color="#EA580C" />
           </motion.button>
         </div>
       </div>
@@ -296,7 +296,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
           position: 'relative', 
           zIndex: 1,
           paddingTop: '6px',
-          borderTop: '1px solid rgba(245, 158, 11, 0.15)',
+          borderTop: '1px solid rgba(254, 215, 195, 0.85)',
           gap: '10px'
         }}
       >
@@ -322,17 +322,17 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: day.isCompleted
-                      ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)'
+                      ? 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)'
                       : day.isToday
-                      ? 'rgba(254, 243, 199, 0.9)'
-                      : 'rgba(226, 232, 240, 0.7)',
+                      ? '#FFF1E8'
+                      : 'rgba(255, 255, 255, 0.85)',
                     border: day.isToday && !day.isCompleted
-                      ? '1.6px dashed #F59E0B'
+                      ? '1.6px dashed #EA580C'
                       : day.isCompleted
-                      ? '1px solid #B45309'
-                      : '1px solid rgba(203, 213, 225, 0.6)',
+                      ? '1px solid #C2410C'
+                      : '1px solid rgba(254, 215, 195, 0.85)',
                     boxShadow: day.isCompleted 
-                      ? '0 2px 5px rgba(245, 158, 11, 0.3)' 
+                      ? '0 2px 6px rgba(234, 88, 12, 0.32)' 
                       : 'none',
                     transition: 'all 0.3s ease'
                   }}
@@ -356,7 +356,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                   style={{
                     fontSize: '8.5px',
                     fontWeight: day.isToday ? 800 : 600,
-                    color: day.isToday ? '#EA580C' : '#64748B'
+                    color: day.isToday ? '#EA580C' : '#94A3B8'
                   }}
                 >
                   {day.dayLabel}
@@ -375,7 +375,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 cy="19"
                 r={radius}
                 fill="transparent"
-                stroke="rgba(245, 158, 11, 0.2)"
+                stroke="rgba(251, 146, 60, 0.2)"
                 strokeWidth="3"
               />
               <circle
@@ -383,7 +383,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 cy="19"
                 r={radius}
                 fill="transparent"
-                stroke={doneHabitsCount === totalHabits ? '#10B981' : '#F59E0B'}
+                stroke={doneHabitsCount === totalHabits ? '#10B981' : '#EA580C'}
                 strokeWidth="3"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
@@ -398,7 +398,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 position: 'absolute',
                 fontSize: '9.5px',
                 fontWeight: 800,
-                color: doneHabitsCount === totalHabits ? '#10B981' : '#0F172A'
+                color: doneHabitsCount === totalHabits ? '#10B981' : '#7C2D12'
               }}
             >
               {doneHabitsCount}/{totalHabits}
@@ -409,7 +409,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
             <div style={{ fontSize: '10px', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap' }}>
               Daily Quest
             </div>
-            <div style={{ fontSize: '8.5px', fontWeight: 700, color: doneHabitsCount === totalHabits ? '#059669' : '#B45309', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '8.5px', fontWeight: 700, color: doneHabitsCount === totalHabits ? '#059669' : '#EA580C', whiteSpace: 'nowrap' }}>
               {doneHabitsCount === totalHabits ? '✓ Complete' : `${habitPercent}% Done`}
             </div>
           </div>
@@ -427,8 +427,10 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
+              background: 'linear-gradient(135deg, rgba(124, 45, 18, 0.96) 0%, rgba(67, 20, 7, 0.97) 100%)',
               backdropFilter: 'blur(20px)',
+              border: '1.5px solid rgba(251, 146, 60, 0.4)',
+              boxShadow: '0 10px 30px rgba(124, 45, 18, 0.3)',
               zIndex: 20,
               display: 'flex',
               alignItems: 'center',
@@ -439,12 +441,12 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               padding: '12px'
             }}
           >
-            <Sparkles size={20} color="#FBBF24" />
+            <Sparkles size={20} color="#FDBA74" />
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FDE68A' }}>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFEDD5' }}>
                 +3 Vitality Points Claimed! ✨
               </div>
-              <div style={{ fontSize: '10.5px', color: '#CBD5E1' }}>
+              <div style={{ fontSize: '10.5px', color: '#FED7AA' }}>
                 Daily Drop added to your Trophy Vault
               </div>
             </div>
