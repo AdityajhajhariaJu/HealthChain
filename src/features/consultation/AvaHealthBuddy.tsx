@@ -226,7 +226,7 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   return <span>{displayed}</span>;
 };
 
-function extractBalancedWidget(text: string, tag: string): { payload: any | null; before: string; after: string; found: boolean } {
+export function extractBalancedWidget(text: string, tag: string): { payload: any | null; before: string; after: string; found: boolean } {
   const prefix = `[WIDGET:${tag}`;
   const startIdx = text.indexOf(prefix);
   if (startIdx === -1) {
