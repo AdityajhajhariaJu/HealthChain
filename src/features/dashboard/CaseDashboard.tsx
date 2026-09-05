@@ -461,9 +461,9 @@ export default function CaseDashboard() {
                       borderRadius: '50%', 
                       background: completedHabits['hydration'] 
                         ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                        : 'linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%)', 
+                        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.1) 100%)', 
                       boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                      border: completedHabits['hydration'] ? 'none' : '1px solid rgba(56, 189, 248, 0.3)',
+                      border: completedHabits['hydration'] ? 'none' : '1px solid rgba(16, 185, 129, 0.3)',
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
@@ -474,7 +474,7 @@ export default function CaseDashboard() {
                     {completedHabits['hydration'] ? (
                       <Check size={isMobile ? 18 : 20} color="#FFF" />
                     ) : (
-                      <Droplets size={isMobile ? 18 : 20} color="#0EA5E9" />
+                      <Droplets size={isMobile ? 18 : 20} color="#059669" />
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -484,13 +484,13 @@ export default function CaseDashboard() {
                       title="Quick log 1 glass (+250ml)"
                       aria-label="Quick log 250ml water"
                       style={{
-                        background: 'rgba(14, 165, 233, 0.12)',
-                        border: '1px solid rgba(14, 165, 233, 0.28)',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
                         borderRadius: '999px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#0284C7',
+                        color: '#065F46',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '3px',
@@ -503,8 +503,8 @@ export default function CaseDashboard() {
                     <div 
                       className="tabular-nums micro-badge"
                       style={{ 
-                        background: completedHabits['hydration'] ? '#DCFCE7' : 'rgba(56, 189, 248, 0.15)', 
-                        color: completedHabits['hydration'] ? '#15803D' : '#0284C7', 
+                        background: completedHabits['hydration'] ? '#DCFCE7' : 'rgba(16, 185, 129, 0.12)', 
+                        color: completedHabits['hydration'] ? '#15803D' : '#065F46', 
                         padding: '3px 8px', 
                         borderRadius: '999px',
                         fontSize: '10px',
@@ -538,7 +538,7 @@ export default function CaseDashboard() {
                     width: '100%',
                     height: '4px',
                     borderRadius: '999px',
-                    background: 'rgba(56, 189, 248, 0.2)',
+                    background: 'rgba(16, 185, 129, 0.15)',
                     overflow: 'hidden',
                     marginBottom: '8px',
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
@@ -546,7 +546,7 @@ export default function CaseDashboard() {
                     <div style={{
                       height: '100%',
                       width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
-                      background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
+                      background: 'linear-gradient(90deg, #34D399 0%, #059669 100%)',
                       borderRadius: '999px',
                       transition: 'width 0.4s ease'
                     }} />
@@ -566,13 +566,13 @@ export default function CaseDashboard() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: 'rgba(14, 165, 233, 0.12)',
-                        border: '1px solid rgba(14, 165, 233, 0.3)',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
                         borderRadius: '6px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#0284C7',
+                        color: '#065F46',
                         cursor: 'pointer',
                         minWidth: 'unset',
                         minHeight: 'unset',
@@ -593,13 +593,13 @@ export default function CaseDashboard() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: expandedRationale === 'hydration' ? 'rgba(14, 165, 233, 0.18)' : 'rgba(14, 165, 233, 0.08)',
-                        border: '1px solid rgba(14, 165, 233, 0.25)',
+                        background: expandedRationale === 'hydration' ? 'rgba(16, 185, 129, 0.16)' : 'rgba(16, 185, 129, 0.08)',
+                        border: '1px solid rgba(16, 185, 129, 0.22)',
                         borderRadius: '6px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 600,
-                        color: '#0284C7',
+                        color: '#065F46',
                         cursor: 'pointer',
                         minWidth: 'unset',
                         minHeight: 'unset',
@@ -634,13 +634,13 @@ export default function CaseDashboard() {
                         backdropFilter: 'blur(16px)',
                         borderRadius: '14px',
                         padding: '8px 10px',
-                        border: '1px solid rgba(56, 189, 248, 0.3)',
-                        boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#0284C7', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#065F46', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                           Mechanism
                         </span>
                         <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
