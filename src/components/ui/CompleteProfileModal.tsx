@@ -21,7 +21,12 @@ import {
   Clock,
   ShieldCheck,
   Zap,
-  Info
+  Info,
+  User,
+  Calendar,
+  Ruler,
+  Phone,
+  Heart
 } from 'lucide-react';
 import { getProfile, completeProfileOnboarding } from '../../services/ProfileEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -123,6 +128,61 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
   const [weight, setWeight] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
 
+  // Dual-Unit conversion state (cm <-> ft/in, kg <-> lbs)
+  const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
+  const [feetValue, setFeetValue] = useState('');
+  const [inchesValue, setInchesValue] = useState('');
+
+  const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg');
+  const [lbsValue, setLbsValue] = useState('');
+
+  const handleCmChange = (val: string) => {
+    setHeight(val);
+    const h = parseFloat(val);
+    if (!isNaN(h) && h > 0) {
+      const totIn = h / 2.54;
+      setFeetValue(String(Math.floor(totIn / 12)));
+      setInchesValue(String(Math.round(totIn % 12)));
+    } else {
+      setFeetValue('');
+      setInchesValue('');
+    }
+  };
+
+  const handleFtInChange = (newFt: string, newIn: string) => {
+    setFeetValue(newFt);
+    setInchesValue(newIn);
+    const f = parseFloat(newFt) || 0;
+    const i = parseFloat(newIn) || 0;
+    if (f > 0 || i > 0) {
+      const totalCm = Math.round((f * 12 + i) * 2.54);
+      setHeight(String(totalCm));
+    } else {
+      setHeight('');
+    }
+  };
+
+  const handleKgChange = (val: string) => {
+    setWeight(val);
+    const w = parseFloat(val);
+    if (!isNaN(w) && w > 0) {
+      setLbsValue(String(Math.round(w * 2.20462)));
+    } else {
+      setLbsValue('');
+    }
+  };
+
+  const handleLbsChange = (val: string) => {
+    setLbsValue(val);
+    const l = parseFloat(val);
+    if (!isNaN(l) && l > 0) {
+      const kg = Math.round((l / 2.20462) * 10) / 10;
+      setWeight(String(kg));
+    } else {
+      setWeight('');
+    }
+  };
+
   // Conditions state
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [customCondition, setCustomCondition] = useState('');
@@ -150,9 +210,26 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
         setAge(p.demographics.age ? String(p.demographics.age) : '');
         setGender(p.demographics.gender || '');
         setBloodGroup(p.demographics.bloodGroup || 'Unknown');
-        setHeight(p.demographics.height ? String(p.demographics.height) : '');
-        setWeight(p.demographics.weight ? String(p.demographics.weight) : '');
+        const initH = p.demographics.height ? String(p.demographics.height) : '';
+        const initW = p.demographics.weight ? String(p.demographics.weight) : '';
+        setHeight(initH);
+        setWeight(initW);
         setEmergencyContact(p.demographics.emergencyContact || '');
+
+        if (initH) {
+          const hVal = parseFloat(initH);
+          if (!isNaN(hVal) && hVal > 0) {
+            const totIn = hVal / 2.54;
+            setFeetValue(String(Math.floor(totIn / 12)));
+            setInchesValue(String(Math.round(totIn % 12)));
+          }
+        }
+        if (initW) {
+          const wVal = parseFloat(initW);
+          if (!isNaN(wVal) && wVal > 0) {
+            setLbsValue(String(Math.round(wVal * 2.20462)));
+          }
+        }
       }
       if (Array.isArray(p?.conditions)) {
         setSelectedConditions([...p.conditions]);
@@ -220,15 +297,15 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
     const heightM = h / 100;
     const bmi = Math.round((w / (heightM * heightM)) * 10) / 10;
-    const minIdeal = Math.round(18.5 * heightM * heightM);
-    const maxIdeal = Math.round(24.9 * heightM * heightM);
+    const minIdealKg = Math.round(18.5 * heightM * heightM);
+    const maxIdealKg = Math.round(24.9 * heightM * heightM);
 
     let category = 'Normal';
     let color = '#059669';
     let bg = '#ECFDF5';
     let border = '#A7F3D0';
     let needlePercent = 38;
-    let takeaway = 'Optimal metabolic range with lowest cardiovascular and metabolic longevity risks.';
+    let takeaway = 'Optimal metabolic equilibrium. Cardiovascular, glycemic, and longevity baselines are calibrated.';
 
     if (bmi < 18.5) {
       category = 'Underweight';
@@ -250,15 +327,32 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
       bg = '#FFEDD5';
       border = '#FED7AA';
       needlePercent = 50 + ((bmi - 25.0) / (29.9 - 25.0)) * 25;
-      takeaway = 'Modest metabolic elevation. Gentle caloric deficit and resistance training are beneficial.';
+      takeaway = 'Modest metabolic elevation. Resistance training and glycemic moderation recommended.';
     } else {
-      category = 'Obese';
+      category = 'Elevated BMI';
       color = '#DC2626';
       bg = '#FEE2E2';
       border = '#FECDD3';
       needlePercent = Math.min(94, 75 + ((bmi - 30.0) / 15) * 25);
       takeaway = 'Elevated metabolic strain. Clinical collaboration on diet and insulin sensitivity recommended.';
     }
+
+    // Basal Metabolic Rate (Mifflin-St Jeor formula)
+    let bmr: number | null = null;
+    const a = parseFloat(age);
+    if (!isNaN(a) && a > 5 && a < 110) {
+      if (gender === 'Female') {
+        bmr = Math.round(10 * w + 6.25 * h - 5 * a - 161);
+      } else if (gender === 'Male') {
+        bmr = Math.round(10 * w + 6.25 * h - 5 * a + 5);
+      } else {
+        bmr = Math.round(10 * w + 6.25 * h - 5 * a - 78);
+      }
+    }
+
+    const idealRangeStr = weightUnit === 'lbs'
+      ? `${Math.round(minIdealKg * 2.20462)} - ${Math.round(maxIdealKg * 2.20462)} lbs`
+      : `${minIdealKg} - ${maxIdealKg} kg`;
 
     return {
       bmi,
@@ -268,9 +362,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
       border,
       needlePercent,
       takeaway,
-      idealRange: `${minIdeal} - ${maxIdeal} kg`
+      idealRange: idealRangeStr,
+      bmr
     };
-  }, [height, weight]);
+  }, [height, weight, age, gender, weightUnit]);
 
   if (!isOpen) return null;
 
@@ -589,43 +684,31 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
             </button>
           </div>
 
-          {/* Stepper Progress Bar & Responsive 4-Column Step Tabs (Zero Overflow, Zero Cut-off) */}
+          {/* Segmented Glass Stepper Control */}
           <div style={{
-            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 244, 0.92) 100%)',
-            borderBottom: '1px solid rgba(254, 215, 195, 0.85)',
-            padding: '8px 16px 8px'
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderBottom: '1px solid rgba(254, 215, 195, 0.7)',
+            padding: '10px 18px'
           }}>
-            {/* 4-Segment Progress Bar */}
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-              {STEPS.map((s) => {
-                const isPassed = activeStep >= s.id;
-                return (
-                  <div
-                    key={s.id}
-                    style={{
-                      flex: 1,
-                      height: '4px',
-                      borderRadius: '999px',
-                      background: isPassed 
-                        ? 'linear-gradient(90deg, #FF6B4A 0%, #FFA07A 100%)' 
-                        : '#F5E5D9',
-                      transition: 'background 0.25s ease'
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Responsive 4-Column Aligned Step Tabs */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '6px'
+              gap: '6px',
+              background: 'rgba(254, 243, 235, 0.75)',
+              borderRadius: '16px',
+              padding: '4px',
+              border: '1px solid rgba(254, 215, 195, 0.6)'
             }}>
-              {STEPS.map((s) => {
+              {[
+                { id: 0, label: 'Profile', icon: '👤' },
+                { id: 1, label: 'Conditions', icon: '🩺' },
+                { id: 2, label: 'Meds', icon: '💊' },
+                { id: 3, label: 'Allergies', icon: '🛡️' }
+              ].map((s) => {
                 const isCurrent = activeStep === s.id;
                 const isDone = activeStep > s.id;
-                const shortLabels = ['1. Profile', '2. Conditions', '3. Meds', '4. Allergies'];
                 return (
                   <button
                     key={s.id}
@@ -635,37 +718,37 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       setActiveStep(s.id as any);
                     }}
                     style={{
-                      padding: '7px 4px',
+                      padding: '8px 4px',
                       borderRadius: '12px',
-                      border: isCurrent 
-                        ? '1.5px solid #FF7043' 
-                        : isDone 
-                          ? '1px solid #FED7AA' 
-                          : '1px solid rgba(243, 232, 225, 0.9)',
+                      border: isCurrent ? '1.5px solid #FF6B4A' : 'none',
                       background: isCurrent 
                         ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' 
                         : isDone 
-                          ? '#FEF3EB' 
-                          : 'rgba(255, 255, 255, 0.85)',
+                          ? '#ECFDF5' 
+                          : 'transparent',
                       color: isCurrent 
                         ? '#FFFFFF' 
                         : isDone 
-                          ? '#EA580C' 
+                          ? '#059669' 
                           : '#78716C',
-                      fontSize: '11px',
-                      fontWeight: isCurrent ? 800 : 600,
+                      fontSize: '11.5px',
+                      fontWeight: isCurrent ? 800 : isDone ? 700 : 600,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '3px',
+                      gap: '4px',
                       cursor: 'pointer',
-                      boxShadow: isCurrent ? '0 4px 12px rgba(255, 107, 74, 0.28)' : 'none',
+                      boxShadow: isCurrent ? '0 4px 14px rgba(255, 107, 74, 0.28)' : 'none',
                       whiteSpace: 'nowrap',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.18s ease'
                     }}
                   >
-                    {isDone && <Check size={10} strokeWidth={3} />}
-                    <span>{shortLabels[s.id]}</span>
+                    {isDone ? (
+                      <Check size={11} strokeWidth={3} />
+                    ) : (
+                      <span style={{ fontSize: '11px' }}>{s.icon}</span>
+                    )}
+                    <span>{s.label}</span>
                   </button>
                 );
               })}
@@ -674,7 +757,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
           {/* Scrollable Form Body with Generous Bottom Clearance */}
           <div style={{
-            padding: '16px 20px 48px 20px',
+            padding: '16px 20px 100px 20px',
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
             display: 'flex',
@@ -684,26 +767,48 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
           }}>
             {/* STEP 0: Demographics */}
             {activeStep === 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Clinical Context Banner */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)',
-                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 247, 242, 0.9) 100%)',
+                  borderRadius: '18px',
                   padding: '12px 14px',
-                  border: '1.5px solid #FCD9C6',
-                  boxShadow: '0 4px 12px rgba(251, 146, 60, 0.08)',
-                  fontSize: '12px',
-                  color: '#57534E',
-                  lineHeight: 1.4
+                  border: '1.5px solid rgba(254, 215, 195, 0.85)',
+                  boxShadow: '0 4px 16px rgba(251, 146, 60, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
                 }}>
-                  💡 <strong style={{ color: '#1C1917' }}>Why this matters:</strong> Age and biological sex determine accurate clinical reference ranges for biomarkers, metabolic rates, and drug dosing.
+                  <div style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '11px',
+                    background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFFFFF',
+                    flexShrink: 0,
+                    boxShadow: '0 3px 10px rgba(255, 107, 74, 0.25)'
+                  }}>
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      CLINICAL BIO-CALIBRATION
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#44403C', lineHeight: 1.35, fontWeight: 500 }}>
+                      Biological sex, age, and biometric ratios determine reference baselines for all AI specialist differential analyses.
+                    </div>
+                  </div>
                 </div>
 
                 {/* Name & Age */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
-                      Full Name
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '6px' }}>
+                      <User size={13} color="#EA580C" />
+                      <span>Full Name</span>
                     </label>
                     <input
                       type="text"
@@ -712,21 +817,33 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       placeholder="e.g. Alex Taylor"
                       style={{
                         width: '100%',
-                        padding: '11px 13px',
+                        padding: '12px 14px',
                         borderRadius: '14px',
                         border: '1.5px solid #F3D9C9',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        fontSize: '13.5px',
+                        background: '#FFFFFF',
+                        fontSize: '14px',
                         color: '#1C1917',
                         outline: 'none',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = '#FF6B4A';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 74, 0.15)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = '#F3D9C9';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
                       }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
-                      Age <span style={{ color: '#EA580C' }}>*</span>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '6px' }}>
+                      <Calendar size={13} color="#EA580C" />
+                      <span>Age</span>
+                      <span style={{ color: '#EA580C' }}>*</span>
                     </label>
                     <input
                       type="number"
@@ -737,70 +854,90 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       max="120"
                       style={{
                         width: '100%',
-                        padding: '11px 13px',
+                        padding: '12px 14px',
                         borderRadius: '14px',
                         border: '1.5px solid #F3D9C9',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        fontSize: '13.5px',
+                        background: '#FFFFFF',
+                        fontSize: '14px',
                         color: '#1C1917',
                         outline: 'none',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = '#FF6B4A';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 74, 0.15)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = '#F3D9C9';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
                       }}
                     />
                   </div>
                 </div>
 
-                {/* Biological Sex (Tactile Reference Grid) */}
+                {/* Biological Sex (Tactile Luxury Segmented Cards) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '6px' }}>
-                    Biological Sex <span style={{ color: '#EA580C' }}>*</span>
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#1C1917' }}>
+                      Biological Sex <span style={{ color: '#EA580C' }}>*</span>
+                    </label>
+                    <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>Determines endocrine & lab ranges</span>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {['Male', 'Female', 'Other'].map(s => {
-                      const isSelected = gender === s;
+                    {[
+                      { id: 'Male', label: 'Male', symbol: '♂', hint: 'XY baselines' },
+                      { id: 'Female', label: 'Female', symbol: '♀', hint: 'XX baselines' },
+                      { id: 'Other', label: 'Other', symbol: '⚧', hint: 'Custom ranges' }
+                    ].map(s => {
+                      const isSelected = gender === s.id;
                       return (
                         <button
-                          key={s}
+                          key={s.id}
                           type="button"
                           onClick={() => {
                             triggerHapticSelection();
-                            setGender(s);
+                            setGender(s.id);
                           }}
                           style={{
-                            padding: '11px 8px',
-                            borderRadius: '14px',
-                            border: isSelected ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
-                            background: isSelected ? 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)' : 'rgba(255, 255, 255, 0.9)',
-                            color: isSelected ? '#EA580C' : '#44403C',
-                            fontWeight: isSelected ? 800 : 600,
-                            fontSize: '13px',
+                            padding: '12px 6px',
+                            borderRadius: '16px',
+                            border: isSelected ? '1.5px solid #FF6B4A' : '1.5px solid #F3D9C9',
+                            background: isSelected ? 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)' : '#FFFFFF',
+                            color: isSelected ? '#EA580C' : '#334155',
                             cursor: 'pointer',
                             display: 'flex',
+                            flexDirection: 'column',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '5px',
-                            boxShadow: isSelected ? '0 3px 10px rgba(255, 112, 67, 0.22)' : '0 1px 3px rgba(0,0,0,0.02)',
-                            transition: 'all 0.15s ease'
+                            gap: '3px',
+                            boxShadow: isSelected ? '0 4px 14px rgba(255, 107, 74, 0.22)' : '0 2px 6px rgba(0,0,0,0.02)',
+                            transition: 'all 0.18s ease'
                           }}
                         >
-                          {isSelected && <Check size={12} strokeWidth={3} />}
-                          <span>{s}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ fontSize: '16px', fontWeight: 800 }}>{s.symbol}</span>
+                            <span style={{ fontSize: '13px', fontWeight: isSelected ? 800 : 700 }}>{s.label}</span>
+                          </div>
+                          <span style={{ fontSize: '10px', color: isSelected ? '#C2410C' : '#94A3B8', fontWeight: 500 }}>
+                            {s.hint}
+                          </span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Blood Group (Architecturally Aligned 4-Column Grid) */}
+                {/* Blood Group (Refined 8-Pill Matrix + Subtle Test Later Option) */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#1C1917' }}>
                       Blood Group
                     </label>
-                    <span style={{ fontSize: '11px', color: '#8C7A70' }}>Select clinical type</span>
+                    <span style={{ fontSize: '11px', color: '#8C7A70' }}>ABO & Rh factor</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => {
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '8px' }}>
+                    {['A+', 'B+', 'AB+', 'O+', 'A-', 'B-', 'AB-', 'O-'].map(bg => {
                       const isSelected = bloodGroup === bg;
                       return (
                         <button
@@ -812,10 +949,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           }}
                           style={{
                             padding: '10px 4px',
-                            borderRadius: '12px',
-                            border: isSelected ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
-                            background: isSelected ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : 'rgba(255, 255, 255, 0.9)',
-                            color: isSelected ? '#FFFFFF' : '#44403C',
+                            borderRadius: '13px',
+                            border: isSelected ? '1.5px solid #FF6B4A' : '1.5px solid #F3D9C9',
+                            background: isSelected ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : '#FFFFFF',
+                            color: isSelected ? '#FFFFFF' : '#334155',
                             fontWeight: isSelected ? 800 : 600,
                             fontSize: '13px',
                             cursor: 'pointer',
@@ -823,7 +960,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '4px',
-                            boxShadow: isSelected ? '0 3px 10px rgba(255, 112, 67, 0.25)' : '0 1px 3px rgba(0,0,0,0.02)',
+                            boxShadow: isSelected ? '0 4px 12px rgba(255, 107, 74, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
@@ -832,135 +969,478 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         </button>
                       );
                     })}
-                    {/* Unknown Option Spanning Full Width */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHapticSelection();
-                        setBloodGroup('Unknown');
-                      }}
-                      style={{
-                        gridColumn: '1 / -1',
-                        padding: '10px 12px',
-                        borderRadius: '12px',
-                        border: bloodGroup === 'Unknown' ? '1.5px solid #FF7043' : '1.5px solid #F3D9C9',
-                        background: bloodGroup === 'Unknown' ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : 'rgba(255, 255, 255, 0.9)',
-                        color: bloodGroup === 'Unknown' ? '#FFFFFF' : '#64748B',
-                        fontWeight: bloodGroup === 'Unknown' ? 800 : 600,
-                        fontSize: '12.5px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        boxShadow: bloodGroup === 'Unknown' ? '0 3px 10px rgba(255, 112, 67, 0.22)' : 'none',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      {bloodGroup === 'Unknown' && <Check size={12} strokeWidth={3} />}
-                      <span>Unknown / Not Tested</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Height & Weight */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
-                      Height (cm) <span style={{ color: '#EA580C' }}>*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={height}
-                      onChange={e => setHeight(e.target.value)}
-                      placeholder="e.g. 175"
-                      min="50"
-                      max="250"
-                      style={{
-                        width: '100%',
-                        padding: '11px 13px',
-                        borderRadius: '14px',
-                        border: '1.5px solid #F3D9C9',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        fontSize: '13.5px',
-                        color: '#1C1917',
-                        outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#1C1917', marginBottom: '5px' }}>
-                      Weight (kg) <span style={{ color: '#EA580C' }}>*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={weight}
-                      onChange={e => setWeight(e.target.value)}
-                      placeholder="e.g. 72"
-                      min="20"
-                      max="300"
-                      style={{
-                        width: '100%',
-                        padding: '11px 13px',
-                        borderRadius: '14px',
-                        border: '1.5px solid #F3D9C9',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        fontSize: '13.5px',
-                        color: '#1C1917',
-                        outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* DYNAMIC LIVE BMI & METABOLIC GAUGE */}
-                {bmiData ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                  {/* Elegant Subtle Secondary Option (Replaces the ugly giant orange button!) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setBloodGroup('Unknown');
+                    }}
                     style={{
-                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 50%, #FFEDD5 100%)',
-                      borderRadius: '18px',
-                      padding: '14px 16px',
-                      border: '1.5px solid rgba(251, 146, 60, 0.28)',
-                      boxShadow: '0 8px 24px rgba(234, 88, 12, 0.08)'
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '12px',
+                      border: bloodGroup === 'Unknown' ? '1.5px solid #0EA5E9' : '1px dashed #CBD5E1',
+                      background: bloodGroup === 'Unknown' ? '#F0F9FF' : 'rgba(255, 255, 255, 0.7)',
+                      color: bloodGroup === 'Unknown' ? '#0369A1' : '#64748B',
+                      fontWeight: bloodGroup === 'Unknown' ? 700 : 500,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Scale size={16} color="#EA580C" />
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                          Metabolic BMI & Body Gauge
-                        </span>
+                    <span>{bloodGroup === 'Unknown' ? '✓' : '⚪'}</span>
+                    <span>Not tested yet / I'll add this later</span>
+                  </button>
+                </div>
+
+                {/* Height & Weight with Real-Time Unit Toggles */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {/* Height Column */}
+                  <div style={{
+                    background: '#FFFFFF',
+                    borderRadius: '16px',
+                    padding: '12px 14px',
+                    border: '1.5px solid #F3D9C9',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#1C1917' }}>
+                        <Ruler size={13} color="#EA580C" />
+                        <span>Height</span>
+                        <span style={{ color: '#EA580C' }}>*</span>
+                      </label>
+                      {/* Unit Toggle Pill */}
+                      <div style={{
+                        display: 'flex',
+                        background: '#F1F5F9',
+                        borderRadius: '999px',
+                        padding: '2px',
+                        border: '1px solid #E2E8F0'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setHeightUnit('cm');
+                          }}
+                          style={{
+                            padding: '2px 7px',
+                            borderRadius: '999px',
+                            border: 'none',
+                            background: heightUnit === 'cm' ? '#FFFFFF' : 'transparent',
+                            color: heightUnit === 'cm' ? '#0F172A' : '#64748B',
+                            fontWeight: heightUnit === 'cm' ? 800 : 600,
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            boxShadow: heightUnit === 'cm' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                          }}
+                        >
+                          cm
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setHeightUnit('ft');
+                          }}
+                          style={{
+                            padding: '2px 7px',
+                            borderRadius: '999px',
+                            border: 'none',
+                            background: heightUnit === 'ft' ? '#FFFFFF' : 'transparent',
+                            color: heightUnit === 'ft' ? '#0F172A' : '#64748B',
+                            fontWeight: heightUnit === 'ft' ? 800 : 600,
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            boxShadow: heightUnit === 'ft' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                          }}
+                        >
+                          ft+in
+                        </button>
+                      </div>
+                    </div>
+
+                    {heightUnit === 'cm' ? (
+                      <div>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="number"
+                            value={height}
+                            onChange={e => handleCmChange(e.target.value)}
+                            placeholder="e.g. 175"
+                            min="50"
+                            max="250"
+                            style={{
+                              width: '100%',
+                              padding: '10px 42px 10px 12px',
+                              borderRadius: '12px',
+                              border: '1px solid #E2E8F0',
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              color: '#0F172A',
+                              outline: 'none',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <span style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#94A3B8'
+                          }}>
+                            cm
+                          </span>
+                        </div>
+                        {/* Quick adjust stepper chips */}
+                        <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                          {[165, 170, 175, 180].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => {
+                                triggerHapticSelection();
+                                handleCmChange(String(val));
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '3px 0',
+                                borderRadius: '6px',
+                                border: height === String(val) ? '1px solid #FF6B4A' : '1px solid #F1F5F9',
+                                background: height === String(val) ? '#FFF2EB' : '#F8FAFC',
+                                color: height === String(val) ? '#EA580C' : '#64748B',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {val}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="number"
+                              value={feetValue}
+                              onChange={e => handleFtInChange(e.target.value, inchesValue)}
+                              placeholder="5"
+                              min="2"
+                              max="8"
+                              style={{
+                                width: '100%',
+                                padding: '10px 30px 10px 10px',
+                                borderRadius: '12px',
+                                border: '1px solid #E2E8F0',
+                                fontSize: '15px',
+                                fontWeight: 700,
+                                color: '#0F172A',
+                                outline: 'none',
+                                boxSizing: 'border-box'
+                              }}
+                            />
+                            <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', fontWeight: 700, color: '#94A3B8' }}>
+                              ft
+                            </span>
+                          </div>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="number"
+                              value={inchesValue}
+                              onChange={e => handleFtInChange(feetValue, e.target.value)}
+                              placeholder="10"
+                              min="0"
+                              max="11"
+                              style={{
+                                width: '100%',
+                                padding: '10px 30px 10px 10px',
+                                borderRadius: '12px',
+                                border: '1px solid #E2E8F0',
+                                fontSize: '15px',
+                                fontWeight: 700,
+                                color: '#0F172A',
+                                outline: 'none',
+                                boxSizing: 'border-box'
+                              }}
+                            />
+                            <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', fontWeight: 700, color: '#94A3B8' }}>
+                              in
+                            </span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '6px', textAlign: 'center' }}>
+                          {height ? `≈ ${height} cm` : 'Enter feet & inches'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Weight Column */}
+                  <div style={{
+                    background: '#FFFFFF',
+                    borderRadius: '16px',
+                    padding: '12px 14px',
+                    border: '1.5px solid #F3D9C9',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#1C1917' }}>
+                        <Scale size={13} color="#EA580C" />
+                        <span>Weight</span>
+                        <span style={{ color: '#EA580C' }}>*</span>
+                      </label>
+                      {/* Unit Toggle Pill */}
+                      <div style={{
+                        display: 'flex',
+                        background: '#F1F5F9',
+                        borderRadius: '999px',
+                        padding: '2px',
+                        border: '1px solid #E2E8F0'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setWeightUnit('kg');
+                          }}
+                          style={{
+                            padding: '2px 7px',
+                            borderRadius: '999px',
+                            border: 'none',
+                            background: weightUnit === 'kg' ? '#FFFFFF' : 'transparent',
+                            color: weightUnit === 'kg' ? '#0F172A' : '#64748B',
+                            fontWeight: weightUnit === 'kg' ? 800 : 600,
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            boxShadow: weightUnit === 'kg' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                          }}
+                        >
+                          kg
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setWeightUnit('lbs');
+                          }}
+                          style={{
+                            padding: '2px 7px',
+                            borderRadius: '999px',
+                            border: 'none',
+                            background: weightUnit === 'lbs' ? '#FFFFFF' : 'transparent',
+                            color: weightUnit === 'lbs' ? '#0F172A' : '#64748B',
+                            fontWeight: weightUnit === 'lbs' ? 800 : 600,
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            boxShadow: weightUnit === 'lbs' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                          }}
+                        >
+                          lbs
+                        </button>
+                      </div>
+                    </div>
+
+                    {weightUnit === 'kg' ? (
+                      <div>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="number"
+                            value={weight}
+                            onChange={e => handleKgChange(e.target.value)}
+                            placeholder="e.g. 72"
+                            min="20"
+                            max="300"
+                            style={{
+                              width: '100%',
+                              padding: '10px 42px 10px 12px',
+                              borderRadius: '12px',
+                              border: '1px solid #E2E8F0',
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              color: '#0F172A',
+                              outline: 'none',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <span style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#94A3B8'
+                          }}>
+                            kg
+                          </span>
+                        </div>
+                        {/* Quick adjust stepper chips */}
+                        <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
+                          {[60, 68, 75, 82].map(val => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => {
+                                triggerHapticSelection();
+                                handleKgChange(String(val));
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '3px 0',
+                                borderRadius: '6px',
+                                border: weight === String(val) ? '1px solid #FF6B4A' : '1px solid #F1F5F9',
+                                background: weight === String(val) ? '#FFF2EB' : '#F8FAFC',
+                                color: weight === String(val) ? '#EA580C' : '#64748B',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {val}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="number"
+                            value={lbsValue}
+                            onChange={e => handleLbsChange(e.target.value)}
+                            placeholder="e.g. 160"
+                            min="45"
+                            max="700"
+                            style={{
+                              width: '100%',
+                              padding: '10px 45px 10px 12px',
+                              borderRadius: '12px',
+                              border: '1px solid #E2E8F0',
+                              fontSize: '15px',
+                              fontWeight: 700,
+                              color: '#0F172A',
+                              outline: 'none',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                          <span style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#94A3B8'
+                          }}>
+                            lbs
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '6px', textAlign: 'center' }}>
+                          {weight ? `≈ ${weight} kg` : 'Enter pounds'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* DYNAMIC LIVE METABOLIC BMI & BMR GAUGE (Never Clipped!) */}
+                {bmiData ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF8F3 50%, #FEEDE2 100%)',
+                      borderRadius: '20px',
+                      padding: '16px 18px',
+                      border: '1.5px solid rgba(251, 146, 60, 0.35)',
+                      boxShadow: '0 10px 28px rgba(234, 88, 12, 0.1), inset 0 1px 0 rgba(255,255,255,0.9)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{
+                          width: '30px',
+                          height: '30px',
+                          borderRadius: '10px',
+                          background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFFFFF'
+                        }}>
+                          <Scale size={16} />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block' }}>
+                            LIVE METABOLIC PROFILE
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>
+                            Biometric Calibration
+                          </span>
+                        </div>
                       </div>
                       <span style={{
-                        padding: '3px 9px',
+                        padding: '4px 10px',
                         borderRadius: '999px',
                         fontSize: '11.5px',
                         fontWeight: 800,
                         background: bmiData.bg,
                         color: bmiData.color,
-                        border: `1px solid ${bmiData.border}`
+                        border: `1px solid ${bmiData.border}`,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
                       }}>
-                        {bmiData.category}
+                        ● {bmiData.category}
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    {/* Key Metrics Grid */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: bmiData.bmr ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
+                      gap: '8px',
+                      marginBottom: '12px',
+                      padding: '10px 12px',
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      borderRadius: '14px',
+                      border: '1px solid rgba(254, 215, 195, 0.7)'
+                    }}>
                       <div>
-                        <span style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
-                          {bmiData.bmi}
-                        </span>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#78716C', marginLeft: '4px' }}>
-                          kg/m²
-                        </span>
+                        <span style={{ fontSize: '10px', color: '#78716C', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>BMI Index</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                          <span style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                            {bmiData.bmi}
+                          </span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8' }}>kg/m²</span>
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '11px', color: '#78716C', display: 'block', fontWeight: 600 }}>Healthy Ideal Range</span>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+
+                      {bmiData.bmr && (
+                        <div>
+                          <span style={{ fontSize: '10px', color: '#78716C', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Est. BMR</span>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                            <span style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                              {bmiData.bmr}
+                            </span>
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: '#94A3B8' }}>kcal</span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <span style={{ fontSize: '10px', color: '#78716C', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Healthy Target</span>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginTop: '4px', display: 'block' }}>
                           {bmiData.idealRange}
                         </span>
                       </div>
@@ -978,16 +1458,16 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          transition: 'left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                          transition: 'left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
                         }}
                       >
                         <div style={{
-                          width: '10px',
-                          height: '10px',
+                          width: '12px',
+                          height: '12px',
                           borderRadius: '50%',
                           backgroundColor: '#0F172A',
-                          border: '2px solid #FFFFFF',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+                          border: '2.5px solid #FFFFFF',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.35)'
                         }} />
                       </div>
 
@@ -1000,7 +1480,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       }} />
 
                       {/* Spectrum Labels */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '9.5px', color: '#94A3B8', fontWeight: 700 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '9.5px', color: '#94A3B8', fontWeight: 700 }}>
                         <span>&lt;18.5 Under</span>
                         <span>18.5 - 24.9 Normal</span>
                         <span>25 - 29.9 Over</span>
@@ -1008,33 +1488,50 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       </div>
                     </div>
 
-                    <p style={{ margin: 0, fontSize: '11px', color: '#78716C', lineHeight: 1.4 }}>
-                      ⚡ <strong style={{ color: '#431407' }}>Clinical Insight:</strong> {bmiData.takeaway}
+                    <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#78716C', lineHeight: 1.4 }}>
+                      ⚡ <strong style={{ color: '#431407' }}>Clinical Takeaway:</strong> {bmiData.takeaway}
                     </p>
                   </motion.div>
                 ) : (
                   <div style={{
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    borderRadius: '16px',
-                    padding: '14px 16px',
-                    border: '1.5px dashed #F3E5D8',
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 243, 0.9) 100%)',
+                    borderRadius: '18px',
+                    padding: '16px',
+                    border: '1.5px dashed #F3D9C9',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px'
+                    gap: '12px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                   }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EA580C', flexShrink: 0 }}>
+                    <div style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #FFEDD5 0%, #FEE2E2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#EA580C',
+                      flexShrink: 0
+                    }}>
                       <Scale size={18} />
                     </div>
-                    <div style={{ fontSize: '12px', color: '#78716C', lineHeight: 1.4 }}>
-                      Enter your <strong style={{ color: '#0F172A' }}>height</strong> and <strong style={{ color: '#0F172A' }}>weight</strong> above to unlock your real-time Metabolic BMI, body gauge & healthy target range.
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#1C1917', marginBottom: '2px' }}>
+                        Metabolic BMI & BMR Preview
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#78716C', lineHeight: 1.4 }}>
+                        Enter your <strong style={{ color: '#0F172A' }}>height</strong> and <strong style={{ color: '#0F172A' }}>weight</strong> above to preview your metabolic BMI score, daily BMR calories, and healthy target range.
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Emergency Contact */}
+                {/* Emergency Contact (Optional) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                    Emergency Contact (Optional)
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    <Phone size={13} color="#94A3B8" />
+                    <span>Emergency Contact (Optional)</span>
                   </label>
                   <input
                     type="text"
@@ -1043,20 +1540,29 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     placeholder="e.g. Jane Doe (+1 555-0199)"
                     style={{
                       width: '100%',
-                      padding: '11px 13px',
+                      padding: '12px 14px',
                       borderRadius: '14px',
-                      border: '1.5px solid #F3E5D8',
-                      background: 'rgba(255, 255, 255, 0.95)',
+                      border: '1.5px solid #F3D9C9',
+                      background: '#FFFFFF',
                       fontSize: '13.5px',
                       color: '#0F172A',
                       outline: 'none',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      transition: 'border 0.2s ease, box-shadow 0.2s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#FF6B4A';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 107, 74, 0.15)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#F3D9C9';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   />
                 </div>
 
-                {/* Bottom Clearance Spacer to Prevent Footer Overlap */}
-                <div style={{ height: '20px' }} />
+                {/* Generous Bottom Clearance Spacer so nothing is ever clipped */}
+                <div style={{ height: '40px' }} />
               </div>
             )}
 
