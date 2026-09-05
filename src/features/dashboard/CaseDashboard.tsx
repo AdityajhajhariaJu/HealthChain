@@ -40,6 +40,8 @@ import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { CinematicCheckbox } from '../../components/ui/CinematicCheckbox';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { CompleteProfileModal } from '../../components/ui/CompleteProfileModal';
+import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
+import { getVitaminSchedule, VitaminItem } from '../../services/VitaminScheduleService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
@@ -130,6 +132,8 @@ export default function CaseDashboard() {
   // Daily Habit & Protocol tracking
   const todayDateStr = new Date().toISOString().split('T')[0];
   const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
+  const [showVitaminModal, setShowVitaminModal] = useState(false);
+  const [vitaminSchedule, setVitaminSchedule] = useState<VitaminItem[]>(() => getVitaminSchedule());
   const [completedHabits, setCompletedHabits] = useState<Record<string, boolean>>(() => {
     try {
       const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
@@ -138,6 +142,24 @@ export default function CaseDashboard() {
       return {};
     }
   });
+
+  useEffect(() => {
+    const handleHabitsUpdated = () => {
+      try {
+        const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+        if (stored) setCompletedHabits(JSON.parse(stored));
+      } catch {
+        // ignore
+      }
+      setVitaminSchedule(getVitaminSchedule());
+    };
+    window.addEventListener('hc_vitamins_updated', handleHabitsUpdated);
+    window.addEventListener('storage', handleHabitsUpdated);
+    return () => {
+      window.removeEventListener('hc_vitamins_updated', handleHabitsUpdated);
+      window.removeEventListener('storage', handleHabitsUpdated);
+    };
+  }, [todayDateStr]);
 
   const toggleRationale = (habitId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -695,15 +717,18 @@ export default function CaseDashboard() {
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label={`Daily Vitamins / Micronutrients - ${completedHabits['vitamins'] ? 'Completed' : 'Tap to mark done'}`}
+                aria-label={`Daily Vitamins / Micronutrients - ${completedHabits['vitamins'] ? 'Completed' : 'Tap to manage schedule or mark done'}`}
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => toggleHabit('vitamins', 'Daily Micronutrient / Rx')}
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowVitaminModal(true);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                    setShowVitaminModal(true);
                   }
                 }}
                 style={{
@@ -725,23 +750,40 @@ export default function CaseDashboard() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: completedHabits['vitamins'] 
-                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                      : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%)', 
-                    boxShadow: completedHabits['vitamins'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                    border: completedHabits['vitamins'] ? 'none' : '1px solid rgba(245, 158, 11, 0.3)',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease'
-                  }}>
+                  <div 
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Toggle all vitamins taken"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        toggleHabit('vitamins', 'Daily Micronutrient / Rx');
+                      }
+                    }}
+                    style={{ 
+                      width: isMobile ? '38px' : '44px', 
+                      height: isMobile ? '38px' : '44px', 
+                      minWidth: isMobile ? '38px' : '44px', 
+                      minHeight: isMobile ? '38px' : '44px', 
+                      flexShrink: 0,
+                      borderRadius: '50%', 
+                      background: completedHabits['vitamins'] 
+                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                        : 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%)', 
+                      boxShadow: completedHabits['vitamins'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
+                      border: completedHabits['vitamins'] ? 'none' : '1px solid rgba(245, 158, 11, 0.3)',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                  >
                     {completedHabits['vitamins'] ? (
                       <Check size={isMobile ? 18 : 20} color="#FFF" />
                     ) : (
@@ -771,43 +813,78 @@ export default function CaseDashboard() {
                     {completedHabits['vitamins'] ? 'Vitamins Taken 💊' : 'Daily Vitamins'}
                   </h4>
                   <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['vitamins'] ? '#10B981' : '#64748B', margin: '0 0 6px', fontWeight: 500, lineHeight: 1.3 }}>
-                    {completedHabits['vitamins'] ? 'Cellular micronutrients' : 'Tap to mark complete'}
+                    {completedHabits['vitamins'] 
+                      ? 'Cellular micronutrients taken' 
+                      : `${vitaminSchedule.filter(v => v.enabled).length} scheduled • Tap to set times`}
                   </p>
 
-                  <button
-                    type="button"
-                    data-compact="true"
-                    onClick={(e) => toggleRationale('vitamins', e)}
-                    aria-label="Toggle clinical rationale for vitamins"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: expandedRationale === 'vitamins' ? 'rgba(217, 119, 6, 0.18)' : 'rgba(217, 119, 6, 0.08)',
-                      border: '1px solid rgba(217, 119, 6, 0.25)',
-                      borderRadius: '6px',
-                      padding: '2px 7px',
-                      fontSize: '10px',
-                      fontWeight: 600,
-                      color: '#B45309',
-                      cursor: 'pointer',
-                      minWidth: 'unset',
-                      minHeight: 'unset',
-                      height: 'auto',
-                      width: 'fit-content',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <Info size={10} />
-                    <span>Science</span>
-                    <ChevronDown 
-                      size={10} 
-                      style={{ 
-                        transform: expandedRationale === 'vitamins' ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease'
-                      }} 
-                    />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      data-compact="true"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHapticLight();
+                        setShowVitaminModal(true);
+                      }}
+                      aria-label="Open Vitamin & Pill Schedule"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        border: '1px solid rgba(217, 119, 6, 0.3)',
+                        borderRadius: '6px',
+                        padding: '2px 7px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: '#B45309',
+                        cursor: 'pointer',
+                        minWidth: 'unset',
+                        minHeight: 'unset',
+                        height: 'auto',
+                        width: 'fit-content',
+                      }}
+                    >
+                      <Pill size={10} />
+                      <span>Schedule</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      data-compact="true"
+                      onClick={(e) => toggleRationale('vitamins', e)}
+                      aria-label="Toggle clinical rationale for vitamins"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: expandedRationale === 'vitamins' ? 'rgba(217, 119, 6, 0.18)' : 'rgba(217, 119, 6, 0.08)',
+                        border: '1px solid rgba(217, 119, 6, 0.25)',
+                        borderRadius: '6px',
+                        padding: '2px 7px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        color: '#B45309',
+                        cursor: 'pointer',
+                        minWidth: 'unset',
+                        minHeight: 'unset',
+                        height: 'auto',
+                        width: 'fit-content',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <Info size={10} />
+                      <span>Science</span>
+                      <ChevronDown 
+                        size={10} 
+                        style={{ 
+                          transform: expandedRationale === 'vitamins' ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease'
+                        }} 
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 <AnimatePresence>
@@ -1238,6 +1315,20 @@ export default function CaseDashboard() {
         isOpen={showCompleteProfileModal}
         onClose={() => setShowCompleteProfileModal(false)}
         onCompleted={refreshProfileAndTasks}
+      />
+
+      <VitaminSchedulerModal
+        isOpen={showVitaminModal}
+        onClose={() => setShowVitaminModal(false)}
+        onUpdated={() => {
+          setVitaminSchedule(getVitaminSchedule());
+          try {
+            const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+            if (stored) setCompletedHabits(JSON.parse(stored));
+          } catch {
+            // ignore
+          }
+        }}
       />
 
       {activeMeditation && (

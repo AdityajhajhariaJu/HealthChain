@@ -15,6 +15,7 @@ import { AmbientGyroBackground } from '../ui/AmbientGyroBackground';
 import { MedicalActionIsland } from '../ui/MedicalActionIsland';
 import VitalityPointsModal from '../ui/VitalityPointsModal';
 import PointsAwardedToast from '../ui/PointsAwardedToast';
+import PillNotificationBanner from '../ui/PillNotificationBanner';
 import UpgradeToProCard from '../ui/UpgradeToProCard';
 import { TrialFeaturesModal } from '../ui/TrialFeaturesModal';
 import { openTrialModal } from '../../services/TrialEngine';
@@ -802,6 +803,7 @@ const enforceSafeArea = () => {
       <AuthModal />
       <VitalityPointsModal />
       <PointsAwardedToast />
+      <PillNotificationBanner />
       <TrialFeaturesModal />
       <FeedbackWidget />
       <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
