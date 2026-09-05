@@ -14,7 +14,6 @@ import {
   ShieldCheck, 
   AlertCircle 
 } from 'lucide-react';
-import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { 
@@ -35,7 +34,7 @@ interface VitaminSchedulerModalProps {
 }
 
 const POPULAR_PRESETS = [
-  { name: 'Daily Multivitamin', dosage: '1 tablet with breakfast', defaultTime: '08:30' },
+  { name: 'Daily Multivitamin', dosage: '1 tablet with meal', defaultTime: '08:30' },
   { name: 'Vitamin D3 & K2', dosage: '2000 IU', defaultTime: '09:00' },
   { name: 'Omega-3 Fish Oil', dosage: '1000mg with meal', defaultTime: '13:00' },
   { name: 'Magnesium Glycinate', dosage: '200mg before sleep', defaultTime: '21:30' },
@@ -46,11 +45,11 @@ const POPULAR_PRESETS = [
 ];
 
 export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ isOpen, onClose, onUpdated }) => {
-  const isMobile = useIsMobile();
   const [vitamins, setVitamins] = useState<VitaminItem[]>([]);
   const [newName, setNewName] = useState('');
   const [newDosage, setNewDosage] = useState('');
   const [newTime, setNewTime] = useState('08:30');
+  const [showAddForm, setShowAddForm] = useState(false);
   const [hasNotificationPermission, setHasNotificationPermission] = useState(true);
 
   useEffect(() => {
@@ -81,14 +80,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     setHasNotificationPermission(granted);
   };
 
-  const handleToggleTaken = (id: string, name: string) => {
-    triggerHapticSelection();
-    const nextState = toggleVitaminTaken(id);
-    setVitamins(getVitaminSchedule());
-    if (nextState) {
-      awardPoints(2, `Tablet taken: ${name}`, 'lifestyle', `pill_${id}_${getTodayDateString()}`);
-    }
-    if (onUpdated) onUpdated();
+  const handleTimeChange = (id: string, newTimeStr: string) => {
+    setVitamins(prev => prev.map(v => v.id === id ? { ...v, time: newTimeStr } : v));
   };
 
   const handleToggleEnabled = (id: string) => {
@@ -96,24 +89,32 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     setVitamins(prev => prev.map(v => v.id === id ? { ...v, enabled: !v.enabled } : v));
   };
 
-  const handleTimeChange = (id: string, time: string) => {
-    setVitamins(prev => prev.map(v => v.id === id ? { ...v, time } : v));
-  };
-
-  const handleDelete = (id: string) => {
+  const handleRemove = (id: string) => {
     triggerHapticLight();
     setVitamins(prev => prev.filter(v => v.id !== id));
   };
 
-  const handleAddCustom = () => {
-    const trimmedName = newName.trim();
-    if (!trimmedName) return;
-    triggerHapticSuccess();
+  const handleToggleTaken = (id: string, name: string) => {
+    const isNowTaken = toggleVitaminTaken(id);
+    if (isNowTaken) {
+      triggerHapticSuccess();
+      awardPoints(2, `Taken: ${name}`, 'lifestyle', `pill_${id}_${getTodayDateString()}`);
+    } else {
+      triggerHapticLight();
+    }
+    setVitamins(getVitaminSchedule());
+    if (onUpdated) onUpdated();
+  };
 
+  const handleAddCustom = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newName.trim()) return;
+
+    triggerHapticSuccess();
     const newItem: VitaminItem = {
       id: 'vit_' + Date.now(),
-      name: trimmedName,
-      dosage: newDosage.trim() || '1 tablet',
+      name: newName.trim(),
+      dosage: newDosage.trim() || '1 tablet daily',
       time: newTime || '08:30',
       enabled: true,
       takenToday: false
@@ -122,13 +123,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     setVitamins(prev => [...prev, newItem]);
     setNewName('');
     setNewDosage('');
+    setShowAddForm(false);
   };
 
   const handleAddPreset = (preset: typeof POPULAR_PRESETS[0]) => {
     triggerHapticLight();
     const existing = vitamins.find(v => v.name.toLowerCase() === preset.name.toLowerCase());
     if (existing) {
-      // Toggle or highlight existing
       return;
     }
 
@@ -166,134 +167,145 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
 
   if (!isOpen) return null;
 
+  const allTaken = vitamins.length > 0 && vitamins.filter(v => v.enabled).every(v => v.takenToday);
+
   return createPortal(
     <AnimatePresence>
       <div
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 999999,
           display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: isMobile ? '16px 12px' : '24px',
-          zIndex: 100000,
-          overflowY: 'auto'
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
         }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
+        onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.94, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.94, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vitamin and Tablet Schedule"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
           style={{
-            background: '#FFFFFF',
-            borderRadius: '24px',
             width: '100%',
-            maxWidth: '540px',
-            maxHeight: '92vh',
+            maxWidth: '520px',
+            maxHeight: 'calc(100vh - max(30px, env(safe-area-inset-top, 30px)))',
+            backgroundColor: '#FFFFFF',
+            borderTopLeftRadius: '32px',
+            borderTopRightRadius: '32px',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
-            border: '1px solid rgba(226, 232, 240, 0.9)',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            boxShadow: '0 -15px 45px rgba(217, 119, 6, 0.25)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.9)'
           }}
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div
-            style={{
-              padding: '18px 22px',
-              borderBottom: '1px solid #F1F5F9',
-              background: 'linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%)',
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              gap: '12px'
+          {/* Pull Bar */}
+          <div 
+            style={{ 
+              width: '100%', 
+              height: '24px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              cursor: 'pointer',
+              paddingTop: '6px'
             }}
+            onClick={onClose}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                  color: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)'
-                }}
-              >
-                <Pill size={22} strokeWidth={2.4} />
+            <div style={{ width: '42px', height: '5px', backgroundColor: '#CBD5E1', borderRadius: '999px' }} />
+          </div>
+
+          {/* Modal Header */}
+          <div style={{
+            padding: '4px 20px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #F1F5F9',
+            background: 'linear-gradient(135deg, rgba(254, 243, 199, 0.4) 0%, rgba(255, 255, 255, 0.8) 100%)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFF',
+                boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)'
+              }}>
+                <Pill size={20} />
               </div>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
-                    Daily Vitamins & Tablets
-                  </h3>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      padding: '2px 7px',
-                      borderRadius: '6px',
-                      background: '#FEF3C7',
-                      color: '#B45309'
-                    }}
-                  >
-                    PILL REMINDERS
-                  </span>
-                </div>
-                <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748B' }}>
-                  Set your tablets, decide given times & receive signature pill alerts
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
+                  Vitamin & Tablet Schedule
+                </h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+                  Decide reminder times & get pill notifications
                 </p>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                triggerHapticLight();
+                onClose();
+              }}
               style={{
-                background: 'transparent',
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                background: '#F1F5F9',
                 border: 'none',
-                color: '#94A3B8',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '8px'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#64748B',
+                cursor: 'pointer'
               }}
               aria-label="Close"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
-          {/* Body */}
-          <div style={{ padding: '18px 22px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {/* Notification Permission Banner if disabled */}
+          {/* Scrollable Content Body */}
+          <div style={{
+            padding: '16px 20px',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            {/* Permission Banner if not granted */}
             {!hasNotificationPermission && (
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '12px',
-                  background: '#FEF3C7',
-                  border: '1px solid #FDE68A',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '10px'
-                }}
-              >
+              <div style={{
+                background: '#FEF3C7',
+                border: '1px solid #FCD34D',
+                borderRadius: '14px',
+                padding: '10px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px'
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Bell size={16} color="#B45309" />
                   <span style={{ fontSize: '12px', fontWeight: 600, color: '#92400E' }}>
-                    Enable notifications to receive alerts at your chosen times
+                    Enable notifications for pill alarms
                   </span>
                 </div>
                 <button
@@ -307,171 +319,227 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                     border: 'none',
                     fontSize: '11px',
                     fontWeight: 700,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
+                    cursor: 'pointer'
                   }}
                 >
-                  Allow Alerts
+                  Allow
                 </button>
               </div>
             )}
 
-            {/* List of active tablets */}
+            {/* Test Pill Banner Trigger */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '10px 14px',
+              background: '#FFFBEB',
+              borderRadius: '14px',
+              border: '1px solid #FDE68A'
+            }}>
+              <div>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
+                  Pill Notification Preview
+                </span>
+                <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#B45309' }}>
+                  Test the floating capsule pill reminder
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleTestPillNotification()}
+                style={{
+                  background: '#D97706',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)'
+                }}
+              >
+                <Sparkles size={13} /> Test Pill
+              </button>
+            </div>
+
+            {/* List of Active Tablets */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Your Scheduled Tablets ({vitamins.length})
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleTestPillNotification()}
+                  onClick={() => setShowAddForm(!showAddForm)}
                   style={{
                     background: 'transparent',
                     border: 'none',
                     color: '#D97706',
-                    fontSize: '12px',
+                    fontSize: '12.5px',
                     fontWeight: 700,
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
+                    cursor: 'pointer',
                     padding: 0
                   }}
                 >
-                  <Sparkles size={13} /> Test Pill Notification
+                  <Plus size={14} /> {showAddForm ? 'Close Form' : 'Write Tablet'}
                 </button>
               </div>
 
               {vitamins.length === 0 ? (
-                <div
-                  style={{
-                    padding: '24px',
-                    textAlign: 'center',
-                    background: '#F8FAFC',
-                    borderRadius: '14px',
-                    border: '1px dashed #CBD5E1',
-                    color: '#94A3B8',
-                    fontSize: '13px'
-                  }}
-                >
-                  No tablets added yet. Write a tablet below or pick from clinical presets.
+                <div style={{
+                  padding: '24px',
+                  textAlign: 'center',
+                  background: '#F8FAFC',
+                  borderRadius: '16px',
+                  border: '1px dashed #CBD5E1',
+                  color: '#94A3B8',
+                  fontSize: '13px'
+                }}>
+                  No tablets added yet. Tap preset chips below to schedule!
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {vitamins.map((item) => (
                     <div
                       key={item.id}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 14px',
                         background: item.takenToday ? '#F0FDF4' : '#FFFFFF',
-                        borderRadius: '14px',
-                        border: item.takenToday ? '1px solid #86EFAC' : '1px solid #E2E8F0',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                        gap: '10px'
+                        borderRadius: '16px',
+                        padding: '14px 16px',
+                        border: item.takenToday ? '1.5px solid #86EFAC' : '1px solid #E2E8F0',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
                       }}
                     >
-                      {/* Check toggle for today */}
-                      <button
-                        type="button"
-                        onClick={() => handleToggleTaken(item.id, item.name)}
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '8px',
-                          border: item.takenToday ? '2px solid #10B981' : '2px solid #CBD5E1',
-                          background: item.takenToday ? '#10B981' : 'transparent',
-                          color: '#FFFFFF',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          flexShrink: 0
-                        }}
-                        title={item.takenToday ? 'Taken today' : 'Mark taken today'}
-                      >
-                        {item.takenToday && <Check size={16} strokeWidth={2.6} />}
-                      </button>
-
-                      {/* Name & Dosage */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span
-                            style={{
-                              fontSize: '13.5px',
-                              fontWeight: 700,
-                              color: item.takenToday ? '#065F46' : '#0F172A',
-                              textDecoration: item.takenToday ? 'line-through' : 'none',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}
-                          >
+                      {/* Top Line: Full Name & Trash */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: '18px', flexShrink: 0 }}>💊</span>
+                          <span style={{
+                            fontSize: '15px',
+                            fontWeight: 800,
+                            color: item.takenToday ? '#065F46' : '#0F172A',
+                            textDecoration: item.takenToday ? 'line-through' : 'none',
+                            lineHeight: 1.3
+                          }}>
                             {item.name}
                           </span>
-                          {item.takenToday && (
-                            <span style={{ fontSize: '10px', fontWeight: 700, color: '#10B981' }}>
-                              ✓ TAKEN
-                            </span>
-                          )}
                         </div>
-                        <span style={{ fontSize: '11.5px', color: '#64748B' }}>
-                          {item.dosage}
-                        </span>
-                      </div>
 
-                      {/* Decided Given Time Picker */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                        <Clock size={13} color="#D97706" />
-                        <input
-                          type="time"
-                          value={item.time}
-                          onChange={(e) => handleTimeChange(item.id, e.target.value)}
-                          style={{
-                            padding: '4px 6px',
-                            borderRadius: '8px',
-                            border: '1px solid #CBD5E1',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#0F172A',
-                            background: '#F8FAFC',
-                            cursor: 'pointer'
-                          }}
-                          aria-label={`Time for ${item.name}`}
-                        />
-
-                        {/* Bell Toggle */}
                         <button
                           type="button"
-                          onClick={() => handleToggleEnabled(item.id)}
+                          onClick={() => handleRemove(item.id)}
                           style={{
                             background: 'transparent',
                             border: 'none',
+                            color: '#94A3B8',
                             cursor: 'pointer',
                             padding: '4px',
-                            color: item.enabled ? '#059669' : '#94A3B8'
+                            marginLeft: '8px'
                           }}
-                          title={item.enabled ? 'Reminder active' : 'Reminder silenced'}
-                        >
-                          {item.enabled ? <Bell size={16} /> : <BellOff size={16} />}
-                        </button>
-
-                        {/* Delete */}
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item.id)}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            color: '#EF4444'
-                          }}
-                          aria-label={`Delete ${item.name}`}
+                          aria-label={`Remove ${item.name}`}
                         >
                           <Trash2 size={15} />
+                        </button>
+                      </div>
+
+                      {/* Dosage subtitle */}
+                      <div style={{ fontSize: '12.5px', color: '#64748B', fontWeight: 500, paddingLeft: '26px' }}>
+                        {item.dosage || '1 dose daily'}
+                      </div>
+
+                      {/* Controls Row: Time Picker, Alert Bell, and Take Button */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        paddingTop: '8px',
+                        marginTop: '4px',
+                        borderTop: '1px solid #F1F5F9'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {/* Native Time Picker */}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: '#F8FAFC',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '10px',
+                            padding: '4px 8px'
+                          }}>
+                            <Clock size={13} color="#D97706" />
+                            <input
+                              type="time"
+                              value={item.time}
+                              onChange={(e) => handleTimeChange(item.id, e.target.value)}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: '13px',
+                                fontWeight: 800,
+                                color: '#0F172A',
+                                outline: 'none',
+                                cursor: 'pointer'
+                              }}
+                            />
+                          </div>
+
+                          {/* Bell toggle */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleEnabled(item.id)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: item.enabled ? '#FEF3C7' : '#F1F5F9',
+                              color: item.enabled ? '#B45309' : '#94A3B8',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '5px 8px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {item.enabled ? <Bell size={13} /> : <BellOff size={13} />}
+                            {item.enabled ? 'Alarm' : 'Muted'}
+                          </button>
+                        </div>
+
+                        {/* Mark Taken / Done button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTaken(item.id, item.name)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: item.takenToday ? '#10B981' : '#FFFFFF',
+                            color: item.takenToday ? '#FFFFFF' : '#059669',
+                            border: item.takenToday ? 'none' : '1.5px solid #10B981',
+                            borderRadius: '10px',
+                            padding: '6px 14px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Check size={14} strokeWidth={2.5} />
+                          {item.takenToday ? 'Taken' : 'Take Dose'}
                         </button>
                       </div>
                     </div>
@@ -480,176 +548,179 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
               )}
             </div>
 
-            {/* Write and Add Custom Tablet Section */}
-            <div
-              style={{
-                padding: '14px',
-                borderRadius: '16px',
+            {/* Expandable Add Custom Tablet Form */}
+            {showAddForm && (
+              <form onSubmit={handleAddCustom} style={{
                 background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                borderRadius: '18px',
+                padding: '14px 16px',
+                border: '1.5px solid #E2E8F0',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '10px'
-              }}
-            >
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155' }}>
-                ✍️ Write & Add a Custom Tablet / Medicine
-              </span>
+              }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                  Add Custom Tablet or Medicine
+                </span>
 
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr 100px auto', gap: '8px', alignItems: 'center' }}>
                 <input
                   type="text"
+                  placeholder="Tablet name (e.g. Zinc, CoQ10, Metformin)..."
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Tablet name (e.g. Multivitamin, Zinc)"
                   style={{
-                    padding: '8px 12px',
+                    padding: '10px 14px',
                     borderRadius: '10px',
                     border: '1px solid #CBD5E1',
+                    background: '#FFF',
                     fontSize: '13px',
-                    background: '#FFFFFF'
-                  }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(); } }}
-                />
-
-                <input
-                  type="text"
-                  value={newDosage}
-                  onChange={(e) => setNewDosage(e.target.value)}
-                  placeholder="Dosage (e.g. 500mg, 1 cap)"
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid #CBD5E1',
-                    fontSize: '13px',
-                    background: '#FFFFFF'
-                  }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(); } }}
-                />
-
-                <input
-                  type="time"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                  style={{
-                    padding: '8px 6px',
-                    borderRadius: '10px',
-                    border: '1px solid #CBD5E1',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    background: '#FFFFFF'
+                    outline: 'none'
                   }}
                 />
 
-                <button
-                  type="button"
-                  onClick={handleAddCustom}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: '10px',
-                    background: '#0F766E',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                    cursor: 'pointer',
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Dosage (e.g. 500mg, 1 cap)..."
+                    value={newDosage}
+                    onChange={(e) => setNewDosage(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFF',
+                      fontSize: '13px',
+                      outline: 'none'
+                    }}
+                  />
+
+                  <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
                     gap: '4px',
-                    height: '38px'
+                    background: '#FFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '10px',
+                    padding: '0 10px'
+                  }}>
+                    <Clock size={14} color="#D97706" />
+                    <input
+                      type="time"
+                      value={newTime}
+                      onChange={(e) => setNewTime(e.target.value)}
+                      style={{ border: 'none', fontSize: '13px', fontWeight: 700, outline: 'none' }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!newName.trim()}
+                  style={{
+                    padding: '10px',
+                    borderRadius: '12px',
+                    background: newName.trim() ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : '#E2E8F0',
+                    color: newName.trim() ? '#FFF' : '#94A3B8',
+                    border: 'none',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: newName.trim() ? 'pointer' : 'default'
                   }}
                 >
-                  <Plus size={15} /> Add
+                  + Add Tablet to Schedule
                 </button>
-              </div>
+              </form>
+            )}
 
-              {/* Quick Preset Chips */}
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B', display: 'block', marginBottom: '6px' }}>
-                  Tap to add popular supplements:
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {POPULAR_PRESETS.map((preset) => (
+            {/* Popular Presets Chips (Quick 1-Tap Add) */}
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', marginBottom: '8px' }}>
+                Quick-Add Popular Supplements
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {POPULAR_PRESETS.map((preset) => {
+                  const alreadyAdded = vitamins.some(v => v.name.toLowerCase() === preset.name.toLowerCase());
+                  return (
                     <button
                       key={preset.name}
                       type="button"
+                      disabled={alreadyAdded}
                       onClick={() => handleAddPreset(preset)}
                       style={{
-                        padding: '4px 9px',
+                        padding: '6px 12px',
                         borderRadius: '999px',
-                        border: '1px solid #CBD5E1',
-                        background: '#FFFFFF',
-                        color: '#334155',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
+                        border: alreadyAdded ? '1px solid #E2E8F0' : '1.5px solid #FDE68A',
+                        background: alreadyAdded ? '#F1F5F9' : '#FFFBEB',
+                        color: alreadyAdded ? '#94A3B8' : '#92400E',
+                        fontSize: '12px',
+                        fontWeight: 700,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px'
+                        gap: '4px',
+                        cursor: alreadyAdded ? 'default' : 'pointer'
                       }}
                     >
-                      <Plus size={12} color="#0F766E" />
-                      {preset.name}
+                      {alreadyAdded ? '✓ Added' : `+ ${preset.name}`}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div
-            style={{
-              padding: '14px 22px',
-              borderTop: '1px solid #F1F5F9',
-              background: '#F8FAFC',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              flexWrap: 'wrap'
-            }}
-          >
+          {/* Footer Actions (Zero Overlap with Bottom Tab Bar) */}
+          <div style={{
+            padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 16px))',
+            borderTop: '1px solid #F1F5F9',
+            background: '#FFFFFF',
+            display: 'flex',
+            gap: '10px'
+          }}>
             <button
               type="button"
               onClick={handleMarkAllTaken}
               style={{
-                padding: '10px 16px',
-                borderRadius: '12px',
-                background: '#ECFDF5',
-                color: '#047857',
-                border: '1px solid #A7F3D0',
-                fontSize: '12.5px',
-                fontWeight: 700,
-                cursor: 'pointer',
+                flex: 1,
+                padding: '12px',
+                borderRadius: '14px',
+                background: allTaken ? '#DCFCE7' : '#F0FDF4',
+                color: '#15803D',
+                border: '1.5px solid #86EFAC',
+                fontWeight: 800,
+                fontSize: '13px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                justifyContent: 'center',
+                gap: '6px',
+                cursor: 'pointer'
               }}
             >
-              <Check size={15} strokeWidth={2.6} /> Mark All Taken (+5 PTS)
+              <Check size={16} strokeWidth={2.6} />
+              {allTaken ? 'All Taken ✓' : 'Mark All Taken (+5)'}
             </button>
 
             <button
               type="button"
               onClick={handleSaveAndClose}
               style={{
-                padding: '10px 20px',
-                borderRadius: '12px',
+                flex: 1,
+                padding: '12px',
+                borderRadius: '14px',
                 background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                 color: '#FFFFFF',
                 border: 'none',
+                fontWeight: 800,
                 fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                justifyContent: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)',
+                cursor: 'pointer'
               }}
             >
-              <Sparkles size={15} /> Save & Set Pill Alarms
+              Save Schedule
             </button>
           </div>
         </motion.div>
