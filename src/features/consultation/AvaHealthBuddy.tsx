@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Mic, MicOff, Plus, Pill, Zap } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Mic, MicOff, Plus, Pill, Zap, Camera } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -14,7 +14,7 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
 import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCard';
-import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
+import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
 
 const QUICK_ACTION_PILLS = [
   {
@@ -27,13 +27,49 @@ const QUICK_ACTION_PILLS = [
     prompt: 'I slept well last night. For breakfast I had oatmeal with blueberries and a coffee, then a salami pizza and red wine for lunch. By the afternoon I felt bloated and foggy, and by night it got even worse.',
   },
   {
-    id: 'food_mood',
-    label: 'Food, sleep & mood',
-    icon: '💗',
+    id: 'food_detective',
+    label: 'Food Detective',
+    icon: '🔍',
+    bg: '#FFF1ED',
+    color: '#EA580C',
+    border: '#FCD9C6',
+    action: 'tab:detective',
+  },
+  {
+    id: 'suspect_foods',
+    label: 'Suspect foods',
+    icon: '⚠️',
     bg: '#FFE4E6',
     color: '#BE123C',
     border: '#FECDD3',
-    prompt: 'Check in on my day: Track my food, sleep duration, and energy levels.',
+    action: 'tab:suspects',
+  },
+  {
+    id: 'zen_garden',
+    label: 'Zen Garden',
+    icon: '🌸',
+    bg: '#FDF4FF',
+    color: '#C026D3',
+    border: '#F5D0FE',
+    action: 'tab:garden',
+  },
+  {
+    id: 'diet_trials',
+    label: 'Diet trials',
+    icon: '🔬',
+    bg: '#ECFDF5',
+    color: '#059669',
+    border: '#A7F3D0',
+    action: 'tab:trials',
+  },
+  {
+    id: 'doctor_export',
+    label: 'Doctor export',
+    icon: '📋',
+    bg: '#EFF6FF',
+    color: '#2563EB',
+    border: '#BFDBFE',
+    action: 'tab:doctor',
   },
   {
     id: 'food_triggers',
@@ -43,6 +79,15 @@ const QUICK_ACTION_PILLS = [
     color: '#B45309',
     border: '#FDE68A',
     prompt: "What's been triggering my bloating and food sensitivities lately?",
+  },
+  {
+    id: 'food_mood',
+    label: 'Food, sleep & mood',
+    icon: '💗',
+    bg: '#FFE4E6',
+    color: '#BE123C',
+    border: '#FECDD3',
+    prompt: 'Check in on my day: Track my food, sleep duration, and energy levels.',
   },
   {
     id: 'medication',
@@ -427,12 +472,20 @@ export default function AvaHealthBuddy() {
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isWholeHealthOpen, setIsWholeHealthOpen] = useState(false);
+  const [wholeHealthTab, setWholeHealthTab] = useState<WholeHealthTab>('picture');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleOpenWholeHealth = () => setIsWholeHealthOpen(true);
+    const handleOpenWholeHealth = (e?: any) => {
+      if (e?.detail?.tab) {
+        setWholeHealthTab(e.detail.tab);
+      } else {
+        setWholeHealthTab('picture');
+      }
+      setIsWholeHealthOpen(true);
+    };
     window.addEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
     return () => window.removeEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
   }, []);
@@ -856,6 +909,7 @@ export default function AvaHealthBuddy() {
             type="button"
             onClick={() => {
               triggerHapticLight();
+              setWholeHealthTab('picture');
               setIsWholeHealthOpen(true);
             }}
             style={{
@@ -1381,6 +1435,32 @@ export default function AvaHealthBuddy() {
             />
 
             <div style={{ position: 'absolute', right: '8px', display: 'flex', alignItems: 'center', gap: '6px', zIndex: 2 }}>
+              {/* Photo Meal Snap Button */}
+              <button
+                type="button"
+                aria-label="Snap photo of meal or plate"
+                title="Snap meal photo"
+                onClick={() => {
+                  triggerHapticLight();
+                  fileInputRef.current?.click();
+                }}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '50%',
+                  background: '#F8FAFC',
+                  color: '#64748B',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <Camera size={16} />
+              </button>
+
               {/* Mic Dictation Button */}
               <button
                 type="button"
@@ -1452,6 +1532,10 @@ export default function AvaHealthBuddy() {
                   triggerHapticLight();
                   if (pill.action === 'mindfulness') {
                     setActiveMeditation(DEFAULT_CALM_TRACK);
+                  } else if (pill.action?.startsWith('tab:')) {
+                    const tabName = pill.action.split(':')[1] as WholeHealthTab;
+                    setWholeHealthTab(tabName);
+                    setIsWholeHealthOpen(true);
                   } else if (pill.prompt) {
                     handleSend(pill.prompt);
                   }
@@ -1525,6 +1609,7 @@ export default function AvaHealthBuddy() {
         isOpen={isWholeHealthOpen}
         onClose={() => setIsWholeHealthOpen(false)}
         onOpenMindfulness={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
+        initialTab={wholeHealthTab}
       />
     </div>
   );
