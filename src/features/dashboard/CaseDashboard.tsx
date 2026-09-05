@@ -37,7 +37,6 @@ import { SwimlaneCarousel } from '../../components/ui/SwimlaneCarousel';
 import { BottomSheetOverlay } from '../../components/ui/BottomSheetOverlay';
 import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
-import { CinematicCheckbox } from '../../components/ui/CinematicCheckbox';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { CompleteProfileModal } from '../../components/ui/CompleteProfileModal';
 import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
@@ -88,7 +87,6 @@ export default function CaseDashboard() {
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
   const [profile, setProfile] = useState(() => getProfile());
-  const [dailyTasks, setDailyTasks] = useState<any[]>([]);
 
   const isProfileComplete = Boolean(
     profile?.demographics?.age && 
@@ -99,30 +97,6 @@ export default function CaseDashboard() {
   const refreshProfileAndTasks = () => {
     const p = getProfile();
     setProfile(p);
-    const tasks: any[] = [];
-    if (p?.medications?.length) {
-      p.medications.forEach((m: any, i: number) => {
-        const title = typeof m === 'string' ? m : (m.name || 'Medication');
-        const subtitle = typeof m === 'object' && m.dosage 
-          ? `${m.dosage} • Scheduled Medication` 
-          : 'Scheduled Medication';
-        tasks.push({ id: 'med_' + i, title, subtitle, type: 'medication' });
-      });
-    } else {
-      tasks.push({
-        id: 'protocol_hydration',
-        title: 'Hydration Target (2.5L)',
-        subtitle: 'Maintains intravascular volume & renal clearance',
-        type: 'wellness'
-      });
-      tasks.push({
-        id: 'protocol_biomarker',
-        title: 'Daily Vitals Check-in',
-        subtitle: 'Record blood pressure, resting heart rate, or symptoms',
-        type: 'wellness'
-      });
-    }
-    setDailyTasks(tasks);
   };
 
   useEffect(() => {
@@ -1042,174 +1016,10 @@ export default function CaseDashboard() {
           </div>
         </div>
 
-        {/* Daily Clinical Protocols & Actions */}
-        <div style={{ padding: isMobile ? '0 12px 24px' : '0 24px 28px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.3px' }}>
-                Daily Clinical Protocols
-              </h3>
-              <p style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
-                Scheduled medications & essential profile actions
-              </p>
-            </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 8px', borderRadius: '8px', background: '#ECFDF5', color: '#059669' }}>
-              +5 PTS EACH
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* If profile is incomplete, render WORKABLE actionable card */}
-            {!isProfileComplete && (
-              <div
-                onClick={() => {
-                  triggerHapticLight();
-                  setShowCompleteProfileModal(true);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '16px 20px',
-                  background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%)',
-                  border: '1.5px solid #10B981',
-                  borderRadius: '20px',
-                  boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
-                  cursor: 'pointer',
-                  gap: '14px',
-                  transition: 'all 0.2s ease',
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none'
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setShowCompleteProfileModal(true);
-                  }
-                }}
-                aria-label="Complete Health Profile (Takes 2 mins)"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '14px',
-                    background: '#ECFDF5',
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <FolderHeart size={22} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                        Complete Health Profile
-                      </h4>
-                      <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 7px', borderRadius: '6px', background: '#FEF3C7', color: '#B45309' }}>
-                        ACTION REQUIRED
-                      </span>
-                    </div>
-                    <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748B', lineHeight: 1.3 }}>
-                      Add age, conditions, medications & allergies • Takes 2 mins
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    triggerHapticLight();
-                    setShowCompleteProfileModal(true);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '8px 14px',
-                    borderRadius: '999px',
-                    background: '#0F766E',
-                    color: '#FFFFFF',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    border: 'none',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    boxShadow: '0 2px 6px rgba(15, 118, 110, 0.25)'
-                  }}
-                >
-                  Start Setup <ArrowRight size={13} />
-                </button>
-              </div>
-            )}
-
-            {/* If profile is completed, show verified banner */}
-            {isProfileComplete && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 16px',
-                background: '#F0FDF4',
-                border: '1px solid #BBF7D0',
-                borderRadius: '14px',
-                gap: '8px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                  <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0 }} />
-                  <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#065F46', whiteSpace: 'nowrap' }}>
-                    Clinical Dossier Active
-                  </span>
-                  {profile?.demographics?.age && (
-                    <span style={{ fontSize: '11.5px', color: '#059669', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      ({profile.demographics.age}y • {profile.demographics.bloodGroup && profile.demographics.bloodGroup !== 'Unknown' ? profile.demographics.bloodGroup : 'Verified'})
-                    </span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setShowCompleteProfileModal(true);
-                  }}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#0F766E',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    padding: 0,
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  Edit / Update →
-                </button>
-              </div>
-            )}
-
-            {/* Daily actionable tasks */}
-            {dailyTasks.map((task) => (
-              <CinematicCheckbox
-                key={task.id}
-                label={task.title}
-                sublabel={task.subtitle}
-                initialChecked={!!completedHabits[task.id]}
-                onToggle={(checked) => {
-                  toggleHabit(task.id, task.title);
-                  if (checked) {
-                    awardPoints(5, `Protocol: ${task.title}`, 'lifestyle', `proto_${task.id}_${todayDateStr}`);
-                  }
-                }}
-              />
-            ))}
-
-            {/* Quick add medication button */}
-            <button
-              type="button"
+        {/* Complete Health Profile Action Banner */}
+        {!isProfileComplete && (
+          <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
+            <div
               onClick={() => {
                 triggerHapticLight();
                 setShowCompleteProfileModal(true);
@@ -1217,24 +1027,130 @@ export default function CaseDashboard() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '10px 16px',
-                borderRadius: '14px',
-                border: '1px dashed #CBD5E1',
-                background: 'rgba(255, 255, 255, 0.6)',
-                color: '#475569',
-                fontSize: '12.5px',
-                fontWeight: 600,
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%)',
+                border: '1.5px solid #10B981',
+                borderRadius: '20px',
+                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                gap: '14px',
+                transition: 'all 0.2s ease',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setShowCompleteProfileModal(true);
+                }
+              }}
+              aria-label="Complete Health Profile (Takes 2 mins)"
             >
-              <Plus size={15} color="#0F766E" />
-              <span>{profile?.medications?.length ? 'Add Another Medication / Supplement' : 'Add Active Prescriptions / Daily Medications'}</span>
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '14px',
+                  background: '#ECFDF5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <FolderHeart size={22} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+                      Complete Health Profile
+                    </h4>
+                    <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 7px', borderRadius: '6px', background: '#ECFDF5', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                      +50 PTS REWARD
+                    </span>
+                  </div>
+                  <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748B', lineHeight: 1.3 }}>
+                    Add age, conditions, medications & allergies • Takes 2 mins
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerHapticLight();
+                  setShowCompleteProfileModal(true);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '8px 14px',
+                  borderRadius: '999px',
+                  background: '#0F766E',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(15, 118, 110, 0.25)'
+                }}
+              >
+                Start Setup <ArrowRight size={13} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {isProfileComplete && (
+          <div style={{ padding: isMobile ? '0 12px 14px' : '0 24px 18px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 16px',
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              borderRadius: '14px',
+              gap: '8px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#065F46', whiteSpace: 'nowrap' }}>
+                  Clinical Dossier Active
+                </span>
+                {profile?.demographics?.age && (
+                  <span style={{ fontSize: '11.5px', color: '#059669', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    ({profile.demographics.age}y • {profile.demographics.bloodGroup && profile.demographics.bloodGroup !== 'Unknown' ? profile.demographics.bloodGroup : 'Verified'})
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowCompleteProfileModal(true);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#0F766E',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Edit / Update →
+              </button>
+            </div>
+          </div>
+        )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
 
