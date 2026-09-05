@@ -42,6 +42,8 @@ import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { CompleteProfileModal } from '../../components/ui/CompleteProfileModal';
 import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
 import { getVitaminSchedule, VitaminItem } from '../../services/VitaminScheduleService';
+import { HydrationTrackerModal } from '../../components/ui/HydrationTrackerModal';
+import { getHydrationData, addWaterLog, HydrationDayData } from '../../services/HydrationService';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { FitnessService, FitnessContent, FitnessCategory } from '../../services/FitnessService';
@@ -134,6 +136,8 @@ export default function CaseDashboard() {
   const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
   const [showVitaminModal, setShowVitaminModal] = useState(false);
   const [vitaminSchedule, setVitaminSchedule] = useState<VitaminItem[]>(() => getVitaminSchedule());
+  const [showHydrationModal, setShowHydrationModal] = useState(false);
+  const [hydrationData, setHydrationData] = useState<HydrationDayData>(() => getHydrationData());
   const [completedHabits, setCompletedHabits] = useState<Record<string, boolean>>(() => {
     try {
       const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
@@ -152,14 +156,27 @@ export default function CaseDashboard() {
         // ignore
       }
       setVitaminSchedule(getVitaminSchedule());
+      setHydrationData(getHydrationData());
     };
     window.addEventListener('hc_vitamins_updated', handleHabitsUpdated);
+    window.addEventListener('hc_hydration_updated', handleHabitsUpdated);
     window.addEventListener('storage', handleHabitsUpdated);
     return () => {
       window.removeEventListener('hc_vitamins_updated', handleHabitsUpdated);
+      window.removeEventListener('hc_hydration_updated', handleHabitsUpdated);
       window.removeEventListener('storage', handleHabitsUpdated);
     };
   }, [todayDateStr]);
+
+  const handleQuickWater = (ml: number = 250, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    addWaterLog(ml, 'water');
+    setHydrationData(getHydrationData());
+    try {
+      const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+      if (stored) setCompletedHabits(JSON.parse(stored));
+    } catch {}
+  };
 
   const toggleRationale = (habitId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -387,15 +404,18 @@ export default function CaseDashboard() {
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Completed' : 'Tap to mark done'}`}
+                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Completed' : 'Tap to manage intake or mark done'}`}
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => toggleHabit('hydration', 'Morning Hydration (500ml)')}
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowHydrationModal(true);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    toggleHabit('hydration', 'Morning Hydration (500ml)');
+                    setShowHydrationModal(true);
                   }
                 }}
                 style={{
@@ -417,89 +437,188 @@ export default function CaseDashboard() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: completedHabits['hydration'] 
-                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                      : 'linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%)', 
-                    boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                    border: completedHabits['hydration'] ? 'none' : '1px solid rgba(56, 189, 248, 0.3)',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease'
-                  }}>
+                  <div 
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Toggle hydration habit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleHabit('hydration', 'Morning Hydration (500ml)');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        toggleHabit('hydration', 'Morning Hydration (500ml)');
+                      }
+                    }}
+                    style={{ 
+                      width: isMobile ? '38px' : '44px', 
+                      height: isMobile ? '38px' : '44px', 
+                      minWidth: isMobile ? '38px' : '44px', 
+                      minHeight: isMobile ? '38px' : '44px', 
+                      flexShrink: 0,
+                      borderRadius: '50%', 
+                      background: completedHabits['hydration'] 
+                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
+                        : 'linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%)', 
+                      boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
+                      border: completedHabits['hydration'] ? 'none' : '1px solid rgba(56, 189, 248, 0.3)',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                  >
                     {completedHabits['hydration'] ? (
                       <Check size={isMobile ? 18 : 20} color="#FFF" />
                     ) : (
                       <Droplets size={isMobile ? 18 : 20} color="#0EA5E9" />
                     )}
                   </div>
-                  <div 
-                    className="tabular-nums micro-badge"
-                    style={{ 
-                      background: completedHabits['hydration'] ? '#DCFCE7' : 'rgba(56, 189, 248, 0.15)', 
-                      color: completedHabits['hydration'] ? '#15803D' : '#0284C7', 
-                      padding: '3px 8px', 
-                      borderRadius: '999px',
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      letterSpacing: '0.4px',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0
-                    }}
-                  >
-                    {completedHabits['hydration'] ? '✓ +2 PTS' : 'DAILY'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => handleQuickWater(250, e)}
+                      title="Quick log 1 glass (+250ml)"
+                      aria-label="Quick log 250ml water"
+                      style={{
+                        background: 'rgba(14, 165, 233, 0.12)',
+                        border: '1px solid rgba(14, 165, 233, 0.28)',
+                        borderRadius: '999px',
+                        padding: '2px 7px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: '#0284C7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <Plus size={10} /> 250ml
+                    </button>
+                    <div 
+                      className="tabular-nums micro-badge"
+                      style={{ 
+                        background: completedHabits['hydration'] ? '#DCFCE7' : 'rgba(56, 189, 248, 0.15)', 
+                        color: completedHabits['hydration'] ? '#15803D' : '#0284C7', 
+                        padding: '3px 8px', 
+                        borderRadius: '999px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        letterSpacing: '0.4px',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
+                      }}
+                    >
+                      {completedHabits['hydration'] ? '✓ +2 PTS' : 'DAILY'}
+                    </div>
                   </div>
                 </div>
 
                 <div>
                   <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                    {completedHabits['hydration'] ? 'Hydrated 💧' : 'Hydrate 500ml'}
+                    {hydrationData.currentMl >= hydrationData.targetMl 
+                      ? 'Goal Reached 💧' 
+                      : completedHabits['hydration'] 
+                        ? 'Hydrated 💧' 
+                        : 'Hydrate 500ml'}
                   </h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['hydration'] ? '#10B981' : '#64748B', margin: '0 0 6px', fontWeight: 500, lineHeight: 1.3 }}>
-                    {completedHabits['hydration'] ? 'Optimal cellular hydration' : 'Tap to mark complete'}
+                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['hydration'] ? '#10B981' : '#64748B', margin: '0 0 4px', fontWeight: 500, lineHeight: 1.3 }}>
+                    {hydrationData.currentMl > 0 
+                      ? `${hydrationData.currentMl.toLocaleString()} / ${hydrationData.targetMl.toLocaleString()} ml • ${Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%`
+                      : 'Tap to log sips & track'}
                   </p>
 
-                  <button
-                    type="button"
-                    data-compact="true"
-                    onClick={(e) => toggleRationale('hydration', e)}
-                    aria-label="Toggle clinical rationale for hydration"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: expandedRationale === 'hydration' ? 'rgba(14, 165, 233, 0.18)' : 'rgba(14, 165, 233, 0.08)',
-                      border: '1px solid rgba(14, 165, 233, 0.25)',
-                      borderRadius: '6px',
-                      padding: '2px 7px',
-                      fontSize: '10px',
-                      fontWeight: 600,
-                      color: '#0284C7',
-                      cursor: 'pointer',
-                      minWidth: 'unset',
-                      minHeight: 'unset',
-                      height: 'auto',
-                      width: 'fit-content',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <Info size={10} />
-                    <span>Science</span>
-                    <ChevronDown 
-                      size={10} 
-                      style={{ 
-                        transform: expandedRationale === 'hydration' ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease'
-                      }} 
-                    />
-                  </button>
+                  {/* Sleek Mini Fluid Progress Bar */}
+                  <div style={{
+                    width: '100%',
+                    height: '4px',
+                    borderRadius: '999px',
+                    background: 'rgba(56, 189, 248, 0.2)',
+                    overflow: 'hidden',
+                    marginBottom: '8px',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
+                      background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
+                      borderRadius: '999px',
+                      transition: 'width 0.4s ease'
+                    }} />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      data-compact="true"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        triggerHapticLight();
+                        setShowHydrationModal(true);
+                      }}
+                      aria-label="Open Cellular Hydration Tracker"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'rgba(14, 165, 233, 0.12)',
+                        border: '1px solid rgba(14, 165, 233, 0.3)',
+                        borderRadius: '6px',
+                        padding: '2px 7px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: '#0284C7',
+                        cursor: 'pointer',
+                        minWidth: 'unset',
+                        minHeight: 'unset',
+                        height: 'auto',
+                        width: 'fit-content',
+                      }}
+                    >
+                      <Droplets size={10} />
+                      <span>Track</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      data-compact="true"
+                      onClick={(e) => toggleRationale('hydration', e)}
+                      aria-label="Toggle clinical rationale for hydration"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: expandedRationale === 'hydration' ? 'rgba(14, 165, 233, 0.18)' : 'rgba(14, 165, 233, 0.08)',
+                        border: '1px solid rgba(14, 165, 233, 0.25)',
+                        borderRadius: '6px',
+                        padding: '2px 7px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        color: '#0284C7',
+                        cursor: 'pointer',
+                        minWidth: 'unset',
+                        minHeight: 'unset',
+                        height: 'auto',
+                        width: 'fit-content',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <Info size={10} />
+                      <span>Science</span>
+                      <ChevronDown 
+                        size={10} 
+                        style={{ 
+                          transform: expandedRationale === 'hydration' ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease'
+                        }} 
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 <AnimatePresence>
@@ -1322,6 +1441,20 @@ export default function CaseDashboard() {
         onClose={() => setShowVitaminModal(false)}
         onUpdated={() => {
           setVitaminSchedule(getVitaminSchedule());
+          try {
+            const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
+            if (stored) setCompletedHabits(JSON.parse(stored));
+          } catch {
+            // ignore
+          }
+        }}
+      />
+
+      <HydrationTrackerModal
+        isOpen={showHydrationModal}
+        onClose={() => setShowHydrationModal(false)}
+        onUpdated={() => {
+          setHydrationData(getHydrationData());
           try {
             const stored = getItemSync(`healthchain_habits_${todayDateStr}`);
             if (stored) setCompletedHabits(JSON.parse(stored));
