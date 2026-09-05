@@ -24,7 +24,6 @@ import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
-import { ConnectionDetectiveModal } from '../ui/ConnectionDetectiveModal';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
 
 function AnimatedOutlet() {
@@ -77,17 +76,10 @@ export default function AppShell() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasPendingCheckin, setHasPendingCheckin] = useState(false);
-  const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [profile, setProfile] = useState(getProfile());
   const [isScrolling, setIsScrolling] = useState(false);
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<any>(null);
-
-  useEffect(() => {
-    const handleOpenConnection = () => setShowConnectionModal(true);
-    window.addEventListener('hc_open_connection_detective', handleOpenConnection);
-    return () => window.removeEventListener('hc_open_connection_detective', handleOpenConnection);
-  }, []);
 
   useEffect(() => {
     const checkCheckin = () => {
@@ -365,32 +357,6 @@ const enforceSafeArea = () => {
                 {isLocked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
               </NavLink>
             )})}
-            <button
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                setShowConnectionModal(true);
-              }}
-              className="sidebar__link"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                width: '100%',
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              <Network size={18} color="#0284C7" />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <span>Connection Detective</span>
-                <span style={{ fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px', background: '#E0F2FE', color: '#0369A1' }}>
-                  USP
-                </span>
-              </div>
-            </button>
             <NavLink
               to="/app/settings"
               className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
@@ -771,29 +737,6 @@ const enforceSafeArea = () => {
                   </button>
                 </div>
                 <div className="mobile-more-menu__grid">
-                  <button
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowMoreMenu(false);
-                      setShowConnectionModal(true);
-                    }}
-                    className="more-menu-item"
-                    style={{
-                      position: 'relative',
-                      background: 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%)',
-                      color: '#FFFFFF',
-                      border: '1.5px solid #38BDF8',
-                      boxShadow: '0 4px 14px rgba(14, 165, 233, 0.3)',
-                    }}
-                  >
-                    <div className="more-menu-icon" style={{ background: 'rgba(255, 255, 255, 0.25)', color: '#FFFFFF' }}>
-                      <Network size={22} />
-                    </div>
-                    <span style={{ color: '#FFFFFF', fontWeight: 800 }}>Connection Detective</span>
-                    <span style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '8px', fontWeight: 900, background: '#FFFFFF', color: '#0284C7', padding: '1px 5px', borderRadius: '4px' }}>
-                      USP
-                    </span>
-                  </button>
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to) && l.to !== '/app/progress' && l.to !== '/app/trophies').map((l) => {
                     const isLocked = l.locked;
                     return (
@@ -860,11 +803,6 @@ const enforceSafeArea = () => {
       <TrialFeaturesModal />
       <FeedbackWidget />
       <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
-      <ConnectionDetectiveModal
-        isOpen={showConnectionModal}
-        onClose={() => setShowConnectionModal(false)}
-        onOpenConsult={() => navigate('/app/consult')}
-      />
     </div>
   );
 }

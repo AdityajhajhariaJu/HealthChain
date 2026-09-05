@@ -42,19 +42,19 @@ export function CaseConnectionMap({
 
   if (!data || !data.conditions) return null;
 
-  const width = isMobile ? 360 : 620;
-  const height = isMobile ? 420 : 490;
+  const width = isMobile ? 480 : 640;
+  const height = isMobile ? 480 : 500;
   const cx = width / 2;
   const cy = height / 2;
 
-  const pillWidth = isMobile ? 116 : 138;
-  const pillHeight = isMobile ? 36 : 42;
-  const pillRx = isMobile ? 18 : 21;
+  const pillWidth = isMobile ? 144 : 156;
+  const pillHeight = isMobile ? 40 : 44;
+  const pillRx = isMobile ? 20 : 22;
 
   const nodes = useMemo(() => {
     let result: any[] = [];
     const symps = data.centralSymptoms || [];
-    const sympRadius = isMobile ? 54 : 72;
+    const sympRadius = isMobile ? 60 : 76;
     
     symps.forEach((symp: any, i: number) => {
       const angle = (i / symps.length) * Math.PI * 2 - Math.PI / 2;
@@ -67,7 +67,7 @@ export function CaseConnectionMap({
     });
 
     const conds = data.conditions || [];
-    const condRadius = isMobile ? 142 : 185;
+    const condRadius = isMobile ? 152 : 185;
     conds.forEach((cond: any, i: number) => {
       const angle = (i / conds.length) * Math.PI * 2 - Math.PI / 2;
       result.push({
@@ -477,44 +477,33 @@ export function CaseConnectionMap({
                   x={2}
                   y={-2}
                   textAnchor="middle"
-                  fontSize={isMobile ? '10.5' : '11.5'}
+                  fontSize={isMobile ? '11' : '11.5'}
                   fontWeight="800"
                   fill="#1C1917"
                 >
-                  {nodeLabel.length > 17 ? nodeLabel.substring(0, 16) + '…' : nodeLabel}
+                  {(() => {
+                    if (!nodeLabel) return 'Condition';
+                    if (nodeLabel.includes('Ferritin')) return 'Subclinical Ferritin';
+                    if (nodeLabel.includes('Dural')) return 'Ascending Dural Axis';
+                    if (nodeLabel.includes('POTS')) return 'Hyperadrenergic POTS';
+                    if (nodeLabel.includes('Histamine')) return 'Histamine / DAO Lag';
+                    if (nodeLabel.includes('Roemheld') || nodeLabel.includes('Gastrocardiac')) return 'Gastrocardiac Reflex';
+                    if (nodeLabel.includes('Mast Cell') || nodeLabel.includes('MCAS')) return 'Mast Cell Overlap';
+                    return nodeLabel.length > 22 ? nodeLabel.substring(0, 20) + '…' : nodeLabel;
+                  })()}
                 </text>
 
                 {/* Confidence & Specialty Pill Tag */}
                 <text
                   x={2}
-                  y={11}
+                  y={12}
                   textAnchor="middle"
-                  fontSize={isMobile ? '9' : '10'}
+                  fontSize={isMobile ? '9.5' : '10'}
                   fontWeight="700"
                   fill={categoryConfig.text}
                 >
                   {confidence}% • {node.specialty?.split(' ')[0] || 'Clinical'}
                 </text>
-
-                {/* Precaution Badge */}
-                {hasPrecaution && (
-                  <motion.g
-                    transform={`translate(${pillWidth / 2 - 6}, ${-pillHeight / 2 + 4})`}
-                    animate={{ scale: [1, 1.25, 1] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                  >
-                    <circle r="7" fill="#EF4444" />
-                    <text
-                      y="3"
-                      textAnchor="middle"
-                      fontSize="9"
-                      fontWeight="900"
-                      fill="#FFFFFF"
-                    >
-                      !
-                    </text>
-                  </motion.g>
-                )}
               </g>
             );
           })}

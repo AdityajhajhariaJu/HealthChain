@@ -27,15 +27,6 @@ const QUICK_ACTION_PILLS = [
     prompt: 'I slept well last night. For breakfast I had oatmeal with blueberries and a coffee, then a salami pizza and red wine for lunch. By the afternoon I felt bloated and foggy, and by night it got even worse.',
   },
   {
-    id: 'connection_detective',
-    label: 'Connection Detective',
-    icon: '🌐',
-    bg: '#E0F2FE',
-    color: '#0369A1',
-    border: '#BAE6FD',
-    action: 'tab:connection',
-  },
-  {
     id: 'food_detective',
     label: 'Food Detective',
     icon: '🔍',
@@ -119,7 +110,7 @@ const QUICK_ACTION_PILLS = [
 ];
 
 const SUGGESTIONS = [
-  "Run Connection Detective: What 15-minute visits missed across my labs, vitals, and diet?",
+  "What could standard 15-minute visits miss across my labs, vitals, and diet?",
   "I'm looking for mental peace and a calm space to de-stress.",
   "Are there any side effects to my new meds?",
   "I have a headache, is it related to my condition?",
@@ -127,7 +118,7 @@ const SUGGESTIONS = [
 ];
 
 const CASE_RECHECK_SUGGESTIONS = [
-  "Run Connection Detective: Cross-correlate labs, clinical notes, and vitals.",
+  "Cross-correlate my symptoms: What connects my labs, notes, and vitals?",
   "Re-evaluate: What other alternative conditions could explain this?",
   "Could any of my active medications be causing or worsening this?",
   "Help me prepare the most important questions for my doctor.",
@@ -553,15 +544,9 @@ export default function AvaHealthBuddy() {
       }
       setIsWholeHealthOpen(true);
     };
-    const handleOpenConnectionDetective = () => {
-      setWholeHealthTab('connection');
-      setIsWholeHealthOpen(true);
-    };
     window.addEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
-    window.addEventListener('hc_open_connection_detective', handleOpenConnectionDetective);
     return () => {
       window.removeEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
-      window.removeEventListener('hc_open_connection_detective', handleOpenConnectionDetective);
     };
   }, []);
 

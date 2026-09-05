@@ -60,7 +60,6 @@ export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { VitalityStreakBanner } from './VitalityStreakBanner';
-import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -107,14 +106,6 @@ export default function CaseDashboard() {
   }, []);
 
   // Daily Habit & Protocol tracking
-  const [showConnectionDetective, setShowConnectionDetective] = useState(false);
-
-  useEffect(() => {
-    const handleOpenConnection = () => setShowConnectionDetective(true);
-    window.addEventListener('hc_open_connection_detective', handleOpenConnection);
-    return () => window.removeEventListener('hc_open_connection_detective', handleOpenConnection);
-  }, []);
-
   const todayDateStr = new Date().toISOString().split('T')[0];
   const [expandedRationale, setExpandedRationale] = useState<string | null>(null);
   const [showVitaminModal, setShowVitaminModal] = useState(false);
@@ -265,143 +256,6 @@ export default function CaseDashboard() {
           
           {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
           <VitalityStreakBanner completedHabits={completedHabits} />
-
-          {/* Clinic USP Connection Detective Showcase Card */}
-          <div
-            style={{
-              marginBottom: '16px',
-              background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 55%, #FFEDD5 100%)',
-              borderRadius: isMobile ? '24px' : '28px',
-              padding: isMobile ? '18px' : '22px',
-              border: '1.5px solid #FCD9C6',
-              boxShadow: '0 12px 32px rgba(249, 115, 22, 0.08), 0 2px 8px rgba(0, 0, 0, 0.03)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Background Conduit Warm Glow */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '-40px',
-                right: '-40px',
-                width: '180px',
-                height: '180px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(244, 63, 94, 0.12) 0%, transparent 70%)',
-                pointerEvents: 'none',
-              }}
-            />
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 800,
-                    letterSpacing: '0.8px',
-                    textTransform: 'uppercase',
-                    padding: '3px 9px',
-                    borderRadius: '999px',
-                    background: '#FFF1F2',
-                    color: '#E11D48',
-                    border: '1px solid #FECDD3',
-                  }}
-                >
-                  CLINIC USP ENGINE
-                </span>
-                <span style={{ fontSize: '11px', color: '#78716C', fontWeight: 600 }}>
-                  Multi-System Diagnostic Convergence
-                </span>
-              </div>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  color: '#059669',
-                  background: '#ECFDF5',
-                  padding: '3px 9px',
-                  borderRadius: '999px',
-                  border: '1px solid #A7F3D0',
-                }}
-              >
-                ● 48 Biomarkers Synced
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '14px' }}>
-              <div style={{ maxWidth: '540px' }}>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '18px' : '20px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px' }}>
-                  Connection Detective: <span style={{ color: '#E11D48' }}>What 15-Minute Visits Missed</span>
-                </h3>
-                <p style={{ margin: 0, fontSize: isMobile ? '12px' : '13px', color: '#57534E', lineHeight: 1.45 }}>
-                  Cross-analyzing blood labs, cardiology notes, orthostatic vitals, and biomechanics uncovered how sacral tension provokes occipital headaches, while subclinical ferritin starves mitochondrial ATP.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setShowConnectionDetective(true);
-                  }}
-                  style={{
-                    flex: isMobile ? 1 : 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    padding: '10px 18px',
-                    borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(225, 29, 72, 0.3)',
-                  }}
-                >
-                  <span>🌐</span>
-                  <span>Investigate Connections</span>
-                </button>
-              </div>
-            </div>
-
-            {/* 4 Live Streams Quick Conduit Pills */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-                gap: '8px',
-                marginTop: '14px',
-                paddingTop: '12px',
-                borderTop: '1px solid #FCD9C6',
-              }}
-            >
-              <div style={{ background: '#FFF1F2', borderRadius: '12px', padding: '9px 11px', border: '1px solid #FECDD3' }}>
-                <div style={{ fontSize: '10px', color: '#9F1239', fontWeight: 800 }}>🧪 LABS CONDUIT</div>
-                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>Ferritin 14 ng/mL</div>
-                <div style={{ fontSize: '10px', color: '#E11D48', fontWeight: 600 }}>Cellular ATP deficit</div>
-              </div>
-              <div style={{ background: '#EFF6FF', borderRadius: '12px', padding: '9px 11px', border: '1px solid #BFDBFE' }}>
-                <div style={{ fontSize: '10px', color: '#1E40AF', fontWeight: 800 }}>🦴 KINETIC AXIS</div>
-                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>Lower Back → Head</div>
-                <div style={{ fontSize: '10px', color: '#0284C7', fontWeight: 600 }}>Dural C2 entrapment</div>
-              </div>
-              <div style={{ background: '#FEF3C7', borderRadius: '12px', padding: '9px 11px', border: '1px solid #FDE68A' }}>
-                <div style={{ fontSize: '10px', color: '#92400E', fontWeight: 800 }}>💓 VITALS STREAM</div>
-                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>+38 bpm Standing</div>
-                <div style={{ fontSize: '10px', color: '#D97706', fontWeight: 600 }}>Splanchnic pooling</div>
-              </div>
-              <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '9px 11px', border: '1px solid #BBF7D0' }}>
-                <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>🥗 ENTERIC DAO</div>
-                <div style={{ fontSize: '12px', color: '#1C1917', fontWeight: 700 }}>Histamine / FODMAP</div>
-                <div style={{ fontSize: '10px', color: '#059669', fontWeight: 600 }}>Roemheld gut-vagal</div>
-              </div>
-            </div>
-          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
@@ -1532,12 +1386,6 @@ export default function CaseDashboard() {
           onClose={() => setActiveMeditation(null)} 
         />
       )}
-
-      <ConnectionDetectiveModal
-        isOpen={showConnectionDetective}
-        onClose={() => setShowConnectionDetective(false)}
-        onOpenConsult={() => navigate('/app/consult')}
-      />
     </div>
   );
 };
