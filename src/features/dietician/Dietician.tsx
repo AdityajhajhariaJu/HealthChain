@@ -109,6 +109,19 @@ export const QUICK_PRESETS = [
   { name: 'Whey Protein Isolate & Supergreens Shake', portion: '1 scoop (350ml)', calories: 220, protein: 28, carbs: 18, fat: 4, emoji: '🥤', type: 'Snack' },
 ];
 
+export const PANTRY_STAPLES = [
+  { name: 'Double Espresso', emoji: '☕' },
+  { name: 'Fresh Avocado', emoji: '🥑' },
+  { name: '2 Poached Eggs', emoji: '🥚' },
+  { name: 'Sourdough Toast', emoji: '🍞' },
+  { name: 'Rolled Oats & Berries', emoji: '🥣' },
+  { name: 'Low-Fat Paneer / Tofu', emoji: '🧀' },
+  { name: 'Yellow Moong Dal', emoji: '🍲' },
+  { name: 'Grilled Chicken Breast', emoji: '🍗' },
+  { name: 'Cucumber Tomato Salad', emoji: '🥗' },
+  { name: 'Greek Set Curd', emoji: '🥛' },
+];
+
 export const DEFAULT_GROCERY_CATEGORIES = [
   {
     category: 'Fresh Produce & Antioxidant Greens',
@@ -226,12 +239,34 @@ export default function Dietician() {
   const [showARLens, setShowARLens] = useState(false);
   const [foodInput, setFoodInput] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('Breakfast');
+  const [mealLatency, setMealLatency] = useState<'<30m Acute' | '1–2h Postprandial' | '4h+ Delayed'>('<30m Acute');
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
   const [showSavedMealsModal, setShowSavedMealsModal] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const detectedTriggers = useMemo(() => {
+    const text = foodInput.toLowerCase();
+    const triggers: { label: string; icon: string; color: string; bg: string }[] = [];
+    if (text.includes('spinach') || text.includes('tomato') || text.includes('wine') || text.includes('aged') || text.includes('fermented') || text.includes('avocado') || text.includes('vinegar')) {
+      triggers.push({ label: 'Histamine/Amines', icon: '🍷', color: '#B45309', bg: '#FEF3C7' });
+    }
+    if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) {
+      triggers.push({ label: 'Gluten / Wheat', icon: '🌾', color: '#C2410C', bg: '#FFEDD5' });
+    }
+    if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) {
+      triggers.push({ label: 'Dairy / Lactose', icon: '🥛', color: '#0369A1', bg: '#E0F2FE' });
+    }
+    if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea')) {
+      triggers.push({ label: 'Caffeine Active', icon: '☕', color: '#4338CA', bg: '#EEF2FF' });
+    }
+    if (text.includes('onion') || text.includes('garlic') || text.includes('apple') || text.includes('beans') || text.includes('chickpea')) {
+      triggers.push({ label: 'High FODMAP', icon: '🧄', color: '#7C2D12', bg: '#FFEDD5' });
+    }
+    return triggers;
+  }, [foodInput]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -491,6 +526,7 @@ export default function Dietician() {
           updatedLogs[currentDate].push({
             ...item,
             type: selectedMealType,
+            latency: mealLatency,
             id: Date.now() + Math.random(),
           });
         });
@@ -502,9 +538,10 @@ export default function Dietician() {
           awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
         }
 
-        addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')}`, {
+        addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')} (${mealLatency})`, {
           items: result.items,
           type: selectedMealType,
+          latency: mealLatency,
         });
       }
     } catch (err) {
@@ -528,6 +565,7 @@ export default function Dietician() {
       fat: preset.fat,
       emoji: preset.emoji,
       type: selectedMealType,
+      latency: mealLatency,
       id: Date.now() + Math.random(),
     });
     setFoodLogs(updatedLogs);
@@ -1776,7 +1814,7 @@ export default function Dietician() {
                   </div>
 
                   {/* Quick Presets */}
-                  <div style={{ marginBottom: '16px' }}>
+                  <div style={{ marginBottom: '14px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
                       ⚡ 1-Tap Quick Nutritious Presets:
                     </div>
@@ -1808,8 +1846,81 @@ export default function Dietician() {
                     </div>
                   </div>
 
+                  {/* 1-Tap Pantry Staples */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                      🥗 1-Tap Pantry Staples (Tap to append):
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {PANTRY_STAPLES.map((staple) => (
+                        <button
+                          key={staple.name}
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setFoodInput((prev) => (prev.trim() ? `${prev.trim()}, ${staple.name}` : staple.name));
+                          }}
+                          style={{
+                            padding: '5px 10px',
+                            borderRadius: '8px',
+                            border: '1px solid #E2E8F0',
+                            background: '#FFFFFF',
+                            color: '#334155',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = '#F0FDFA')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = '#FFFFFF')}
+                        >
+                          <span>{staple.emoji}</span> {staple.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Latency / Reaction Window Chips */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                        ⏱️ Post-Meal Reaction Window:
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                        TriggerBite Latency
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {(['<30m Acute', '1–2h Postprandial', '4h+ Delayed'] as const).map((lat) => (
+                        <button
+                          key={lat}
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setMealLatency(lat);
+                          }}
+                          style={{
+                            padding: '5px 11px',
+                            borderRadius: '999px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            border: mealLatency === lat ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                            background: mealLatency === lat ? '#CCFBF1' : '#FFFFFF',
+                            color: mealLatency === lat ? '#0F766E' : '#475569',
+                          }}
+                        >
+                          {lat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Natural Language Input */}
-                  <div style={{ position: 'relative', marginBottom: '18px' }}>
+                  <div style={{ position: 'relative', marginBottom: '12px' }}>
                     <label htmlFor="dietician-food-input" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
                       Or type in plain English / Hindi:
                     </label>
@@ -1821,11 +1932,11 @@ export default function Dietician() {
                       placeholder="e.g. 2 whole wheat rotis with 1 bowl of moong dal, a small bowl of curd, and cucumber salad..."
                       style={{
                         width: '100%',
-                        height: '110px',
+                        height: '100px',
                         padding: '14px',
                         borderRadius: '16px',
-                        border: '1px solid #CBD5E1',
-                        background: '#F8FAFC',
+                        border: '1.5px solid #CCFBF1',
+                        background: '#FFFFFF',
                         fontSize: '14.5px',
                         fontFamily: 'inherit',
                         outline: 'none',
@@ -1836,14 +1947,49 @@ export default function Dietician() {
                     />
                   </div>
 
+                  {/* Live Biochemical Trigger Sensitivity Warning */}
+                  {foodInput.trim().length > 2 && (
+                    <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                      <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                        TriggerBite Biochemical Guard
+                      </div>
+                      {detectedTriggers.length > 0 ? (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          {detectedTriggers.map((t) => (
+                            <span
+                              key={t.label}
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                color: t.color,
+                                background: t.bg,
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span>{t.icon}</span> {t.label}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span>🛡️</span> Clinically Low Flare Risk detected
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <button
                     onClick={handleAddFood}
                     disabled={isAnalyzingFood || !foodInput.trim()}
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: '#0F172A',
-                      color: '#FFF',
+                      background: isAnalyzingFood || !foodInput.trim() ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                      color: isAnalyzingFood || !foodInput.trim() ? '#94A3B8' : '#FFF',
                       border: 'none',
                       borderRadius: '14px',
                       fontWeight: 800,
@@ -1853,12 +1999,13 @@ export default function Dietician() {
                       justifyContent: 'center',
                       gap: '8px',
                       cursor: isAnalyzingFood || !foodInput.trim() ? 'not-allowed' : 'pointer',
-                      opacity: isAnalyzingFood || !foodInput.trim() ? 0.7 : 1,
+                      boxShadow: isAnalyzingFood || !foodInput.trim() ? 'none' : '0 6px 20px rgba(13, 148, 136, 0.35)',
+                      transition: 'all 0.2s',
                     }}
                   >
                     {isAnalyzingFood ? (
                       <>
-                        <Loader2 size={18} className="spin" /> Analyzing Nutritional Breakdown...
+                        <Loader2 size={18} className="spin" /> Analyzing Precision Nutrition...
                       </>
                     ) : (
                       'Analyze & Log Meal (+2 PTS)'

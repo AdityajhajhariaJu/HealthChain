@@ -17,7 +17,6 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
-import { JarvisCoreOrange } from '../../components/ui/JarvisCoreIconOrange';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 
 export default function JarvisInvestigator() {
@@ -410,15 +409,15 @@ export default function JarvisInvestigator() {
               opacity: isMobile ? 0.4 : 1,
             }}
           >
-            <JarvisCoreOrange size={isMobile ? 135 : 195} />
+            <JarvisCore size={isMobile ? 135 : 195} />
           </div>
           
           <div style={{ position: 'relative', zIndex: 1, maxWidth: isMobile ? '100%' : '65%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#FFEDD5', color: '#EA580C' }}>
+              <div style={{ width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 11, background: '#CCFBF1', color: '#0F766E' }}>
                 <BrainCircuit size={18} />
               </div>
-              <span style={{ color: '#EA580C', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>CLINICAL DATA ENGINE</span>
+              <span style={{ color: '#0F766E', fontWeight: 800, fontSize: 12, letterSpacing: '.8px' }}>CLINICAL DATA ENGINE</span>
             </div>
             
             <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-1px' }}>
@@ -456,7 +455,7 @@ export default function JarvisInvestigator() {
             placeholder="Paste years of notes, symptom timelines, or primary concerns here (Max 800 words)..."
             aria-label="Clinical timeline and symptom notes (maximum 800 words)"
             style={{ width: '100%', height: '180px', padding: '20px', borderRadius: '16px', border: '2px solid #E2E8F0', resize: 'vertical', fontSize: '15px', fontFamily: 'inherit', background: '#F8FAFC', transition: 'border-color 0.2s', outline: 'none' }}
-            onFocus={(e) => e.target.style.borderColor = '#F97316'}
+            onFocus={(e) => e.target.style.borderColor = '#0D9488'}
             onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
           />
           <div style={{ textAlign: 'right', fontSize: '13px', fontWeight: 600, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 800) ? '#EF4444' : '#94A3B8', marginTop: '8px' }}>
@@ -516,20 +515,20 @@ export default function JarvisInvestigator() {
                   : `Cross-Correlating with active background conditions (${profile.conditions.slice(0, 2).map((c: string) => c.split(',')[0]).join(', ')}).`}
               </div>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: isIsolated ? '#EA580C' : '#64748B' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: isIsolated ? '#0F766E' : '#64748B' }}>
               <input
                 type="checkbox"
                 checked={isIsolated}
                 onChange={(e) => setIsIsolated(e.target.checked)}
                 aria-label="Isolate investigation to entered symptoms only"
-                style={{ width: '18px', height: '18px', accentColor: '#EA580C', cursor: 'pointer' }}
+                style={{ width: '18px', height: '18px', accentColor: '#0D9488', cursor: 'pointer' }}
               />
               {isIsolated ? 'Isolated (New Case)' : 'Include Profile'}
             </label>
           </div>
         )}
 
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAnalyze} disabled={!history.trim() && files.length === 0} style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#E2E8F0' : 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: (!history.trim() && files.length === 0) ? '#94A3B8' : '#FFF', borderRadius: '16px', border: 'none', fontSize: '18px', fontWeight: 800, cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(234,88,12,0.3)', transition: 'all 0.2s' }}> <Sparkles size={24} /> Initiate Core Investigation </motion.button>
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAnalyze} disabled={!history.trim() && files.length === 0} style={{ width: '100%', padding: '20px', background: (!history.trim() && files.length === 0) ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: (!history.trim() && files.length === 0) ? '#94A3B8' : '#FFF', borderRadius: '16px', border: 'none', fontSize: '18px', fontWeight: 800, cursor: (!history.trim() && files.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: (!history.trim() && files.length === 0) ? 'none' : '0 10px 25px rgba(13, 148, 136, 0.35)', transition: 'all 0.2s' }}> <Sparkles size={24} /> Initiate Core Investigation </motion.button>
       </div>
       </div>
       </div>

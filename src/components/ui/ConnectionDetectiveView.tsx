@@ -229,7 +229,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             />
             <motion.path
               d="M 350 0 C 350 20, 210 20, 200 36"
-              stroke="#F97316"
+              stroke="#0D9488"
               strokeWidth="2"
               strokeDasharray="4 4"
               animate={{ strokeDashoffset: [20, 0] }}
@@ -497,7 +497,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     flex: 1,
                     padding: '8px 12px',
                     borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFFFFF',
                     border: 'none',
                     fontSize: '12px',
@@ -507,7 +507,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '6px',
-                    boxShadow: '0 3px 10px rgba(255, 107, 74, 0.25)',
+                    boxShadow: '0 3px 10px rgba(13, 148, 136, 0.25)',
                   }}
                 >
                   <Sparkles size={14} /> Inspect in Food Detective
@@ -615,7 +615,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   onOpenFoodDetective();
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '10px',
@@ -628,7 +628,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   gap: '4px',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
-                  boxShadow: '0 3px 10px rgba(255, 107, 74, 0.28)',
+                  boxShadow: '0 3px 10px rgba(13, 148, 136, 0.28)',
                 }}
               >
                 Inspect Foods <ArrowRight size={13} />
@@ -692,11 +692,11 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       gap: '2px',
                       padding: '8px 4px',
                       borderRadius: '12px',
-                      border: isSelected ? '1.5px solid #FF6B4A' : '1px solid transparent',
+                      border: isSelected ? '1.5px solid #0D9488' : '1px solid transparent',
                       background: isSelected ? '#FFFFFF' : 'transparent',
-                      color: isSelected ? '#EA580C' : '#64748B',
+                      color: isSelected ? '#0F766E' : '#64748B',
                       cursor: 'pointer',
-                      boxShadow: isSelected ? '0 2px 8px rgba(234, 88, 12, 0.15)' : 'none',
+                      boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
                     }}
                   >
                     <span style={{ fontSize: '16px' }}>{stage.organIcon}</span>
@@ -726,22 +726,22 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '24px' }}>{cur.organIcon}</span>
+                       <span style={{ fontSize: '24px' }}>{cur.organIcon}</span>
                       <div>
                         <strong style={{ fontSize: '15px', color: '#1C1917', display: 'block' }}>
                           Stage {cur.stage}: {cur.title}
                         </strong>
-                        <span style={{ fontSize: '11.5px', color: '#EA580C', fontWeight: 700 }}>
+                        <span style={{ fontSize: '11.5px', color: '#0F766E', fontWeight: 700 }}>
                           Organ Axis: {cur.organSystem}
                         </span>
                       </div>
                     </div>
-                    <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '999px', background: '#FFEDD5', color: '#C2410C', fontWeight: 800 }}>
+                    <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '999px', background: '#CCFBF1', color: '#0F766E', fontWeight: 800 }}>
                       Step {cur.stage} of 5
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5, background: 'rgba(255,255,255,0.85)', padding: '10px 12px', borderRadius: '12px', border: '1px solid #FED7AA' }}>
+                  <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5, background: 'rgba(255,255,255,0.85)', padding: '10px 12px', borderRadius: '12px', border: '1px solid #99F6E4' }}>
                     <strong>Mechanism:</strong> {cur.mechanism}
                   </div>
 
@@ -808,7 +808,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         padding: '8px 14px',
                         borderRadius: '10px',
                         border: 'none',
-                        background: activeCascadeStage === 5 ? '#E2E8F0' : 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                        background: activeCascadeStage === 5 ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                         color: activeCascadeStage === 5 ? '#94A3B8' : '#FFFFFF',
                         fontSize: '12px',
                         fontWeight: 700,
@@ -816,7 +816,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        boxShadow: activeCascadeStage === 5 ? 'none' : '0 3px 10px rgba(255, 107, 74, 0.28)',
+                        boxShadow: activeCascadeStage === 5 ? 'none' : '0 3px 10px rgba(13, 148, 136, 0.28)',
                       }}
                     >
                       Next Stage <ArrowRight size={13} />

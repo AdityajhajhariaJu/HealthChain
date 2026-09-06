@@ -47,10 +47,10 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
       {/* Top Banner */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)',
+          background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
           borderRadius: '20px',
           padding: '16px 18px',
-          border: '1.5px solid #FCD9C6',
+          border: '1.5px solid #A7F3D0',
           display: 'flex',
           alignItems: 'center',
           gap: '14px',
@@ -61,25 +61,25 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
             width: '42px',
             height: '42px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+            background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#FFFFFF',
-            boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
+            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
             flexShrink: 0,
           }}
         >
           <Sparkles size={20} />
         </div>
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
             AUTONOMIC GUT-BRAIN EQUILIBRIUM
           </div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
             Calm Your Body & Mind, Grow Your Garden
           </div>
-          <div style={{ fontSize: '12.5px', color: '#78716C', marginTop: '2px' }}>
+          <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>
             Every clean meal, breathwork reset, and flare-free day blooms rare flowers and restores gut microbiome serenity.
           </div>
         </div>
@@ -292,13 +292,13 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
               gap: '6px',
               padding: '10px 14px',
               borderRadius: '14px',
-              background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
               color: '#FFFFFF',
               border: 'none',
               fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(255, 107, 74, 0.3)',
+              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
             }}
           >
             <Wind size={16} /> {isBreathingInGarden ? 'Stop Reset' : '4-7-8 Breath'}
@@ -365,7 +365,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
 
           <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
             <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Streak</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#EA580C', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
               🔥 {garden.streakDays}d
             </div>
           </div>

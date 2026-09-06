@@ -135,7 +135,7 @@ export const SuspectFoodsView: React.FC<SuspectFoodsViewProps> = ({ onStartTrial
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 style={{
                   height: '100%',
-                  background: 'linear-gradient(90deg, #FF6B4A 0%, #E11D48 100%)',
+                  background: 'linear-gradient(90deg, #0D9488 0%, #0F766E 100%)',
                   borderRadius: '999px',
                 }}
               />

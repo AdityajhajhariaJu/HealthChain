@@ -982,13 +982,13 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                       style={{
                         padding: '11px',
                         borderRadius: '12px',
-                        background: newName.trim() ? 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)' : '#E2E8F0',
+                        background: newName.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#E2E8F0',
                         color: newName.trim() ? '#FFF' : '#94A3B8',
                         border: 'none',
                         fontWeight: 800,
                         fontSize: '13px',
                         cursor: newName.trim() ? 'pointer' : 'default',
-                        boxShadow: newName.trim() ? '0 4px 12px rgba(234, 88, 12, 0.25)' : 'none'
+                        boxShadow: newName.trim() ? '0 4px 12px rgba(13, 148, 136, 0.25)' : 'none'
                       }}
                     >
                       + Add to Daily Regimen

@@ -341,14 +341,14 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   width: '56px',
                   height: '56px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #FFEFE6 0%, #FED7AA 100%)',
-                  border: '1.5px solid rgba(251, 146, 60, 0.35)',
+                  background: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
+                  border: '1.5px solid rgba(239, 68, 68, 0.35)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#EA580C',
+                  color: '#DC2626',
                   margin: '0 auto 14px',
-                  boxShadow: '0 4px 14px rgba(251, 146, 60, 0.18)'
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.15)'
                 }}>
                   <AlertTriangle size={26} />
                 </div>
@@ -361,19 +361,19 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
                 {/* Tip Box */}
                 <div style={{
-                  background: '#FFF7F2',
-                  border: '1px solid #FCD9C6',
+                  background: '#F0FDFA',
+                  border: '1px solid #CCFBF1',
                   borderRadius: '14px',
                   padding: '10px 14px',
                   fontSize: '12px',
-                  color: '#9A3412',
+                  color: '#0F766E',
                   textAlign: 'left',
                   marginBottom: '18px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <Sparkles size={16} color="#EA580C" style={{ flexShrink: 0 }} />
+                  <Sparkles size={16} color="#0D9488" style={{ flexShrink: 0 }} />
                   <span>Tip: For packaged groceries, aim directly at the <strong>Nutrition Facts</strong> table or product label.</span>
                 </div>
 
@@ -390,7 +390,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       flex: 1,
                       padding: '13px',
                       borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                      background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                       color: '#FFFFFF',
                       border: 'none',
                       fontSize: '14px',
@@ -400,7 +400,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
-                      boxShadow: '0 6px 18px rgba(255, 107, 74, 0.32)'
+                      boxShadow: '0 6px 18px rgba(13, 148, 136, 0.32)'
                     }}
                   >
                     <RefreshCw size={15} /> Try Scanning Again
@@ -563,7 +563,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       <div style={{ fontSize: '15px', fontWeight: 700, color: '#1C1917' }}>{analysis.betterAlternative.name}</div>
                       <div style={{ fontSize: '12px', color: '#78716C', marginTop: '2px' }}>{analysis.betterAlternative.reason}</div>
                     </div>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#FFF2EB', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#EA580C' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '16px', background: '#F0FDFA', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#0D9488' }}>
                       <ArrowRight size={16} />
                     </div>
                   </div>
@@ -580,7 +580,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   }}
                   style={{
                     width: '100%',
-                    background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                     color: '#FFF',
                     border: 'none',
                     padding: '14px',
@@ -592,7 +592,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     justifyContent: 'center',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 6px 20px rgba(255, 107, 74, 0.35)',
+                    boxShadow: '0 6px 20px rgba(13, 148, 136, 0.35)',
                     marginBottom: '10px'
                   }}
                 >

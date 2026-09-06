@@ -30,10 +30,10 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
       {/* Top Banner / Explanation */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #FFF1ED 0%, #FFEBE6 100%)',
+          background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
           borderRadius: '20px',
           padding: '16px 18px',
-          border: '1.5px solid #FCD9C6',
+          border: '1.5px solid #99F6E4',
           display: 'flex',
           alignItems: 'center',
           gap: '14px',
@@ -44,25 +44,25 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
             width: '42px',
             height: '42px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #FF6B4A 0%, #E11D48 100%)',
+            background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#FFFFFF',
-            boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
+            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.28)',
             flexShrink: 0,
           }}
         >
           <Search size={20} />
         </div>
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
             CLINICAL BIOCHEMICAL SCANNER
           </div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
             Food Detective & 18 Sensitivity Lenses
           </div>
-          <div style={{ fontSize: '12.5px', color: '#78716C', marginTop: '2px' }}>
+          <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '2px' }}>
             Look up any food to uncover hidden biogenic amines, fermentable carbs, and tailored safe substitutes.
           </div>
         </div>
@@ -72,7 +72,7 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
       <div style={{ position: 'relative', width: '100%' }}>
         <Search
           size={18}
-          color="#94A3B8"
+          color="#0D9488"
           style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }}
         />
         <input
@@ -85,12 +85,12 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
             width: '100%',
             padding: '14px 16px 14px 44px',
             borderRadius: '999px',
-            border: '1.5px solid #FED7C3',
+            border: '1.5px solid #99F6E4',
             background: '#FFFFFF',
             fontSize: '14px',
             outline: 'none',
             color: '#1E293B',
-            boxShadow: '0 4px 12px rgba(254, 215, 195, 0.25)',
+            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.08)',
             boxSizing: 'border-box',
           }}
         />
@@ -147,10 +147,10 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
               fontWeight: 700,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              border: selectedCategory === cat ? '1.5px solid #FF6B4A' : '1.5px solid #E2E8F0',
-              background: selectedCategory === cat ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : '#FFFFFF',
+              border: selectedCategory === cat ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
+              background: selectedCategory === cat ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
               color: selectedCategory === cat ? '#FFFFFF' : '#64748B',
-              boxShadow: selectedCategory === cat ? '0 2px 8px rgba(255, 107, 74, 0.25)' : 'none',
+              boxShadow: selectedCategory === cat ? '0 2px 8px rgba(13, 148, 136, 0.25)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >
@@ -177,9 +177,9 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
               style={{
                 background: '#FFFFFF',
                 borderRadius: '18px',
-                border: isSelected ? '1.5px solid #FF6B4A' : '1.5px solid #F1F5F9',
+                border: isSelected ? '1.5px solid #0D9488' : '1.5px solid #F1F5F9',
                 padding: '14px 16px',
-                boxShadow: isSelected ? '0 8px 24px rgba(255, 107, 74, 0.12)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
+                boxShadow: isSelected ? '0 8px 24px rgba(13, 148, 136, 0.15)' : '0 2px 8px rgba(0, 0, 0, 0.03)',
                 cursor: 'pointer',
                 transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
               }}
