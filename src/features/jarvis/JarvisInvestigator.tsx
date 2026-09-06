@@ -18,6 +18,7 @@ import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
+import { triggerHapticSelection } from '../../services/haptics';
 
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
@@ -141,7 +142,7 @@ export default function JarvisInvestigator() {
       window.dispatchEvent(new CustomEvent('hc_require_auth', {
         detail: {
           title: 'Authentication Required',
-          message: 'You need to log in or sign up to run a J.A.R.V.I.S. data engine investigation.'
+          message: 'You need to log in or sign up to run a Clinical Data Engine investigation.'
         }
       }));
       return;
@@ -149,7 +150,7 @@ export default function JarvisInvestigator() {
 
     const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
-      openTrialModal('J.A.R.V.I.S. Root-Cause Engine');
+      openTrialModal('Clinical Data Engine');
       return;
     }
 
@@ -171,9 +172,9 @@ export default function JarvisInvestigator() {
       if (result) {
         setReport(result);
         
-        // 1. Create a distinct new case draft for this specific J.A.R.V.I.S. investigation
+        // 1. Create a distinct new case draft for this specific Clinical Data Engine investigation
         const newCase = createCaseDraft({
-          title: `J.A.R.V.I.S.: ${(history || 'Investigation').trim().slice(0, 32)}`,
+          title: `Clinical Data Engine: ${(history || 'Investigation').trim().slice(0, 32)}`,
           intakeData: { chiefComplaint: history || "Data engine investigation" }
         });
         setCreatedCaseId(newCase.id);
@@ -183,14 +184,14 @@ export default function JarvisInvestigator() {
           caseId: newCase.id,
           type: 'jarvis' as any,
           report: result,
-          specialists: ['J.A.R.V.I.S.']
+          specialists: ['Clinical Data Engine']
         });
 
         // 3. Record to Health Memory
         recordHealthMemory({
           kind: 'jarvis_analysis',
           source: 'jarvis_root_cause',
-          title: `J.A.R.V.I.S. Root-Cause: ${(history || 'Investigation').trim().slice(0, 36)}`,
+          title: `Clinical Data Engine: ${(history || 'Investigation').trim().slice(0, 36)}`,
           occurredAt: new Date().toISOString(),
           caseId: newCase.id,
           payload: {
@@ -443,6 +444,63 @@ export default function JarvisInvestigator() {
             <span>Clinical Timeline & Symptoms</span>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', padding: '4px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>Raw Text</span>
           </label>
+
+          {/* 1-Tap Multi-System Clinical Cluster Grid (TriggerBites Micro-Flow) */}
+          <div style={{ marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Sparkles size={13} color="#0D9488" />
+                1-Tap Multi-System Clinical Clusters
+              </span>
+              <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Tap to autofill timeline</span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+              {[
+                { label: 'Brain Fog & Post-Meal Crash', icon: '🧠', text: 'Persistent neurocognitive slowing and marked postprandial fatigue (severe sleepiness within 45 mins of carbohydrates), accompanied by executive dysfunction for 6+ months.' },
+                { label: 'Chronic Fatigue & PEM', icon: '⚡', text: 'Profound unrefreshing sleep with post-exertional malaise crashing 24-48 hours after minor physical activity; normal routine blood work.' },
+                { label: 'Histamine & Flushing', icon: '🔥', text: 'Episodic facial flushing, sudden sinus congestion, and dermatographia triggered by aged cheeses, wine, or high-histamine foods; normal IgE allergy panels.' },
+                { label: 'Tachycardia & POTS', icon: '🫀', text: 'Orthostatic intolerance: sustained heart rate jump of >30 bpm on standing with lightheadedness, blood pooling in lower extremities, and heat intolerance.' },
+                { label: 'Hypermobility & Dysbiosis', icon: '🧬', text: 'Beighton score 6/9 joint hypermobility with chronic refractory constipation/bloating, early satiety, and recurring joint subluxations.' },
+                { label: 'Subclinical Thyroid / Cold', icon: '🩸', text: 'Persistent hypothermia/cold hands and feet, constipation, dry skin, and hair thinning with TSH borderline high and low-normal free T3.' }
+              ].map((cluster, cIdx) => (
+                <button
+                  key={cIdx}
+                  type="button"
+                  onClick={() => {
+                    triggerHapticSelection();
+                    setHistory(prev => prev ? `${prev}\n\n${cluster.text}` : cluster.text);
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    padding: '8px 13px',
+                    borderRadius: '12px',
+                    background: '#F0FDFA',
+                    border: '1px solid #CCFBF1',
+                    color: '#0F766E',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                    boxShadow: '0 1px 3px rgba(13, 148, 136, 0.08)'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = '#CCFBF1';
+                    e.currentTarget.style.borderColor = '#99F6E4';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = '#F0FDFA';
+                    e.currentTarget.style.borderColor = '#CCFBF1';
+                  }}
+                >
+                  <span>{cluster.icon}</span>
+                  <span>{cluster.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <textarea 
             value={history}
             onChange={(e) => {

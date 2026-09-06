@@ -112,13 +112,13 @@ const STEPS = [
 const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; time: string; color: string; bg: string }> = {
   morning: { label: 'Morning', icon: '🌅', time: '08:30', color: '#B45309', bg: '#FEF3C7' },
   midday: { label: 'Midday', icon: '☀️', time: '13:00', color: '#D97706', bg: '#FFFBEB' },
-  evening: { label: 'Evening', icon: '🌇', time: '18:30', color: '#C2410C', bg: '#FFEDD5' },
+  evening: { label: 'Evening', icon: '🌇', time: '18:30', color: '#4F46E5', bg: '#EEF2FF' },
   bedtime: { label: 'Bedtime', icon: '🌙', time: '21:30', color: '#4338CA', bg: '#EEF2FF' },
 };
 
 const ALLERGY_SEVERITY_META: Record<AllergySeverity, { label: string; chipLabel: string; color: string; bg: string; border: string }> = {
   mild: { label: 'Mild', chipLabel: 'Mild / Rash', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A' },
-  moderate: { label: 'Moderate', chipLabel: 'Moderate', color: '#C2410C', bg: '#FFEDD5', border: '#FED7AA' },
+  moderate: { label: 'Moderate', chipLabel: 'Moderate', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A' },
   severe: { label: 'Severe ⚠️', chipLabel: 'Severe / Anaphylaxis ⚠️', color: '#BE123C', bg: '#FFE4E6', border: '#FDA4AF' },
 };
 

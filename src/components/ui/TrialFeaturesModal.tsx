@@ -482,13 +482,13 @@ export function TrialFeaturesModal({
                       width: '36px',
                       height: '36px',
                       borderRadius: '10px',
-                      background: '#FFF7ED',
+                      background: '#F0FDFA',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Pill size={18} color="#EA580C" />
+                    <Pill size={18} color="#0D9488" />
                   </div>
                   <span
                     style={{
@@ -496,9 +496,9 @@ export function TrialFeaturesModal({
                       fontWeight: 700,
                       padding: '3px 8px',
                       borderRadius: '6px',
-                      background: '#FFF7ED',
-                      color: '#C2410C',
-                      border: '1px solid #FED7AA',
+                      background: '#F0FDFA',
+                      color: '#0F766E',
+                      border: '1px solid #99F6E4',
                     }}
                   >
                     Free Always
@@ -519,7 +519,7 @@ export function TrialFeaturesModal({
                   width: '100%',
                   padding: '9px 12px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                   color: '#FFFFFF',
                   border: 'none',
                   fontSize: '13px',
@@ -529,7 +529,7 @@ export function TrialFeaturesModal({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.2)',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)',
                 }}
               >
                 <span>Check Interactions</span>
@@ -557,11 +557,11 @@ export function TrialFeaturesModal({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <Brain size={16} color="#38BDF8" />
                 <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
-                  Ready for the 16-Specialist Board, J.A.R.V.I.S. & All Premium Features?
+                  Ready for the 16-Specialist Board, Clinical Data Engine & All Premium Features?
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0, lineHeight: 1.45 }}>
-                Cross-examine complex symptoms across 16 medical specialties, uncover hidden root causes with J.A.R.V.I.S., analyze full lab scans, and unlock all our highly useful clinical tools with Pro.
+                Cross-examine complex symptoms across 16 medical specialties, uncover hidden root causes with Clinical Data Engine, analyze full lab scans, and unlock all our highly useful clinical tools with Pro.
               </p>
             </div>
 

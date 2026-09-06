@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Plus, X, UploadCloud, CheckCircle2, FileUp } from 'lucide-react';
+import { triggerHapticSelection } from '../../services/haptics';
 
 export function MedicalRecordsBar({ 
   records = [], 
@@ -155,6 +156,53 @@ export function MedicalRecordsBar({
               <p style={{ fontSize: '12px', color: '#64748B', marginBottom: '8px', marginTop: 0 }}>
                 Add only the key findings you want included in your case. AI can help organize them, but a clinician should interpret results in context:
               </p>
+
+              {/* 1-Tap Key Biomarker Finding Chips (TriggerBites Micro-Flow) */}
+              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {[
+                  { label: 'Elevated ESR/CRP', icon: '🩸', text: 'Elevated acute phase reactants: ESR 42 mm/hr, hs-CRP 6.8 mg/L.' },
+                  { label: 'Low Ferritin (<30)', icon: '🧪', text: 'Depleted iron stores: Serum Ferritin 18 ng/mL despite normal hemoglobin.' },
+                  { label: 'Mild Disc Bulge L4-L5', icon: '🩻', text: 'MRI Spine: Mild diffuse posterior disc bulge at L4-L5 indenting thecal sac.' },
+                  { label: 'Elevated TSH (>4.5)', icon: '🛡️', text: 'Subclinical thyroid pattern: TSH 5.4 mIU/L, normal Free T4, elevated Anti-TPO.' },
+                  { label: 'Vitamin D3 (<20)', icon: '🔬', text: 'Moderate 25-OH Vitamin D deficiency: 16.4 ng/mL.' }
+                ].map((chip, cIdx) => (
+                  <button
+                    key={cIdx}
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setFindings(prev => prev ? `${prev}, ${chip.text}` : chip.text);
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      padding: '5px 10px',
+                      borderRadius: '8px',
+                      background: '#F0FDFA',
+                      border: '1px solid #CCFBF1',
+                      color: '#0F766E',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = '#CCFBF1';
+                      e.currentTarget.style.borderColor = '#99F6E4';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = '#F0FDFA';
+                      e.currentTarget.style.borderColor = '#CCFBF1';
+                    }}
+                  >
+                    <span>{chip.icon}</span>
+                    <span>{chip.label}</span>
+                  </button>
+                ))}
+              </div>
+
               <textarea
                 value={findings}
                 onChange={(e) => setFindings(e.target.value)}

@@ -10,8 +10,8 @@ export default function ConsultPage() {
     <div 
       className="consult-page-wrapper"
       style={{
-        background: 'linear-gradient(180deg, #FFF8F4 0%, #FFF2E8 35%, #FDF0E7 100%)',
-        backgroundColor: '#FFF2E8',
+        background: 'linear-gradient(180deg, #F8FAFC 0%, #F0FDFA 40%, #F8FAFC 100%)',
+        backgroundColor: '#F8FAFC',
         minHeight: '100%',
         paddingBottom: '60px',
         margin: '-24px -16px',
@@ -23,8 +23,8 @@ export default function ConsultPage() {
       {/* Distinct ambient color patches for frosted glass refraction */}
       {/* Top Left: Behind Quick Consult (Soft Blue) */}
       <div style={{ position: 'absolute', top: '12%', left: '15%', width: '140px', height: '140px', background: '#DBEAFE', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
-      {/* Middle Right: Near Quick Consult / Divider (Soft Orange/Peach) */}
-      <div style={{ position: 'absolute', top: '35%', right: '12%', width: '130px', height: '130px', background: '#FFEDD5', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
+      {/* Middle Right: Near Quick Consult / Divider (Soft Mint/Teal) */}
+      <div style={{ position: 'absolute', top: '35%', right: '12%', width: '130px', height: '130px', background: '#CCFBF1', borderRadius: '50%', filter: 'blur(40px)', zIndex: 0 }} />
       {/* Deep Collab Top Right: Behind Deep Collab Header (Emerald / Mint) */}
       <div style={{ position: 'absolute', top: '55%', right: '15%', width: '160px', height: '160px', background: '#CCFBF1', borderRadius: '50%', filter: 'blur(45px)', zIndex: 0 }} />
       {/* Deep Collab Left: Behind Deep Collab Stepper (Soft Lavender/Slate) */}
@@ -57,7 +57,7 @@ export default function ConsultPage() {
             gap: '16px'
           }}
         >
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.15))' }} />
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.2))' }} />
           
           <div
             style={{
@@ -66,27 +66,27 @@ export default function ConsultPage() {
               justifyContent: 'center',
               width: '36px',
               height: '36px',
-              background: '#FFF9F0',
+              background: '#F0FDFA',
               borderRadius: '50%',
-              border: '1px solid #FED7AA',
-              boxShadow: '0 2px 6px rgba(253, 186, 116, 0.15)',
+              border: '1px solid #99F6E4',
+              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.12)',
               flexShrink: 0
             }}
           >
             <span
               style={{
-                fontSize: '13px',
+                fontSize: '12px',
                 fontWeight: 800,
-                color: '#EA580C',
+                color: '#0F766E',
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                letterSpacing: '0.8px',
               }}
             >
               OR
             </span>
           </div>
           
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.2))' }} />
         </motion.div>
       </div>
       {/* Deep Consult Section */}

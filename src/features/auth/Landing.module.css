@@ -2014,9 +2014,9 @@
 }
 
 .caseRank1 {
-  background: #FFEDD5;
-  border-color: #FDBA74;
-  color: #C2410C;
+  background: #CCFBF1;
+  border-color: #99F6E4;
+  color: #0F766E;
 }
 
 .caseRank2 {
@@ -2073,9 +2073,9 @@
 }
 
 .caseCardTop1 .caseMatchScore {
-  color: #C2410C;
-  background: #FFEDD5;
-  border-color: #FDBA74;
+  color: #0F766E;
+  background: #CCFBF1;
+  border-color: #99F6E4;
 }
 
 .caseDesc {

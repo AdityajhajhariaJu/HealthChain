@@ -122,7 +122,7 @@ export const InfiniteHealthCanvas = ({ cases }: { cases: any[] }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 {isJarvis ? <BrainCircuit size={16} color="#6366F1" /> : <Activity size={16} color="#10B981" />}
                 <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: isJarvis ? '#6366F1' : '#10B981' }}>
-                  {isJarvis ? 'J.A.R.V.I.S. Investigation' : 'Case Review'}
+                  {isJarvis ? 'Clinical Data Engine' : 'Case Review'}
                 </span>
               </div>
               <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0F172A', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>

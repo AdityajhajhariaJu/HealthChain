@@ -267,8 +267,8 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     timeSlot: 'Midday',
     defaultTime: '13:30',
     category: 'Vitamins & Minerals',
-    color1: '#EA580C',
-    color2: '#FFEDD5',
+    color1: '#D97706',
+    color2: '#FEF3C7',
     iconKind: 'tablet'
   },
   {
@@ -303,8 +303,8 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
     timeSlot: 'Midday',
     defaultTime: '12:30',
     category: 'Vitamins & Minerals',
-    color1: '#F97316',
-    color2: '#FFEDD5',
+    color1: '#D97706',
+    color2: '#FEF3C7',
     iconKind: 'capsule'
   },
 
@@ -466,7 +466,7 @@ const CATEGORIES: PillCategory[] = [
 ];
 
 const CIRCADIAN_ICONS: Record<CircadianSlot, React.ReactNode> = {
-  Morning: <Sun size={13} color="#EA580C" />,
+  Morning: <Sun size={13} color="#D97706" />,
   Midday: <Sun size={13} color="#D97706" />,
   Evening: <Sunset size={13} color="#E11D48" />,
   Bedtime: <Moon size={13} color="#6366F1" />
@@ -813,11 +813,11 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '8px',
-                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.05)'
+                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Bell size={15} color="#EA580C" />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#9A3412' }}>
+                  <Bell size={15} color="#0D9488" />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F766E' }}>
                     Enable device notifications for alarms
                   </span>
                 </div>
@@ -827,7 +827,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   style={{
                     padding: '5px 12px',
                     borderRadius: '8px',
-                    background: '#EA580C',
+                    background: '#0D9488',
                     color: '#FFFFFF',
                     border: 'none',
                     fontSize: '11px',
@@ -852,7 +852,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: '#EA580C',
+                    color: '#0D9488',
                     fontSize: '12px',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -1215,7 +1215,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                               borderRadius: '10px',
                               padding: '4px 8px'
                             }}>
-                              <Clock size={12} color="#EA580C" />
+                              <Clock size={12} color="#0D9488" />
                               <input
                                 type="time"
                                 value={item.time}
@@ -1240,8 +1240,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px',
-                                background: item.enabled ? '#FFEDD5' : '#F5F5F4',
-                                color: item.enabled ? '#C2410C' : '#A8A29E',
+                                background: item.enabled ? '#CCFBF1' : '#F5F5F4',
+                                color: item.enabled ? '#0F766E' : '#A8A29E',
                                 border: 'none',
                                 borderRadius: '10px',
                                 padding: '5px 9px',

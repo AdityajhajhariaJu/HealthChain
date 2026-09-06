@@ -418,7 +418,7 @@ export function saveReviewSnapshot({
       {
         id: id(),
         date: now,
-        label: type === 'jarvis' ? 'J.A.R.V.I.S. Analysis complete' : type === 'parallel' ? 'Parallel review complete' : 'Board consensus reached',
+        label: type === 'jarvis' ? 'Clinical Data Engine Analysis complete' : type === 'parallel' ? 'Parallel review complete' : 'Board consensus reached',
         note: 'New specialist findings were added to this active case.',
       },
       ...(existing.events || []),
@@ -431,7 +431,7 @@ export function saveReviewSnapshot({
   recordHealthMemory({
     kind: type === 'mdt' ? 'deep_collab' : type === 'jarvis' ? 'research' : 'quick_consult',
     source: type === 'mdt' ? 'deep_collab' : type === 'jarvis' ? 'jarvis' : 'quick_consult',
-    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : type === 'jarvis' ? `J.A.R.V.I.S.: ${updated.title}` : `Quick Consult: ${updated.title}`,
+    title: type === 'mdt' ? `Collaborative brief: ${updated.title}` : type === 'jarvis' ? `Clinical Data Engine: ${updated.title}` : `Quick Consult: ${updated.title}`,
     occurredAt: now,
     caseId,
     // The complete transcript remains in the case. Health Memory keeps the concise result users need over years.
@@ -450,7 +450,7 @@ export function backfillCaseHealthMemory() {
       id: review.id,
       kind: review.type === 'mdt' ? 'deep_collab' : review.type === 'jarvis' ? 'research' : 'quick_consult',
       source: review.type === 'mdt' ? 'deep_collab' : review.type === 'jarvis' ? 'jarvis' : 'quick_consult',
-      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : review.type === 'jarvis' ? `J.A.R.V.I.S.: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
+      title: review.type === 'mdt' ? `Collaborative brief: ${caseItem.title}` : review.type === 'jarvis' ? `Clinical Data Engine: ${caseItem.title}` : `Quick Consult: ${caseItem.title}`,
       occurredAt: review.createdAt,
       caseId: caseItem.id,
       payload: { report: review.report, readiness: review.readiness, specialists: review.specialists, reviewId: review.id },

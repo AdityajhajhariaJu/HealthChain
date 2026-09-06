@@ -60,6 +60,7 @@ import { AgentOrbit } from '../../components/ui/LiveOrbitIcon';
 import { addEvent, addActionItems, addCondition } from '../../services/ProfileEngine';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { triggerHapticSelection } from '../../services/haptics';
 
 export function Step({ icon: Icon, label, active, completed, isMobile }: any) {
   const isHighlighted = active || completed;
@@ -465,6 +466,62 @@ New Information / Changes in Symptoms since last evaluation:
         {/* Start Fresh Case (Now Primary) */}
         <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* 1-Tap Complex Case Starters (TriggerBites Micro-Flow) */}
+            <div style={{ marginBottom: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Sparkles size={13} color="#0D9488" />
+                  1-Tap Clinical Starters
+                </span>
+                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Tap to autofill</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {[
+                  { label: 'Joint Stiffness', icon: '🩺', text: 'Experiencing bilateral small joint stiffness for >45 minutes each morning, fatigue, and intermittent low-grade fevers for 8 weeks.' },
+                  { label: 'Fatigue & Crash', icon: '⚡', text: 'Severe unrefreshing sleep and post-exertional malaise crashing 24-48 hours after minor physical activity, with cognitive sluggishness.' },
+                  { label: 'Palpitations & POTS', icon: '🫀', text: 'Resting tachycardia and lightheadedness when transitioning from lying to standing, accompanied by shortness of breath.' },
+                  { label: 'Flushing & Hives', icon: '🧬', text: 'Recurrent dermatographia, facial flushing after meals or temperature changes, accompanied by abdominal cramping.' },
+                  { label: 'Brain Fog', icon: '🧠', text: 'Progressive cognitive slowing, word-finding difficulty, and severe afternoon concentration lapses despite 8+ hours of sleep.' }
+                ].map((starter, sIdx) => (
+                  <button
+                    key={sIdx}
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setComplaint(prev => prev ? `${prev}\n\n${starter.text}` : starter.text);
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      padding: '7px 12px',
+                      borderRadius: '10px',
+                      background: '#F0FDFA',
+                      border: '1px solid #CCFBF1',
+                      color: '#0F766E',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease',
+                      boxShadow: '0 1px 3px rgba(13, 148, 136, 0.08)'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = '#CCFBF1';
+                      e.currentTarget.style.borderColor = '#99F6E4';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = '#F0FDFA';
+                      e.currentTarget.style.borderColor = '#CCFBF1';
+                    }}
+                  >
+                    <span>{starter.icon}</span>
+                    <span>{starter.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div style={{ position: 'relative' }}>
               <textarea maxLength={3000}
                 value={complaint}

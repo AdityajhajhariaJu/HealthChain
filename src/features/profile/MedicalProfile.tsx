@@ -943,9 +943,9 @@ export default function MedicalProfile() {
                       gap: '4px',
                       padding: '2px 8px',
                       borderRadius: '999px',
-                      background: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '#ECFDF5' : '#FFF7ED',
-                      color: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '#065F46' : '#C2410C',
-                      border: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '1px solid #A7F3D0' : '1px solid #FED7AA',
+                      background: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '#ECFDF5' : '#FEF3C7',
+                      color: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '#065F46' : '#B45309',
+                      border: profile.demographics.bmiCategory === 'Normal' || profile.demographics.bmiCategory === 'Normal Weight' ? '1px solid #A7F3D0' : '1px solid #FDE68A',
                       fontWeight: 700,
                       fontSize: '12px'
                     }}>
@@ -1079,9 +1079,9 @@ export default function MedicalProfile() {
                       gap: '8px',
                       alignItems: 'center',
                       whiteSpace: 'nowrap',
-                      background: isSevere ? '#FFE4E6' : '#FFEDD5',
-                      color: isSevere ? '#BE123C' : '#C2410C',
-                      border: isSevere ? '1px solid #FDA4AF' : '1px solid #FED7AA'
+                      background: isSevere ? '#FFE4E6' : '#FEF3C7',
+                      color: isSevere ? '#BE123C' : '#B45309',
+                      border: isSevere ? '1px solid #FDA4AF' : '1px solid #FDE68A'
                     }}
                   >
                     <AlertTriangle size={15} />

@@ -405,11 +405,11 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     width: '38px',
                     height: '38px',
                     borderRadius: '50%',
-                    background: '#FFEDD5',
+                    background: '#E0F2FE',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#EA580C'
+                    color: '#0284C7'
                   }}>
                     <Droplet size={19} />
                   </div>

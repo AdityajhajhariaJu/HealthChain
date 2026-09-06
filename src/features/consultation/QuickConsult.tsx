@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { JarvisCoreOrange } from '../../components/ui/JarvisCoreIconOrange';
+import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Stethoscope, 
@@ -432,7 +432,7 @@ export default function QuickConsult() {
               pointerEvents: 'none',
               opacity: isMobile ? 0.3 : 0.8,
             }}>
-              <JarvisCoreOrange size={isMobile ? 180 : 250} />
+              <JarvisCore size={isMobile ? 180 : 250} />
             </div>
             
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
@@ -443,20 +443,20 @@ export default function QuickConsult() {
                     alignItems: 'center',
                     gap: '8px',
                     marginBottom: '12px',
-                    padding: '6px 12px',
-                    background: 'rgba(255, 255, 255, 0.25)',
+                    padding: '6px 14px',
+                    background: '#CCFBF1',
                     backdropFilter: 'blur(10px)',
                     borderRadius: '999px',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+                    border: '1px solid #99F6E4',
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.1)',
                   }}
                 >
-                  <Stethoscope size={14} color="#EA580C" />
+                  <Stethoscope size={14} color="#0F766E" />
                   <span
                     style={{
                       fontSize: '11px',
                       fontWeight: 800,
-                      color: '#EA580C',
+                      color: '#0F766E',
                       textTransform: 'uppercase',
                       letterSpacing: '1px',
                     }}
@@ -533,9 +533,9 @@ export default function QuickConsult() {
                         width: '120px',
                         padding: '12px',
                         borderRadius: '16px',
-                        border: `1.5px solid ${isSelected ? '#FED7AA' : '#E2E8F0'}`,
+                        border: `1.5px solid ${isSelected ? '#0D9488' : '#E2E8F0'}`,
                         background: isSelected 
-                          ? '#FFF9F0' 
+                          ? '#F0FDFA' 
                           : '#FFFFFF',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
@@ -543,7 +543,7 @@ export default function QuickConsult() {
                         flexDirection: 'column',
                         alignItems: 'flex-start',
                         boxShadow: isSelected 
-                          ? '0 8px 16px rgba(253, 186, 116, 0.15)' 
+                          ? '0 8px 16px rgba(13, 148, 136, 0.18)' 
                           : '0 2px 6px rgba(0,0,0,0.02)'
                       }}
                       onMouseOver={(e) => { 
@@ -572,8 +572,8 @@ export default function QuickConsult() {
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center', 
-                            background: isSelected ? 'linear-gradient(135deg, #FDBA74 0%, #FED7AA 100%)' : s.bg, 
-                            color: isSelected ? '#9A3412' : s.color,
+                            background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : s.bg, 
+                            color: isSelected ? '#FFFFFF' : s.color,
                             boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 6px rgba(0,0,0,0.04)'
                           }}
                         >

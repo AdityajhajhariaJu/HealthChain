@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users, AlertTriangle } from 'lucide-react';
+import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -284,13 +284,13 @@ export default function MyCases() {
             let IconComponent = Users;
 
             if (isJarvis) {
-              badgeBg = '#FFEDD5';
-              badgeColor = '#C2410C';
-              badgeBorder = '#FED7AA';
-              badgeLabel = 'J.A.R.V.I.S. Investigation';
-              iconBg = '#FFEDD5';
-              iconColor = '#EA580C';
-              IconComponent = Sparkles;
+              badgeBg = '#CCFBF1';
+              badgeColor = '#0F766E';
+              badgeBorder = '#99F6E4';
+              badgeLabel = 'Clinical Data Engine';
+              iconBg = '#CCFBF1';
+              iconColor = '#0D9488';
+              IconComponent = BrainCircuit;
             } else if (isQuick) {
               badgeBg = '#EFF6FF';
               badgeColor = '#1D4ED8';

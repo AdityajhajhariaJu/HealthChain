@@ -117,12 +117,12 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       <div
         style={{
           position: 'relative',
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 55%, #FFEDD5 100%)',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 55%, #CCFBF1 100%)',
           borderRadius: '24px',
           padding: isMobile ? '18px 16px' : '22px 24px',
-          color: '#1C1917',
-          border: '1.5px solid #FCD9C6',
-          boxShadow: '0 12px 32px rgba(249, 115, 22, 0.08)',
+          color: '#0F172A',
+          border: '1.5px solid #99F6E4',
+          boxShadow: '0 12px 32px rgba(13, 148, 136, 0.08)',
           overflow: 'hidden',
         }}
       >
@@ -651,7 +651,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             }}
           >
             <div style={{ marginBottom: '14px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                 THE ROOT-CAUSE DOMINO EFFECT
               </span>
               <h4 style={{ margin: '2px 0 0 0', fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>

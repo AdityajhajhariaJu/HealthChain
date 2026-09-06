@@ -79,7 +79,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
               const isJarvis = review.type === 'jarvis';
               const isLab = review.type === 'lab_report';
               const Icon = isJarvis ? BrainCircuit : isLab ? FileText : isParallel ? GitMerge : Network;
-              const label = isJarvis ? 'J.A.R.V.I.S. Analysis' : isLab ? 'Lab Report' : isParallel ? 'Quick Consult' : 'Deep Collab Correlation';
+              const label = isJarvis ? 'Clinical Data Engine Analysis' : isLab ? 'Lab Report' : isParallel ? 'Quick Consult' : 'Deep Collab Correlation';
               const summary = review.report?.executiveSummary || 'Review saved to case.';
               const isSelected = activeReviewId === review.id;
 

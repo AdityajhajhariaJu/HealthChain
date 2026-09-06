@@ -254,7 +254,7 @@ export default function Dietician() {
       triggers.push({ label: 'Histamine/Amines', icon: '🍷', color: '#B45309', bg: '#FEF3C7' });
     }
     if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) {
-      triggers.push({ label: 'Gluten / Wheat', icon: '🌾', color: '#C2410C', bg: '#FFEDD5' });
+      triggers.push({ label: 'Gluten / Wheat', icon: '🌾', color: '#B45309', bg: '#FEF3C7' });
     }
     if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) {
       triggers.push({ label: 'Dairy / Lactose', icon: '🥛', color: '#0369A1', bg: '#E0F2FE' });
@@ -263,7 +263,7 @@ export default function Dietician() {
       triggers.push({ label: 'Caffeine Active', icon: '☕', color: '#4338CA', bg: '#EEF2FF' });
     }
     if (text.includes('onion') || text.includes('garlic') || text.includes('apple') || text.includes('beans') || text.includes('chickpea')) {
-      triggers.push({ label: 'High FODMAP', icon: '🧄', color: '#7C2D12', bg: '#FFEDD5' });
+      triggers.push({ label: 'High FODMAP', icon: '🧄', color: '#7C3AED', bg: '#F5F3FF' });
     }
     return triggers;
   }, [foodInput]);

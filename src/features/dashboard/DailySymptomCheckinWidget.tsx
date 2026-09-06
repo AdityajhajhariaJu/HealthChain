@@ -217,18 +217,18 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
-              background: streakDays > 0 ? '#FFF7ED' : '#F8FAFC',
-              border: `1px solid ${streakDays > 0 ? '#FED7AA' : '#E2E8F0'}`,
+              background: streakDays > 0 ? '#FEF3C7' : '#F8FAFC',
+              border: `1px solid ${streakDays > 0 ? '#FDE68A' : '#E2E8F0'}`,
               padding: '3px 9px',
               borderRadius: '999px',
               fontSize: '11px',
               fontWeight: 700,
-              color: streakDays > 0 ? '#C2410C' : '#64748B',
+              color: streakDays > 0 ? '#B45309' : '#64748B',
               flexShrink: 0,
               whiteSpace: 'nowrap',
             }}
           >
-            <Flame size={12} color={streakDays > 0 ? '#EA580C' : '#94A3B8'} />
+            <Flame size={12} color={streakDays > 0 ? '#D97706' : '#94A3B8'} />
             <span style={{ whiteSpace: 'nowrap' }}>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
           </div>
 

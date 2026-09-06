@@ -311,8 +311,8 @@ export default function CasePrep() {
           </ul>
         </section>
         
-        <section style={{ background: '#fff7ed', border: '1px solid #fed7aa', padding: 16, borderRadius: 12, display: 'flex', gap: 12, fontSize: 13, color: '#9a3412', lineHeight: 1.5 }}>
-          <AlertCircle size={20} style={{ flexShrink: 0 }} />
+        <section style={{ background: '#F0FDFA', border: '1px solid #99F6E4', padding: 16, borderRadius: 12, display: 'flex', gap: 12, fontSize: 13, color: '#0F766E', lineHeight: 1.5 }}>
+          <AlertCircle size={20} color="#0D9488" style={{ flexShrink: 0 }} />
           <div>{brief.safetyNotice || 'This brief is prepared for educational and doctor-discussion purposes only.'}</div>
         </section>
       </div>

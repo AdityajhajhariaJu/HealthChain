@@ -16,7 +16,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string
   gastrointestinal: { bg: '#ECFDF5', border: '#A7F3D0', text: '#065F46', dot: '#059669' },
   vascular: { bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', dot: '#7C3AED' },
   neuro: { bg: '#F0F9FF', border: '#BAE6FD', text: '#075985', dot: '#0284C7' },
-  inflammatory: { bg: '#FFF7ED', border: '#FED7AA', text: '#9A3412', dot: '#EA580C' },
+  inflammatory: { bg: '#FFF1F2', border: '#FECDD3', text: '#9F1239', dot: '#E11D48' },
 };
 
 const SYMPTOM_ICONS: Record<string, string> = {
@@ -250,7 +250,7 @@ export function CaseConnectionMap({
             <linearGradient id="edge-flow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#F43F5E" />
               <stop offset="50%" stopColor="#FB7185" />
-              <stop offset="100%" stopColor="#F97316" />
+              <stop offset="100%" stopColor="#0D9488" />
             </linearGradient>
           </defs>
 

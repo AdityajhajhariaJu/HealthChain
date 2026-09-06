@@ -662,18 +662,18 @@ useEffect(() => {
               gap: '8px',
               marginBottom: '12px',
               padding: '6px 14px',
-              background: 'rgba(255, 255, 255, 0.45)',
+              background: '#CCFBF1',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
               borderRadius: '999px',
-              border: '1px solid rgba(255, 255, 255, 0.8)',
-              boxShadow: '0 4px 12px rgba(234, 88, 12, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              border: '1px solid #99F6E4',
+              boxShadow: '0 4px 12px rgba(13, 148, 136, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
               position: 'relative',
               zIndex: 1
             }}
           >
-            <NetworkHubIcon size={16} color="#EA580C" />
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <NetworkHubIcon size={16} color="#0F766E" />
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '1px' }}>
               Collaborative Board
             </span>
           </div>

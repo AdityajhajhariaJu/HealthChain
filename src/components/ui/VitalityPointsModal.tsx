@@ -423,12 +423,12 @@ export default function VitalityPointsModal() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFF7ED', color: '#EA580C', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Zap size={18} />
                     </div>
                     <div>
                       <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>Start a Specialist Consult</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>Quick consult or J.A.R.V.I.S. investigation</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>Quick consult or Clinical Data Engine session</div>
                     </div>
                   </div>
                   <button onClick={() => handleQuestAction('/app/consult')} className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>
