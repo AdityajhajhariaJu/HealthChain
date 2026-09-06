@@ -1141,3 +1141,513 @@ export function evaluateSymptomCluster(selectedIds: string[]): {
   };
 }
 
+// ─────────────────────────────────────────────────────────────
+// 5. DUAL-BAND OPTIMAL FUNCTIONAL LAB BIOMARKERS ENGINE
+// ─────────────────────────────────────────────────────────────
+export interface FunctionalBiomarker {
+  id: string;
+  name: string;
+  category: 'metabolic' | 'endocrine' | 'immune' | 'enteric' | 'neuromuscular';
+  categoryLabel: string;
+  categoryIcon: string;
+  standardRange: { min: number; max: number; unit: string; label: string };
+  optimalRange: { min: number; max: number; unit: string; label: string };
+  userValue: number;
+  userUnit: string;
+  status: 'critical_low' | 'suboptimal_low' | 'optimal' | 'suboptimal_high' | 'critical_high';
+  clinicalSummary: string;
+  whyDoctorsMissIt: string;
+  actionableDietaryCofactors: string[];
+  retestTimeline: string;
+}
+
+export function getFunctionalBiomarkers(): FunctionalBiomarker[] {
+  return [
+    {
+      id: 'ferritin',
+      name: 'Serum Ferritin (Storage Iron)',
+      category: 'metabolic',
+      categoryLabel: 'Cellular Energetics',
+      categoryIcon: '⚡',
+      standardRange: { min: 12, max: 150, unit: 'ng/mL', label: '12 – 150 ng/mL' },
+      optimalRange: { min: 50, max: 90, unit: 'ng/mL', label: '50 – 90 ng/mL' },
+      userValue: 14,
+      userUnit: 'ng/mL',
+      status: 'suboptimal_low',
+      clinicalSummary:
+        'While hemoglobin (13.8 g/dL) is normal, bone marrow iron stores are critically depleted. Mitochondrial electron transport chain complexes I and IV starve for heme iron, causing relentless midday fatigue and cognitive latency.',
+      whyDoctorsMissIt:
+        'Standard primary care orders Hemoglobin or Serum Iron only. Ferritin between 12-49 ng/mL is marked "Normal" by automated hospital software despite profound intracellular mitochondrial starvation.',
+      actionableDietaryCofactors: [
+        'Heme Iron (Pasture-Raised Liver/Poultry) or Iron Bisglycinate with 200mg Vitamin C',
+        'Avoid calcium supplements, tea, and coffee within 2 hours of iron-rich meals (tannin chelation)',
+        'Lactoferrin 100mg to improve iron absorption across duodenal enterocytes',
+      ],
+      retestTimeline: 'Retest Ferritin & Total Iron Binding Capacity in 8 weeks.',
+    },
+    {
+      id: 'tsh',
+      name: 'Thyroid Stimulating Hormone (TSH)',
+      category: 'endocrine',
+      categoryLabel: 'Thyroid Axis',
+      categoryIcon: '🦋',
+      standardRange: { min: 0.45, max: 4.5, unit: 'mIU/L', label: '0.45 – 4.5 mIU/L' },
+      optimalRange: { min: 1.0, max: 2.0, unit: 'mIU/L', label: '1.0 – 2.0 mIU/L' },
+      userValue: 3.2,
+      userUnit: 'mIU/L',
+      status: 'suboptimal_high',
+      clinicalSummary:
+        'TSH of 3.2 mIU/L indicates the pituitary is shouting at the thyroid gland. Early compensatory stress slows colonic peristalsis, reduces stomach acid secretion (hypochlorhydria), and induces peripheral cold sensitivity.',
+      whyDoctorsMissIt:
+        'Labs use a wide statistical reference range up to 4.5 mIU/L that includes individuals with early asymptomatic Hashimoto thyroiditis. Symptoms frequently emerge above 2.5 mIU/L.',
+      actionableDietaryCofactors: [
+        'Selenium (200 mcg from 2 Brazil nuts daily) to facilitate deiodinase T4 to T3 conversion',
+        'Zinc Glycinate 25mg and Tyrosine 500mg',
+        'Check Anti-TPO and Anti-Thyroglobulin antibodies to rule out early autoimmune thyroiditis',
+      ],
+      retestTimeline: 'Retest Full Thyroid Panel (TSH, Free T3, Free T4, Anti-TPO) in 12 weeks.',
+    },
+    {
+      id: 'free_t3',
+      name: 'Free Triiodothyronine (Free T3)',
+      category: 'endocrine',
+      categoryLabel: 'Metabolic Active Hormone',
+      categoryIcon: '🔥',
+      standardRange: { min: 2.0, max: 4.4, unit: 'pg/mL', label: '2.0 – 4.4 pg/mL' },
+      optimalRange: { min: 3.2, max: 4.2, unit: 'pg/mL', label: '3.2 – 4.2 pg/mL' },
+      userValue: 2.4,
+      userUnit: 'pg/mL',
+      status: 'suboptimal_low',
+      clinicalSummary:
+        'Free T3 is the active nuclear transcription driver for basal metabolic rate. Low-normal levels represent impaired peripheral conversion in the liver and gut mucosa, often suppressed by low ferritin or chronic gut endotoxemia.',
+      whyDoctorsMissIt:
+        '90% of routine clinical visits order TSH only. Free T3 is omitted, leaving cellular hypothyroidism entirely undetected.',
+      actionableDietaryCofactors: [
+        'Heal gut mucosal lining to restore enteric 5′-deiodinase enzyme activity',
+        'Ensure adequate carbohydrate intake (>120g/day) to prevent cortisol-driven reverse T3 pooling',
+        'Ashwagandha KSM-66 (300mg) for hypothalamic-pituitary-thyroid axis sensitization',
+      ],
+      retestTimeline: 'Retest alongside TSH and Reverse T3 in 8 weeks.',
+    },
+    {
+      id: 'vitamin_d3',
+      name: '25-Hydroxy Vitamin D3',
+      category: 'immune',
+      categoryLabel: 'Immunomodulation & Barrier',
+      categoryIcon: '☀️',
+      standardRange: { min: 20, max: 100, unit: 'ng/mL', label: '20 – 100 ng/mL' },
+      optimalRange: { min: 50, max: 80, unit: 'ng/mL', label: '50 – 80 ng/mL' },
+      userValue: 26,
+      userUnit: 'ng/mL',
+      status: 'suboptimal_low',
+      clinicalSummary:
+        'At 26 ng/mL, the nuclear vitamin D receptor (VDR) is insufficiently activated. Intestinal epithelial claudin tight junctions become hyperpermeable, and regulatory T-cell (Treg) induction drops, fostering histamine hypersensitivity.',
+      whyDoctorsMissIt:
+        'Standard lab cutoff is set at 20 or 30 ng/mL purely to prevent bone rickets. Optimal immune tolerance and gut barrier integrity require > 50 ng/mL.',
+      actionableDietaryCofactors: [
+        'Vitamin D3 (5,000 IU) emulsified with Vitamin K2 (MK-7 100 mcg) taken with fat-containing breakfast',
+        'Magnesium Glycinate 300mg at night (Magnesium is mandatory cofactor for hepatic 25-hydroxylase)',
+      ],
+      retestTimeline: 'Retest 25-OH Vitamin D3 in 10 weeks.',
+    },
+    {
+      id: 'vitamin_b12',
+      name: 'Active Vitamin B12 (Cobalamin)',
+      category: 'neuromuscular',
+      categoryLabel: 'Myelin & Neurological Axis',
+      categoryIcon: '🧠',
+      standardRange: { min: 200, max: 900, unit: 'pg/mL', label: '200 – 900 pg/mL' },
+      optimalRange: { min: 500, max: 1000, unit: 'pg/mL', label: '500 – 1000 pg/mL' },
+      userValue: 280,
+      userUnit: 'pg/mL',
+      status: 'suboptimal_low',
+      clinicalSummary:
+        'Values between 200-400 pg/mL fall into the neurological "grey-zone". Axonal myelin sheath maintenance is compromised, provoking autonomic orthostatic dizziness, paresthesias, and slower neural conduction.',
+      whyDoctorsMissIt:
+        'Labs flag deficiency only under 200 pg/mL. Japanese neurological guidelines mandate treatment below 500 pg/mL to prevent irreversible peripheral neuropathy.',
+      actionableDietaryCofactors: [
+        'Sublingual Methylcobalamin + Adenosylcobalamin 1000 mcg',
+        'Avoid concurrent antacids/PPIs that inhibit gastric parietal intrinsic factor secretion',
+      ],
+      retestTimeline: 'Retest B12 + Methylmalonic Acid (MMA) in 8 weeks.',
+    },
+    {
+      id: 'fasting_insulin',
+      name: 'Fasting Serum Insulin',
+      category: 'metabolic',
+      categoryLabel: 'Glycemic & Vascular Axis',
+      categoryIcon: '🩸',
+      standardRange: { min: 2.6, max: 24.9, unit: 'µIU/mL', label: '2.6 – 24.9 µIU/mL' },
+      optimalRange: { min: 2.0, max: 5.5, unit: 'µIU/mL', label: '2.0 – 5.5 µIU/mL' },
+      userValue: 12.4,
+      userUnit: 'µIU/mL',
+      status: 'suboptimal_high',
+      clinicalSummary:
+        'Fasting insulin of 12.4 µIU/mL signals moderate hyperinsulinemia. The pancreas must oversecrete insulin to maintain a "normal" fasting glucose (92 mg/dL), driving postprandial reactive hypoglycemic brain fog.',
+      whyDoctorsMissIt:
+        'Standard lab cutoff allows up to 24.9 µIU/mL. Elevated fasting insulin precedes abnormal fasting glucose or HbA1c by 7 to 10 years.',
+      actionableDietaryCofactors: [
+        'Chromium Picolinate (200 mcg) + Berberine HCL 500mg prior to carbohydrate meals',
+        '10-minute post-meal brisk walking to activate GLUT4 non-insulin glucose translocation in skeletal muscle',
+      ],
+      retestTimeline: 'Retest Fasting Insulin & Glucose (HOMA-IR calculation) in 12 weeks.',
+    },
+    {
+      id: 'hs_crp',
+      name: 'High-Sensitivity C-Reactive Protein',
+      category: 'immune',
+      categoryLabel: 'Systemic Endothelial Health',
+      categoryIcon: '🛡️',
+      standardRange: { min: 0.1, max: 3.0, unit: 'mg/L', label: '< 3.0 mg/L' },
+      optimalRange: { min: 0.05, max: 0.5, unit: 'mg/L', label: '< 0.5 mg/L' },
+      userValue: 1.8,
+      userUnit: 'mg/L',
+      status: 'suboptimal_high',
+      clinicalSummary:
+        'hs-CRP of 1.8 mg/L represents low-grade smoldering vascular inflammation. It correlates with endothelial shear sensitivity, cerebral microvascular reactivity, and amplified histamine response.',
+      whyDoctorsMissIt:
+        'Clinics view <3.0 mg/L as "average cardiovascular risk" and ignore values between 1.0-3.0 mg/L as clinically insignificant.',
+      actionableDietaryCofactors: [
+        'Omega-3 EPA/DHA (2,000 mg pure triglyceride form)',
+        'Curcumin phytosome (Meriva 500mg) with black pepper piperine',
+        'Elimination of pro-inflammatory refined seed oils (soybean, cottonseed, corn oil)',
+      ],
+      retestTimeline: 'Retest hs-CRP alongside Lipid Panel in 8 weeks.',
+    },
+    {
+      id: 'homocysteine',
+      name: 'Serum Homocysteine',
+      category: 'metabolic',
+      categoryLabel: 'Methylation & Vascular Shear',
+      categoryIcon: '🧬',
+      standardRange: { min: 4.0, max: 15.0, unit: 'µmol/L', label: '< 15.0 µmol/L' },
+      optimalRange: { min: 6.0, max: 8.0, unit: 'µmol/L', label: '6.0 – 8.0 µmol/L' },
+      userValue: 11.8,
+      userUnit: 'µmol/L',
+      status: 'suboptimal_high',
+      clinicalSummary:
+        'Homocysteine > 10 µmol/L indicates impaired methylation cycle (often heterozygous MTHFR C677T variant). Free homocysteine causes endothelial nitric oxide uncoupling and cranial arteriolar irritability.',
+      whyDoctorsMissIt:
+        'Hospital labs only flag hyperhomocysteinemia at > 15 µmol/L, ignoring neurovascular risk and migraine susceptibility between 9-14 µmol/L.',
+      actionableDietaryCofactors: [
+        'Active L-Methylfolate (5-MTHF 800 mcg) + Pyridoxal-5-Phosphate (Active B6 25mg)',
+        'Trimethylglycine (TMG / Betaine anhydrous 500mg) to support alternate BHMT remethylation',
+      ],
+      retestTimeline: 'Retest Homocysteine in 8 weeks.',
+    },
+    {
+      id: 'dao_activity',
+      name: 'Diamine Oxidase (DAO) Activity',
+      category: 'enteric',
+      categoryLabel: 'Biogenic Amine Clearance',
+      categoryIcon: '🧪',
+      standardRange: { min: 10.0, max: 30.0, unit: 'U/mL', label: '> 10.0 U/mL' },
+      optimalRange: { min: 15.0, max: 30.0, unit: 'U/mL', label: '> 15.0 U/mL' },
+      userValue: 6.8,
+      userUnit: 'U/mL',
+      status: 'critical_low',
+      clinicalSummary:
+        'Severe DAO deficiency (<10 U/mL). Intestinal mucosal enterocytes cannot degrade dietary histamine, causing biogenic amines from achaar, curd, and aged foods to enter portal circulation and provoke palpitations, flushing, and migraines.',
+      whyDoctorsMissIt:
+        'Conventional gastroenterology rarely runs serum DAO assays, frequently misdiagnosing amine intolerance as irritable bowel syndrome (IBS) or anxiety neurosis.',
+      actionableDietaryCofactors: [
+        'Supplemental Diamine Oxidase enzyme capsules taken 15 minutes prior to histamine-containing meals',
+        'Vitamin B6 (P5P), Vitamin C, and Copper (essential enzyme cofactors for endogenous DAO synthesis)',
+        '28-Day Histamine & Mast Cell Hunt protocol',
+      ],
+      retestTimeline: 'Retest Serum DAO Activity after 6 weeks on low-amine protocol.',
+    },
+    {
+      id: 'rbc_magnesium',
+      name: 'RBC (Red Blood Cell) Magnesium',
+      category: 'neuromuscular',
+      categoryLabel: 'Cellular Neuromuscular Tone',
+      categoryIcon: '💎',
+      standardRange: { min: 1.7, max: 2.4, unit: 'mg/dL', label: '1.7 – 2.4 (Serum)' },
+      optimalRange: { min: 6.0, max: 6.8, unit: 'mg/dL', label: '6.0 – 6.8 mg/dL (RBC)' },
+      userValue: 4.4,
+      userUnit: 'mg/dL',
+      status: 'suboptimal_low',
+      clinicalSummary:
+        'Only 1% of total body magnesium resides in serum. RBC magnesium reflects true intracellular reserves. Low intracellular magnesium promotes suboccipital myofascial trigger bands, calf cramps, and cardiac ventricular hyper-excitability.',
+      whyDoctorsMissIt:
+        'Standard chemistry panels measure Serum Magnesium only. The body aggressively mobilizes magnesium from bones and red cells to keep serum levels constant until end-stage exhaustion.',
+      actionableDietaryCofactors: [
+        'Magnesium Malate (200mg morning for cellular Krebs cycle) + Magnesium Glycinate (200mg night)',
+        'Epsom salt (Magnesium sulfate) transdermal foot soaks twice weekly',
+        'Pumpkin seeds (pepitas) and leafy green moringa leaves',
+      ],
+      retestTimeline: 'Retest RBC Magnesium in 10 weeks.',
+    },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// 6. MULTI-SYSTEM KINETIC CHAIN BIOMECHANICS ENGINE
+// ─────────────────────────────────────────────────────────────
+export interface KineticChainPathway {
+  id: string;
+  title: string;
+  axisName: string;
+  icon: string;
+  color: string;
+  primarySymptom: string;
+  hiddenOrigin: string;
+  pathwaySteps: {
+    order: number;
+    structure: string;
+    anatomicalLocation: string;
+    biomechanicalTension: string;
+    sensoryReferral: string;
+  }[];
+  palpationSign: string;
+  correctiveProtocol: {
+    title: string;
+    durationSeconds: number;
+    steps: string[];
+    clinicalOutcome: string;
+  };
+}
+
+export function getKineticChainPathways(): KineticChainPathway[] {
+  return [
+    {
+      id: 'chain_craniosacral',
+      title: 'Craniosacral Dural Traction Axis',
+      axisName: 'Lumbosacral Pelvic-to-Cranial Sleeve',
+      icon: '🦴',
+      color: '#0D9488',
+      primarySymptom: 'Occipital & Temple Throbbing Headaches',
+      hiddenOrigin: 'Sacroiliac Joint Torsion & L5-S1 Pelvic Unleveling',
+      pathwaySteps: [
+        {
+          order: 1,
+          structure: 'Sacral Dural Anchor (S2)',
+          anatomicalLocation: 'Second sacral vertebra anterior sleeve',
+          biomechanicalTension: 'Seated pelvic tilt or habitual leg-crossing causes upward mechanical tug.',
+          sensoryReferral: 'Aching in sacrococcygeal and lower lumbar junction.',
+        },
+        {
+          order: 2,
+          structure: 'Thoracolumbar Fascial Bridge',
+          anatomicalLocation: 'Spanning T12 to L5 spinous processes',
+          biomechanicalTension: 'Fascial sheet tightens diagonally, transmitting tension upward along the spinal column.',
+          sensoryReferral: 'Mid-back tightness after 2+ hours of desk sitting.',
+        },
+        {
+          order: 3,
+          structure: 'Suboccipital Myodural Bridge (C1-C2)',
+          anatomicalLocation: 'Rectus capitis posterior minor at foramen magnum',
+          biomechanicalTension: 'Compensatory spasm locks the skull base onto the atlas and axis.',
+          sensoryReferral: 'Deep suboccipital tension and resistance to neck flexion.',
+        },
+        {
+          order: 4,
+          structure: 'Greater Occipital Nerve (C2)',
+          anatomicalLocation: 'Pierces semispinalis capitis and trapezius aponeurosis',
+          biomechanicalTension: 'Entrapped between hypertonic muscle bands and taut dural sleeve.',
+          sensoryReferral: 'Radiating unilateral/bilateral ram’s horn throbbing behind eyes and temples.',
+        },
+      ],
+      palpationSign: 'Positive Suboccipital Trigger Band palpation directly reproduces retro-orbital temple pressure.',
+      correctiveProtocol: {
+        title: '3-Minute Craniosacral Dural Release',
+        durationSeconds: 180,
+        steps: [
+          'Step 1 (0-60s): Supine with knees bent. Place fingertips at the base of skull. Apply gentle cephalad traction while tucking chin.',
+          'Step 2 (60-120s): Deep diaphragmatic exhale while allowing pelvis to flatten against the floor, neutralizing lumbosacral tug.',
+          'Step 3 (120-180s): Slowly rotate chin 15 degrees right, hold 15s; 15 degrees left, hold 15s to decompress the myodural bridge.',
+        ],
+        clinicalOutcome: 'Immediate reduction in suboccipital dural drag and 60% alleviation of temple cephalgia.',
+      },
+    },
+    {
+      id: 'chain_techneck_vagus',
+      title: 'Postural-Vagal Axis (Tech Neck)',
+      axisName: 'Cervical Kyphosis to Enteric Vagus Nerve',
+      icon: '📱',
+      color: '#7C3AED',
+      primarySymptom: 'Postprandial Palpitations, Gastric Delay & Acid Reflux',
+      hiddenOrigin: 'Forward Head Posture (>25° cervical flexion)',
+      pathwaySteps: [
+        {
+          order: 1,
+          structure: 'Lower Cervical Spine (C5-C7)',
+          anatomicalLocation: 'Cervicothoracic junction',
+          biomechanicalTension: 'Forward head posture multiplies gravitational head weight by 300% (from 12 lbs to 42 lbs).',
+          sensoryReferral: 'Burning ache in upper trapezius and levator scapulae.',
+        },
+        {
+          order: 2,
+          structure: 'Carotid Sheath & Jugular Foramen',
+          anatomicalLocation: 'Base of skull anterior to transverse process of C1',
+          biomechanicalTension: 'Hypertonic anterior scalene and sternocleidomastoid muscles compress the carotid sheath.',
+          sensoryReferral: 'Cranial Nerve X (Vagus Nerve) efferent firing frequency drops by up to 35%.',
+        },
+        {
+          order: 3,
+          structure: 'Gastric Enteric Plexus (Roemheld)',
+          anatomicalLocation: 'Lower esophageal sphincter and gastric antrum',
+          biomechanicalTension: 'Low vagal motor tone slows gastric emptying; food ferments in stomach, generating upward splenic gas.',
+          sensoryReferral: 'Stomach pushes against left hemidiaphragm, mechanically irritating the pericardium.',
+        },
+        {
+          order: 4,
+          structure: 'Cardiac Sinus Node & AV Conduction',
+          anatomicalLocation: 'Right atrium cardiac conduction system',
+          biomechanicalTension: 'Mechanical diaphragmatic lift triggers compensatory premature ventricular contractions (PVCs).',
+          sensoryReferral: 'Sudden heart racing (100+ bpm) or skipped beats 45-90 minutes post-meal.',
+        },
+      ],
+      palpationSign: 'Tenderness at the anterior border of SCM near angle of mandible with simultaneous epigastric flutter.',
+      correctiveProtocol: {
+        title: '3-Minute Vagal Decompression & Reset',
+        durationSeconds: 180,
+        steps: [
+          'Step 1 (0-60s): Sit upright. Place two fingers behind earlobe at mastoid process. Gently massage downward along SCM with warm breaths.',
+          'Step 2 (60-120s): "Eye-Vagus Reset": Look with eyes only all the way to the right for 30s until a spontaneous swallow or sigh occurs.',
+          'Step 3 (120-180s): Deep diaphragmatic belly breathing (4s in, 7s hold, 8s out) to signal parasympathetic enteric outflow.',
+        ],
+        clinicalOutcome: 'Re-activates vagal efferent motor tone, restores gastric peristalsis, and terminates gastrocardiac flutter.',
+      },
+    },
+    {
+      id: 'chain_diaphragmatic_pots',
+      title: 'Diaphragmatic-Splanchnic Pump Axis',
+      axisName: 'Respiratory Thoracic-Abdominal Venous Return',
+      icon: '🫁',
+      color: '#0284C7',
+      primarySymptom: 'Orthostatic Tachycardia (POTS) & Brain Fog Upon Standing',
+      hiddenOrigin: 'Shallow Chest Breathing & Splanchnic Blood Pooling',
+      pathwaySteps: [
+        {
+          order: 1,
+          structure: 'Thoracic Diaphragm Dome',
+          anatomicalLocation: 'Attaches to xiphoid, lower 6 costal cartilages, and L1-L3',
+          biomechanicalTension: 'Chronic apical chest breathing locks the diaphragm into high flat excursion.',
+          sensoryReferral: 'Tightness around lower ribcage and inability to take a full satisfying breath.',
+        },
+        {
+          order: 2,
+          structure: 'Inferior Vena Cava & Celiac Plexus',
+          anatomicalLocation: 'Caval opening at T8 vertebra',
+          biomechanicalTension: 'Loss of the diaphragmatic suction pump leaves venous blood stagnant in mesenteric capacitance beds.',
+          sensoryReferral: 'Fullness and heavy distension in the gut after meals or prolonged upright standing.',
+        },
+        {
+          order: 3,
+          structure: 'Cerebral Microvascular Perfusion',
+          anatomicalLocation: 'Circle of Willis cerebral arteries',
+          biomechanicalTension: 'Upon standing, 500-800 mL of blood fails to return to the heart, dropping cerebral perfusion by 20%.',
+          sensoryReferral: 'Immediate lightheadedness, tunnel vision, and cognitive latency ("brain fog").',
+        },
+        {
+          order: 4,
+          structure: 'Sympathetic Adrenergic Surge',
+          anatomicalLocation: 'Adrenal medulla and cardiac beta-1 receptors',
+          biomechanicalTension: 'Aortic arch baroreceptors signal emergency catecholamine surge to prevent fainting.',
+          sensoryReferral: 'Heart rate spikes by +35-50 bpm with shaking hands and internal vibration.',
+        },
+      ],
+      palpationSign: 'Paradoxical inward rib draw on inhalation and cold extremities during active upright stand.',
+      correctiveProtocol: {
+        title: '3-Minute Splanchnic Venous Pump Reset',
+        durationSeconds: 180,
+        steps: [
+          'Step 1 (0-60s): Lie supine with calves resting elevated on a chair (90-degree hips and knees).',
+          'Step 2 (60-120s): Place hands on lower ribs. Inhale deeply through nose directing breath into hands (360-degree rib expansion).',
+          'Step 3 (120-180s): Contract calf muscles 10 times rhythmically to pump lower-limb venous pool back to right atrium.',
+        ],
+        clinicalOutcome: 'Returns 600mL of pooled splanchnic blood into central circulation, stabilizing standing heart rate.',
+      },
+    },
+    {
+      id: 'chain_tmj_trigeminal',
+      title: 'Temporomandibular-Trigeminal Caudalis Axis',
+      axisName: 'Craniofacial Mandibular to Suboccipital Axis',
+      icon: '😬',
+      color: '#D97706',
+      primarySymptom: 'Retro-Orbital Eye Pressure, Ear Fullness & Temple Migraine',
+      hiddenOrigin: 'Nocturnal Masseter Bruxism & Pterygoid Spasm',
+      pathwaySteps: [
+        {
+          order: 1,
+          structure: 'Masseter & Lateral Pterygoid',
+          anatomicalLocation: 'Zygomatic arch and mandibular ramus',
+          biomechanicalTension: 'Unconscious jaw clenching exerts up to 250 lbs of nocturnal bite pressure.',
+          sensoryReferral: 'Morning jaw soreness and clicking at the temporomandibular joint.',
+        },
+        {
+          order: 2,
+          structure: 'Trigeminal Nerve Mandibular Branch (V3)',
+          anatomicalLocation: 'Foramen ovale into infratemporal fossa',
+          biomechanicalTension: 'Mechanical compression irritates the auriculotemporal nerve branch.',
+          sensoryReferral: 'Sensation of ear fullness, clicking in eustachian tube, and temporal throbbing.',
+        },
+        {
+          order: 3,
+          structure: 'Trigeminocervical Complex (TCC)',
+          anatomicalLocation: 'Spinal dorsal horns of C1, C2, and C3 segments',
+          biomechanicalTension: 'Sensory afferents from the jaw converge with upper cervical spinal nerves in a shared nucleus.',
+          sensoryReferral: 'Pain refers bidirectionally: jaw tension triggers neck spasms; neck strain triggers migraine.',
+        },
+      ],
+      palpationSign: 'Tender nodule at the anterior belly of masseter reproduces sharp radiating retro-orbital eye pain.',
+      correctiveProtocol: {
+        title: '3-Minute TMJ & Trigeminal Decompression',
+        durationSeconds: 180,
+        steps: [
+          'Step 1 (0-60s): Place tongue tip gently on the roof of mouth behind front teeth. Open jaw slowly without letting tongue leave palate.',
+          'Step 2 (60-120s): Use knuckle to gently stroke downward along masseter from cheekbone to jawline 10 times each side.',
+          'Step 3 (120-180s): Gentle suboccipital chin tuck to neutralize the C1-C3 trigeminocervical convergence reflex.',
+        ],
+        clinicalOutcome: 'Interrupts trigeminal nociceptive loop and relieves ocular/temple headache within minutes.',
+      },
+    },
+    {
+      id: 'chain_pelvic_visceral',
+      title: 'Pelvic-Visceral Transit Axis',
+      axisName: 'Lumbopelvic Psoas to Enteric Colonic Motility',
+      icon: '🚶',
+      color: '#059669',
+      primarySymptom: 'Lower Quadrant Bloating, Sluggish Transit & Pelvic Pressure',
+      hiddenOrigin: 'Anterior Pelvic Tilt & Psoas Contracture',
+      pathwaySteps: [
+        {
+          order: 1,
+          structure: 'Psoas Major Muscle Belly',
+          anatomicalLocation: 'T12-L4 transverse processes to lesser trochanter',
+          biomechanicalTension: 'Prolonged sitting shortens psoas fibers, pulling pelvis into excessive anterior tilt.',
+          sensoryReferral: 'Aching deep in the groin and tight hip flexors.',
+        },
+        {
+          order: 2,
+          structure: 'Pelvic Splanchnic Nerves (S2-S4)',
+          anatomicalLocation: 'Anterior sacral foramina into inferior hypogastric plexus',
+          biomechanicalTension: 'Pelvic shear and hypertonic pelvic floor muscles compress parasympathetic colonic innervations.',
+          sensoryReferral: 'Blunted rectosigmoid motility, incomplete bowel evacuation, and localized gas traps.',
+        },
+        {
+          order: 3,
+          structure: 'Ileocecal Valve & Cecum',
+          anatomicalLocation: 'Right lower abdominal quadrant',
+          biomechanicalTension: 'Mechanical torsion at iliopsoas fascial junction restricts ileocecal valve opening.',
+          sensoryReferral: 'Reflux of colonic bacteria into the small intestine, accelerating postprandial gas formation (SIBO).',
+        },
+      ],
+      palpationSign: 'Deep tenderness in right lower quadrant medial to ASIS (ileocecal valve spasm).',
+      correctiveProtocol: {
+        title: '3-Minute Psoas & Ileocecal Motility Reset',
+        durationSeconds: 180,
+        steps: [
+          'Step 1 (0-60s): Half-kneeling lunge position. Tuck tailbone under (posterior pelvic tilt) to feel deep stretch in front of hip.',
+          'Step 2 (60-120s): Lie supine. Place fingers 2 inches medial and superior to right hip bone. Gently massage upward and inward.',
+          'Step 3 (120-180s): Gentle knee-to-opposite-shoulder hug to decompress sacral parasympathetic nerve roots.',
+        ],
+        clinicalOutcome: 'Relieves mechanical compression on pelvic parasympathetics and restores smooth colonic transit.',
+      },
+    },
+  ];
+}
+
+

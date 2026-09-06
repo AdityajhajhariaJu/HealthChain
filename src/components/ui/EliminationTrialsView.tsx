@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldAlert, CheckCircle2, Play, Activity, Sparkles, Calendar, Award, ChevronRight, XCircle } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, Play, Activity, Sparkles, Calendar, Award, ChevronRight, XCircle, Target, ArrowRight } from 'lucide-react';
 import {
   ELIMINATION_PROTOCOLS,
   getActiveTrial,
@@ -9,15 +9,16 @@ import {
   ActiveTrialState,
   EliminationTrialProtocol,
 } from '../../services/TriggerEngine';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
 export const EliminationTrialsView: React.FC = () => {
   const [activeTrialState, setActiveTrialState] = useState<ActiveTrialState | null>(getActiveTrial());
   const [isCheckinOpen, setIsCheckinOpen] = useState(false);
   const [checkinScore, setCheckinScore] = useState(3);
   const [checkinAdhered, setCheckinAdhered] = useState(true);
+  const [selectedPhaseIdx, setSelectedPhaseIdx] = useState(0);
 
-  const activeProtocol = ELIMINATION_PROTOCOLS.find((p) => p.id === activeTrialState?.trialId);
+  const activeProtocol = ELIMINATION_PROTOCOLS.find((p) => p.id === activeTrialState?.trialId) || ELIMINATION_PROTOCOLS[0];
 
   const handleStartTrial = (protocolId: string) => {
     triggerHapticLight();
@@ -31,6 +32,10 @@ export const EliminationTrialsView: React.FC = () => {
     setActiveTrialState(updated);
     setIsCheckinOpen(false);
   };
+
+  // Determine current active phase based on current day
+  const currentDay = activeTrialState?.currentDay || 1;
+  const currentPhaseIndex = currentDay <= 7 ? 0 : currentDay <= 14 ? 1 : currentDay <= 21 ? 2 : 3;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -60,17 +65,17 @@ export const EliminationTrialsView: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          <Activity size={20} />
+          <Target size={22} />
         </div>
         <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            CLINICAL DIETARY TRIALS
+          <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+            4-WEEK CLINICAL ROOT-CAUSE HUNTS
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-            A/B Test Your Body
+          <div style={{ fontSize: '15.5px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
+            Diagnostic Elimination Protocols
           </div>
-          <div style={{ fontSize: '12.5px', color: '#78716C', marginTop: '2px' }}>
-            Isolate specific compound families to measure concrete drops in symptom severity before reintroducing.
+          <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
+            Structured 28-day phased trials with systematic challenge reintroductions.
           </div>
         </div>
       </div>
@@ -80,21 +85,22 @@ export const EliminationTrialsView: React.FC = () => {
         <div
           style={{
             background: '#FFFFFF',
-            borderRadius: '22px',
+            borderRadius: '24px',
             padding: '20px',
             border: '2px solid #34D399',
             boxShadow: '0 8px 24px rgba(16, 185, 129, 0.12)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '14px',
+            gap: '16px',
           }}
         >
+          {/* Top Row: Tag & Checkin CTA */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', padding: '3px 8px', borderRadius: '999px', background: '#ECFDF5', border: '1px solid #A7F3D0', textTransform: 'uppercase' }}>
-                ACTIVE TRIAL IN PROGRESS
+              <span style={{ fontSize: '10px', fontWeight: 800, color: '#059669', padding: '3px 9px', borderRadius: '999px', background: '#ECFDF5', border: '1px solid #A7F3D0', textTransform: 'uppercase' }}>
+                ACTIVE 4-WEEK HUNT
               </span>
-              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>
                 Day {activeTrialState.currentDay} of {activeTrialState.totalDays}
               </span>
             </div>
@@ -122,10 +128,13 @@ export const EliminationTrialsView: React.FC = () => {
           </div>
 
           <div>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
+            <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.4px' }}>
+              {activeProtocol.huntTitle || 'TARGETED CLINICAL HUNT'}
+            </div>
+            <h3 style={{ margin: '2px 0 4px 0', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
               {activeProtocol.name}
             </h3>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
               {activeProtocol.description}
             </p>
           </div>
@@ -133,7 +142,7 @@ export const EliminationTrialsView: React.FC = () => {
           {/* Progress Bar */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#64748B', marginBottom: '6px', fontWeight: 600 }}>
-              <span>Protocol Progress</span>
+              <span>28-Day Protocol Completion</span>
               <span>{Math.round((activeTrialState.completedDays / activeTrialState.totalDays) * 100)}%</span>
             </div>
             <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
@@ -145,10 +154,87 @@ export const EliminationTrialsView: React.FC = () => {
             </div>
           </div>
 
+          {/* 4-Phase Carousel Tabs */}
+          {activeProtocol.phases && activeProtocol.phases.length > 0 && (
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '8px' }}>
+                4-Phase Structured Protocol
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                {activeProtocol.phases.map((ph, idx) => {
+                  const isCurrentPhase = currentPhaseIndex === idx;
+                  const isViewed = selectedPhaseIdx === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        triggerHapticSelection();
+                        setSelectedPhaseIdx(idx);
+                      }}
+                      style={{
+                        padding: '8px 4px',
+                        borderRadius: '12px',
+                        border: isViewed ? '1.5px solid #059669' : '1px solid #E2E8F0',
+                        background: isViewed ? '#ECFDF5' : '#F8FAFC',
+                        color: isViewed ? '#065F46' : '#64748B',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '2px',
+                      }}
+                    >
+                      <span style={{ fontSize: '10px', fontWeight: 800 }}>P{ph.phase}</span>
+                      <span style={{ fontSize: '9px', opacity: 0.8 }}>{ph.daysRange.replace('Days ', 'D')}</span>
+                      {isCurrentPhase && (
+                        <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#059669', marginTop: '2px' }} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Active Phase Details Card */}
+              {activeProtocol.phases[selectedPhaseIdx] && (
+                <div
+                  style={{
+                    marginTop: '10px',
+                    padding: '12px 14px',
+                    borderRadius: '16px',
+                    background: '#F0FDFA',
+                    border: '1px solid #CCFBF1',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F766E' }}>
+                      {activeProtocol.phases[selectedPhaseIdx].title}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: 700 }}>
+                      {activeProtocol.phases[selectedPhaseIdx].daysRange}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#475569', marginBottom: '8px', lineHeight: 1.35 }}>
+                    {activeProtocol.phases[selectedPhaseIdx].focus}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {activeProtocol.phases[selectedPhaseIdx].clinicalInstructions.map((inst, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '11.5px', color: '#334155' }}>
+                        <span style={{ color: '#059669', fontWeight: 800 }}>•</span>
+                        <span>{inst}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Key Metrics Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
             <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '14px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
-              <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>Adherence</div>
+              <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>Protocol Adherence</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#10B981', marginTop: '2px' }}>
                 {activeTrialState.adherencePercentage}%
               </div>
@@ -169,68 +255,62 @@ export const EliminationTrialsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Eliminated Foods Tags */}
-          <div style={{ background: '#FFF1F2', padding: '10px 14px', borderRadius: '14px', border: '1px solid #FECDD3' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#BE123C', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '6px' }}>
-              Currently Restricted in Trial:
+          {/* Daily Protocol Checklist */}
+          {activeProtocol.dailyChecklist && activeProtocol.dailyChecklist.length > 0 && (
+            <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
+              <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Today's Protocol Actions:
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {activeProtocol.dailyChecklist.map((task, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#334155' }}>
+                    <CheckCircle2 size={14} color="#10B981" />
+                    <span>{task}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {activeProtocol.eliminatedFoods.map((f, i) => (
-                <span
-                  key={i}
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    background: '#FFFFFF',
-                    color: '#E11D48',
-                    border: '1px solid #FDA4AF',
-                  }}
-                >
-                  ✕ {f}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Daily Checkin Modal Modal / Expand */}
+      {/* Daily Checkin Modal Sheet */}
       <AnimatePresence>
         {isCheckinOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
             style={{
               background: '#FFFFFF',
-              borderRadius: '20px',
-              padding: '18px 20px',
-              border: '1.5px solid #10B981',
-              boxShadow: '0 8px 28px rgba(16, 185, 129, 0.2)',
+              borderRadius: '22px',
+              padding: '18px',
+              border: '2px solid #10B981',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)',
               display: 'flex',
               flexDirection: 'column',
               gap: '14px',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '15px', color: '#1C1917' }}>Record Day Checkin</strong>
+              <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#1C1917' }}>
+                Day {activeTrialState?.currentDay || 1} Protocol Checkin
+              </span>
               <button
                 type="button"
                 onClick={() => setIsCheckinOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: '14px' }}
+                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '18px' }}
               >
-                ✕
+                ×
               </button>
             </div>
 
-            {/* Adherence Radio */}
+            {/* Adherence Toggle */}
             <div>
               <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
-                Did you stick to the elimination protocol today?
+                Did you adhere 100% to the restriction list today?
               </label>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
                   onClick={() => setCheckinAdhered(true)}
@@ -240,7 +320,7 @@ export const EliminationTrialsView: React.FC = () => {
                     borderRadius: '10px',
                     border: checkinAdhered ? '1.5px solid #10B981' : '1px solid #E2E8F0',
                     background: checkinAdhered ? '#ECFDF5' : '#FFFFFF',
-                    color: checkinAdhered ? '#059669' : '#64748B',
+                    color: checkinAdhered ? '#065F46' : '#64748B',
                     fontWeight: 700,
                     fontSize: '12px',
                     cursor: 'pointer',
@@ -263,7 +343,7 @@ export const EliminationTrialsView: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  ✕ Had Slip / Exposure
+                  ✕ Had Exposure / Slip
                 </button>
               </div>
             </div>
@@ -303,7 +383,7 @@ export const EliminationTrialsView: React.FC = () => {
                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
               }}
             >
-              Save Checkin & Recalculate Reduction
+              Save Checkin & Recalculate Reduction Delta
             </button>
           </motion.div>
         )}
@@ -312,7 +392,7 @@ export const EliminationTrialsView: React.FC = () => {
       {/* Available Protocols Library */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <span style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-          AVAILABLE CLINICAL PROTOCOLS
+          AVAILABLE 4-WEEK SYMPTOM HUNTS
         </span>
 
         {ELIMINATION_PROTOCOLS.map((proto) => {
@@ -372,7 +452,7 @@ export const EliminationTrialsView: React.FC = () => {
                       gap: '4px',
                     }}
                   >
-                    <Play size={13} fill="#15803D" /> Start
+                    <Play size={13} fill="#15803D" /> Start Hunt
                   </button>
                 ) : (
                   <span
@@ -400,3 +480,4 @@ export const EliminationTrialsView: React.FC = () => {
     </div>
   );
 };
+export default EliminationTrialsView;

@@ -10,7 +10,10 @@ import {
   getSymptomCluster,
   getNodeDetail,
   evaluateSymptomCluster,
+  getFunctionalBiomarkers,
+  getKineticChainPathways,
 } from '../ConnectionDetectiveEngine';
+
 
 describe('ConnectionDetectiveEngine', () => {
   beforeEach(() => {
@@ -156,5 +159,48 @@ describe('ConnectionDetectiveEngine', () => {
     expect(result.summaryNote).toContain('Craniosacral Dural Kinetic Axis');
     expect(result.summaryNote).toContain('Greater Occipital Nerve');
   });
+
+  it('provides 10 dual-band functional lab biomarkers with optimal vs hospital cutoff ranges', () => {
+    const biomarkers = getFunctionalBiomarkers();
+    expect(biomarkers).toHaveLength(10);
+
+
+    const ferritin = biomarkers.find((b: any) => b.id === 'ferritin')!;
+    expect(ferritin).toBeDefined();
+    expect(ferritin.standardRange.max).toBe(150);
+    expect(ferritin.optimalRange.min).toBe(50);
+    expect(ferritin.whyDoctorsMissIt).toBeDefined();
+    expect(ferritin.actionableDietaryCofactors.length).toBeGreaterThan(0);
+
+    const tsh = biomarkers.find((b: any) => b.id === 'tsh')!;
+    expect(tsh).toBeDefined();
+    expect(tsh.optimalRange.max).toBe(2.0);
+
+    const dao = biomarkers.find((b: any) => b.id === 'dao_activity')!;
+    expect(dao).toBeDefined();
+    expect(dao.status).toBe('critical_low');
+  });
+
+  it('provides 5 multi-system kinetic chain pathways with step-by-step biomechanical referral and 3-minute releases', () => {
+    const pathways = getKineticChainPathways();
+    expect(pathways).toHaveLength(5);
+
+
+    const craniosacral = pathways.find((p: any) => p.id === 'chain_craniosacral')!;
+    expect(craniosacral).toBeDefined();
+    expect(craniosacral.pathwaySteps.length).toBe(4);
+    expect(craniosacral.palpationSign).toBeDefined();
+    expect(craniosacral.correctiveProtocol.durationSeconds).toBe(180);
+    expect(craniosacral.correctiveProtocol.steps.length).toBeGreaterThanOrEqual(3);
+
+    const techneck = pathways.find((p: any) => p.id === 'chain_techneck_vagus')!;
+    expect(techneck).toBeDefined();
+    expect(techneck.primarySymptom).toContain('Palpitations');
+
+    const pots = pathways.find((p: any) => p.id === 'chain_diaphragmatic_pots')!;
+    expect(pots).toBeDefined();
+    expect(pots.primarySymptom).toContain('POTS');
+  });
 });
+
 

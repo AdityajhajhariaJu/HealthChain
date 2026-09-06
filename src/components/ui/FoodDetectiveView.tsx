@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, Filter, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Search, Sparkles, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, Filter, ShieldCheck, ArrowRight, Zap, Plus } from 'lucide-react';
 import { FOOD_DATABASE, CLINICAL_SENSITIVITIES, FoodItem } from '../../services/TriggerEngine';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import { MealReactionLatencyStream } from './MealReactionLatencyStream';
+import { QuickMealIntakeSheet } from './QuickMealIntakeSheet';
 
 interface FoodDetectiveViewProps {
   onSelectSubstitute?: (foodName: string) => void;
 }
 
 export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSubstitute }) => {
+  const [subView, setSubView] = useState<'scanner' | 'timeline'>('timeline');
+  const [isQuickSheetOpen, setIsQuickSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedSensitivity, setSelectedSensitivity] = useState<string>('all');
@@ -27,49 +31,155 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Top Banner / Explanation */}
+      {/* Sub-View Mode Switcher */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-          borderRadius: '20px',
-          padding: '16px 18px',
-          border: '1.5px solid #99F6E4',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          background: '#F1F5F9',
+          borderRadius: '16px',
+          padding: '4px',
+          gap: '4px',
         }}
       >
-        <div
+        <button
+          type="button"
+          onClick={() => {
+            triggerHapticSelection();
+            setSubView('timeline');
+          }}
           style={{
-            width: '42px',
-            height: '42px',
+            padding: '8px 12px',
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+            border: 'none',
+            background: subView === 'timeline' ? '#FFFFFF' : 'transparent',
+            color: subView === 'timeline' ? '#0F766E' : '#64748B',
+            fontWeight: 800,
+            fontSize: '12.5px',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#FFFFFF',
-            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.28)',
-            flexShrink: 0,
+            gap: '6px',
+            boxShadow: subView === 'timeline' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+            transition: 'all 0.18s ease',
           }}
         >
-          <Search size={20} />
-        </div>
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            CLINICAL BIOCHEMICAL SCANNER
-          </div>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-            Food Detective & 18 Sensitivity Lenses
-          </div>
-          <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '2px' }}>
-            Look up any food to uncover hidden biogenic amines, fermentable carbs, and tailored safe substitutes.
-          </div>
-        </div>
+          <Zap size={14} color={subView === 'timeline' ? '#0F766E' : '#64748B'} />
+          <span>Post-Meal Latency</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerHapticSelection();
+            setSubView('scanner');
+          }}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '12px',
+            border: 'none',
+            background: subView === 'scanner' ? '#FFFFFF' : 'transparent',
+            color: subView === 'scanner' ? '#0F766E' : '#64748B',
+            fontWeight: 800,
+            fontSize: '12.5px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            boxShadow: subView === 'scanner' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+            transition: 'all 0.18s ease',
+          }}
+        >
+          <Search size={14} color={subView === 'scanner' ? '#0F766E' : '#64748B'} />
+          <span>Food Scanner (85+)</span>
+        </button>
       </div>
 
-      {/* Search Input Bar */}
-      <div style={{ position: 'relative', width: '100%' }}>
+      {/* Latency River View */}
+      {subView === 'timeline' && (
+        <MealReactionLatencyStream
+          onOpenFoodDetective={(foodName) => {
+            setSearchQuery(foodName);
+            setSubView('scanner');
+          }}
+        />
+      )}
+
+      {/* Scanner View */}
+      {subView === 'scanner' && (
+        <>
+          {/* Top Banner / Explanation */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+              borderRadius: '20px',
+              padding: '16px 18px',
+              border: '1.5px solid #99F6E4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '14px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.28)',
+                  flexShrink: 0,
+                }}
+              >
+                <Search size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                  CLINICAL BIOCHEMICAL SCANNER
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
+                  Food Detective & 18 Sensitivity Lenses
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '2px' }}>
+                  Look up any food to uncover hidden biogenic amines and safe swaps.
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                setIsQuickSheetOpen(true);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '12px',
+                padding: '8px 12px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                flexShrink: 0,
+              }}
+            >
+              <Plus size={14} /> Log Meal
+            </button>
+          </div>
+
+          {/* Search Input Bar */}
+          <div style={{ position: 'relative', width: '100%' }}>
         <Search
           size={18}
           color="#0D9488"
@@ -377,6 +487,15 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
           </div>
         )}
       </div>
+      </>
+      )}
+
+
+      {/* Quick Meal Intake Sheet */}
+      <QuickMealIntakeSheet
+        isOpen={isQuickSheetOpen}
+        onClose={() => setIsQuickSheetOpen(false)}
+      />
     </div>
   );
 };

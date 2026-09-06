@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, TrendingUp, Clock, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
 import { getSuspectFoodsLeaderboard, SuspectFoodItem } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
+import { EmpiricalMatchInsights } from './EmpiricalMatchInsights';
 
 interface SuspectFoodsViewProps {
   onStartTrial?: (protocolId: string) => void;
@@ -13,6 +14,13 @@ export const SuspectFoodsView: React.FC<SuspectFoodsViewProps> = ({ onStartTrial
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Empirical Frequency Recurrence Section */}
+      <EmpiricalMatchInsights
+        onSelectAction={(action) => {
+          if (onStartTrial) onStartTrial('hunt_bloat');
+        }}
+      />
+
       {/* Top Banner */}
       <div
         style={{

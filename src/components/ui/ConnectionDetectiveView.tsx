@@ -39,6 +39,8 @@ import {
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { CaseConnectionMap } from './CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
+import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 
 interface ConnectionDetectiveViewProps {
   onOpenFoodDetective?: () => void;
@@ -51,7 +53,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report] = useState<ConnectionDetectiveReport>(getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic'>('map');
+
   const [activeSystemFilter, setActiveSystemFilter] = useState<string>('all');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
@@ -300,12 +303,15 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       >
         {[
           { id: 'map', label: 'Connection Map', icon: '🌐' },
+          { id: 'biomarkers', label: 'Functional Labs', icon: '🧪' },
+          { id: 'kinetic', label: 'Kinetic Biomechanics', icon: '🦴' },
           { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
           { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
           { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
           { id: 'misses', label: 'What Doctors Missed', icon: '⚠️' },
           { id: 'dossier', label: 'Doctor Dossier (<60s)', icon: '📋' },
         ].map((t) => {
+
           const isActive = activeTab === t.id;
           return (
             <button
@@ -1308,7 +1314,14 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           </div>
         </div>
       )}
+
+      {/* 5. FUNCTIONAL LAB BIOMARKERS SUBTAB */}
+      {activeTab === 'biomarkers' && <FunctionalBiomarkersView />}
+
+      {/* 6. KINETIC CHAIN BIOMECHANICS SUBTAB */}
+      {activeTab === 'kinetic' && <KineticBiomechanicsView />}
     </div>
   );
 };
+
 

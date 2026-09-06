@@ -25,6 +25,8 @@ import { SuspectFoodsView } from './SuspectFoodsView';
 import { EliminationTrialsView } from './EliminationTrialsView';
 import { WellnessZenGardenView } from './WellnessZenGardenView';
 import { DoctorSummaryView } from './DoctorSummaryView';
+import { MonthlyHealthHeatmap } from './MonthlyHealthHeatmap';
+
 
 export type WholeHealthTab = 'picture' | 'detective' | 'suspects' | 'trials' | 'garden' | 'doctor';
 
@@ -42,8 +44,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
   initialTab = 'picture',
 }) => {
   const [activeTab, setActiveTab] = useState<WholeHealthTab>(initialTab);
+  const [historyMode, setHistoryMode] = useState<'month' | '7day'>('month');
   const weeklySeverity = getWeeklySymptomSeverity();
   const exposureTrends = getExposureTrends();
+
 
   React.useEffect(() => {
     if (initialTab) {
@@ -359,56 +363,122 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                     </div>
                   </div>
 
-                  {/* 7-Day Symptom Severity Bar Chart */}
+                  {/* View Mode Toggle: Monthly Matrix vs 7-Day Pulse */}
                   <div
                     style={{
-                      background: '#FFFFFF',
-                      borderRadius: '22px',
-                      padding: '18px 20px',
-                      border: '1.5px solid #F1F5F9',
-                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      background: '#F1F5F9',
+                      borderRadius: '14px',
+                      padding: '4px',
+                      gap: '4px',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Activity size={17} color="#E11D48" />
-                        <span style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917' }}>Symptom Severity</span>
-                      </div>
-                      <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>7-Day History</span>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: '110px', padding: '0 8px 8px 8px' }}>
-                      {weeklySeverity.map((col, idx) => (
-                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flex: 1 }}>
-                          <div
-                            style={{
-                              width: '28px',
-                              height: `${col.height}px`,
-                              borderRadius: '8px',
-                              background: col.color,
-                              boxShadow: `0 4px 12px ${col.color}40`,
-                              transition: 'height 0.4s ease',
-                            }}
-                          />
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>
-                            {col.day}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '18px', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #F8FAFC' }}>
-                      <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }} /> Severe
-                      </span>
-                      <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B' }} /> Moderate
-                      </span>
-                      <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} /> Calm / Stable
-                      </span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setHistoryMode('month');
+                      }}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: historyMode === 'month' ? '#FFFFFF' : 'transparent',
+                        color: historyMode === 'month' ? '#0F766E' : '#64748B',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        boxShadow: historyMode === 'month' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      <span>📅 Monthly Matrix</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setHistoryMode('7day');
+                      }}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: historyMode === '7day' ? '#FFFFFF' : 'transparent',
+                        color: historyMode === '7day' ? '#0F766E' : '#64748B',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        boxShadow: historyMode === '7day' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                      }}
+                    >
+                      <span>📊 7-Day Pulse</span>
+                    </button>
                   </div>
+
+                  {historyMode === 'month' ? (
+                    <MonthlyHealthHeatmap />
+                  ) : (
+                    /* 7-Day Symptom Severity Bar Chart */
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        borderRadius: '22px',
+                        padding: '18px 20px',
+                        border: '1.5px solid #F1F5F9',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Activity size={17} color="#E11D48" />
+                          <span style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917' }}>Symptom Severity</span>
+                        </div>
+                        <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>7-Day History</span>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: '110px', padding: '0 8px 8px 8px' }}>
+                        {weeklySeverity.map((col, idx) => (
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flex: 1 }}>
+                            <div
+                              style={{
+                                width: '28px',
+                                height: `${col.height}px`,
+                                borderRadius: '8px',
+                                background: col.color,
+                                boxShadow: `0 4px 12px ${col.color}40`,
+                                transition: 'height 0.4s ease',
+                              }}
+                            />
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>
+                              {col.day}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '18px', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #F8FAFC' }}>
+                        <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }} /> Severe
+                        </span>
+                        <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#F59E0B' }} /> Moderate
+                        </span>
+                        <span style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} /> Calm / Stable
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
 
                   {/* Exposure Trends Card */}
                   <div
