@@ -273,7 +273,7 @@ export const TriggerSensitivityCard: React.FC<TriggerSensitivityCardProps> = ({
             }
           }}
           style={{
-            background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+            background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
             border: 'none',
             color: '#FFFFFF',
             fontSize: '12.5px',
@@ -284,7 +284,7 @@ export const TriggerSensitivityCard: React.FC<TriggerSensitivityCardProps> = ({
             gap: '5px',
             padding: '7px 14px',
             borderRadius: '999px',
-            boxShadow: '0 4px 12px rgba(255, 107, 74, 0.25)',
+            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
           }}
         >
           Whole Health Picture <ArrowRight size={13} />

@@ -194,10 +194,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
-                      border: isActive ? '1.5px solid #FF6B4A' : '1.5px solid #F1F5F9',
-                      background: isActive ? 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)' : '#FFFFFF',
+                      border: isActive ? '1.5px solid #0D9488' : '1.5px solid #F1F5F9',
+                      background: isActive ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
                       color: isActive ? '#FFFFFF' : '#64748B',
-                      boxShadow: isActive ? '0 4px 12px rgba(255, 107, 74, 0.28)' : '0 2px 6px rgba(0,0,0,0.02)',
+                      boxShadow: isActive ? '0 4px 12px rgba(13, 148, 136, 0.28)' : '0 2px 6px rgba(0,0,0,0.02)',
                       transition: 'all 0.18s ease',
                     }}
                   >
@@ -479,7 +479,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#FF6B4A',
+                          color: '#0F766E',
                           fontSize: '12px',
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -505,10 +505,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                         { label: 'Salicylates', icon: '🌸', color: '#BE185D', bg: '#FDF2F8' },
                         { label: 'Oxalates', icon: '💎', color: '#0284C7', bg: '#F0F9FF' },
                         { label: 'Nightshades', icon: '🍆', color: '#4338CA', bg: '#EEF2FF' },
-                        { label: 'Lectins', icon: '🛡️', color: '#15803D', bg: '#F0FDF4' },
+                        { label: 'Lectins', icon: '🛡️', color: '#15803D', bg: '#F0F4FF' },
                         { label: 'Dietary Nickel', icon: '🪙', color: '#475569', bg: '#F8FAFC' },
                         { label: 'Sulfites', icon: '🍷', color: '#B91C1C', bg: '#FEF2F2' },
-                        { label: 'Nitrites', icon: '🥓', color: '#C2410C', bg: '#FFF7ED' },
+                        { label: 'Nitrites', icon: '🥓', color: '#B45309', bg: '#FEF3C7' },
                         { label: 'Free Glutamates', icon: '🥣', color: '#6D28D9', bg: '#EDE9FE' },
                         { label: 'Caffeine', icon: '☕', color: '#78350F', bg: '#FEF3C7' },
                         { label: 'Dairy Proteins', icon: '🧀', color: '#9333EA', bg: '#FAF5FF' },
@@ -537,10 +537,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                   {/* Calm Body & Mind CTA */}
                   <div
                     style={{
-                      background: 'linear-gradient(135deg, #FFF7F2 0%, #FFEFE6 100%)',
+                      background: '#F0FDFA',
                       borderRadius: '22px',
                       padding: '18px 20px',
-                      border: '1.5px solid #FCD9C6',
+                      border: '1.5px solid #CCFBF1',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -548,13 +548,13 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                     }}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#EA580C', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '2px' }}>
                         MINDFULNESS & VAGAL TONE
                       </div>
                       <div style={{ fontSize: '16px', fontWeight: 800, color: '#1C1917' }}>
                         Calm your body & mind
                       </div>
-                      <div style={{ fontSize: '12.5px', color: '#78716C', marginTop: '2px' }}>
+                      <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '2px' }}>
                         4-7-8 parasympathetic breathwork to settle autonomic gut contractions.
                       </div>
                     </div>
@@ -568,7 +568,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                       style={{
                         padding: '10px 16px',
                         borderRadius: '14px',
-                        background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                        background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                         color: '#FFFFFF',
                         border: 'none',
                         fontSize: '13px',
@@ -577,7 +577,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
-                        boxShadow: '0 4px 14px rgba(255, 107, 74, 0.3)',
+                        boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
                         flexShrink: 0,
                       }}
                     >

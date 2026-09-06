@@ -14,9 +14,29 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
 import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCard';
+import { ConnectionTriggerCard } from '../../components/ui/ConnectionTriggerCard';
 import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
+import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 
 const QUICK_ACTION_PILLS = [
+  {
+    id: 'kinetic_chains',
+    label: 'Back & Headache',
+    icon: '🦴',
+    bg: '#F0FDFA',
+    color: '#0F766E',
+    border: '#CCFBF1',
+    prompt: 'I sat at my desk for 4 hours without taking a break. Now my lower back is locked and I have a throbbing headache behind my right eye. Could these be connected?',
+  },
+  {
+    id: 'health_river',
+    label: 'Whole Health River',
+    icon: '🌊',
+    bg: '#ECFDF5',
+    color: '#047857',
+    border: '#A7F3D0',
+    action: 'river',
+  },
   {
     id: 'log_day',
     label: 'Log your day',
@@ -24,22 +44,22 @@ const QUICK_ACTION_PILLS = [
     bg: '#CCFBF1',
     color: '#0F766E',
     border: '#99F6E4',
-    prompt: 'I slept well last night. For breakfast I had oatmeal with blueberries and a coffee, then a salami pizza and red wine for lunch. By the afternoon I felt bloated and foggy, and by night it got even worse.',
+    prompt: 'I slept well last night. For breakfast I had oatmeal with blueberries and a coffee, then worked at my laptop for 4 hours. By the afternoon my lower back was stiff and I felt a throbbing headache.',
   },
   {
     id: 'food_detective',
     label: 'Food Detective',
     icon: '🔍',
-    bg: '#FFF1ED',
-    color: '#EA580C',
-    border: '#FCD9C6',
+    bg: '#F8FAFC',
+    color: '#0F766E',
+    border: '#E2E8F0',
     action: 'tab:detective',
   },
   {
     id: 'suspect_foods',
-    label: 'Suspect foods',
+    label: 'Suspect triggers',
     icon: '⚠️',
-    bg: '#FFE4E6',
+    bg: '#FFF1F2',
     color: '#BE123C',
     border: '#FECDD3',
     action: 'tab:suspects',
@@ -340,6 +360,28 @@ const MessageRenderer = ({
     );
   }
 
+  // CONNECTION TRIGGER CARD WIDGET (Multi-System Kinetic & Clinical Connection)
+  if (content.includes('[WIDGET:CONNECTION_TRIGGER_CARD')) {
+    const { payload, before, after } = extractBalancedWidget(content, 'CONNECTION_TRIGGER_CARD');
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        {before && <span>{before}</span>}
+        <ConnectionTriggerCard
+          symptom={payload?.symptom}
+          reactionWindow={payload?.reactionWindow}
+          confidencePercent={payload?.confidencePercent}
+          upstreamRootCause={payload?.upstreamRootCause}
+          kineticPathway={payload?.kineticPathway}
+          suspectVectors={payload?.suspectVectors}
+          onOpenKineticMap={() => {
+            window.location.hash = '/app/connection-detective';
+          }}
+        />
+        {after && <span>{after}</span>}
+      </div>
+    );
+  }
+
   // TRIGGER SENSITIVITY CARD WIDGET (Triggerbites Symptom Reference)
   if (content.includes('[WIDGET:TRIGGER_CARD')) {
     const { payload, before, after } = extractBalancedWidget(content, 'TRIGGER_CARD');
@@ -531,9 +573,16 @@ export default function AvaHealthBuddy() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isWholeHealthOpen, setIsWholeHealthOpen] = useState(false);
   const [wholeHealthTab, setWholeHealthTab] = useState<WholeHealthTab>('picture');
+  const [isRiverOpen, setIsRiverOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleOpenRiver = () => setIsRiverOpen(true);
+    window.addEventListener('hc_open_whole_health_river', handleOpenRiver);
+    return () => window.removeEventListener('hc_open_whole_health_river', handleOpenRiver);
+  }, []);
 
   useEffect(() => {
     const handleOpenWholeHealth = (e?: any) => {
@@ -1480,18 +1529,18 @@ export default function AvaHealthBuddy() {
                 WebkitBackdropFilter: 'blur(24px)',
                 fontSize: '15px',
                 outline: 'none',
-                boxShadow: '0 8px 28px rgba(234, 88, 12, 0.08)',
+                boxShadow: '0 8px 28px rgba(15, 23, 42, 0.05)',
                 color: '#1C1917',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
               onFocus={(e) => {
                 setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
-                e.target.style.borderColor = '#FF6B4A';
-                e.target.style.boxShadow = '0 8px 28px rgba(255, 107, 74, 0.22)';
+                e.target.style.borderColor = '#0D9488';
+                e.target.style.boxShadow = '0 8px 28px rgba(13, 148, 136, 0.2)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(254, 215, 195, 0.9)';
-                e.target.style.boxShadow = '0 8px 28px rgba(234, 88, 12, 0.08)';
+                e.target.style.borderColor = '#E2E8F0';
+                e.target.style.boxShadow = '0 8px 28px rgba(15, 23, 42, 0.05)';
               }}
             />
 
@@ -1554,7 +1603,7 @@ export default function AvaHealthBuddy() {
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #FF6B4A 0%, #FF8A65 100%)',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                   color: '#FFFFFF',
                   border: 'none',
                   display: 'flex',
@@ -1562,7 +1611,7 @@ export default function AvaHealthBuddy() {
                   justifyContent: 'center',
                   cursor: (!input.trim() && attachments.length === 0) || isTyping || isStreaming ? 'not-allowed' : 'pointer',
                   opacity: (!input.trim() && attachments.length === 0) || isTyping || isStreaming ? 0.45 : 1,
-                  boxShadow: '0 4px 12px rgba(255, 107, 74, 0.3)',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35)',
                   transition: 'all 0.2s',
                 }}
               >
@@ -1593,6 +1642,8 @@ export default function AvaHealthBuddy() {
                   triggerHapticLight();
                   if (pill.action === 'mindfulness') {
                     setActiveMeditation(DEFAULT_CALM_TRACK);
+                  } else if (pill.action === 'river') {
+                    setIsRiverOpen(true);
                   } else if (pill.action?.startsWith('tab:')) {
                     const tabName = pill.action.split(':')[1] as WholeHealthTab;
                     setWholeHealthTab(tabName);
@@ -1671,6 +1722,15 @@ export default function AvaHealthBuddy() {
         onClose={() => setIsWholeHealthOpen(false)}
         onOpenMindfulness={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
         initialTab={wholeHealthTab}
+      />
+
+      {/* Whole Health River Daily Stream Modal */}
+      <WholeHealthRiverModal
+        isOpen={isRiverOpen}
+        onClose={() => setIsRiverOpen(false)}
+        onAskAvaAboutConnection={(upstream, downstream) => {
+          handleSend(`Ava, I noticed a connection in my Whole Health River: my "${upstream}" is followed by "${downstream}". How are these anatomically and biochemically linked in your clinical view?`);
+        }}
       />
     </div>
   );

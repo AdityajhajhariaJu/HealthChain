@@ -13,7 +13,7 @@ interface DailySymptomCheckinWidgetProps {
   hideAlertsShortcut?: boolean;
 }
 
-const DEFAULT_SYMPTOMS = ['Headache', 'Dizziness', 'Fatigue', 'Neck Pain', 'Overall Energy'];
+const DEFAULT_SYMPTOMS = ['Headache', 'Lower Back', 'Fatigue', 'Neck Pain', 'Overall Energy'];
 
 const SEVERITY_OPTIONS = [
   { label: 'None', score: 0, desc: 'Zero discomfort', color: '#059669', bg: '#F0FDF4', border: '#86EFAC', activeBg: '#DCFCE7' },
@@ -30,6 +30,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
   const [, setRecentCheckins] = useState<any[]>(getRecentCheckins(7));
   const [justSaved, setJustSaved] = useState(false);
   const [selectedSymptom, setSelectedSymptom] = useState<string>('Headache');
+  const [latencyWindow, setLatencyWindow] = useState<'<30m' | '1-2h' | '4h+' | 'morning'>('1-2h');
   const [note, setNote] = useState(todayCheckin?.note || '');
   const [showNoteInput, setShowNoteInput] = useState(false);
 
@@ -104,12 +105,16 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
 
   const handleSelectSeverity = (option: typeof SEVERITY_OPTIONS[0]) => {
     triggerHapticLight();
+    const noteWithLatency = note.trim() 
+      ? `${note.trim()} [Onset: ${latencyWindow}]`
+      : `[Onset: ${latencyWindow}]`;
+
     const entry = recordDailyCheckin({
       symptom: selectedSymptom,
       severity: option.label,
       score: option.score,
-      note: note.trim() || undefined,
-      lifestyle: todayCheckin?.lifestyle || {}
+      note: noteWithLatency,
+      lifestyle: { ...(todayCheckin?.lifestyle || {}), latency: latencyWindow }
     });
     setTodayCheckin(entry);
     setRecentCheckins(getRecentCheckins(7));
@@ -291,10 +296,10 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
               }}
               aria-label={`Select symptom focus: ${symptom}`}
               style={{
-                background: isSelected ? '#0F172A' : (hasLogForThis ? '#ECFDF5' : '#F8FAFC'),
-                color: isSelected ? '#FFFFFF' : (hasLogForThis ? '#059669' : '#475569'),
-                border: isSelected ? '1px solid #0F172A' : (hasLogForThis ? '1px solid #A7F3D0' : '1px solid #E2E8F0'),
-                boxShadow: isSelected ? '0 2px 4px rgba(15, 23, 42, 0.12)' : 'none',
+                background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : (hasLogForThis ? '#ECFDF5' : '#F8FAFC'),
+                color: isSelected ? '#FFFFFF' : (hasLogForThis ? '#0F766E' : '#475569'),
+                border: isSelected ? '1px solid #0D9488' : (hasLogForThis ? '1px solid #99F6E4' : '1px solid #E2E8F0'),
+                boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.28)' : 'none',
                 padding: '5px 12px',
                 borderRadius: '999px',
                 fontSize: '12px',
@@ -452,6 +457,42 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
           )}
         </motion.div>
       )}
+
+      {/* TriggerBites Temporal Latency Selector */}
+      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          Onset:
+        </span>
+        {[
+          { key: '<30m', label: '⚡ Acute (<30m)' },
+          { key: '1-2h', label: '🪑 1–2h (Posture / Meal)' },
+          { key: '4h+', label: '⏳ Delayed (4h+)' },
+          { key: 'morning', label: '🌅 Awakening' }
+        ].map(lat => (
+          <button
+            key={lat.key}
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              setLatencyWindow(lat.key as any);
+            }}
+            style={{
+              padding: '3px 9px',
+              borderRadius: '999px',
+              border: latencyWindow === lat.key ? '1px solid #0D9488' : '1px solid #E2E8F0',
+              background: latencyWindow === lat.key ? '#F0FDFA' : '#FFFFFF',
+              color: latencyWindow === lat.key ? '#0F766E' : '#64748B',
+              fontSize: '11px',
+              fontWeight: latencyWindow === lat.key ? 800 : 500,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: latencyWindow === lat.key ? '0 1px 4px rgba(13, 148, 136, 0.15)' : 'none'
+            }}
+          >
+            {lat.label}
+          </button>
+        ))}
+      </div>
 
       {/* Optional Note Row */}
       <div style={{ marginBottom: '10px' }}>
