@@ -1760,7 +1760,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       <div style={{
                         height: '8px',
                         borderRadius: '999px',
-                        background: 'linear-gradient(90deg, #FBBF24 0%, #34D399 25%, #10B981 50%, #FB923C 75%, #F87171 100%)',
+                        background: 'linear-gradient(90deg, #FBBF24 0%, #34D399 25%, #10B981 50%, #F59E0B 75%, #F87171 100%)',
                         boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)'
                       }} />
 

@@ -62,6 +62,15 @@ import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticSelection } from '../../services/haptics';
 
+const REEVAL_STARTERS = [
+  '⚠️ Symptoms Worsen Post-Meal',
+  '🦴 Pain Radiates to Shoulder/Neck',
+  '💊 New Medication Started Recently',
+  '🧪 Recent Bloodwork Abnormal',
+  '⚡ Severe Fatigue / Crash (PEM)',
+  '🫀 Tachycardia / Palpitations',
+];
+
 export function Step({ icon: Icon, label, active, completed, isMobile }: any) {
   const isHighlighted = active || completed;
   return (
@@ -2360,6 +2369,50 @@ export function MDTReportPanel({
                 >
                   What should the board know before re-evaluating?
                 </label>
+
+                {/* 1-Tap Board Re-evaluation Starters */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      1-Tap Clinical Clues
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Tap to append</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {REEVAL_STARTERS.map((chip, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setFeedback((prev) => {
+                            const trimmed = prev.trim();
+                            if (!trimmed) return chip;
+                            if (trimmed.toLowerCase().includes(chip.toLowerCase())) return prev;
+                            return `${trimmed}. ${chip}`;
+                          });
+                        }}
+                        style={{
+                          background: '#F0FDFA',
+                          border: '1px solid #CCFBF1',
+                          color: '#0F766E',
+                          padding: '6px 12px',
+                          borderRadius: '999px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <span>{chip}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <textarea maxLength={3000}
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
@@ -2383,7 +2436,7 @@ export function MDTReportPanel({
                   style={{
                     marginTop: '20px',
                     padding: '14px 28px',
-                    background: feedback.trim() ? '#4F46E5' : '#CBD5E1',
+                    background: feedback.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#CBD5E1',
                     color: '#FFF',
                     border: 'none',
                     borderRadius: '999px',
@@ -2391,7 +2444,7 @@ export function MDTReportPanel({
                     fontSize: '15px',
                     cursor: feedback.trim() ? 'pointer' : 'not-allowed',
                     transition: 'all 0.2s',
-                    boxShadow: feedback.trim() ? '0 4px 12px rgba(79,70,229,0.3)' : 'none',
+                    boxShadow: feedback.trim() ? '0 4px 14px rgba(13, 148, 136, 0.3)' : 'none',
                   }}
                 >
                   Restart Specialist Assessments

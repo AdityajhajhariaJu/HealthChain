@@ -89,11 +89,11 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
       <div
         style={{
           position: 'relative',
-          background: 'radial-gradient(ellipse at top, #FFF0E6 0%, #FED7C3 60%, #FDBA99 100%)',
+          background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #DCFCE7 60%, #CCFBF1 100%)',
           borderRadius: '28px',
           padding: '24px 20px',
           border: '2px solid rgba(255, 255, 255, 0.8)',
-          boxShadow: '0 16px 40px rgba(234, 88, 12, 0.15)',
+          boxShadow: '0 16px 40px rgba(13, 148, 136, 0.12)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -241,9 +241,9 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
               background: 'rgba(255, 255, 255, 0.95)',
               borderRadius: '16px',
               padding: '8px 18px',
-              border: '1px solid #FCD9C6',
+              border: '1px solid #A7F3D0',
               textAlign: 'center',
-              boxShadow: '0 4px 14px rgba(234, 88, 12, 0.1)',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.1)',
             }}
           >
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', textTransform: 'uppercase' }}>

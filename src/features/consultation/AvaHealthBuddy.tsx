@@ -945,7 +945,7 @@ export default function AvaHealthBuddy() {
               background: 'rgba(255, 255, 255, 0.75)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              borderBottom: '1.5px solid rgba(254, 215, 195, 0.6)',
+              borderBottom: '1.5px solid #E2E8F0',
               flexShrink: 0,
               zIndex: 10,
             }}
@@ -1028,12 +1028,12 @@ export default function AvaHealthBuddy() {
                 padding: '8px 16px',
                 borderRadius: '999px',
                 background: '#FFFFFF',
-                border: '1.5px solid #FCD9C6',
+                border: '1.5px solid #CCFBF1',
                 color: '#E11D48',
                 fontSize: '13px',
                 fontWeight: 800,
                 cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
+                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
                 transition: 'transform 0.15s ease',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
@@ -1191,7 +1191,7 @@ export default function AvaHealthBuddy() {
                       boxShadow: msg.role === 'user' 
                         ? '0 10px 28px rgba(225, 29, 72, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)' 
                         : '0 8px 24px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
-                      border: msg.role === 'user' ? '1px solid rgba(255, 255, 255, 0.25)' : '1.5px solid rgba(254, 215, 195, 0.75)',
+                      border: msg.role === 'user' ? '1px solid rgba(255, 255, 255, 0.25)' : '1.5px solid #CCFBF1',
                       maxWidth: isMobile ? '88%' : '80%',
                     }}
                   >
@@ -1523,7 +1523,7 @@ export default function AvaHealthBuddy() {
                 width: '100%',
                 padding: isMobile ? '13px 84px 13px 48px' : '15px 92px 15px 52px',
                 borderRadius: '99px',
-                border: '1.5px solid rgba(254, 215, 195, 0.9)',
+                border: '1.5px solid #CCFBF1',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',

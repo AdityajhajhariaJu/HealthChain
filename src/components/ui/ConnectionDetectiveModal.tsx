@@ -63,10 +63,10 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               width: '100%',
               maxWidth: '640px',
               maxHeight: '94vh',
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF8F3 40%, #FEF2E8 100%)',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
               borderTopLeftRadius: '32px',
               borderTopRightRadius: '32px',
-              border: '1.5px solid rgba(254, 215, 195, 0.95)',
+              border: '1.5px solid #CCFBF1',
               boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.18)',
               display: 'flex',
               flexDirection: 'column',
@@ -75,7 +75,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           >
             {/* Grab Handle */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '12px' }}>
-              <div style={{ width: '42px', height: '5px', borderRadius: '999px', background: '#FCD9C6' }} />
+              <div style={{ width: '42px', height: '5px', borderRadius: '999px', background: '#CBD5E1' }} />
             </div>
 
             {/* Header */}

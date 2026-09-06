@@ -206,8 +206,8 @@ export default function CaseDashboard() {
   return (
     <div style={{
       width: '100%',
-      background: 'linear-gradient(180deg, #FFF8F4 0%, #FFF2E8 35%, #FDF0E7 100%)',
-      backgroundColor: '#FFF2E8',
+      background: 'linear-gradient(180deg, #F8FAFC 0%, #F0FDFA 35%, #F8FAFC 100%)',
+      backgroundColor: '#F8FAFC',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',

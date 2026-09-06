@@ -184,7 +184,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 background: '#FFFFFF',
                 borderRadius: '14px',
                 padding: '10px 12px',
-                border: '1px solid #FCD9C6',
+                border: '1px solid #E2E8F0',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -326,7 +326,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
-                border: isActive ? '1.5px solid #F43F5E' : '1.5px solid #FCD9C6',
+                border: isActive ? '1.5px solid #F43F5E' : '1.5px solid #E2E8F0',
                 background: isActive ? 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)' : '#FFFFFF',
                 color: isActive ? '#FFFFFF' : '#78716C',
                 boxShadow: isActive ? '0 4px 12px rgba(244, 63, 94, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
@@ -460,11 +460,11 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       key={idx}
                       style={{
                         padding: '5px 10px',
-                        background: '#FFF7ED',
+                        background: '#F0FDFA',
                         borderRadius: '8px',
-                        border: '1px solid #FFEDD5',
+                        border: '1px solid #CCFBF1',
                         fontSize: '11.5px',
-                        color: '#C2410C',
+                        color: '#0F766E',
                         fontWeight: 700,
                         display: 'flex',
                         alignItems: 'center',
@@ -586,10 +586,10 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           {onOpenFoodDetective && (
             <div
               style={{
-                background: 'linear-gradient(135deg, #FFF1ED 0%, #FFEBE6 100%)',
+                background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
                 borderRadius: '18px',
                 padding: '14px 18px',
-                border: '1.5px solid #FCD9C6',
+                border: '1.5px solid #99F6E4',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -715,10 +715,10 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   style={{
-                    background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF8F4 100%)',
+                    background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)',
                     borderRadius: '18px',
                     padding: '16px 18px',
-                    border: '1.5px solid #FCD9C6',
+                    border: '1.5px solid #CCFBF1',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -993,7 +993,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 background: '#FFFFFF',
                 borderRadius: '20px',
                 padding: '16px 18px',
-                border: '1.5px solid #FCD9C6',
+                border: '1.5px solid #E2E8F0',
                 boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',

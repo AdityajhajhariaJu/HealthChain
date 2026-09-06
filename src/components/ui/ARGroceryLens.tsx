@@ -328,13 +328,13 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
             {/* Non-Detection / Error Guidance Card */}
             {scanError ? (
               <div style={{
-                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #FFF8F3 100%)',
+                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #F8FAFC 100%)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
                 borderRadius: '24px',
                 padding: '24px 20px',
-                boxShadow: '0 24px 48px rgba(234, 88, 12, 0.18)',
-                border: '1.5px solid rgba(254, 215, 195, 0.95)',
+                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08)',
+                border: '1.5px solid #E2E8F0',
                 textAlign: 'center'
               }}>
                 <div style={{
@@ -343,72 +343,50 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
                   border: '1.5px solid rgba(239, 68, 68, 0.35)',
+                  margin: '0 auto 16px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#DC2626',
-                  margin: '0 auto 14px',
-                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.15)'
+                  color: '#DC2626'
                 }}>
-                  <AlertTriangle size={26} />
+                  <AlertTriangle size={28} />
                 </div>
                 <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800, color: '#1C1917' }}>
-                  {scanError.title}
+                  No Food or Label Detected
                 </h3>
-                <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: '#78716C', lineHeight: 1.5 }}>
-                  {scanError.message}
+                <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#78716C', lineHeight: 1.5 }}>
+                  Position the camera directly in front of the grocery item, barcode, or ingredient table.
                 </p>
-
-                {/* Tip Box */}
-                <div style={{
-                  background: '#F0FDFA',
-                  border: '1px solid #CCFBF1',
-                  borderRadius: '14px',
-                  padding: '10px 14px',
-                  fontSize: '12px',
-                  color: '#0F766E',
-                  textAlign: 'left',
-                  marginBottom: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Sparkles size={16} color="#0D9488" style={{ flexShrink: 0 }} />
-                  <span>Tip: For packaged groceries, aim directly at the <strong>Nutrition Facts</strong> table or product label.</span>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                   <button
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      setShowResults(false);
                       setScanError(null);
+                      setShowResults(false);
                       setAnalysis(null);
                     }}
                     style={{
-                      flex: 1,
-                      padding: '13px',
+                      padding: '13px 22px',
                       borderRadius: '16px',
                       background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                       color: '#FFFFFF',
                       border: 'none',
-                      fontSize: '14px',
+                      fontSize: '13.5px',
                       fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      boxShadow: '0 6px 18px rgba(13, 148, 136, 0.32)'
+                      gap: '8px',
+                      boxShadow: '0 8px 24px rgba(13, 148, 136, 0.3)'
                     }}
                   >
-                    <RefreshCw size={15} /> Try Scanning Again
+                    <RefreshCw size={16} /> Try Again
                   </button>
-
                   <button
                     type="button"
                     onClick={() => {
+                      triggerHapticLight();
                       setShowResults(false);
                       setScanError(null);
                       fileInputRef.current?.click();
@@ -418,7 +396,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       borderRadius: '16px',
                       background: '#FFFFFF',
                       color: '#57534E',
-                      border: '1.5px solid #F3D9C9',
+                      border: '1.5px solid #E2E8F0',
                       fontSize: '13.5px',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -430,15 +408,15 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
               </div>
             ) : analysis && (
               <>
-                {/* The Luxury Peach & Creme Result Card */}
+                {/* The Clinical Result Card */}
                 <div style={{
-                  background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #FFF8F3 100%)',
+                  background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, #F8FAFC 100%)',
                   backdropFilter: 'blur(24px)',
                   WebkitBackdropFilter: 'blur(24px)',
                   borderRadius: '24px',
                   padding: '20px',
-                  boxShadow: '0 24px 48px rgba(234, 88, 12, 0.18)',
-                  border: '1.5px solid rgba(254, 215, 195, 0.95)'
+                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.08)',
+                  border: '1.5px solid #E2E8F0'
                 }}>
                   {analysis?.warning && (
                     <div style={{
@@ -486,9 +464,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
                   {/* Glycemic Spike Graph */}
                   {analysis?.sugar !== undefined && (
-                    <div style={{ marginBottom: '16px', padding: '14px 16px', background: '#FFF7F2', borderRadius: '16px', border: '1.5px solid #FCD9C6' }}>
+                    <div style={{ marginBottom: '16px', padding: '14px 16px', background: '#F8FAFC', borderRadius: '16px', border: '1.5px solid #E2E8F0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', letterSpacing: '0.6px' }}>GLYCEMIC RESPONSE</span>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px' }}>GLYCEMIC RESPONSE</span>
                         <span style={{
                           fontSize: '12px',
                           fontWeight: 800,
@@ -532,19 +510,19 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
 
                   {/* Macro Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                    <div style={{ background: '#FFF7F2', padding: '12px', borderRadius: '14px', border: '1px solid #FCD9C6' }}>
+                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
                       <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Calories</div>
                       <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.calories ?? 0} kcal</div>
                     </div>
-                    <div style={{ background: '#FFF7F2', padding: '12px', borderRadius: '14px', border: '1px solid #FCD9C6' }}>
+                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
                       <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Protein</div>
                       <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.protein ?? 0}g</div>
                     </div>
-                    <div style={{ background: '#FFF7F2', padding: '12px', borderRadius: '14px', border: '1px solid #FCD9C6' }}>
+                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
                       <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Carbs (Sugar: {analysis?.sugar ?? 0}g)</div>
                       <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.carbs ?? 0}g</div>
                     </div>
-                    <div style={{ background: '#FFF7F2', padding: '12px', borderRadius: '14px', border: '1px solid #FCD9C6' }}>
+                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
                       <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Fats</div>
                       <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.fats ?? 0}g</div>
                     </div>
@@ -554,9 +532,9 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                 {/* Better Alternative Card */}
                 {analysis?.betterAlternative && (
                   <div style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, #FFF8F3 100%)',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, #F0FDFA 100%)',
                     backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '16px',
-                    display: 'flex', alignItems: 'center', gap: '16px', border: '1.5px solid rgba(254, 215, 195, 0.95)', boxShadow: '0 12px 24px rgba(234, 88, 12, 0.08)'
+                    display: 'flex', alignItems: 'center', gap: '16px', border: '1.5px solid #CCFBF1', boxShadow: '0 12px 24px rgba(13, 148, 136, 0.08)'
                   }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', marginBottom: '4px' }}>BETTER ALTERNATIVE</div>
@@ -612,7 +590,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       flex: 1,
                       background: 'rgba(255,255,255,0.95)',
                       color: '#57534E',
-                      border: '1.5px solid #F3D9C9',
+                      border: '1.5px solid #E2E8F0',
                       padding: '14px',
                       borderRadius: '16px',
                       fontSize: '14px',

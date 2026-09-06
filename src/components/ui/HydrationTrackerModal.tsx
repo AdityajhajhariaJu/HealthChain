@@ -143,13 +143,13 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
             width: '100%',
             maxWidth: '500px',
             maxHeight: 'calc(100vh - max(40px, env(safe-area-inset-top, 40px)))',
-            background: 'linear-gradient(180deg, #FFFDFB 0%, #FFF8F4 45%, #FEF2E8 100%)',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #F0F9FF 45%, #E0F2FE 100%)',
             borderTopLeftRadius: '32px',
             borderTopRightRadius: '32px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 -20px 60px rgba(251, 146, 60, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
+            boxShadow: '0 -20px 60px rgba(2, 132, 199, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
             borderTop: '1px solid rgba(255, 255, 255, 0.95)'
           }}
           onClick={(e) => e.stopPropagation()}
@@ -288,11 +288,11 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   marginTop: '8px',
                   fontSize: '11px',
                   fontWeight: 700,
-                  color: '#C2410C',
-                  background: '#FFF7ED',
+                  color: '#0369A1',
+                  background: '#E0F2FE',
                   padding: '3px 9px',
                   borderRadius: '8px',
-                  border: '1px solid #FED7AA'
+                  border: '1px solid #BAE6FD'
                 }}>
                   {glasses} of {targetGlasses} Standard Glasses (250ml)
                 </div>

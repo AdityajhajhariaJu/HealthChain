@@ -184,10 +184,10 @@ export const SuspectFoodsView: React.FC<SuspectFoodsViewProps> = ({ onStartTrial
                 fontSize: '12px',
                 color: '#64748B',
                 lineHeight: 1.4,
-                background: '#FFF8F5',
+                background: '#F8FAFC',
                 padding: '10px 12px',
                 borderRadius: '10px',
-                border: '1px solid #FFE4D6',
+                border: '1px solid #E2E8F0',
               }}
             >
               <strong style={{ color: '#1C1917' }}>Biological Action: </strong>

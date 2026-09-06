@@ -7,6 +7,15 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
+const FEEDBACK_TOPICS = [
+  '⚡ App Speed',
+  '🎨 UI / Polish',
+  '🩺 Medical Accuracy',
+  '💊 Medication Alarms',
+  '💡 New Feature Idea',
+  '🐛 Bug Report'
+];
+
 export default function FeedbackWidget() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -131,7 +140,46 @@ export default function FeedbackWidget() {
                 <X size={18} />
               </button>
             </div>
+
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* 1-Tap Feedback Topic Chips */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  Quick Topic (1-Tap)
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {FEEDBACK_TOPICS.map((topic, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setFeedback(prev => {
+                          const prefix = `[${topic}] `;
+                          if (prev.startsWith('[')) {
+                            return prev.replace(/^\[[^\]]+\]\s*/, prefix);
+                          }
+                          return `${prefix}${prev}`;
+                        });
+                      }}
+                      style={{
+                        background: 'var(--bg)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '999px',
+                        padding: '4px 10px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        color: 'var(--text-main)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {topic}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <textarea
                 aria-label="Feedback message"
                 placeholder="What's on your mind? Found a bug or have a suggestion?"
@@ -155,7 +203,15 @@ export default function FeedbackWidget() {
                 type="submit" 
                 className="btn btn-primary" 
                 aria-label="Submit feedback to HealthChain"
-                style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: feedback.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : undefined,
+                  borderColor: feedback.trim() ? '#0D9488' : undefined,
+                  boxShadow: feedback.trim() ? '0 4px 14px rgba(13, 148, 136, 0.25)' : undefined
+                }}
                 disabled={!feedback.trim()}
               >
                 <Send size={16} /> Send to HealthChain

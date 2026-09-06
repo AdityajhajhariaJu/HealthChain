@@ -71,12 +71,12 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF7F2 45%, #FEEDE2 100%)',
+        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFDF7 45%, #FEF9C3 100%)',
         backdropFilter: 'blur(32px)',
         WebkitBackdropFilter: 'blur(32px)',
         borderRadius: isMobile ? '20px' : '26px',
-        border: '1.5px solid rgba(254, 215, 195, 0.95)',
-        boxShadow: '0 12px 32px rgba(234, 88, 12, 0.06), 0 2px 8px rgba(251, 146, 60, 0.04), inset 0 2px 0 rgba(255, 255, 255, 0.98), inset 0 0 20px rgba(254, 235, 224, 0.5)',
+        border: '1.5px solid rgba(245, 158, 11, 0.25)',
+        boxShadow: '0 12px 32px rgba(217, 119, 6, 0.08), 0 2px 8px rgba(245, 158, 11, 0.04), inset 0 2px 0 rgba(255, 255, 255, 0.98), inset 0 0 20px rgba(254, 243, 199, 0.5)',
         padding: isMobile ? '12px 14px' : '14px 20px',
         marginBottom: '16px',
         display: 'flex',
@@ -94,7 +94,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
           left: '-20px',
           width: '120px',
           height: '120px',
-          background: 'radial-gradient(circle, rgba(251, 146, 60, 0.16) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.16) 0%, transparent 70%)',
           pointerEvents: 'none',
           zIndex: 0
         }}
@@ -183,13 +183,13 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               ) : (
                 <span 
                   style={{
-                    background: '#FFF7ED',
-                    color: '#C2410C',
+                    background: '#FEF3C7',
+                    color: '#B45309',
                     fontSize: '9px',
                     fontWeight: 800,
                     padding: '2px 7px',
                     borderRadius: '999px',
-                    border: '1px solid rgba(234, 88, 12, 0.3)'
+                    border: '1px solid rgba(217, 119, 6, 0.3)'
                   }}
                 >
                   ⚡ Active Today
@@ -375,7 +375,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 cy="19"
                 r={radius}
                 fill="transparent"
-                stroke="rgba(251, 146, 60, 0.2)"
+                stroke="rgba(245, 158, 11, 0.2)"
                 strokeWidth="3"
               />
               <circle

@@ -225,8 +225,8 @@ ${report.clinicalRecommendations.map((r) => `• ${r}`).join('\n')}
                   justifyContent: 'space-between',
                   padding: '8px 12px',
                   borderRadius: '10px',
-                  background: '#FFF8F5',
-                  border: '1px solid #FFE4D6',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
                   fontSize: '12.5px',
                 }}
               >

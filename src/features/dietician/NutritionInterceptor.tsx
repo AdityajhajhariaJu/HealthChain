@@ -8,11 +8,33 @@ import { useNavigate } from 'react-router-dom';
 import { getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
 
+const RAPID_MEAL_BUILDERS = [
+  '🥑 Avocado Toast & Poached Egg',
+  '🍳 2 Scrambled Eggs & Sourdough',
+  '☕ Black Espresso',
+  '🥗 Greek Salad & Olive Oil',
+  '🥣 Overnight Oats & Berries',
+  '🍗 Grilled Chicken & Brown Rice',
+  '🍲 Warm Dal & Basmati Rice',
+  '🧀 Paneer Tikka & Greens',
+  '🐟 Salmon Bowl & Quinoa'
+];
+
 export const NutritionInterceptor: React.FC = () => {
   const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recentLog, setRecentLog] = useState<any>(null);
+
+  const handleAppendQuickMeal = (meal: string) => {
+    triggerHapticLight();
+    setInput(prev => {
+      const trimmed = prev.trim();
+      if (!trimmed) return meal;
+      if (trimmed.toLowerCase().includes(meal.toLowerCase())) return prev;
+      return `${trimmed}, ${meal}`;
+    });
+  };
 
   const handleLog = async () => {
     if (!input.trim()) return;
@@ -98,6 +120,26 @@ export const NutritionInterceptor: React.FC = () => {
             What did you eat?
           </p>
         </motion.div>
+
+        {/* 1-Tap Rapid Meal Building Chips */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2 px-2">
+            <span className="text-white/40 text-xs font-bold uppercase tracking-wider">1-Tap Meal Starters</span>
+            <span className="text-emerald-400 text-xs font-semibold">Instant auto-append</span>
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {RAPID_MEAL_BUILDERS.map((meal, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleAppendQuickMeal(meal)}
+                className="whitespace-nowrap px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white text-sm font-medium transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+              >
+                <span>{meal}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="relative">
           <textarea 

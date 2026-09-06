@@ -186,11 +186,11 @@ export function CaseConnectionMap({
           position: 'relative',
           width: '100%',
           height: height,
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #FFFDF9 60%, #FFF7ED 100%)',
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 60%, #F0FDFA 100%)',
           borderRadius: '24px',
-          border: '1.5px solid #FCD9C6',
+          border: '1.5px solid #CCFBF1',
           overflow: 'hidden',
-          boxShadow: '0 8px 24px rgba(249, 115, 22, 0.05)',
+          boxShadow: '0 8px 24px rgba(13, 148, 136, 0.05)',
         }}
       >
         {/* Node Tap Prompt Pill */}
@@ -202,7 +202,7 @@ export function CaseConnectionMap({
             zIndex: 10,
             background: 'rgba(255, 255, 255, 0.94)',
             backdropFilter: 'blur(8px)',
-            border: '1px solid #FCD9C6',
+            border: '1px solid #CCFBF1',
             borderRadius: '999px',
             padding: '4px 12px',
             display: 'flex',
@@ -524,7 +524,7 @@ export function CaseConnectionMap({
             fontSize: '10.5px',
             fontWeight: 700,
             color: '#78716C',
-            border: '1px solid #FCD9C6',
+            border: '1px solid #CCFBF1',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

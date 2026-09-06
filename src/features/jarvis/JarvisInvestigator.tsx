@@ -30,7 +30,7 @@ export default function JarvisInvestigator() {
 
   useEffect(() => {
     const el = document.getElementById('main-content');
-    if (el) { el.style.backgroundColor = '#FFF7ED'; }
+    if (el) { el.style.backgroundColor = '#F8FAFC'; }
     return () => { if (el) { el.style.backgroundColor = ''; } };
   }, []);
   const [history, setHistory] = useState('');
