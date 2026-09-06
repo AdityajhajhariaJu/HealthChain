@@ -12,6 +12,7 @@ import {
   evaluateSymptomCluster,
   getFunctionalBiomarkers,
   getKineticChainPathways,
+  getClinicalProfilePresets,
 } from '../ConnectionDetectiveEngine';
 
 
@@ -160,10 +161,9 @@ describe('ConnectionDetectiveEngine', () => {
     expect(result.summaryNote).toContain('Greater Occipital Nerve');
   });
 
-  it('provides 10 dual-band functional lab biomarkers with optimal vs hospital cutoff ranges', () => {
+  it('provides 20 dual-band functional lab biomarkers with optimal vs hospital cutoff ranges', () => {
     const biomarkers = getFunctionalBiomarkers();
-    expect(biomarkers).toHaveLength(10);
-
+    expect(biomarkers).toHaveLength(20);
 
     const ferritin = biomarkers.find((b: any) => b.id === 'ferritin')!;
     expect(ferritin).toBeDefined();
@@ -179,12 +179,23 @@ describe('ConnectionDetectiveEngine', () => {
     const dao = biomarkers.find((b: any) => b.id === 'dao_activity')!;
     expect(dao).toBeDefined();
     expect(dao.status).toBe('critical_low');
+
+    const tsat = biomarkers.find((b: any) => b.id === 'tsat')!;
+    expect(tsat).toBeDefined();
+    expect(tsat.optimalRange.min).toBe(25);
+
+    const apob = biomarkers.find((b: any) => b.id === 'apob')!;
+    expect(apob).toBeDefined();
+    expect(apob.optimalRange.max).toBe(70);
+
+    const mma = biomarkers.find((b: any) => b.id === 'mma')!;
+    expect(mma).toBeDefined();
+    expect(mma.optimalRange.max).toBe(0.20);
   });
 
-  it('provides 5 multi-system kinetic chain pathways with step-by-step biomechanical referral and 3-minute releases', () => {
+  it('provides 8 multi-system kinetic chain pathways with step-by-step biomechanical referral and 3-minute releases', () => {
     const pathways = getKineticChainPathways();
-    expect(pathways).toHaveLength(5);
-
+    expect(pathways).toHaveLength(8);
 
     const craniosacral = pathways.find((p: any) => p.id === 'chain_craniosacral')!;
     expect(craniosacral).toBeDefined();
@@ -200,6 +211,28 @@ describe('ConnectionDetectiveEngine', () => {
     const pots = pathways.find((p: any) => p.id === 'chain_diaphragmatic_pots')!;
     expect(pots).toBeDefined();
     expect(pots.primarySymptom).toContain('POTS');
+
+    const thoracic = pathways.find((p: any) => p.id === 'chain_thoracic_outlet')!;
+    expect(thoracic).toBeDefined();
+    expect(thoracic.primarySymptom).toContain('Cold Hands');
+
+    const psoas = pathways.find((p: any) => p.id === 'chain_psoas_splanchnic')!;
+    expect(psoas).toBeDefined();
+    expect(psoas.primarySymptom).toContain('Hypersensitivity');
+
+    const stellate = pathways.find((p: any) => p.id === 'chain_cervicothoracic_sympathetic')!;
+    expect(stellate).toBeDefined();
+    expect(stellate.primarySymptom).toContain('Adrenaline');
+  });
+
+  it('provides clinical profile simulation presets for rapid telemetry switching', () => {
+    const presets = getClinicalProfilePresets();
+    expect(presets.length).toBeGreaterThanOrEqual(3);
+
+    const baseline = presets.find((p) => p.id === 'profile_baseline')!;
+    expect(baseline).toBeDefined();
+    expect(baseline.biomarkerValues['ferritin']).toBe(14);
+    expect(baseline.biomarkerValues['tsh']).toBe(3.2);
   });
 });
 

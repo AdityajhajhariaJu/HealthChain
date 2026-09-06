@@ -8,6 +8,7 @@ import { triggerHapticLight } from '../../services/haptics';
 interface ConnectionDetectiveModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: string;
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
 }
@@ -15,6 +16,7 @@ interface ConnectionDetectiveModalProps {
 export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> = ({
   isOpen,
   onClose,
+  initialTab = 'map',
   onOpenFoodDetective,
   onOpenConsult,
 }) => {
@@ -129,6 +131,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               }}
             >
               <ConnectionDetectiveView
+                initialTab={initialTab as any}
                 onOpenFoodDetective={() => {
                   onClose();
                   if (onOpenFoodDetective) onOpenFoodDetective();

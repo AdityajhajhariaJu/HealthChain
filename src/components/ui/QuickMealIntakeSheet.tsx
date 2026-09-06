@@ -14,11 +14,43 @@ interface QuickMealIntakeSheetProps {
   onMealLogged?: (mealName: string, slot: CircadianSlot) => void;
 }
 
-const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRange: string; desc: string }[] = [
-  { id: 'Morning', label: 'Morning', icon: '☀️', timeRange: '07:00 – 11:00', desc: 'Breakfast & Fasting Break' },
-  { id: 'Noon', label: 'Noon', icon: '🌤️', timeRange: '11:00 – 15:00', desc: 'Core Lunch & Digest' },
-  { id: 'Evening', label: 'Evening', icon: '🌆', timeRange: '15:00 – 19:00', desc: 'Afternoon Tea & Fuel' },
-  { id: 'Night', label: 'Night', icon: '🌙', timeRange: '19:00 – 23:00', desc: 'Dinner & Fasting Onset' },
+const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRange: string; organClock: string; organTip: string; desc: string }[] = [
+  {
+    id: 'Morning',
+    label: 'Morning',
+    icon: '☀️',
+    timeRange: '07:00 – 11:00',
+    organClock: 'Stomach Agni Peak (07:00–09:00)',
+    organTip: 'Maximum stomach acid (HCl) secretion; optimal for protein assimilation and dense complex carbohydrates.',
+    desc: 'Breakfast & Fasting Break',
+  },
+  {
+    id: 'Noon',
+    label: 'Noon',
+    icon: '🌤️',
+    timeRange: '11:00 – 15:00',
+    organClock: 'Spleen & Small Intestine Peak (11:00–13:00)',
+    organTip: 'Solar metabolic fire at absolute peak; highest digestive enzyme concentration of the day.',
+    desc: 'Core Lunch & Digest',
+  },
+  {
+    id: 'Evening',
+    label: 'Evening',
+    icon: '🌆',
+    timeRange: '15:00 – 19:00',
+    organClock: 'Kidney & Autonomic Balance (17:00–19:00)',
+    organTip: 'Optimal window for hydration & electrolyte balance; parasympathetic nervous system wind-down.',
+    desc: 'Afternoon Tea & Transition',
+  },
+  {
+    id: 'Night',
+    label: 'Night',
+    icon: '🌙',
+    timeRange: '19:00 – 23:00',
+    organClock: 'Triple Burner & Autophagy Onset (21:00–23:00)',
+    organTip: 'Digestive enzyme secretion drops 70%; avoid high-histamine fermentations to prevent nocturnal vagal tachycardia.',
+    desc: 'Dinner & Fasting Onset',
+  },
 ];
 
 const QUICK_INDIAN_CAPSULES = [
@@ -304,6 +336,36 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                     );
                   })}
                 </div>
+
+                {/* Circadian Organ Clock Capsule */}
+                {(() => {
+                  const activeSlotMeta = CIRCADIAN_SLOTS.find((s) => s.id === selectedSlot);
+                  if (!activeSlotMeta) return null;
+                  return (
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)',
+                        borderRadius: '14px',
+                        padding: '10px 14px',
+                        border: '1px solid #CCFBF1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
+                      <span style={{ fontSize: '18px' }}>⏰</span>
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+                          {activeSlotMeta.organClock}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#475569', lineHeight: 1.35 }}>
+                          {activeSlotMeta.organTip}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* 2. Text Input Bar with Voice Mic Button */}

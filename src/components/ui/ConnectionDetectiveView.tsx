@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GitMerge,
@@ -43,17 +43,23 @@ import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 
 interface ConnectionDetectiveViewProps {
+  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic';
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
 }
 
 export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = ({
+  initialTab = 'map',
   onOpenFoodDetective,
   onOpenConsult,
 }) => {
   const isMobile = useIsMobile();
   const [report] = useState<ConnectionDetectiveReport>(getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic'>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
 
   const [activeSystemFilter, setActiveSystemFilter] = useState<string>('all');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -332,10 +338,10 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
-                border: isActive ? '1.5px solid #F43F5E' : '1.5px solid #E2E8F0',
-                background: isActive ? 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)' : '#FFFFFF',
-                color: isActive ? '#FFFFFF' : '#78716C',
-                boxShadow: isActive ? '0 4px 12px rgba(244, 63, 94, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
+                border: isActive ? '1.5px solid #0F766E' : '1.5px solid #E2E8F0',
+                background: isActive ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
+                color: isActive ? '#FFFFFF' : '#64748B',
+                boxShadow: isActive ? '0 4px 14px rgba(13, 148, 136, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
                 transition: 'all 0.15s ease',
               }}
             >

@@ -58,8 +58,10 @@ import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { VitalityStreakBanner } from './VitalityStreakBanner';
+import { ClinicalArticleSection } from './ClinicalArticleSection';
+import { ConnectionTriggerHeroCard } from '../../components/ui/ConnectionTriggerHeroCard';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -86,6 +88,8 @@ export default function CaseDashboard() {
   const [showFrictionModal, setShowFrictionModal] = useState(false);
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  const [showDetectiveModal, setShowDetectiveModal] = useState(false);
+  const [detectiveInitialTab, setDetectiveInitialTab] = useState<string>('map');
   const [profile, setProfile] = useState(() => getProfile());
 
   const isProfileComplete = Boolean(
@@ -256,6 +260,14 @@ export default function CaseDashboard() {
           
           {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
           <VitalityStreakBanner completedHabits={completedHabits} />
+
+          {/* CLINIC USP ENGINE: Connection Detective Hero Card (Reference media_1788642260163.png) */}
+          <ConnectionTriggerHeroCard
+            onInvestigate={(tab?: string) => {
+              setDetectiveInitialTab(tab || 'map');
+              setShowDetectiveModal(true);
+            }}
+          />
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
@@ -1386,6 +1398,21 @@ export default function CaseDashboard() {
           onClose={() => setActiveMeditation(null)} 
         />
       )}
+
+      {/* Connection Detective Multi-System Intelligence Modal */}
+      <ConnectionDetectiveModal
+        isOpen={showDetectiveModal}
+        initialTab={detectiveInitialTab}
+        onClose={() => setShowDetectiveModal(false)}
+        onOpenFoodDetective={() => {
+          setShowDetectiveModal(false);
+          navigate('/app/dietician');
+        }}
+        onOpenConsult={() => {
+          setShowDetectiveModal(false);
+          navigate('/app/ava');
+        }}
+      />
     </div>
   );
 };

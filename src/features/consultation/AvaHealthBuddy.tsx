@@ -17,6 +17,9 @@ import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCa
 import { ConnectionTriggerCard } from '../../components/ui/ConnectionTriggerCard';
 import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
 import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
+import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
 
 const QUICK_ACTION_PILLS = [
   {
@@ -400,6 +403,26 @@ const MessageRenderer = ({
     );
   }
 
+  // SYMPTOM SENSITIVITY CAPSULE CARD (TriggerBites Clinical Reference Pattern)
+  if (content.includes('[WIDGET:SYMPTOM_SENSITIVITY_CAPSULE_CARD')) {
+    const { payload, before, after } = extractBalancedWidget(content, 'SYMPTOM_SENSITIVITY_CAPSULE_CARD');
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        {before && <span>{before}</span>}
+        <SymptomSensitivityCapsuleCard
+          symptomName={payload?.symptomName}
+          latencyWindow={payload?.latencyWindow}
+          sensitivities={payload?.sensitivities}
+          ingredients={payload?.ingredients}
+          onOpenDetective={() => {
+            window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'matcher' } }));
+          }}
+        />
+        {after && <span>{after}</span>}
+      </div>
+    );
+  }
+
   if (content.includes('[WIDGET:CALM]') || content.includes('[WIDGET:BREATHWORK]')) {
     const splitKey = content.includes('[WIDGET:CALM]') ? '[WIDGET:CALM]' : '[WIDGET:BREATHWORK]';
     const parts = content.split(splitKey);
@@ -575,8 +598,20 @@ export default function AvaHealthBuddy() {
   const [wholeHealthTab, setWholeHealthTab] = useState<WholeHealthTab>('picture');
   const [isRiverOpen, setIsRiverOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
+  const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
+  const [detectiveTab, setDetectiveTab] = useState<string>('map');
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleOpenDetective = (e?: any) => {
+      setDetectiveTab(e?.detail?.tab || 'map');
+      setIsDetectiveOpen(true);
+    };
+    window.addEventListener('hc_open_connection_detective_modal', handleOpenDetective);
+    return () => window.removeEventListener('hc_open_connection_detective_modal', handleOpenDetective);
+  }, []);
 
   useEffect(() => {
     const handleOpenRiver = () => setIsRiverOpen(true);
@@ -1620,6 +1655,78 @@ export default function AvaHealthBuddy() {
             </div>
           </form>
 
+          {/* Primary Dual-Action Capsule Dock (Reference media_1788642371467.png) */}
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '720px',
+              display: 'flex',
+              gap: '8px',
+              marginTop: '10px',
+              marginBottom: '2px',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                setIsQuickMealOpen(true);
+              }}
+              style={{
+                flex: 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '999px',
+                background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+                border: '1.5px solid #6EE7B7',
+                color: '#065F46',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)',
+                transition: 'transform 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+            >
+              <span>⚡</span>
+              <span>Log your day</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                setDetectiveTab('map');
+                setIsDetectiveOpen(true);
+              }}
+              style={{
+                flex: 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '999px',
+                background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                border: '1.5px solid #5EEAD4',
+                color: '#0F766E',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.12)',
+                transition: 'transform 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+            >
+              <span>🌐</span>
+              <span>Connection Detective</span>
+            </button>
+          </div>
+
           {/* Floating Quick Action Pastel Pills (Reference Images 1 & 2) */}
           <div
             style={{
@@ -1730,6 +1837,30 @@ export default function AvaHealthBuddy() {
         onClose={() => setIsRiverOpen(false)}
         onAskAvaAboutConnection={(upstream, downstream) => {
           handleSend(`Ava, I noticed a connection in my Whole Health River: my "${upstream}" is followed by "${downstream}". How are these anatomically and biochemically linked in your clinical view?`);
+        }}
+      />
+
+      {/* Quick Circadian Meal Intake Sheet (Voice + Indian Diet) */}
+      <QuickMealIntakeSheet
+        isOpen={isQuickMealOpen}
+        onClose={() => setIsQuickMealOpen(false)}
+        onMealLogged={() => {
+          triggerHapticLight();
+        }}
+      />
+
+      {/* Connection Detective Multi-System Intelligence Modal */}
+      <ConnectionDetectiveModal
+        isOpen={isDetectiveOpen}
+        initialTab={detectiveTab}
+        onClose={() => setIsDetectiveOpen(false)}
+        onOpenFoodDetective={() => {
+          setIsDetectiveOpen(false);
+          setWholeHealthTab('detective');
+          setIsWholeHealthOpen(true);
+        }}
+        onOpenConsult={() => {
+          setIsDetectiveOpen(false);
         }}
       />
     </div>
