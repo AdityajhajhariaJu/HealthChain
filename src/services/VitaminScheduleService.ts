@@ -251,3 +251,114 @@ export async function syncMedicationsFromProfile(medications: any[]): Promise<Vi
 
   return updated;
 }
+
+export interface DrugInteractionAlert {
+  id: string;
+  severity: 'contraindication' | 'timing_buffer' | 'depletion' | 'bioavailability';
+  title: string;
+  medication1: string;
+  medication2?: string;
+  message: string;
+  recommendation: string;
+  bufferHours?: number;
+}
+
+/**
+ * Clinical Chronotherapy & Drug-Nutrient Interaction Checker
+ */
+export function detectDrugNutrientInteractions(vitamins: VitaminItem[]): DrugInteractionAlert[] {
+  const alerts: DrugInteractionAlert[] = [];
+  const active = vitamins.filter(v => v.enabled);
+
+  const findMed = (keywords: string[]) => active.find(v => {
+    const n = (v.name || '').toLowerCase();
+    return keywords.some(k => n.includes(k));
+  });
+
+  const parseHour = (timeStr: string) => {
+    const h = parseInt((timeStr || '09:00').split(':')[0], 10);
+    const m = parseInt((timeStr || '09:00').split(':')[1] || '0', 10);
+    return h + m / 60;
+  };
+
+  // 1. Levothyroxine + Calcium/Iron/Multivitamins (Severe Chelation)
+  const levo = findMed(['levothyroxine', 'synthroid', 'eltroxin', 'thyronorm']);
+  const calciumOrIron = findMed(['calcium', 'iron', 'ferrous', 'multivitamin', 'multi']);
+  if (levo && calciumOrIron) {
+    const hourLevo = parseHour(levo.time);
+    const hourMineral = parseHour(calciumOrIron.time);
+    const diff = Math.abs(hourLevo - hourMineral);
+    if (diff < 4) {
+      alerts.push({
+        id: 'chelation_levo_minerals',
+        severity: 'timing_buffer',
+        title: 'Cation Chelation & Thyroxine Malabsorption',
+        medication1: levo.name,
+        medication2: calciumOrIron.name,
+        message: `${calciumOrIron.name} chelates synthetic ${levo.name} in the intestinal lumen, drastically suppressing bioavailability and provoking subclinical hypothyroidism.`,
+        recommendation: 'Separate dosing times by at least 4 hours. Take Levothyroxine 60 min before breakfast, and minerals at Midday or Bedtime.',
+        bufferHours: 4
+      });
+    }
+  }
+
+  // 2. Metformin + B12 Depletion
+  const metformin = findMed(['metformin', 'glycomet', 'glucophage']);
+  const b12 = findMed(['b12', 'cobalamin', 'b-complex', 'multivitamin']);
+  if (metformin && !b12) {
+    alerts.push({
+      id: 'depletion_metformin_b12',
+      severity: 'depletion',
+      title: 'Metformin-Induced Vitamin B12 Depletion',
+      medication1: metformin.name,
+      message: 'Chronic Metformin therapy impairs calcium-dependent ileal absorption of Vitamin B12 in up to 30% of patients, frequently manifesting as unexplained fatigue and numbness.',
+      recommendation: 'Consider co-supplementation with Methylcobalamin (Active B12, 1000mcg) or check annual serum B12 and homocysteine levels.'
+    });
+  }
+
+  // 3. PPIs + Magnesium / Mineral Depletion
+  const ppi = findMed(['omeprazole', 'pantoprazole', 'esomeprazole', 'rabeprazole', 'pan']);
+  const mag = findMed(['magnesium', 'mag']);
+  if (ppi && !mag) {
+    alerts.push({
+      id: 'depletion_ppi_magnesium',
+      severity: 'depletion',
+      title: 'Hypochlorhydria Magnesium & Mineral Depletion',
+      medication1: ppi.name,
+      message: 'Proton Pump Inhibitors drastically suppress gastric acidity, impairing the ionization and intestinal absorption of dietary Magnesium and Calcium.',
+      recommendation: 'Periodically monitor serum magnesium. Consider supplementing with highly bioavailable Magnesium Glycinate before sleep.'
+    });
+  }
+
+  // 4. Statins + CoQ10 Depletion
+  const statin = findMed(['atorvastatin', 'rosuvastatin', 'simvastatin', 'atorva', 'lipitor']);
+  const coq10 = findMed(['coq10', 'ubiquinol', 'coenzyme']);
+  if (statin && !coq10) {
+    alerts.push({
+      id: 'depletion_statin_coq10',
+      severity: 'depletion',
+      title: 'Mitochondrial CoQ10 (Ubiquinol) Depletion',
+      medication1: statin.name,
+      message: 'HMG-CoA reductase inhibitors block the mevalonate synthesis pathway, depleting muscle mitochondrial Coenzyme Q10 and triggering myalgia or exercise fatigue.',
+      recommendation: 'Co-supplementation with Ubiquinol (100–200mg) with your evening meal supports mitochondrial electron transport and muscle recovery.'
+    });
+  }
+
+  // 5. Lipophilic Vitamins Fasting Warning
+  const fatSoluble = findMed(['d3', 'k2', 'vitamin d', 'omega-3', 'fish oil']);
+  if (fatSoluble) {
+    const hour = parseHour(fatSoluble.time);
+    if (hour < 10) {
+      alerts.push({
+        id: 'bioavailability_fat_soluble',
+        severity: 'bioavailability',
+        title: 'Lipid Vehicle Required for Bioavailability',
+        medication1: fatSoluble.name,
+        message: 'Vitamins D3, K2, and Omega-3 are lipophilic. Bioavailability drops by up to 50% when taken during morning fasting without dietary lipids.',
+        recommendation: 'Schedule with your largest fat-containing meal (e.g. Lunch or Dinner with avocado, olive oil, eggs, or nuts).'
+      });
+    }
+  }
+
+  return alerts;
+}

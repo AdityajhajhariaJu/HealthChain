@@ -252,10 +252,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [stream]);
 
-  const dailySugarLimit = 36; // grams (AHA recommendation for men, roughly)
-  const scannedSugar = 28; // Example for Sugar Loops
-  const sugarPercentage = Math.min((scannedSugar / dailySugarLimit) * 100, 100);
-
   return (
     <div 
       role="dialog"
@@ -526,6 +522,37 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                       <div style={{ fontSize: '11.5px', color: '#78716C', fontWeight: 600 }}>Fats</div>
                       <div style={{ fontSize: '17px', color: '#1C1917', fontWeight: 800 }}>{analysis?.fats ?? 0}g</div>
                     </div>
+                  </div>
+
+                  {/* Functional Gut & Metabolic Integrity Chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                    {analysis?.sugar !== undefined && analysis.sugar > 15 ? (
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECDD3' }}>
+                        ⚡ High Insulin Surge (&gt;15g)
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>
+                        ✓ Glycemic Balance Stable
+                      </span>
+                    )}
+
+                    {analysis?.protein !== undefined && analysis.protein >= 15 && (
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#F0FDFA', color: '#0F766E', border: '1px solid #CCFBF1' }}>
+                        💪 High Protein Density ({analysis.protein}g)
+                      </span>
+                    )}
+
+                    {((analysis?.foodName || '').toLowerCase().includes('fried') || (analysis?.foodName || '').toLowerCase().includes('chip') || (analysis?.foodName || '').toLowerCase().includes('biscuit') || (analysis?.foodName || '').toLowerCase().includes('processed')) && (
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A' }}>
+                        ⚠️ Refined Seed Oil Alert
+                      </span>
+                    )}
+
+                    {((analysis?.foodName || '').toLowerCase().includes('sauce') || (analysis?.foodName || '').toLowerCase().includes('mayo') || (analysis?.foodName || '').toLowerCase().includes('bar') || (analysis?.foodName || '').toLowerCase().includes('ice cream')) && (
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE' }}>
+                        🛡️ Mucosal Emulsifier Scan
+                      </span>
+                    )}
                   </div>
                 </div>
 

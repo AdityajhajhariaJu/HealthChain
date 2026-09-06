@@ -512,6 +512,32 @@ export default function Dietician() {
 
   const waterGlasses = hydration[currentDate] || 0;
 
+  const syncToUnifiedNutritionLogs = (mealItem: any) => {
+    try {
+      const text = (mealItem.name || '').toLowerCase();
+      const sensitivities: string[] = [];
+      if (text.includes('spinach') || text.includes('tomato') || text.includes('wine') || text.includes('aged') || text.includes('fermented') || text.includes('avocado') || text.includes('pickle') || text.includes('achaar')) sensitivities.push('histamine');
+      if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) sensitivities.push('gluten');
+      if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) sensitivities.push('lactose_casein');
+      if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea') || text.includes('chai')) sensitivities.push('caffeine');
+      if (text.includes('onion') || text.includes('garlic') || text.includes('chickpea') || text.includes('beans') || text.includes('chana') || text.includes('besan') || text.includes('dal')) sensitivities.push('fructans_gos');
+
+      addNutritionLog({
+        meal: mealItem.name,
+        calories: mealItem.calories || 0,
+        protein: mealItem.protein || 0,
+        carbs: mealItem.carbs || 0,
+        fat: mealItem.fat || 0,
+        type: mealItem.type || selectedMealType,
+        latency: mealItem.latency || mealLatency,
+        sensitivities,
+        date: currentDate,
+      });
+    } catch (e) {
+      console.warn('Failed to sync to unified nutrition logs:', e);
+    }
+  };
+
   const handleAddFood = async () => {
     if (isAnalyzingFood) return;
     if (!foodInput.trim()) return;
@@ -523,12 +549,14 @@ export default function Dietician() {
         updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
 
         result.items.forEach((item: any) => {
-          updatedLogs[currentDate].push({
+          const loggedEntry = {
             ...item,
             type: selectedMealType,
             latency: mealLatency,
             id: Date.now() + Math.random(),
-          });
+          };
+          updatedLogs[currentDate].push(loggedEntry);
+          syncToUnifiedNutritionLogs(loggedEntry);
         });
         if (isMounted.current) {
           setFoodLogs(updatedLogs);
@@ -556,7 +584,7 @@ export default function Dietician() {
     triggerHapticLight();
     const updatedLogs = { ...foodLogs };
     updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-    updatedLogs[currentDate].push({
+    const entry = {
       name: preset.name,
       portion: preset.portion,
       calories: preset.calories,
@@ -567,7 +595,9 @@ export default function Dietician() {
       type: selectedMealType,
       latency: mealLatency,
       id: Date.now() + Math.random(),
-    });
+    };
+    updatedLogs[currentDate].push(entry);
+    syncToUnifiedNutritionLogs(entry);
     setFoodLogs(updatedLogs);
     setIsLoggingFood(false);
     awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
@@ -2265,10 +2295,12 @@ export default function Dietician() {
             triggerHapticSuccess();
             const updatedLogs = { ...foodLogs };
             updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-            updatedLogs[currentDate].push({
+            const entry = {
               ...food,
               id: Date.now() + Math.random(),
-            });
+            };
+            updatedLogs[currentDate].push(entry);
+            syncToUnifiedNutritionLogs(entry);
             setFoodLogs(updatedLogs);
             setShowARLens(false);
             awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);

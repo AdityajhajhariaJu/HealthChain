@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Flame, HeartPulse, CheckCircle2, BellRing } from 'lucide-react';
+import { Flame, HeartPulse, CheckCircle2, BellRing, Sparkles, Check, AlertCircle } from 'lucide-react';
 import { getProfile, recordDailyCheckin, getTodayCheckin, getRecentCheckins } from '../../services/ProfileEngine';
-import { triggerHapticLight } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { trackFeatureUsed } from '../../services/analytics';
+import { recordConfirmedTrigger } from '../../services/TriggerEngine';
 
 interface DailySymptomCheckinWidgetProps {
   onCheckinComplete?: (checkin: any) => void;
@@ -33,6 +34,8 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
   const [latencyWindow, setLatencyWindow] = useState<'<30m' | '1-2h' | '4h+' | 'morning'>('1-2h');
   const [note, setNote] = useState(todayCheckin?.note || '');
   const [showNoteInput, setShowNoteInput] = useState(false);
+  const [confirmedTriggerFood, setConfirmedTriggerFood] = useState<string | null>(null);
+  const [dismissedTrigger, setDismissedTrigger] = useState(false);
 
   const suggestedSymptoms = useMemo(() => {
     const rawConditions = profile?.conditions || [];
@@ -102,6 +105,58 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
     }
     return streak;
   }, [profile?.dailyCheckins]);
+
+  // Real-time Cause-and-Effect Food Trigger Correlation Engine
+  const detectedMealTrigger = useMemo(() => {
+    if (!todayCheckin || todayCheckin.severity === 'None') return null;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const recentLogs = profile?.nutrition?.recentLogs || [];
+    const todayLogs = recentLogs.filter((l: any) => l.date === todayStr || (l.loggedAt && l.loggedAt.startsWith(todayStr)));
+
+    const dLogs = profile?.dietician?.foodLogs?.[todayStr] || [];
+    const allTodayMeals = [...todayLogs, ...dLogs];
+    if (allTodayMeals.length === 0) return null;
+
+    const sym = (selectedSymptom || '').toLowerCase();
+    for (const meal of allTodayMeals) {
+      const name = (meal.meal || meal.name || '').toLowerCase();
+      if ((sym.includes('head') || sym.includes('migraine')) && (name.includes('coffee') || name.includes('espresso') || name.includes('chai') || name.includes('cheese') || name.includes('pickle') || name.includes('chocolate') || name.includes('wine') || name.includes('tea'))) {
+        return {
+          food: meal.meal || meal.name,
+          mechanism: name.includes('coffee') || name.includes('espresso') || name.includes('chai') || name.includes('tea')
+            ? 'Caffeine & adenosine vasoconstrictive rebound'
+            : 'Tyramine & histamine vasoactive cerebral dilation',
+          sensitivity: name.includes('coffee') || name.includes('tea') || name.includes('chai') ? 'Caffeine Rebound' : 'Tyramine/Histamine',
+        };
+      }
+      if ((sym.includes('gut') || sym.includes('digest') || sym.includes('bloat')) && (name.includes('onion') || name.includes('garlic') || name.includes('dal') || name.includes('besan') || name.includes('chana') || name.includes('milk') || name.includes('paneer') || name.includes('dahi') || name.includes('bread') || name.includes('roti'))) {
+        return {
+          food: meal.meal || meal.name,
+          mechanism: name.includes('dal') || name.includes('besan') || name.includes('onion') || name.includes('chana')
+            ? 'Rapid cecal gas fermentation (FODMAPs / GOS)'
+            : 'Enzymatic lactose / casein mucosal permeability',
+          sensitivity: name.includes('dal') || name.includes('onion') || name.includes('chana') ? 'FODMAPs' : 'Lactose/Casein',
+        };
+      }
+      if ((sym.includes('fatigue') || sym.includes('fog')) && (name.includes('bread') || name.includes('toast') || name.includes('sugar') || name.includes('roti') || name.includes('pasta') || name.includes('rice'))) {
+        return {
+          food: meal.meal || meal.name,
+          mechanism: 'Postprandial glycemic surge followed by reactive hypoglycemia',
+          sensitivity: 'Glycemic Load / Gluten',
+        };
+      }
+    }
+    if (todayCheckin.score >= 2 && allTodayMeals.length > 0) {
+      const m = allTodayMeals[allTodayMeals.length - 1];
+      return {
+        food: m.meal || m.name,
+        mechanism: 'Postprandial digestive motility & metabolic load',
+        sensitivity: 'Dietary Correlation',
+      };
+    }
+    return null;
+  }, [profile, selectedSymptom, todayCheckin]);
 
   const handleSelectSeverity = (option: typeof SEVERITY_OPTIONS[0]) => {
     triggerHapticLight();
@@ -454,6 +509,102 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
             >
               Relief tips with Ava →
             </button>
+          )}
+        </motion.div>
+      )}
+
+      {/* Live Cause-and-Effect Trigger Correlation Card */}
+      {detectedMealTrigger && !dismissedTrigger && (
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            background: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)',
+            border: '1.5px solid #FDE68A',
+            borderRadius: '14px',
+            padding: '12px 14px',
+            marginBottom: '14px',
+            boxShadow: '0 2px 10px rgba(217, 119, 6, 0.08)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Sparkles size={14} color="#D97706" />
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                LIVE TRIGGER CORRELATION DETECTED
+              </span>
+            </div>
+            {confirmedTriggerFood === detectedMealTrigger.food ? (
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Check size={12} /> Confirmed (+5 PTS)
+              </span>
+            ) : null}
+          </div>
+
+          <div style={{ fontSize: '13px', fontWeight: 700, color: '#92400E', lineHeight: 1.3 }}>
+            You logged <span style={{ textDecoration: 'underline' }}>{detectedMealTrigger.food}</span> earlier today.
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#B45309', marginTop: '3px', lineHeight: 1.4 }}>
+            Clinical Mechanism: {detectedMealTrigger.mechanism}.
+          </div>
+
+          {confirmedTriggerFood !== detectedMealTrigger.food ? (
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticSuccess();
+                  setConfirmedTriggerFood(detectedMealTrigger.food);
+                  recordConfirmedTrigger({
+                    food: detectedMealTrigger.food,
+                    symptom: selectedSymptom,
+                    sensitivity: detectedMealTrigger.sensitivity,
+                  });
+                  awardPoints(5, `Confirmed Trigger: ${detectedMealTrigger.food}`, 'lifestyle');
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #D97706 0%, #B45309 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '5px 12px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '0 2px 6px rgba(217, 119, 6, 0.3)',
+                }}
+              >
+                <span>Confirm as Suspect Trigger</span>
+                <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.25)', padding: '1px 5px', borderRadius: '4px' }}>+5 PTS</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setDismissedTrigger(true);
+                }}
+                style={{
+                  background: 'none',
+                  color: '#92400E',
+                  border: '1px solid #FDE68A',
+                  borderRadius: '8px',
+                  padding: '5px 10px',
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Not Related
+              </button>
+            </div>
+          ) : (
+            <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700, marginTop: '6px' }}>
+              ✓ Synced with Suspect Foods Leaderboard & Doctor SBAR briefing.
+            </div>
           )}
         </motion.div>
       )}

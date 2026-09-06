@@ -17,7 +17,9 @@ import {
   Sun,
   Sunset,
   Moon,
-  Info
+  Info,
+  AlertTriangle,
+  ShieldAlert
 } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -28,7 +30,9 @@ import {
   markAllVitaminsTaken,
   triggerPillNotification,
   VitaminItem,
-  getTodayDateString
+  getTodayDateString,
+  detectDrugNutrientInteractions,
+  DrugInteractionAlert
 } from '../../services/VitaminScheduleService';
 import { requestNotificationPermission } from '../../services/DailyCheckinNotificationService';
 
@@ -482,6 +486,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [hasNotificationPermission, setHasNotificationPermission] = useState(true);
 
+  const interactionAlerts = React.useMemo(() => detectDrugNutrientInteractions(vitamins), [vitamins]);
+
   useEffect(() => {
     if (isOpen) {
       setVitamins(getVitaminSchedule());
@@ -837,6 +843,69 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 >
                   Enable
                 </button>
+              </div>
+            )}
+
+            {/* Evidence-Based Drug-Nutrient & Chronotherapy Interaction Alerts */}
+            {interactionAlerts.length > 0 && (
+              <div style={{
+                background: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)',
+                border: '1.5px solid #FDE68A',
+                borderRadius: '20px',
+                padding: '14px 16px',
+                boxShadow: '0 4px 16px rgba(217, 119, 6, 0.08)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <AlertTriangle size={16} color="#D97706" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                    CHRONOTHERAPY & DRUG-NUTRIENT ALERTS ({interactionAlerts.length})
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {interactionAlerts.map(alert => (
+                    <div
+                      key={alert.id}
+                      style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #FDE68A',
+                        borderRadius: '12px',
+                        padding: '10px 12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '3px' }}>
+                        <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#92400E' }}>
+                          {alert.title}
+                        </span>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          padding: '2px 7px',
+                          borderRadius: '999px',
+                          background: alert.severity === 'timing_buffer' ? '#FEE2E2' : '#FEF3C7',
+                          color: alert.severity === 'timing_buffer' ? '#DC2626' : '#B45309',
+                          border: `1px solid ${alert.severity === 'timing_buffer' ? '#FECDD3' : '#FDE68A'}`,
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {alert.severity === 'timing_buffer' ? '4h Buffer Required' : alert.severity === 'depletion' ? 'Nutrient Depletion' : 'Lipid Absorption'}
+                        </span>
+                      </div>
+                      <p style={{ margin: '0 0 6px', fontSize: '11.5px', color: '#78716C', lineHeight: 1.4 }}>
+                        {alert.message}
+                      </p>
+                      <div style={{
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: '#0D9488',
+                        background: '#F0FDFA',
+                        padding: '6px 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #CCFBF1'
+                      }}>
+                        💡 Clinical Protocol: {alert.recommendation}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
