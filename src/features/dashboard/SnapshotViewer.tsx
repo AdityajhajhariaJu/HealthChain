@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText, Sparkles, MessageCircle } from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
@@ -29,6 +29,10 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
   const [elifMode, setElifMode] = useState(false);
   const [simulatingAction, setSimulatingAction] = useState<any>(null);
   const reportRef = useRef<HTMLDivElement>(null);
+
+  // ⚡ Bolt: Memoize reversed reviews to prevent creating and reversing array on every render
+  // Reduces unnecessary array operations when activeReviewId or elifMode state changes
+  const reversedReviews = useMemo(() => [...reviews].reverse(), [reviews]);
 
   const exportToPDF = async () => {
     if (!reportRef.current) return;
@@ -74,7 +78,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
             <h3 style={{ margin: 0, fontSize: 16 }}>Review History</h3>
          </div>
          <div>
-           {[...reviews].reverse().map((review, index) => {
+           {reversedReviews.map((review, index) => {
               const isParallel = review.type === 'parallel';
               const isJarvis = review.type === 'jarvis';
               const isLab = review.type === 'lab_report';
