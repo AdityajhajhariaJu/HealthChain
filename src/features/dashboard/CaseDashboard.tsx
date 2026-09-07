@@ -260,10 +260,12 @@ export default function CaseDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
             {/* The Glassmorphic Arch Canvas Tile */}
-              <div 
+              <motion.div 
                 role="button"
                 tabIndex={0}
                 aria-label="Health Canvas War Room"
+                whileHover={{ y: -3, scale: 1.01 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -309,7 +311,7 @@ export default function CaseDashboard() {
                    <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DR. JENKINS</p>
                 </div>
-              </div>
+              </motion.div>
 
               
               {/* AR Lens Bento Tile */}
