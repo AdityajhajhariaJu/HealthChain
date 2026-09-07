@@ -22,8 +22,12 @@ export default function WarRoom() {
       }}>
         <button 
           type="button"
-          aria-label="Back to dashboard"
-          onClick={() => { triggerHapticLight(); navigate('/app/today'); }}
+          aria-label="Back"
+          onClick={() => { 
+            triggerHapticLight(); 
+            if (window.history.length > 1) navigate(-1);
+            else navigate('/app/today'); 
+          }}
           style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
         >
           <ArrowLeft size={20} color="#0F172A" />
@@ -138,6 +142,58 @@ export default function WarRoom() {
               style={{ flex: 1, minWidth: '160px', padding: '12px', borderRadius: '14px', background: '#F8FAFC', color: '#0F172A', border: '1px solid #CBD5E1', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
             >
               <FileText size={16} /> Open in Analyzer
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Collaborative Node 3: Specialist Gastroenterology */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)', position: 'relative' }}>
+          <Pin size={20} color="#0D9488" style={{ position: 'absolute', top: '-10px', right: '20px', transform: 'rotate(15deg)' }} />
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#F0FDFA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Stethoscope size={18} color="#0D9488" />
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Dr. Marcus Vance (Gastroenterology)</div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>Added protocol 4 hours ago</div>
+            </div>
+          </div>
+          <p style={{ fontSize: '15px', color: '#334155', margin: '0 0 16px', lineHeight: 1.5 }}>
+            "Initiating Monash 4-week Low-FODMAP washout for postprandial Roemheld distension. Eliminating high-fructan alliums and GOS lentils while monitoring HRV baroreflex."
+          </p>
+
+          {/* AI Reply Thread */}
+          <div style={{ marginLeft: '24px', paddingLeft: '16px', borderLeft: '2px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(13, 148, 136, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Sparkles size={14} color="#0D9488" />
+              </div>
+              <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '12px', fontSize: '14px', color: '#334155', lineHeight: 1.5 }}>
+                <strong style={{ display: 'block', color: '#0D9488', fontSize: '12px', marginBottom: '4px' }}>Ava (AI Assistant)</strong>
+                Active. Symptom Hunt Protocol and Smart Correlation Insights are live. Flagged Garlic Naan and Besan Chilla as high-confidence co-occurring triggers.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => {
+                triggerHapticLight();
+                navigate('/app/dietician');
+              }}
+              style={{ flex: 1, minWidth: '160px', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', border: 'none', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)' }}
+            >
+              <FileText size={16} /> Open Symptom Hunt
+            </button>
+            <button
+              onClick={() => {
+                triggerHapticLight();
+                navigate('/app/my-cases');
+              }}
+              style={{ flex: 1, minWidth: '160px', padding: '12px', borderRadius: '14px', background: '#F8FAFC', color: '#0F172A', border: '1px solid #CBD5E1', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
+            >
+              <Pin size={16} /> View Connected Cases
             </button>
           </div>
         </motion.div>

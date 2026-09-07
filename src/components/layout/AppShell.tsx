@@ -35,6 +35,7 @@ function AnimatedOutlet() {
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
+  { to: '/app/war-room', label: 'Health Canvas', icon: Sparkles },
   { to: '/app/jarvis', label: 'Clinical Data Engine', icon: BrainCircuit },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
@@ -735,7 +736,7 @@ const enforceSafeArea = () => {
                   </button>
                 </div>
                 <div className="mobile-more-menu__grid">
-                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to) && l.to !== '/app/progress' && l.to !== '/app/trophies').map((l) => {
+                  {links.filter(l => !mobileTabs.find(mt => mt.to === l.to) && l.to !== '/app/progress' && l.to !== '/app/trophies' && l.to !== '/app/my-cases').map((l) => {
                     const isLocked = l.locked;
                     return (
                     <button
@@ -764,16 +765,30 @@ const enforceSafeArea = () => {
                       setShowMoreMenu(false);
                       navigate('/app/settings');
                     }} 
+                    className="more-menu-item"
+                    aria-label="Settings"
+                  >
+                    <div className="more-menu-icon">
+                      <Settings size={22} />
+                    </div>
+                    <span>Settings</span>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      triggerHapticLight();
+                      setShowMoreMenu(false);
+                      navigate('/app/my-cases');
+                    }} 
                     className="more-menu-settings-card"
-                    aria-label="Open Settings"
+                    aria-label="Open My Cases"
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <div className="more-menu-icon" style={{ width: '40px', height: '40px', borderRadius: '12px' }}>
-                        <Settings size={20} />
+                      <div className="more-menu-icon" style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(13, 148, 136, 0.12)', color: '#0D9488' }}>
+                        <Archive size={20} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '2px' }}>
-                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main, #0F172A)', letterSpacing: '-0.01em' }}>Settings</span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted, #64748B)', fontWeight: 500 }}>Preferences, account & security</span>
+                        <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main, #0F172A)', letterSpacing: '-0.01em' }}>My Cases</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted, #64748B)', fontWeight: 500 }}>Multi-specialist case briefs & records</span>
                       </div>
                     </div>
                     <ChevronRight size={18} style={{ color: '#94A3B8', flexShrink: 0 }} />
