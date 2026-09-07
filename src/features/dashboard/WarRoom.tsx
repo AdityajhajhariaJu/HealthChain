@@ -208,7 +208,7 @@ export default function WarRoom() {
             <button 
               onClick={() => {
                 triggerHapticLight();
-                navigate('/app/dietician');
+                navigate('/app/dietician', { state: { tab: 'elimination' } });
               }}
               style={{ flex: 1, minWidth: '160px', padding: '12px', borderRadius: '14px', background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', border: 'none', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)' }}
             >

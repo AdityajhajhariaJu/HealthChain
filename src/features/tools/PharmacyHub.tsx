@@ -22,7 +22,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { trackFeatureUsed } from '../../services/analytics';
 import { useToast } from '../../components/ui/ToastProvider';
-import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
 
@@ -918,6 +918,108 @@ export default function PharmacyHub() {
                 </>
               );
             })()}
+          </motion.div>
+        )}
+
+        {!loading && !result && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              border: '1px solid #E2E8F0',
+              padding: isMobile ? '20px 16px' : '28px 24px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: '#ECFDF5',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Zap size={20} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  High-Yield Clinical Medications
+                </h2>
+                <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: '#64748B' }}>
+                  Tap any medication for instant nutrient depletions, timing rules, and food interactions (Zero Tokens).
+                </p>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: '12px',
+              marginTop: '16px'
+            }}>
+              {[
+                { name: 'Metformin', class: 'Biguanide Antidiabetic', tag: 'Depletes B12 & Folate', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0' },
+                { name: 'Atorvastatin', class: 'Lipid Lowering / Statin', tag: 'Depletes CoQ10', color: '#0284C7', bg: '#F0F9FF', border: '#BAE6FD' },
+                { name: 'Omeprazole', class: 'PPI Acid Reducer', tag: 'Depletes B12, Mg, Fe, Ca', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
+                { name: 'Lisinopril', class: 'ACE Inhibitor', tag: 'Spares Potassium / Hydration', color: '#6366F1', bg: '#EEF2FF', border: '#C7D2FE' },
+                { name: 'Levothyroxine', class: 'Thyroid Hormone', tag: 'Fasting • Separate from Fe/Ca', color: '#8B5CF6', bg: '#F5F3FF', border: '#DDD6FE' },
+                { name: 'Sertraline', class: 'SSRI Neurotransmitter', tag: 'Morning Regimen / Hyponatremia', color: '#EC4899', bg: '#FDF2F8', border: '#FBCFE8' },
+              ].map((med) => (
+                <button
+                  key={med.name}
+                  type="button"
+                  onClick={() => {
+                    triggerHapticSelection();
+                    setQuery(med.name);
+                    executeSearch(med.name);
+                  }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    background: '#FAFAFA',
+                    border: '1px solid #E2E8F0',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#FFFFFF';
+                    e.currentTarget.style.borderColor = med.color;
+                    e.currentTarget.style.boxShadow = `0 4px 14px ${med.color}20`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#FAFAFA';
+                    e.currentTarget.style.borderColor = '#E2E8F0';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 800, fontSize: '15px', color: '#0F172A' }}>{med.name}</span>
+                    <span style={{
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      color: med.color,
+                      background: med.bg,
+                      border: `1px solid ${med.border}`,
+                      padding: '2px 8px',
+                      borderRadius: '999px'
+                    }}>
+                      {med.tag}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>{med.class}</span>
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
