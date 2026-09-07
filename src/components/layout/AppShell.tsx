@@ -35,7 +35,7 @@ function AnimatedOutlet() {
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
   { to: '/app/consult', label: 'Consult', icon: Stethoscope },
-  { to: '/app/war-room', label: 'Health Canvas', icon: Sparkles },
+
   { to: '/app/jarvis', label: 'Clinical Data Engine', icon: BrainCircuit },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
@@ -759,6 +759,20 @@ const enforceSafeArea = () => {
                       {isLocked && <Lock size={16} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
                     </button>
                   )})}
+                  <button 
+                    onClick={() => {
+                      triggerHapticLight();
+                      setShowMoreMenu(false);
+                      navigate('/app/war-room');
+                    }} 
+                    className="more-menu-item"
+                    aria-label="Health Canvas"
+                  >
+                    <div className="more-menu-icon">
+                      <Sparkles size={22} />
+                    </div>
+                    <span>Health Canvas</span>
+                  </button>
                   <button 
                     onClick={() => {
                       triggerHapticLight();
