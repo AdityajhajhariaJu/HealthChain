@@ -69,7 +69,7 @@ export default function OfflineBanner() {
             top: 0,
             left: 0,
             right: 0,
-            backgroundColor: isOffline ? '#EF4444' : '#10B981',
+            backgroundColor: isOffline ? '#D97706' : '#10B981',
             color: 'white',
             display: 'flex',
             alignItems: 'center',

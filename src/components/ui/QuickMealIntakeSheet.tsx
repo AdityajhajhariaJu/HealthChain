@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, MicOff, CheckCircle2, Utensils } from 'lucide-react';
-import { addNutritionLog } from '../../services/ProfileEngine';
+import { X, Mic, MicOff, CheckCircle2, Utensils, CloudOff } from 'lucide-react';
+import { addNutritionLog, removeNutritionLog } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import FocusTrap from './FocusTrap';
@@ -174,9 +174,31 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
       tags: selectedCapsules,
     };
 
-    addNutritionLog(logPayload);
+    const entryId = addNutritionLog(logPayload);
     awardPoints(15, 'Logged Circadian Meal Intake');
     window.dispatchEvent(new Event('hc_profile_updated'));
+
+    // Dispatch 6-second undo safety toast (Nielsen H3/H5)
+    window.dispatchEvent(new CustomEvent('hc_toast', {
+      detail: {
+        title: 'Meal Logged ✓',
+        message: `${finalMealName} (+15 VP)`,
+        type: 'success',
+        actionLabel: 'Undo',
+        onAction: () => {
+          triggerHapticLight();
+          removeNutritionLog(entryId || logPayload.loggedAt);
+          window.dispatchEvent(new CustomEvent('hc_toast', {
+            detail: {
+              title: 'Meal Log Undone',
+              message: `${finalMealName} removed from diary.`,
+              type: 'info'
+            }
+          }));
+        },
+        duration: 6000
+      }
+    }));
 
     if (onMealLogged) {
       onMealLogged(finalMealName, selectedSlot);
@@ -270,8 +292,10 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                 }}
                 aria-label="Close meal intake sheet"
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  minHeight: '44px',
                   borderRadius: '50%',
                   background: '#F1F5F9',
                   border: 'none',
@@ -285,6 +309,26 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
                 <X size={18} />
               </button>
             </div>
+
+            {/* Offline Resilience Indicator (H4) */}
+            {typeof navigator !== 'undefined' && !navigator.onLine && (
+              <div style={{
+                margin: '8px 20px 0',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: '#FEF3C7',
+                border: '1px solid #FDE68A',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11px',
+                color: '#92400E',
+                fontWeight: 600
+              }}>
+                <CloudOff size={13} />
+                <span>Working offline — Meal entry will be preserved locally and auto-synced.</span>
+              </div>
+            )}
 
             {/* Scrollable Content Body */}
             <div

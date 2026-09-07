@@ -133,7 +133,30 @@ export const ProgressGallery: React.FC = () => {
   const radarData = getBalanceData();
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#10B981' }}>Loading Analytics...</div>;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#FBF9F6',
+        padding: isMobile ? '16px' : '32px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+      }}>
+        <div style={{ width: '180px', height: '32px', background: '#E2E8F0', borderRadius: '8px', marginBottom: '4px' }} />
+        <div style={{ width: '280px', height: '18px', background: '#E2E8F0', borderRadius: '6px', marginBottom: '16px' }} />
+        <div style={{
+          height: isMobile ? '280px' : '360px',
+          background: '#FFFFFF',
+          borderRadius: '24px',
+          border: '1px solid #E2E8F0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{ width: '180px', height: '180px', borderRadius: '50%', border: '3px dashed #CBD5E1', opacity: 0.6 }} />
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -32,6 +32,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
 import { loadRazorpaySDK } from '../../services/razorpay';
 import { triggerHapticLight } from '../../services/haptics';
+import { motion } from 'framer-motion';
 
 interface FeatureItem {
   name: string;
@@ -380,14 +381,19 @@ export default function Pricing() {
             </div>
           </div>
 
-          <button
-            onClick={() => handleCheckout('pro_30_days')}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              triggerHapticLight();
+              handleCheckout('pro_30_days');
+            }}
             disabled={isProcessing !== null}
             className="btn btn-primary"
             style={{
               width: '100%',
               marginBottom: '24px',
               padding: '13px',
+              minHeight: '48px',
               borderRadius: '12px',
               fontWeight: 800,
               fontSize: '14.5px',
@@ -398,11 +404,12 @@ export default function Pricing() {
               alignItems: 'center',
               gap: '8px',
               boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
+              cursor: isProcessing !== null ? 'not-allowed' : 'pointer'
             }}
           >
             {isProcessing === 'pro_30_days' ? <Loader2 size={18} className="spin" /> : null}
             {isProcessing === 'pro_30_days' ? 'Opening Payment...' : 'Unlock Pro 30-Days'}
-          </button>
+          </motion.button>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, borderTop: '1px solid #F1F5F9', paddingTop: '20px' }}>
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
@@ -479,14 +486,19 @@ export default function Pricing() {
             </div>
           </div>
 
-          <button
-            onClick={() => handleCheckout('pro_90_days')}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              triggerHapticLight();
+              handleCheckout('pro_90_days');
+            }}
             disabled={isProcessing !== null}
             className="btn btn-primary"
             style={{
               width: '100%',
               marginBottom: '24px',
               padding: '13px',
+              minHeight: '48px',
               borderRadius: '12px',
               fontWeight: 800,
               fontSize: '14.5px',
@@ -497,11 +509,12 @@ export default function Pricing() {
               alignItems: 'center',
               gap: '8px',
               boxShadow: '0 6px 18px rgba(5, 150, 105, 0.35)',
+              cursor: isProcessing !== null ? 'not-allowed' : 'pointer'
             }}
           >
             {isProcessing === 'pro_90_days' ? <Loader2 size={18} className="spin" /> : null}
             {isProcessing === 'pro_90_days' ? 'Opening Payment...' : 'Unlock Pro 90-Days (Best Value)'}
-          </button>
+          </motion.button>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, borderTop: '1px solid #BBF7D0', paddingTop: '20px' }}>
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px' }}>

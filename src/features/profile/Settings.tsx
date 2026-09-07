@@ -515,14 +515,18 @@ export default function Settings() {
                         type="button"
                         onClick={() => handleSelectReminderTime(p.val)}
                         style={{
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
+                          padding: '8px 14px',
+                          minHeight: '44px',
+                          borderRadius: '8px',
+                          fontSize: '12.5px',
                           fontWeight: reminderTime === p.val ? 700 : 500,
                           background: reminderTime === p.val ? 'var(--text-main)' : 'transparent',
                           color: reminderTime === p.val ? 'var(--bg)' : 'var(--text-muted)',
                           border: '1px solid var(--border)',
                           cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
                         {p.label}
@@ -532,14 +536,16 @@ export default function Settings() {
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '6px',
                         background: 'transparent',
                         border: '1px solid var(--border)',
-                        borderRadius: '6px',
-                        padding: '2px 6px',
+                        borderRadius: '8px',
+                        padding: '6px 12px',
+                        minHeight: '44px',
+                        boxSizing: 'border-box',
                       }}
                     >
-                      <Clock size={12} color="var(--text-muted)" />
+                      <Clock size={14} color="var(--text-muted)" />
                       <input
                         type="time"
                         value={reminderTime}

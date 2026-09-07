@@ -600,16 +600,18 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
             <button
               type="button"
               onClick={handleCopyDoctorSummary}
+              aria-label="Copy Doctor GI Dossier to clipboard"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '8px 12px',
+                padding: '10px 16px',
+                minHeight: '44px',
                 borderRadius: '12px',
                 border: '1px solid #CBD5E1',
                 background: '#FFFFFF',
                 color: '#334155',
-                fontSize: '12px',
+                fontSize: '12.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
                 boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
@@ -627,11 +629,13 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                 handleSelectDay(todayDay);
                 setModalTab('edit');
               }}
+              aria-label="Log today's digestive health metrics"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '8px 14px',
+                padding: '10px 16px',
+                minHeight: '44px',
                 borderRadius: '12px',
                 border: 'none',
                 background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
@@ -639,8 +643,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                 fontSize: '12.5px',
                 fontWeight: 800,
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(13, 148, 136, 0.28)',
-                transition: 'all 0.15s',
+                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
               }}
             >
               <Plus size={15} />
@@ -911,7 +914,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                 textAlign: 'center',
                 fontSize: isMobile ? '10px' : '11px',
                 fontWeight: 800,
-                color: idx === 0 || idx === 6 ? '#94A3B8' : '#64748B',
+                color: '#64748B',
                 letterSpacing: '0.6px',
                 padding: '4px 0',
               }}
@@ -1200,7 +1203,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
             </span>
           </div>
 
-          <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
             Tap any date to inspect meals, triggers, and Bristol motility
           </span>
         </div>
@@ -1473,7 +1476,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{meal.name}</span>
                                 </div>
                                 {meal.calories && (
-                                  <span style={{ fontSize: '11px', color: '#94A3B8' }}>{meal.calories} kcal</span>
+                                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>{meal.calories} kcal</span>
                                 )}
                               </div>
 
@@ -1497,7 +1500,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                           ))}
                         </div>
                       ) : (
-                        <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '12px', color: '#94A3B8' }}>
+                        <div style={{ textAlign: 'center', padding: '12px 0', fontSize: '12.5px', color: '#64748B', fontWeight: 500 }}>
                           No specific meals logged for this date.
                         </div>
                       )}
@@ -1578,7 +1581,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                         }}
                         style={{ width: '100%', accentColor: '#0D9488', cursor: 'pointer' }}
                       />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#94A3B8', marginTop: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
                         <span>0: Completely Flat</span>
                         <span>5: Noticeable Tightness</span>
                         <span>10: Severe Distension</span>

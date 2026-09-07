@@ -134,11 +134,11 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               }}
             >
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
                   PRECISION METABOLIC INTELLIGENCE
                 </span>
                 <h2 style={{ margin: '2px 0 0 0', fontSize: '21px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.4px' }}>
-                  Your Whole <span style={{ color: '#E11D48' }}>Health Picture</span>
+                  Your Whole <span style={{ color: '#0D9488' }}>Health Picture</span>
                 </h2>
               </div>
 
@@ -150,8 +150,10 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                 }}
                 aria-label="Close modal"
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  minHeight: '44px',
                   borderRadius: '50%',
                   background: 'rgba(255, 255, 255, 0.9)',
                   border: '1.5px solid #CCFBF1',

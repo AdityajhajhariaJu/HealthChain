@@ -12,6 +12,7 @@ import {
   Flame,
   HelpCircle,
   Plus,
+  Info,
 } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
@@ -535,6 +536,23 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
             </div>
           );
         })}
+      </div>
+
+      {/* Non-blocking Clinical Reference & Safety Disclaimer */}
+      <div style={{
+        marginTop: '20px',
+        padding: '12px 16px',
+        borderRadius: '12px',
+        background: '#F8FAFC',
+        border: '1px solid #E2E8F0',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+      }}>
+        <Info size={14} color="#64748B" style={{ flexShrink: 0 }} />
+        <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.4 }}>
+          <strong>Clinical Reference:</strong> Pharmacokinetics & gastrointestinal latency patterns modeled on Monash University FODMAP criteria and Rome IV Functional GI Guidelines. For nutritional investigation only — not a clinical diagnosis.
+        </p>
       </div>
 
       {/* Circadian Quick Intake Modal Sheet */}

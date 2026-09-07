@@ -138,14 +138,15 @@ export function GuestStickyBanner() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px',
+              gap: '6px',
               background: 'linear-gradient(135deg, #00D4B2 0%, #0F766E 100%)',
               border: 'none',
               borderRadius: '20px',
               color: '#ffffff',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 700,
-              padding: '4px 10px',
+              padding: '8px 14px',
+              minHeight: '44px',
               cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(0, 212, 178, 0.3)',
               transition: 'transform 0.15s ease',
@@ -154,7 +155,7 @@ export function GuestStickyBanner() {
             onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1.0)')}
           >
             <span>Save & Sign In</span>
-            <ArrowRight size={12} />
+            <ArrowRight size={13} />
           </button>
 
           <button
@@ -164,7 +165,9 @@ export function GuestStickyBanner() {
               border: 'none',
               color: '#94A3B8',
               cursor: 'pointer',
-              padding: '4px',
+              padding: '12px',
+              minWidth: '44px',
+              minHeight: '44px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -173,7 +176,7 @@ export function GuestStickyBanner() {
             title="Dismiss for this session"
             aria-label="Dismiss guest banner"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         </div>
       </motion.div>

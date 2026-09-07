@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, Filter, ShieldCheck, ArrowRight, Zap, Plus } from 'lucide-react';
+import { Search, Sparkles, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, Filter, ShieldCheck, ArrowRight, Zap, Plus, Info } from 'lucide-react';
 import { FOOD_DATABASE, CLINICAL_SENSITIVITIES, FoodItem } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { MealReactionLatencyStream } from './MealReactionLatencyStream';
@@ -490,6 +490,23 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
       </>
       )}
 
+
+      {/* Non-blocking Clinical Reference & Safety Disclaimer */}
+      <div style={{
+        marginTop: '20px',
+        padding: '12px 16px',
+        borderRadius: '12px',
+        background: '#F8FAFC',
+        border: '1px solid #E2E8F0',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+      }}>
+        <Info size={14} color="#64748B" style={{ flexShrink: 0 }} />
+        <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.4 }}>
+          <strong>Clinical Reference:</strong> Trigger sensitivity scoring based on Monash Low-FODMAP protocol and mucosal immunology data. Designed for symptom pattern recognition, not medical diagnosis.
+        </p>
+      </div>
 
       {/* Quick Meal Intake Sheet */}
       <QuickMealIntakeSheet

@@ -696,6 +696,18 @@ export function addNutritionLog(log) {
     loggedAt: log.loggedAt || new Date().toISOString(),
   });
   saveProfile(profile);
+  return log.id || profile.nutrition.recentLogs[profile.nutrition.recentLogs.length - 1]?.id;
+}
+
+export function removeNutritionLog(logIdentifier) {
+  const profile = getProfile();
+  if (profile && profile.nutrition && profile.nutrition.recentLogs) {
+    profile.nutrition.recentLogs = profile.nutrition.recentLogs.filter(
+      (l, i) => l.id !== logIdentifier && l.loggedAt !== logIdentifier && String(i) !== String(logIdentifier)
+    );
+    saveProfile(profile);
+    window.dispatchEvent(new Event('hc_profile_updated'));
+  }
 }
 
 export function updateNutritionLogReaction(logIdentifier, reaction) {

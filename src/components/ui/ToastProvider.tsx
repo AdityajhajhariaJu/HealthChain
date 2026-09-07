@@ -9,6 +9,8 @@ interface Toast {
   title: string;
   message?: string;
   type: ToastType;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 interface ToastContextType {
@@ -16,6 +18,7 @@ interface ToastContextType {
   success: (title: string, message?: string) => void;
   error: (title: string, message?: string) => void;
   info: (title: string, message?: string) => void;
+  toastWithAction: (title: string, message: string, actionLabel: string, onAction: () => void, type?: ToastType, duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -31,13 +34,13 @@ export function useToast() {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = useCallback((title: string, message?: string, type: ToastType = 'info') => {
+  const addToast = useCallback((title: string, message?: string, type: ToastType = 'info', actionLabel?: string, onAction?: () => void, duration = 4000) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev.slice(-3), { id, title, message, type }]);
+    setToasts((prev) => [...prev.slice(-3), { id, title, message, type, actionLabel, onAction }]);
 
     setTimeout(() => {
       removeToast(id);
-    }, 4000);
+    }, duration);
   }, []);
 
   const removeToast = useCallback((id: string) => {
@@ -47,19 +50,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const success = useCallback((title: string, message?: string) => addToast(title, message, 'success'), [addToast]);
   const error = useCallback((title: string, message?: string) => addToast(title, message, 'error'), [addToast]);
   const info = useCallback((title: string, message?: string) => addToast(title, message, 'info'), [addToast]);
+  const toastWithAction = useCallback((title: string, message: string, actionLabel: string, onAction: () => void, type: ToastType = 'info', duration = 5000) => {
+    addToast(title, message, type, actionLabel, onAction, duration);
+  }, [addToast]);
 
   React.useEffect(() => {
     const handleCustomToast = (e: any) => {
-      const { title, message, type } = e.detail || {};
+      const { title, message, type, actionLabel, onAction, duration } = e.detail || {};
       if (title) {
-        addToast(title, message, type || 'info');
+        addToast(title, message, type || 'info', actionLabel, onAction, duration || 4000);
       }
     };
     window.addEventListener('hc_toast', handleCustomToast);
     return () => window.removeEventListener('hc_toast', handleCustomToast);
   }, [addToast]);
 
-  const contextValue = React.useMemo(() => ({ toast: addToast, success, error, info }), [addToast, success, error, info]);
+  const contextValue = React.useMemo(() => ({ toast: addToast, success, error, info, toastWithAction }), [addToast, success, error, info, toastWithAction]);
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
@@ -125,19 +131,50 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     {t.message}
                   </div>
                 )}
+                {t.actionLabel && t.onAction && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      t.onAction?.();
+                      removeToast(t.id);
+                    }}
+                    style={{
+                      marginTop: '8px',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      background: '#0D9488',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)'
+                    }}
+                  >
+                    {t.actionLabel}
+                  </button>
+                )}
               </div>
 
               <button
                 onClick={() => removeToast(t.id)}
+                aria-label="Dismiss notification"
                 style={{
                   background: 'none',
                   border: 'none',
                   color: 'var(--text-muted)',
                   cursor: 'pointer',
-                  padding: '4px',
+                  padding: '12px',
+                  minWidth: '44px',
+                  minHeight: '44px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  margin: '-8px -8px 0 0'
                 }}
               >
                 <X size={16} />

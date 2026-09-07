@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageCircle, Pill, Archive, Heart, FileText, Settings, Lock, Apple, Network, LayoutDashboard, ArrowLeft, Quote, Sparkles, BriefcaseBusiness, ArrowRight, FlaskConical, Grid, X, Bot, Trophy, Flame, Bell, Stethoscope, ClipboardList, Menu, Plus, Clock, Search, ChevronRight, Shield, Zap, Play, CheckCircle2, Home, User } from 'lucide-react';
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -54,6 +54,7 @@ const mobileTabs = [
 ];
 
 export default function AppShell() {
+  const shouldReduceMotion = useReducedMotion();
   const [history, setHistory] = useState<any[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -298,9 +299,12 @@ const enforceSafeArea = () => {
                 triggerHapticLight();
                 setShowNotifications(true);
               }}
+              aria-label="View notifications"
               style={{
-                width: '38px',
-                height: '38px',
+                width: '44px',
+                height: '44px',
+                minWidth: '44px',
+                minHeight: '44px',
                 borderRadius: '12px',
                 border: '1px solid #E2E8F0',
                 background: '#FFFFFF',
@@ -314,7 +318,6 @@ const enforceSafeArea = () => {
                 transition: 'all 0.15s ease',
               }}
               title="View Health Alerts & Notifications"
-              aria-label="View notifications"
             >
               <Bell size={17} />
               {hasPendingCheckin && (
@@ -408,8 +411,10 @@ const enforceSafeArea = () => {
                     background: 'rgba(255, 255, 255, 0.9)',
                     border: '1px solid rgba(244, 63, 94, 0.2)',
                     borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
+                    width: '44px',
+                    height: '44px',
+                    minWidth: '44px',
+                    minHeight: '44px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -592,8 +597,8 @@ const enforceSafeArea = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F43F5E', flexShrink: 0 }}>
                     <motion.div
-                      animate={{ scale: [1, 1.15, 1], opacity: [0.85, 1, 0.85] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                      animate={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: [1, 1.15, 1], opacity: [0.85, 1, 0.85] }}
+                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                       style={{ display: 'flex', alignItems: 'center' }}
                     >
                       <Heart size={13} fill="#F43F5E" color="#F43F5E" />
@@ -619,7 +624,8 @@ const enforceSafeArea = () => {
                 </div>
               )}
               <div className="mobile-top-bar__actions">
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
                       className="mobile-top-bar__points sparkly-gold-pill tabular-nums"
                       onClick={() => {
                         triggerHapticLight();
@@ -627,43 +633,58 @@ const enforceSafeArea = () => {
                       }}
                       style={{
                         cursor: 'pointer',
-                        padding: '5px 9px',
+                        padding: '6px 12px',
+                        minHeight: '44px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '5px',
                         borderRadius: '20px',
+                        border: 'none'
                       }}
                       aria-label="View Vitality Points & Daily Rewards"
                     >
                       <Trophy size={14} color="#059669" />
                       <span className="tabular-nums" style={{ fontWeight: 900, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
                       <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
-                    </button>
-                <button 
+                    </motion.button>
+                <motion.button 
+                  whileTap={{ scale: 0.97 }}
                   className="mobile-top-bar__bell" 
                   aria-label="View notifications"
                   onClick={() => {
                     triggerHapticLight();
                     setShowNotifications(true);
                   }}
-                  style={{ position: 'relative', cursor: 'pointer' }}
+                  style={{ 
+                    position: 'relative', 
+                    cursor: 'pointer',
+                    minWidth: '44px',
+                    minHeight: '44px',
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: 'transparent'
+                  }}
                 >
-                  <Bell size={18} aria-hidden="true" />
+                  <Bell size={20} aria-hidden="true" />
                   {hasPendingCheckin && (
                     <span 
                       style={{ 
                         position: 'absolute', 
-                        top: '6px', 
-                        right: '6px', 
-                        width: '7px', 
-                        height: '7px', 
+                        top: '8px', 
+                        right: '8px', 
+                        width: '8px', 
+                        height: '8px', 
                         borderRadius: '50%', 
-                        backgroundColor: '#F59E0B', 
-                        border: '1.5px solid #FFFFFF' 
+                        background: '#EF4444' 
                       }} 
                     />
                   )}
-                </button>
+                </motion.button>
               </div>
           </div>
           {!(location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/war-room')) && (
@@ -759,20 +780,6 @@ const enforceSafeArea = () => {
                       {isLocked && <Lock size={16} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
                     </button>
                   )})}
-                  <button 
-                    onClick={() => {
-                      triggerHapticLight();
-                      setShowMoreMenu(false);
-                      navigate('/app/war-room');
-                    }} 
-                    className="more-menu-item"
-                    aria-label="Health Canvas"
-                  >
-                    <div className="more-menu-icon">
-                      <Sparkles size={22} />
-                    </div>
-                    <span>Health Canvas</span>
-                  </button>
                   <button 
                     onClick={() => {
                       triggerHapticLight();

@@ -210,17 +210,18 @@ export default function PillNotificationBanner() {
               type="button"
               onClick={handleTakeDose}
               style={{
-                borderRadius: '999px',
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#FFFFFF',
+                color: '#ffffff',
                 border: 'none',
-                padding: isMobile ? '8px 12px' : '8px 14px',
+                borderRadius: '20px',
+                padding: '8px 14px',
+                minHeight: '44px',
                 fontSize: '12px',
-                fontWeight: 800,
+                fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 boxShadow: '0 4px 10px rgba(5, 150, 105, 0.3)'
               }}
             >
@@ -236,7 +237,9 @@ export default function PillNotificationBanner() {
                 border: 'none',
                 color: '#94A3B8',
                 cursor: 'pointer',
-                padding: '6px',
+                padding: '12px',
+                minWidth: '44px',
+                minHeight: '44px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',

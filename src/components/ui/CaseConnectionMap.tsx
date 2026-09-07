@@ -11,12 +11,12 @@ export interface CaseConnectionMapProps {
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  metabolic: { bg: '#FFF1F2', border: '#FECDD3', text: '#9F1239', dot: '#F43F5E' },
+  metabolic: { bg: '#FFFBEB', border: '#FDE68A', text: '#B45309', dot: '#F59E0B' },
   autonomic: { bg: '#FEF3C7', border: '#FDE68A', text: '#92400E', dot: '#D97706' },
   gastrointestinal: { bg: '#ECFDF5', border: '#A7F3D0', text: '#065F46', dot: '#059669' },
   vascular: { bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', dot: '#7C3AED' },
   neuro: { bg: '#F0F9FF', border: '#BAE6FD', text: '#075985', dot: '#0284C7' },
-  inflammatory: { bg: '#FFF1F2', border: '#FECDD3', text: '#9F1239', dot: '#E11D48' },
+  inflammatory: { bg: '#FAF5FF', border: '#E9D5FF', text: '#6B21A8', dot: '#9333EA' },
 };
 
 const SYMPTOM_ICONS: Record<string, string> = {

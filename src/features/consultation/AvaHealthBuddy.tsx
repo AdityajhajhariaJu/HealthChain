@@ -184,7 +184,7 @@ const getAvaVaultKey = () => {
 const INITIAL_MSG = {
   role: 'model',
   content:
-    "Hi there. I'm Ava, your Medical Chief of Staff. I have access to your complete health record, lab results, and active medications. How are you feeling today?",
+    "Hi there. I'm Ava, your AI Medical Chief of Staff. I synthesize your complete health record, lab results, and active medications with clinical intelligence. How are you feeling today?",
 };
 
 function getSavedMessages() {
@@ -475,14 +475,15 @@ const MessageRenderer = ({
             type="button"
             onClick={handleStartCalm}
             style={{
-              marginTop: '6px',
+              marginTop: '8px',
               background: '#FFFFFF',
               color: '#0F766E',
               border: 'none',
-              padding: '10px 16px',
+              padding: '12px 20px',
+              minHeight: '44px',
               borderRadius: '12px',
               fontWeight: 700,
-              fontSize: '13px',
+              fontSize: '13.5px',
               cursor: 'pointer',
               display: 'flex',
               justifyContent: 'center',
@@ -781,10 +782,10 @@ export default function AvaHealthBuddy() {
     }
   }, [messages]);
 
-  // Theme colors - Serene Spa Teal & Radiant Sunset Coral
+  // Theme colors - Clinical Teal & Parasympathetic Rest
   const theme = {
-    primary: '#E11D48', // Coral Red - Radiant & Alert
-    light: '#FFE4E6', // Rose 50
+    primary: '#0D9488', // Clinical Teal - Parasympathetic & Soothing
+    light: '#CCFBF1', // Teal 50
     text: '#115E59', // Teal 800
     bg: '#F8FAFC', // Slate 50
   };

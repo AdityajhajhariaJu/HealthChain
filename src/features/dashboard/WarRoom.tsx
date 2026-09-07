@@ -1,11 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { User, Stethoscope, Sparkles, MessageCircle, ArrowLeft, Pin, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { triggerHapticLight } from '../../services/haptics';
 
 export default function WarRoom() {
   const navigate = useNavigate();
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC', paddingBottom: '100px' }}>
@@ -22,13 +23,25 @@ export default function WarRoom() {
       }}>
         <button 
           type="button"
-          aria-label="Back"
+          aria-label="Back to previous screen"
           onClick={() => { 
             triggerHapticLight(); 
             if (window.history.length > 1) navigate(-1);
             else navigate('/app/today'); 
           }}
-          style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          style={{ 
+            width: '44px', 
+            height: '44px', 
+            minWidth: '44px', 
+            minHeight: '44px', 
+            borderRadius: '50%', 
+            background: '#F1F5F9', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            cursor: 'pointer' 
+          }}
         >
           <ArrowLeft size={20} color="#0F172A" />
         </button>
@@ -41,7 +54,12 @@ export default function WarRoom() {
       <div style={{ padding: '24px', display: 'grid', gap: '24px' }}>
         
         {/* Collaborative Node 1: AI & Nutritionist */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)', position: 'relative' }}>
+        <motion.div 
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3 }}
+          style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)', position: 'relative' }}
+        >
           <Pin size={20} color="#EF4444" style={{ position: 'absolute', top: '-10px', right: '20px', transform: 'rotate(15deg)' }} />
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
@@ -72,7 +90,12 @@ export default function WarRoom() {
         </motion.div>
 
         {/* Collaborative Node 2: User Upload */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)' }}>
+        <motion.div 
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.1, duration: 0.3 }} 
+          style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <User size={18} color="#0F172A" />
@@ -147,7 +170,12 @@ export default function WarRoom() {
         </motion.div>
 
         {/* Collaborative Node 3: Specialist Gastroenterology */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)', position: 'relative' }}>
+        <motion.div 
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.15, duration: 0.3 }} 
+          style={{ background: '#FFF', borderRadius: '24px', padding: '24px', boxShadow: '0 12px 32px rgba(0,0,0,0.04)', position: 'relative' }}
+        >
           <Pin size={20} color="#0D9488" style={{ position: 'absolute', top: '-10px', right: '20px', transform: 'rotate(15deg)' }} />
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>

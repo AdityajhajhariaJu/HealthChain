@@ -248,9 +248,41 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
         })}
       </div>
 
+      {/* Sticky Thumb-Zone Confirmation CTA (H11) */}
+      <div style={{ marginTop: '20px' }}>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => {
+            triggerHapticSuccess();
+            if (onSelectGoal) onSelectGoal(selectedId);
+            if (onBack) onBack();
+          }}
+          style={{
+            width: '100%',
+            padding: '14px',
+            minHeight: '48px',
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #5B218E 0%, #722AA8 100%)',
+            color: '#FFFFFF',
+            border: 'none',
+            fontSize: '14px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 16px rgba(91, 33, 142, 0.3)'
+          }}
+        >
+          <Check size={16} />
+          <span>Confirm & Focus This Journey</span>
+        </motion.button>
+      </div>
+
       {/* Footer Subtext (Matching media_1788703646266.png) */}
-      <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12.5px', color: '#64748B', fontWeight: 500 }}>
-        You can switch anytime.
+      <div style={{ textAlign: 'center', marginTop: '14px', fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+        You can switch anytime with 1 tap.
       </div>
     </div>
   );
