@@ -42,9 +42,10 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 import { PostMealReactionTimeline } from './PostMealReactionTimeline';
+import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 
 interface ConnectionDetectiveViewProps {
-  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal';
+  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar';
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
 }
@@ -56,7 +57,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar'>(initialTab);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -330,6 +331,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           { id: 'biomarkers', label: 'Functional Labs', icon: '🧪' },
           { id: 'kinetic', label: 'Kinetic Biomechanics', icon: '🦴' },
           { id: 'postmeal', label: 'Post-Meal Sensitivities', icon: '🍽️' },
+          { id: 'calendar', label: 'Digestion Heatmap', icon: '📅' },
           { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
           { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
           { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
@@ -1348,6 +1350,9 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
       {/* 7. POST-MEAL SENSITIVITIES TIMELINE SUBTAB */}
       {activeTab === 'postmeal' && <PostMealReactionTimeline onOpenQuickMeal={onOpenFoodDetective} />}
+
+      {/* 8. DIGESTION & BLOATING CALENDAR HEATMAP SUBTAB */}
+      {activeTab === 'calendar' && <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />}
     </div>
   );
 };

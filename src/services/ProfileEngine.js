@@ -789,6 +789,45 @@ export function getRecentCheckins(days = 7) {
   return (profile.dailyCheckins || []).slice(0, days);
 }
 
+export function getDigestionLogs() {
+  const profile = getProfile();
+  return profile.digestionLogs || {};
+}
+
+export function saveDigestionLog(dateKey, logData) {
+  const profile = getProfile();
+  if (!profile.digestionLogs) {
+    profile.digestionLogs = {};
+  }
+  const existing = profile.digestionLogs[dateKey] || {};
+  const updatedEntry = {
+    ...existing,
+    ...logData,
+    date: dateKey,
+    updatedAt: new Date().toISOString(),
+  };
+  profile.digestionLogs[dateKey] = updatedEntry;
+
+  // Add timeline event
+  try {
+    addEvent(
+      'digestion',
+      'digestion_checkin',
+      `Digestion Log (${dateKey}): Bloat ${updatedEntry.bloatingScore ?? 'N/A'}/10, Bristol Type ${updatedEntry.bristolType ?? 4}`,
+      updatedEntry,
+      true,
+      profile
+    );
+  } catch (err) {
+    // Graceful fallback
+  }
+
+  saveProfile(profile);
+  window.dispatchEvent(new CustomEvent('hc_digestion_updated', { detail: { dateKey, logData: updatedEntry } }));
+  window.dispatchEvent(new Event('hc_profile_updated'));
+  return updatedEntry;
+}
+
 export function toggleActionItem(id) {
   const profile = getProfile();
   const item = profile.actionItems.find((i) => i.id === id);
