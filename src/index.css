@@ -1206,8 +1206,10 @@ html.dark-theme body {
   .mobile-more-menu__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    padding: 20px 20px 14px 20px;
+    grid-auto-rows: minmax(106px, auto);
+    row-gap: 16px;
+    column-gap: 12px;
+    padding: 16px 18px 16px 18px;
     overflow-y: auto;
   }
   
@@ -1215,20 +1217,41 @@ html.dark-theme body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    justify-content: flex-start;
+    gap: 8px;
     color: var(--text-main);
     text-decoration: none;
-    padding: 16px 8px;
-    background: rgba(255, 255, 255, 0.65);
+    padding: 14px 6px 10px 6px;
+    background: rgba(255, 255, 255, 0.72);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow: 0 4px 20px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
     text-align: center;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
+    line-height: 1.25;
+    min-height: 106px;
+    height: auto;
+    box-sizing: border-box;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     cursor: pointer;
+    overflow: hidden;
+  }
+
+  .more-menu-item span {
+    font-size: 11.5px;
+    line-height: 1.25;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-main, #0F172A);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+    margin-top: auto;
+    margin-bottom: auto;
   }
   
   .more-menu-item:active {
@@ -1239,11 +1262,12 @@ html.dark-theme body {
 
   .more-menu-settings-card {
     grid-column: 1 / -1;
+    margin-top: 4px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.72);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow: 0 4px 20px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.5);

@@ -1368,12 +1368,12 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 width: '100%',
                 padding: '15px',
                 borderRadius: '18px',
-                background: 'linear-gradient(135deg, #F43F5E 0%, #E11D48 100%)',
+                background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                 color: '#FFFFFF',
                 border: 'none',
                 fontWeight: 800,
                 fontSize: '15px',
-                boxShadow: '0 8px 24px rgba(225, 29, 72, 0.28), inset 0 1px 0 rgba(255,255,255,0.25)',
+                boxShadow: '0 8px 24px rgba(13, 148, 136, 0.28), inset 0 1px 0 rgba(255,255,255,0.25)',
                 cursor: 'pointer'
               }}
             >

@@ -240,6 +240,25 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   return <span>{displayed}</span>;
 };
 
+export function cleanChatMessageText(text: string): string {
+  if (!text) return '';
+  let cleaned = text;
+  // Strip any unparsed [WIDGET:...] tags
+  cleaned = cleaned.replace(/\[WIDGET:[^\]]*\]/g, '');
+  // Strip lines that start with }, or are raw JSON fragments like {"time":...
+  cleaned = cleaned.replace(/^\s*\},?\s*$/gm, '');
+  cleaned = cleaned.replace(/^\s*\{"time"[\s\S]*?\}(,\s*)?$/gm, '');
+  cleaned = cleaned.replace(/^\s*\[\{"time"[\s\S]*?\]\s*$/gm, '');
+  // Strip multi-line JSON key-value fragments containing "time": or "category": or "items":
+  cleaned = cleaned.replace(/\{[^{}]*"time"\s*:\s*"[^"]*"[^{}]*\}/g, '');
+  cleaned = cleaned.replace(/\{[^{}]*"category"\s*:\s*"[^"]*"[^{}]*\}/g, '');
+  cleaned = cleaned.replace(/\{[^{}]*"items"\s*:\s*\[[^{}]*\]\}/g, '');
+  // Strip dangling JSON brackets or commas left at the very start or end
+  cleaned = cleaned.replace(/^[\s,}\]]+/, '');
+  cleaned = cleaned.replace(/[\s,{\[]+$/, '');
+  return cleaned.trim();
+}
+
 export function extractBalancedWidget(text: string, tag: string): { payload: any | null; before: string; after: string; found: boolean } {
   const prefix = `[WIDGET:${tag}`;
   const startIdx = text.indexOf(prefix);
@@ -247,12 +266,12 @@ export function extractBalancedWidget(text: string, tag: string): { payload: any
     return { payload: null, before: text, after: '', found: false };
   }
 
-  const before = text.substring(0, startIdx).trim();
+  const before = cleanChatMessageText(text.substring(0, startIdx));
   const rest = text.substring(startIdx + prefix.length);
 
   // If it's just [WIDGET:TAG]
   if (rest.startsWith(']')) {
-    return { payload: null, before, after: rest.substring(1).trim(), found: true };
+    return { payload: null, before, after: cleanChatMessageText(rest.substring(1)), found: true };
   }
 
   // If it has colon: [WIDGET:TAG:...
@@ -300,7 +319,7 @@ export function extractBalancedWidget(text: string, tag: string): { payload: any
       if (afterStart < jsonStr.length && jsonStr[afterStart] === ']') {
         afterStart += 1;
       }
-      const after = jsonStr.substring(afterStart).trim();
+      const after = cleanChatMessageText(jsonStr.substring(afterStart));
       let payload = null;
       try {
         payload = JSON.parse(payloadText);
@@ -314,7 +333,7 @@ export function extractBalancedWidget(text: string, tag: string): { payload: any
   // Fallback: strip to the last bracket so raw JSON doesn't leak into view
   const lastBracket = text.lastIndexOf(']');
   if (lastBracket > startIdx) {
-    return { payload: null, before, after: text.substring(lastBracket + 1).trim(), found: true };
+    return { payload: null, before, after: cleanChatMessageText(text.substring(lastBracket + 1)), found: true };
   }
 
   return { payload: null, before, after: '', found: true };
@@ -1531,9 +1550,9 @@ export default function AvaHealthBuddy() {
               onClick={() => fileInputRef.current?.click()}
               style={{
                 position: 'absolute',
-                left: '10px',
-                width: '34px',
-                height: '34px',
+                left: isMobile ? '8px' : '10px',
+                width: isMobile ? '32px' : '34px',
+                height: isMobile ? '32px' : '34px',
                 borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.9)',
                 color: '#64748B',
@@ -1546,23 +1565,24 @@ export default function AvaHealthBuddy() {
                 zIndex: 2,
               }}
             >
-              <Plus size={18} />
+              <Plus size={isMobile ? 16 : 18} />
             </button>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               aria-label="Ask Ava Health Buddy a question"
-              placeholder="Just check in about your day..."
+              placeholder={isMobile ? 'Check in with Ava...' : 'Just check in about your day...'}
               style={{
                 width: '100%',
-                padding: isMobile ? '13px 84px 13px 48px' : '15px 92px 15px 52px',
+                boxSizing: 'border-box',
+                padding: isMobile ? '12px 116px 12px 46px' : '15px 128px 15px 52px',
                 borderRadius: '99px',
                 border: '1.5px solid #CCFBF1',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
-                fontSize: '15px',
+                fontSize: isMobile ? '14px' : '15px',
                 outline: 'none',
                 boxShadow: '0 8px 28px rgba(15, 23, 42, 0.05)',
                 color: '#1C1917',
@@ -1579,7 +1599,7 @@ export default function AvaHealthBuddy() {
               }}
             />
 
-            <div style={{ position: 'absolute', right: '8px', display: 'flex', alignItems: 'center', gap: '6px', zIndex: 2 }}>
+            <div style={{ position: 'absolute', right: isMobile ? '6px' : '8px', display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '6px', zIndex: 2 }}>
               {/* Photo Meal Snap Button */}
               <button
                 type="button"
@@ -1590,8 +1610,8 @@ export default function AvaHealthBuddy() {
                   fileInputRef.current?.click();
                 }}
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: isMobile ? '30px' : '34px',
+                  height: isMobile ? '30px' : '34px',
                   borderRadius: '50%',
                   background: '#F8FAFC',
                   color: '#64748B',
@@ -1603,7 +1623,7 @@ export default function AvaHealthBuddy() {
                   transition: 'all 0.2s ease',
                 }}
               >
-                <Camera size={16} />
+                <Camera size={isMobile ? 14 : 16} />
               </button>
 
               {/* Mic Dictation Button */}
@@ -1612,8 +1632,8 @@ export default function AvaHealthBuddy() {
                 aria-label={isListening ? 'Stop listening' : 'Start voice dictation'}
                 onClick={toggleListening}
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: isMobile ? '30px' : '34px',
+                  height: isMobile ? '30px' : '34px',
                   borderRadius: '50%',
                   background: isListening ? '#EF4444' : '#F8FAFC',
                   color: isListening ? '#FFFFFF' : '#64748B',
@@ -1626,7 +1646,7 @@ export default function AvaHealthBuddy() {
                   boxShadow: isListening ? '0 0 12px rgba(239, 68, 68, 0.5)' : 'none',
                 }}
               >
-                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                {isListening ? <MicOff size={isMobile ? 14 : 16} /> : <Mic size={isMobile ? 14 : 16} />}
               </button>
 
               {/* Send Button */}
@@ -1635,8 +1655,8 @@ export default function AvaHealthBuddy() {
                 type="submit"
                 disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming}
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: isMobile ? '34px' : '36px',
+                  height: isMobile ? '34px' : '36px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                   color: '#FFFFFF',
@@ -1650,7 +1670,7 @@ export default function AvaHealthBuddy() {
                   transition: 'all 0.2s',
                 }}
               >
-                <Send size={15} style={{ marginLeft: '2px' }} />
+                <Send size={isMobile ? 14 : 15} style={{ marginLeft: '2px' }} />
               </button>
             </div>
           </form>

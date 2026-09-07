@@ -42,19 +42,19 @@ export function CaseConnectionMap({
 
   if (!data || !data.conditions) return null;
 
-  const width = isMobile ? 480 : 640;
-  const height = isMobile ? 480 : 500;
+  const width = isMobile ? 500 : 640;
+  const height = isMobile ? 500 : 500;
   const cx = width / 2;
   const cy = height / 2;
 
-  const pillWidth = isMobile ? 144 : 156;
-  const pillHeight = isMobile ? 40 : 44;
-  const pillRx = isMobile ? 20 : 22;
+  const pillWidth = isMobile ? 126 : 156;
+  const pillHeight = isMobile ? 36 : 44;
+  const pillRx = isMobile ? 18 : 22;
 
   const nodes = useMemo(() => {
     let result: any[] = [];
     const symps = data.centralSymptoms || [];
-    const sympRadius = isMobile ? 60 : 76;
+    const sympRadius = isMobile ? 58 : 76;
     
     symps.forEach((symp: any, i: number) => {
       const angle = (i / symps.length) * Math.PI * 2 - Math.PI / 2;
@@ -67,7 +67,7 @@ export function CaseConnectionMap({
     });
 
     const conds = data.conditions || [];
-    const condRadius = isMobile ? 152 : 185;
+    const condRadius = isMobile ? 166 : 185;
     conds.forEach((cond: any, i: number) => {
       const angle = (i / conds.length) * Math.PI * 2 - Math.PI / 2;
       result.push({
@@ -466,18 +466,18 @@ export function CaseConnectionMap({
 
                 {/* Status Dot */}
                 <circle
-                  cx={-pillWidth / 2 + 14}
+                  cx={-pillWidth / 2 + (isMobile ? 11 : 14)}
                   cy="0"
-                  r="3.5"
+                  r={isMobile ? '2.8' : '3.5'}
                   fill={categoryConfig.dot}
                 />
 
                 {/* Condition Name */}
                 <text
-                  x={2}
+                  x={isMobile ? 4 : 2}
                   y={-2}
                   textAnchor="middle"
-                  fontSize={isMobile ? '11' : '11.5'}
+                  fontSize={isMobile ? '10' : '11.5'}
                   fontWeight="800"
                   fill="#1C1917"
                 >
@@ -489,16 +489,16 @@ export function CaseConnectionMap({
                     if (nodeLabel.includes('Histamine')) return 'Histamine / DAO Lag';
                     if (nodeLabel.includes('Roemheld') || nodeLabel.includes('Gastrocardiac')) return 'Gastrocardiac Reflex';
                     if (nodeLabel.includes('Mast Cell') || nodeLabel.includes('MCAS')) return 'Mast Cell Overlap';
-                    return nodeLabel.length > 22 ? nodeLabel.substring(0, 20) + '…' : nodeLabel;
+                    return nodeLabel.length > (isMobile ? 18 : 22) ? nodeLabel.substring(0, isMobile ? 16 : 20) + '…' : nodeLabel;
                   })()}
                 </text>
 
                 {/* Confidence & Specialty Pill Tag */}
                 <text
-                  x={2}
-                  y={12}
+                  x={isMobile ? 4 : 2}
+                  y={isMobile ? 10 : 12}
                   textAnchor="middle"
-                  fontSize={isMobile ? '9.5' : '10'}
+                  fontSize={isMobile ? '8.5' : '10'}
                   fontWeight="700"
                   fill={categoryConfig.text}
                 >

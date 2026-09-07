@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { extractBalancedWidget } from '../../features/consultation/AvaHealthBuddy';
+import { extractBalancedWidget, cleanChatMessageText } from '../../features/consultation/AvaHealthBuddy';
 
 describe('Ava extractBalancedWidget Parser', () => {
   it('extracts DIARY_TIMELINE widget with nested arrays without leaking JSON', () => {
@@ -57,6 +57,26 @@ describe('Ava extractBalancedWidget Parser', () => {
     // Ensures raw JSON syntax was stripped and didn't spill into the chat
     expect(before).toBe('Here is your checkin:');
     expect(before).not.toContain('entries');
+  });
+
+  it('scrubs trailing JSON fragments matching media_1788704773816.png leak', () => {
+    const raw = `Logged in your timeline:\n[WIDGET:DIARY_TIMELINE:{"title":"Logged in your diary","date":"Today","entries":[{"time":"08:00","category":"Breakfast","items":["🥣 Oats"]},{"time":"15:00","category":"Symptoms","items":["💨 Bloating"]}]}]\n},\n{"time":"13:00","category":"Lunch","items":["🥩 Salami","🍕 Pizza","🍷 Red Wine"]},\n{"time":"15:00","category":"Symptoms","items":["💨 Bloating","🌫️ Brain Fog"]}\nStay hydrated today!`;
+
+    const { payload, before, after, found } = extractBalancedWidget(raw, 'DIARY_TIMELINE');
+
+    expect(found).toBe(true);
+    expect(payload).toBeDefined();
+    expect(before).toBe('Logged in your timeline:');
+    // Ensure all trailing JSON was cleaned up and only consultation text remains
+    expect(after).toBe('Stay hydrated today!');
+    expect(after).not.toContain('{"time"');
+    expect(after).not.toContain('},');
+  });
+
+  it('cleanChatMessageText removes standalone JSON fragments and brackets', () => {
+    const dirty = '},\n{"time":"12:00","category":"Lunch","items":["salad"]}\nYour digestive report is ready.';
+    const clean = cleanChatMessageText(dirty);
+    expect(clean).toBe('Your digestive report is ready.');
   });
 
   it('returns found: false when no widget tag is present', () => {
