@@ -68,9 +68,12 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
   // Clinic Notes Conduit
   const topMiss = report.clinicalMisses?.[0];
   const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} × Vagal` : 'Cardio × GI Vagal';
-  const notesSubtitle = topMiss?.hiddenConnection
-    ? topMiss.hiddenConnection.split('—')[0].trim().substring(0, 22)
-    : 'Roemheld reflex';
+  const rawNotesSub = topMiss?.hiddenConnection ? topMiss.hiddenConnection.split('—')[0].trim() : 'Roemheld reflex';
+  const notesSubtitle = rawNotesSub.toLowerCase().includes('without anemia')
+    ? 'Iron deficiency w/o anemia'
+    : rawNotesSub.length > 26
+    ? `${rawNotesSub.slice(0, 24).trim()}...`
+    : rawNotesSub;
 
   // Vitals Stream Conduit
   const vitalsStream = report.streams.find((s) => s.id === 'vitals');
@@ -101,30 +104,17 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       style={{
-        background: 'linear-gradient(145deg, #0B1329 0%, #111D3B 55%, #0F172A 100%)',
-        borderRadius: '26px',
+        background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 55%, #E6FFFA 100%)',
+        borderRadius: '24px',
         padding: '22px 20px',
-        color: '#FFFFFF',
-        boxShadow: '0 16px 36px rgba(11, 19, 41, 0.45), 0 0 0 1px rgba(56, 189, 248, 0.2)',
+        color: '#0F172A',
+        border: '1.5px solid #99F6E4',
+        boxShadow: '0 10px 30px rgba(13, 148, 136, 0.08), 0 2px 8px rgba(0, 0, 0, 0.02)',
         position: 'relative',
         overflow: 'hidden',
-        marginBottom: '18px',
+        marginBottom: '20px',
       }}
     >
-      {/* Background ambient lighting */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '-40px',
-          right: '-40px',
-          width: '180px',
-          height: '180px',
-          background: 'radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 70%)',
-          borderRadius: '50%',
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* Top Badge Header */}
       <div
         style={{
@@ -143,18 +133,18 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
               alignItems: 'center',
               padding: '4px 10px',
               borderRadius: '999px',
-              background: 'rgba(56, 189, 248, 0.12)',
-              border: '1px solid rgba(56, 189, 248, 0.35)',
-              fontSize: '10.5px',
+              background: '#CCFBF1',
+              border: '1px solid #5EEAD4',
+              fontSize: '11px',
               fontWeight: 800,
-              color: '#38BDF8',
+              color: '#0F766E',
               letterSpacing: '0.6px',
               textTransform: 'uppercase',
             }}
           >
             CLINIC USP ENGINE
           </div>
-          <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+          <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
             4-Stream Multi-Specialist Convergence
           </span>
         </div>
@@ -162,14 +152,14 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div
             style={{
-              width: '7px',
-              height: '7px',
+              width: '8px',
+              height: '8px',
               borderRadius: '50%',
               background: '#10B981',
-              boxShadow: '0 0 8px #10B981',
+              boxShadow: '0 0 6px #10B981',
             }}
           />
-          <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>
+          <span style={{ fontSize: '11.5px', color: '#059669', fontWeight: 700 }}>
             {totalBiomarkersCount} Biomarkers Synced • {flaggedBiomarkers.length} Flags
           </span>
         </div>
@@ -178,22 +168,22 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
       {/* Headline */}
       <h3
         style={{
-          fontSize: '21px',
+          fontSize: '20px',
           fontWeight: 800,
           margin: '0 0 8px 0',
           lineHeight: 1.25,
           letterSpacing: '-0.3px',
-          color: '#FFFFFF',
+          color: '#0F172A',
         }}
       >
         Connection Detective:{' '}
-        <span style={{ color: '#38BDF8', textShadow: '0 0 16px rgba(56, 189, 248, 0.4)' }}>
+        <span style={{ color: '#0D9488' }}>
           What 15-Minute Visits Missed
         </span>
       </h3>
 
       {/* Narrative */}
-      <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.45, margin: '0 0 18px 0' }}>
+      <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.5, margin: '0 0 16px 0' }}>
         {narrative}
       </p>
 
@@ -212,13 +202,13 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           gap: '8px',
           padding: '13px 18px',
           borderRadius: '999px',
-          background: 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%)',
+          background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
           color: '#FFFFFF',
           border: 'none',
           fontSize: '14px',
           fontWeight: 800,
           cursor: 'pointer',
-          boxShadow: '0 4px 18px rgba(2, 132, 199, 0.38)',
+          boxShadow: '0 4px 14px rgba(13, 148, 136, 0.3)',
           marginBottom: '16px',
           transition: 'transform 0.15s ease',
         }}
@@ -240,31 +230,34 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
             onInvestigate('biomarkers');
           }}
           style={{
-            background: 'rgba(30, 41, 59, 0.75)',
-            border: '1px solid rgba(71, 85, 105, 0.4)',
+            background: '#FFFFFF',
+            border: '1.5px solid #E2E8F0',
             borderRadius: '16px',
             padding: '12px 14px',
             cursor: 'pointer',
-            transition: 'border-color 0.15s ease, transform 0.15s ease',
+            transition: 'border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#38BDF8';
+            e.currentTarget.style.borderColor = '#0D9488';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(13, 148, 136, 0.12)';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(71, 85, 105, 0.4)';
+            e.currentTarget.style.borderColor = '#E2E8F0';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.02)';
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>🧪</span> LABS CONDUIT
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {labDisplayName} {labDisplayVal}
           </div>
-          <div style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: '999px', fontWeight: 700, display: 'inline-block', border: '1px solid #FDE68A' }}>
             {labStatusLabel}
-          </div>
+          </span>
         </div>
 
         {/* Capsule 2: Clinic Notes */}
@@ -276,31 +269,34 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
             onInvestigate('misses');
           }}
           style={{
-            background: 'rgba(30, 41, 59, 0.75)',
-            border: '1px solid rgba(71, 85, 105, 0.4)',
+            background: '#FFFFFF',
+            border: '1.5px solid #E2E8F0',
             borderRadius: '16px',
             padding: '12px 14px',
             cursor: 'pointer',
-            transition: 'border-color 0.15s ease, transform 0.15s ease',
+            transition: 'border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#2DD4BF';
+            e.currentTarget.style.borderColor = '#0D9488';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(13, 148, 136, 0.12)';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(71, 85, 105, 0.4)';
+            e.currentTarget.style.borderColor = '#E2E8F0';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.02)';
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>🩺</span> CLINIC NOTES
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {notesTitle}
           </div>
-          <div style={{ fontSize: '11px', color: '#2DD4BF', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', color: '#0F766E', background: '#CCFBF1', padding: '2px 8px', borderRadius: '999px', fontWeight: 700, display: 'inline-block', border: '1px solid #99F6E4' }}>
             {notesSubtitle}
-          </div>
+          </span>
         </div>
 
         {/* Capsule 3: Vitals Stream */}
@@ -312,31 +308,34 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
             onInvestigate('cascade');
           }}
           style={{
-            background: 'rgba(30, 41, 59, 0.75)',
-            border: '1px solid rgba(71, 85, 105, 0.4)',
+            background: '#FFFFFF',
+            border: '1.5px solid #E2E8F0',
             borderRadius: '16px',
             padding: '12px 14px',
             cursor: 'pointer',
-            transition: 'border-color 0.15s ease, transform 0.15s ease',
+            transition: 'border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#F59E0B';
+            e.currentTarget.style.borderColor = '#0D9488';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(13, 148, 136, 0.12)';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(71, 85, 105, 0.4)';
+            e.currentTarget.style.borderColor = '#E2E8F0';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.02)';
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: '#E11D48', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>💓</span> VITALS STREAM
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {vitalsTitle}
           </div>
-          <div style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', color: '#B45309', background: '#FEF3C7', padding: '2px 8px', borderRadius: '999px', fontWeight: 700, display: 'inline-block', border: '1px solid #FDE68A' }}>
             {vitalsSubtitle}
-          </div>
+          </span>
         </div>
 
         {/* Capsule 4: Diet Sensitivity */}
@@ -348,31 +347,34 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
             onInvestigate('matcher');
           }}
           style={{
-            background: 'rgba(30, 41, 59, 0.75)',
-            border: '1px solid rgba(71, 85, 105, 0.4)',
+            background: '#FFFFFF',
+            border: '1.5px solid #E2E8F0',
             borderRadius: '16px',
             padding: '12px 14px',
             cursor: 'pointer',
-            transition: 'border-color 0.15s ease, transform 0.15s ease',
+            transition: 'border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.02)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#FB7185';
+            e.currentTarget.style.borderColor = '#0D9488';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(13, 148, 136, 0.12)';
             e.currentTarget.style.transform = 'translateY(-1px)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(71, 85, 105, 0.4)';
+            e.currentTarget.style.borderColor = '#E2E8F0';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.02)';
             e.currentTarget.style.transform = 'none';
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', color: '#0F766E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>🍎</span> DIET SENSITIVITY
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {dietTitle}
           </div>
-          <div style={{ fontSize: '11px', color: '#FB7185', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', color: '#B91C1C', background: '#FEE2E2', padding: '2px 8px', borderRadius: '999px', fontWeight: 700, display: 'inline-block', border: '1px solid #FECACA' }}>
             {dietSubtitle}
-          </div>
+          </span>
         </div>
       </div>
     </motion.div>

@@ -7,7 +7,8 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import Skeleton from '../../components/ui/Skeleton';
 import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
-
+import { ConnectionTriggerHeroCard } from '../../components/ui/ConnectionTriggerHeroCard';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const formatDate = (value: string) => {
   try {
@@ -76,47 +77,47 @@ function CrossCaseInsightBanner({ cases, isMobile }: { cases: CaseItem[]; isMobi
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+        background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
         borderRadius: 24,
         padding: isMobile ? '20px 16px' : '24px 28px',
-        color: '#FFF',
+        color: '#0F172A',
         marginBottom: 20,
-        boxShadow: '0 10px 28px rgba(15,23,42,0.12)',
-        border: '1px solid rgba(255,255,255,0.08)'
+        boxShadow: '0 8px 24px rgba(13,148,136,0.08)',
+        border: '1.5px solid #99F6E4'
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: '#CCFBF1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Sparkles size={16} />
           </div>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#10B981', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#0F766E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
             Cross-Case Clinical Intelligence
           </span>
         </div>
-        <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>
+        <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>
           {insights.totalCases} Consultations Synced
         </span>
       </div>
 
-      <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, margin: '0 0 8px 0', color: '#FFF' }}>
+      <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, margin: '0 0 8px 0', color: '#0F172A' }}>
         Synthesized across {insights.specialistList.length > 0 ? insights.specialistList.join(', ') : 'your medical consultations'}
       </h3>
 
       {insights.themes.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12, alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>Active Diagnostic Threads:</span>
+          <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>Active Diagnostic Threads:</span>
           {insights.themes.map((theme, i) => (
             <span
               key={i}
               style={{
-                background: 'rgba(255,255,255,0.1)',
+                background: '#F0FDFA',
                 padding: '4px 10px',
                 borderRadius: 999,
                 fontSize: 12,
-                fontWeight: 600,
-                color: '#E2E8F0',
-                border: '1px solid rgba(255,255,255,0.12)'
+                fontWeight: 700,
+                color: '#0F766E',
+                border: '1px solid #CCFBF1'
               }}
             >
               {theme}
@@ -137,7 +138,9 @@ export default function MyCases() {
   const [isLoading, setIsLoading] = useState(true);
   const [caseToDelete, setCaseToDelete] = useState<CaseItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-    const [viewMode, setViewMode] = useState<'list' | 'canvas'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'canvas'>('list');
+  const [showDetectiveModal, setShowDetectiveModal] = useState(false);
+  const [detectiveInitialTab, setDetectiveInitialTab] = useState<string>('map');
   const itemsPerPage = 5;
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -212,6 +215,14 @@ export default function MyCases() {
           </div>;
         })}
       </section>
+
+      {/* CLINIC USP ENGINE: Connection Detective Hero Card */}
+      <ConnectionTriggerHeroCard
+        onInvestigate={(tab?: string) => {
+          setDetectiveInitialTab(tab || 'map');
+          setShowDetectiveModal(true);
+        }}
+      />
 
       {!isLoading && cases.length >= 2 && (<>
                 <CrossCaseInsightBanner cases={cases} isMobile={isMobile} />
@@ -514,6 +525,21 @@ export default function MyCases() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Connection Detective Multi-System Intelligence Modal */}
+      <ConnectionDetectiveModal
+        isOpen={showDetectiveModal}
+        initialTab={detectiveInitialTab as any}
+        onClose={() => setShowDetectiveModal(false)}
+        onOpenFoodDetective={() => {
+          setShowDetectiveModal(false);
+          navigate('/app/dietician');
+        }}
+        onOpenConsult={() => {
+          setShowDetectiveModal(false);
+          navigate('/app/ava');
+        }}
+      />
     </div>
   );
 }
