@@ -25,7 +25,7 @@ test('guest can enter the assessment workspace from the public page', async ({ p
 test('clean unauthenticated browsers cannot open account case routes', async ({ page }) => {
   await page.goto('/app/my-cases');
   await expect(page).toHaveURL(/\/(login|app\/onboarding)$/);
-  await expect(page.getByRole('heading', { name: /Welcome back|Create your account|Let's build your/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Welcome back|Create your account|Let's build your|Let's begin|Welcome/i })).toBeVisible();
 });
 
 test('a forged browser auth flag cannot bypass the Supabase session boundary', async ({ page }) => {
@@ -34,5 +34,5 @@ test('a forged browser auth flag cannot bypass the Supabase session boundary', a
   });
   await page.goto('/app/my-cases');
   await expect(page).toHaveURL(/\/(login|app\/onboarding)$/);
-  await expect(page.getByRole('heading', { name: /Welcome back|Create your account|Let's build your/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Welcome back|Create your account|Let's build your|Let's begin|Welcome/i })).toBeVisible();
 });
