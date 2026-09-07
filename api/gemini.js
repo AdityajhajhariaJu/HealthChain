@@ -62,8 +62,8 @@ export default async function handler(req, res) {
         if (!error && user) {
           userId = user.id;
         }
-      } catch (e) {
-        console.warn('Token validation error:', e);
+      } catch {
+        console.warn('Token validation error');
       }
     }
   }
@@ -176,11 +176,11 @@ export default async function handler(req, res) {
         });
         
         // const ENFORCE_PAYWALLS = false;
-        // if (ENFORCE_PAYWALLS) {
-        //   if (quotaError) return res.status(503).json({ error: 'Quota service unavailable' });
-        //   if (!quotaResult?.allowed) return res.status(402).json({ error: 'Feature quota exceeded' });
-        // }
-      } catch (e) {
+        if (!isPro) {
+          if (quotaError) return res.status(503).json({ error: 'Quota service unavailable' });
+          if (!quotaResult?.allowed) return res.status(402).json({ error: 'Feature quota exceeded' });
+        }
+      } catch {
         // Ghost mode ignores tracking failures to prevent service disruption
       }
     }

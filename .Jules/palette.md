@@ -1,0 +1,1 @@
+## 2026-09-07 - Adding aria-labels to Dismiss buttons\n**Learning:** The MedicalActionIsland component uses Lucide-react icons without descriptive text for closing/dismissing, making them inaccessible to screen readers.\n**Action:** Add aria-label attributes to icon-only buttons to ensure they're understandable by assistive tech.
