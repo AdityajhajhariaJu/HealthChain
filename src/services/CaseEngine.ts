@@ -149,10 +149,12 @@ export function clearCasePrepDraft() {
 }
 
 // Listen for logout to clear in-memory caches
-window.addEventListener('hc_logout', () => {
-  cachedCases = null;
-  currentCasesKey = null;
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('hc_logout', () => {
+    cachedCases = null;
+    currentCasesKey = null;
+  });
+}
 
 const id = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {

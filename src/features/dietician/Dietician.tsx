@@ -65,7 +65,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   analyzeFoodEntry,
   generateMealPlan,
-  generateDieticianAdvice,
   generateNutritionalGuardrails,
   generateGroceryList,
 } from '../../services/geminiService';
@@ -441,21 +440,37 @@ export default function Dietician() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showARLens, isLoggingFood, showResetDietConfirm, showSavedMealsModal, isEditingProfile]);
 
-  // Fetch advice if not present
+  // Synthesize clinical nutritional advice deterministically (0 token burn)
   useEffect(() => {
-    if (profile && !advice && !isFetchingAdvice && !adviceFetched.current) {
-      adviceFetched.current = true;
-      setIsFetchingAdvice(true);
-      generateDieticianAdvice(profile).then((res) => {
-        if (isMounted.current) {
-          setAdvice(res);
-          setIsFetchingAdvice(false);
-        }
-        addEvent('diet', 'dietician', 'Generated Dietician Advice', { advice: res });
-      }).catch(err => {
-        console.error('Failed to fetch advice:', err);
-        if (isMounted.current) setIsFetchingAdvice(false);
-      });
+    if (profile && !advice) {
+      const conditions = (profile.medicalConditions || profile.conditions || []).map((c: any) =>
+        (typeof c === 'string' ? c : c?.condition || '').toLowerCase()
+      );
+      const cuisine = profile.cuisine || '';
+      const calories = profile.targetCalories || 2000;
+
+      let rule = '';
+      if (conditions.some((c: string) => c.includes('gerd') || c.includes('reflux') || c.includes('heartburn') || c.includes('lpr'))) {
+        rule = 'Prioritize alkaline, low-acid foods and finish dinner at least 3 hours before sleep to prevent esophageal micro-irritation.';
+      } else if (conditions.some((c: string) => c.includes('ibs') || c.includes('bloat') || c.includes('sibo') || c.includes('gut'))) {
+        rule = 'Incorporate gentle soluble fiber and space meals 3 to 4 hours to activate migrating motor complex (MMC) motility.';
+      } else if (conditions.some((c: string) => c.includes('pots') || c.includes('dysautonomia') || c.includes('tachycardia'))) {
+        rule = 'Maintain steady fluid volume and electrolyte balance with complex carbs to minimize postprandial splanchnic blood pooling.';
+      } else if (conditions.some((c: string) => c.includes('diabet') || c.includes('insulin') || c.includes('glucose') || c.includes('metabolic'))) {
+        rule = 'Anchor each meal with 25-30g of lean protein and healthy fats before complex carbs to stabilize postprandial glucose.';
+      } else if (conditions.some((c: string) => c.includes('histamine') || c.includes('mcas') || c.includes('allergy'))) {
+        rule = 'Prioritize fresh, non-fermented whole foods and minimize high-histamine culprits to preserve DAO enzyme capacity.';
+      } else {
+        rule = `Target ${calories} kcal/day with whole-food nutrient density and balanced macronutrient distribution.`;
+      }
+
+      const cuisineNote = cuisine && !cuisine.toLowerCase().includes('not specified')
+        ? ` Optimized for your ${cuisine} culinary preferences.`
+        : ' Ensure consistent protein distribution across all feeding windows.';
+
+      const synthesizedAdvice = `${rule}${cuisineNote}`;
+      setAdvice(synthesizedAdvice);
+      updateProfileFeatureData('dietAdvice', synthesizedAdvice);
     }
   }, [profile, advice]);
 

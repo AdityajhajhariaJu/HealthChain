@@ -1367,6 +1367,56 @@ export async function suggestSpecialists(profileData: any, availableSpecialists:
     return !l.includes('diagnostic ambig') && !l.includes('undifferentiated') && !l.includes('unknown') && !l.includes('review');
   });
 
+  const availableIds = new Set(availableSpecialists.map(s => s.id));
+  const suggested = new Set<string>();
+
+  const condText = [
+    ...cleanConditions,
+    profileData?.healthFocus || '',
+    ...(profileData?.medications || []).map((m: any) => (typeof m === 'string' ? m : m?.name || ''))
+  ].join(' ').toLowerCase();
+
+  if (/reflux|gerd|acid|lpr|dyspepsia|gut|ibs|sibo|bloat|nausea|constipat|diarrhea|digest/i.test(condText)) {
+    if (availableIds.has('gastro')) suggested.add('gastro');
+  }
+  if (/tachycardia|pots|palpitation|dysautonomia|orthostatic|syncope|blood pressure|hypertens|cardio|chest/i.test(condText)) {
+    if (availableIds.has('cardio')) suggested.add('cardio');
+  }
+  if (/headache|migraine|neuro|brain|fog|tingling|numbness|dizziness|vertigo/i.test(condText)) {
+    if (availableIds.has('neuro')) suggested.add('neuro');
+  }
+  if (/joint|arthrit|lupus|autoimmune|inflammat|connective|ankylos/i.test(condText)) {
+    if (availableIds.has('rheum')) suggested.add('rheum');
+  }
+  if (/thyroid|hashimoto|diabetes|insulin|hormon|endocrine|adrenal|pcos|metabolic/i.test(condText)) {
+    if (availableIds.has('endo')) suggested.add('endo');
+  }
+  if (/allerg|histamine|mcas|urticaria|anaphylax|immune/i.test(condText)) {
+    if (availableIds.has('allergy')) suggested.add('allergy');
+  }
+  if (/breath|asthma|lung|cough|pulmon|respirat/i.test(condText)) {
+    if (availableIds.has('pulmo')) suggested.add('pulmo');
+  }
+  if (/pain|fibromyalgia|chronic pain/i.test(condText)) {
+    if (availableIds.has('pain')) suggested.add('pain');
+  }
+
+  // If deterministic clinical rules matched specialists, return immediately (0 token burn, <0.1ms)
+  if (suggested.size >= 2) {
+    return {
+      suggestedSpecialistIds: Array.from(suggested).slice(0, 4),
+      professionalAdvice: "Recommended multi-specialist perspectives aligned directly with your active medical conditions and clinical history."
+    };
+  }
+
+  if (suggested.size === 1) {
+    if (availableIds.has('gp')) suggested.add('gp');
+    return {
+      suggestedSpecialistIds: Array.from(suggested),
+      professionalAdvice: "Primary specialist pathway identified alongside general clinical oversight."
+    };
+  }
+
   const profileSummary = {
     age: profileData?.demographics?.age,
     gender: profileData?.demographics?.gender,
@@ -1612,133 +1662,6 @@ Describe questions, risks, and possible follow-up topics to discuss with a quali
     console.error('Simulation error:', err);
     return null;
   }
-}
-
-export async function analyzeTrialRelevance(
-  trials: any[],
-  caseData: any,
-  profile: any
-): Promise<any[]> {
-  if (!trials || trials.length === 0) return [];
-
-  const prompt = `You are a clinical trials matching algorithm.
-I am providing you with a list of actively recruiting clinical trials and the patient's case data.
-
-Patient Age: ${profile?.demographics?.age || 'Unknown'}
-Patient Gender: ${profile?.demographics?.gender || 'Unknown'}
-Case Symptoms/Data: ${caseData?.intakeData?.chiefComplaint || 'Unknown'}
-Current Active Diagnoses/Hypotheses: ${JSON.stringify((caseData?.differentials || []).map((d: any) => d.condition))}
-
-Trials to analyze:
-${JSON.stringify(trials)}
-
-Your task:
-1. For each trial, determine a "matchScore" (0-100) based on how well the patient's demographics and case data match the trial's target conditions and interventions.
-2. Provide a short, 1-2 sentence "aiContext" explaining EXACTLY how this trial maps to the patient's specific "chain of reaction triggers" or root causes. Make it sound like a personalized clinical intelligence brief (e.g. "This trial targets the vagus nerve, which aligns with your LPR anxiety cascade.")
-
-Return ONLY a valid JSON array of objects with the exact following schema:
-[
-  {
-    "id": "NCT_ID_HERE",
-    "matchScore": 85,
-    "aiContext": "Explanation here..."
-  }
-]`;
-
-  const payload = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 1500 },
-  };
-
-  try {
-    const res = await fetchWithTimeout(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'case_connection_map' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error('API Error');
-    const data = await res.json();
-    if (data.candidates?.[0]) {
-      const text = data.candidates[0].content.parts[0].text;
-      const parsed = parseModelJson<any[]>(text, []) || [];
-      
-      // Merge AI context back into trials
-      return trials.map(trial => {
-        const aiData = parsed.find((p: any) => p.id === trial.id) || {};
-        return {
-          ...trial,
-          matchScore: typeof aiData.matchScore === 'number' ? aiData.matchScore : null,
-          aiContext: aiData.aiContext || 'Relevance evaluation pending clinician discussion.'
-        };
-      });
-    }
-  } catch (err) {
-    console.error('Trial analysis error:', err);
-  }
-  return trials; // Return raw trials if AI fails
-}
-
-export async function analyzeLiteratureRelevance(
-  papers: any[],
-  caseData: any,
-  profile: any
-): Promise<any[]> {
-  if (!papers || papers.length === 0) return [];
-
-  const prompt = `You are a clinical research AI.
-I am providing you with a list of recent medical papers (from PubMed/EuropePMC) and the patient's case data.
-
-Patient Age: ${profile?.demographics?.age || 'Unknown'}
-Patient Gender: ${profile?.demographics?.gender || 'Unknown'}
-Case Symptoms/Data: ${caseData?.intakeData?.chiefComplaint || 'Unknown'}
-Current Active Diagnoses/Hypotheses: ${JSON.stringify((caseData?.differentials || []).map((d: any) => d.condition))}
-
-Papers to analyze:
-${JSON.stringify(papers.map(p => ({ id: p.id, title: p.title, abstract: p.abstract })))}
-
-Your task:
-1. Determine a "matchScore" (0-100) based on how relevant this paper is to the patient's specific root cause hypotheses.
-2. Provide a 1-2 sentence "aiContext" (Patient Takeaway) that explains what this paper discovered and how it impacts their specific case, written in plain English without complex medical jargon.
-
-Return ONLY a valid JSON array of objects with the exact following schema:
-[
-  {
-    "id": "PMID_HERE",
-    "matchScore": 85,
-    "aiContext": "Patient takeaway here..."
-  }
-]`;
-
-  const payload = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 1500 },
-  };
-
-  try {
-    const res = await fetchWithTimeout(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-HC-Operation': 'literature_relevance' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error('API Error');
-    const data = await res.json();
-    if (data.candidates?.[0]) {
-      const text = data.candidates[0].content.parts[0].text;
-      const parsed = parseModelJson<any[]>(text, []) || [];
-      
-      return papers.map(paper => {
-        const aiData = parsed.find((p: any) => p.id === paper.id) || {};
-        return {
-          ...paper,
-          matchScore: typeof aiData.matchScore === 'number' ? aiData.matchScore : null,
-          aiContext: aiData.aiContext || 'This research paper investigates biological mechanisms relevant to your hypotheses.'
-        };
-      });
-    }
-  } catch (err) {
-    console.error('Literature analysis error:', err);
-  }
-  return papers;
 }
 
 

@@ -5,7 +5,7 @@ import { FlaskConical, ExternalLink, Activity, Filter, Info, ShieldCheck, CheckC
 import { getActiveCase } from '../../services/CaseEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import { fetchLiveTrials } from '../../services/clinicalTrialsService';
-import { fetchRecentLiterature } from '../../services/pubMedService';
+import { fetchRecentLiterature, cleanMedicalText } from '../../services/pubMedService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 import { recordHealthMemory } from '../../services/HealthMemory';
@@ -104,6 +104,12 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
   const isPaper = !!item.journal;
+  const displayTitle = cleanMedicalText(item.title) || (isPaper ? 'Clinical Literature Paper' : 'Clinical Trial');
+  const rawJournal = isPaper ? (item.journal || 'Peer-Reviewed Clinical Journal') : (item.location || 'Multiple Locations / Unknown');
+  const displayJournal = isPaper
+    ? (rawJournal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(rawJournal))
+    : rawJournal;
+  const displayAbstract = cleanMedicalText(isPaper ? item.abstract : item.summary) || 'No abstract or clinical summary available.';
   
   return (
     <motion.div 
@@ -128,10 +134,10 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
             )}
           </div>
           <h2 style={{ fontSize: '16px', color: '#0F172A', margin: '0 0 6px 0', lineHeight: 1.4 }}>
-            {item.title}
+            {displayTitle}
           </h2>
           <div style={{ fontSize: '12px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Activity size={12} /> {isPaper ? item.journal : item.location}
+            <Activity size={12} /> {displayJournal}
           </div>
         </div>
         <MatchRing score={item.matchScore} />
@@ -147,7 +153,7 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
           >
             <div style={{ padding: '12px 0', borderTop: '1px solid #F1F5F9', borderBottom: '1px solid #F1F5F9', margin: '4px 0 12px 0' }}>
               <p style={{ fontSize: '13px', color: '#475569', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                {isPaper ? item.abstract : item.summary}
+                {displayAbstract}
               </p>
               
               <div style={{ background: 'linear-gradient(to right, rgba(16,185,129,0.1), transparent)', padding: '12px', borderRadius: '8px', borderLeft: '3px solid #10B981', marginBottom: '12px' }}>
@@ -180,7 +186,7 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
           type="button"
           onClick={() => setExpanded(!expanded)} 
           aria-expanded={expanded}
-          aria-label={expanded ? `Collapse match details for ${item.title}` : `Expand match details for ${item.title}`}
+          aria-label={expanded ? `Collapse match details for ${displayTitle}` : `Expand match details for ${displayTitle}`}
           style={{ background: 'transparent', border: 'none', color: '#4F46E5', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
         >
           {expanded ? 'Show Less' : 'Match Details'} {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -194,11 +200,11 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
               triggerHapticLight();
               navigate('/app/ava', {
                 state: {
-                  initialPrompt: `I am interested in this clinical research: "${item.title}". How might this relate to my case, conditions, and treatment options?`
+                  initialPrompt: `I am interested in this clinical research: "${displayTitle}". How might this relate to my case, conditions, and treatment options?`
                 }
               });
             }} 
-            aria-label={`Discuss "${item.title}" with Ava`}
+            aria-label={`Discuss "${displayTitle}" with Ava`}
             style={{ padding: '4px 10px', fontSize: '12px', height: '28px', display: 'flex', alignItems: 'center', gap: '4px', color: '#4F46E5', borderColor: '#C7D2FE' }}
             title="Discuss with Ava"
           >
@@ -208,7 +214,7 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
             type="button"
             className="btn btn-primary btn-sm" 
             onClick={onClick} 
-            aria-label={`View clinical trial details for ${item.title}`}
+            aria-label={`View clinical trial details for ${displayTitle}`}
             style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}
           >
              View <ExternalLink size={12} />
@@ -303,15 +309,23 @@ export default function ClinicalTrialsMatcher() {
       setLoading(true);
       
       const searchTerms = effectiveTerms;
-      const cacheKey = `researchHub_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
+      const cacheKey = `researchHub_v4_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
       
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         try {
           const parsedCache = JSON.parse(cached);
           if (Array.isArray(parsedCache)) {
+            const sanitizedCache = parsedCache.map((item: any) => ({
+              ...item,
+              title: cleanMedicalText(item.title),
+              journal: item.journal
+                ? (item.journal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(item.journal))
+                : item.location,
+              abstract: cleanMedicalText(item.abstract || item.summary || '')
+            }));
             if (isMounted) {
-              setResearchItems(parsedCache);
+              setResearchItems(sanitizedCache);
               setLoading(false);
             }
             return;
@@ -593,78 +607,92 @@ export default function ClinicalTrialsMatcher() {
               }} 
               onClick={e => e.stopPropagation()}
             >
-              <div style={{ padding: isMobile ? '16px' : '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
-                </h2>
-                <span className="badge badge-teal">Match: {selectedItem.matchScore}</span>
-              </div>
-              <div style={{ padding: isMobile ? '16px' : '24px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-                <h3 style={{ fontSize: isMobile ? '18px' : '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{selectedItem.title}</h3>
-                <p style={{ color: '#475569', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
-                  {selectedItem.journal ? selectedItem.abstract : selectedItem.summary}
-                </p>
-                <div style={{ display: 'grid', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
-                    <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Journal' : 'Phase'}</span>
-                    <strong style={{ fontSize: '13px' }}>{selectedItem.journal || selectedItem.phase}</strong>
+            {(() => {
+              const modalTitle = cleanMedicalText(selectedItem.title) || (selectedItem.journal ? 'Clinical Literature Paper' : 'Clinical Trial');
+              const rawModalJournal = selectedItem.journal ? (selectedItem.journal || 'Peer-Reviewed Clinical Journal') : (selectedItem.location || 'Multiple Locations / Unknown');
+              const modalJournal = selectedItem.journal
+                ? (rawModalJournal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(rawModalJournal))
+                : rawModalJournal;
+              const modalAbstract = cleanMedicalText(selectedItem.journal ? selectedItem.abstract : selectedItem.summary) || 'No abstract or clinical summary available.';
+              const modalAuthors = selectedItem.authors ? cleanMedicalText(selectedItem.authors) : (selectedItem.location || 'Multiple Locations / Unknown');
+
+              return (
+                <>
+                  <div style={{ padding: isMobile ? '16px' : '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                    <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
+                    </h2>
+                    <span className="badge badge-teal">Match: {selectedItem.matchScore}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
-                    <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Authors' : 'Location'}</span>
-                    <strong style={{ fontSize: '13px', textAlign: 'right', maxWidth: '200px' }}>{selectedItem.authors || selectedItem.location}</strong>
+                  <div style={{ padding: isMobile ? '16px' : '24px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                    <h3 style={{ fontSize: isMobile ? '18px' : '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{modalTitle}</h3>
+                    <p style={{ color: '#475569', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
+                      {modalAbstract}
+                    </p>
+                    <div style={{ display: 'grid', gap: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
+                        <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Journal' : 'Phase'}</span>
+                        <strong style={{ fontSize: '13px' }}>{selectedItem.journal ? modalJournal : (selectedItem.phase || 'Phase Unknown')}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)' }}>
+                        <span style={{ color: '#64748B', fontSize: '13px' }}>{selectedItem.journal ? 'Authors' : 'Location'}</span>
+                        <strong style={{ fontSize: '13px', textAlign: 'right', maxWidth: '200px' }}>{modalAuthors}</strong>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #E2E8F0' }}>
-                <button className="btn btn-outline" onClick={() => setSelectedItem(null)}>Close</button>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => handleSaveToDossier(selectedItem)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    color: savedItems[selectedItem.id] ? '#059669' : '#0F172A',
-                    borderColor: savedItems[selectedItem.id] ? '#A7F3D0' : '#CBD5E1',
-                    background: savedItems[selectedItem.id] ? '#ECFDF5' : 'transparent',
-                  }}
-                >
-                  {savedItems[selectedItem.id] ? <Check size={15} color="#059669" /> : <Bookmark size={15} />}
-                  {savedItems[selectedItem.id] ? 'Saved to Dossier' : 'Save to Dossier (+10 pts)'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => {
-                    triggerHapticLight();
-                    navigate('/app/ava', {
-                      state: {
-                        initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${selectedItem.title}". Could you help me understand how this evidence matches my health conditions, biomarkers, and treatment options?`
-                      }
-                    });
-                  }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#4F46E5', borderColor: '#C7D2FE' }}
-                >
-                  <MessageCircle size={15} /> Discuss with Ava
-                </button>
-                <button 
-                  className="btn btn-primary" 
-                  aria-label="View full external source in new tab"
-                  onClick={() => {
-                    const targetUrl = selectedItem.journal
-                      ? (selectedItem.url || `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(selectedItem.title)}`)
-                      : `https://clinicaltrials.gov/study/${selectedItem.id}`;
-                    try {
-                      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-                    } catch {
-                      window.location.href = targetUrl;
-                    }
-                  }}
-                >
-                  View Full Source <ExternalLink size={16} />
-                </button>
-              </div>
+                  <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #E2E8F0' }}>
+                    <button className="btn btn-outline" onClick={() => setSelectedItem(null)}>Close</button>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={() => handleSaveToDossier(selectedItem)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        color: savedItems[selectedItem.id] ? '#059669' : '#0F172A',
+                        borderColor: savedItems[selectedItem.id] ? '#A7F3D0' : '#CBD5E1',
+                        background: savedItems[selectedItem.id] ? '#ECFDF5' : 'transparent',
+                      }}
+                    >
+                      {savedItems[selectedItem.id] ? <Check size={15} color="#059669" /> : <Bookmark size={15} />}
+                      {savedItems[selectedItem.id] ? 'Saved to Dossier' : 'Save to Dossier (+10 pts)'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={() => {
+                        triggerHapticLight();
+                        navigate('/app/ava', {
+                          state: {
+                            initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}". Could you help me understand how this evidence matches my health conditions, biomarkers, and treatment options?`
+                          }
+                        });
+                      }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#4F46E5', borderColor: '#C7D2FE' }}
+                    >
+                      <MessageCircle size={15} /> Discuss with Ava
+                    </button>
+                    <button 
+                      className="btn btn-primary" 
+                      aria-label="View full external source in new tab"
+                      onClick={() => {
+                        const targetUrl = selectedItem.journal
+                          ? (selectedItem.url || `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(modalTitle)}`)
+                          : `https://clinicaltrials.gov/study/${selectedItem.id}`;
+                        try {
+                          window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                        } catch {
+                          window.location.href = targetUrl;
+                        }
+                      }}
+                    >
+                      View Full Source <ExternalLink size={16} />
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
             </motion.div>
           </div>
         )}

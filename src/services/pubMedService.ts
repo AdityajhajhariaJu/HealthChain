@@ -29,18 +29,46 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
   }
 };
 
-function cleanMedicalText(text: string): string {
+export function cleanMedicalText(text: string): string {
   if (!text) return '';
-  return text
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/<\/?[^>]+(>|$)/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  let cleaned = String(text);
+
+  // Multi-pass entity decoding (up to 3 iterations for double/triple encoded strings like &amp;lt;b&amp;gt;)
+  for (let pass = 0; pass < 3; pass++) {
+    const prev = cleaned;
+    cleaned = cleaned
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#x2F;/g, '/')
+      .replace(/&nbsp;/g, ' ');
+    if (cleaned === prev) break;
+  }
+
+  // Strip any remaining HTML/XML tags (<...>)
+  cleaned = cleaned.replace(/<\/?[^>]+(>|$)/g, '');
+
+  // Strip residual escaped tag-like leftovers (&lt;...&gt;)
+  cleaned = cleaned.replace(/&lt;[^&]*&gt;/gi, '');
+
+  // Normalize strange punctuation combinations from raw PubMed/EuropePMC titles
+  cleaned = cleaned
+    .replace(/\s*:\s*\./g, '.')
+    .replace(/\s*;\s*\./g, '.')
+    .replace(/\s*:\s*;/g, ':')
+    .replace(/\s*;\s*;/g, ';')
+    .replace(/\s+([,;:?.!])/g, '$1')
+    .replace(/([,;:?.!])\1+/g, '$1');
+
+  // Fix awkward space before colon/semicolon (e.g. "pain : A study" -> "pain: A study")
+  cleaned = cleaned.replace(/\s+:/g, ':');
+
+  // Collapse multiple whitespace and trim
+  return cleaned.replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -73,9 +101,11 @@ export async function fetchRecentLiterature(conditions: string[]): Promise<Liter
       const rawJournal = paper.journalTitle ||
         paper.journalInfo?.journal?.title ||
         paper.journalInfo?.journal?.medlineAbbreviation ||
-        paper.bookOrReportDetails?.publisher ||
-        'Peer-Reviewed Clinical Journal';
-      const journal = cleanMedicalText(rawJournal) || 'Peer-Reviewed Clinical Journal';
+        paper.bookOrReportDetails?.publisher;
+      const cleanedJournal = rawJournal ? cleanMedicalText(rawJournal) : '';
+      const journal = (!cleanedJournal || cleanedJournal.toLowerCase() === 'unknown journal')
+        ? 'Peer-Reviewed Clinical Journal'
+        : cleanedJournal;
       const pubYear = paper.pubYear || '2025';
       const abstract = cleanMedicalText(paper.abstractText) || 'No abstract available.';
       const authors = cleanMedicalText(paper.authorString) || 'Clinical Investigators';
