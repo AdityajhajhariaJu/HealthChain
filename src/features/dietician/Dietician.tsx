@@ -1,8 +1,7 @@
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
-import { Scan } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 
 export function formatLocalDate(date: Date): string {
@@ -221,7 +220,15 @@ export default function Dietician() {
   const isMobile = useIsMobile();
   const toast = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'insights' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
+  const location = useLocation();
+  const initialTab = ((location.state as any)?.tab || 'dashboard') as 'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'insights' | 'grocery' | 'guardrails' | 'longevity';
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'insights' | 'grocery' | 'guardrails' | 'longevity'>(initialTab);
+
+  useEffect(() => {
+    if ((location.state as any)?.tab) {
+      setActiveTab((location.state as any).tab);
+    }
+  }, [location.state]);
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});

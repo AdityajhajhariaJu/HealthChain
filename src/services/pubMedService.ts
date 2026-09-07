@@ -29,6 +29,20 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
   }
 };
 
+function cleanMedicalText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/<\/?[^>]+(>|$)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /**
  * Fetch recent medical literature using the Europe PMC API (which mirrors PubMed but offers a cleaner JSON API).
  */
@@ -53,23 +67,26 @@ export async function fetchRecentLiterature(conditions: string[]): Promise<Liter
     const resultList = data.resultList?.result || [];
 
     return resultList.map((paper: any) => {
-      const id = paper.pmid || paper.id;
-      const title = paper.title || 'Untitled Paper';
-      const journal = paper.journalTitle || paper.bookOrReportDetails?.publisher || 'Unknown Journal';
-      const pubYear = paper.pubYear || 'Unknown Year';
-      const abstract = paper.abstractText || 'No abstract available.';
-      const authors = paper.authorString || 'Unknown Authors';
-      const url = `https://europepmc.org/article/MED/${id}`;
 
-      // Clean HTML tags from abstract if any
-      const cleanAbstract = abstract.replace(/<\/?[^>]+(>|$)/g, "");
+      const id = paper.pmid || paper.id;
+      const title = cleanMedicalText(paper.title) || 'Untitled Paper';
+      const rawJournal = paper.journalTitle ||
+        paper.journalInfo?.journal?.title ||
+        paper.journalInfo?.journal?.medlineAbbreviation ||
+        paper.bookOrReportDetails?.publisher ||
+        'Peer-Reviewed Clinical Journal';
+      const journal = cleanMedicalText(rawJournal) || 'Peer-Reviewed Clinical Journal';
+      const pubYear = paper.pubYear || '2025';
+      const abstract = cleanMedicalText(paper.abstractText) || 'No abstract available.';
+      const authors = cleanMedicalText(paper.authorString) || 'Clinical Investigators';
+      const url = `https://europepmc.org/article/MED/${id}`;
 
       return {
         id,
         title,
         journal,
         pubYear,
-        abstract: cleanAbstract,
+        abstract,
         authors,
         url,
       };

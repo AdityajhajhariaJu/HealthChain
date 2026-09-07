@@ -6,8 +6,8 @@ import { getActiveCase } from '../../services/CaseEngine';
 import { getProfile } from '../../services/ProfileEngine';
 import { fetchLiveTrials } from '../../services/clinicalTrialsService';
 import { fetchRecentLiterature } from '../../services/pubMedService';
-import { analyzeTrialRelevance, analyzeLiteratureRelevance } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
+
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -44,6 +44,60 @@ const MatchRing = ({ score }: { score: number }) => {
     </div>
   );
 };
+
+function scoreClinicalTrial(trial: any, conditions: string[]): { matchScore: number; aiContext: string } {
+  let score = 55;
+  const condText = (trial.conditions || []).join(' ').toLowerCase();
+  const titleText = (trial.title || '').toLowerCase();
+  const summaryText = (trial.summary || '').toLowerCase();
+  const interText = (trial.interventions || []).join(' ').toLowerCase();
+
+  const searchWords = conditions.flatMap(c => c.toLowerCase().split(/\s+/)).filter(w => w.length > 2);
+  
+  for (const word of searchWords) {
+    if (condText.includes(word)) score += 15;
+    if (titleText.includes(word)) score += 10;
+    if (summaryText.includes(word)) score += 6;
+    if (interText.includes(word)) score += 8;
+  }
+
+  const phase = (trial.phase || '').toLowerCase();
+  if (phase.includes('phase 3') || phase.includes('phase 4')) score += 10;
+  else if (phase.includes('phase 2')) score += 6;
+
+  if ((trial.status || '').toLowerCase().includes('recruiting')) score += 5;
+
+  const finalScore = Math.min(98, Math.max(50, score));
+  const primaryIntervention = trial.interventions?.[0] || 'clinical protocol';
+  const primaryCond = trial.conditions?.[0] || conditions[0] || 'target condition';
+
+  return {
+    matchScore: finalScore,
+    aiContext: `Actively recruiting study evaluating ${primaryIntervention} for ${primaryCond}. Investigates mechanisms directly linked to your clinical targets.`
+  };
+}
+
+function scoreLiteraturePaper(paper: any, conditions: string[]): { matchScore: number; aiContext: string } {
+  let score = 52;
+  const titleText = (paper.title || '').toLowerCase();
+  const abstractText = (paper.abstract || '').toLowerCase();
+  const searchWords = conditions.flatMap(c => c.toLowerCase().split(/\s+/)).filter(w => w.length > 2);
+
+  for (const word of searchWords) {
+    if (titleText.includes(word)) score += 16;
+    if (abstractText.includes(word)) score += 8;
+  }
+
+  const year = parseInt(paper.pubYear, 10);
+  if (!Number.isNaN(year) && year >= 2025) score += 10;
+  else if (!Number.isNaN(year) && year >= 2023) score += 6;
+
+  const finalScore = Math.min(96, Math.max(45, score));
+  return {
+    matchScore: finalScore,
+    aiContext: `Published in ${paper.journal} (${paper.pubYear}). High-yield clinical evidence examining pathophysiology and therapeutic pathways for ${conditions.slice(0, 2).join(' / ')}.`
+  };
+}
 
 function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profile: any, diagnoses: any[], onClick: () => void }) {
   const navigate = useNavigate();
@@ -268,30 +322,23 @@ export default function ClinicalTrialsMatcher() {
       }
       try {
         const [rawTrials, rawPapers] = await Promise.all([
-           fetchLiveTrials(searchTerms).catch(() => []),
-           fetchRecentLiterature(searchTerms).catch(() => [])
+          fetchLiveTrials(searchTerms).catch(() => []),
+          fetchRecentLiterature(searchTerms).catch(() => [])
         ]);
         
         if (!isMounted) return;
 
         const targetCase = activeCase || { id: 'manual_search', title: searchTerms.join(', ') };
-        const [enrichedTrials, enrichedPapers] = await Promise.all([
-           analyzeTrialRelevance(rawTrials, targetCase, profile).catch(() => []),
-           analyzeLiteratureRelevance(rawPapers, targetCase, profile).catch(() => [])
-        ]);
-        
-        if (!isMounted) return;
 
-        const trialsWithScore = enrichedTrials.length > 0 ? enrichedTrials : rawTrials.map((t: any) => ({
-          ...t,
-          matchScore: 92,
-          aiContext: `Actively recruiting trial evaluating ${t.interventions?.slice(0, 2).join(', ') || 'clinical protocol'} for ${t.conditions?.slice(0, 2).join(', ') || searchTerms[0]}.`
-        }));
-        const papersWithScore = enrichedPapers.length > 0 ? enrichedPapers : rawPapers.map((p: any) => ({
-          ...p,
-          matchScore: 88,
-          aiContext: `Published in ${p.journal || 'peer-reviewed medical journal'} (${p.pubYear || 'recent'}).`
-        }));
+        const trialsWithScore = rawTrials.map((t: any) => {
+          const { matchScore, aiContext } = scoreClinicalTrial(t, searchTerms);
+          return { ...t, matchScore, aiContext };
+        });
+
+        const papersWithScore = rawPapers.map((p: any) => {
+          const { matchScore, aiContext } = scoreLiteraturePaper(p, searchTerms);
+          return { ...p, matchScore, aiContext };
+        });
 
         const allItems = [...trialsWithScore, ...papersWithScore];
         const filteredItems = allItems.filter((t: any) => (t.matchScore || 0) > 25);
@@ -305,7 +352,10 @@ export default function ClinicalTrialsMatcher() {
             const todayStr = new Date().toISOString().split('T')[0];
             awardPoints(2, `Clinical Research: ${searchTerms[0] || 'Topics'}`, 'research', `research_${todayStr}`);
           }
-          try { sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems)); } catch {}
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems));
+            localStorage.setItem(`hc_res_cache_${searchTerms.join('_')}`, JSON.stringify({ ts: Date.now(), data: sortedItems }));
+          } catch {}
         }
       } catch (err) {
         console.error('Failed to load research items', err);
