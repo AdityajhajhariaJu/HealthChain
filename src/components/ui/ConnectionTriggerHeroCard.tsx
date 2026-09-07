@@ -1,13 +1,100 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import {
+  getConnectionDetectiveReport,
+  getFunctionalBiomarkers,
+  FunctionalBiomarker,
+} from '../../services/ConnectionDetectiveEngine';
+import { getSuspectFoodsLeaderboard } from '../../services/TriggerEngine';
+import { getProfile } from '../../services/ProfileEngine';
 
 interface ConnectionTriggerHeroCardProps {
   onInvestigate: (tab?: string) => void;
 }
 
 export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps> = ({ onInvestigate }) => {
+  const [report, setReport] = useState(() => getConnectionDetectiveReport());
+  const [biomarkers, setBiomarkers] = useState<FunctionalBiomarker[]>(() => getFunctionalBiomarkers());
+  const [suspectFoods, setSuspectFoods] = useState(() => getSuspectFoodsLeaderboard());
+  const [profile, setProfile] = useState(() => getProfile());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setReport(getConnectionDetectiveReport());
+      setBiomarkers(getFunctionalBiomarkers());
+      setSuspectFoods(getSuspectFoodsLeaderboard());
+      setProfile(getProfile());
+    };
+
+    window.addEventListener('hc_biomarkers_updated', handleUpdate);
+    window.addEventListener('hc_triggers_updated', handleUpdate);
+    window.addEventListener('hc_cases_updated', handleUpdate);
+    window.addEventListener('hc_profile_updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('hc_biomarkers_updated', handleUpdate);
+      window.removeEventListener('hc_triggers_updated', handleUpdate);
+      window.removeEventListener('hc_cases_updated', handleUpdate);
+      window.removeEventListener('hc_profile_updated', handleUpdate);
+    };
+  }, []);
+
+  // Compute dynamic counts & states
+  const totalBiomarkersCount = Math.max(profile?.biomarkers?.length || 48, biomarkers.length);
+  const flaggedBiomarkers = biomarkers.filter((b) => b.status !== 'optimal');
+
+  // Top Flagged Lab (Priority to Ferritin if not optimal, or the most abnormal marker)
+  const topFlaggedMarker =
+    biomarkers.find((b) => b.id === 'ferritin' && b.status !== 'optimal') ||
+    biomarkers.find((b) => b.status === 'critical_low' || b.status === 'critical_high') ||
+    biomarkers.find((b) => b.status.startsWith('suboptimal')) ||
+    biomarkers[0];
+
+  const labDisplayName = topFlaggedMarker ? topFlaggedMarker.name.split('(')[0].trim() : 'Ferritin';
+  const labDisplayVal = topFlaggedMarker ? `${topFlaggedMarker.userValue} ${topFlaggedMarker.userUnit}` : '14 ng/mL';
+  const labStatusLabel =
+    !topFlaggedMarker || topFlaggedMarker.status === 'optimal'
+      ? 'Optimal longevity'
+      : topFlaggedMarker.status === 'critical_low'
+      ? 'Pathology deficit'
+      : topFlaggedMarker.status === 'suboptimal_low'
+      ? 'Bone marrow gap'
+      : topFlaggedMarker.status === 'critical_high'
+      ? 'Pathology excess'
+      : 'Subclinical surge';
+
+  // Clinic Notes Conduit
+  const topMiss = report.clinicalMisses?.[0];
+  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} × Vagal` : 'Cardio × GI Vagal';
+  const notesSubtitle = topMiss?.hiddenConnection
+    ? topMiss.hiddenConnection.split('—')[0].trim().substring(0, 22)
+    : 'Roemheld reflex';
+
+  // Vitals Stream Conduit
+  const vitalsStream = report.streams.find((s) => s.id === 'vitals');
+  const vitalsItem =
+    vitalsStream?.items?.find((it) => it.includes('Orthostatic Shift') || it.includes('bpm')) || '+38 bpm Standing';
+  const vitalsTitle = vitalsItem.includes('Orthostatic Shift:')
+    ? vitalsItem.split('(')[0].replace('Orthostatic Shift:', '').trim()
+    : vitalsItem.includes('+')
+    ? vitalsItem.split('(')[0].trim()
+    : '+38 bpm Standing';
+  const vitalsSubtitle = 'Orthostatic surge';
+
+  // Diet Sensitivity Conduit
+  const topFood = suspectFoods?.[0];
+  const dietTitle = topFood ? `${topFood.name} (+${topFood.correlationPercent}%)` : 'Histamine / Fructan';
+  const dietSubtitle = topFood?.primarySensitivity || 'Mast cell flare';
+
+  // Narrative Synthesis
+  const narrative = `Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered root-cause ${
+    topFlaggedMarker?.id === 'ferritin'
+      ? 'subclinical ferritin depletion'
+      : `${labDisplayName.toLowerCase()} imbalance`
+  } mimicking ${report.primaryHypothesis ? report.primaryHypothesis.toLowerCase() : 'refractory dysautonomia'}.`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -39,7 +126,16 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
       />
 
       {/* Top Badge Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '14px',
+          flexWrap: 'wrap',
+          gap: '8px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             style={{
@@ -64,15 +160,32 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }} />
+          <div
+            style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: '#10B981',
+              boxShadow: '0 0 8px #10B981',
+            }}
+          />
           <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>
-            48 Biomarkers Synced
+            {totalBiomarkersCount} Biomarkers Synced • {flaggedBiomarkers.length} Flags
           </span>
         </div>
       </div>
 
       {/* Headline */}
-      <h3 style={{ fontSize: '21px', fontWeight: 800, margin: '0 0 8px 0', lineHeight: 1.25, letterSpacing: '-0.3px', color: '#FFFFFF' }}>
+      <h3
+        style={{
+          fontSize: '21px',
+          fontWeight: 800,
+          margin: '0 0 8px 0',
+          lineHeight: 1.25,
+          letterSpacing: '-0.3px',
+          color: '#FFFFFF',
+        }}
+      >
         Connection Detective:{' '}
         <span style={{ color: '#38BDF8', textShadow: '0 0 16px rgba(56, 189, 248, 0.4)' }}>
           What 15-Minute Visits Missed
@@ -81,7 +194,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
 
       {/* Narrative */}
       <p style={{ fontSize: '13px', color: '#CBD5E1', lineHeight: 1.45, margin: '0 0 18px 0' }}>
-        Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered root-cause subclinical ferritin depletion mimicking refractory dysautonomia.
+        {narrative}
       </p>
 
       {/* Primary CTA Button */}
@@ -146,11 +259,11 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>🧪</span> LABS CONDUIT
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px' }}>
-            Ferritin 14 ng/mL
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {labDisplayName} {labDisplayVal}
           </div>
           <div style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700 }}>
-            Bone marrow gap
+            {labStatusLabel}
           </div>
         </div>
 
@@ -182,11 +295,11 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>🩺</span> CLINIC NOTES
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px' }}>
-            Cardio × GI Vagal
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {notesTitle}
           </div>
           <div style={{ fontSize: '11px', color: '#2DD4BF', fontWeight: 700 }}>
-            Roemheld reflex
+            {notesSubtitle}
           </div>
         </div>
 
@@ -218,11 +331,11 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>💓</span> VITALS STREAM
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px' }}>
-            +38 bpm Standing
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {vitalsTitle}
           </div>
           <div style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700 }}>
-            Orthostatic surge
+            {vitalsSubtitle}
           </div>
         </div>
 
@@ -254,11 +367,11 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>
             <span>🍎</span> DIET SENSITIVITY
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px' }}>
-            Histamine / Fructan
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#F1F5F9', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {dietTitle}
           </div>
           <div style={{ fontSize: '11px', color: '#FB7185', fontWeight: 700 }}>
-            Mast cell flare
+            {dietSubtitle}
           </div>
         </div>
       </div>

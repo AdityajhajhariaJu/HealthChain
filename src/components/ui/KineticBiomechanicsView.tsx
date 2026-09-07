@@ -17,12 +17,15 @@ import {
 } from 'lucide-react';
 import { getKineticChainPathways, KineticChainPathway } from '../../services/ConnectionDetectiveEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
+import { awardPoints } from '../../services/VitalityPointsEngine';
+import { addEvent } from '../../services/ProfileEngine';
 
 export const KineticBiomechanicsView: React.FC = () => {
   const [pathways] = useState<KineticChainPathway[]>(getKineticChainPathways());
   const [selectedPathwayId, setSelectedPathwayId] = useState<string>(pathways[0]?.id || 'chain_craniosacral');
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(180);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const currentPathway = pathways.find((p) => p.id === selectedPathwayId) || pathways[0];
 
@@ -35,10 +38,19 @@ export const KineticBiomechanicsView: React.FC = () => {
       }, 1000);
     } else if (secondsRemaining === 0 && isTimerActive) {
       setIsTimerActive(false);
+      setIsCompleted(true);
       triggerHapticSuccess();
+      const todayStr = new Date().toISOString().split('T')[0];
+      awardPoints(15, `Completed 3-min Kinetic Chain: ${currentPathway.title}`, 'lifestyle', `kinetic_${currentPathway.id}_${todayStr}`);
+      addEvent('somatic', 'kinetic_release', `3-min ${currentPathway.title}`, {
+        pathwayId: currentPathway.id,
+        pathwayTitle: currentPathway.title,
+        axisName: currentPathway.axisName,
+        completedAt: new Date().toISOString(),
+      });
     }
     return () => clearInterval(interval);
-  }, [isTimerActive, secondsRemaining]);
+  }, [isTimerActive, secondsRemaining, currentPathway]);
 
   const handleToggleTimer = () => {
     triggerHapticLight();
@@ -48,6 +60,7 @@ export const KineticBiomechanicsView: React.FC = () => {
   const handleResetTimer = () => {
     triggerHapticLight();
     setIsTimerActive(false);
+    setIsCompleted(false);
     setSecondsRemaining(180);
   };
 
@@ -437,6 +450,52 @@ export const KineticBiomechanicsView: React.FC = () => {
           <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>
             ✓ Expected Outcome: {currentPathway.correctiveProtocol.clinicalOutcome}
           </div>
+
+          {/* Celebratory Completion Banner */}
+          {isCompleted && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={{
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.25) 100%)',
+                border: '1.5px solid #10B981',
+                borderRadius: '14px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CheckCircle2 size={20} color="#10B981" />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>
+                    +15 Vitality Points Earned!
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#A7F3D0' }}>
+                    Kinetic tension release logged to your health history.
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetTimer}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '999px',
+                  background: '#10B981',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontSize: '11.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Restart
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

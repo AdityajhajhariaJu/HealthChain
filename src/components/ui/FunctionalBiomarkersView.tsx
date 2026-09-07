@@ -19,6 +19,8 @@ import {
   FunctionalBiomarker,
   getClinicalProfilePresets,
   ClinicalProfilePreset,
+  saveFunctionalBiomarkers,
+  resetFunctionalBiomarkers,
 } from '../../services/ConnectionDetectiveEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
@@ -50,17 +52,37 @@ export const FunctionalBiomarkersView: React.FC = () => {
   const handleSelectPreset = (preset: ClinicalProfilePreset) => {
     triggerHapticSelection();
     setActivePresetId(preset.id);
-    setCustomValues((prev) => ({
-      ...prev,
-      ...preset.biomarkerValues,
-    }));
+    setCustomValues((prev) => {
+      const next = {
+        ...prev,
+        ...preset.biomarkerValues,
+      };
+      saveFunctionalBiomarkers(next);
+      return next;
+    });
   };
 
   const handleValueChange = (biomarkerId: string, val: number) => {
-    setCustomValues((prev) => ({
-      ...prev,
-      [biomarkerId]: val,
-    }));
+    setCustomValues((prev) => {
+      const next = {
+        ...prev,
+        [biomarkerId]: val,
+      };
+      saveFunctionalBiomarkers(next);
+      return next;
+    });
+  };
+
+  const handleReset = () => {
+    triggerHapticLight();
+    resetFunctionalBiomarkers();
+    setActivePresetId('profile_baseline');
+    const fresh = getFunctionalBiomarkers();
+    const map: Record<string, number> = {};
+    fresh.forEach((b) => {
+      map[b.id] = b.userValue;
+    });
+    setCustomValues(map);
   };
 
   const getComputedStatus = (b: FunctionalBiomarker, val: number) => {
@@ -119,8 +141,31 @@ export const FunctionalBiomarkersView: React.FC = () => {
 
       {/* Preset Profiles Selector Ribbon */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-          Simulate Clinical Telemetry Profiles:
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            Simulate Clinical Telemetry Profiles:
+          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
+              color: '#0F766E',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              padding: '2px 6px',
+              borderRadius: '6px',
+            }}
+            title="Reset to Baseline"
+          >
+            <RotateCcw size={12} />
+            <span>Reset Baseline</span>
+          </button>
         </div>
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '2px' }}>
           {presets.map((p) => {

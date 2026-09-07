@@ -13,6 +13,10 @@ import {
   getFunctionalBiomarkers,
   getKineticChainPathways,
   getClinicalProfilePresets,
+  saveFunctionalBiomarkers,
+  resetFunctionalBiomarkers,
+  computeBiomarkerStatus,
+  getConnectionDetectiveReport,
 } from '../ConnectionDetectiveEngine';
 
 
@@ -234,6 +238,45 @@ describe('ConnectionDetectiveEngine', () => {
     expect(baseline.biomarkerValues['ferritin']).toBe(14);
     expect(baseline.biomarkerValues['tsh']).toBe(3.2);
   });
+
+  it('persists customized functional biomarkers and dynamically updates status', () => {
+    // Override Ferritin to an optimal value of 75 ng/mL
+    saveFunctionalBiomarkers({ ferritin: 75, tsh: 1.5 });
+
+    const updated = getFunctionalBiomarkers();
+    const ferritin = updated.find((b) => b.id === 'ferritin')!;
+    expect(ferritin.userValue).toBe(75);
+    expect(ferritin.status).toBe('optimal');
+
+    const tsh = updated.find((b) => b.id === 'tsh')!;
+    expect(tsh.userValue).toBe(1.5);
+    expect(tsh.status).toBe('optimal');
+
+    // Verify report reflects the live biomarker values
+    const report = getConnectionDetectiveReport();
+    const labsStream = report.streams.find((s) => s.id === 'labs')!;
+    expect(labsStream.items[0]).toContain('Serum Ferritin: 75 ng/mL');
+    expect(labsStream.items[0]).toContain('Optimal bone marrow storage');
+    expect(report.nodeDetails['cond_ferritin'].biomarkers[0].userValue).toBe('75 ng/mL');
+    expect(report.nodeDetails['cond_ferritin'].biomarkers[0].status).toBe('normal');
+
+    // Reset restores the original baseline
+    resetFunctionalBiomarkers();
+    const restored = getFunctionalBiomarkers();
+    const restoredFerritin = restored.find((b) => b.id === 'ferritin')!;
+    expect(restoredFerritin.userValue).toBe(14);
+    expect(restoredFerritin.status).toBe('suboptimal_low');
+  });
+
+  it('accurately computes dual-band status categories across the clinical spectrum', () => {
+    const sample = getFunctionalBiomarkers()[0]; // Ferritin: standard 12-150, optimal 50-90
+    expect(computeBiomarkerStatus(sample, 8)).toBe('critical_low');
+    expect(computeBiomarkerStatus(sample, 25)).toBe('suboptimal_low');
+    expect(computeBiomarkerStatus(sample, 65)).toBe('optimal');
+    expect(computeBiomarkerStatus(sample, 120)).toBe('suboptimal_high');
+    expect(computeBiomarkerStatus(sample, 220)).toBe('critical_high');
+  });
 });
+
 
 

@@ -54,12 +54,29 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   onOpenConsult,
 }) => {
   const isMobile = useIsMobile();
-  const [report] = useState<ConnectionDetectiveReport>(getConnectionDetectiveReport());
+  const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
   const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic'>(initialTab);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setReport(getConnectionDetectiveReport());
+    };
+    window.addEventListener('hc_biomarkers_updated', handleUpdate);
+    window.addEventListener('hc_profile_updated', handleUpdate);
+    window.addEventListener('hc_cases_updated', handleUpdate);
+    window.addEventListener('hc_triggers_updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('hc_biomarkers_updated', handleUpdate);
+      window.removeEventListener('hc_profile_updated', handleUpdate);
+      window.removeEventListener('hc_cases_updated', handleUpdate);
+      window.removeEventListener('hc_triggers_updated', handleUpdate);
+    };
+  }, []);
 
   const [activeSystemFilter, setActiveSystemFilter] = useState<string>('all');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);

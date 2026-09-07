@@ -152,7 +152,32 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   const patientName = profile?.name || profile?.demographics?.name || 'Aditya (Patient)';
 
   // Synthesize the 4 Data Convergence Streams from live user profile & history
-  const labCount = 48; // Total tracked reference biomarkers
+  const functionalBiomarkers = getFunctionalBiomarkers();
+  const flaggedBiomarkers = functionalBiomarkers.filter((b) => b.status !== 'optimal');
+  const labCount = Math.max(48, functionalBiomarkers.length);
+  const ferritinMarker = functionalBiomarkers.find((b) => b.id === 'ferritin');
+  const freeT3Marker = functionalBiomarkers.find((b) => b.id === 'free_t3');
+  const vitDMarker = functionalBiomarkers.find((b) => b.id === 'vitamin_d');
+  const ferritinNum = ferritinMarker?.userValue ?? 14;
+  const ferritinStr = `${ferritinNum} ng/mL`;
+
+  const labItems: string[] = [
+    `Serum Ferritin: ${ferritinStr} (${
+      ferritinMarker?.status === 'optimal'
+        ? 'Optimal bone marrow storage'
+        : ferritinMarker?.status === 'critical_low'
+        ? 'Severe bone marrow depletion'
+        : 'Subclinical bone marrow depletion'
+    })`,
+    'Standard Iron: 65 μg/dL (Falsely reassuring standard range)',
+    `Free T3: ${freeT3Marker?.userValue ?? 2.4} pg/mL (${
+      freeT3Marker?.status === 'optimal' ? 'Optimal metabolic conversion' : 'Conversion lag under autonomic strain'
+    })`,
+    `Vitamin D3: ${vitDMarker?.userValue ?? 24} ng/mL (${
+      vitDMarker?.status === 'optimal' ? 'Adequate immune threshold' : 'Sub-optimal immune threshold'
+    })`,
+  ];
+
   const streams: ConnectionStream[] = [
     {
       id: 'labs',
@@ -160,13 +185,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '🩸',
       color: '#F43F5E',
       count: labCount,
-      status: '14 Correlated Flags',
-      items: [
-        'Serum Ferritin: 14 ng/mL (Subclinical bone marrow depletion)',
-        'Standard Iron: 65 μg/dL (Falsely reassuring standard range)',
-        'Free T3/T4 Ratio: Conversion lag under autonomic strain',
-        'Vitamin D3: 24 ng/mL (Sub-optimal immune threshold)',
-      ],
+      status: `${flaggedBiomarkers.length} Correlated Flags`,
+      items: labItems,
     },
     {
       id: 'notes',
@@ -485,9 +505,11 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           name: 'Serum Ferritin',
           standardRange: '13 – 150 ng/mL',
           optimalRange: '50 – 90 ng/mL',
-          userValue: '14 ng/mL',
-          status: 'depleted',
-          clinicalNote: 'Severely depleted storage reserves; cellular oxygenation starved.',
+          userValue: ferritinStr,
+          status: ferritinMarker?.status === 'optimal' ? 'normal' : ferritinMarker?.status === 'critical_low' ? 'depleted' : 'suboptimal',
+          clinicalNote: ferritinMarker?.status === 'optimal'
+            ? 'Optimal storage iron reserves; cellular mitochondrial respiration supported.'
+            : 'Severely depleted storage reserves; cellular oxygenation starved.',
         },
         {
           name: 'Total Iron Binding Capacity (TIBC)',
@@ -1161,8 +1183,7 @@ export interface FunctionalBiomarker {
   retestTimeline: string;
 }
 
-export function getFunctionalBiomarkers(): FunctionalBiomarker[] {
-  return [
+export const BASE_FUNCTIONAL_BIOMARKERS: FunctionalBiomarker[] = [
     {
       id: 'ferritin',
       name: 'Serum Ferritin (Storage Iron)',
@@ -1590,6 +1611,62 @@ export function getFunctionalBiomarkers(): FunctionalBiomarker[] {
       retestTimeline: 'Retest Zinc and Copper profile in 10 weeks.',
     },
   ];
+
+export const FUNCTIONAL_BIOMARKERS_STORAGE_KEY = 'hc_functional_biomarkers';
+
+export function computeBiomarkerStatus(b: FunctionalBiomarker, val: number): FunctionalBiomarker['status'] {
+  if (val < b.standardRange.min) return 'critical_low';
+  if (val < b.optimalRange.min) return 'suboptimal_low';
+  if (val > b.standardRange.max) return 'critical_high';
+  if (val > b.optimalRange.max) return 'suboptimal_high';
+  return 'optimal';
+}
+
+export function getFunctionalBiomarkers(): FunctionalBiomarker[] {
+  try {
+    const raw = getItemSync(FUNCTIONAL_BIOMARKERS_STORAGE_KEY);
+    if (raw) {
+      const parsed: Record<string, number> = JSON.parse(raw);
+      return BASE_FUNCTIONAL_BIOMARKERS.map((b) => {
+        if (parsed[b.id] !== undefined && typeof parsed[b.id] === 'number') {
+          const val = parsed[b.id];
+          return {
+            ...b,
+            userValue: val,
+            status: computeBiomarkerStatus(b, val),
+          };
+        }
+        return b;
+      });
+    }
+  } catch (e) {
+    console.warn('Failed to parse stored functional biomarkers:', e);
+  }
+  return BASE_FUNCTIONAL_BIOMARKERS;
+}
+
+export function saveFunctionalBiomarkers(values: Record<string, number>): void {
+  try {
+    setItemSync(FUNCTIONAL_BIOMARKERS_STORAGE_KEY, JSON.stringify(values));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('hc_biomarkers_updated', { detail: values }));
+    }
+  } catch (e) {
+    console.error('Failed to save functional biomarkers:', e);
+  }
+}
+
+export function resetFunctionalBiomarkers(): void {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(FUNCTIONAL_BIOMARKERS_STORAGE_KEY);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('hc_biomarkers_updated', { detail: {} }));
+    }
+  } catch (e) {
+    console.error('Failed to reset functional biomarkers:', e);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
