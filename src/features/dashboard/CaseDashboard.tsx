@@ -28,7 +28,8 @@ import {
   FolderHeart,
   Pill,
   Plus,
-  FileText
+  FileText,
+  GitMerge
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,6 +64,7 @@ import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { PhysicianDossierModal } from '../../components/ui/PhysicianDossierModal';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -90,6 +92,7 @@ export default function CaseDashboard() {
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
   const [showDoctorDossier, setShowDoctorDossier] = useState(false);
+  const [showDetectiveModal, setShowDetectiveModal] = useState(false);
   const [profile, setProfile] = useState(() => getProfile());
 
   const isProfileComplete = Boolean(
@@ -404,20 +407,20 @@ export default function CaseDashboard() {
                 </div>
               </motion.div>
 
-              {/* Health Canvas War Room Bento Tile */}
+              {/* Connection Detective Bento Tile */}
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label="Health Canvas War Room - Multi-specialist clinical workspace"
+                aria-label="Connection Detective - Cross-system root-cause map"
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => { triggerHapticSelection(); navigate('/app/war-room'); }}
+                onClick={() => { triggerHapticSelection(); setShowDetectiveModal(true); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     triggerHapticSelection();
-                    navigate('/app/war-room');
+                    setShowDetectiveModal(true);
                   }
                 }}
                 style={{
@@ -445,24 +448,24 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)', 
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.85) 100%)', 
                     backdropFilter: 'blur(12px)', 
                     WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
                     border: '1px solid rgba(255,255,255,0.2)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
-                    <Sparkles size={isMobile ? 18 : 20} color="#FFF" />
+                    <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    WAR ROOM
+                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    ROOT CAUSE
                   </div>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Health Canvas</h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Multi-specialist clinical workspace</p>
+                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
+                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Cross-system root-cause map</p>
                 </div>
               </motion.div>
 
@@ -1486,6 +1489,13 @@ export default function CaseDashboard() {
       <PhysicianDossierModal
         isOpen={showDoctorDossier}
         onClose={() => setShowDoctorDossier(false)}
+      />
+
+      <ConnectionDetectiveModal
+        isOpen={showDetectiveModal}
+        onClose={() => setShowDetectiveModal(false)}
+        onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
+        onOpenConsult={() => navigate('/app/consult')}
       />
 
     </div>
