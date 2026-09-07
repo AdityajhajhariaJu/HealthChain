@@ -84,6 +84,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
 import { EliminationProtocolSuite } from '../../components/ui/EliminationProtocolSuite';
+import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -220,7 +221,7 @@ export default function Dietician() {
   const isMobile = useIsMobile();
   const toast = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'insights' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
@@ -944,6 +945,30 @@ export default function Dietician() {
               <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} /> Symptom Hunt
             </button>
             <button
+              onClick={() => {
+                triggerHapticLight();
+                setActiveTab('insights');
+              }}
+              style={{
+                padding: isMobile ? '8px 12px' : '8px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'insights' ? '#0F172A' : 'transparent',
+                color: activeTab === 'insights' ? '#FFFFFF' : '#64748B',
+                fontWeight: 700,
+                fontSize: isMobile ? '12.5px' : '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <Sparkles size={15} color={activeTab === 'insights' ? '#C084FC' : '#64748B'} /> Smart Insights
+            </button>
+            <button
               onClick={() => setActiveTab('mealplan')}
               style={{
                 padding: isMobile ? '8px 12px' : '8px 16px',
@@ -1173,6 +1198,7 @@ export default function Dietician() {
                 onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
                 onOpenSavedMeals={() => { triggerHapticLight(); setShowSavedMealsModal(true); }}
                 onOpenGallery={() => setShowARLens(true)}
+                onSelectTab={(t: any) => setActiveTab(t)}
               />
             </motion.div>
           )}
@@ -1198,6 +1224,17 @@ export default function Dietician() {
                 onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }}
                 onOpenCalendarHeatmap={() => setActiveTab('calendar')}
                 onOpenPostMealTimeline={() => setActiveTab('sensitivities')}
+              />
+            </motion.div>
+          )}
+
+          {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
+          {activeTab === 'insights' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
+              <SmartCorrelationInsightsView
+                onOpenElimination={() => setActiveTab('elimination')}
+                onOpenTimeline={() => setActiveTab('sensitivities')}
+                onOpenHeatmap={() => setActiveTab('calendar')}
               />
             </motion.div>
           )}

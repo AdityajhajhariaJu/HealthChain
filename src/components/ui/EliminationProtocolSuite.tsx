@@ -27,6 +27,8 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useToast } from './ToastProvider';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { PersonalizedJourneyGoalSelector } from './PersonalizedJourneyGoalSelector';
+import FocusTrap from './FocusTrap';
 
 // --- Types ---
 export type ProtocolId = 'bloating_hunt' | 'heartburn_hunt' | 'transit_hunt' | 'vagal_hunt';
@@ -265,10 +267,14 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
   const isMobile = useIsMobile();
   const toast = useToast();
 
-  const [activeProtocolId, setActiveProtocolId] = useState<ProtocolId>('bloating_hunt');
+  const [activeProtocolId, setActiveProtocolId] = useState<ProtocolId>(() => {
+    const s = getEliminationProtocolState();
+    return s?.activeProtocolId || 'bloating_hunt';
+  });
   const [activeViewTab, setActiveViewTab] = useState<'forbidden' | 'swaps' | 'checklist' | 'phases'>('checklist');
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGoalModal, setShowGoalModal] = useState(false);
 
   // ProfileEngine state
   const [protocolState, setProtocolState] = useState<any>(() => getEliminationProtocolState());
@@ -276,7 +282,11 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
 
   useEffect(() => {
     const handleUpdate = () => {
-      setProtocolState(getEliminationProtocolState());
+      const s = getEliminationProtocolState();
+      setProtocolState(s);
+      if (s?.activeProtocolId) {
+        setActiveProtocolId(s.activeProtocolId);
+      }
     };
     window.addEventListener('hc_elimination_updated', handleUpdate);
     window.addEventListener('hc_profile_updated', handleUpdate);
@@ -415,28 +425,56 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleCopyProtocolDossier}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '12px',
-              border: '1px solid #CBD5E1',
-              background: '#FFFFFF',
-              color: '#334155',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-              transition: 'all 0.15s',
-            }}
-          >
-            {copiedSummary ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-            <span>{copiedSummary ? 'Copied Dossier' : isMobile ? 'GI Dossier' : 'Copy Doctor Dossier'}</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                setShowGoalModal(true);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '12px',
+                border: '1.5px solid #A855F7',
+                background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
+                color: '#6B21A8',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(168, 85, 247, 0.15)',
+                transition: 'all 0.15s',
+              }}
+            >
+              <span>🎯</span>
+              <span>{isMobile ? 'Goal Hub' : 'Personalized Journey Hub'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyProtocolDossier}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '12px',
+                border: '1px solid #CBD5E1',
+                background: '#FFFFFF',
+                color: '#334155',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {copiedSummary ? <Check size={14} color="#059669" /> : <Copy size={14} />}
+              <span>{copiedSummary ? 'Copied Dossier' : isMobile ? 'GI Dossier' : 'Copy Doctor Dossier'}</span>
+            </button>
+          </div>
         </div>
 
         {/* 4 Protocol Selector Pills */}
@@ -1063,6 +1101,58 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Personalized Journey Goal Hub Modal (media_1788703646266.png) */}
+      <AnimatePresence>
+        {showGoalModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setShowGoalModal(false)}
+          >
+            <FocusTrap
+              isActive={showGoalModal}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 12 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: '100%',
+                  maxWidth: '520px',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                }}
+              >
+                <PersonalizedJourneyGoalSelector
+                  activeGoalId={activeProtocolId}
+                  onSelectGoal={(selected) => {
+                    setActiveProtocolId(selected);
+                    setShowGoalModal(false);
+                    toast?.success?.(`Switched active symptom hunt to ${PROTOCOLS[selected].name}`);
+                  }}
+                  showBackAction
+                  onBack={() => setShowGoalModal(false)}
+                />
+              </motion.div>
+            </FocusTrap>
+          </div>
         )}
       </AnimatePresence>
     </div>

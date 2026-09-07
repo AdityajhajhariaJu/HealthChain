@@ -44,9 +44,10 @@ import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { EliminationProtocolSuite } from './EliminationProtocolSuite';
+import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 
 interface ConnectionDetectiveViewProps {
-  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination';
+  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination' | 'insights';
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
 }
@@ -58,7 +59,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination' | 'insights'>(initialTab);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -334,6 +335,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           { id: 'postmeal', label: 'Post-Meal Sensitivities', icon: '🍽️' },
           { id: 'calendar', label: 'Digestion Heatmap', icon: '📅' },
           { id: 'elimination', label: 'Symptom Hunt', icon: '🎯' },
+          { id: 'insights', label: 'Smart Insights', icon: '💡' },
           { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
           { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
           { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
@@ -1362,6 +1364,15 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           onOpenQuickMeal={onOpenFoodDetective}
           onOpenCalendarHeatmap={() => setActiveTab('calendar')}
           onOpenPostMealTimeline={() => setActiveTab('postmeal')}
+        />
+      )}
+
+      {/* 10. SMART CORRELATION INSIGHTS SUBTAB */}
+      {activeTab === 'insights' && (
+        <SmartCorrelationInsightsView
+          onOpenElimination={() => setActiveTab('elimination')}
+          onOpenTimeline={() => setActiveTab('postmeal')}
+          onOpenHeatmap={() => setActiveTab('calendar')}
         />
       )}
     </div>
