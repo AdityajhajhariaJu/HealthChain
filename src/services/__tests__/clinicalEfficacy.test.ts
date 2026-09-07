@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { evaluateEmergencyTriage } from '../clinicalTriageEngine';
 import { evaluateBiomarkerFunctionally } from '../functionalBiomarkers';
 import { generateDoctorSummary } from '../TriggerEngine';
+import { getDeterministicMedicineData } from '../clinicalPharmacyData';
+import { getClinicalDietarySwap } from '../clinicalDietarySwaps';
 
 describe('Clinical Emergency Triage Engine', () => {
   it('should immediately detect cerebrovascular emergency (thunderclap headache)', () => {
@@ -85,5 +87,61 @@ describe('Physician Dossier & SBAR Generation', () => {
     expect(summary.sbarSummary.assessment).toBeDefined();
     expect(summary.sbarSummary.recommendation).toBeDefined();
     expect(summary.clinicalRecommendations.length).toBeGreaterThan(0);
+  });
+});
+
+describe('Clinical Pharmacology & Nutrient Depletion Engine', () => {
+  it('should identify Vitamin B12 depletion and meal timing rules for Metformin', () => {
+    const data = getDeterministicMedicineData('metformin');
+    expect(data).not.toBeNull();
+    expect(data?.name).toContain('Metformin');
+    const b12Depletion = data?.nutrientDepletions.find(d => d.nutrient.includes('B12'));
+    expect(b12Depletion).toBeDefined();
+    expect(data?.optimalTiming.foodRequirement).toContain('food');
+  });
+
+  it('should identify Magnesium and B12 depletions and empty stomach rule for Omeprazole (PPI)', () => {
+    const data = getDeterministicMedicineData('Prilosec');
+    expect(data).not.toBeNull();
+    expect(data?.class).toContain('Proton Pump Inhibitor');
+    const magDepletion = data?.nutrientDepletions.find(d => d.nutrient.includes('Magnesium'));
+    expect(magDepletion).toBeDefined();
+    expect(data?.optimalTiming.bestTimeOfDay).toContain('Breakfast');
+  });
+
+  it('should identify CoQ10 depletion and evening dosing for Atorvastatin', () => {
+    const data = getDeterministicMedicineData('Lipitor');
+    expect(data).not.toBeNull();
+    const coq10 = data?.nutrientDepletions.find(d => d.nutrient.includes('CoQ10'));
+    expect(coq10).toBeDefined();
+  });
+
+  it('should flag dangerous interaction between St. John’s Wort and Sertraline (SSRI)', () => {
+    const data = getDeterministicMedicineData('Zoloft');
+    expect(data).not.toBeNull();
+    const stJohns = data?.supplementInteractions.find(s => s.supplement.includes('St. John’s Wort'));
+    expect(stJohns?.riskLevel).toBe('dangerous');
+  });
+});
+
+describe('Deterministic Clinical Dietary Swaps', () => {
+  it('should provide smart replacement for Oats to resolve resistant starch distension', () => {
+    const swap = getClinicalDietarySwap('Oats');
+    expect(swap).not.toBeNull();
+    expect(swap?.smartReplacement).toContain('Cream of Rice');
+    expect(swap?.expectedReliefTimeline).toBeDefined();
+  });
+
+  it('should recommend garlic-infused olive oil to bypass water-soluble fructans', () => {
+    const swap = getClinicalDietarySwap('garlic');
+    expect(swap).not.toBeNull();
+    expect(swap?.category).toBe('FODMAP');
+    expect(swap?.smartReplacement).toContain('Garlic-Infused');
+  });
+
+  it('should recommend pea/egg protein isolate to replace whey protein', () => {
+    const swap = getClinicalDietarySwap('whey protein');
+    expect(swap).not.toBeNull();
+    expect(swap?.smartReplacement).toContain('Sprouted Pea');
   });
 });

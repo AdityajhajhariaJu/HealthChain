@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Activity, ArrowRight, Sparkles } from 'lucide-react';
+import { Activity, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { TriggerItem, computeTriggersForSymptom } from '../../services/TriggerEngine';
+import { getClinicalDietarySwap } from '../../services/clinicalDietarySwaps';
 
 export interface TriggerSensitivityCardProps {
   symptom?: string;
@@ -26,6 +27,15 @@ export const TriggerSensitivityCard: React.FC<TriggerSensitivityCardProps> = ({
     }
     return computeTriggersForSymptom(symptom);
   }, [symptom, reactionWindow, sensitivities, ingredients]);
+
+  const topSwap = React.useMemo(() => {
+    const allItems = [...(report.sensitivities || []), ...(report.ingredients || [])];
+    for (const item of allItems) {
+      const swap = getClinicalDietarySwap(item.name);
+      if (swap) return swap;
+    }
+    return null;
+  }, [report]);
 
   const renderIcon = (iconName: string) => {
     if (iconName === 'flask') return '⚗️';
@@ -246,6 +256,41 @@ export const TriggerSensitivityCard: React.FC<TriggerSensitivityCardProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Smart Therapeutic Food Swap Card */}
+      {topSwap && (
+        <div
+          style={{
+            margin: '0 20px 16px 20px',
+            padding: '14px 16px',
+            background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
+            borderRadius: '16px',
+            border: '1px solid #BBF7D0',
+            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.06)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={14} color="#16A34A" /> Smart Therapeutic Swap
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '2px 8px', borderRadius: '999px' }}>
+              For {topSwap.triggerName}
+            </span>
+          </div>
+
+          <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
+            👉 {topSwap.smartReplacement}
+          </div>
+
+          <p style={{ margin: '0 0 6px 0', fontSize: '12.5px', color: '#475569', lineHeight: 1.45 }}>
+            {topSwap.replacementDetails}
+          </p>
+
+          <div style={{ fontSize: '11.5px', color: '#166534', fontWeight: 600 }}>
+            ⏱️ <strong>Expected Relief:</strong> {topSwap.expectedReliefTimeline}
+          </div>
+        </div>
+      )}
 
       {/* Card Action Footer */}
       <div

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network, ChevronDown, HelpCircle, GitMerge } from 'lucide-react';
+import { Activity, AlertCircle, BookOpen, CheckCircle2, ListChecks, Users, Network, ChevronDown, HelpCircle, GitMerge, Copy, Check, Stethoscope, FlaskConical, Sparkles } from 'lucide-react';
 
 export function cleanClinicalText(text?: string): string {
   if (!text || typeof text !== 'string') return '';
@@ -102,17 +102,23 @@ export interface RichReportData {
   functionalBiomarkers?: Array<{ biomarker: string; value: string; standardRange: string; optimalRange: string; insight: string }>;
   systemicPatterns?: Array<{ pattern: string; evidence: string }>;
   topDiagnoses?: Array<{ condition: string; rationale: string; confidence?: number }>;
+  interdisciplinaryDiscovery?: string;
+  tier1ImmediateTrial?: { title: string; protocol: string; rationale: string; expectedReliefTime: string };
+  tier2DoctorRequisition?: { testsToRequest: string[]; clinicalRationale: string; highYieldQuestions: string[] };
+  recommendedActionPlan?: Array<{ step: string; timeline: string; type: string }>;
 }
 
 export function RichReportTemplate({ report, isMobile }: { report: RichReportData; isMobile?: boolean }) {
   if (!report) return null;
+
+  const [copiedScript, setCopiedScript] = useState(false);
 
   const sanitizedExecSummary = cleanClinicalText(report.executiveSummary);
   const sanitizedKeyFindings = cleanClinicalText(report.keyFindings);
   const sanitizedInterpretation = cleanClinicalText(report.interpretation);
   const sanitizedNextSteps = cleanClinicalText(report.nextSteps);
 
-  const hasRichData = sanitizedKeyFindings || sanitizedInterpretation || (report.abnormalitiesNoted && report.abnormalitiesNoted.length > 0) || sanitizedNextSteps || (report.missingLinks && report.missingLinks.length > 0) || (report.functionalBiomarkers && report.functionalBiomarkers.length > 0) || (report.systemicPatterns && report.systemicPatterns.length > 0) || (report.specialistDebatePoints && report.specialistDebatePoints.length > 0);
+  const hasRichData = sanitizedKeyFindings || sanitizedInterpretation || (report.abnormalitiesNoted && report.abnormalitiesNoted.length > 0) || sanitizedNextSteps || (report.missingLinks && report.missingLinks.length > 0) || (report.functionalBiomarkers && report.functionalBiomarkers.length > 0) || (report.systemicPatterns && report.systemicPatterns.length > 0) || (report.specialistDebatePoints && report.specialistDebatePoints.length > 0) || report.tier1ImmediateTrial || report.tier2DoctorRequisition || report.interdisciplinaryDiscovery;
 
   if (!hasRichData) {
     return (
@@ -128,6 +134,115 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
         <div style={{ background: '#F8FAFC', padding: isMobile ? '16px' : '24px', borderRadius: '16px', border: '1px solid #E2E8F0', color: '#334155', fontSize: '15.5px', lineHeight: 1.7 }}>
           <strong style={{ color: '#0F172A', display: 'block', marginBottom: '8px' }}>Executive Summary</strong>
           {sanitizedExecSummary}
+        </div>
+      )}
+
+      {/* The Interdisciplinary Discovery Box */}
+      {report.interdisciplinaryDiscovery && (
+        <div style={{ background: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)', padding: isMobile ? '16px' : '24px', borderRadius: '16px', border: '1px solid #DDD6FE', boxShadow: '0 4px 12px rgba(124, 58, 237, 0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Sparkles size={18} color="#7C3AED" />
+            <strong style={{ color: '#5B21B6', fontSize: '15px' }}>The Interdisciplinary Discovery</strong>
+          </div>
+          <p style={{ margin: 0, color: '#4C1D95', fontSize: '14.5px', lineHeight: 1.6 }}>
+            {report.interdisciplinaryDiscovery}
+          </p>
+        </div>
+      )}
+
+      {/* 3-Tier Action Architecture Card */}
+      {(report.tier1ImmediateTrial || report.tier2DoctorRequisition) && (
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1.5px solid #0D9488', boxShadow: '0 4px 16px rgba(13, 148, 136, 0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <FlaskConical size={20} color="#0D9488" />
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+              3-Tier Action Architecture
+            </h3>
+          </div>
+
+          {report.tier1ImmediateTrial && (
+            <div style={{ background: '#F0FDF4', borderRadius: '12px', padding: '16px', border: '1px solid #BBF7D0', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  🧪 Tier 1: 72-Hour Zero-Harm Home Trial
+                </span>
+                {report.tier1ImmediateTrial.expectedReliefTime && (
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '2px 8px', borderRadius: '999px' }}>
+                    Relief: {report.tier1ImmediateTrial.expectedReliefTime}
+                  </span>
+                )}
+              </div>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, color: '#0F172A' }}>
+                {report.tier1ImmediateTrial.title}
+              </h4>
+              <p style={{ margin: '0 0 8px 0', fontSize: '13.5px', color: '#334155', lineHeight: 1.5 }}>
+                <strong>Protocol:</strong> {report.tier1ImmediateTrial.protocol}
+              </p>
+              {report.tier1ImmediateTrial.rationale && (
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
+                  <em>Biological Rationale:</em> {report.tier1ImmediateTrial.rationale}
+                </p>
+              )}
+            </div>
+          )}
+
+          {report.tier2DoctorRequisition && (
+            <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Stethoscope size={14} /> Tier 2: Physician Lab Requisition Script
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const script = `PHYSICIAN BRIEF & LAB REQUISITION:\nTests to Request:\n${(report.tier2DoctorRequisition?.testsToRequest || []).map(t => `- ${t}`).join('\n')}\n\nClinical Rationale:\n${report.tier2DoctorRequisition?.clinicalRationale || ''}\n\nKey Questions for Doctor:\n${(report.tier2DoctorRequisition?.highYieldQuestions || []).map(q => `- ${q}`).join('\n')}`;
+                    navigator.clipboard.writeText(script);
+                    setCopiedScript(true);
+                    setTimeout(() => setCopiedScript(false), 2500);
+                  }}
+                  style={{
+                    background: copiedScript ? '#10B981' : '#0F172A',
+                    color: '#FFF',
+                    border: 'none',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  {copiedScript ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy Script</>}
+                </button>
+              </div>
+              {report.tier2DoctorRequisition.testsToRequest && report.tier2DoctorRequisition.testsToRequest.length > 0 && (
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Diagnostic Tests to Request:</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                    {report.tier2DoctorRequisition.testsToRequest.map((test, idx) => (
+                      <span key={idx} style={{ background: '#E0F2FE', color: '#0369A1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
+                        {test}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {report.tier2DoctorRequisition.clinicalRationale && (
+                <p style={{ margin: '0 0 6px 0', fontSize: '12.5px', color: '#475569', lineHeight: 1.45 }}>
+                  <strong>MD Discussion Rationale:</strong> {report.tier2DoctorRequisition.clinicalRationale}
+                </p>
+              )}
+              {report.tier2DoctorRequisition.highYieldQuestions && report.tier2DoctorRequisition.highYieldQuestions.length > 0 && (
+                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12.5px', color: '#334155', lineHeight: 1.45 }}>
+                  {report.tier2DoctorRequisition.highYieldQuestions.map((q, idx) => (
+                    <li key={idx}><strong>Ask Doctor:</strong> {q}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
       <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '1.2fr 0.8fr', gap: '16px' }}>

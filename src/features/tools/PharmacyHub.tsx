@@ -17,7 +17,7 @@ import { fetchMedicineData, checkDrugInteractions, analyzeMedicineImage } from '
 import { addMedication, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
-import { Sunrise, Sun, Moon, CheckCircle } from 'lucide-react';
+import { Sunrise, Sun, Moon, CheckCircle, Clock, Zap, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { trackFeatureUsed } from '../../services/analytics';
@@ -576,6 +576,124 @@ export default function PharmacyHub() {
                     </div>
                   )}
 
+                  {/* 1. Nutrient Depletion Alert & Replenishment Card */}
+                  {displayData.nutrientDepletions && displayData.nutrientDepletions.length > 0 && (
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+                        border: '1px solid #FCD34D',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: isMobile ? '16px' : '24px',
+                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.08)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
+                          <Zap size={20} />
+                        </div>
+                        <div>
+                          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#92400E', margin: 0 }}>
+                            Nutrient Depletion Alert
+                          </h3>
+                          <span style={{ fontSize: '12px', color: '#B45309', fontWeight: 600 }}>
+                            Essential micronutrients depleted from your body by this medication
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {displayData.nutrientDepletions.map((dep: any, i: number) => (
+                          <div
+                            key={i}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '12px',
+                              padding: '14px 16px',
+                              border: '1px solid rgba(245, 158, 11, 0.25)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                              <span style={{ fontWeight: 800, color: '#92400E', fontSize: '14px' }}>
+                                💊 {dep.nutrient}
+                              </span>
+                              <span style={{ background: '#FEF3C7', color: '#B45309', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                                Depletion Risk
+                              </span>
+                            </div>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+                              <strong style={{ color: '#0F172A' }}>Biological Mechanism:</strong> {dep.mechanism}
+                            </p>
+                            <div style={{ background: '#F0FDF4', borderRadius: '8px', padding: '8px 12px', border: '1px solid #BBF7D0', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                              <CheckCircle2 size={16} color="#16A34A" style={{ flexShrink: 0, marginTop: '2px' }} />
+                              <span style={{ fontSize: '12.5px', color: '#166534', lineHeight: 1.4, fontWeight: 500 }}>
+                                <strong>Replenishment:</strong> {dep.replenishmentAdvice}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. Optimal Daily Regimen & Food Timing Card */}
+                  {displayData.optimalTiming && (
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: isMobile ? '16px' : '24px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#0EA5E9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
+                          <Clock size={20} />
+                        </div>
+                        <div>
+                          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                            Optimal Daily Timing & Food Synergies
+                          </h3>
+                          <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                            Maximizing therapeutic bioavailability while protecting your gut
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                        <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
+                            Best Time of Day
+                          </div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                            {displayData.optimalTiming.bestTimeOfDay}
+                          </div>
+                        </div>
+                        <div style={{ background: '#F8FAFC', padding: '12px 16px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>
+                            Food & Meal Pairing
+                          </div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                            {displayData.optimalTiming.foodRequirement}
+                          </div>
+                        </div>
+                      </div>
+
+                      {displayData.optimalTiming.criticalSpacingRules && displayData.optimalTiming.criticalSpacingRules.length > 0 && (
+                        <div style={{ background: '#F1F5F9', borderRadius: '8px', padding: '10px 14px' }}>
+                          <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                            CRITICAL SPACING RULES:
+                          </div>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#334155', fontSize: '12.5px', lineHeight: 1.5 }}>
+                            {displayData.optimalTiming.criticalSpacingRules.map((rule: string, i: number) => (
+                              <li key={i}>{rule}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                     {/* Uses & Side Effects */}
                     <div
@@ -720,6 +838,83 @@ export default function PharmacyHub() {
                       </div>
                     </div>
                   </div>
+
+                  {/* 3. Supplement Interactions & Synergies Card */}
+                  {displayData.supplementInteractions && displayData.supplementInteractions.length > 0 && (
+                    <div
+                      style={{
+                        background: '#FFFFFF',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: isMobile ? '16px' : '24px',
+                        border: '1px solid #E2E8F0',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+                      }}
+                    >
+                      <h3
+                        style={{
+                          fontSize: '15px',
+                          fontWeight: 700,
+                          color: '#0F172A',
+                          marginBottom: '14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <ShieldAlert size={18} color="#6366F1" /> Common Supplement Interactions & Synergies
+                      </h3>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {displayData.supplementInteractions.map((supp: any, idx: number) => {
+                          const isSafe = supp.riskLevel === 'safe';
+                          const isDangerous = supp.riskLevel === 'dangerous';
+                          const bg = isSafe ? '#F0FDF4' : isDangerous ? '#FEF2F2' : '#FFFBEB';
+                          const border = isSafe ? '#BBF7D0' : isDangerous ? '#FECACA' : '#FDE68A';
+                          const badgeBg = isSafe ? '#DCFCE7' : isDangerous ? '#FEE2E2' : '#FEF3C7';
+                          const badgeColor = isSafe ? '#166534' : isDangerous ? '#991B1B' : '#92400E';
+
+                          return (
+                            <div
+                              key={idx}
+                              style={{
+                                background: bg,
+                                border: `1px solid ${border}`,
+                                borderRadius: '10px',
+                                padding: '12px 14px',
+                                display: 'flex',
+                                flexDirection: isMobile ? 'column' : 'row',
+                                alignItems: isMobile ? 'flex-start' : 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                              }}
+                            >
+                              <div>
+                                <strong style={{ color: '#0F172A', fontSize: '13.5px' }}>{supp.supplement}</strong>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '12.5px', color: '#475569', lineHeight: 1.4 }}>
+                                  {supp.clinicalReason}
+                                </p>
+                              </div>
+                              <span
+                                style={{
+                                  background: badgeBg,
+                                  color: badgeColor,
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  padding: '4px 10px',
+                                  borderRadius: '999px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {supp.riskLevel}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </>
               );
             })()}

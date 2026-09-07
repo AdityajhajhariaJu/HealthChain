@@ -5,7 +5,7 @@ import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { chatWithTherapyGemini, analyzeLabReport, extractClinicalMemory } from '../../services/geminiService';
-import { addEvent } from '../../services/ProfileEngine';
+import { addEvent, getProfile, updateVitals, getProfileEngineState, getProfileKey, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
@@ -151,7 +151,6 @@ const CASE_RECHECK_SUGGESTIONS = [
   "Can you explain the underlying biological mechanism in simple terms?"
 ];
 
-import { getProfileEngineState, getProfileKey, getProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { GlassBoxExplanation } from '../../components/ui/GlassBoxExplanation';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { FitnessContent } from '../../services/FitnessService';
@@ -899,6 +898,9 @@ export default function AvaHealthBuddy() {
       try {
         const profile = getProfile() || {};
         const parsed = await analyzeLabReport(cleanBase64, file.type, profile);
+        if (parsed?.biomarkers && Object.keys(parsed.biomarkers).length > 0) {
+          updateVitals(parsed.biomarkers, 'ava_chat_upload');
+        }
         if (parsed?.keyFindings) {
           attachmentItem.findings = `Test: ${parsed.testName || 'Lab/Image Report'} | Key Findings: ${parsed.keyFindings}${parsed.interpretation ? ' | Interpretation: ' + parsed.interpretation : ''}`;
         }

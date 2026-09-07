@@ -46,13 +46,14 @@ export function compilePatientContext(options = {}) {
     contextParts.push(profileStr);
   }
 
-  // 2. Vitals / Labs (compact - top 6 only)
+  // 2. Vitals / Labs (compact - top 10 with functional status)
   const labEntries = Object.entries(profile?.vitals?.latestLabValues || {});
   if (labEntries.length > 0) {
     let vitalsStr = `LABS:\n`;
-    labEntries.slice(0, 6).forEach(([key, data]) => {
+    labEntries.slice(0, 10).forEach(([key, data]) => {
       if (data && typeof data === 'object') {
-        vitalsStr += `- ${key}: ${data.value || ''} ${data.unit || ''} ${data.status ? `(${data.status})` : ''}\n`.replace(/\s+/g, ' ');
+        const funcAlert = data.functionalStatus ? `[${data.functionalStatus}]` : '';
+        vitalsStr += `- ${key}: ${data.value || ''} ${data.unit || ''} ${funcAlert || (data.status ? `(${data.status})` : '')}\n`.replace(/\s+/g, ' ');
       } else if (data !== undefined && data !== null) {
         vitalsStr += `- ${key}: ${data}\n`;
       }

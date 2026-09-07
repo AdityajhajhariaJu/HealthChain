@@ -5,6 +5,7 @@ import { supabase } from './supabaseClient';
 import { parseModelJson } from './modelJson';
 export { parseModelJson } from './modelJson';
 import { evaluateBiomarkerFunctionally } from './functionalBiomarkers';
+import { getDeterministicMedicineData } from './clinicalPharmacyData';
 
 const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api/gemini' : '/api/gemini';
 
@@ -111,10 +112,11 @@ RULES:
 1. Be conversational and empathetic. Briefly acknowledge what the user is experiencing before moving forward.
 2. Ask ONE clear follow-up question at a time. Do not interrogate the user with multiple questions in one message.
 3. Keep the tone natural and reassuring, like a friendly medical professional trying to understand their patient.
-4. After 3-5 questions, when you have enough data, output "ANALYSIS_COMPLETE" followed by a JSON block:
+4. After 2-3 focused questions, when you have enough data, output "ANALYSIS_COMPLETE" followed by a JSON block:
+5. CRITICAL ACTION PLAN RULE: Do NOT give vague advice like "Schedule a primary care appointment". The user came here for a concrete, zero-harm trial they can do today and exact lab test names to ask their doctor for.
 
 \`\`\`json
-{"chain_name":"Symptoms and factors to discuss","normal_terms_explanation":"Plain English summary","match_percentage":"","specialist":"AI perspective","this_week_tasks":["Question to discuss with a clinician"],"flowchart":{"root":"","root_sub":"","mechanism":"","mechanism_sub":"","symptoms":[{"name":"","sub":""}]},"what_it_is":"2-3 sentences.","whats_driving_it":"2-3 sentences.","chain_reaction":["Possible connection to discuss"],"where_it_shows_up":[{"location":"","effect":""}],"if_untreated":[],"what_to_do":[{"step":"Discuss with a qualified clinician","cost":"Varies"}],"if_symptoms_persist":"Discuss next steps with a clinician","do":"Record changes and bring them to your clinician","dont":"Do not treat this as a diagnosis or emergency service","quote":"Insight to discuss."}
+{"chain_name":"Specific Physiological Pattern Suspected","normal_terms_explanation":"Plain English summary of what is biologically occurring","match_percentage":"85%","specialist":"AI perspective","this_week_tasks":["Execute 72h home trial","Request targeted lab panel"],"flowchart":{"root":"Root Cause Trigger","root_sub":"Mechanism description","mechanism":"Biological Pathway","mechanism_sub":"Downstream effect","symptoms":[{"name":"Symptom Name","sub":"Physiological link"}]},"what_it_is":"2-3 clear sentences.","whats_driving_it":"2-3 sentences explaining the biochemical mechanism.","chain_reaction":["Direct physiological connection"],"where_it_shows_up":[{"location":"Target Organ","effect":"Clinical manifestation"}],"if_untreated":["Progressive imbalance risks"],"tier1_immediate_trial":{"title":"72-Hour Zero-Harm Home Protocol","protocol":"Specific dietary elimination, timing change, or hydration/sleep adjustment to test this week","rationale":"Biochemical reason why this trial reduces symptom load","expected_relief_timeline":"48 to 72 hours"},"tier2_doctor_script":{"tests_to_request":["Specific Lab Marker 1 (e.g. Ferritin + TIBC)","Specific Lab Marker 2 (e.g. TSH + Free T3/T4)"],"rationale_for_clinician":"Why this specific workup is warranted based on history","questions_for_appointment":["Targeted question 1 to ask the MD","Targeted question 2"]},"what_to_do":[{"step":"Execute 72h Home Protocol: [Specific trial instructions]","cost":"Zero"},{"step":"Doctor Visit Script: Request [Specific lab markers] and rule out differentials","cost":"Varies"}],"if_symptoms_persist":"Present the SBAR Physician Dossier to your physician","do":"Track symptom delta on the 72h trial daily","dont":"Do not alter prescribed medications without doctor consultation","quote":"Clinical takeaway to discuss."}
 \`\`\`
 
 Do NOT include ANALYSIS_COMPLETE until you are ready to conclude.${CLINICAL_SAFETY_RULES}`;
@@ -161,12 +163,36 @@ export async function chatWithGemini(messages: Message[]): Promise<string> {
 
 const PHARMACY_SYSTEM_PROMPT = `You are a clinical pharmacology AI.
 The user will provide a medicine name or search query, and potentially their medical profile (current medications and allergies).
+CRITICAL FOCUS: Patients need actionable pharmacology intelligence. Emphasize:
+1. Nutrient Depletions: Which vitamins/minerals this drug depletes (e.g. Metformin -> B12, PPIs -> Magnesium & Calcium, Statins -> CoQ10) and replenishment advice.
+2. Optimal Timing: Morning vs Night, relation to meals/fat, and spacing rules (e.g. avoid calcium/iron within 2 hours).
+3. Supplement Interactions: Safe vs caution vs dangerous combinations with common OTC supplements.
+
 Return ONLY a valid JSON object (no markdown, no extra text) with the following structure:
 {
   "name": "Full clinical name of the medicine",
   "class": "Drug class (e.g., Biguanide, Analgesic)",
   "uses": "Primary clinical uses (2-3 sentences)",
   "sideEffects": "Common and serious side effects",
+  "nutrientDepletions": [
+    {
+      "nutrient": "Specific nutrient depleted (e.g. Vitamin B12, Magnesium, CoQ10)",
+      "mechanism": "Biochemical mechanism of depletion",
+      "replenishmentAdvice": "Dietary or supplement replenishment guidance"
+    }
+  ],
+  "optimalTiming": {
+    "bestTimeOfDay": "Morning | Evening | Bedtime | With meals",
+    "foodRequirement": "Empty stomach vs with food/fats instructions",
+    "criticalSpacingRules": ["Rule 1 (e.g. space 2h from calcium/dairy)"]
+  },
+  "supplementInteractions": [
+    {
+      "supplement": "Supplement name (e.g. St. John's Wort, Iron, Magnesium)",
+      "riskLevel": "safe | caution | dangerous",
+      "clinicalReason": "Clinical reason for risk or synergy"
+    }
+  ],
   "alternatives": ["Alternative 1", "Alternative 2", "Alternative 3"],
   "warnings": "Important clinical warnings or contraindications",
   "interactions": ["Warning 1", "Warning 2"] // ONLY populate this if the requested drug interacts with their profile medications/allergies. Otherwise empty array.
@@ -174,6 +200,25 @@ Return ONLY a valid JSON object (no markdown, no extra text) with the following 
 If the medicine is completely unrecognized, return a JSON object with "name": "Unknown", and explain that data is unavailable in the "uses" field.${CLINICAL_SAFETY_RULES}`;
 
 export async function fetchMedicineData(medicineName: string, profile: any = null): Promise<any> {
+  if (!medicineName || typeof medicineName !== 'string') return null;
+  const clean = medicineName.trim().toLowerCase();
+
+  // 1. Check Deterministic Clinical Pharmacology Database first (0 tokens, < 1ms)
+  const deterministicMatch = getDeterministicMedicineData(clean);
+  if (deterministicMatch) {
+    return deterministicMatch;
+  }
+
+  // 2. Check local client-side cache (0 tokens, instant)
+  const cacheKey = `hc_pharm_cache_${clean}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.name && parsed.name !== 'Unknown') return parsed;
+    }
+  } catch (e) {}
+
   let promptText = medicineName;
   if (profile) {
     promptText += `\n\nPATIENT PROFILE:\nAllergies: ${(profile.allergies || []).join(', ') || 'None'}\nCurrent Medications: ${(profile.medications || []).map((m: any) => m.name).join(', ') || 'None'}\n\nPlease strictly evaluate for interactions.`;
@@ -182,7 +227,7 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
   const payload = {
     systemInstruction: { role: 'system', parts: [{ text: PHARMACY_SYSTEM_PROMPT }] },
     contents: [{ role: 'user', parts: [{ text: promptText }] }],
-    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 450 },
+    generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 850 },
   };
 
   try {
@@ -195,9 +240,14 @@ export async function fetchMedicineData(medicineName: string, profile: any = nul
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      const allowed = new Set(["neuro", "ent", "cardio", "gastro", "derma", "ortho", "psych", "obgyn", "pulmo", "endo", "uro", "rheuma", "onco", "opthal", "physio", "gp"]);
-      const parsed = parseModelJson<unknown[]>(text, []);
-      return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string' && allowed.has(id)).slice(0, 4) : [];
+      const parsed = parseModelJson<any>(text, null);
+      if (parsed && parsed.name && parsed.name !== 'Unknown') {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(parsed));
+        } catch (e) {}
+        return parsed;
+      }
+      return parsed;
     }
     throw new Error('No candidate returned');
   } catch (err) {
@@ -426,38 +476,27 @@ ${intakeData.sharedCaseMaterial}` : '';
     // MDT Deep Collab Board (either new or imported case)
     questionRule = `[SPECIAL INSTRUCTION]: This patient's case is being reviewed by a Collaborative Board. DO NOT ask basic intake questions. You may ask 1 or 2 highly targeted cross-questions to resolve conflicts in the evidence or clarify changes. IF the provided case context is sufficient to form a hypothesis (e.g. the patient states their symptoms are the same), output exactly "ANALYSIS_COMPLETE" in the "response" field IMMEDIATELY. Do not prolong the questioning unnecessarily.`;
     
-    enforcementRule = questionCount >= 3 
-      ? `
-
-[SYSTEM DIRECTIVE]: You have asked enough questions for this collaborative review. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now.`
+    enforcementRule = questionCount >= 2 
+      ? `\n\n[SYSTEM DIRECTIVE]: You have asked enough questions for this collaborative review (${questionCount} questions). You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now.`
       : '';
   } else if (isFollowUp) {
     // Single Specialist Follow-Up (Quick Consult Import)
-    questionRule = `[SPECIAL INSTRUCTION]: This is a follow-up evaluation where the patient is challenging a previous diagnosis or presenting new findings. YOUR ENTIRE FOCUS must be on investigating these discrepancies. Cross-question their new symptoms, analyze the new reports against the old baseline. 
-You MUST ask questions to deeply investigate. Do NOT output "ANALYSIS_COMPLETE" until you have asked at least 3 questions, or until the user explicitly tells you they have no more information. You have currently asked ${questionCount} questions. You may ask up to 8 questions in total.`;
+    questionRule = `[SPECIAL INSTRUCTION]: This is a follow-up evaluation investigating discrepancies. You MUST ask focused questions to investigate. You have currently asked ${questionCount} questions. You may ask up to 3 questions in total to prevent patient cognitive fatigue.`;
     
-    enforcementRule = questionCount >= 8 
-      ? `
-
-[SYSTEM DIRECTIVE]: You have reached the maximum limit of 8 questions. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now. Do not ask any more questions.`
-      : (questionCount === 7 
-          ? `
-
-[SYSTEM DIRECTIVE]: This is your final question (8 of 8). You MUST end your response by saying something similar to: "This is my last question. Please provide any remaining details, and I will conclude my revised analysis."`
+    enforcementRule = questionCount >= 3 
+      ? `\n\n[SYSTEM DIRECTIVE]: You have reached the maximum limit of 3 questions. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now. Do not ask any more questions.`
+      : (questionCount === 2 
+          ? `\n\n[SYSTEM DIRECTIVE]: This is your final question (3 of 3). Ask your focused question and state that you will conclude your revised analysis on the next turn.`
           : '');
   } else {
     // Normal Single Specialist (Quick Consult New)
-    questionRule = `You have currently asked ${questionCount} questions. You may ask up to 8 questions in total to be extremely thorough. 
-If you have enough information to form a strong hypothesis, or if you reach 8 questions, output exactly "ANALYSIS_COMPLETE" in the "response" field immediately.`;
+    questionRule = `You have currently asked ${questionCount} questions. You may ask up to 3 questions in total to keep the consultation focused and respect the patient's cognitive energy. 
+If you have enough information to form a strong hypothesis, or if you reach 3 questions, output exactly "ANALYSIS_COMPLETE" in the "response" field immediately.`;
 
-    enforcementRule = questionCount >= 8
-      ? `
-
-[SYSTEM DIRECTIVE]: You have reached the maximum limit of 8 questions. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now. Do not ask any more questions.`
-      : (questionCount === 7
-          ? `
-
-[SYSTEM DIRECTIVE]: This is your final question (8 of 8). You MUST end your response by saying something similar to: "This is my last question. Please provide any remaining details, and I will conclude my analysis."`
+    enforcementRule = questionCount >= 3
+      ? `\n\n[SYSTEM DIRECTIVE]: You have reached the maximum limit of 3 questions. You MUST output exactly "ANALYSIS_COMPLETE" in the "response" field now. Do not ask any more questions.`
+      : (questionCount === 2
+          ? `\n\n[SYSTEM DIRECTIVE]: This is your final question (3 of 3). End your response by asking your final high-yield question and stating that you will conclude your analysis on the next turn.`
           : '');
   }
 
@@ -702,14 +741,19 @@ ${conferenceFindings}
 Patient's Final Answers: ${JSON.stringify(finalAnswers)}
 ${specialistText}
 
-Compile a structured, patient-safe Collaborative Board case brief. 
+   Compile a structured, patient-safe Collaborative Board case brief. 
 CRITICAL INSTRUCTIONS:
 1. SCIENTIST PATIENT PERSONA: The patient wants to understand the biological mechanisms behind their condition like a scientist. They want rigorous, data-driven explanations and clear clinical linkages between symptoms, lab results, and hypotheses. Provide deep, rich informational density.
-2. BEAUTIFUL EXPLANATIONS: Even though you are providing scientific density, you MUST explain the mechanisms and terminology in a simple, beautiful, easy-to-understand way. Do not use impenetrable medical jargon without clearly defining it.
-3. Do not present any condition as confirmed. Separate what supports a possibility from what is missing, make clear that a qualified clinician makes diagnoses, and include citations only when a real source is supplied in the case; otherwise return an empty citations list.
+2. 3-TIER ACTION ARCHITECTURE (MANDATORY):
+   - NEVER make "Schedule Primary Care Consultation" as Step 1. The patient already knows they need a clinician.
+   - Step 1 MUST be a "Tier 1: 72-Hour Zero-Harm Home Trial" (a concrete, safe dietary swap, hydration/electrolyte adjustment, or evidence-backed OTC nutritional protocol with expected relief timeline).
+   - Step 2 MUST be a "Tier 2: Physician Lab Requisition Script" (the exact diagnostic lab markers like Ferritin, TIBC, TSH+T3/T4, Homocysteine, etc., and exact differential questions so the patient is armed for their doctor appointment).
+   - Step 3 MUST be a "Tier 3: Clinical Boundary & Red-Flag Rule" (when to seek emergency evaluation).
+3. INTERDISCIPLINARY COLLISION: Synthesize the biological intersection between systems (e.g. how gut dysbiosis triggers autonomic tachycardia, or how subclinical hypothyroid slows gut motility).
 Return strictly as JSON:
 {
-    "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
+  "executiveSummary": "1 paragraph plain-language synthesis of the case and uncertainty.",
+  "interdisciplinaryDiscovery": "1-2 paragraphs revealing the hidden biological collision between organ systems that single isolated specialists overlook.",
   "keyFindings": "Summarize the core clinical findings across all specialists in a clear paragraph.",
   "interpretation": "Explain what these collective findings mean in plain English.",
   "nextSteps": "Outline the actionable next steps for the patient, prioritizing the most critical ones.",
@@ -717,9 +761,20 @@ Return strictly as JSON:
   "medicalTerms": [{"term": "Medical Term Used", "definition": "A 1-2 sentence, extremely clear and simple definition for the patient. STRICT RULE: DO NOT include meta-commentary like 'Definition tailored for...'."}],
   "specialistDebatePoints": ["Bullet points outlining agreements or differing perspectives among the specialists", "Leave empty if none"],
   "systemicCorrelations": ["Bullet points explaining how symptoms connect across different body systems", "Leave empty if none"],
-    "scientificLiteratureContext": "A paragraph explaining what recent clinical research or literature says about this symptom cluster.",
-    "alternativeOrRarePossibilities": "A brief mention of rare, environmental, or edge-case conditions a scientist might consider if standard tests are negative.",
+  "scientificLiteratureContext": "A paragraph explaining what recent clinical research or literature says about this symptom cluster.",
+  "alternativeOrRarePossibilities": "A brief mention of rare, environmental, or edge-case conditions a scientist might consider if standard tests are negative.",
   "urgency": "Routine | Soon | Urgent",
+  "tier1ImmediateTrial": {
+    "title": "e.g. 72-Hour Low-Fermentation Elimination Protocol",
+    "protocol": "Specific instructions on what to eat, avoid, or time for the next 3 days",
+    "rationale": "Biological explanation why this stops the acute trigger",
+    "expectedReliefTime": "e.g. 48-72 hours"
+  },
+  "tier2DoctorRequisition": {
+    "testsToRequest": ["e.g. Full Iron Panel (Ferritin, TIBC, Iron Saturation)", "Thyroid Antibodies (TPO, TgAb)"],
+    "clinicalRationale": "Why these specific tests rule out occult root causes",
+    "highYieldQuestions": ["Targeted question 1 for the doctor", "Targeted question 2"]
+  },
   "topDiagnoses": [
     { 
       "condition": "Possible pathway", 
@@ -733,9 +788,9 @@ Return strictly as JSON:
   ],
   "recommendedActionPlan": [
     { 
-      "step": "Short 3-6 word action title only (e.g. Schedule Primary Care Consultation)", 
-      "timeline": "When to do it (e.g. Next Visit, Within 1-2 weeks)", 
-      "type": "Consultation | Investigation | Lifestyle"
+      "step": "Specific concrete step title (e.g. Tier 1: 72h Home Trial - Eliminate Alliums & High-FODMAPs)", 
+      "timeline": "When to do it (e.g. Immediate / Next 3 Days)", 
+      "type": "Investigation | Lifestyle | Clinical"
     }
   ],
   "questionsForClinician": ["Specific question the patient can take to a clinician"]
@@ -751,6 +806,7 @@ Return strictly as JSON:
         type: "object",
         properties: {
           executiveSummary: { type: "string" },
+          interdisciplinaryDiscovery: { type: "string" },
           keyFindings: { type: "string" },
           interpretation: { type: "string" },
           nextSteps: { type: "string" },
@@ -761,6 +817,23 @@ Return strictly as JSON:
           scientificLiteratureContext: { type: "string" },
           alternativeOrRarePossibilities: { type: "string" },
           urgency: { type: "string" },
+          tier1ImmediateTrial: { 
+            type: "object", 
+            properties: { 
+              title: { type: "string" }, 
+              protocol: { type: "string" }, 
+              rationale: { type: "string" }, 
+              expectedReliefTime: { type: "string" } 
+            } 
+          },
+          tier2DoctorRequisition: { 
+            type: "object", 
+            properties: { 
+              testsToRequest: { type: "array", items: { type: "string" } }, 
+              clinicalRationale: { type: "string" }, 
+              highYieldQuestions: { type: "array", items: { type: "string" } } 
+            } 
+          },
           topDiagnoses: { type: "array", items: { type: "object", properties: { condition: { type: "string" }, confidence: { type: "number" }, rationale: { type: "string" }, specialty: { type: "string" }, evidenceFor: { type: "array", items: { type: "string" } }, evidenceGaps: { type: "array", items: { type: "string" } }, citations: { type: "array", items: { type: "object", properties: { title: { type: "string" }, journal: { type: "string" }, year: { type: "number" }, link: { type: "string" } } } } } } },
           recommendedActionPlan: { type: "array", items: { type: "object", properties: { step: { type: "string" }, timeline: { type: "string" }, type: { type: "string" } } } },
           questionsForClinician: { type: "array", items: { type: "string" } }
