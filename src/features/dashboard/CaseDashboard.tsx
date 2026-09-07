@@ -936,7 +936,6 @@ export default function CaseDashboard() {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   minHeight: isMobile ? '125px' : '140px',
-                  gridColumn: 'span 2',
                   cursor: 'pointer',
                   transition: 'border 0.3s ease, box-shadow 0.3s ease'
                 }}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { TrendingDown, Activity, Sparkles, Plus, Check, ChevronRight, ShieldCheck, Target, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Target, Activity, Check, Info, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import {
@@ -13,13 +12,17 @@ import {
 } from '../../services/TriggerEngine';
 import { ClinicalEliminationModal } from './ClinicalEliminationModal';
 
-export const TherapeuticOutcomeCard: React.FC = () => {
+export interface TherapeuticOutcomeCardProps {
+  span2?: boolean;
+}
+
+export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ span2 = false }) => {
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
   const [trial, setTrial] = useState<ActiveTrialState>(() => getActiveTrial() || startTrial('low_histamine'));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [justLogged, setJustLogged] = useState(false);
+  const [showRationale, setShowRationale] = useState(false);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -56,9 +59,9 @@ export const TherapeuticOutcomeCard: React.FC = () => {
       <motion.div
         role="button"
         tabIndex={0}
-        aria-label="Active Clinical Elimination Protocol - Click to manage protocol, rechallenges and outcomes"
-        whileHover={{ y: -2, scale: 1.005 }}
-        whileTap={{ scale: 0.99 }}
+        aria-label={`7-Day Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to manage protocol, rechallenges and doctor dossier`}
+        whileHover={{ y: -3, scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
         onClick={handleOpenModal}
         onKeyDown={(e) => {
@@ -68,104 +71,118 @@ export const TherapeuticOutcomeCard: React.FC = () => {
           }
         }}
         style={{
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(240, 253, 250, 0.45) 100%)',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)',
           backdropFilter: 'blur(32px)',
           WebkitBackdropFilter: 'blur(32px)',
-          border: '1px solid rgba(13, 148, 136, 0.28)',
-          boxShadow: '0 16px 36px rgba(13, 148, 136, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)',
-          borderRadius: isMobile ? '20px' : '28px',
-          padding: isMobile ? '14px 16px' : '18px 22px',
+          border: '1px solid rgba(255, 255, 255, 0.85)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)',
+          borderRadius: isMobile ? '24px' : '32px',
+          padding: isMobile ? '14px 14px' : '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
-          gridColumn: 'span 2',
+          justifyContent: 'space-between',
+          minHeight: isMobile ? '125px' : '140px',
+          ...(span2 ? { gridColumn: 'span 2' } : {}),
           cursor: 'pointer',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          transition: 'border 0.3s ease, box-shadow 0.3s ease'
         }}
       >
-        {/* Top Row: Protocol Title, Phase, and Flare Delta Badge */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Top Row: Circular Icon & Micro-Badges */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div
+            style={{
+              width: isMobile ? '38px' : '44px',
+              height: isMobile ? '38px' : '44px',
+              minWidth: isMobile ? '38px' : '44px',
+              minHeight: isMobile ? '38px' : '44px',
+              flexShrink: 0,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Target size={isMobile ? 18 : 20} color="#FFF" strokeWidth={2.4} />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
             <div
+              className="tabular-nums micro-badge"
               style={{
-                width: isMobile ? '36px' : '40px',
-                height: isMobile ? '36px' : '40px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#FFFFFF',
+                background: 'rgba(13, 148, 136, 0.12)',
+                color: '#0F766E',
+                padding: '3px 8px',
+                borderRadius: '999px',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.4px',
+                whiteSpace: 'nowrap',
                 flexShrink: 0
               }}
             >
-              <Target size={isMobile ? 18 : 20} strokeWidth={2.4} />
+              DAY {trial.currentDay}/{trial.totalDays}
             </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h4 style={{ fontSize: isMobile ? '15px' : '16px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                  {activeProtocolDef.name}
-                </h4>
-                <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: 800, background: 'rgba(13, 148, 136, 0.1)', padding: '2px 7px', borderRadius: '999px' }}>
-                  Day {trial.currentDay}/{trial.totalDays}
-                </span>
+            {trial.reductionPercent > 0 && (
+              <div
+                className="tabular-nums micro-badge"
+                style={{
+                  background: '#DCFCE7',
+                  color: '#15803D',
+                  padding: '3px 7px',
+                  borderRadius: '999px',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  letterSpacing: '0.2px',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
+                }}
+              >
+                -{trial.reductionPercent}%
               </div>
-              <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0', fontWeight: 600 }}>
-                Phase 1: Strict Allium Washout ({trial.adherencePercentage}% Adherence)
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div
-              className="micro-badge tabular-nums"
-              style={{
-                background: 'linear-gradient(135deg, #DCFCE7 0%, #D1FAE5 100%)',
-                color: '#065F46',
-                border: '1px solid #A7F3D0',
-                padding: '4px 10px',
-                borderRadius: '999px',
-                fontSize: '11px',
-                fontWeight: 800,
-                letterSpacing: '0.3px'
-              }}
-            >
-              -{trial.reductionPercent}% SYMPTOM DELTA ({trial.baselineSeverity} ➔ <strong style={{ color: '#059669' }}>{trial.currentSeverity}/10</strong>)
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Middle Row: Active Guardrail & Rechallenge Countdown */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.75)',
-            borderRadius: '12px',
-            padding: '8px 12px',
-            border: '1px solid rgba(226, 232, 240, 0.8)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '8px',
-            flexWrap: 'wrap'
-          }}
-        >
-          <div style={{ fontSize: '12px', color: '#334155' }}>
-            <strong style={{ color: '#DC2626' }}>Strict Avoidance:</strong> {activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}
-          </div>
-          <div style={{ fontSize: '11px', color: '#0D9488', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Sparkles size={12} />
-            <span>Day 8 Rechallenge: Single-Food Garlic Provocation Test</span>
-          </div>
-        </div>
+        {/* Middle / Bottom Content: Title, Subtitle, & Quick Actions */}
+        <div>
+          <h4
+            style={{
+              fontSize: isMobile ? '14px' : '15px',
+              fontWeight: 700,
+              margin: '0 0 3px',
+              color: '#0F172A',
+              lineHeight: 1.25,
+              letterSpacing: '-0.3px'
+            }}
+          >
+            {activeProtocolDef.name}
+          </h4>
+          <p
+            style={{
+              fontSize: isMobile ? '11px' : '12px',
+              color: justLogged ? '#10B981' : '#64748B',
+              margin: '0 0 6px',
+              fontWeight: justLogged ? 600 : 500,
+              lineHeight: 1.3
+            }}
+          >
+            {justLogged
+              ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent}% delta)`
+              : `Phase 1: Washout • ${trial.adherencePercentage}% Adherence`}
+          </p>
 
-        {/* Bottom Row: Quick Log Action + Open Modal Prompt */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-          <div onClick={(e) => e.stopPropagation()}>
-            {!isLogging && !justLogged && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+            {!isLogging ? (
               <button
                 type="button"
+                data-compact="true"
                 onClick={(e) => {
                   e.stopPropagation();
                   triggerHapticLight();
@@ -175,52 +192,49 @@ export const TherapeuticOutcomeCard: React.FC = () => {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
+                  gap: '4px',
                   background: 'rgba(13, 148, 136, 0.1)',
-                  border: '1px solid rgba(13, 148, 136, 0.3)',
-                  borderRadius: '8px',
-                  padding: '4px 10px',
-                  fontSize: '11px',
+                  border: '1px solid rgba(13, 148, 136, 0.25)',
+                  borderRadius: '6px',
+                  padding: '2px 7px',
+                  fontSize: '10px',
                   fontWeight: 700,
                   color: '#0F766E',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  minWidth: 'unset',
+                  minHeight: 'unset',
+                  height: 'auto',
+                  width: 'fit-content'
                 }}
               >
-                <Activity size={12} />
-                <span>Quick Check-In Today</span>
+                <Activity size={10} />
+                <span>Check-In</span>
               </button>
-            )}
-
-            {justLogged && (
-              <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Check size={13} /> Severity updated & outcome recalculated
-              </span>
-            )}
-
-            {isLogging && (
+            ) : (
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '4px',
                   background: '#FFFFFF',
-                  padding: '4px 8px',
-                  borderRadius: '8px',
-                  border: '1px solid #CBD5E1'
+                  padding: '2px 6px',
+                  borderRadius: '6px',
+                  border: '1px solid #CBD5E1',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>Score:</span>
+                <span style={{ fontSize: '9px', color: '#64748B', fontWeight: 700 }}>Score:</span>
                 {[2, 4, 6, 8].map((val) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => handleQuickLog(val)}
                     style={{
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 700,
+                      padding: '1px 5px',
+                      borderRadius: '4px',
+                      fontSize: '9.5px',
+                      fontWeight: 800,
                       border: '1px solid #CBD5E1',
                       background: val <= 4 ? '#ECFDF5' : '#FEF2F2',
                       color: val <= 4 ? '#059669' : '#DC2626',
@@ -233,22 +247,87 @@ export const TherapeuticOutcomeCard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsLogging(false)}
-                  style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '11px', cursor: 'pointer', padding: '0 4px' }}
+                  style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '10px', cursor: 'pointer', padding: '0 2px' }}
                 >
                   ✕
                 </button>
               </div>
             )}
-          </div>
 
-          <div
-            onClick={handleOpenModal}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#0D9488', cursor: 'pointer' }}
-          >
-            <span>Open Protocol Suite, Rechallenges & Doctor Dossier</span>
-            <ChevronRight size={14} />
+            <button
+              type="button"
+              data-compact="true"
+              onClick={(e) => {
+                e.stopPropagation();
+                triggerHapticLight();
+                setShowRationale((prev) => !prev);
+              }}
+              aria-label="Toggle clinical rationale for elimination protocol"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: showRationale ? 'rgba(13, 148, 136, 0.18)' : 'rgba(13, 148, 136, 0.08)',
+                border: '1px solid rgba(13, 148, 136, 0.22)',
+                borderRadius: '6px',
+                padding: '2px 7px',
+                fontSize: '10px',
+                fontWeight: 600,
+                color: '#0F766E',
+                cursor: 'pointer',
+                minWidth: 'unset',
+                minHeight: 'unset',
+                height: 'auto',
+                width: 'fit-content',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Info size={10} />
+              <span>Science</span>
+              <ChevronDown
+                size={10}
+                style={{
+                  transform: showRationale ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease'
+                }}
+              />
+            </button>
           </div>
         </div>
+
+        {/* Expandable Clinical Science Rationale */}
+        <AnimatePresence>
+          {showRationale && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+              style={{
+                overflow: 'hidden',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                borderRadius: '14px',
+                padding: '8px 10px',
+                border: '1px solid rgba(13, 148, 136, 0.25)',
+                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
+                <span style={{ fontSize: '9px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Mechanism
+                </span>
+                <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
+                  DAO / Mast Clearance
+                </span>
+              </div>
+              <p style={{ fontSize: '10.5px', color: '#334155', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
+                Strict 7-day exclusion flushes circulating diamine oxidase substrates, dampening mast cell degranulation cycles.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Fully Workable Clinical Outcomes Modal */}
