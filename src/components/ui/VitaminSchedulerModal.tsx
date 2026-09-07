@@ -723,8 +723,8 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 onClose();
               }}
               style={{
-                width: '34px',
-                height: '34px',
+                width: '44px',
+                height: '44px',
                 borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.9)',
                 border: '1px solid #E2E8F0',

@@ -288,7 +288,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
           type="button"
           aria-label="Close AR Grocery Lens"
           onClick={handleClose}
-          style={{ width: '40px', height: '40px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          style={{ width: '44px', height: '44px', borderRadius: '22px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', border: 'none', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
         >
           <X size={20} />
         </button>

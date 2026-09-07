@@ -32,6 +32,8 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { trackConsultationStarted } from '../../services/analytics';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
+import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 
 const cachedQuickConsultStreams: any = {};
 // Resolve these at use-time rather than module import so a profile/account
@@ -204,9 +206,21 @@ export default function QuickConsult() {
     s.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
+  const [processingStepText, setProcessingStepText] = useState<string>('');
+  const abortProcessingRef = useRef(false);
+
   const handleStartConsult = async () => {
     if (!selectedSpecialist) return;
     
+    if (symptomInput.trim()) {
+      const triage = evaluateEmergencyTriage(symptomInput);
+      if (triage.isEmergency) {
+        setEmergencyTriage(triage);
+        return;
+      }
+    }
+
     const session = await getActiveSession();
     if (!session) {
       if (!canUseTrial('quick_consult')) {
@@ -228,7 +242,6 @@ export default function QuickConsult() {
     setPhase('upload');
   };
 
-  
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   const handleSkipUpload = () => {
@@ -239,17 +252,21 @@ export default function QuickConsult() {
   const handleProceedWithUpload = async () => {
     if (uploadedFiles.length > 0) {
       setIsProcessingFiles(true);
+      abortProcessingRef.current = false;
       try {
         let extractedContext = '';
         const profile = getProfile() || {};
-        for (const file of uploadedFiles) {
+        for (let i = 0; i < uploadedFiles.length; i++) {
+          if (abortProcessingRef.current) break;
+          const file = uploadedFiles[i];
+          setProcessingStepText(`Analyzing document ${i + 1} of ${uploadedFiles.length}: ${file.name}`);
           const reader = new FileReader();
           const base64Data = await new Promise<string>((resolve) => {
             reader.onload = (e) => resolve((e.target?.result as string).split(',')[1] || '');
             reader.onerror = () => resolve('');
             reader.readAsDataURL(file);
           });
-          if (base64Data) {
+          if (base64Data && !abortProcessingRef.current) {
             const result = await analyzeLabReport(base64Data, file.type, profile);
             if (result) {
               extractedContext += `\n\n--- Document: ${file.name} ---\n`;
@@ -271,6 +288,7 @@ export default function QuickConsult() {
         setSymptomInput(prev => prev ? prev + ' [Attached reports: ' + fileNames + ']' : '[Attached reports: ' + fileNames + ']');
       } finally {
         setIsProcessingFiles(false);
+        setProcessingStepText('');
       }
     }
     trackConsultationStarted('quick', { specialist: selectedSpecialist?.name, hasFiles: uploadedFiles.length > 0 });
@@ -751,28 +769,53 @@ export default function QuickConsult() {
                 Skip this step
               </button>
               {uploadedFiles.length > 0 && (
-                <button
-                  onClick={handleProceedWithUpload}
-                  disabled={isProcessingFiles}
-                  style={{
-                    padding: '14px 28px',
-                    background: isProcessingFiles ? '#64748B' : '#0F172A',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: 999,
-                    cursor: isProcessingFiles ? 'not-allowed' : 'pointer',
-                    fontSize: 15,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {isProcessingFiles ? <Loader2 size={16} className="spin" /> : null}
-                  {isProcessingFiles ? 'Extracting Lab Findings...' : `Continue with ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`}
-                  {!isProcessingFiles && <ArrowRight size={16} />}
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                  <button
+                    onClick={handleProceedWithUpload}
+                    disabled={isProcessingFiles}
+                    style={{
+                      padding: '14px 28px',
+                      background: isProcessingFiles ? '#0D9488' : '#0F172A',
+                      color: '#FFF',
+                      border: 'none',
+                      borderRadius: 999,
+                      cursor: isProcessingFiles ? 'wait' : 'pointer',
+                      fontSize: 15,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {isProcessingFiles ? <Loader2 size={16} className="spin" /> : null}
+                    {isProcessingFiles ? (processingStepText || 'Extracting Lab Findings...') : `Continue with ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`}
+                    {!isProcessingFiles && <ArrowRight size={16} />}
+                  </button>
+                  {isProcessingFiles && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        abortProcessingRef.current = true;
+                        setIsProcessingFiles(false);
+                        setProcessingStepText('');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#EF4444',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        padding: '4px 8px'
+                      }}
+                    >
+                      Cancel file processing
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </motion.div>
@@ -999,6 +1042,12 @@ export default function QuickConsult() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <EmergencyTriageModal
+        isOpen={Boolean(emergencyTriage?.isEmergency)}
+        triage={emergencyTriage}
+        onClose={() => setEmergencyTriage(null)}
+      />
     </div>
   );
 }

@@ -209,8 +209,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 onClose();
               }}
               style={{
-                width: '34px',
-                height: '34px',
+                width: '44px',
+                height: '44px',
                 borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.85)',
                 border: '1px solid rgba(243, 232, 225, 0.9)',

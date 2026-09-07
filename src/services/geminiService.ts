@@ -4,6 +4,7 @@ import { getActiveCase, AppointmentBrief } from './CaseEngine';
 import { supabase } from './supabaseClient';
 import { parseModelJson } from './modelJson';
 export { parseModelJson } from './modelJson';
+import { evaluateBiomarkerFunctionally } from './functionalBiomarkers';
 
 const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api/gemini' : '/api/gemini';
 
@@ -299,6 +300,7 @@ Analyze the report thoroughly and return ONLY a valid JSON object (no markdown, 
   "extraTerms": [{"term": "Medical term used", "definition": "Simple explanation of the term"}]
 }
 IMPORTANT: For the 'biomarkers' object, populate it if there are quantitative lab values (like CBC, Lipid panel). If the report is structural (MRI, X-ray, Ultrasound) and has no numeric vitals, create a single summary entry for it (e.g., "MRI Scan": { "value": "Analyzed", "unit": "Scan", "status": "INFO", "date": "Date of report" }).
+Check for subclinical deficiencies: Serum Ferritin < 30 ng/mL represents occult cellular iron depletion; Vitamin D < 40 ng/mL impairs deep sleep; TSH > 2.5 mIU/L causes hypothyroid fatigue.
 If no document is provided or it is unreadable, return a JSON object with "testName": "Unrecognized / No Document", and explain the issue in "interpretation".${CLINICAL_SAFETY_RULES}`;
 
 export async function analyzeLabReport(base64Data: string, mimeType: string, profile: any): Promise<any> {
@@ -328,14 +330,37 @@ export async function analyzeLabReport(base64Data: string, mimeType: string, pro
     const data = await res.json();
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
-      return parseModelJson(text, {
+      const parsed = parseModelJson<any>(text, {
         testName: 'Unknown Report',
         keyFindings: 'Unable to parse report data.',
         interpretation: 'Please re-upload the document or try a clearer scan.',
         recommendations: '',
-        abnormalities: [],
+        abnormalities: [] as string[],
         biomarkers: {}
       });
+
+      if (parsed?.biomarkers && typeof parsed.biomarkers === 'object') {
+        const extraAbnormalities: string[] = [];
+        Object.entries(parsed.biomarkers).forEach(([bioName, bioData]: [string, any]) => {
+          const val = typeof bioData === 'object' ? Number(bioData?.value) : Number(bioData);
+          if (!isNaN(val)) {
+            const functionalRes = evaluateBiomarkerFunctionally(bioName, val);
+            if (functionalRes && (functionalRes.status === 'SUBCLINICAL_LOW' || functionalRes.status === 'SUBCLINICAL_HIGH')) {
+              const note = `[Functional Alert] ${functionalRes.biomarkerName} (${val} ${functionalRes.unit}): ${functionalRes.clinicalInsight}`;
+              if (!extraAbnormalities.includes(note)) extraAbnormalities.push(note);
+              if (typeof bioData === 'object') {
+                bioData.functionalStatus = functionalRes.status;
+                bioData.optimalRange = functionalRes.optimalRange;
+              }
+            }
+          }
+        });
+        if (extraAbnormalities.length > 0) {
+          parsed.abnormalities = [...(parsed.abnormalities || []), ...extraAbnormalities];
+        }
+      }
+
+      return parsed;
     }
     throw new Error('No candidate returned');
   } catch (err) {
@@ -764,6 +789,19 @@ Return strictly as JSON:
 
       // Attempt to extract json block even if there is surrounding text
       const result = parseModelJson(text);
+      if (result && Array.isArray(result.topDiagnoses)) {
+        result.topDiagnoses.forEach((diag: any) => {
+          if (Array.isArray(diag.citations)) {
+            diag.citations = diag.citations.map((cit: any) => {
+              const query = cit?.title ? `${cit.title} ${cit.journal || ''}`.trim() : `${diag.condition} clinical trial`;
+              return {
+                ...cit,
+                link: `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(query)}`
+              };
+            });
+          }
+        });
+      }
       mdtReportCache.set(requestKey, result);
       return result;
     }
@@ -937,6 +975,19 @@ Return strictly as JSON matching this exact structure:
     if (data.candidates?.[0]) {
       const text = data.candidates[0].content.parts[0].text;
       const result = parseModelJson(text);
+      if (result && Array.isArray(result.topDiagnoses)) {
+        result.topDiagnoses.forEach((diag: any) => {
+          if (Array.isArray(diag.citations)) {
+            diag.citations = diag.citations.map((cit: any) => {
+              const query = cit?.title ? `${cit.title} ${cit.journal || ''}`.trim() : `${diag.condition} clinical trial`;
+              return {
+                ...cit,
+                link: `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(query)}`
+              };
+            });
+          }
+        });
+      }
       parallelReportCache.set(requestKey, result);
       return result;
     }

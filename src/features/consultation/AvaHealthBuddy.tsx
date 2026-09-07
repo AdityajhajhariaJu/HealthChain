@@ -20,6 +20,8 @@ import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal
 import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
+import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
+import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 
 const QUICK_ACTION_PILLS = [
   {
@@ -621,6 +623,7 @@ export default function AvaHealthBuddy() {
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
   const [detectiveTab, setDetectiveTab] = useState<string>('map');
+  const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -914,6 +917,12 @@ export default function AvaHealthBuddy() {
   };
 
   const handleSend = async (text: string) => {
+    const triage = evaluateEmergencyTriage(text);
+    if (triage.isEmergency) {
+      setEmergencyTriage(triage);
+      return;
+    }
+
     if (!(await getActiveSession())) {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
@@ -1883,6 +1892,12 @@ export default function AvaHealthBuddy() {
         onOpenConsult={() => {
           setIsDetectiveOpen(false);
         }}
+      />
+
+      <EmergencyTriageModal
+        isOpen={Boolean(emergencyTriage?.isEmergency)}
+        triage={emergencyTriage}
+        onClose={() => setEmergencyTriage(null)}
       />
     </div>
   );

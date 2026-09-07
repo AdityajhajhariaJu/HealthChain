@@ -143,7 +143,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
           type="button"
           aria-label="Close top up modal"
           onClick={onClose} 
-          style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+          style={{ position: 'absolute', top: 12, right: 12, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
         >
           <X size={20} />
         </button>

@@ -121,8 +121,13 @@ export default function ProductTour() {
                 onClick={dismiss}
                 style={{
                   position: 'absolute',
-                  top: '16px',
-                  right: '16px',
+                  top: '12px',
+                  right: '12px',
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',

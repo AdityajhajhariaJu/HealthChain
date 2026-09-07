@@ -135,7 +135,7 @@ export default function FeedbackWidget() {
                 type="button"
                 aria-label="Close feedback popover"
                 onClick={() => setIsOpen(false)} 
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
               >
                 <X size={18} />
               </button>

@@ -106,8 +106,8 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 }}
                 aria-label="Close Connection Detective"
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '44px',
+                  height: '44px',
                   borderRadius: '50%',
                   background: 'rgba(255, 255, 255, 0.9)',
                   border: '1.5px solid #E2E8F0',

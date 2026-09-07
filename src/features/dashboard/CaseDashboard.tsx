@@ -27,7 +27,8 @@ import {
   ArrowRight,
   FolderHeart,
   Pill,
-  Plus
+  Plus,
+  FileText
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -60,6 +61,8 @@ export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
+import { PhysicianDossierModal } from '../../components/ui/PhysicianDossierModal';
+import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -86,6 +89,7 @@ export default function CaseDashboard() {
   const [showFrictionModal, setShowFrictionModal] = useState(false);
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  const [showDoctorDossier, setShowDoctorDossier] = useState(false);
   const [profile, setProfile] = useState(() => getProfile());
 
   const isProfileComplete = Boolean(
@@ -247,6 +251,30 @@ export default function CaseDashboard() {
               >
                 <Sparkles size={14} color="#38BDF8" /> Ask Ava
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowDoctorDossier(true);
+                }}
+                aria-label="Open 10-minute Doctor Visit Brief"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  color: '#FFFFFF',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)'
+                }}
+              >
+                <FileText size={14} color="#FFF" /> Doctor Brief
+              </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                 <LivingHeartIcon size={16} color="#F43F5E" />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
@@ -309,7 +337,7 @@ export default function CaseDashboard() {
                 
                 <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
                    <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#64748B', margin: 0, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DR. JENKINS</p>
+                   <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
                 </div>
               </motion.div>
 
@@ -376,67 +404,8 @@ export default function CaseDashboard() {
                 </div>
               </motion.div>
 
-              {/* Health Canvas War Room Bento Tile */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label="Health Canvas War Room - Multi-specialist clinical workspace"
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => { triggerHapticSelection(); navigate('/app/war-room'); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    triggerHapticSelection();
-                    navigate('/app/war-room');
-                  }
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.85)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)', 
-                    backdropFilter: 'blur(12px)', 
-                    WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
-                    border: '1px solid rgba(255,255,255,0.2)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
-                    <Sparkles size={isMobile ? 18 : 20} color="#FFF" />
-                  </div>
-                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    WAR ROOM
-                  </div>
-                </div>
-                <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Health Canvas</h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Multi-specialist clinical workspace</p>
-                </div>
-              </motion.div>
+              {/* Point 3: Real Therapeutic Outcome & Symptom Delta Tracking */}
+              <TherapeuticOutcomeCard />
 
               {/* Point 3: Interactive Daily Habit Bento Stack */}
               <motion.div 
@@ -1451,6 +1420,11 @@ export default function CaseDashboard() {
           onClose={() => setActiveMeditation(null)} 
         />
       )}
+
+      <PhysicianDossierModal
+        isOpen={showDoctorDossier}
+        onClose={() => setShowDoctorDossier(false)}
+      />
 
     </div>
   );

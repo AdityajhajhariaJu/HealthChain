@@ -208,8 +208,8 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
             type="button"
             onClick={onClose}
             style={{
-              width: '32px',
-              height: '32px',
+              width: '44px',
+              height: '44px',
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.2)',
               border: 'none',

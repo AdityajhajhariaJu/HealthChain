@@ -102,7 +102,7 @@ export const ClinicalFrictionModal: React.FC<Props> = ({ isOpen, onComplete, tit
               type="button"
               aria-label="Dismiss clinical friction guide"
               onClick={onComplete} 
-              style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}
+              style={{ position: 'absolute', top: '12px', right: '12px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>

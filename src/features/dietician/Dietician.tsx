@@ -1919,8 +1919,8 @@ export default function Dietician() {
                       right: '20px',
                       background: '#F1F5F9',
                       border: 'none',
-                      width: '34px',
-                      height: '34px',
+                      width: '44px',
+                      height: '44px',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
@@ -2361,7 +2361,7 @@ export default function Dietician() {
                   <button
                     type="button"
                     onClick={() => setShowSavedMealsModal(false)}
-                    style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                    style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
                   >
                     <X size={16} />
                   </button>
