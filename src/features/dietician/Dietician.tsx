@@ -83,6 +83,7 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { useToast } from '../../components/ui/ToastProvider';
 import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
+import { EliminationProtocolSuite } from '../../components/ui/EliminationProtocolSuite';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -219,7 +220,7 @@ export default function Dietician() {
   const isMobile = useIsMobile();
   const toast = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
@@ -919,6 +920,30 @@ export default function Dietician() {
               <Calendar size={15} color={activeTab === 'calendar' ? '#38BDF8' : '#64748B'} /> Digestion Calendar
             </button>
             <button
+              onClick={() => {
+                triggerHapticLight();
+                setActiveTab('elimination');
+              }}
+              style={{
+                padding: isMobile ? '8px 12px' : '8px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'elimination' ? '#0F172A' : 'transparent',
+                color: activeTab === 'elimination' ? '#FFFFFF' : '#64748B',
+                fontWeight: 700,
+                fontSize: isMobile ? '12.5px' : '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} /> Symptom Hunt
+            </button>
+            <button
               onClick={() => setActiveTab('mealplan')}
               style={{
                 padding: isMobile ? '8px 12px' : '8px 16px',
@@ -1163,6 +1188,17 @@ export default function Dietician() {
           {activeTab === 'calendar' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
               <DigestionCalendarHeatmap onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
+            </motion.div>
+          )}
+
+          {/* TAB: 4-WEEK CLINICAL ELIMINATION SUITE (media_1788704747359.png) */}
+          {activeTab === 'elimination' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
+              <EliminationProtocolSuite
+                onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }}
+                onOpenCalendarHeatmap={() => setActiveTab('calendar')}
+                onOpenPostMealTimeline={() => setActiveTab('sensitivities')}
+              />
             </motion.div>
           )}
 

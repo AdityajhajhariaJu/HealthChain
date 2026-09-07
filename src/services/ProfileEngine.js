@@ -828,6 +828,44 @@ export function saveDigestionLog(dateKey, logData) {
   return updatedEntry;
 }
 
+export function getEliminationProtocolState() {
+  const profile = getProfile();
+  return profile.eliminationProtocols || {
+    activeProtocolId: 'bloating_hunt',
+    protocols: {
+      bloating_hunt: {
+        startedAt: new Date(Date.now() - 11 * 86400000).toISOString(),
+        currentDay: 12,
+        targetDays: 28,
+        streakDays: 11,
+        adherenceScore: 94,
+        dailyLogs: {},
+      },
+    },
+  };
+}
+
+export function saveEliminationProtocolState(protocolId, protocolData) {
+  const profile = getProfile();
+  if (!profile.eliminationProtocols) {
+    profile.eliminationProtocols = {
+      activeProtocolId: protocolId,
+      protocols: {},
+    };
+  }
+  profile.eliminationProtocols.activeProtocolId = protocolId;
+  profile.eliminationProtocols.protocols[protocolId] = {
+    ...(profile.eliminationProtocols.protocols[protocolId] || {}),
+    ...protocolData,
+    updatedAt: new Date().toISOString(),
+  };
+
+  saveProfile(profile);
+  window.dispatchEvent(new CustomEvent('hc_elimination_updated', { detail: { protocolId, protocolData } }));
+  window.dispatchEvent(new Event('hc_profile_updated'));
+  return profile.eliminationProtocols.protocols[protocolId];
+}
+
 export function toggleActionItem(id) {
   const profile = getProfile();
   const item = profile.actionItems.find((i) => i.id === id);

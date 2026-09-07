@@ -43,9 +43,10 @@ import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
+import { EliminationProtocolSuite } from './EliminationProtocolSuite';
 
 interface ConnectionDetectiveViewProps {
-  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar';
+  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination';
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
 }
@@ -57,7 +58,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination'>(initialTab);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -332,6 +333,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           { id: 'kinetic', label: 'Kinetic Biomechanics', icon: '🦴' },
           { id: 'postmeal', label: 'Post-Meal Sensitivities', icon: '🍽️' },
           { id: 'calendar', label: 'Digestion Heatmap', icon: '📅' },
+          { id: 'elimination', label: 'Symptom Hunt', icon: '🎯' },
           { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
           { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
           { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
@@ -1353,6 +1355,15 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
       {/* 8. DIGESTION & BLOATING CALENDAR HEATMAP SUBTAB */}
       {activeTab === 'calendar' && <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />}
+
+      {/* 9. 4-WEEK CLINICAL ELIMINATION PROTOCOL SUITE SUBTAB */}
+      {activeTab === 'elimination' && (
+        <EliminationProtocolSuite
+          onOpenQuickMeal={onOpenFoodDetective}
+          onOpenCalendarHeatmap={() => setActiveTab('calendar')}
+          onOpenPostMealTimeline={() => setActiveTab('postmeal')}
+        />
+      )}
     </div>
   );
 };
