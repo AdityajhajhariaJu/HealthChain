@@ -81,6 +81,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
+import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTimeline';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -217,7 +218,7 @@ export default function Dietician() {
   const isMobile = useIsMobile();
   const toast = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'grocery' | 'guardrails' | 'longevity'>('dashboard');
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
@@ -869,6 +870,30 @@ export default function Dietician() {
               <Target size={15} /> Dashboard
             </button>
             <button
+              onClick={() => {
+                triggerHapticLight();
+                setActiveTab('sensitivities');
+              }}
+              style={{
+                padding: isMobile ? '8px 12px' : '8px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'sensitivities' ? '#0F172A' : 'transparent',
+                color: activeTab === 'sensitivities' ? '#FFFFFF' : '#64748B',
+                fontWeight: 700,
+                fontSize: isMobile ? '12.5px' : '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <Activity size={15} color={activeTab === 'sensitivities' ? '#34D399' : '#64748B'} /> Post-Meal Sensitivities
+            </button>
+            <button
               onClick={() => setActiveTab('mealplan')}
               style={{
                 padding: isMobile ? '8px 12px' : '8px 16px',
@@ -1099,6 +1124,13 @@ export default function Dietician() {
                 onOpenSavedMeals={() => { triggerHapticLight(); setShowSavedMealsModal(true); }}
                 onOpenGallery={() => setShowARLens(true)}
               />
+            </motion.div>
+          )}
+
+          {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
+          {activeTab === 'sensitivities' && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
+              <PostMealReactionTimeline onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
             </motion.div>
           )}
 

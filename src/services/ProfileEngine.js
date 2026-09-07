@@ -692,9 +692,34 @@ export function addNutritionLog(log) {
   }
   profile.nutrition.recentLogs.push({
     ...log,
-    loggedAt: new Date().toISOString(),
+    id: log.id || generateId(),
+    loggedAt: log.loggedAt || new Date().toISOString(),
   });
   saveProfile(profile);
+}
+
+export function updateNutritionLogReaction(logIdentifier, reaction) {
+  const profile = getProfile();
+  if (!profile.nutrition) {
+    profile.nutrition = { targetCalories: 2000, avgProtein: 0, recentLogs: [] };
+  }
+  if (!profile.nutrition.recentLogs) {
+    profile.nutrition.recentLogs = [];
+  }
+  const idx = profile.nutrition.recentLogs.findIndex(
+    (l, i) => l.id === logIdentifier || l.loggedAt === logIdentifier || String(i) === String(logIdentifier)
+  );
+  if (idx !== -1) {
+    profile.nutrition.recentLogs[idx] = {
+      ...profile.nutrition.recentLogs[idx],
+      reaction,
+    };
+  } else if (profile.nutrition.recentLogs.length > 0) {
+    profile.nutrition.recentLogs[profile.nutrition.recentLogs.length - 1].reaction = reaction;
+  }
+  saveProfile(profile);
+  window.dispatchEvent(new CustomEvent('hc_nutrition_reaction_updated', { detail: { logIdentifier, reaction } }));
+  window.dispatchEvent(new Event('hc_profile_updated'));
 }
 
 export function recordDailyCheckin({ symptom, severity, score, note, lifestyle }) {

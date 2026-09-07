@@ -41,9 +41,10 @@ import { CaseConnectionMap } from './CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { KineticBiomechanicsView } from './KineticBiomechanicsView';
+import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 
 interface ConnectionDetectiveViewProps {
-  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic';
+  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal';
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
 }
@@ -55,7 +56,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal'>(initialTab);
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -328,6 +329,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           { id: 'map', label: 'Connection Map', icon: '🌐' },
           { id: 'biomarkers', label: 'Functional Labs', icon: '🧪' },
           { id: 'kinetic', label: 'Kinetic Biomechanics', icon: '🦴' },
+          { id: 'postmeal', label: 'Post-Meal Sensitivities', icon: '🍽️' },
           { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
           { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
           { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
@@ -1343,6 +1345,9 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
       {/* 6. KINETIC CHAIN BIOMECHANICS SUBTAB */}
       {activeTab === 'kinetic' && <KineticBiomechanicsView />}
+
+      {/* 7. POST-MEAL SENSITIVITIES TIMELINE SUBTAB */}
+      {activeTab === 'postmeal' && <PostMealReactionTimeline onOpenQuickMeal={onOpenFoodDetective} />}
     </div>
   );
 };
