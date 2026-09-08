@@ -19,6 +19,7 @@ import { Accordion } from '../../components/ui/RichReportTemplate';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
 import { NetworkHubIcon } from '../../components/ui/NetworkHubIcon';
 import { triggerHapticSelection } from '../../services/haptics';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
@@ -36,7 +37,7 @@ export default function JarvisInvestigator() {
   const [history, setHistory] = useState('');
   const [files, setFiles] = useState<{file: File, base64: string}[]>([]);
   const [report, setReport] = useState<any>(null);
-  const [isIsolated, setIsIsolated] = useState(true);
+  const [isIsolated, setIsIsolated] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -391,6 +392,13 @@ export default function JarvisInvestigator() {
         <div style={{ position: 'absolute', bottom: '20%', left: '20%', width: '120px', height: '120px', background: '#99F6E4', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
         {/* Bottom Right: Near 'Clinical Trials' (Rose) */}
         <div style={{ position: 'absolute', bottom: '10%', right: '25%', width: '120px', height: '120px', background: '#FECDD3', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
+
+        <FeatureProfileDataBanner
+          featureName="Clinical Data Engine"
+          contextMessage="Autonomous diagnostic intelligence cross-correlates your baseline conditions, medications & allergies against lab ranges."
+          accentColor="#0D9488"
+          style={{ position: 'relative', zIndex: 2, marginBottom: '20px' }}
+        />
 
       <div style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', position: 'relative',
         zIndex: 1,

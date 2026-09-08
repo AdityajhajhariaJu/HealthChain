@@ -35,6 +35,7 @@ import {
   DrugInteractionAlert
 } from '../../services/VitaminScheduleService';
 import { requestNotificationPermission } from '../../services/DailyCheckinNotificationService';
+import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 
 interface VitaminSchedulerModalProps {
   isOpen: boolean;
@@ -504,6 +505,18 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleUpdate = () => {
+      setVitamins(getVitaminSchedule());
+    };
+    window.addEventListener('hc_profile_updated', handleUpdate);
+    window.addEventListener('hc_vitamins_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('hc_profile_updated', handleUpdate);
+      window.removeEventListener('hc_vitamins_updated', handleUpdate);
+    };
+  }, []);
+
   const checkPermission = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setHasNotificationPermission(Notification.permission === 'granted');
@@ -749,6 +762,15 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
             flexDirection: 'column',
             gap: '18px'
           }}>
+            {/* Health Profile Baseline Banner */}
+            <FeatureProfileDataBanner
+              featureName="Daily Vitamins & Chrono-Schedule"
+              contextMessage="Prescriptions, vitamins & allergies synchronized with circadian dosing and depletion alerts."
+              compact={true}
+              accentColor="#0D9488"
+              style={{ marginBottom: '2px' }}
+            />
+
             {/* Frosted Clinical Regimen Card */}
             <div style={{
               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 250, 0.9) 100%)',

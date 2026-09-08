@@ -36,6 +36,7 @@ interface GoalOption {
   icon: React.ReactNode;
   route: string;
   badge: string;
+  dataPills: { label: string; icon: string }[];
 }
 
 type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
@@ -47,21 +48,39 @@ const GOAL_OPTIONS: GoalOption[] = [
     desc: 'Connect symptoms, labs & multi-specialist causal synthesis', 
     icon: <HeartPulse size={26} color="#F43F5E" />,
     route: '/app/consult',
-    badge: 'Clinical Causal Engine'
+    badge: 'Clinical Causal Engine',
+    dataPills: [
+      { label: 'Conditions', icon: '🩺' },
+      { label: 'Chrono-Meds', icon: '💊' },
+      { label: 'Allergies', icon: '💉' },
+      { label: 'Biometrics', icon: '🧬' }
+    ]
   },
   { 
     title: 'Track Calories', 
     desc: 'Calibrate metabolic rate, macros & nutrition targets', 
     icon: <Flame size={26} color="#F59E0B" />,
     route: '/app/dietician',
-    badge: 'Metabolic & BMR'
+    badge: 'Metabolic & BMR',
+    dataPills: [
+      { label: 'Weight & Height', icon: '⚖️' },
+      { label: 'Live BMR', icon: '🔥' },
+      { label: 'Food Allergies', icon: '🥛' },
+      { label: 'Metabolic', icon: '🩸' }
+    ]
   },
   { 
     title: 'Mental Clarity', 
     desc: 'Optimize sleep architecture, circadian rhythm & vitality', 
     icon: <Moon size={26} color="#8B5CF6" />,
     route: '/app/today',
-    badge: 'Circadian Vitality'
+    badge: 'Circadian Vitality',
+    dataPills: [
+      { label: 'Circadian Timing', icon: '🌅' },
+      { label: 'Sleep & Vitals', icon: '🌙' },
+      { label: 'Daily Vitamins', icon: '💊' },
+      { label: 'Vitality XP', icon: '💎' }
+    ]
   }
 ];
 
@@ -475,7 +494,33 @@ export default function OnboardingFlow() {
                           {goal.badge}
                         </span>
                       </div>
-                      <p style={{ margin: 0, color: '#64748B', fontSize: '13px', lineHeight: 1.3 }}>{goal.desc}</p>
+                      <p style={{ margin: '0 0 6px 0', color: '#64748B', fontSize: '13px', lineHeight: 1.3 }}>{goal.desc}</p>
+                      {goal.dataPills && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '9px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                            Uses Data:
+                          </span>
+                          {goal.dataPills.map((pill, pIdx) => (
+                            <span 
+                              key={pIdx}
+                              style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '3px', 
+                                fontSize: '10px', 
+                                fontWeight: 700, 
+                                padding: '2px 6px', 
+                                borderRadius: '999px', 
+                                background: 'rgba(255, 255, 255, 0.9)', 
+                                border: '1px solid #CBD5E1', 
+                                color: '#334155' 
+                              }}
+                            >
+                              <span style={{ fontSize: '10.5px' }}>{pill.icon}</span> {pill.label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <ChevronRight size={20} color="#0D9488" style={{ flexShrink: 0 }} />
                   </motion.button>
