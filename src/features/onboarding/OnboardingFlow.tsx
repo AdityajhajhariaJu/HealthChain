@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -24,7 +24,9 @@ import {
   Pill, 
   ShieldCheck, 
   Activity, 
-  Loader2 
+  Loader2,
+  Plus,
+  X
 } from 'lucide-react';
 
 interface GoalOption {
@@ -34,6 +36,9 @@ interface GoalOption {
   route: string;
   badge: string;
 }
+
+type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
+type AllergySeverity = 'mild' | 'moderate' | 'severe';
 
 const GOAL_OPTIONS: GoalOption[] = [
   { 
@@ -60,169 +65,156 @@ const GOAL_OPTIONS: GoalOption[] = [
 ];
 
 const AGE_BRACKETS = [
-  { label: '18–25', defaultAge: '22', hint: 'Young Adult' },
-  { label: '26–35', defaultAge: '28', hint: 'Prime' },
-  { label: '36–49', defaultAge: '42', hint: 'Mid-Vital' },
-  { label: '50–64', defaultAge: '56', hint: 'Mature' },
-  { label: '65+', defaultAge: '68', hint: 'Senior' },
+  { label: '18–25 Gen Z', defaultAge: 22, hint: 'Metabolic Velocity' },
+  { label: '26–35 Prime', defaultAge: 28, hint: 'Hormonal Peak' },
+  { label: '36–49 Mid-Vital', defaultAge: 42, hint: 'Cellular Recovery' },
+  { label: '50–64 Mature', defaultAge: 56, hint: 'Vascular Focus' },
+  { label: '65+ Senior', defaultAge: 68, hint: 'Longevity Protection' },
 ];
 
 const COMMON_CONDITIONS = [
-  'Hypertension',
-  'Type 2 Diabetes',
-  'GERD / Acid Reflux',
-  'Asthma',
-  'PCOS / Hormonal',
-  'Hypothyroidism',
-  'High Cholesterol',
-  'Migraine'
+  { name: 'Hypertension', category: 'Cardiovascular', icon: '🩺' },
+  { name: 'Type 2 Diabetes', category: 'Metabolic', icon: '🩸' },
+  { name: 'GERD / Acid Reflux', category: 'Gastrointestinal', icon: '🔥' },
+  { name: 'Hypothyroidism', category: 'Endocrine', icon: '🦋' },
+  { name: 'PCOS / Hormonal', category: 'Endocrine', icon: '🌸' },
+  { name: 'Dysautonomia / POTS', category: 'Autonomic', icon: '🫀' },
+  { name: 'High Cholesterol', category: 'Cardiovascular', icon: '🧬' },
+  { name: 'Migraine / Cephalgia', category: 'Neurological', icon: '⚡' },
+  { name: 'Asthma', category: 'Respiratory', icon: '🫁' },
+  { name: 'Fatty Liver', category: 'Hepatic', icon: '🥩' },
+  { name: 'Celiac Disease', category: 'Immune', icon: '🌾' },
+  { name: 'Lower Back Strain', category: 'Kinetic', icon: '🦴' },
 ];
 
-const COMMON_MEDICATIONS: { name: string; slot: 'morning' | 'midday' | 'evening' | 'bedtime' }[] = [
-  { name: 'Metformin', slot: 'midday' },
-  { name: 'Lisinopril', slot: 'morning' },
-  { name: 'Atorvastatin', slot: 'bedtime' },
-  { name: 'Levothyroxine', slot: 'morning' },
-  { name: 'Ventolin', slot: 'morning' },
+const PRESET_MEDICATIONS: { name: string; defaultSlot: CircadianSlot; hint: string }[] = [
+  { name: 'Metformin', defaultSlot: 'midday', hint: 'Glucose' },
+  { name: 'Lisinopril', defaultSlot: 'morning', hint: 'Blood Pressure' },
+  { name: 'Atorvastatin', defaultSlot: 'bedtime', hint: 'Lipids' },
+  { name: 'Levothyroxine', defaultSlot: 'morning', hint: 'Thyroid' },
+  { name: 'Sertraline', defaultSlot: 'morning', hint: 'Neuro' },
+  { name: 'Magnesium Glycinate', defaultSlot: 'bedtime', hint: 'Sleep & Muscle' },
+  { name: 'Vitamin D3 / K2', defaultSlot: 'morning', hint: 'Immunity' },
+  { name: 'Ventolin Inhaler', defaultSlot: 'morning', hint: 'Respiratory' },
 ];
 
-const COMMON_ALLERGIES: { name: string; severity: 'mild' | 'moderate' | 'severe' }[] = [
-  { name: 'Penicillin', severity: 'severe' },
-  { name: 'Sulfa Drugs', severity: 'severe' },
-  { name: 'Aspirin', severity: 'moderate' },
-  { name: 'Peanuts', severity: 'severe' },
-  { name: 'Dairy / Lactose', severity: 'mild' }
+const CIRCADIAN_SLOT_META: Record<CircadianSlot, { label: string; icon: string; color: string; bg: string }> = {
+  morning: { label: 'Morning', icon: '🌅', color: '#0F766E', bg: '#CCFBF1' },
+  midday: { label: 'Midday', icon: '☀️', color: '#0D9488', bg: '#ECFDF5' },
+  evening: { label: 'Evening', icon: '🌇', color: '#D97706', bg: '#FEF3C7' },
+  bedtime: { label: 'Bedtime', icon: '🌙', color: '#4338CA', bg: '#EEF2FF' },
+};
+
+const COMMON_ALLERGIES = [
+  { name: 'Penicillin', icon: '💉', defaultSeverity: 'severe' as const },
+  { name: 'Sulfa Drugs', icon: '💊', defaultSeverity: 'severe' as const },
+  { name: 'Aspirin / NSAIDs', icon: '🩸', defaultSeverity: 'moderate' as const },
+  { name: 'Peanuts & Tree Nuts', icon: '🥜', defaultSeverity: 'severe' as const },
+  { name: 'Dairy / Lactose', icon: '🥛', defaultSeverity: 'mild' as const },
+  { name: 'Gluten / Wheat', icon: '🌾', defaultSeverity: 'moderate' as const },
+  { name: 'Shellfish', icon: '🦐', defaultSeverity: 'severe' as const },
+  { name: 'Latex', icon: '🧤', defaultSeverity: 'moderate' as const },
 ];
 
 export default function OnboardingFlow() {
+  // Steps: 
+  // 0: Welcome
+  // 1: Goal Select
+  // 2: Profile Page 1 (Biometrics & Demographics)
+  // 3: Profile Page 2 (Conditions)
+  // 4: Profile Page 3 (Medications & Allergies)
+  // 5: Celebration & Redirect
   const [step, setStep] = useState<number>(0);
   const [selectedGoal, setSelectedGoal] = useState<GoalOption | null>(null);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
-  // Profile Form State initialized from existing profile if available
+  // Form State initialized from storage
   const existingProfile = getProfile();
   const [name, setName] = useState<string>(existingProfile?.demographics?.name || '');
-  const [age, setAge] = useState<string>(existingProfile?.demographics?.age ? String(existingProfile.demographics.age) : '28');
-  const [gender, setGender] = useState<string>(existingProfile?.demographics?.gender || 'Male');
+  const [age, setAge] = useState<number>(existingProfile?.demographics?.age ? Number(existingProfile.demographics.age) : 28);
+  const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(
+    (existingProfile?.demographics?.gender as any) || 'Male'
+  );
   
   // Height State
+  const [heightCm, setHeightCm] = useState<number>(
+    existingProfile?.demographics?.height ? Number(existingProfile.demographics.height) : 172
+  );
   const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
-  const [heightCm, setHeightCm] = useState<string>(existingProfile?.demographics?.height ? String(existingProfile.demographics.height) : '172');
-  const [feetVal, setFeetVal] = useState<string>('5');
-  const [inchVal, setInchVal] = useState<string>('8');
 
   // Weight State
+  const [weightKg, setWeightKg] = useState<number>(
+    existingProfile?.demographics?.weight ? Number(existingProfile.demographics.weight) : 70
+  );
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg');
-  const [weightKg, setWeightKg] = useState<string>(existingProfile?.demographics?.weight ? String(existingProfile.demographics.weight) : '70');
-  const [weightLbs, setWeightLbs] = useState<string>('154');
 
   // Conditions State
   const [hasNoConditions, setHasNoConditions] = useState<boolean>(false);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [conditions, setConditions] = useState<string[]>(existingProfile?.conditions || []);
+  const [customCondition, setCustomCondition] = useState('');
 
   // Medications State
   const [hasNoMeds, setHasNoMeds] = useState<boolean>(false);
-  const [selectedMeds, setSelectedMeds] = useState<{ name: string; slot: 'morning' | 'midday' | 'evening' | 'bedtime' }[]>([]);
+  const [medications, setMedications] = useState<{ name: string; slot: CircadianSlot }[]>([]);
+  const [customMed, setCustomMed] = useState('');
 
   // Allergies State
   const [hasNoAllergies, setHasNoAllergies] = useState<boolean>(false);
-  const [selectedAllergies, setSelectedAllergies] = useState<{ name: string; severity: 'mild' | 'moderate' | 'severe' }[]>([]);
+  const [allergies, setAllergies] = useState<{ name: string; severity: AllergySeverity }[]>([]);
 
   const [isSaving, setIsSaving] = useState(false);
 
+  // Live BMI & BMR
+  const bmi = useMemo(() => {
+    if (!heightCm || !weightKg || heightCm <= 0) return 23.6;
+    const heightM = heightCm / 100;
+    return parseFloat((weightKg / (heightM * heightM)).toFixed(1));
+  }, [heightCm, weightKg]);
+
+  const bmiCategory = useMemo(() => {
+    if (bmi < 18.5) return { label: 'Underweight', color: '#3B82F6', bg: '#EFF6FF' };
+    if (bmi < 25) return { label: 'Optimal Equilibrium', color: '#059669', bg: '#ECFDF5' };
+    if (bmi < 30) return { label: 'Elevated Biomass', color: '#D97706', bg: '#FEF3C7' };
+    return { label: 'High Metabolic Load', color: '#DC2626', bg: '#FEF2F2' };
+  }, [bmi]);
+
+  const bmr = useMemo(() => {
+    if (!heightCm || !weightKg || !age) return 1650;
+    const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
+    return gender === 'Male' ? Math.round(base + 5) : Math.round(base - 161);
+  }, [heightCm, weightKg, age, gender]);
+
+  const idealWeightRange = useMemo(() => {
+    if (!heightCm || heightCm <= 0) return '55 – 74 kg';
+    const heightM = heightCm / 100;
+    const minW = Math.round(18.5 * heightM * heightM);
+    const maxW = Math.round(24.9 * heightM * heightM);
+    return `${minW} – ${maxW} kg`;
+  }, [heightCm]);
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (step === 2) {
-          triggerHapticLight();
-          setStep(1);
-        } else if (step === 1) {
-          triggerHapticLight();
-          setStep(0);
-        }
+      if (e.key === 'Escape' && step > 0) {
+        triggerHapticLight();
+        setStep(prev => Math.max(0, prev - 1));
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [step]);
 
-  // Height Helpers
-  const updateCm = (cm: number) => {
-    const clamped = Math.max(80, Math.min(240, cm));
-    setHeightCm(String(clamped));
-    const totalIn = clamped / 2.54;
-    setFeetVal(String(Math.floor(totalIn / 12)));
-    setInchVal(String(Math.round(totalIn % 12)));
-  };
-
-  // Weight Helpers
-  const updateKg = (kg: number) => {
-    const clamped = Math.max(30, Math.min(250, kg));
-    setWeightKg(String(clamped));
-    setWeightLbs(String(Math.round(clamped * 2.20462)));
-  };
-
-  // Condition toggles
-  const toggleCondition = (cond: string) => {
-    triggerHapticSelection();
-    setHasNoConditions(false);
-    setSelectedConditions(prev => 
-      prev.includes(cond) ? prev.filter(c => c !== cond) : [...prev, cond]
-    );
-  };
-
-  const selectNoConditions = () => {
-    triggerHapticSelection();
-    setHasNoConditions(true);
-    setSelectedConditions([]);
-  };
-
-  // Medication toggles
-  const toggleMedication = (med: { name: string; slot: 'morning' | 'midday' | 'evening' | 'bedtime' }) => {
-    triggerHapticSelection();
-    setHasNoMeds(false);
-    setSelectedMeds(prev => 
-      prev.some(m => m.name === med.name) 
-        ? prev.filter(m => m.name !== med.name) 
-        : [...prev, med]
-    );
-  };
-
-  const selectNoMeds = () => {
-    triggerHapticSelection();
-    setHasNoMeds(true);
-    setSelectedMeds([]);
-  };
-
-  // Allergy toggles
-  const toggleAllergy = (all: { name: string; severity: 'mild' | 'moderate' | 'severe' }) => {
-    triggerHapticSelection();
-    setHasNoAllergies(false);
-    setSelectedAllergies(prev => 
-      prev.some(a => a.name === all.name) 
-        ? prev.filter(a => a.name !== all.name) 
-        : [...prev, all]
-    );
-  };
-
-  const selectNoAllergies = () => {
-    triggerHapticSelection();
-    setHasNoAllergies(true);
-    setSelectedAllergies([]);
-  };
-
-  // Goal Selection handler
+  // Handlers
   const handleGoalSelect = (goal: GoalOption) => {
     triggerHapticMedium();
     setSelectedGoal(goal);
     try {
       localStorage.setItem('hc_primary_focus', goal.title);
     } catch(e) {}
-    setStep(2);
+    setStep(2); // Move to Profile Page 1
   };
 
-  // Skip Escape Hatch (Zero-Trap)
   const handleSkip = () => {
     triggerHapticLight();
     try {
@@ -235,57 +227,95 @@ export default function OnboardingFlow() {
     navigate(selectedGoal?.route || '/app/today', { replace: true });
   };
 
-  // Save & Launch
+  const toggleCondition = (condName: string) => {
+    triggerHapticSelection();
+    setHasNoConditions(false);
+    setConditions(prev => 
+      prev.includes(condName) ? prev.filter(c => c !== condName) : [...prev, condName]
+    );
+  };
+
+  const addCustomCondition = () => {
+    if (!customCondition.trim()) return;
+    triggerHapticLight();
+    if (!conditions.includes(customCondition.trim())) {
+      setConditions(prev => [...prev, customCondition.trim()]);
+    }
+    setCustomCondition('');
+  };
+
+  const toggleMedication = (medName: string, defaultSlot: CircadianSlot) => {
+    triggerHapticSelection();
+    setHasNoMeds(false);
+    setMedications(prev => {
+      const exists = prev.find(m => m.name === medName);
+      if (exists) return prev.filter(m => m.name !== medName);
+      return [...prev, { name: medName, slot: defaultSlot }];
+    });
+  };
+
+  const updateMedSlot = (medName: string, slot: CircadianSlot) => {
+    triggerHapticLight();
+    setMedications(prev => prev.map(m => m.name === medName ? { ...m, slot } : m));
+  };
+
+  const toggleAllergy = (allName: string, defaultSeverity: AllergySeverity) => {
+    triggerHapticSelection();
+    setHasNoAllergies(false);
+    setAllergies(prev => {
+      const exists = prev.find(a => a.name === allName);
+      if (exists) return prev.filter(a => a.name !== allName);
+      return [...prev, { name: allName, severity: defaultSeverity }];
+    });
+  };
+
+  // Final Complete & Launch
   const handleSaveAndContinue = async () => {
     setIsSaving(true);
     triggerHapticMedium();
     try {
-      // 1. Commit complete profile
       completeProfileOnboarding({
         demographics: {
           name: name.trim() || existingProfile?.demographics?.name || 'Patient',
-          age: age ? parseInt(age, 10) : 28,
+          age: age || 28,
           gender: gender || 'Male',
-          height: heightCm || '172',
-          weight: weightKg || '70',
+          height: String(heightCm),
+          weight: String(weightKg),
           bloodGroup: existingProfile?.demographics?.bloodGroup || 'Unknown',
           emergencyContact: existingProfile?.demographics?.emergencyContact || '',
         },
-        conditions: hasNoConditions ? [] : selectedConditions,
-        medications: hasNoMeds ? [] : selectedMeds.map(m => ({
+        conditions: hasNoConditions ? [] : conditions,
+        medications: hasNoMeds ? [] : medications.map(m => ({
           name: m.name,
-          dosage: 'As prescribed',
+          dosage: 'As directed',
           circadianSlot: m.slot,
-          time: m.slot === 'morning' ? '08:00' : m.slot === 'midday' ? '13:00' : m.slot === 'evening' ? '19:00' : '22:00'
+          time: m.slot === 'morning' ? '08:30' : m.slot === 'midday' ? '13:00' : m.slot === 'evening' ? '18:30' : '21:30'
         })),
-        allergies: hasNoAllergies ? [] : selectedAllergies,
+        allergies: hasNoAllergies ? [] : allergies,
         healthFocus: selectedGoal?.title || '',
       });
 
-      // 2. Sync medications schedule if present
-      if (!hasNoMeds && selectedMeds.length > 0) {
+      if (!hasNoMeds && medications.length > 0) {
         try {
-          await syncMedicationsFromProfile(selectedMeds.map(m => ({ name: m.name, timing: m.slot })));
+          await syncMedicationsFromProfile(medications.map(m => ({ name: m.name, timing: m.slot })));
         } catch (err) {
-          console.warn('VitaminScheduleService sync deferred:', err);
+          console.warn('Medication schedule sync deferred:', err);
         }
       }
 
-      // 3. Complete onboarding status & award points
       localStorage.setItem('hc_onboarded', 'true');
       awardPoints(20, 'Welcome to HealthChain360! 🌟', 'welcome');
       awardPoints(50, 'Health Profile Initialized ✨', 'milestone', 'profile_onboarding_init');
 
-      // 4. Dispatch events for instant live hydration
       window.dispatchEvent(new Event('hc_profile_updated'));
       window.dispatchEvent(new Event('hc_cases_updated'));
       window.dispatchEvent(new Event('hc_biomarkers_updated'));
 
       triggerHapticSuccess();
-      setStep(3); // Celebration pulse
+      setStep(5); // Move to celebration pulse
       setTimeout(() => {
         navigate(selectedGoal?.route || '/app/today', { replace: true });
-      }, 1300);
+      }, 1200);
     } catch (err) {
       console.error('Failed to complete onboarding profile:', err);
       localStorage.setItem('hc_onboarded', 'true');
@@ -299,7 +329,7 @@ export default function OnboardingFlow() {
     <div 
       role="dialog"
       aria-modal="true"
-      aria-label="Welcome Onboarding Flow"
+      aria-label="HealthChain Onboarding Experience"
       style={{ 
         position: 'fixed', 
         top: 0,
@@ -312,83 +342,99 @@ export default function OnboardingFlow() {
         background: 'url("/ava-floral-bg.jpg") center/cover no-repeat, #FAF5F0',
         zIndex: 9999, 
         display: 'flex', 
-        flexDirection: 'column'
+        flexDirection: 'column',
+        overflow: 'hidden'
       }}
     >
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.48)', backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' }} />
 
-      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', padding: '32px', overflowY: 'auto' }}>
+      {/* Safe Area Container */}
+      <div 
+        style={{ 
+          position: 'relative', 
+          zIndex: 1, 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          overflowY: 'auto', 
+          paddingTop: 'max(48px, calc(env(safe-area-inset-top, 0px) + 28px))',
+          paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 24px))',
+          paddingLeft: isMobile ? '16px' : '32px',
+          paddingRight: isMobile ? '16px' : '32px',
+        }}
+      >
         <AnimatePresence mode="wait">
+          
+          {/* ========================================================================= */}
+          {/* STEP 0: WELCOME HERO                                                      */}
+          {/* ========================================================================= */}
           {step === 0 && (
             <motion.div
               key="step0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, filter: 'blur(16px)' }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: 'min-content', padding: '24px 0' }}
             >
-              <div style={{ background: 'rgba(255,255,255,0.8)', padding: '16px', borderRadius: '50%', marginBottom: '32px', border: '1px solid rgba(15,23,42,0.1)' }}>
-                <Sparkles size={36} color="#10B981" />
+              <div style={{ background: 'rgba(255,255,255,0.85)', padding: '18px', borderRadius: '50%', marginBottom: '28px', border: '1px solid rgba(15,23,42,0.1)', boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)' }}>
+                <Sparkles size={38} color="#059669" />
               </div>
-              <h1 style={{ fontSize: '38px', fontWeight: 700, letterSpacing: '-1px', textAlign: 'center', color: '#0F172A', margin: '0 0 16px 0', lineHeight: 1.15 }}>
+              <h1 style={{ fontSize: isMobile ? '32px' : '40px', fontWeight: 800, letterSpacing: '-1px', textAlign: 'center', color: '#0F172A', margin: '0 0 14px 0', lineHeight: 1.15 }}>
                 Let's build your<br/>health story.
               </h1>
-              <p style={{ color: '#475569', fontSize: '18px', textAlign: 'center', margin: 0, fontWeight: 400, opacity: 0.9 }}>
-                Clinical precision meets daily wellness.
+              <p style={{ color: '#475569', fontSize: isMobile ? '16px' : '18px', textAlign: 'center', margin: '0 0 40px 0', fontWeight: 500, maxWidth: '380px', lineHeight: 1.4 }}>
+                Clinical precision meets daily wellness. Start with a personalized baseline.
               </p>
 
               <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8, duration: 1 }}
                 onClick={() => { triggerHapticLight(); setStep(1); }}
                 style={{
-                  marginTop: 'auto',
-                  marginBottom: '20px',
-                  background: 'rgba(255,255,255,0.7)',
-                  border: '1px solid rgba(15,23,42,0.15)',
-                  padding: '16px 32px',
-                  borderRadius: '99px',
-                  color: '#0F172A',
+                  background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                  border: 'none',
+                  padding: '16px 36px',
+                  borderRadius: '999px',
+                  color: '#FFFFFF',
                   fontSize: '17px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 10px 25px rgba(5, 150, 105, 0.3)',
                   cursor: 'pointer'
                 }}
-                whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.9)' }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
               >
                 Begin Journey <ChevronRight size={20} />
               </motion.button>
             </motion.div>
           )}
-          
-          {/* STEP 1: Goal Focus Selection */}
+
+          {/* ========================================================================= */}
+          {/* STEP 1: GOAL FOCUS SELECTION                                              */}
+          {/* ========================================================================= */}
           {step === 1 && (
             <motion.div
               key="step1"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: '540px', margin: '0 auto', width: '100%', minHeight: 'min-content' }}
             >
-              <div style={{ marginBottom: '28px' }}>
+              <div style={{ marginBottom: '24px' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '4px 12px', borderRadius: '999px', marginBottom: '12px' }}>
                   <Sparkles size={12} color="#059669" />
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    STEP 1 OF 2 • CORE FOCUS
+                    STEP 1 • CORE FOCUS
                   </span>
                 </div>
                 <h2 style={{ fontSize: isMobile ? '28px' : '32px', fontWeight: 800, letterSpacing: '-0.5px', margin: '0 0 8px 0', color: '#0F172A', lineHeight: 1.2 }}>
                   What brings you to<br/><span style={{ color: '#059669' }}>HealthChain</span>?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '15px', margin: 0, lineHeight: 1.4 }}>
-                  Select your primary focus to calibrate your personalized experience.
+                  Select your primary focus to personalize your experience.
                 </p>
               </div>
 
@@ -403,10 +449,10 @@ export default function OnboardingFlow() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleGoalSelect(goal)}
                     style={{
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.4) 100%)',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 100%)',
                       backdropFilter: 'blur(24px)',
                       WebkitBackdropFilter: 'blur(24px)',
-                      border: '1.5px solid rgba(255, 255, 255, 0.85)',
+                      border: '1.5px solid rgba(255, 255, 255, 0.9)',
                       boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.8)',
                       borderRadius: '20px',
                       padding: '18px 20px',
@@ -437,18 +483,20 @@ export default function OnboardingFlow() {
             </motion.div>
           )}
 
-          {/* STEP 2: Goal-Adaptive Health Profile Calibration */}
+          {/* ========================================================================= */}
+          {/* STEP 2: PROFILE PAGE 1 OF 3 — BIOMETRICS & METABOLIC CALIBRATION         */}
+          {/* ========================================================================= */}
           {step === 2 && selectedGoal && (
             <motion.div
               key="step2"
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 25 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              style={{ maxWidth: '640px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '32px' }}
+              exit={{ opacity: 0, x: -25 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              style={{ maxWidth: '580px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '18px' }}
             >
-              {/* Header Navigation & Goal Indicator */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              {/* Top Navigation & Breadcrumb */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <button
                   type="button"
                   onClick={() => { triggerHapticLight(); setStep(1); }}
@@ -458,7 +506,7 @@ export default function OnboardingFlow() {
                     gap: '6px',
                     padding: '6px 12px',
                     borderRadius: '999px',
-                    background: 'rgba(255, 255, 255, 0.7)',
+                    background: 'rgba(255, 255, 255, 0.75)',
                     border: '1px solid #E2E8F0',
                     color: '#475569',
                     fontSize: '12px',
@@ -472,13 +520,13 @@ export default function OnboardingFlow() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #6EE7B7', padding: '4px 12px', borderRadius: '999px' }}>
                   <Sparkles size={12} color="#059669" />
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    +50 PTS REWARD • HEALTH PROFILE
+                    PAGE 1 OF 3 • BIOMETRICS (+50 PTS)
                   </span>
                 </div>
               </div>
 
-              {/* Dynamic Contextual Title */}
-              <div style={{ textAlign: 'left', marginBottom: '4px' }}>
+              {/* Contextual Title */}
+              <div>
                 <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
                   {selectedGoal.title === 'Track Calories'
                     ? 'Calibrate Metabolic Baseline'
@@ -488,52 +536,45 @@ export default function OnboardingFlow() {
                 </h2>
                 <p style={{ color: '#475569', fontSize: '13.5px', margin: 0, lineHeight: 1.4 }}>
                   {selectedGoal.title === 'Track Calories'
-                    ? 'Add height, weight & age so Ava calculates your basal metabolic rate (BMR) & daily macro targets.'
-                    : selectedGoal.title === 'Chronic Management'
-                    ? 'Add age, conditions, medications & allergies so the multi-specialist engine has your clinical background.'
-                    : 'Add age, medications & sleep baseline for personalized circadian routines & focus scores.'}
+                    ? 'Add height, weight & age so Ava calculates your personalized BMR & macro targets.'
+                    : 'Provide your biometrics so our clinical intelligence calibrates against optimal physiological ranges.'}
                 </p>
               </div>
 
-              {/* CARD 1: Demographics & Biometrics */}
+              {/* Biometrics Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.85)',
+                  background: 'rgba(255, 255, 255, 0.88)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '20px',
-                  padding: isMobile ? '16px' : '20px',
+                  padding: isMobile ? '16px' : '22px',
                   border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '16px'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Activity size={18} color="#0D9488" />
-                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Biometrics &amp; Demographics</h4>
-                </div>
-
                 {/* Age Brackets & Fine Tuning */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>Age Bracket</label>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Age Bracket &amp; Exact Age</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setAge(prev => String(Math.max(18, (parseInt(prev, 10) || 28) - 1))); }}
-                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => { triggerHapticSelection(); setAge(prev => Math.max(18, prev - 1)); }}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 800 }}
                       >
                         -
                       </button>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F766E', minWidth: '42px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F766E', minWidth: '44px', textAlign: 'center' }}>
                         {age} yrs
                       </span>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); setAge(prev => String(Math.min(100, (parseInt(prev, 10) || 28) + 1))); }}
-                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        onClick={() => { triggerHapticSelection(); setAge(prev => Math.min(100, prev + 1)); }}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 800 }}
                       >
                         +
                       </button>
@@ -542,12 +583,11 @@ export default function OnboardingFlow() {
 
                   <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
                     {AGE_BRACKETS.map(b => {
-                      const currentAge = parseInt(age, 10) || 28;
-                      const isSelected = (b.label === '18–25' && currentAge >= 18 && currentAge <= 25) ||
-                                         (b.label === '26–35' && currentAge >= 26 && currentAge <= 35) ||
-                                         (b.label === '36–49' && currentAge >= 36 && currentAge <= 49) ||
-                                         (b.label === '50–64' && currentAge >= 50 && currentAge <= 64) ||
-                                         (b.label === '65+' && currentAge >= 65);
+                      const isSelected = (b.label.startsWith('18') && age >= 18 && age <= 25) ||
+                                         (b.label.startsWith('26') && age >= 26 && age <= 35) ||
+                                         (b.label.startsWith('36') && age >= 36 && age <= 49) ||
+                                         (b.label.startsWith('50') && age >= 50 && age <= 64) ||
+                                         (b.label.startsWith('65') && age >= 65);
                       return (
                         <button
                           key={b.label}
@@ -574,11 +614,11 @@ export default function OnboardingFlow() {
                   </div>
                 </div>
 
-                {/* Gender Selector */}
+                {/* Biological Sex */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>Biological Sex</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>Biological Sex</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {['Male', 'Female', 'Other'].map(g => {
+                    {(['Male', 'Female', 'Other'] as const).map(g => {
                       const isSel = gender === g;
                       return (
                         <button
@@ -625,17 +665,17 @@ export default function OnboardingFlow() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); updateCm((parseFloat(heightCm) || 170) - 1); }}
+                        onClick={() => { triggerHapticSelection(); setHeightCm(prev => Math.max(100, prev - 1)); }}
                         style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
                       >
                         -
                       </button>
                       <span style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                        {heightUnit === 'cm' ? `${heightCm} cm` : `${feetVal}'${inchVal}"`}
+                        {heightUnit === 'cm' ? `${heightCm} cm` : `${Math.floor((heightCm / 2.54) / 12)}'${Math.round((heightCm / 2.54) % 12)}"`}
                       </span>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); updateCm((parseFloat(heightCm) || 170) + 1); }}
+                        onClick={() => { triggerHapticSelection(); setHeightCm(prev => Math.min(230, prev + 1)); }}
                         style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
                       >
                         +
@@ -661,17 +701,17 @@ export default function OnboardingFlow() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); updateKg((parseFloat(weightKg) || 70) - 1); }}
+                        onClick={() => { triggerHapticSelection(); setWeightKg(prev => Math.max(30, prev - 1)); }}
                         style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
                       >
                         -
                       </button>
                       <span style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                        {weightUnit === 'kg' ? `${weightKg} kg` : `${weightLbs} lbs`}
+                        {weightUnit === 'kg' ? `${weightKg} kg` : `${Math.round(weightKg * 2.20462)} lbs`}
                       </span>
                       <button
                         type="button"
-                        onClick={() => { triggerHapticSelection(); updateKg((parseFloat(weightKg) || 70) + 1); }}
+                        onClick={() => { triggerHapticSelection(); setWeightKg(prev => Math.min(220, prev + 1)); }}
                         style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
                       >
                         +
@@ -679,35 +719,189 @@ export default function OnboardingFlow() {
                     </div>
                   </div>
                 </div>
+
+                {/* Live Metabolic Equilibrium Spectrum Gauge */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                    borderRadius: 16,
+                    padding: '14px 16px',
+                    border: '1.5px solid #99F6E4',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                        METABOLIC EQUILIBRIUM
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1C1917', marginTop: 2 }}>
+                        BMI: <strong>{bmi}</strong> • <span style={{ color: bmiCategory.color }}>{bmiCategory.label}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 11, color: '#047857', fontWeight: 600 }}>Estimated BMR</div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#0F766E' }}>{bmr} kcal/day</div>
+                    </div>
+                  </div>
+
+                  {/* Spectrum Track */}
+                  <div style={{ width: '100%', height: '7px', background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)', borderRadius: 999, position: 'relative', marginTop: 8 }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        left: `${Math.min(96, Math.max(4, ((bmi - 15) / 25) * 100))}%`,
+                        width: '15px',
+                        height: '15px',
+                        borderRadius: '50%',
+                        background: '#FFFFFF',
+                        border: '2.5px solid #0F766E',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                        transform: 'translateX(-50%)',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#047857', marginTop: 6, fontWeight: 600 }}>
+                    <span>WHO Healthy Weight: <strong>{idealWeightRange}</strong></span>
+                    <span>Clinical Standard</span>
+                  </div>
+                </div>
               </div>
 
-              {/* CARD 2: Diagnosed Conditions */}
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginTop: '4px' }}>
+                <motion.button
+                  type="button"
+                  onClick={() => { triggerHapticMedium(); setStep(3); }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    borderRadius: '16px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                    color: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 10px 25px rgba(5, 150, 105, 0.35)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Continue to Conditions <ChevronRight size={18} />
+                </motion.button>
+
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748B',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '6px 12px',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px'
+                  }}
+                >
+                  Skip for now • Go straight to {selectedGoal.title} ›
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* STEP 3: PROFILE PAGE 2 OF 3 — CHRONIC HEALTH & MEDICAL CONDITIONS         */}
+          {/* ========================================================================= */}
+          {step === 3 && selectedGoal && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 25 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -25 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '18px' }}
+            >
+              {/* Top Navigation & Breadcrumb */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  type="button"
+                  onClick={() => { triggerHapticLight(); setStep(2); }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    background: 'rgba(255, 255, 255, 0.75)',
+                    border: '1px solid #E2E8F0',
+                    color: '#475569',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ArrowLeft size={14} /> Back
+                </button>
+
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #6EE7B7', padding: '4px 12px', borderRadius: '999px' }}>
+                  <Sparkles size={12} color="#059669" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                    PAGE 2 OF 3 • CONDITIONS ({conditions.length} Active)
+                  </span>
+                </div>
+              </div>
+
+              {/* Headline */}
+              <div>
+                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                  Diagnosed or Suspected Conditions
+                </h2>
+                <p style={{ color: '#475569', fontSize: '13.5px', margin: 0, lineHeight: 1.4 }}>
+                  Select any diagnosed or recurring conditions. Tap to toggle or choose "None / Healthy Baseline".
+                </p>
+              </div>
+
+              {/* Conditions Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.85)',
+                  background: 'rgba(255, 255, 255, 0.88)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '20px',
-                  padding: isMobile ? '16px' : '20px',
+                  padding: isMobile ? '16px' : '22px',
                   border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px'
+                  gap: '14px'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ShieldCheck size={18} color="#0D9488" />
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Known Conditions</h4>
-                  </div>
+                {/* None Shortcut */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldCheck size={16} color="#0D9488" /> Clinical History
+                  </span>
                   <button
                     type="button"
-                    onClick={selectNoConditions}
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setHasNoConditions(true);
+                      setConditions([]);
+                    }}
                     style={{
-                      fontSize: '11px',
+                      fontSize: '11.5px',
                       fontWeight: 700,
-                      padding: '4px 8px',
+                      padding: '4px 10px',
                       borderRadius: '8px',
                       border: hasNoConditions ? '1.5px solid #059669' : '1px solid #E2E8F0',
                       background: hasNoConditions ? '#ECFDF5' : '#FFFFFF',
@@ -719,178 +913,368 @@ export default function OnboardingFlow() {
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {COMMON_CONDITIONS.map(cond => {
-                    const isSel = selectedConditions.includes(cond);
+                {/* Emoji Pills Grid */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {COMMON_CONDITIONS.map((c) => {
+                    const isSelected = conditions.includes(c.name);
                     return (
                       <button
-                        key={cond}
+                        key={c.name}
                         type="button"
-                        onClick={() => toggleCondition(cond)}
+                        onClick={() => toggleCondition(c.name)}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
-                          padding: '6px 12px',
+                          gap: '6px',
+                          padding: '8px 14px',
+                          borderRadius: '999px',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          background: isSelected ? '#CCFBF1' : '#FFFFFF',
+                          color: isSelected ? '#0F766E' : '#334155',
+                          boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.18)' : '0 1px 2px rgba(0,0,0,0.02)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <span style={{ fontSize: '15px' }}>{c.icon}</span>
+                        <span>{c.name}</span>
+                        <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: 600 }}>({c.category})</span>
+                        {isSelected && <Check size={13} color="#0F766E" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Condition Adder */}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <input
+                    type="text"
+                    placeholder="Add custom condition (e.g. Hashimoto's, Histamine)..."
+                    value={customCondition}
+                    onChange={(e) => setCustomCondition(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomCondition(); } }}
+                    style={{
+                      flex: 1,
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomCondition}
+                    style={{
+                      padding: '0 14px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: '#0F766E',
+                      color: '#FFFFFF',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Plus size={16} /> Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginTop: '4px' }}>
+                <motion.button
+                  type="button"
+                  onClick={() => { triggerHapticMedium(); setStep(4); }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    borderRadius: '16px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
+                    color: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 10px 25px rgba(5, 150, 105, 0.35)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Continue to Medications &amp; Allergies <ChevronRight size={18} />
+                </motion.button>
+
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748B',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '6px 12px',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px'
+                  }}
+                >
+                  Skip for now • Go straight to {selectedGoal.title} ›
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* STEP 4: PROFILE PAGE 3 OF 3 — MEDICATIONS & ALLERGIES                     */}
+          {/* ========================================================================= */}
+          {step === 4 && selectedGoal && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 25 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -25 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '18px' }}
+            >
+              {/* Top Navigation & Breadcrumb */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  type="button"
+                  onClick={() => { triggerHapticLight(); setStep(3); }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    background: 'rgba(255, 255, 255, 0.75)',
+                    border: '1px solid #E2E8F0',
+                    color: '#475569',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ArrowLeft size={14} /> Back
+                </button>
+
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #6EE7B7', padding: '4px 12px', borderRadius: '999px' }}>
+                  <Sparkles size={12} color="#059669" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                    PAGE 3 OF 3 • MEDICATIONS &amp; ALLERGIES
+                  </span>
+                </div>
+              </div>
+
+              {/* Headline */}
+              <div>
+                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                  Chrono-Medications &amp; Allergies
+                </h2>
+                <p style={{ color: '#475569', fontSize: '13.5px', margin: 0, lineHeight: 1.4 }}>
+                  Ensure clinical safety by syncing your daily medication timing and substance sensitivities.
+                </p>
+              </div>
+
+              {/* Medications Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.88)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: '20px',
+                  padding: isMobile ? '16px' : '20px',
+                  border: '1.5px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px'
+                }}
+              >
+                {/* Header & None shortcut */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Pill size={16} color="#0D9488" /> Regular Medications &amp; Supplements
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setHasNoMeds(true);
+                      setMedications([]);
+                    }}
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      border: hasNoMeds ? '1.5px solid #059669' : '1px solid #E2E8F0',
+                      background: hasNoMeds ? '#ECFDF5' : '#FFFFFF',
+                      color: hasNoMeds ? '#047857' : '#64748B',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✓ None / No Prescriptions
+                  </button>
+                </div>
+
+                {/* Preset Pills */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {PRESET_MEDICATIONS.map((m) => {
+                    const activeMed = medications.find((item) => item.name === m.name);
+                    const isSelected = Boolean(activeMed);
+                    return (
+                      <div key={m.name} style={{ display: 'inline-flex', flexDirection: 'column', gap: 4 }}>
+                        <button
+                          type="button"
+                          onClick={() => toggleMedication(m.name, m.defaultSlot)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 14px',
+                            borderRadius: '999px',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                            background: isSelected ? '#CCFBF1' : '#FFFFFF',
+                            color: isSelected ? '#0F766E' : '#334155',
+                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.18)' : '0 1px 2px rgba(0,0,0,0.02)',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Pill size={13} color={isSelected ? '#0F766E' : '#94A3B8'} />
+                          <span>{m.name}</span>
+                          <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: 600 }}>({m.hint})</span>
+                          {isSelected && <Check size={13} color="#0F766E" />}
+                        </button>
+
+                        {/* Circadian Slot Selector if selected */}
+                        {isSelected && activeMed && (
+                          <div style={{ display: 'flex', gap: 3, paddingLeft: 6 }}>
+                            {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
+                              const isCurrentSlot = activeMed.slot === slot;
+                              const meta = CIRCADIAN_SLOT_META[slot];
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => updateMedSlot(m.name, slot)}
+                                  style={{
+                                    fontSize: 10.5,
+                                    padding: '2px 6px',
+                                    borderRadius: 6,
+                                    border: isCurrentSlot ? `1px solid ${meta.color}` : '1px solid #E2E8F0',
+                                    background: isCurrentSlot ? meta.bg : '#F8FAFC',
+                                    color: isCurrentSlot ? meta.color : '#64748B',
+                                    fontWeight: isCurrentSlot ? 800 : 500,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                  }}
+                                >
+                                  <span>{meta.icon}</span> {meta.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Allergies Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.88)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: '20px',
+                  padding: isMobile ? '16px' : '20px',
+                  border: '1.5px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldCheck size={16} color="#E11D48" /> Known Substance &amp; Drug Allergies
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setHasNoAllergies(true);
+                      setAllergies([]);
+                    }}
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      border: hasNoAllergies ? '1.5px solid #059669' : '1px solid #E2E8F0',
+                      background: hasNoAllergies ? '#ECFDF5' : '#FFFFFF',
+                      color: hasNoAllergies ? '#047857' : '#64748B',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✓ No Known Allergies
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {COMMON_ALLERGIES.map((a) => {
+                    const isSelected = allergies.some((item) => item.name === a.name);
+                    return (
+                      <button
+                        key={a.name}
+                        type="button"
+                        onClick={() => toggleAllergy(a.name, a.defaultSeverity)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '7px 13px',
                           borderRadius: '999px',
                           fontSize: '12px',
                           fontWeight: 700,
                           cursor: 'pointer',
-                          border: isSel ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
-                          background: isSel ? '#F0FDFA' : '#FFFFFF',
-                          color: isSel ? '#0F766E' : '#64748B',
-                          boxShadow: isSel ? '0 2px 8px rgba(15, 118, 110, 0.12)' : 'none',
-                          transition: 'all 0.15s ease'
+                          border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
+                          background: isSelected ? '#FFF1F2' : '#FFFFFF',
+                          color: isSelected ? '#BE123C' : '#334155',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        {isSel && <Check size={13} color="#0F766E" />}
-                        {cond}
+                        <span>{a.icon}</span>
+                        <span>{a.name}</span>
+                        <span style={{ fontSize: '10px', opacity: 0.65 }}>({a.defaultSeverity})</span>
+                        {isSelected && <Check size={13} color="#BE123C" />}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* CARD 3: Medications & Allergies */}
-              <div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.85)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  borderRadius: '20px',
-                  padding: isMobile ? '16px' : '20px',
-                  border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.04)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px'
-                }}
-              >
-                {/* Medications */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Pill size={16} color="#0D9488" />
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Regular Medications</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={selectNoMeds}
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        border: hasNoMeds ? '1.5px solid #059669' : '1px solid #E2E8F0',
-                        background: hasNoMeds ? '#ECFDF5' : '#FFFFFF',
-                        color: hasNoMeds ? '#047857' : '#64748B',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      ✓ None
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {COMMON_MEDICATIONS.map(m => {
-                      const isSel = selectedMeds.some(item => item.name === m.name);
-                      return (
-                        <button
-                          key={m.name}
-                          type="button"
-                          onClick={() => toggleMedication(m)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 12px',
-                            borderRadius: '999px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: isSel ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
-                            background: isSel ? '#F0FDFA' : '#FFFFFF',
-                            color: isSel ? '#0F766E' : '#64748B',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          {isSel && <Check size={13} color="#0F766E" />}
-                          {m.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Allergies */}
-                <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Known Allergies</span>
-                    <button
-                      type="button"
-                      onClick={selectNoAllergies}
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        border: hasNoAllergies ? '1.5px solid #059669' : '1px solid #E2E8F0',
-                        background: hasNoAllergies ? '#ECFDF5' : '#FFFFFF',
-                        color: hasNoAllergies ? '#047857' : '#64748B',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      ✓ None
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {COMMON_ALLERGIES.map(a => {
-                      const isSel = selectedAllergies.some(item => item.name === a.name);
-                      return (
-                        <button
-                          key={a.name}
-                          type="button"
-                          onClick={() => toggleAllergy(a)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 12px',
-                            borderRadius: '999px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: isSel ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
-                            background: isSel ? '#FFF1F2' : '#FFFFFF',
-                            color: isSel ? '#BE123C' : '#64748B',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          {isSel && <Check size={13} color="#BE123C" />}
-                          {a.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Actions Sticky Section */}
-              <div
-                style={{
-                  position: 'sticky',
-                  bottom: 0,
-                  padding: '16px 0 8px 0',
-                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.95) 30%, rgba(250, 245, 240, 1) 100%)',
-                  backdropFilter: 'blur(8px)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  alignItems: 'center',
-                  zIndex: 10
-                }}
-              >
+              {/* Bottom Action Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginTop: '6px' }}>
                 <motion.button
                   type="button"
                   onClick={handleSaveAndContinue}
@@ -926,7 +1310,6 @@ export default function OnboardingFlow() {
                   )}
                 </motion.button>
 
-                {/* Secondary Escape Hatch (Zero Trap Heuristic H3) */}
                 <button
                   type="button"
                   onClick={handleSkip}
@@ -948,10 +1331,12 @@ export default function OnboardingFlow() {
             </motion.div>
           )}
 
-          {/* STEP 3: Celebration Pulse & Auto-Redirect */}
-          {step === 3 && selectedGoal && (
+          {/* ========================================================================= */}
+          {/* STEP 5: CELEBRATION PULSE & AUTO-REDIRECT                                 */}
+          {/* ========================================================================= */}
+          {step === 5 && selectedGoal && (
             <motion.div
-              key="step3"
+              key="step5"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
@@ -1007,7 +1392,7 @@ export default function OnboardingFlow() {
                 Health Profile Calibrated!
               </h2>
               <p style={{ color: '#475569', fontSize: '15px', margin: '0 0 24px 0', maxWidth: '360px', lineHeight: 1.4 }}>
-                Personalizing your {selectedGoal.title} experience with your verified biometrics...
+                Personalizing your {selectedGoal.title} experience with your verified clinical baseline...
               </p>
 
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#0D9488', fontSize: '13.5px', fontWeight: 700, background: '#F0FDFA', padding: '8px 16px', borderRadius: '999px', border: '1px solid #99F6E4' }}>
@@ -1015,6 +1400,7 @@ export default function OnboardingFlow() {
               </div>
             </motion.div>
           )}
+
         </AnimatePresence>
       </div>
     </div>
