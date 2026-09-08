@@ -25,16 +25,22 @@ import {
   ShieldCheck, 
   Activity, 
   Loader2,
-  Plus,
-  X
+  Plus, 
+  X,
+  Network,
+  Users,
+  FolderHeart
 } from 'lucide-react';
 
-interface GoalOption {
+export interface GoalOption {
+  id: string;
   title: string;
   desc: string;
   icon: React.ReactNode;
   route: string;
   badge: string;
+  dataPills: { label: string; icon: string }[];
+  whyDataNeeded: string;
 }
 
 type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
@@ -42,25 +48,93 @@ type AllergySeverity = 'mild' | 'moderate' | 'severe';
 
 const GOAL_OPTIONS: GoalOption[] = [
   { 
-    title: 'Chronic Management', 
-    desc: 'Connect symptoms, labs & multi-specialist causal synthesis', 
+    id: 'consult',
+    title: 'Consult & Specialists', 
+    desc: 'Multi-specialist board to uncover root causes & differential diagnosis', 
     icon: <HeartPulse size={26} color="#F43F5E" />,
     route: '/app/consult',
-    badge: 'Clinical Causal Engine'
+    badge: 'Clinical Causal Engine',
+    dataPills: [
+      { label: 'Conditions', icon: '🩺' },
+      { label: 'Chrono-Meds', icon: '🌅' },
+      { label: 'Allergies', icon: '💉' },
+      { label: 'Biometrics', icon: '🧬' }
+    ],
+    whyDataNeeded: 'Powers SBAR brief & multi-specialist deliberation without conflicting advice.'
   },
   { 
-    title: 'Track Calories', 
-    desc: 'Calibrate metabolic rate, macros & nutrition targets', 
-    icon: <Flame size={26} color="#F59E0B" />,
+    id: 'clinical_engine',
+    title: 'Clinical Data Engine & Detective', 
+    desc: 'Uncover physician blindspots across 4 data streams and causal cascades', 
+    icon: <Network size={26} color="#0D9488" />,
+    route: '/app/consult#clinical-data-engine',
+    badge: 'Multi-System Causal Synthesis',
+    dataPills: [
+      { label: 'Lab Deltas', icon: '🩸' },
+      { label: 'Causal Cascade', icon: '⚡' },
+      { label: 'Systemic Axis', icon: '🩺' },
+      { label: 'Telemetry', icon: '⌚' }
+    ],
+    whyDataNeeded: 'Cross-analyzes functional ranges, hidden links & food-drug interactions.'
+  },
+  { 
+    id: 'dietician',
+    title: 'Diet Plan & Nutrition Engine', 
+    desc: 'Personalized Indian & global meal planning with calibrated macros', 
+    icon: <Flame size={26} color="#EA580C" />,
     route: '/app/dietician',
-    badge: 'Metabolic & BMR'
+    badge: 'Metabolic & Meal Analysis',
+    dataPills: [
+      { label: 'Weight & Height', icon: '⚖️' },
+      { label: 'Live BMR', icon: '🔥' },
+      { label: 'Food Allergies', icon: '🥛' },
+      { label: 'Metabolic Conditions', icon: '🩸' }
+    ],
+    whyDataNeeded: 'Calculates metabolic burn and automatically filters out dietary allergens.'
   },
   { 
-    title: 'Mental Clarity', 
-    desc: 'Optimize sleep architecture, circadian rhythm & vitality', 
+    id: 'war_room',
+    title: 'Health Canvas War Room', 
+    desc: 'Collaborative case board to map symptoms, notes & hypotheses', 
+    icon: <Users size={26} color="#2563EB" />,
+    route: '/app/war-room',
+    badge: 'MDT Collaboration',
+    dataPills: [
+      { label: 'Patient Anchor', icon: '📋' },
+      { label: 'Board Notes', icon: '🏥' },
+      { label: 'Clinical History', icon: '🔬' }
+    ],
+    whyDataNeeded: 'Pins your baseline physiology so doctors can annotate live case documents.'
+  },
+  { 
+    id: 'vitamins',
+    title: 'Daily Vitamins & Circadian Schedule', 
+    desc: 'Circadian medication slots, adherence tracking & depletion alerts', 
     icon: <Moon size={26} color="#8B5CF6" />,
     route: '/app/today',
-    badge: 'Circadian Vitality'
+    badge: 'Circadian Vitality',
+    dataPills: [
+      { label: 'Morning', icon: '🌅' },
+      { label: 'Midday', icon: '☀️' },
+      { label: 'Evening', icon: '🌇' },
+      { label: 'Bedtime', icon: '🌙' },
+      { label: 'Depletions', icon: '💊' }
+    ],
+    whyDataNeeded: 'Schedules circadian notifications and warns of drug-nutrient depletions.'
+  },
+  { 
+    id: 'profile',
+    title: 'Master Medical Profile', 
+    desc: 'Single source of truth for unified records, labs & family history', 
+    icon: <FolderHeart size={26} color="#059669" />,
+    route: '/app/profile',
+    badge: 'Unified Health Vault',
+    dataPills: [
+      { label: 'Unified Baseline', icon: '🛡️' },
+      { label: 'Family History', icon: '🧬' },
+      { label: 'Allergy Vault', icon: '🩸' }
+    ],
+    whyDataNeeded: 'Centrally broadcasts updates across all other 6 features simultaneously.'
   }
 ];
 
@@ -468,13 +542,44 @@ export default function OnboardingFlow() {
                       {goal.icon}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>{goal.title}</h3>
-                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', background: '#F1F5F9', color: '#475569' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>{goal.title}</h3>
+                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '6px', background: '#F1F5F9', color: '#475569' }}>
                           {goal.badge}
                         </span>
                       </div>
-                      <p style={{ margin: 0, color: '#64748B', fontSize: '13px', lineHeight: 1.3 }}>{goal.desc}</p>
+                      <p style={{ margin: '0 0 8px 0', color: '#64748B', fontSize: '12.5px', lineHeight: 1.3 }}>{goal.desc}</p>
+
+                      {/* Connected Profile Data Pills */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(248, 250, 252, 0.9)', padding: '6px 10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                            Uses Data:
+                          </span>
+                          {goal.dataPills.map((pill, pIdx) => (
+                            <span 
+                              key={pIdx}
+                              style={{ 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '3px', 
+                                fontSize: '10.5px', 
+                                fontWeight: 700, 
+                                padding: '2px 7px', 
+                                borderRadius: '999px', 
+                                background: '#FFFFFF', 
+                                border: '1px solid #CBD5E1', 
+                                color: '#334155' 
+                              }}
+                            >
+                              <span style={{ fontSize: '11px' }}>{pill.icon}</span> {pill.label}
+                            </span>
+                          ))}
+                        </div>
+                        <span style={{ fontSize: '10.5px', color: '#64748B', fontStyle: 'italic', lineHeight: 1.3 }}>
+                          ↳ {goal.whyDataNeeded}
+                        </span>
+                      </div>
                     </div>
                     <ChevronRight size={20} color="#0D9488" style={{ flexShrink: 0 }} />
                   </motion.button>

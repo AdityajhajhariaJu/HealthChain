@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getProfile } from '../../services/ProfileEngine';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getFunctionalBiomarkers, FunctionalBiomarker } from '../../services/ConnectionDetectiveEngine';
 import { getSuspectFoodsLeaderboard, getActiveTrial, ActiveTrialState } from '../../services/TriggerEngine';
@@ -516,6 +517,12 @@ export default function WarRoom() {
 
       {/* Main Content Area */}
       <main style={{ maxWidth: '1024px', margin: '0 auto', padding: isMobile ? '16px' : '24px', display: 'grid', gap: '20px' }}>
+
+        <FeatureProfileDataBanner
+          featureName="Health Canvas War Room"
+          contextMessage="Pinned Patient Anchor: Multi-specialist rounds, physician notes & diagnostic hypotheses are continuously cross-referenced with your calibrated baseline."
+          accentColor="#2563EB"
+        />
 
         {/* Live Patient Surveillance Status Banner */}
         <section 

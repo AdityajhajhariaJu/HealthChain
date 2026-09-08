@@ -24,6 +24,7 @@ import { SpecialistPanel } from '../mdt/MultiSpecialistComponents';
 import { createCaseDraft, getCase, saveReviewSnapshot, updateCaseConnectionMap } from '../../services/CaseEngine';
 import { generateCaseConnectionMap, parseModelJson, analyzeLabReport } from '../../services/geminiService';
 import { getProfile, updateVitals } from '../../services/ProfileEngine';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
@@ -462,6 +463,12 @@ export default function QuickConsult() {
               <JarvisCore size={isMobile ? 180 : 250} />
             </div>
             
+            <FeatureProfileDataBanner
+              featureName="Consult & Specialists"
+              contextMessage="Specialists factor these baseline comorbidities, circadian medications & allergies directly into their differential diagnosis."
+              style={{ position: 'relative', zIndex: 2, marginBottom: '20px' }}
+            />
+
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
               <div style={{ maxWidth: isMobile ? '100%' : '65%' }}>
                 <div
@@ -882,7 +889,15 @@ export default function QuickConsult() {
                 index={0}
                 onComplete={handleComplete}
                 allSpecialists={[selectedSpecialist]}
-                intakeData={{ chiefComplaint: symptomInput }}
+                intakeData={{ 
+                  chiefComplaint: symptomInput,
+                  patientProfile: {
+                    demographics: getProfile()?.demographics,
+                    conditions: getProfile()?.conditions,
+                    medications: getProfile()?.medications,
+                    allergies: getProfile()?.allergies
+                  }
+                }}
                 activeDifferentials={[]}
                 cachedSpecialistStreams={cachedQuickConsultStreams}
                 workflow="quick-consult"

@@ -71,6 +71,7 @@ import {
 import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
 import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
@@ -796,6 +797,13 @@ export default function Dietician() {
     <div style={{ paddingBottom: '100px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         
+        <FeatureProfileDataBanner
+          featureName="Diet Plan & Nutrition Engine"
+          contextMessage="Metabolic baseline, chronic conditions & food allergies are pre-calibrated to calculate your daily BMR and enforce ingredient guardrails."
+          accentColor="#EA580C"
+          style={{ marginBottom: '20px' }}
+        />
+
         {/* Header */}
         <div
           style={{

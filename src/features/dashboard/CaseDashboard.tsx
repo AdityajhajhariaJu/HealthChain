@@ -41,6 +41,7 @@ import { ImmersiveMediaCard } from '../../components/ui/ImmersiveMediaCard';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import { CompleteProfileModal } from '../../components/ui/CompleteProfileModal';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { VitaminSchedulerModal } from '../../components/ui/VitaminSchedulerModal';
 import { getVitaminSchedule, VitaminItem } from '../../services/VitaminScheduleService';
 import { HydrationTrackerModal } from '../../components/ui/HydrationTrackerModal';
@@ -1288,47 +1289,11 @@ export default function CaseDashboard() {
 
         {isProfileComplete && (
           <div style={{ padding: isMobile ? '0 12px 14px' : '0 24px 18px' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 16px',
-              background: '#F0FDF4',
-              border: '1px solid #BBF7D0',
-              borderRadius: '14px',
-              gap: '8px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#065F46', whiteSpace: 'nowrap' }}>
-                  Clinical Dossier Active
-                </span>
-                {profile?.demographics?.age && (
-                  <span style={{ fontSize: '11.5px', color: '#059669', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    ({profile.demographics.age}y • {profile.demographics.bloodGroup && profile.demographics.bloodGroup !== 'Unknown' ? profile.demographics.bloodGroup : 'Verified'})
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  setShowCompleteProfileModal(true);
-                }}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#0F766E',
-                  fontSize: '11.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: 0,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                Edit / Update →
-              </button>
-            </div>
+            <FeatureProfileDataBanner
+              featureName="Daily Circadian Tracker"
+              contextMessage="Circadian medication slots, adherence tracking & drug-nutrient depletion alerts calibrated from your health profile."
+              accentColor="#0D9488"
+            />
           </div>
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}

@@ -8,6 +8,7 @@ import {
 import { GOALS, ACTIVITY_LEVELS, RESTRICTIONS, MEDICAL_CONDITIONS, CUISINES, MEAL_SCHEDULES } from './Dietician';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getProfile as getCoreProfile } from '../../services/ProfileEngine';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 function computeTargets(p: any) {
@@ -73,20 +74,25 @@ export function OnboardingWizard({
   const isMobile = useIsMobile();
   const [step, setStep] = useState(1);
   const coreProfile = getCoreProfile();
+  const demo = coreProfile?.demographics || {};
+  const defaultW = demo.weight || coreProfile?.weight || '';
+  const defaultH = demo.height || coreProfile?.height || '';
+  const defaultA = demo.age || coreProfile?.age || '';
+  const defaultG = (demo.gender || coreProfile?.gender || '').toLowerCase() === 'female' ? 'female' : 'male';
 
   const [data, setData] = useState(() => {
     if (initialData) {
       return {
-        weight: initialData.weight ? String(initialData.weight) : (coreProfile?.weight ? String(coreProfile.weight) : ''),
+        weight: initialData.weight ? String(initialData.weight) : (defaultW ? String(defaultW) : ''),
         weightUnit: initialData.weightUnit || 'kg',
         targetWeight: initialData.targetWeight ? String(initialData.targetWeight) : '',
         targetDays: initialData.targetDays ? String(initialData.targetDays) : '90',
-        height: initialData.height ? String(initialData.height) : (coreProfile?.height ? String(coreProfile.height) : ''),
+        height: initialData.height ? String(initialData.height) : (defaultH ? String(defaultH) : ''),
         heightUnit: initialData.heightUnit || 'cm',
         heightFt: initialData.heightFt || '',
         heightIn: initialData.heightIn || '',
-        age: initialData.age ? String(initialData.age) : (coreProfile?.age ? String(coreProfile.age) : ''),
-        gender: initialData.gender || (coreProfile?.gender?.toLowerCase() === 'female' ? 'female' : 'male'),
+        age: initialData.age ? String(initialData.age) : (defaultA ? String(defaultA) : ''),
+        gender: initialData.gender || defaultG,
         goal: initialData.goal || 'Lose weight',
         activityLevel: initialData.activityLevel || 'moderate',
         restrictions: initialData.restrictions || ['None'],
@@ -102,16 +108,16 @@ export function OnboardingWizard({
     const matchedRestrictions = RESTRICTIONS.filter(r => allergies.some((a: string) => a.toLowerCase().includes(r.toLowerCase())));
 
     return {
-      weight: coreProfile?.weight ? String(coreProfile.weight) : '',
+      weight: defaultW ? String(defaultW) : '',
       weightUnit: 'kg',
-      targetWeight: coreProfile?.weight ? String(Math.max(20, Number(coreProfile.weight) - 5)) : '',
+      targetWeight: defaultW ? String(Math.max(20, Number(defaultW) - 5)) : '',
       targetDays: '90',
-      height: coreProfile?.height ? String(coreProfile.height) : '',
+      height: defaultH ? String(defaultH) : '',
       heightUnit: 'cm',
       heightFt: '',
       heightIn: '',
-      age: coreProfile?.age ? String(coreProfile.age) : '',
-      gender: coreProfile?.gender?.toLowerCase() === 'female' ? 'female' : 'male',
+      age: defaultA ? String(defaultA) : '',
+      gender: defaultG,
       goal: 'Lose weight',
       activityLevel: 'moderate',
       restrictions: matchedRestrictions.length > 0 ? matchedRestrictions : ['None'],
@@ -346,6 +352,12 @@ export function OnboardingWizard({
         {/* STEP 1: METABOLIC BASELINE */}
         {step === 1 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <FeatureProfileDataBanner
+              featureName="Diet Plan Onboarding"
+              contextMessage="Pre-populated from your calibrated profile. You can edit your biometrics, conditions, or allergies directly here."
+              accentColor="#EA580C"
+              style={{ marginBottom: '20px' }}
+            />
             <h2
               style={{
                 fontSize: isMobile ? '22px' : '26px',

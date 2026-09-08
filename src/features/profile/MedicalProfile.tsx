@@ -65,6 +65,7 @@ import { generateProfileSynthesis } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getRunScope } from '../../services/RunContext';
 import { cleanClinicalText } from '../../components/ui/RichReportTemplate';
+import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 
 
 export default function MedicalProfile() {
@@ -408,6 +409,14 @@ export default function MedicalProfile() {
       transition={{ duration: 0.4, staggerChildren: 0.1 }}
       style={{ paddingBottom: '80px' }}
     >
+      {/* Master Profile Active Data Hub Banner */}
+      <FeatureProfileDataBanner 
+        featureName="Master Medical Profile" 
+        contextMessage="Master Health Vault: Edits made here immediately synchronize across Consult, Diet Plan, War Room, Clinical Health Engine, and Daily Vitamins." 
+        accentColor="#059669" 
+        style={{ marginBottom: '20px' }} 
+      />
+
       {/* Premium Hero Header */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}

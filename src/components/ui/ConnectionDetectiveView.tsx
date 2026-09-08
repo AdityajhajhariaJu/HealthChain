@@ -45,6 +45,7 @@ import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { EliminationProtocolSuite } from './EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
+import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
 
 interface ConnectionDetectiveViewProps {
@@ -146,6 +147,11 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <FeatureProfileDataBanner
+        featureName="Autonomous Clinical Health Engine"
+        contextMessage="Patient conditions, vitals & circadian medications form the root baseline nodes across the 4 data streams and causal cascade."
+        accentColor="#0D9488"
+      />
       {/* 1. Multi-Stream Data Convergence Top Banner */}
       <div
         style={{
