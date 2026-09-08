@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Confetti from 'react-confetti';
 import { useNavigate } from 'react-router-dom';
 import { 
   triggerHapticLight, 
@@ -65,11 +66,11 @@ const GOAL_OPTIONS: GoalOption[] = [
 ];
 
 const AGE_BRACKETS = [
-  { label: '18–25 Gen Z', defaultAge: 22, hint: 'Metabolic Velocity' },
-  { label: '26–35 Prime', defaultAge: 28, hint: 'Hormonal Peak' },
-  { label: '36–49 Mid-Vital', defaultAge: 42, hint: 'Cellular Recovery' },
-  { label: '50–64 Mature', defaultAge: 56, hint: 'Vascular Focus' },
-  { label: '65+ Senior', defaultAge: 68, hint: 'Longevity Protection' },
+  { range: '18–25', stage: 'Gen Z', defaultAge: 22, hint: 'Metabolic Velocity' },
+  { range: '26–35', stage: 'Prime', defaultAge: 28, hint: 'Hormonal Peak' },
+  { range: '36–49', stage: 'Mid-Life', defaultAge: 42, hint: 'Cellular Recovery' },
+  { range: '50–64', stage: 'Mature', defaultAge: 56, hint: 'Vascular Focus' },
+  { range: '65+', stage: 'Senior', defaultAge: 68, hint: 'Longevity Protection' },
 ];
 
 const COMMON_CONDITIONS = [
@@ -173,10 +174,10 @@ export default function OnboardingFlow() {
   }, [heightCm, weightKg]);
 
   const bmiCategory = useMemo(() => {
-    if (bmi < 18.5) return { label: 'Underweight', color: '#3B82F6', bg: '#EFF6FF' };
-    if (bmi < 25) return { label: 'Optimal Equilibrium', color: '#059669', bg: '#ECFDF5' };
-    if (bmi < 30) return { label: 'Elevated Biomass', color: '#D97706', bg: '#FEF3C7' };
-    return { label: 'High Metabolic Load', color: '#DC2626', bg: '#FEF2F2' };
+    if (bmi < 18.5) return { label: 'Lean Baseline 💧', color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' };
+    if (bmi < 25) return { label: 'Optimal Health Zone 🎯', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0' };
+    if (bmi < 30) return { label: 'Elevated Biomass ⚡', color: '#D97706', bg: '#FEF3C7', border: '#FDE68A' };
+    return { label: 'High Metabolic Load 🔥', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' };
   }, [bmi]);
 
   const bmr = useMemo(() => {
@@ -357,7 +358,7 @@ export default function OnboardingFlow() {
           display: 'flex', 
           flexDirection: 'column', 
           overflowY: 'auto', 
-          paddingTop: 'max(48px, calc(env(safe-area-inset-top, 0px) + 28px))',
+          paddingTop: 'max(76px, calc(env(safe-area-inset-top, 0px) + 38px))',
           paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 24px))',
           paddingLeft: isMobile ? '16px' : '32px',
           paddingRight: isMobile ? '16px' : '32px',
@@ -483,7 +484,7 @@ export default function OnboardingFlow() {
             </motion.div>
           )}
 
-          {/* ========================================================================= */}
+                    {/* ========================================================================= */}
           {/* STEP 2: PROFILE PAGE 1 OF 3 — BIOMETRICS & METABOLIC CALIBRATION         */}
           {/* ========================================================================= */}
           {step === 2 && selectedGoal && (
@@ -493,50 +494,67 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '580px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '18px' }}
+              style={{ maxWidth: '580px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '100%' }}
             >
-              {/* Top Navigation & Breadcrumb */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <button
+              {/* Top Navigation & Gamified Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => { triggerHapticLight(); setStep(1); }}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '6px 12px',
+                    padding: '7px 14px',
                     borderRadius: '999px',
-                    background: 'rgba(255, 255, 255, 0.75)',
-                    border: '1px solid #E2E8F0',
-                    color: '#475569',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid #CBD5E1',
+                    color: '#334155',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
                   }}
                 >
                   <ArrowLeft size={14} /> Back
-                </button>
+                </motion.button>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #6EE7B7', padding: '4px 12px', borderRadius: '999px' }}>
-                  <Sparkles size={12} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    PAGE 1 OF 3 • BIOMETRICS (+50 PTS)
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
+                  <Sparkles size={13} color="#059669" />
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                    💎 +50 VITALITY PTS
                   </span>
+                </div>
+              </div>
+
+              {/* Engaging 3-Step Progress Track */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)', transition: 'all 0.3s ease' }} />
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0', transition: 'all 0.3s ease' }} />
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0', transition: 'all 0.3s ease' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                  <span>Stage 1 of 3: Biometrics &amp; Metabolic 🧬</span>
+                  <span style={{ color: '#059669', fontWeight: 800 }}>33% Calibrated</span>
                 </div>
               </div>
 
               {/* Contextual Title */}
               <div>
-                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
                   {selectedGoal.title === 'Track Calories'
                     ? 'Calibrate Metabolic Baseline'
                     : selectedGoal.title === 'Chronic Management'
                     ? 'Calibrate Clinical Baseline'
                     : 'Calibrate Vitality Baseline'}
                 </h2>
-                <p style={{ color: '#475569', fontSize: '13.5px', margin: 0, lineHeight: 1.4 }}>
+                <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
                   {selectedGoal.title === 'Track Calories'
-                    ? 'Add height, weight & age so Ava calculates your personalized BMR & macro targets.'
+                    ? 'Add height, weight & age so Ava calibrates your personalized BMR & macro targets.'
                     : 'Provide your biometrics so our clinical intelligence calibrates against optimal physiological ranges.'}
                 </p>
               </div>
@@ -544,71 +562,80 @@ export default function OnboardingFlow() {
               {/* Biometrics Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.88)',
+                  background: 'rgba(255, 255, 255, 0.92)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '20px',
                   padding: isMobile ? '16px' : '22px',
                   border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '16px'
+                  gap: '14px'
                 }}
               >
                 {/* Age Brackets & Fine Tuning */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Age Bracket &amp; Exact Age</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span>🎂</span> Age Bracket &amp; Exact Age
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', padding: '3px 6px', borderRadius: '999px', border: '1px solid #E2E8F0' }}>
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setAge(prev => Math.max(18, prev - 1)); }}
-                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 800 }}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 900, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}
                       >
-                        -
+                        −
                       </button>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#0F766E', minWidth: '44px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '13.5px', fontWeight: 900, color: '#0F766E', minWidth: '44px', textAlign: 'center' }}>
                         {age} yrs
                       </span>
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setAge(prev => Math.min(100, prev + 1)); }}
-                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 800 }}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #CBD5E1', background: '#FFFFFF', cursor: 'pointer', fontWeight: 900, fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A' }}
                       >
                         +
                       </button>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+                  {/* 5-Column Responsive Age Bracket Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
                     {AGE_BRACKETS.map(b => {
-                      const isSelected = (b.label.startsWith('18') && age >= 18 && age <= 25) ||
-                                         (b.label.startsWith('26') && age >= 26 && age <= 35) ||
-                                         (b.label.startsWith('36') && age >= 36 && age <= 49) ||
-                                         (b.label.startsWith('50') && age >= 50 && age <= 64) ||
-                                         (b.label.startsWith('65') && age >= 65);
+                      const isSelected = (b.range === '18–25' && age >= 18 && age <= 25) ||
+                                         (b.range === '26–35' && age >= 26 && age <= 35) ||
+                                         (b.range === '36–49' && age >= 36 && age <= 49) ||
+                                         (b.range === '50–64' && age >= 50 && age <= 64) ||
+                                         (b.range === '65+' && age >= 65);
                       return (
-                        <button
-                          key={b.label}
+                        <motion.button
+                          key={b.range}
                           type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.94 }}
                           onClick={() => { triggerHapticSelection(); setAge(b.defaultAge); }}
                           style={{
-                            padding: '6px 12px',
-                            borderRadius: '999px',
-                            fontSize: '12px',
-                            fontWeight: 700,
+                            padding: '8px 2px',
+                            borderRadius: '12px',
                             cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            border: isSelected ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
-                            background: isSelected ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
-                            color: isSelected ? '#FFFFFF' : '#64748B',
-                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.25)' : 'none',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '2px',
+                            border: isSelected ? '1.5px solid #059669' : '1px solid #CBD5E1',
+                            background: isSelected ? 'linear-gradient(135deg, #059669 0%, #0D9488 100%)' : '#FFFFFF',
+                            color: isSelected ? '#FFFFFF' : '#334155',
+                            boxShadow: isSelected ? '0 4px 14px rgba(5, 150, 105, 0.28)' : '0 1px 2px rgba(0,0,0,0.02)',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          {b.label}
-                        </button>
+                          <span style={{ fontSize: '12px', fontWeight: 800, lineHeight: 1.1 }}>{b.range}</span>
+                          <span style={{ fontSize: '9.5px', fontWeight: 700, opacity: isSelected ? 0.95 : 0.65, letterSpacing: '0.2px' }}>{b.stage}</span>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -616,47 +643,60 @@ export default function OnboardingFlow() {
 
                 {/* Biological Sex */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>Biological Sex</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+                    <span>🧬</span> Biological Sex
+                  </label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {(['Male', 'Female', 'Other'] as const).map(g => {
-                      const isSel = gender === g;
+                    {[
+                      { label: 'Male', emoji: '👨' },
+                      { label: 'Female', emoji: '👩' },
+                      { label: 'Other', emoji: '✨' }
+                    ].map(g => {
+                      const isSel = gender === g.label;
                       return (
-                        <button
-                          key={g}
+                        <motion.button
+                          key={g.label}
                           type="button"
-                          onClick={() => { triggerHapticSelection(); setGender(g); }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => { triggerHapticSelection(); setGender(g.label as any); }}
                           style={{
-                            padding: '10px',
+                            padding: '10px 8px',
                             borderRadius: '12px',
                             fontSize: '13px',
-                            fontWeight: 700,
+                            fontWeight: 800,
                             cursor: 'pointer',
-                            border: isSel ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
-                            background: isSel ? '#F0FDFA' : '#FFFFFF',
-                            color: isSel ? '#0F766E' : '#64748B',
-                            boxShadow: isSel ? '0 2px 8px rgba(15, 118, 110, 0.15)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            border: isSel ? '2px solid #059669' : '1px solid #CBD5E1',
+                            background: isSel ? 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)' : '#FFFFFF',
+                            color: isSel ? '#065F46' : '#475569',
+                            boxShadow: isSel ? '0 4px 12px rgba(5, 150, 105, 0.15)' : 'none',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          {g}
-                        </button>
+                          <span style={{ fontSize: '15px' }}>{g.emoji}</span>
+                          <span>{g.label}</span>
+                          {isSel && <Check size={14} color="#059669" />}
+                        </motion.button>
                       );
                     })}
                   </div>
                 </div>
 
                 {/* Height & Weight Stepper Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
                   {/* Height */}
-                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                         <Ruler size={14} color="#0D9488" /> Height
                       </span>
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setHeightUnit(prev => prev === 'cm' ? 'ft' : 'cm'); }}
-                        style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: '6px', padding: '2px 6px', cursor: 'pointer' }}
+                        style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer' }}
                       >
                         {heightUnit.toUpperCase()} ⇄
                       </button>
@@ -666,17 +706,22 @@ export default function OnboardingFlow() {
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setHeightCm(prev => Math.max(100, prev - 1)); }}
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
+                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        -
+                        −
                       </button>
-                      <span style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                        {heightUnit === 'cm' ? `${heightCm} cm` : `${Math.floor((heightCm / 2.54) / 12)}'${Math.round((heightCm / 2.54) % 12)}"`}
-                      </span>
+                      <div style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                          {heightUnit === 'cm' ? `${heightCm}` : `${Math.floor((heightCm / 2.54) / 12)}'${Math.round((heightCm / 2.54) % 12)}"`}
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginLeft: '3px' }}>
+                          {heightUnit === 'cm' ? 'cm' : ''}
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setHeightCm(prev => Math.min(230, prev + 1)); }}
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
+                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         +
                       </button>
@@ -684,15 +729,15 @@ export default function OnboardingFlow() {
                   </div>
 
                   {/* Weight */}
-                  <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '12px 14px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '12px 14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                         <Scale size={14} color="#0D9488" /> Weight
                       </span>
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setWeightUnit(prev => prev === 'kg' ? 'lbs' : 'kg'); }}
-                        style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: '6px', padding: '2px 6px', cursor: 'pointer' }}
+                        style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', background: '#F0FDFA', border: '1px solid #99F6E4', borderRadius: '6px', padding: '2px 8px', cursor: 'pointer' }}
                       >
                         {weightUnit.toUpperCase()} ⇄
                       </button>
@@ -702,17 +747,22 @@ export default function OnboardingFlow() {
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setWeightKg(prev => Math.max(30, prev - 1)); }}
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
+                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        -
+                        −
                       </button>
-                      <span style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                        {weightUnit === 'kg' ? `${weightKg} kg` : `${Math.round(weightKg * 2.20462)} lbs`}
-                      </span>
+                      <div style={{ textAlign: 'center' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                          {weightUnit === 'kg' ? `${weightKg}` : `${Math.round(weightKg * 2.20462)}`}
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginLeft: '3px' }}>
+                          {weightUnit === 'kg' ? 'kg' : 'lbs'}
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => { triggerHapticSelection(); setWeightKg(prev => Math.min(220, prev + 1)); }}
-                        style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #E2E8F0', background: '#F8FAFC', cursor: 'pointer', fontWeight: 800 }}
+                        style={{ width: '36px', height: '36px', borderRadius: '10px', border: '1px solid #CBD5E1', background: '#F8FAFC', cursor: 'pointer', fontWeight: 900, fontSize: '18px', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         +
                       </button>
@@ -724,54 +774,87 @@ export default function OnboardingFlow() {
                 <div
                   style={{
                     background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-                    borderRadius: 16,
+                    borderRadius: 18,
                     padding: '14px 16px',
                     border: '1.5px solid #99F6E4',
+                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                        METABOLIC EQUILIBRIUM
+                      <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Activity size={12} /> METABOLIC EQUILIBRIUM
                       </div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1C1917', marginTop: 2 }}>
-                        BMI: <strong>{bmi}</strong> • <span style={{ color: bmiCategory.color }}>{bmiCategory.label}</span>
+                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: 2, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <span>BMI: {bmi}</span>
+                        <span style={{ 
+                          fontSize: '11px', 
+                          fontWeight: 800, 
+                          padding: '2px 8px', 
+                          borderRadius: '999px', 
+                          background: bmiCategory.bg, 
+                          color: bmiCategory.color,
+                          border: `1px solid ${bmiCategory.border}`
+                        }}>
+                          {bmiCategory.label}
+                        </span>
                       </div>
                     </div>
 
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 11, color: '#047857', fontWeight: 600 }}>Estimated BMR</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#0F766E' }}>{bmr} kcal/day</div>
+                    <div style={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.85)', padding: '5px 10px', borderRadius: '10px', border: '1px solid #99F6E4' }}>
+                      <div style={{ fontSize: '10px', color: '#047857', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}>
+                        <Flame size={12} color="#EA580C" /> BMR
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F766E' }}>{bmr} <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B' }}>kcal</span></div>
                     </div>
                   </div>
 
                   {/* Spectrum Track */}
-                  <div style={{ width: '100%', height: '7px', background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)', borderRadius: 999, position: 'relative', marginTop: 8 }}>
-                    <div
+                  <div style={{ width: '100%', height: '8px', background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 35%, #F59E0B 70%, #EF4444 100%)', borderRadius: 999, position: 'relative', marginTop: 8, marginBottom: 8 }}>
+                    <motion.div
+                      layout
+                      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                       style={{
                         position: 'absolute',
                         top: '-4px',
                         left: `${Math.min(96, Math.max(4, ((bmi - 15) / 25) * 100))}%`,
-                        width: '15px',
-                        height: '15px',
+                        width: '16px',
+                        height: '16px',
                         borderRadius: '50%',
                         background: '#FFFFFF',
-                        border: '2.5px solid #0F766E',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                        border: '3px solid #0F766E',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
                         transform: 'translateX(-50%)',
                       }}
                     />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#047857', marginTop: 6, fontWeight: 600 }}>
-                    <span>WHO Healthy Weight: <strong>{idealWeightRange}</strong></span>
-                    <span>Clinical Standard</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#047857', fontWeight: 700 }}>
+                    <span>WHO Optimal: <strong>{idealWeightRange}</strong></span>
+                    <span style={{ fontStyle: 'italic', opacity: 0.85 }}>✨ Real-Time Calibration</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginTop: '4px' }}>
+              {/* Sticky Floating Bottom Action Dock */}
+              <div
+                style={{
+                  position: 'sticky',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  padding: '14px 0 max(16px, env(safe-area-inset-bottom, 0px))',
+                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.94) 30%, #FAF5F0 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  alignItems: 'center',
+                  zIndex: 20,
+                  marginTop: 'auto'
+                }}
+              >
                 <motion.button
                   type="button"
                   onClick={() => { triggerHapticMedium(); setStep(3); }}
@@ -791,7 +874,7 @@ export default function OnboardingFlow() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 10px 25px rgba(5, 150, 105, 0.35)',
+                    boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -805,10 +888,10 @@ export default function OnboardingFlow() {
                     background: 'none',
                     border: 'none',
                     color: '#64748B',
-                    fontSize: '13px',
+                    fontSize: '12.5px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    padding: '6px 12px',
+                    padding: '4px 10px',
                     textDecoration: 'underline',
                     textUnderlineOffset: '3px'
                   }}
@@ -829,44 +912,61 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '18px' }}
+              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '100%' }}
             >
-              {/* Top Navigation & Breadcrumb */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <button
+              {/* Top Navigation & Gamified Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => { triggerHapticLight(); setStep(2); }}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '6px 12px',
+                    padding: '7px 14px',
                     borderRadius: '999px',
-                    background: 'rgba(255, 255, 255, 0.75)',
-                    border: '1px solid #E2E8F0',
-                    color: '#475569',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid #CBD5E1',
+                    color: '#334155',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
                   }}
                 >
                   <ArrowLeft size={14} /> Back
-                </button>
+                </motion.button>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #6EE7B7', padding: '4px 12px', borderRadius: '999px' }}>
-                  <Sparkles size={12} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    PAGE 2 OF 3 • CONDITIONS ({conditions.length} Active)
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
+                  <Sparkles size={13} color="#059669" />
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                    💎 +50 VITALITY PTS
                   </span>
+                </div>
+              </div>
+
+              {/* Engaging 3-Step Progress Track */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                  <span>Stage 2 of 3: Clinical Conditions 🩺 ({conditions.length} Active)</span>
+                  <span style={{ color: '#059669', fontWeight: 800 }}>66% Calibrated</span>
                 </div>
               </div>
 
               {/* Headline */}
               <div>
-                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
                   Diagnosed or Suspected Conditions
                 </h2>
-                <p style={{ color: '#475569', fontSize: '13.5px', margin: 0, lineHeight: 1.4 }}>
+                <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
                   Select any diagnosed or recurring conditions. Tap to toggle or choose "None / Healthy Baseline".
                 </p>
               </div>
@@ -874,13 +974,13 @@ export default function OnboardingFlow() {
               {/* Conditions Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.88)',
+                  background: 'rgba(255, 255, 255, 0.92)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '20px',
                   padding: isMobile ? '16px' : '22px',
                   border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '14px'
@@ -918,9 +1018,11 @@ export default function OnboardingFlow() {
                   {COMMON_CONDITIONS.map((c) => {
                     const isSelected = conditions.includes(c.name);
                     return (
-                      <button
+                      <motion.button
                         key={c.name}
                         type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => toggleCondition(c.name)}
                         style={{
                           display: 'inline-flex',
@@ -942,7 +1044,7 @@ export default function OnboardingFlow() {
                         <span>{c.name}</span>
                         <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: 600 }}>({c.category})</span>
                         {isSelected && <Check size={13} color="#0F766E" />}
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -987,8 +1089,25 @@ export default function OnboardingFlow() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginTop: '4px' }}>
+              {/* Sticky Floating Bottom Action Dock */}
+              <div
+                style={{
+                  position: 'sticky',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  padding: '14px 0 max(16px, env(safe-area-inset-bottom, 0px))',
+                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.94) 30%, #FAF5F0 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  alignItems: 'center',
+                  zIndex: 20,
+                  marginTop: 'auto'
+                }}
+              >
                 <motion.button
                   type="button"
                   onClick={() => { triggerHapticMedium(); setStep(4); }}
@@ -1008,7 +1127,7 @@ export default function OnboardingFlow() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 10px 25px rgba(5, 150, 105, 0.35)',
+                    boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -1022,10 +1141,10 @@ export default function OnboardingFlow() {
                     background: 'none',
                     border: 'none',
                     color: '#64748B',
-                    fontSize: '13px',
+                    fontSize: '12.5px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    padding: '6px 12px',
+                    padding: '4px 10px',
                     textDecoration: 'underline',
                     textUnderlineOffset: '3px'
                   }}
@@ -1046,44 +1165,61 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '18px' }}
+              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '100%' }}
             >
-              {/* Top Navigation & Breadcrumb */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <button
+              {/* Top Navigation & Gamified Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => { triggerHapticLight(); setStep(3); }}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '6px 12px',
+                    padding: '7px 14px',
                     borderRadius: '999px',
-                    background: 'rgba(255, 255, 255, 0.75)',
-                    border: '1px solid #E2E8F0',
-                    color: '#475569',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid #CBD5E1',
+                    color: '#334155',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
                   }}
                 >
                   <ArrowLeft size={14} /> Back
-                </button>
+                </motion.button>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #6EE7B7', padding: '4px 12px', borderRadius: '999px' }}>
-                  <Sparkles size={12} color="#059669" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                    PAGE 3 OF 3 • MEDICATIONS &amp; ALLERGIES
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
+                  <Sparkles size={13} color="#059669" />
+                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                    💎 +50 VITALITY PTS
                   </span>
+                </div>
+              </div>
+
+              {/* Engaging 3-Step Progress Track */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+                  <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                  <span>Stage 3 of 3: Chrono-Meds &amp; Allergies 💊</span>
+                  <span style={{ color: '#059669', fontWeight: 800 }}>Final Step!</span>
                 </div>
               </div>
 
               {/* Headline */}
               <div>
-                <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
+                <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
                   Chrono-Medications &amp; Allergies
                 </h2>
-                <p style={{ color: '#475569', fontSize: '13.5px', margin: 0, lineHeight: 1.4 }}>
+                <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
                   Ensure clinical safety by syncing your daily medication timing and substance sensitivities.
                 </p>
               </div>
@@ -1091,19 +1227,18 @@ export default function OnboardingFlow() {
               {/* Medications Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.88)',
+                  background: 'rgba(255, 255, 255, 0.92)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '20px',
                   padding: isMobile ? '16px' : '20px',
                   border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '14px'
                 }}
               >
-                {/* Header & None shortcut */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                     <Pill size={16} color="#0D9488" /> Regular Medications &amp; Supplements
@@ -1130,88 +1265,158 @@ export default function OnboardingFlow() {
                   </button>
                 </div>
 
-                {/* Preset Pills */}
+                {/* Preset Meds */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {PRESET_MEDICATIONS.map((m) => {
-                    const activeMed = medications.find((item) => item.name === m.name);
-                    const isSelected = Boolean(activeMed);
+                    const isSelected = medications.some((item) => item.name === m.name);
                     return (
-                      <div key={m.name} style={{ display: 'inline-flex', flexDirection: 'column', gap: 4 }}>
-                        <button
-                          type="button"
-                          onClick={() => toggleMedication(m.name, m.defaultSlot)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 14px',
-                            borderRadius: '999px',
-                            fontSize: '12.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
-                            background: isSelected ? '#CCFBF1' : '#FFFFFF',
-                            color: isSelected ? '#0F766E' : '#334155',
-                            boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.18)' : '0 1px 2px rgba(0,0,0,0.02)',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <Pill size={13} color={isSelected ? '#0F766E' : '#94A3B8'} />
-                          <span>{m.name}</span>
-                          <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: 600 }}>({m.hint})</span>
-                          {isSelected && <Check size={13} color="#0F766E" />}
-                        </button>
-
-                        {/* Circadian Slot Selector if selected */}
-                        {isSelected && activeMed && (
-                          <div style={{ display: 'flex', gap: 3, paddingLeft: 6 }}>
-                            {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
-                              const isCurrentSlot = activeMed.slot === slot;
-                              const meta = CIRCADIAN_SLOT_META[slot];
-                              return (
-                                <button
-                                  key={slot}
-                                  type="button"
-                                  onClick={() => updateMedSlot(m.name, slot)}
-                                  style={{
-                                    fontSize: 10.5,
-                                    padding: '2px 6px',
-                                    borderRadius: 6,
-                                    border: isCurrentSlot ? `1px solid ${meta.color}` : '1px solid #E2E8F0',
-                                    background: isCurrentSlot ? meta.bg : '#F8FAFC',
-                                    color: isCurrentSlot ? meta.color : '#64748B',
-                                    fontWeight: isCurrentSlot ? 800 : 500,
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                  }}
-                                >
-                                  <span>{meta.icon}</span> {meta.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
+                      <motion.button
+                        key={m.name}
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => toggleMedication(m.name, m.defaultSlot)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '7px 13px',
+                          borderRadius: '999px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                          background: isSelected ? '#CCFBF1' : '#FFFFFF',
+                          color: isSelected ? '#0F766E' : '#334155',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <Pill size={13} color={isSelected ? '#0D9488' : '#64748B'} />
+                        <span>{m.name}</span>
+                        {isSelected && <Check size={13} color="#0D9488" />}
+                      </motion.button>
                     );
                   })}
                 </div>
+
+                {/* Custom Medication Adder */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Add medication (e.g. Omega 3, CoQ10)..."
+                    value={customMed}
+                    onChange={(e) => setCustomMed(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (customMed.trim()) {
+                          toggleMedication(customMed.trim(), 'morning');
+                          setCustomMed('');
+                        }
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (customMed.trim()) {
+                        toggleMedication(customMed.trim(), 'morning');
+                        setCustomMed('');
+                      }
+                    }}
+                    style={{
+                      padding: '0 14px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: '#0F766E',
+                      color: '#FFFFFF',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Plus size={16} /> Add
+                  </button>
+                </div>
+
+                {/* Selected Medications Circadian Timing Slots */}
+                {medications.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
+                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      Circadian Intake Schedules
+                    </span>
+                    {medications.map((m) => (
+                      <div
+                        key={m.name}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: '#F8FAFC',
+                          padding: '8px 12px',
+                          borderRadius: '12px',
+                          border: '1px solid #E2E8F0'
+                        }}
+                      >
+                        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A' }}>{m.name}</span>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {(['morning', 'midday', 'evening', 'bedtime'] as CircadianSlot[]).map((slot) => {
+                            const isSlot = m.slot === slot;
+                            const slotColor = slot === 'morning' ? '#F59E0B' : slot === 'midday' ? '#F97316' : slot === 'evening' ? '#8B5CF6' : '#6366F1';
+                            const slotEmoji = slot === 'morning' ? '🌅' : slot === 'midday' ? '☀️' : slot === 'evening' ? '🌇' : '🌙';
+                            return (
+                              <button
+                                key={slot}
+                                type="button"
+                                onClick={() => updateMedSlot(m.name, slot)}
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  padding: '4px 8px',
+                                  borderRadius: '8px',
+                                  border: isSlot ? `1.5px solid ${slotColor}` : '1px solid #E2E8F0',
+                                  background: isSlot ? '#FFFFFF' : '#F1F5F9',
+                                  color: isSlot ? slotColor : '#64748B',
+                                  boxShadow: isSlot ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {slotEmoji}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Allergies Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.88)',
+                  background: 'rgba(255, 255, 255, 0.92)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '20px',
                   padding: isMobile ? '16px' : '20px',
                   border: '1.5px solid rgba(255, 255, 255, 0.95)',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.04)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px'
+                  gap: '14px'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1244,9 +1449,11 @@ export default function OnboardingFlow() {
                   {COMMON_ALLERGIES.map((a) => {
                     const isSelected = allergies.some((item) => item.name === a.name);
                     return (
-                      <button
+                      <motion.button
                         key={a.name}
                         type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => toggleAllergy(a.name, a.defaultSeverity)}
                         style={{
                           display: 'inline-flex',
@@ -1267,14 +1474,31 @@ export default function OnboardingFlow() {
                         <span>{a.name}</span>
                         <span style={{ fontSize: '10px', opacity: 0.65 }}>({a.defaultSeverity})</span>
                         {isSelected && <Check size={13} color="#BE123C" />}
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Bottom Action Section */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center', marginTop: '6px' }}>
+              {/* Sticky Floating Bottom Action Dock */}
+              <div
+                style={{
+                  position: 'sticky',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  padding: '14px 0 max(16px, env(safe-area-inset-bottom, 0px))',
+                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.94) 30%, #FAF5F0 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  alignItems: 'center',
+                  zIndex: 20,
+                  marginTop: 'auto'
+                }}
+              >
                 <motion.button
                   type="button"
                   onClick={handleSaveAndContinue}
@@ -1295,7 +1519,7 @@ export default function OnboardingFlow() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 10px 25px rgba(5, 150, 105, 0.35)',
+                    boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -1317,10 +1541,10 @@ export default function OnboardingFlow() {
                     background: 'none',
                     border: 'none',
                     color: '#64748B',
-                    fontSize: '13px',
+                    fontSize: '12.5px',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    padding: '6px 12px',
+                    padding: '4px 10px',
                     textDecoration: 'underline',
                     textUnderlineOffset: '3px'
                   }}
@@ -1348,26 +1572,35 @@ export default function OnboardingFlow() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 textAlign: 'center',
-                padding: '24px'
+                padding: '24px',
+                position: 'relative'
               }}
             >
+              <Confetti
+                width={typeof window !== 'undefined' ? window.innerWidth : 400}
+                height={typeof window !== 'undefined' ? window.innerHeight : 800}
+                recycle={false}
+                numberOfPieces={300}
+                colors={['#10B981', '#059669', '#34D399', '#3B82F6', '#F59E0B', '#8B5CF6']}
+              />
+
               <motion.div
                 initial={{ scale: 0.6, rotate: -20 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 style={{
-                  width: '80px',
-                  height: '80px',
+                  width: '88px',
+                  height: '88px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 16px 36px rgba(5, 150, 105, 0.4)',
+                  boxShadow: '0 16px 40px rgba(5, 150, 105, 0.45)',
                   marginBottom: '20px'
                 }}
               >
-                <Sparkles size={40} color="#FFFFFF" />
+                <Sparkles size={44} color="#FFFFFF" />
               </motion.div>
 
               <div
@@ -1375,28 +1608,29 @@ export default function OnboardingFlow() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '4px 14px',
+                  padding: '6px 16px',
                   borderRadius: '999px',
                   background: '#ECFDF5',
-                  border: '1px solid #6EE7B7',
+                  border: '1.5px solid #6EE7B7',
                   color: '#047857',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  marginBottom: '12px'
+                  fontSize: '12.5px',
+                  fontWeight: 900,
+                  marginBottom: '14px',
+                  boxShadow: '0 2px 10px rgba(5, 150, 105, 0.15)'
                 }}
               >
-                +50 PTS REWARD UNLOCKED • 70 TOTAL PTS
+                💎 +50 VITALITY PTS REWARD UNLOCKED • 70 TOTAL PTS
               </div>
 
-              <h2 style={{ fontSize: isMobile ? '28px' : '32px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
-                Health Profile Calibrated!
+              <h2 style={{ fontSize: isMobile ? '28px' : '34px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
+                Health Profile Calibrated! 🌟
               </h2>
               <p style={{ color: '#475569', fontSize: '15px', margin: '0 0 24px 0', maxWidth: '360px', lineHeight: 1.4 }}>
                 Personalizing your {selectedGoal.title} experience with your verified clinical baseline...
               </p>
 
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#0D9488', fontSize: '13.5px', fontWeight: 700, background: '#F0FDFA', padding: '8px 16px', borderRadius: '999px', border: '1px solid #99F6E4' }}>
-                <Loader2 size={16} className="animate-spin" /> Launching {selectedGoal.title}...
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#0D9488', fontSize: '14px', fontWeight: 800, background: '#F0FDFA', padding: '10px 20px', borderRadius: '999px', border: '1.5px solid #99F6E4', boxShadow: '0 2px 8px rgba(13, 148, 136, 0.1)' }}>
+                <Loader2 size={18} className="animate-spin" /> Launching {selectedGoal.title}...
               </div>
             </motion.div>
           )}
