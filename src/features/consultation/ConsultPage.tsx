@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import QuickConsult from './QuickConsult';
 import { ConnectionDetectiveView } from '../../components/ui/ConnectionDetectiveView';
 import { motion } from 'framer-motion';
@@ -6,6 +7,8 @@ import { Network, Sparkles, Activity, ShieldCheck, ChevronDown } from 'lucide-re
 import { triggerHapticLight } from '../../services/haptics';
 
 export default function ConsultPage() {
+  const location = useLocation();
+
   useEffect(() => {
     if (window.location.hash === '#clinical-data-engine') {
       setTimeout(() => {
@@ -168,7 +171,7 @@ export default function ConsultPage() {
 
       {/* Stage 2: Autonomous Clinical Data Engine */}
       <section style={{ maxWidth: '840px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <ConnectionDetectiveView />
+        <ConnectionDetectiveView initialTab={location.state?.tab || 'map'} />
       </section>
     </div>
   );

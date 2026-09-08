@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
+  ArrowLeft,
   Target,
   TrendingDown,
   Calendar,
@@ -143,61 +145,98 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 9999,
+          zIndex: 999999,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isMobile ? 'flex-end' : 'center',
           justifyContent: 'center',
-          padding: '16px',
+          padding: isMobile ? '0' : '16px',
           background: 'rgba(15, 23, 42, 0.75)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            triggerHapticLight();
+            onClose();
+          }
         }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="elimination-modal-title"
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 16 }}
+          initial={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 16 }}
-          transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+          exit={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 16 }}
+          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
           style={{
             width: '100%',
             maxWidth: '760px',
-            maxHeight: 'calc(100vh - 40px)',
+            maxHeight: isMobile ? 'calc(100vh - max(24px, env(safe-area-inset-top, 24px)))' : 'calc(100vh - 40px)',
+            height: isMobile ? '92vh' : 'auto',
             background: '#FFFFFF',
-            borderRadius: isMobile ? '24px' : '28px',
+            borderRadius: isMobile ? '24px 24px 0 0' : '28px',
             border: '1px solid #E2E8F0',
             boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.35)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div
             style={{
-              padding: isMobile ? '16px 18px' : '20px 24px',
+              padding: isMobile ? '16px 16px 14px' : '20px 24px',
               borderBottom: '1px solid #F1F5F9',
               background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
               display: 'flex',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               justifyContent: 'space-between',
               gap: '12px',
+              flexShrink: 0,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  onClose();
+                }}
+                aria-label="Back to dashboard"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  minWidth: '38px',
+                  minHeight: '38px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#1E293B',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                  transition: 'background 0.15s ease'
+                }}
+              >
+                <ArrowLeft size={18} />
+              </button>
+
               <div
                 style={{
-                  width: isMobile ? '40px' : '46px',
-                  height: isMobile ? '40px' : '46px',
-                  borderRadius: '14px',
+                  width: isMobile ? '36px' : '44px',
+                  height: isMobile ? '36px' : '44px',
+                  borderRadius: '12px',
                   background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
                   display: 'flex',
                   alignItems: 'center',
@@ -207,17 +246,17 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                   flexShrink: 0,
                 }}
               >
-                <Target size={isMobile ? 20 : 24} />
+                <Target size={isMobile ? 18 : 22} />
               </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span
                     style={{
-                      fontSize: '10.5px',
+                      fontSize: '10px',
                       fontWeight: 800,
                       color: '#6D28D9',
                       background: '#EDE9FE',
-                      padding: '2px 8px',
+                      padding: '2px 7px',
                       borderRadius: '999px',
                       letterSpacing: '0.4px',
                       textTransform: 'uppercase',
@@ -225,18 +264,21 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                   >
                     MONASH GI PROTOCOL
                   </span>
-                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>
-                    Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}% Complete)
+                  <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                    Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}%)
                   </span>
                 </div>
                 <h2
                   id="elimination-modal-title"
                   style={{
-                    fontSize: isMobile ? '18px' : '20px',
+                    fontSize: isMobile ? '16px' : '20px',
                     fontWeight: 800,
                     color: '#0F172A',
                     margin: '2px 0 0',
                     letterSpacing: '-0.4px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                 >
                   {activeProtocolDef.name}
@@ -252,12 +294,12 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
               }}
               aria-label="Close elimination outcomes modal"
               style={{
-                width: '44px',
-                height: '44px',
-                minWidth: '44px',
-                minHeight: '44px',
+                width: '38px',
+                height: '38px',
+                minWidth: '38px',
+                minHeight: '38px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.9)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 border: '1px solid #E2E8F0',
                 display: 'flex',
                 alignItems: 'center',
@@ -265,21 +307,26 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                 color: '#64748B',
                 cursor: 'pointer',
                 flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
               }}
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
 
           {/* Tab Navigation */}
           <div
+            className="hide-scrollbar"
             style={{
               display: 'flex',
               padding: '8px 16px',
               background: '#F8FAFC',
               borderBottom: '1px solid #E2E8F0',
-              gap: '6px',
+              gap: '8px',
               overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}
           >
             {[
@@ -299,7 +346,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                     setActiveTab(tab.id as any);
                   }}
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
                     padding: '8px 14px',
@@ -312,6 +359,8 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                     cursor: 'pointer',
                     boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
                     whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    flex: '0 0 auto',
                     transition: 'all 0.2s ease',
                   }}
                 >
@@ -880,6 +929,7 @@ R (Recommendation):
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

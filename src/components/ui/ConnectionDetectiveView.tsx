@@ -36,6 +36,7 @@ import {
   SystemAxis,
   evaluateSymptomCluster,
 } from '../../services/ConnectionDetectiveEngine';
+import { generateDoctorSummary } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { CaseConnectionMap } from './CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -93,6 +94,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   // Active selected node detail
   const activeNodeDetail = selectedNodeId ? report.nodeDetails[selectedNodeId] : null;
 
+  const dietSummary = useMemo(() => generateDoctorSummary(), [report]);
+
   // Real-time evaluation of symptom cluster
   const clusterEvaluation = useMemo(() => {
     return evaluateSymptomCluster(selectedSymptoms);
@@ -147,11 +150,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      <FeatureProfileDataBanner
-        featureName="Autonomous Clinical Health Engine"
-        contextMessage="Patient conditions, vitals & circadian medications form the root baseline nodes across the 4 data streams and causal cascade."
-        accentColor="#0D9488"
-      />
+
       {/* 1. Multi-Stream Data Convergence Top Banner */}
       <div
         style={{
@@ -1326,6 +1325,25 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     </span>
                   </div>
                 ))}
+              </div>
+            </div>
+            {/* Dietary Trigger Summary (From TriggerEngine) */}
+            <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                Dietary & Biochemical Triggers:
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                <div style={{ background: '#FFFBEB', padding: '10px', borderRadius: '8px', border: '1px solid #FEF3C7', fontSize: '12px' }}>
+                  <strong style={{ color: '#B45309' }}>Primary Culprits: </strong>
+                  <span style={{ color: '#92400E' }}>
+                    {dietSummary.topCulpritFoods.slice(0, 3).map(c => `${c.name} (+${c.correlationPercent}%)`).join(', ')}
+                  </span>
+                </div>
+                
+                <div style={{ background: '#F8FAFC', padding: '10px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '12px' }}>
+                  <strong style={{ color: '#475569' }}>Active Elimination Phase: </strong>
+                  <span style={{ color: '#334155' }}>{dietSummary.activeTrials}</span>
+                </div>
               </div>
             </div>
 

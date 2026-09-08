@@ -633,6 +633,7 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
 
       {/* 2. Sub-Navigation Tabs */}
       <div
+        className="hide-scrollbar"
         style={{
           display: 'flex',
           gap: '6px',
@@ -640,7 +641,9 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
           padding: '4px',
           borderRadius: '14px',
           overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }}
       >
         {[
@@ -659,12 +662,13 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
                 setActiveViewTab(tab.id);
               }}
               style={{
-                flex: 1,
+                flex: isMobile ? '0 0 auto' : 1,
+                flexShrink: 0,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '6px',
-                padding: isMobile ? '8px 10px' : '10px 14px',
+                padding: isMobile ? '8px 12px' : '10px 14px',
                 borderRadius: '10px',
                 border: 'none',
                 background: isActive ? '#FFFFFF' : 'transparent',

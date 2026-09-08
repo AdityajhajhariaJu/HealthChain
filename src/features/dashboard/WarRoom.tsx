@@ -35,8 +35,6 @@ import { getSuspectFoodsLeaderboard, getActiveTrial, ActiveTrialState } from '..
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
-import { PhysicianDossierModal } from '../../components/ui/PhysicianDossierModal';
-import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { getItemSync, setItemSync } from '../../services/storage';
 
 interface ObservationReply {
@@ -102,15 +100,33 @@ export default function WarRoom() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Live profile & clinical data
-  const [profile] = useState(() => getProfile());
-  const [activeCase] = useState(() => getActiveCase());
-  const [biomarkers] = useState<FunctionalBiomarker[]>(() => getFunctionalBiomarkers());
-  const [activeTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
-  const [suspectFoods] = useState(() => getSuspectFoodsLeaderboard());
+  const [profile, setProfile] = useState(() => getProfile());
+  const [activeCase, setActiveCase] = useState(() => getActiveCase());
+  const [biomarkers, setBiomarkers] = useState<FunctionalBiomarker[]>(() => getFunctionalBiomarkers());
+  const [activeTrial, setActiveTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
+  const [suspectFoods, setSuspectFoods] = useState(() => getSuspectFoodsLeaderboard());
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setProfile(getProfile());
+      setActiveCase(getActiveCase());
+      setBiomarkers(getFunctionalBiomarkers());
+      setActiveTrial(getActiveTrial());
+      setSuspectFoods(getSuspectFoodsLeaderboard());
+    };
+    window.addEventListener('hc_profile_updated', handleProfileUpdate);
+    window.addEventListener('hc_biomarkers_updated', handleProfileUpdate);
+    window.addEventListener('hc_triggers_updated', handleProfileUpdate);
+    window.addEventListener('hc_cases_updated', handleProfileUpdate);
+    return () => {
+      window.removeEventListener('hc_profile_updated', handleProfileUpdate);
+      window.removeEventListener('hc_biomarkers_updated', handleProfileUpdate);
+      window.removeEventListener('hc_triggers_updated', handleProfileUpdate);
+      window.removeEventListener('hc_cases_updated', handleProfileUpdate);
+    };
+  }, []);
 
   // Interactive Modals
-  const [showDoctorDossier, setShowDoctorDossier] = useState(false);
-  const [showConnectionDetective, setShowConnectionDetective] = useState(false);
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [showTriageModal, setShowTriageModal] = useState(false);
 
@@ -273,23 +289,23 @@ export default function WarRoom() {
     let specialty: 'cardio' | 'gastro' | 'immuno' | 'metabolic' = 'metabolic';
     let doctorName = 'Dr. Julian Rivera (Metabolic & Functional Medicine)';
     let doctorBadgeColor = '#F59E0B';
-    let specialistAnalysis = 'Symptom pattern evaluated against metabolic reserves and cellular bioenergetics. Recommend reviewing postprandial glucose curve and micronutrient bioavailability.';
+    let specialistAnalysis = 'Likely bioenergetic or metabolic reserve shift — review postprandial glucose curve and recent micronutrient intake.';
 
     if (/\b(tachycardia|heart|palpitat|rate|pot|orthostatic|dizzy|lighthead|standing|blood pressure|hrv|syncope)\b/i.test(lower)) {
       specialty = 'cardio';
       doctorName = 'Dr. Sarah Jenkins (Cardiology & Autonomics)';
       doctorBadgeColor = '#EF4444';
-      specialistAnalysis = 'Symptom timing correlates with orthostatic autonomic stress and postprandial splanchnic shift. Blood diversion to the digestive vascular bed reduces venous return to the right atrium, provoking sinus tachycardia. Suggest monitoring 10-minute active standing HR and maintaining pre-meal sodium-electrolyte hydration.';
+      specialistAnalysis = 'Likely splanchnic-mediated tachycardia — log standing HR for 10 min and hydrate with electrolytes before next meal.';
     } else if (/\b(bloat|distension|gut|stomach|gas|reflux|gerd|bowel|abdominal|cramp|constipat|diarrhea|fodmap|nausea)\b/i.test(lower)) {
       specialty = 'gastro';
       doctorName = 'Dr. Marcus Vance (Functional Gastroenterology)';
       doctorBadgeColor = '#0D9488';
-      specialistAnalysis = 'Presentation indicates rapid carbohydrate fermentation transit or visceral hypersensitivity (Roemheld-type diaphragm elevation). Cross-checking active suspect foods against the current elimination trial. Recommend logging the exact ingredients in Dietitian to update trial correlations.';
+      specialistAnalysis = 'Possible rapid fermentation transit or visceral hypersensitivity — log exact meal ingredients to cross-check elimination trial.';
     } else if (/\b(histamine|rash|itch|flush|hive|allergy|sinus|headache|mast cell|mcas|sneez)\b/i.test(lower)) {
       specialty = 'immuno';
       doctorName = 'Dr. Elena Rostova (Clinical Immunology & Allergy)';
       doctorBadgeColor = '#8B5CF6';
-      specialistAnalysis = 'Symptoms suggest acute biogenic amine threshold saturation or mast cell mediator release. Recommend reviewing dietary histamine intake over the last 6 hours and ensuring DAO cofactor repletion.';
+      specialistAnalysis = 'Suspect acute histamine saturation or mediator release — review dietary intake over last 6 hours and ensure DAO support.';
     }
 
     const patientName = profile?.name || profile?.demographics?.name || 'You';
@@ -318,7 +334,7 @@ export default function WarRoom() {
           role: 'Clinical AI Coordinator',
           badgeColor: '#0D9488',
           avatarBg: 'rgba(13, 148, 136, 0.12)',
-          content: `Logged to Health Memory. Cross-referenced with active case "${activeCase?.title || 'Clinical Surveillance'}". This finding has been prepared for inclusion in your next Physician Dossier brief.`,
+          content: `✓ Logged. Cross-referenced with your active case.`,
           timestamp: 'Just now'
         }
       ],
@@ -420,8 +436,8 @@ export default function WarRoom() {
 
       {/* Sticky Premium Header */}
       <header style={{
-        padding: 'env(safe-area-inset-top, 44px) 20px 16px',
-        background: 'rgba(255, 255, 255, 0.92)',
+        padding: isMobile ? 'calc(env(safe-area-inset-top, 12px) + 12px) 16px 12px' : '20px 24px',
+        background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         position: 'sticky',
@@ -431,9 +447,12 @@ export default function WarRoom() {
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+        width: '100%',
+        boxSizing: 'border-box',
+        gap: '12px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
           <button 
             type="button"
             aria-label="Back to previous screen"
@@ -443,10 +462,10 @@ export default function WarRoom() {
               else navigate('/app/today'); 
             }}
             style={{ 
-              width: '44px', 
-              height: '44px', 
-              minWidth: '44px', 
-              minHeight: '44px', 
+              width: '40px', 
+              height: '40px', 
+              minWidth: '40px', 
+              minHeight: '40px', 
               borderRadius: '50%', 
               background: '#F1F5F9', 
               border: 'none', 
@@ -459,10 +478,20 @@ export default function WarRoom() {
           >
             <ArrowLeft size={20} color="#0F172A" />
           </button>
-          <div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.4px' }}>
-                Collaborative Health Canvas
+              <h1 style={{ 
+                fontSize: isMobile ? '17px' : '20px', 
+                fontWeight: 800, 
+                margin: 0, 
+                color: '#0F172A', 
+                letterSpacing: '-0.4px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                Health Canvas
               </h1>
               <span style={{
                 background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
@@ -474,13 +503,22 @@ export default function WarRoom() {
                 letterSpacing: '0.4px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '4px',
+                flexShrink: 0
               }}>
                 <Sparkles size={11} /> ROUNDS
               </span>
             </div>
-            <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-              Autonomous Multi-Specialist Surveillance & Patient Board
+            <p style={{ 
+              margin: '2px 0 0', 
+              fontSize: '12px', 
+              color: '#64748B', 
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              Multi-Specialist Surveillance Board
             </p>
           </div>
         </div>
@@ -491,12 +529,13 @@ export default function WarRoom() {
           aria-label="Open Physician Dossier Brief"
           onClick={() => {
             triggerHapticSelection();
-            setShowDoctorDossier(true);
+            navigate('/app/consult', { state: { tab: 'dossier' } });
           }}
           style={{
-            height: '42px',
-            padding: '0 14px',
-            borderRadius: '12px',
+            height: '40px',
+            width: isMobile ? '40px' : 'auto',
+            padding: isMobile ? '0' : '0 14px',
+            borderRadius: isMobile ? '50%' : '12px',
             background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
             color: '#FFF',
             border: 'none',
@@ -504,6 +543,7 @@ export default function WarRoom() {
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: '6px',
             cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
@@ -511,18 +551,14 @@ export default function WarRoom() {
           }}
         >
           <ClipboardList size={16} />
-          <span style={{ display: isMobile ? 'none' : 'inline' }}>Doctor Brief</span>
+          {!isMobile && <span>Doctor Brief</span>}
         </button>
       </header>
 
       {/* Main Content Area */}
       <main style={{ maxWidth: '1024px', margin: '0 auto', padding: isMobile ? '16px' : '24px', display: 'grid', gap: '20px' }}>
 
-        <FeatureProfileDataBanner
-          featureName="Health Canvas War Room"
-          contextMessage="Pinned Patient Anchor: Multi-specialist rounds, physician notes & diagnostic hypotheses are continuously cross-referenced with your calibrated baseline."
-          accentColor="#2563EB"
-        />
+
 
         {/* Live Patient Surveillance Status Banner */}
         <section 
@@ -548,7 +584,7 @@ export default function WarRoom() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <button
                   type="button"
-                  onClick={() => { triggerHapticLight(); setShowConnectionDetective(true); }}
+                  onClick={() => { triggerHapticLight(); navigate('/app/consult'); }}
                   style={{
                     background: 'rgba(255, 255, 255, 0.12)',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -981,7 +1017,7 @@ export default function WarRoom() {
                       onClick={() => {
                         triggerHapticLight();
                         if (obs.actionRoute === 'detective_modal') {
-                          setShowConnectionDetective(true);
+                          navigate('/app/consult');
                         } else if (obs.actionRoute) {
                           navigate(obs.actionRoute, {
                             state: {
@@ -1018,7 +1054,7 @@ export default function WarRoom() {
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      setShowDoctorDossier(true);
+                      navigate('/app/consult');
                     }}
                     style={{
                       flex: 1,
@@ -1038,7 +1074,7 @@ export default function WarRoom() {
                     }}
                   >
                     <ClipboardList size={15} />
-                    Add to Doctor SBAR
+                    Dive Deeper
                   </button>
                 </div>
               </motion.article>
@@ -1072,7 +1108,7 @@ export default function WarRoom() {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
               type="button"
-              onClick={() => { triggerHapticLight(); setShowConnectionDetective(true); }}
+              onClick={() => { triggerHapticLight(); navigate('/app/consult'); }}
               style={{
                 background: '#FFF',
                 border: '1px solid #CBD5E1',
@@ -1110,7 +1146,7 @@ export default function WarRoom() {
             </button>
             <button
               type="button"
-              onClick={() => { triggerHapticLight(); navigate('/app/consult'); }}
+              onClick={() => { triggerHapticLight(); navigate('/app/consult', { state: { tab: 'consensus' } }); }}
               style={{
                 background: '#FFF',
                 border: '1px solid #CBD5E1',
@@ -1125,26 +1161,14 @@ export default function WarRoom() {
                 gap: '5px'
               }}
             >
-              <Stethoscope size={14} /> Full MDT Consult
+              <ShieldCheck size={14} /> Clinical Boards
             </button>
           </div>
         </section>
 
       </main>
 
-      {/* Physician Dossier Export Modal */}
-      <PhysicianDossierModal
-        isOpen={showDoctorDossier}
-        onClose={() => setShowDoctorDossier(false)}
-      />
 
-      {/* Connection Detective Modal */}
-      <ConnectionDetectiveModal
-        isOpen={showConnectionDetective}
-        onClose={() => setShowConnectionDetective(false)}
-        onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
-        onOpenConsult={() => navigate('/app/consult')}
-      />
 
       {/* Emergency Triage Modal Guardrail */}
       <EmergencyTriageModal

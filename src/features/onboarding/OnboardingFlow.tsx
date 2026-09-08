@@ -494,33 +494,7 @@ export default function OnboardingFlow() {
                           {goal.badge}
                         </span>
                       </div>
-                      <p style={{ margin: '0 0 6px 0', color: '#64748B', fontSize: '13px', lineHeight: 1.3 }}>{goal.desc}</p>
-                      {goal.dataPills && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '9px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                            Uses Data:
-                          </span>
-                          {goal.dataPills.map((pill, pIdx) => (
-                            <span 
-                              key={pIdx}
-                              style={{ 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
-                                gap: '3px', 
-                                fontSize: '10px', 
-                                fontWeight: 700, 
-                                padding: '2px 6px', 
-                                borderRadius: '999px', 
-                                background: 'rgba(255, 255, 255, 0.9)', 
-                                border: '1px solid #CBD5E1', 
-                                color: '#334155' 
-                              }}
-                            >
-                              <span style={{ fontSize: '10.5px' }}>{pill.icon}</span> {pill.label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <p style={{ margin: 0, color: '#64748B', fontSize: '13px', lineHeight: 1.35 }}>{goal.desc}</p>
                     </div>
                     <ChevronRight size={20} color="#0D9488" style={{ flexShrink: 0 }} />
                   </motion.button>

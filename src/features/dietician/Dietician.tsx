@@ -381,7 +381,11 @@ export default function Dietician() {
       }
     };
     load().finally(() => setIsHydrated(true));
-    return () => { cancelled = true; };
+    window.addEventListener('hc_profile_updated', load);
+    return () => { 
+      cancelled = true; 
+      window.removeEventListener('hc_profile_updated', load);
+    };
   }, []);
 
   // Save state to local storage when it changes
@@ -797,12 +801,7 @@ export default function Dietician() {
     <div style={{ paddingBottom: '100px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         
-        <FeatureProfileDataBanner
-          featureName="Diet Plan & Nutrition Engine"
-          contextMessage="Metabolic baseline, chronic conditions & food allergies are pre-calibrated to calculate your daily BMR and enforce ingredient guardrails."
-          accentColor="#EA580C"
-          style={{ marginBottom: '20px' }}
-        />
+
 
         {/* Header */}
         <div

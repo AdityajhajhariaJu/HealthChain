@@ -63,7 +63,6 @@ export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
-import { PhysicianDossierModal } from '../../components/ui/PhysicianDossierModal';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
@@ -92,7 +91,6 @@ export default function CaseDashboard() {
   const [showFrictionModal, setShowFrictionModal] = useState(false);
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
-  const [showDoctorDossier, setShowDoctorDossier] = useState(false);
   const [showDetectiveModal, setShowDetectiveModal] = useState(false);
   const [profile, setProfile] = useState(() => getProfile());
 
@@ -259,7 +257,7 @@ export default function CaseDashboard() {
                 type="button"
                 onClick={() => {
                   triggerHapticLight();
-                  setShowDoctorDossier(true);
+                  navigate('/app/consult', { state: { tab: 'dossier' } });
                 }}
                 aria-label="Open 10-minute Doctor Visit Brief"
                 style={{
@@ -1531,11 +1529,6 @@ export default function CaseDashboard() {
           onClose={() => setActiveMeditation(null)} 
         />
       )}
-
-      <PhysicianDossierModal
-        isOpen={showDoctorDossier}
-        onClose={() => setShowDoctorDossier(false)}
-      />
 
       <ConnectionDetectiveModal
         isOpen={showDetectiveModal}

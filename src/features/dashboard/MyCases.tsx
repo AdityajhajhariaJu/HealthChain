@@ -7,8 +7,6 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import Skeleton from '../../components/ui/Skeleton';
 import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
-import { ConnectionTriggerHeroCard } from '../../components/ui/ConnectionTriggerHeroCard';
-import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const formatDate = (value: string) => {
   try {
@@ -139,8 +137,6 @@ export default function MyCases() {
   const [caseToDelete, setCaseToDelete] = useState<CaseItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<'list' | 'canvas'>('list');
-  const [showDetectiveModal, setShowDetectiveModal] = useState(false);
-  const [detectiveInitialTab, setDetectiveInitialTab] = useState<string>('map');
   const itemsPerPage = 5;
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -216,13 +212,27 @@ export default function MyCases() {
         })}
       </section>
 
-      {/* CLINIC USP ENGINE: Connection Detective Hero Card */}
-      <ConnectionTriggerHeroCard
-        onInvestigate={(tab?: string) => {
-          setDetectiveInitialTab(tab || 'map');
-          setShowDetectiveModal(true);
-        }}
-      />
+      {/* Quick Navigation — replaces the heavy ConnectionTriggerHeroCard */}
+      <div style={{ display: 'flex', gap: '8px', margin: '0 0 16px' }}>
+        <button onClick={() => navigate('/app/consult')}
+          style={{ flex: 1, padding: '10px', borderRadius: '12px',
+                   background: '#F0F4FF', border: '1px solid #DBEAFE',
+                   fontSize: '12.5px', fontWeight: 600, color: '#1E40AF', cursor: 'pointer' }}>
+          🔬 Root Cause Engine
+        </button>
+        <button onClick={() => navigate('/app/war-room')}
+          style={{ flex: 1, padding: '10px', borderRadius: '12px',
+                   background: '#F0FDFA', border: '1px solid #CCFBF1',
+                   fontSize: '12.5px', fontWeight: 600, color: '#0F766E', cursor: 'pointer' }}>
+          🏥 Clinical Journal
+        </button>
+        <button onClick={() => navigate('/app/case-prep')}
+          style={{ flex: 1, padding: '10px', borderRadius: '12px',
+                   background: '#FFF7ED', border: '1px solid #FED7AA',
+                   fontSize: '12.5px', fontWeight: 600, color: '#9A3412', cursor: 'pointer' }}>
+          📋 Doctor Prep
+        </button>
+      </div>
 
       {!isLoading && cases.length >= 2 && (<>
                 <CrossCaseInsightBanner cases={cases} isMobile={isMobile} />
@@ -526,20 +536,7 @@ export default function MyCases() {
         )}
       </AnimatePresence>
 
-      {/* Connection Detective Multi-System Intelligence Modal */}
-      <ConnectionDetectiveModal
-        isOpen={showDetectiveModal}
-        initialTab={detectiveInitialTab as any}
-        onClose={() => setShowDetectiveModal(false)}
-        onOpenFoodDetective={() => {
-          setShowDetectiveModal(false);
-          navigate('/app/dietician');
-        }}
-        onOpenConsult={() => {
-          setShowDetectiveModal(false);
-          navigate('/app/ava');
-        }}
-      />
+
     </div>
   );
 }

@@ -352,12 +352,7 @@ export function OnboardingWizard({
         {/* STEP 1: METABOLIC BASELINE */}
         {step === 1 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <FeatureProfileDataBanner
-              featureName="Diet Plan Onboarding"
-              contextMessage="Pre-populated from your calibrated profile. You can edit your biometrics, conditions, or allergies directly here."
-              accentColor="#EA580C"
-              style={{ marginBottom: '20px' }}
-            />
+
             <h2
               style={{
                 fontSize: isMobile ? '22px' : '26px',

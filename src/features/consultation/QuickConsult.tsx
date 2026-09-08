@@ -203,6 +203,13 @@ export default function QuickConsult() {
     else sessionStorage.removeItem(getQuickCaseKey());
   }, [activeCase]);
 
+  const [profile, setProfile] = useState(() => getProfile());
+  useEffect(() => {
+    const handleUpdate = () => setProfile(getProfile());
+    window.addEventListener('hc_profile_updated', handleUpdate);
+    return () => window.removeEventListener('hc_profile_updated', handleUpdate);
+  }, []);
+
   const filteredSpecialists = ALL_SPECIALISTS.filter((s) =>
     s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -463,11 +470,7 @@ export default function QuickConsult() {
               <JarvisCore size={isMobile ? 180 : 250} />
             </div>
             
-            <FeatureProfileDataBanner
-              featureName="Consult & Specialists"
-              contextMessage="Specialists factor these baseline comorbidities, circadian medications & allergies directly into their differential diagnosis."
-              style={{ position: 'relative', zIndex: 2, marginBottom: '20px' }}
-            />
+
 
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
               <div style={{ maxWidth: isMobile ? '100%' : '65%' }}>
@@ -892,10 +895,10 @@ export default function QuickConsult() {
                 intakeData={{ 
                   chiefComplaint: symptomInput,
                   patientProfile: {
-                    demographics: getProfile()?.demographics,
-                    conditions: getProfile()?.conditions,
-                    medications: getProfile()?.medications,
-                    allergies: getProfile()?.allergies
+                    demographics: profile?.demographics || getProfile()?.demographics,
+                    conditions: profile?.conditions || getProfile()?.conditions,
+                    medications: profile?.medications || getProfile()?.medications,
+                    allergies: profile?.allergies || getProfile()?.allergies
                   }
                 }}
                 activeDifferentials={[]}
