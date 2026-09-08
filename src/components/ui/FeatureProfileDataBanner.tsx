@@ -274,6 +274,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {/* Quick Edit CTA */}
           <button
             type="button"
+            data-compact="true"
+            className="btn-compact"
             onClick={openModal}
             style={{
               display: 'inline-flex',
@@ -281,200 +283,281 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
               gap: '5px',
               background: '#FFFFFF',
               border: '1px solid #CBD5E1',
-              padding: '6px 12px',
+              padding: '4px 10px',
               borderRadius: '999px',
-              fontSize: '12px',
+              fontSize: '11px',
               fontWeight: 700,
               color: '#0F766E',
               cursor: 'pointer',
+              minWidth: 'unset',
+              minHeight: 'unset',
+              height: 'auto',
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
               transition: 'all 0.15s ease'
             }}
           >
-            <Edit3 size={13} /> Edit Baseline
+            <Edit3 size={12} /> Edit Baseline
           </button>
         </div>
 
-        {/* Dynamic Pills Flow */}
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '7px', paddingTop: '2px' }}>
-          {/* 1. Demographics Pill */}
+        {/* Organized Health Profile Sections (Categorized & Compact) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '4px' }}>
+          
+          {/* 1. Biometrics & Demographics */}
           {(demographics.age || demographics.height || demographics.weight) && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                background: '#F1F5F9',
-                border: '1px solid #CBD5E1',
-                padding: '4px 10px',
-                borderRadius: '999px',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: '#1E293B'
-              }}
-            >
-              <span>🧬</span>
-              <span>
-                {demographics.age ? `${demographics.age}yo ` : ''}
-                {demographics.gender ? `${demographics.gender} ` : ''}
-                {demographics.height ? `• ${demographics.height}cm ` : ''}
-                {demographics.weight ? `/ ${demographics.weight}kg ` : ''}
-                {demographics.bmi ? `• BMI ${demographics.bmi}` : ''}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px' }}>
+                <span>🧬</span> Vitals
               </span>
-            </span>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  padding: '2.5px 8px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  color: '#1E293B',
+                  lineHeight: 1.2
+                }}
+              >
+                <span>
+                  {demographics.age ? `${demographics.age}yo ` : ''}
+                  {demographics.gender ? `${demographics.gender} ` : ''}
+                  {demographics.height ? `• ${demographics.height}cm ` : ''}
+                  {demographics.weight ? `/ ${demographics.weight}kg ` : ''}
+                  {demographics.bmi ? `• BMI ${demographics.bmi}` : ''}
+                </span>
+              </span>
+            </div>
           )}
 
-          {/* 2. Condition Pills */}
-          {conditions.map((cName) => {
-            const meta = COMMON_CONDITIONS_META[cName] || { icon: '🩺', category: 'Clinical' };
-            return (
-              <span
-                key={cName}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  background: '#ECFDF5',
-                  border: '1px solid #6EE7B7',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: '#047857',
-                  boxShadow: '0 1px 3px rgba(5, 150, 105, 0.08)'
-                }}
-              >
-                <span>{meta.icon}</span>
-                <span>{cName}</span>
-                <button
-                  type="button"
-                  aria-label={`Remove condition ${cName}`}
-                  onClick={(e) => handleRemoveCondition(cName, e)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: '0 1px',
-                    color: '#059669',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <X size={12} />
-                </button>
+          {/* 2. Diagnosed Conditions */}
+          {conditions.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px', paddingTop: '3px' }}>
+                <span>🩺</span> Conditions
               </span>
-            );
-          })}
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+                {conditions.map((cName) => {
+                  const meta = COMMON_CONDITIONS_META[cName] || { icon: '🩺', category: 'Clinical' };
+                  return (
+                    <span
+                      key={cName}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: '#ECFDF5',
+                        border: '1px solid #A7F3D0',
+                        padding: '2.5px 7px',
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#047857',
+                        lineHeight: 1.2,
+                        boxShadow: '0 1px 2px rgba(5, 150, 105, 0.05)'
+                      }}
+                    >
+                      <span style={{ fontSize: '11.5px' }}>{meta.icon}</span>
+                      <span>{cName}</span>
+                      <button
+                        type="button"
+                        data-compact="true"
+                        className="btn-compact"
+                        aria-label={`Remove condition ${cName}`}
+                        onClick={(e) => handleRemoveCondition(cName, e)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          margin: '0 0 0 2px',
+                          color: '#059669',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minWidth: 'unset',
+                          minHeight: 'unset',
+                          width: '13px',
+                          height: '13px',
+                          borderRadius: '50%',
+                          opacity: 0.75
+                        }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-          {/* 3. Chrono-Medications Pills */}
-          {medications.map((m) => {
-            const slotMeta = CIRCADIAN_SLOT_META[m.circadianSlot] || CIRCADIAN_SLOT_META.morning;
-            return (
-              <span
-                key={m.name}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  background: slotMeta.bg,
-                  border: `1px solid ${slotMeta.color}40`,
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: slotMeta.color,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                }}
-              >
-                <span>{slotMeta.icon}</span>
-                <span>{m.name}</span>
-                {m.dosage && <span style={{ fontSize: '10.5px', opacity: 0.75 }}>({m.dosage})</span>}
-                <button
-                  type="button"
-                  aria-label={`Remove medication ${m.name}`}
-                  onClick={(e) => handleRemoveMedication(m.name, e)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: '0 1px',
-                    color: slotMeta.color,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <X size={12} />
-                </button>
+          {/* 3. Chrono-Medications & Supplements */}
+          {medications.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px', paddingTop: '3px' }}>
+                <span>💊</span> Meds / Vit
               </span>
-            );
-          })}
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+                {medications.map((m) => {
+                  const slotMeta = CIRCADIAN_SLOT_META[m.circadianSlot] || CIRCADIAN_SLOT_META.morning;
+                  return (
+                    <span
+                      key={m.name}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: slotMeta.bg,
+                        border: `1px solid ${slotMeta.color}35`,
+                        padding: '2.5px 7px',
+                        borderRadius: '999px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: slotMeta.color,
+                        lineHeight: 1.2,
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                      }}
+                    >
+                      <span style={{ fontSize: '11px' }}>{slotMeta.icon}</span>
+                      <span>{m.name}</span>
+                      <span style={{ fontSize: '9.5px', opacity: 0.8, textTransform: 'capitalize' }}>• {slotMeta.label}</span>
+                      {m.dosage && <span style={{ fontSize: '9.5px', opacity: 0.7 }}>({m.dosage})</span>}
+                      <button
+                        type="button"
+                        data-compact="true"
+                        className="btn-compact"
+                        aria-label={`Remove medication ${m.name}`}
+                        onClick={(e) => handleRemoveMedication(m.name, e)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          margin: '0 0 0 2px',
+                          color: slotMeta.color,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minWidth: 'unset',
+                          minHeight: 'unset',
+                          width: '13px',
+                          height: '13px',
+                          borderRadius: '50%',
+                          opacity: 0.75
+                        }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-          {/* 4. Allergies Badges */}
-          {allergies.map((a) => (
-            <span
-              key={a.name}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                background: '#FFF1F2',
-                border: '1px solid #FECDD3',
-                padding: '4px 10px',
-                borderRadius: '999px',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: '#BE123C'
-              }}
-            >
-              <span>💉</span>
-              <span>{a.name}</span>
-              <span style={{ fontSize: '10px', opacity: 0.7 }}>({a.severity})</span>
-              <button
-                type="button"
-                aria-label={`Remove allergy ${a.name}`}
-                onClick={(e) => handleRemoveAllergy(a.name, e)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '0 1px',
-                  color: '#BE123C',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <X size={12} />
-              </button>
-            </span>
-          ))}
+          {/* 4. Allergies & Sensitivities */}
+          {allergies.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#BE123C', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: '3px', minWidth: '78px', paddingTop: '3px' }}>
+                <span>🛡️</span> Allergies
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
+                {allergies.map((a) => (
+                  <span
+                    key={a.name}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      background: '#FFF1F2',
+                      border: '1px solid #FECDD3',
+                      padding: '2.5px 7px',
+                      borderRadius: '999px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#BE123C',
+                      lineHeight: 1.2,
+                      boxShadow: '0 1px 2px rgba(190, 18, 60, 0.04)'
+                    }}
+                  >
+                    <span style={{ fontSize: '11px' }}>💉</span>
+                    <span>{a.name}</span>
+                    <span style={{ fontSize: '9.5px', opacity: 0.75 }}>({a.severity})</span>
+                    <button
+                      type="button"
+                      data-compact="true"
+                      className="btn-compact"
+                      aria-label={`Remove allergy ${a.name}`}
+                      onClick={(e) => handleRemoveAllergy(a.name, e)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        margin: '0 0 0 2px',
+                        color: '#BE123C',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: 'unset',
+                        minHeight: 'unset',
+                        width: '13px',
+                        height: '13px',
+                        borderRadius: '50%',
+                        opacity: 0.75
+                      }}
+                    >
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {/* Empty fallback prompt */}
+          {/* Fallback if no baseline yet */}
           {!hasData && (
-            <span style={{ fontSize: '12px', color: '#64748B', fontStyle: 'italic' }}>
-              No baseline calibrated yet. Tap "Edit Baseline" to pre-fill your biometrics and conditions.
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic' }}>
+                No baseline calibrated yet. Tap "Edit Baseline" to pre-fill your biometrics and conditions.
+              </span>
+            </div>
           )}
 
-          {/* Inline Add Quick Button */}
-          <button
-            type="button"
-            onClick={openModal}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              background: '#F8FAFC',
-              border: '1px dashed #94A3B8',
-              padding: '3px 9px',
-              borderRadius: '999px',
-              fontSize: '11px',
-              fontWeight: 700,
-              color: '#475569',
-              cursor: 'pointer',
-            }}
-          >
-            <Plus size={12} /> Add Pill
-          </button>
+          {/* Minimal Quick Add Trigger */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingTop: '2px' }}>
+            <button
+              type="button"
+              data-compact="true"
+              className="btn-compact"
+              onClick={openModal}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: '#FFFFFF',
+                border: '1px dashed #CBD5E1',
+                padding: '2px 8px',
+                borderRadius: '999px',
+                fontSize: '10.5px',
+                fontWeight: 700,
+                color: '#64748B',
+                cursor: 'pointer',
+                minWidth: 'unset',
+                minHeight: 'unset',
+                height: 'auto'
+              }}
+            >
+              <Plus size={11} /> Add Condition, Med or Allergy
+            </button>
+          </div>
+
         </div>
       </div>
 
@@ -534,6 +617,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                 </div>
                 <button
                   type="button"
+                  data-compact="true"
+                  className="btn-compact"
                   onClick={() => setIsEditModalOpen(false)}
                   style={{
                     background: '#F1F5F9',
@@ -541,6 +626,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                     borderRadius: '50%',
                     width: '32px',
                     height: '32px',
+                    minWidth: 'unset',
+                    minHeight: 'unset',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -614,6 +701,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         <button
                           key={name}
                           type="button"
+                          data-compact="true"
+                          className="btn-compact"
                           onClick={() => {
                             triggerHapticSelection();
                             setEditConditions(prev => 
@@ -624,11 +713,14 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            padding: '6px 10px',
+                            padding: '4px 9px',
                             borderRadius: '999px',
-                            fontSize: '11.5px',
+                            fontSize: '11px',
                             fontWeight: 700,
                             cursor: 'pointer',
+                            minWidth: 'unset',
+                            minHeight: 'unset',
+                            height: 'auto',
                             border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                             background: isSelected ? '#CCFBF1' : '#F8FAFC',
                             color: isSelected ? '#0F766E' : '#475569',
@@ -660,13 +752,15 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                     />
                     <button
                       type="button"
+                      data-compact="true"
+                      className="btn-compact"
                       onClick={() => {
                         if (editCustomCond.trim() && !editConditions.includes(editCustomCond.trim())) {
                           setEditConditions(prev => [...prev, editCustomCond.trim()]);
                           setEditCustomCond('');
                         }
                       }}
-                      style={{ background: '#0F766E', color: '#FFF', border: 'none', borderRadius: '10px', padding: '0 12px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                      style={{ background: '#0F766E', color: '#FFF', border: 'none', borderRadius: '10px', padding: '0 12px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', minWidth: 'unset', minHeight: 'unset', height: '36px' }}
                     >
                       Add
                     </button>
@@ -686,6 +780,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         <div key={m.name} style={{ display: 'inline-flex', flexDirection: 'column', gap: 3 }}>
                           <button
                             type="button"
+                            data-compact="true"
+                            className="btn-compact"
                             onClick={() => {
                               triggerHapticSelection();
                               setEditMeds(prev => {
@@ -698,18 +794,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              padding: '6px 10px',
+                              padding: '4px 9px',
                               borderRadius: '999px',
-                              fontSize: '11.5px',
+                              fontSize: '11px',
                               fontWeight: 700,
                               cursor: 'pointer',
+                              minWidth: 'unset',
+                              minHeight: 'unset',
+                              height: 'auto',
                               border: isSelected ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                               background: isSelected ? '#CCFBF1' : '#F8FAFC',
                               color: isSelected ? '#0F766E' : '#475569',
                             }}
                           >
-                            <Pill size={12} /> {m.name}
-                            {isSelected && <Check size={12} />}
+                            <Pill size={11} /> {m.name}
+                            {isSelected && <Check size={11} />}
                           </button>
                           {isSelected && active && (
                             <div style={{ display: 'flex', gap: 2 }}>
@@ -720,6 +819,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                                   <button
                                     key={slot}
                                     type="button"
+                                    data-compact="true"
+                                    className="btn-compact"
                                     onClick={() => {
                                       triggerHapticLight();
                                       setEditMeds(prev => prev.map(item => item.name === m.name ? { ...item, slot } : item));
@@ -732,7 +833,10 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                                       background: isCurrent ? meta.bg : '#FFF',
                                       color: isCurrent ? meta.color : '#64748B',
                                       fontWeight: isCurrent ? 800 : 500,
-                                      cursor: 'pointer'
+                                      cursor: 'pointer',
+                                      minWidth: 'unset',
+                                      minHeight: 'unset',
+                                      height: 'auto'
                                     }}
                                   >
                                     {meta.icon}
@@ -759,6 +863,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                         <button
                           key={a.name}
                           type="button"
+                          data-compact="true"
+                          className="btn-compact"
                           onClick={() => {
                             triggerHapticSelection();
                             setEditAllergies(prev => {
@@ -771,18 +877,21 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            padding: '6px 10px',
+                            padding: '4px 9px',
                             borderRadius: '999px',
-                            fontSize: '11.5px',
+                            fontSize: '11px',
                             fontWeight: 700,
                             cursor: 'pointer',
+                            minWidth: 'unset',
+                            minHeight: 'unset',
+                            height: 'auto',
                             border: isSelected ? '1.5px solid #E11D48' : '1px solid #E2E8F0',
                             background: isSelected ? '#FFF1F2' : '#F8FAFC',
                             color: isSelected ? '#BE123C' : '#475569',
                           }}
                         >
                           <span>{a.icon}</span> {a.name}
-                          {isSelected && <Check size={12} />}
+                          {isSelected && <Check size={11} />}
                         </button>
                       );
                     })}
@@ -806,6 +915,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
               >
                 <button
                   type="button"
+                  data-compact="true"
+                  className="btn-compact"
                   onClick={() => setIsEditModalOpen(false)}
                   style={{
                     padding: '8px 16px',
@@ -815,13 +926,17 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                     color: '#475569',
                     fontSize: '13px',
                     fontWeight: 700,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    minWidth: 'unset',
+                    minHeight: 'unset'
                   }}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
+                  data-compact="true"
+                  className="btn-compact"
                   onClick={handleSaveModal}
                   style={{
                     padding: '8px 20px',
@@ -832,6 +947,8 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                     fontSize: '13px',
                     fontWeight: 800,
                     cursor: 'pointer',
+                    minWidth: 'unset',
+                    minHeight: 'unset',
                     boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)'
                   }}
                 >
