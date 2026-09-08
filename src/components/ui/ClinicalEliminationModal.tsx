@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -31,7 +31,8 @@ import {
   startTrial,
   ActiveTrialState,
   ELIMINATION_PROTOCOLS,
-  CLINICAL_SENSITIVITIES
+  CLINICAL_SENSITIVITIES,
+  getSuspectFoodsLeaderboard,
 } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -68,10 +69,10 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 
   // Daily checklist state
   const [checklist, setChecklist] = useState<Record<string, boolean>>({
-    'no_alliums': true,
-    'no_dairy': true,
-    'hydration_target': false,
-    'gut_rest_window': false
+    task_0: true,
+    task_1: true,
+    task_2: false,
+    task_3: false,
   });
 
   useEffect(() => {
@@ -95,6 +96,72 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   if (!isOpen) return null;
 
   const activeProtocolDef = ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0];
+  const suspectFoods = getSuspectFoodsLeaderboard();
+  const topSuspectFood = suspectFoods[0];
+
+  const phases = activeProtocolDef.phases && activeProtocolDef.phases.length > 0
+    ? activeProtocolDef.phases
+    : [
+        {
+          phase: 1,
+          title: 'Phase 1: Strict Elimination & Washout',
+          daysRange: 'Days 1 – 7',
+          focus: `Eliminate primary ${activeProtocolDef.targetSensitivity} triggers.`,
+          clinicalInstructions: [`Strict avoidance of ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.`],
+        },
+        {
+          phase: 2,
+          title: 'Phase 2: Single-Item Challenge Reintroduction',
+          daysRange: 'Days 8 – 14',
+          focus: 'Systematically challenge one food group at a time.',
+          clinicalInstructions: ['Rechallenge single food item in isolation for 24h, observe 48h.'],
+        },
+        {
+          phase: 3,
+          title: 'Phase 3: Tolerance Threshold & Maintenance',
+          daysRange: 'Days 15 – 28',
+          focus: 'Establish personalized threshold and maintain microbiome diversity.',
+          clinicalInstructions: ['Transition to personalized maintenance protocol.'],
+        },
+      ];
+
+  const currentPhaseIndex = phases.findIndex((p, idx) => {
+    const match = p.daysRange.match(/(\d+)\s*[–-]\s*(\d+)/);
+    if (match) {
+      const start = parseInt(match[1], 10);
+      const end = parseInt(match[2], 10);
+      return trial.currentDay >= start && trial.currentDay <= end;
+    }
+    return idx === 0;
+  });
+
+  const activePhaseObj = currentPhaseIndex >= 0 ? phases[currentPhaseIndex] : phases[0];
+  const nextPhaseObj = phases[currentPhaseIndex + 1];
+  const currentPhaseEndMatch = activePhaseObj.daysRange.match(/(\d+)\s*[–-]\s*(\d+)/);
+  const currentPhaseEnd = currentPhaseEndMatch ? parseInt(currentPhaseEndMatch[2], 10) : 7;
+  const daysUntilNext = Math.max(1, currentPhaseEnd - trial.currentDay + 1);
+
+  const checklistItems = activeProtocolDef.dailyChecklist && activeProtocolDef.dailyChecklist.length > 0
+    ? activeProtocolDef.dailyChecklist.map((task, i) => ({
+        id: `task_${i}`,
+        label: task,
+        desc: i === 0 ? `Strict avoidance of ${activeProtocolDef.eliminatedFoods[0] || 'target culprits'}` :
+              i === 1 ? 'Hydration & gut barrier optimization' :
+              'Clinical compliance tracking'
+      }))
+    : [
+        { id: 'task_0', label: `Zero ${activeProtocolDef.eliminatedFoods[0] || 'primary triggers'}`, desc: `Strictly avoid ${activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ')}` },
+        { id: 'task_1', label: `Incorporate ${activeProtocolDef.allowedAlternatives[0] || 'safe swaps'}`, desc: 'Maintain clean nutrient density and satiety' },
+        { id: 'task_2', label: 'Hydration with mineral electrolytes (2.0L+)', desc: 'Flushes osmotic colonic gradient' },
+        { id: 'task_3', label: '12-Hour overnight gut motilin rest window', desc: 'Allows Migrating Motor Complex (MMC) housekeeping waves' },
+      ];
+
+  const sosOptions = (() => {
+    const fromElim = activeProtocolDef.eliminatedFoods || [];
+    const fromSuspect = suspectFoods.slice(0, 2).map((s) => s.name);
+    const combined = Array.from(new Set([...fromElim.slice(0, 2), ...fromSuspect]));
+    return combined.slice(0, 4);
+  })();
 
   const handleLogScore = () => {
     triggerHapticSuccess();
@@ -121,23 +188,31 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 
   const handleCopyDossier = () => {
     triggerHapticLight();
-    const text = `CLINICAL ELIMINATION PROTOCOL DOSSIER
+    const primarySuspectText = topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ');
+    const toleratedText = activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ');
+    const nextProvocation = nextPhaseObj ? `${nextPhaseObj.title} (${nextPhaseObj.daysRange})` : 'Personalized Maintenance Blueprint';
+    const topCorrelation = topSuspectFood?.correlationPercent || 78;
+
+    const text = `CLINICAL SBAR PHYSICIAN BRIEF: ELIMINATION TRIAL
 Protocol: ${activeProtocolDef.name}
-Day: ${trial.currentDay} of ${trial.totalDays} | Adherence: ${trial.adherencePercentage}%
-Baseline Severity: ${trial.baselineSeverity}/10 ➔ Current: ${trial.currentSeverity}/10 (-${trial.reductionPercent}% Reduction)
+Duration: Day ${trial.currentDay} of ${trial.totalDays} | Adherence: ${trial.adherencePercentage}%
 
-1. CLINICAL SYMPTOM TRAJECTORY
-${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhered ? 'Adherent' : 'Exposure'}) - ${s.note || 'Recorded'}`).join('\n')}
+S (Situation):
+Patient tracking chronic symptom reactivity and postprandial flares. Enrolled in structured ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
 
-2. CULPRIT ISOLATION STATUS
-• Primary Suspects: Alliums (Garlic/Onion), High-Fructan Oligosaccharides
-• Confirmed Tolerated: White Rice, Cucumber, Blueberries, Almond Milk
-• Next Provocation Test: Day 8 Rechallenge (Single-Food Garlic Challenge)
+B (Background):
+Baseline severity recorded at ${trial.baselineSeverity}/10 prior to intervention. Habitual intake involved uncalibrated exposure to ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
 
-3. PHYSICIAN RECOMMENDATIONS
-• Evaluate for small intestinal bacterial overgrowth (SIBO) via glucose/lactulose breath test.
-• Assess DAO enzyme activity or postprandial hydrogen spikes.
-• Formulate non-restrictive long-term maintenance blueprint preserving microbiome diversity.`;
+A (Assessment):
+Over ${trial.currentDay} days on protocol, symptoms shifted by -${trial.reductionPercent}% down to ${trial.currentSeverity}/10 (Adherence: ${trial.adherencePercentage}%). Primary isolated culprit: ${primarySuspectText} (+${topCorrelation}% flare correlation). Confirmed tolerated baseline: ${toleratedText}.
+
+R (Recommendation):
+1. ${activeProtocolDef.expectedBiomarkerImpact || 'Assess gut barrier integrity and inflammatory clearance.'}
+2. Advance to ${nextProvocation} once clinical baseline stabilizes.
+3. Formulate customized reintroduction blueprint without blanket restriction.
+
+Trajectory Log:
+${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhered ? 'Adherent' : 'Exposure'}) - ${s.note || 'Recorded'}`).join('\n')}`;
 
     navigator.clipboard.writeText(text);
     setIsCopied(true);
@@ -262,7 +337,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                       textTransform: 'uppercase',
                     }}
                   >
-                    MONASH GI PROTOCOL
+                    {activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL'}
                   </span>
                   <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
                     Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}%)
@@ -401,13 +476,13 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                 >
                   <div>
                     <div style={{ fontSize: '11px', color: '#065F46', fontWeight: 800, textTransform: 'uppercase' }}>
-                      CURRENT PHASE: DAYS 1 - 7
+                      CURRENT PHASE: {activePhaseObj.daysRange.toUpperCase()}
                     </div>
                     <div style={{ fontSize: '15px', fontWeight: 800, color: '#064E3B' }}>
-                      Strict Allium & Oligosaccharide Washout
+                      {activePhaseObj.title}
                     </div>
                     <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
-                      Eliminates short-chain fermentable sugars to normalize bowel distension.
+                      {activePhaseObj.focus}
                     </div>
                   </div>
                   <div
@@ -421,7 +496,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                       boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
                     }}
                   >
-                    3 Days Until Garlic Rechallenge
+                    {nextPhaseObj ? `${daysUntilNext} Days Until ${nextPhaseObj.title.split(':')[1]?.trim() || nextPhaseObj.title}` : 'Final Blueprint Phase'}
                   </div>
                 </div>
 
@@ -431,12 +506,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                     Today's Protocol Adherence Checklist
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {[
-                      { id: 'no_alliums', label: 'Strict zero garlic & onions', desc: 'No allium powder, stocks, or restaurant marinades' },
-                      { id: 'no_dairy', label: 'Zero cow milk / unfermented lactose', desc: 'Use coconut milk, almond milk, or ghee' },
-                      { id: 'hydration_target', label: '2.5L Filtered water with electrolytes', desc: 'Flushes osmotic colonic gradient' },
-                      { id: 'gut_rest_window', label: '12-Hour overnight gut motilin window', desc: 'Allows Migrating Motor Complex (MMC) housekeeping waves' },
-                    ].map((item) => (
+                    {checklistItems.map((item) => (
                       <div
                         key={item.id}
                         role="button"
@@ -519,7 +589,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                         Select the accidental trigger consumed to receive immediate clinical mitigation:
                       </p>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        {['Garlic / Onion (Fructans)', 'Cow Dairy (Lactose)', 'Wheat / Gluten', 'High Histamine'].map((trig) => (
+                        {sosOptions.map((trig) => (
                           <button
                             key={trig}
                             type="button"
@@ -574,69 +644,49 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {[
-                    {
-                      phase: 'Phase 1: Strict Washout',
-                      days: 'Days 1 - 7',
-                      status: 'active',
-                      statusLabel: 'CURRENT (Day 5/7)',
-                      focus: 'Zero fermentable oligosaccharides, disaccharides, and polyols.',
-                      action: 'Reset intestinal baseline and normalize visceral hypersensitivity.',
-                    },
-                    {
-                      phase: 'Phase 2: Garlic Rechallenge Test',
-                      days: 'Days 8 - 10',
-                      status: 'upcoming',
-                      statusLabel: 'STARTS IN 3 DAYS',
-                      focus: 'Single-Food Fructan Provocation Test.',
-                      action: 'Day 8 morning: Consume 1/4 clove cooked garlic with white rice. Day 8 evening: 1/2 clove. Observe for 48 hours without introducing other suspect foods.',
-                    },
-                    {
-                      phase: 'Phase 3: Lactose Dairy Test',
-                      days: 'Days 11 - 13',
-                      status: 'upcoming',
-                      statusLabel: 'SCHEDULED',
-                      focus: 'Pure Lactose Provocation.',
-                      action: 'Consume 100ml whole cow milk or 50g fresh paneer with lunch. Monitor gut transit time and distension.',
-                    },
-                    {
-                      phase: 'Phase 4: Tolerated Blueprint',
-                      days: 'Days 14 - 28',
-                      status: 'upcoming',
-                      statusLabel: 'FINAL BLUEPRINT',
-                      focus: 'Long-term Personalized Nutrition.',
-                      action: 'Reintroduce all tolerated groups to maintain microbiome richness and prevent dysbiosis.',
-                    },
-                  ].map((p, idx) => (
-                    <div
-                      key={p.phase}
-                      style={{
-                        borderRadius: '16px',
-                        padding: '14px 16px',
-                        background: p.status === 'active' ? '#F0FDF4' : '#FFFFFF',
-                        border: p.status === 'active' ? '2px solid #10B981' : '1px solid #E2E8F0',
-                        boxShadow: p.status === 'active' ? '0 4px 14px rgba(16, 185, 129, 0.15)' : 'none',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{p.phase}</span>
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 800,
-                            color: p.status === 'active' ? '#059669' : '#64748B',
-                            background: p.status === 'active' ? '#DCFCE7' : '#F1F5F9',
-                            padding: '2px 8px',
-                            borderRadius: '999px',
-                          }}
-                        >
-                          {p.statusLabel} ({p.days})
-                        </span>
+                  {phases.map((p, idx) => {
+                    const match = p.daysRange.match(/(\d+)\s*[–-]\s*(\d+)/);
+                    const startDay = match ? parseInt(match[1], 10) : idx * 7 + 1;
+                    const endDay = match ? parseInt(match[2], 10) : (idx + 1) * 7;
+                    const isActive = trial.currentDay >= startDay && trial.currentDay <= endDay;
+                    const isCompleted = trial.currentDay > endDay;
+                    const statusLabel = isActive
+                      ? `CURRENT (Day ${trial.currentDay}/${endDay})`
+                      : isCompleted
+                      ? 'COMPLETED'
+                      : `STARTS IN ${Math.max(1, startDay - trial.currentDay)} DAYS`;
+
+                    return (
+                      <div
+                        key={p.phase}
+                        style={{
+                          borderRadius: '16px',
+                          padding: '14px 16px',
+                          background: isActive ? '#F0FDF4' : isCompleted ? '#F8FAFC' : '#FFFFFF',
+                          border: isActive ? '2px solid #10B981' : '1px solid #E2E8F0',
+                          boxShadow: isActive ? '0 4px 14px rgba(16, 185, 129, 0.15)' : 'none',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>{p.title}</span>
+                          <span
+                            style={{
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              color: isActive ? '#059669' : '#64748B',
+                              background: isActive ? '#DCFCE7' : '#F1F5F9',
+                              padding: '2px 8px',
+                              borderRadius: '999px',
+                            }}
+                          >
+                            {statusLabel} ({p.daysRange})
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '2px' }}>{p.focus}</div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>{p.clinicalInstructions.join(' ')}</div>
                       </div>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '2px' }}>{p.focus}</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>{p.action}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -761,10 +811,12 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                         🚨 High-Probability Culprit
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B', marginTop: '2px' }}>
-                        Garlic & Alliums (Fructans)
+                        {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : (activeProtocolDef.eliminatedFoods[0] || 'Primary Culprit')}
                       </div>
                       <div style={{ fontSize: '11px', color: '#B91C1C', marginTop: '2px' }}>
-                        +84% correlation with bloating within 2-4 hours.
+                        {topSuspectFood
+                          ? `+${topSuspectFood.correlationPercent}% correlation across ${topSuspectFood.daysObserved || 14} days observed.`
+                          : `Identified trigger under current ${activeProtocolDef.name} protocol.`}
                       </div>
                     </div>
 
@@ -773,10 +825,10 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                         🛡️ Confirmed Tolerated
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: '#065F46', marginTop: '2px' }}>
-                        Rice, Blueberries, Almond Milk
+                        {activeProtocolDef.allowedAlternatives.slice(0, 3).join(', ')}
                       </div>
                       <div style={{ fontSize: '11px', color: '#047857', marginTop: '2px' }}>
-                        0 flares tracked across 14 exposures.
+                        0 flares tracked across {trial.currentDay > 1 ? trial.currentDay : 14} exposures.
                       </div>
                     </div>
                   </div>
@@ -811,17 +863,18 @@ Protocol: ${activeProtocolDef.name}
 Duration: Day ${trial.currentDay} of ${trial.totalDays} | Adherence: ${trial.adherencePercentage}%
 
 S (Situation):
-Patient tracking chronic gut distension and lethargy. Commenced 28-day Monash GI protocol to isolate dietary culprits.
+Patient tracking chronic symptom reactivity and postprandial flares. Enrolled in structured ${activeProtocolDef.name} (Target: ${activeProtocolDef.targetSensitivity}) to isolate clinical triggers and stabilize mucosal baseline.
 
 B (Background):
-Baseline severity recorded at ${trial.baselineSeverity}/10. Pre-trial diet included high daily allium and dairy intake.
+Baseline severity recorded at ${trial.baselineSeverity}/10 prior to intervention. Habitual intake involved uncalibrated exposure to ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
 
 A (Assessment):
-During strict 7-day allium/lactose washout, symptoms dropped by ${trial.reductionPercent}% down to ${trial.currentSeverity}/10. Accidental allium exposure produced 3-hour distension spike. Primary suspect: High-fructan alliums (84% correlation).
+Over ${trial.currentDay} days on protocol, symptoms shifted by -${trial.reductionPercent}% down to ${trial.currentSeverity}/10 (Adherence: ${trial.adherencePercentage}%). Primary isolated culprit: ${topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ')} (+${topSuspectFood?.correlationPercent || 78}% flare correlation). Confirmed tolerated baseline: ${activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ')}.
 
 R (Recommendation):
-1. Review for small intestinal bacterial overgrowth (SIBO) via glucose/lactulose breath test.
-2. Formulate customized reintroduction blueprint without blanket restriction.`}
+1. ${activeProtocolDef.expectedBiomarkerImpact || 'Assess gut barrier integrity and inflammatory clearance.'}
+2. Advance to ${nextPhaseObj ? nextPhaseObj.title : 'systematic single-food rechallenge'} once clinical baseline stabilizes.
+3. Formulate customized reintroduction blueprint without blanket restriction.`}
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

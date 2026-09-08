@@ -276,7 +276,45 @@ describe('ConnectionDetectiveEngine', () => {
     expect(computeBiomarkerStatus(sample, 120)).toBe('suboptimal_high');
     expect(computeBiomarkerStatus(sample, 220)).toBe('critical_high');
   });
+
+  it('dynamically ingests profile.vitals.latestLabValues when present', () => {
+    // Mock user profile with uploaded lab report values
+    const mockProfile = {
+      id: 'profile_1',
+      demographics: { name: 'Aditya Test' },
+      vitals: {
+        latestLabValues: {
+          'Serum Ferritin': { value: 24, unit: 'ng/mL' },
+          'Thyroid Stimulating Hormone (TSH)': { value: 1.8, unit: 'mIU/L' },
+          'hs-CRP': { value: 2.2, unit: 'mg/L' },
+        },
+        restingHeartRate: 72,
+        orthostaticDelta: 42,
+      },
+    };
+    window.localStorage.setItem('hc_unified_profile', JSON.stringify({
+      activeId: 'profile_1',
+      profiles: { profile_1: mockProfile }
+    }));
+
+    const biomarkers = getFunctionalBiomarkers();
+    const ferritin = biomarkers.find((b) => b.id === 'ferritin')!;
+    expect(ferritin.userValue).toBe(24);
+
+    const tsh = biomarkers.find((b) => b.id === 'tsh')!;
+    expect(tsh.userValue).toBe(1.8);
+    expect(tsh.status).toBe('optimal');
+
+    const report = getConnectionDetectiveReport();
+    const labsStream = report.streams.find((s) => s.id === 'labs')!;
+    expect(labsStream.items[0]).toContain('Serum Ferritin: 24 ng/mL');
+
+    const vitalsStream = report.streams.find((s) => s.id === 'vitals')!;
+    expect(vitalsStream.items[0]).toContain('Resting Heart Rate: 72 bpm');
+    expect(vitalsStream.items[1]).toContain('Orthostatic Shift: +42 bpm');
+  });
 });
+
 
 
 

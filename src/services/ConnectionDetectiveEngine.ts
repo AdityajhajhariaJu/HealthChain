@@ -154,12 +154,17 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   // Synthesize the 4 Data Convergence Streams from live user profile & history
   const functionalBiomarkers = getFunctionalBiomarkers();
   const flaggedBiomarkers = functionalBiomarkers.filter((b) => b.status !== 'optimal');
-  const labCount = Math.max(48, functionalBiomarkers.length);
+  const latestLabKeys = Object.keys(profile?.vitals?.latestLabValues || {});
+  const labCount = Math.max(48, functionalBiomarkers.length, latestLabKeys.length);
   const ferritinMarker = functionalBiomarkers.find((b) => b.id === 'ferritin');
   const freeT3Marker = functionalBiomarkers.find((b) => b.id === 'free_t3');
-  const vitDMarker = functionalBiomarkers.find((b) => b.id === 'vitamin_d');
+  const vitDMarker = functionalBiomarkers.find((b) => b.id === 'vitamin_d3' || b.id === 'vitamin_d');
+  const hsCrpMarker = functionalBiomarkers.find((b) => b.id === 'hs_crp');
   const ferritinNum = ferritinMarker?.userValue ?? 14;
   const ferritinStr = `${ferritinNum} ng/mL`;
+
+  const realIronEntry = profile?.vitals?.latestLabValues?.['Serum Iron'] || profile?.vitals?.latestLabValues?.['Iron'];
+  const ironStr = realIronEntry ? `${realIronEntry.value} ${realIronEntry.unit || 'μg/dL'}` : '65 μg/dL';
 
   const labItems: string[] = [
     `Serum Ferritin: ${ferritinStr} (${
@@ -169,13 +174,88 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         ? 'Severe bone marrow depletion'
         : 'Subclinical bone marrow depletion'
     })`,
-    'Standard Iron: 65 μg/dL (Falsely reassuring standard range)',
+    `Standard Iron: ${ironStr} (Falsely reassuring standard range)`,
     `Free T3: ${freeT3Marker?.userValue ?? 2.4} pg/mL (${
       freeT3Marker?.status === 'optimal' ? 'Optimal metabolic conversion' : 'Conversion lag under autonomic strain'
     })`,
-    `Vitamin D3: ${vitDMarker?.userValue ?? 24} ng/mL (${
+    `Vitamin D3: ${vitDMarker?.userValue ?? 26} ng/mL (${
       vitDMarker?.status === 'optimal' ? 'Adequate immune threshold' : 'Sub-optimal immune threshold'
     })`,
+  ];
+
+  if (hsCrpMarker && hsCrpMarker.status !== 'optimal') {
+    labItems.push(`hs-CRP: ${hsCrpMarker.userValue} mg/L (Low-grade endothelial inflammation)`);
+  }
+
+  // Synthesize Doctor & Clinic Notes from live active case
+  const differentials = activeCase?.differentials || [];
+  const reviews = activeCase?.reviews || [];
+  const chiefComplaint = activeCase?.intakeData?.chiefComplaint || activeCase?.title || '';
+
+  // Vitals & Wearables live telemetry
+  const rhrVal = profile?.vitals?.restingHeartRate || profile?.vitals?.restingHR || 64;
+  const orthoDeltaVal = profile?.vitals?.orthostaticDelta || profile?.vitals?.standingHRDelta || 38;
+  const sleepVal = profile?.vitals?.sleepDuration || profile?.vitals?.sleepHours || '7h 45m';
+  const hrvVal = profile?.vitals?.hrv || 28;
+  const deltaSign = orthoDeltaVal >= 0 ? `+${orthoDeltaVal}` : `${orthoDeltaVal}`;
+
+  // Cardiology note
+  const cardioDiff = differentials.find((d) => /pots|tachycardia|arrhythmia|cardio|orthostatic/i.test(d.condition));
+  const cardioNote = cardioDiff
+    ? `Cardiology: ${cardioDiff.condition} (${cardioDiff.probability}% match) — ${cardioDiff.supportingEvidence?.[0] || 'Orthostatic pulse surge confirmed'}`
+    : `Cardiology: Normal resting 12-lead ECG, palpitations unexplained upon upright activity`;
+
+  // Neurology note
+  const neuroDiff = differentials.find((d) => /neuro|migraine|headache|dural|cervical|tension/i.test(d.condition));
+  const neuroNote = neuroDiff
+    ? `Neurology: ${neuroDiff.condition} (${neuroDiff.probability}%) — ${neuroDiff.supportingEvidence?.[0] || 'Occipital throbbing and cerebral perfusion latency'}`
+    : `Neurology: Chronic tension & morning occipital throbbing linked to postural shift`;
+
+  // Gastroenterology note
+  const giDiff = differentials.find((d) => /gastro|gut|histamine|dao|sibo|ibs|bloat|reflux/i.test(d.condition));
+  const topSuspect = suspectFoods[0];
+  const giNote = giDiff
+    ? `Gastroenterology: ${giDiff.condition} (${giDiff.probability}%) — ${giDiff.supportingEvidence?.[0] || 'Postprandial distension'}`
+    : topSuspect
+    ? `Gastroenterology: Reflux and recurrent postprandial bloating (${topSuspect.name} +${topSuspect.correlationPercent}% flare rate)`
+    : `Gastroenterology: Reflux and recurrent postprandial bloating`;
+
+  // Endocrinology / Metabolic note
+  const endoDiff = differentials.find((d) => /ferritin|iron|thyroid|metabolic|mitochondrial|endocrine|fatigue/i.test(d.condition));
+  const endoNote = endoDiff
+    ? `Endocrinology: ${endoDiff.condition} (${endoDiff.probability}%) — ${endoDiff.supportingEvidence?.[0] || 'Cellular energy depletion'}`
+    : `Endocrinology: Unexplained afternoon fatigue and cold intolerance (Ferritin ${ferritinStr})`;
+
+  const noteItems: string[] = [cardioNote, neuroNote, giNote, endoNote];
+  const notesCount = Math.max(12, differentials.length * 3 || 12);
+  const notesStatus = differentials.length > 0 ? `${differentials.length} Differentials Correlated` : '12 Boards Aligned';
+
+  // Vitals Stream items
+  const vitalsItems: string[] = [
+    `Resting Heart Rate: ${rhrVal} bpm (${profile?.vitals?.restingHeartRate ? 'From telemetry baseline' : 'Stable baseline'})`,
+    `Orthostatic Shift: ${deltaSign} bpm upon standing (${orthoDeltaVal >= 30 ? 'Autonomic signature' : 'Normal baroreflex range'})`,
+    `Sleep Architecture: ${sleepVal} (Fragmented deep sleep stage)`,
+    `Heart Rate Variability (HRV): ${hrvVal} ms (${hrvVal < 35 ? 'Dampened high-frequency vagal power' : 'Optimal parasympathetic vagal recovery'})`,
+  ];
+
+  // Diet & Gut Triggers live synthesis
+  const suspect1 = suspectFoods[0];
+  const suspect2 = suspectFoods[1];
+  const suspect3 = suspectFoods[2];
+
+  const dietItems: string[] = [
+    suspect1
+      ? `${suspect1.primarySensitivity}: ${suspect1.name} (+${suspect1.correlationPercent}% flare rate)`
+      : 'Histamine Overload: Red Wine & Aged Cheese (+34% flare rate)',
+    suspect2
+      ? `${suspect2.primarySensitivity}: ${suspect2.name} (+${suspect2.correlationPercent}% flare rate)`
+      : 'FODMAP Fructans: Garlic & Allium cecal fermentation (+22%)',
+    suspect3
+      ? `${suspect3.name}: ${suspect3.safeSwap ? `Safe swap: ${suspect3.safeSwap}` : suspect3.mechanism}`
+      : 'DAO Enzyme Clearance: Saturation during stacked evening meals',
+    activeTrial
+      ? `Active Protocol: ${activeTrial.trialId.replace(/_/g, ' ').toUpperCase()} (-${activeTrial.reductionPercent}% flares)`
+      : 'Low-Histamine Protocol active',
   ];
 
   const streams: ConnectionStream[] = [
@@ -193,14 +273,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       title: 'Doctor & Clinic Notes',
       icon: '🏥',
       color: '#0284C7',
-      count: 12,
-      status: '12 Boards Aligned',
-      items: [
-        'Cardiology: Normal resting 12-lead ECG, palpitations unexplained',
-        'Neurology: Chronic tension & morning occipital throbbing',
-        'Gastroenterology: Reflux and recurrent postprandial bloating',
-        'Endocrinology: Unexplained afternoon fatigue and cold intolerance',
-      ],
+      count: notesCount,
+      status: notesStatus,
+      items: noteItems,
     },
     {
       id: 'vitals',
@@ -209,12 +284,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       color: '#10B981',
       count: 8,
       status: 'Telemetry Synced',
-      items: [
-        'Resting Heart Rate: 64 bpm (Stable baseline)',
-        'Orthostatic Shift: +38 bpm upon standing (Autonomic signature)',
-        'Sleep Architecture: 7h 45m (Fragmented deep sleep stage)',
-        'Heart Rate Variability (HRV): Dampened high-frequency vagal power',
-      ],
+      items: vitalsItems,
     },
     {
       id: 'diet',
@@ -222,13 +292,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '🥗',
       color: '#8B5CF6',
       count: suspectFoods.length || 5,
-      status: 'Biochemical Triggers',
-      items: [
-        `Histamine Overload: Red Wine & Aged Cheese (+${suspectFoods[0]?.correlationPercent || 34}% flare rate)`,
-        'FODMAP Fructans: Garlic & Allium cecal fermentation (+22%)',
-        'DAO Enzyme Clearance: Saturation during stacked evening meals',
-        activeTrial ? `Active Protocol: ${activeTrial.trialId} (-${activeTrial.reductionPercent}% flares)` : 'Low-Histamine Protocol active',
-      ],
+      status: `${suspectFoods.length || 5} Culprits Tracked`,
+      items: dietItems,
     },
   ];
 
@@ -242,7 +307,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '🫀',
       color: '#EF4444',
       bg: '#FEF2F2',
-      finding: 'Resting ECG in supine posture is completely normal (68 bpm), but active orthostatic telemetry demonstrates an immediate +38 bpm surge without hypotension. This tachycardia is not primary cardiac arrhythmia—it is a compensatory hyperadrenergic baroreflex attempting to overcome splanchnic venous pooling.',
+      finding: `Resting ECG in supine posture is normal (${rhrVal} bpm), but active orthostatic telemetry demonstrates an immediate ${deltaSign} bpm surge without hypotension. This tachycardia is not primary cardiac arrhythmia—it is a compensatory hyperadrenergic baroreflex attempting to overcome splanchnic venous pooling.`,
       organ: 'Cardiovascular & Autonomic Axis',
     },
     {
@@ -253,7 +318,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '🔬',
       color: '#0284C7',
       bg: '#F0F9FF',
-      finding: 'Routine serum iron is falsely reassuring at 65 μg/dL, but intracellular Ferritin is depleted to 14 ng/mL. Iron is an essential catalytic cofactor for mitochondrial Complex I/IV electron transport and tyrosine hydroxylase. Cellular ATP starvation is the molecular engine of the patient’s afternoon brain fog.',
+      finding: `Routine serum iron is falsely reassuring at ${ironStr}, but intracellular Ferritin is depleted to ${ferritinStr}. Iron is an essential catalytic cofactor for mitochondrial Complex I/IV electron transport and tyrosine hydroxylase. Cellular ATP starvation is the molecular engine of the patient’s afternoon brain fog.`,
       organ: 'Endocrine & Cellular Energy Axis',
     },
     {
@@ -264,7 +329,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '🩺',
       color: '#059669',
       bg: '#ECFDF5',
-      finding: 'Bloating occurs reliably 60–90 minutes after high-biogenic amine meals. Diamine oxidase (DAO) enzyme reserves are saturated by aged proteins and sulfites, allowing free histamine to trigger mucosal distension and upward left hemidiaphragmatic displacement (Roemheld syndrome).',
+      finding: `Bloating occurs reliably 60–90 minutes after high-biogenic amine meals (${suspect1?.name || 'aged proteins and sulfites'}). Diamine oxidase (DAO) enzyme reserves are saturated, allowing free histamine to trigger mucosal distension and upward left hemidiaphragmatic displacement (Roemheld syndrome).`,
       organ: 'Gastrointestinal & Enteric Axis',
     },
     {
@@ -308,7 +373,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '✨',
       color: '#0F766E',
       bg: '#F0FDFA',
-      finding: 'Consensus synthesis: The patient does not suffer from disconnected ailments. A single unified pathophysiological cascade connects all findings: Subclinical Ferritin starvation destabilizes cellular ATP, while Gut Histamine Overload mechanically and neurologically triggers compensatory Autonomic POTS and ascending dural tension.',
+      finding: `Consensus synthesis: The patient does not suffer from disconnected ailments. A single unified pathophysiological cascade connects all findings: Subclinical Ferritin starvation (${ferritinStr}) destabilizes cellular ATP, while Gut Histamine Overload (${suspect1?.name || 'dietary triggers'}) mechanically and neurologically triggers compensatory Autonomic POTS (${deltaSign} bpm) and ascending dural tension.`,
       organ: 'Systemic Root-Cause Convergence',
     },
   ];
@@ -317,15 +382,15 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   const clinicalMisses: ClinicalMissItem[] = [
     {
       overlookedBy: 'Standard Primary Care (15-min Visit)',
-      standardFinding: 'Serum Iron 65 μg/dL and Hemoglobin 13.8 g/dL marked "Normal". Patient told "Everything looks fine".',
-      whatWasMissed: 'Omitted Serum Ferritin (14 ng/mL). Missed depleted cellular bone marrow storage iron starving mitochondrial ATP.',
+      standardFinding: `Serum Iron ${ironStr} and Hemoglobin marked "Normal". Patient told "Everything looks fine".`,
+      whatWasMissed: `Omitted Serum Ferritin (${ferritinStr}). Missed depleted cellular bone marrow storage iron starving mitochondrial ATP.`,
       clinicalImpact: 'Explains unrelenting afternoon fatigue and cognitive latency despite "perfect" routine blood test reports.',
       hiddenConnection: 'Iron deficiency without anemia impairs thyroid deiodinase and autonomic catecholamine clearance.',
     },
     {
       overlookedBy: 'Standard Cardiology Check (15-min Visit)',
-      standardFinding: 'Supine 12-lead ECG showed normal sinus rhythm (68 bpm). Palpitations dismissed as "stress or anxiety".',
-      whatWasMissed: 'Did not conduct an active 10-minute orthostatic standing test or link palpitations to postprandial splanchnic blood pooling.',
+      standardFinding: `Supine 12-lead ECG showed normal sinus rhythm (${rhrVal} bpm). Palpitations dismissed as "stress or anxiety".`,
+      whatWasMissed: `Did not conduct an active 10-minute orthostatic standing test (${deltaSign} bpm surge) or link palpitations to postprandial splanchnic blood pooling.`,
       clinicalImpact: 'Patient was prescribed ineffective beta-blockers that worsened fatigue rather than addressing venous pooling.',
       hiddenConnection: 'Gastrocardiac Roemheld syndrome compresses the inferior cardiac vagal plexus following meals.',
     },
@@ -339,7 +404,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     {
       overlookedBy: 'Standard Gastroenterology Consult (15-min Visit)',
       standardFinding: 'Prescribed daily PPI antacid and diagnosed with generic "mild irritable bowel syndrome (IBS)".',
-      whatWasMissed: 'Failed to cross-correlate meal timing with dietary biogenic amines (histamine) and allium fructan cecal fermentation.',
+      whatWasMissed: `Failed to cross-correlate meal timing with dietary biogenic amines (${suspect1?.name || 'histamine'}) and allium fructan cecal fermentation.`,
       clinicalImpact: 'PPI lowered gastric acid, impairing non-heme iron absorption and further depleting ferritin stores.',
       hiddenConnection: 'Histamine DAO enzyme lag triggers visceral hypersensitivity and smooth muscle spasm.',
     },
@@ -523,7 +588,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           name: 'Standard Serum Iron',
           standardRange: '60 – 170 μg/dL',
           optimalRange: '85 – 130 μg/dL',
-          userValue: '65 μg/dL',
+          userValue: ironStr,
           status: 'normal',
           clinicalNote: 'Technically inside standard lab range, creating false reassurance.',
         },
@@ -535,7 +600,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       specialistQuote: {
         doctor: 'Endocrine & Cellular Metabolism Panel',
         role: 'Mitochondrial Medicine Consensus',
-        quote: 'Standard labs call 14 ng/mL normal simply because it falls between 13 and 150. In functional clinical practice, any level under 50 ng/mL starves brain and cardiac mitochondria of ATP.',
+        quote: `Standard labs call ${ferritinStr} normal simply because it falls between standard ranges. In functional clinical practice, any level under 50 ng/mL starves brain and cardiac mitochondria of ATP.`,
       },
       whatDoctorsMissed:
         'Conventional 15-minute visits check complete blood count (CBC) and serum iron. Because hemoglobin was normal, they ruled out anemia and overlooked occult iron deficiency without anemia (IDWA).',
@@ -553,15 +618,15 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       systemIcon: '🫀',
       confidence: 92,
       biochemicalMechanism:
-        'Upon standing, gravitational venous pooling in the splanchnic circulation reduces venous return to the right atrium. The body compensates with massive central sympathetic discharge, elevating plasma norepinephrine >600 pg/mL and triggering a compensatory heart rate spike of +38 bpm.',
+        `Upon standing, gravitational venous pooling in the splanchnic circulation reduces venous return to the right atrium. The body compensates with massive central sympathetic discharge, elevating plasma norepinephrine >600 pg/mL and triggering a compensatory heart rate spike of ${deltaSign} bpm.`,
       biomarkers: [
         {
           name: 'Active Stand Test Delta',
           standardRange: '<30 bpm rise',
           optimalRange: '<20 bpm rise',
-          userValue: '+38 bpm spike',
-          status: 'elevated',
-          clinicalNote: 'Meets formal diagnostic criteria for Postural Orthostatic Tachycardia.',
+          userValue: `${deltaSign} bpm spike`,
+          status: orthoDeltaVal >= 30 ? 'elevated' : 'normal',
+          clinicalNote: orthoDeltaVal >= 30 ? 'Meets formal diagnostic criteria for Postural Orthostatic Tachycardia.' : 'Within compensated autonomic limits.',
         },
         {
           name: 'Supine vs Standing Blood Pressure',
@@ -575,9 +640,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           name: 'Heart Rate Variability (HRV)',
           standardRange: '35 – 70 ms',
           optimalRange: '50 – 85 ms',
-          userValue: '28 ms',
-          status: 'depleted',
-          clinicalNote: 'Dampened parasympathetic vagal recovery confirms autonomic strain.',
+          userValue: `${hrvVal} ms`,
+          status: hrvVal < 35 ? 'depleted' : 'normal',
+          clinicalNote: hrvVal < 35 ? 'Dampened parasympathetic vagal recovery confirms autonomic strain.' : 'Adequate parasympathetic vagal recovery.',
         },
       ],
       dietaryTriggers: [
@@ -587,10 +652,10 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       specialistQuote: {
         doctor: 'Autonomic Cardiology & Electrophysiology Panel',
         role: 'FACC Clinical Consensus',
-        quote: 'A resting 12-lead ECG in a lying patient is completely useless for dysautonomia. You must stand the patient up for 10 minutes. The +38 bpm jump explains the heart flutters completely.',
+        quote: `A resting 12-lead ECG in a lying patient is completely useless for dysautonomia. You must stand the patient up for 10 minutes. The ${deltaSign} bpm jump explains the heart flutters completely.`,
       },
       whatDoctorsMissed:
-        'Standard visits only check resting vitals in a seated or supine chair. Because resting heart rate was 68 bpm, the orthostatic instability was completely invisible.',
+        `Standard visits only check resting vitals in a seated or supine chair. Because resting heart rate was ${rhrVal} bpm, the orthostatic instability was completely invisible.`,
       confirmatoryWorkup: [
         '10-Minute NASA Lean Test or Formal Tilt Table Evaluation',
         'Supine and Standing Plasma Norepinephrine & Epinephrine Levels',
@@ -1061,10 +1126,10 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     nodeDetails,
     doctorDossier: {
       sbar: {
-        situation: `${patientName} presents with chronic postprandial palpitations, unexplained afternoon brain fog, and recurring gut distension following meals.`,
+        situation: `${patientName} presents with ${chiefComplaint || 'chronic postprandial palpitations, unexplained afternoon brain fog, and recurring gut distension following meals'}.`,
         background: 'Patient has been evaluated by separate disciplines with normal baseline resting ECG and routine hemoglobin, but symptoms persist in a reproducible cyclical pattern.',
-        assessment: 'Multidisciplinary correlation reveals subclinical Ferritin depletion (14 ng/mL) co-occurring with food-triggered histamine DAO saturation and a +38 bpm postural orthostatic tachycardia jump.',
-        recommendation: 'Recommend formal standing orthostatic tilt assessment, oral iron bisglycinate repletion targeting ferritin >50 ng/mL, and a 14-day low-histamine trial.',
+        assessment: `Multidisciplinary correlation reveals subclinical Ferritin depletion (${ferritinStr}) co-occurring with food-triggered ${suspect1?.primarySensitivity || 'histamine DAO saturation'} (${suspect1?.name || 'dietary triggers'}) and a ${deltaSign} bpm postural orthostatic tachycardia jump.`,
+        recommendation: `Recommend formal standing orthostatic tilt assessment, oral iron bisglycinate repletion targeting ferritin >50 ng/mL, and a 14-day ${activeTrial ? activeTrial.trialId.replace(/_/g, ' ') : 'low-histamine'} trial.`,
       },
       testsToOrder: [
         { test: 'Complete Iron Panel + Ferritin + Soluble Transferrin Receptor', rationale: 'Confirm bone marrow iron store depletion despite normal serum hemoglobin', priority: 'High' },
@@ -1623,26 +1688,74 @@ export function computeBiomarkerStatus(b: FunctionalBiomarker, val: number): Fun
 }
 
 export function getFunctionalBiomarkers(): FunctionalBiomarker[] {
+  let storedOverrides: Record<string, number> = {};
   try {
     const raw = getItemSync(FUNCTIONAL_BIOMARKERS_STORAGE_KEY);
     if (raw) {
-      const parsed: Record<string, number> = JSON.parse(raw);
-      return BASE_FUNCTIONAL_BIOMARKERS.map((b) => {
-        if (parsed[b.id] !== undefined && typeof parsed[b.id] === 'number') {
-          const val = parsed[b.id];
-          return {
-            ...b,
-            userValue: val,
-            status: computeBiomarkerStatus(b, val),
-          };
-        }
-        return b;
-      });
+      storedOverrides = JSON.parse(raw);
     }
   } catch (e) {
     console.warn('Failed to parse stored functional biomarkers:', e);
   }
-  return BASE_FUNCTIONAL_BIOMARKERS;
+
+  // Ingest extracted lab values from live user profile
+  let latestLabValues: Record<string, any> = {};
+  try {
+    const profile = getProfile();
+    latestLabValues = profile?.vitals?.latestLabValues || {};
+  } catch {}
+
+  const LAB_MATCHER: Record<string, RegExp> = {
+    ferritin: /^(serum\s*)?ferritin/i,
+    tsh: /^(thyroid\s*stimulating\s*hormone|tsh)\b/i,
+    free_t3: /^(free\s*t3|ft3|triiodothyronine)/i,
+    free_t4: /^(free\s*t4|ft4|thyroxine)/i,
+    reverse_t3: /^(reverse\s*t3|rt3)/i,
+    vitamin_d3: /^(25-hydroxy\s*vitamin\s*d|vitamin\s*d|25-oh|vit\s*d)/i,
+    vitamin_b12: /^(vitamin\s*b12|b12|cobalamin)/i,
+    fasting_insulin: /^(fasting\s*insulin|insulin)/i,
+    fasting_glucose: /^(fasting\s*glucose|glucose|blood\s*sugar)/i,
+    hba1c: /^(hba1c|a1c|glycated\s*hemoglobin)/i,
+    hs_crp: /^(hs-?crp|high-sensitivity\s*c-reactive|crp)/i,
+    homocysteine: /^homocysteine/i,
+    dao_activity: /^(diamine\s*oxidase|dao)/i,
+    rbc_magnesium: /^(rbc\s*magnesium|magnesium\s*rbc|magnesium)/i,
+    tsat: /^(transferrin\s*saturation|tsat)/i,
+    tibc: /^(total\s*iron\s*binding|tibc)/i,
+    zinc_copper_ratio: /^(zinc[\s/:]*copper)/i,
+  };
+
+  return BASE_FUNCTIONAL_BIOMARKERS.map((b) => {
+    // 1. Explicit user/simulation override in storage takes priority
+    if (storedOverrides[b.id] !== undefined && typeof storedOverrides[b.id] === 'number') {
+      const val = storedOverrides[b.id];
+      return {
+        ...b,
+        userValue: val,
+        status: computeBiomarkerStatus(b, val),
+      };
+    }
+
+    // 2. Real extracted lab panel values from user's uploaded reports
+    const pattern = LAB_MATCHER[b.id];
+    if (pattern) {
+      const matchKey = Object.keys(latestLabValues).find((k) => pattern.test(k));
+      if (matchKey) {
+        const entry = latestLabValues[matchKey];
+        const rawVal = typeof entry === 'object' && entry !== null ? entry.value : entry;
+        const numVal = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(/[^0-9.]/g, ''));
+        if (!isNaN(numVal)) {
+          return {
+            ...b,
+            userValue: numVal,
+            status: computeBiomarkerStatus(b, numVal),
+          };
+        }
+      }
+    }
+
+    return b;
+  });
 }
 
 export function saveFunctionalBiomarkers(values: Record<string, number>): void {

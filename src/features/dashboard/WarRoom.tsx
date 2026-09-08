@@ -150,11 +150,15 @@ export default function WarRoom() {
       // fallback
     }
 
-    const patientName = profile?.name || profile?.demographics?.name || 'Aditya';
+    const patientName = profile?.name || profile?.demographics?.name || 'Patient';
     const caseTitle = activeCase?.title || 'Autonomic & Postprandial Multi-System Profiling';
     const ferritin = biomarkers.find(b => b.id === 'ferritin');
+    const ferritinVal = ferritin?.userValue ?? (profile?.vitals?.latestLabValues?.ferritin ?? 14);
     const topTrigger = suspectFoods[0]?.name || 'Fermented & High-FODMAP foods';
-    const trialName = activeTrial?.trialId ? activeTrial.trialId.replace('_', ' ').toUpperCase() : 'LOW-HISTAMINE PROTOCOL';
+    const trialName = activeTrial?.trialId ? activeTrial.trialId.replace(/_/g, ' ').toUpperCase() : 'ELIMINATION PROTOCOL';
+    const rhrVal = profile?.vitals?.restingHeartRate || 68;
+    const orthoDeltaVal = profile?.vitals?.orthostaticDelta || 32;
+    const hrvVal = profile?.vitals?.hrv || 38;
 
     return [
       {
@@ -162,7 +166,7 @@ export default function WarRoom() {
         author: 'physician',
         authorName: 'Dr. Sarah Jenkins (Cardiology & Autonomics)',
         title: 'Postprandial Splanchnic Blood Pooling & Baroreflex',
-        content: `Reviewing ${patientName}'s autonomic markers under case "${caseTitle}". When blood pools in the mesenteric circulation post-meal, venous return drops precipitously, triggering compensatory orthostatic tachycardia. Monitoring diurnal HRV and upright heart rate delta.`,
+        content: `Reviewing ${patientName}'s autonomic markers under case "${caseTitle}". Resting HR is ${rhrVal} bpm with an orthostatic standing shift of +${orthoDeltaVal} bpm and baseline HRV of ${hrvVal} ms. When blood pools in the mesenteric circulation post-meal, venous return drops precipitously, triggering compensatory orthostatic tachycardia. Monitoring diurnal HRV and upright heart rate delta.`,
         timestamp: '2 hours ago',
         specialty: 'cardio',
         isPinned: true,
@@ -172,7 +176,7 @@ export default function WarRoom() {
             role: 'Clinical AI Coordinator',
             badgeColor: '#0D9488',
             avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: 'Logged. Correlating symptom timeline with active hydration protocol (goal: 2,500 mL) and sodium intake. Upright HR delta currently tracked in daily check-ins.',
+            content: `Logged. Correlating symptom timeline with active hydration protocol (goal: 2,500 mL) and sodium intake. Upright HR delta (+${orthoDeltaVal} bpm) currently tracked in daily check-ins.`,
             timestamp: '1 hour ago'
           }
         ],
@@ -185,7 +189,7 @@ export default function WarRoom() {
         author: 'physician',
         authorName: 'Dr. Marcus Vance (Functional Gastroenterology)',
         title: `Active Elimination Phase: ${trialName}`,
-        content: `Targeted elimination trial is currently active (Day ${activeTrial?.currentDay || 4} of ${activeTrial?.totalDays || 7}). Suspect food correlation flagged ${topTrigger} with elevated post-meal symptom scores. Continuing strict washout phase to prevent visceral mechanoreceptor distension.`,
+        content: `Targeted elimination trial is currently active (Day ${activeTrial?.currentDay || 4} of ${activeTrial?.totalDays || 28}). Suspect food correlation flagged ${topTrigger} with elevated post-meal symptom scores. Continuing strict washout phase to prevent visceral mechanoreceptor distension.`,
         timestamp: '4 hours ago',
         specialty: 'gastro',
         isPinned: true,
@@ -195,7 +199,7 @@ export default function WarRoom() {
             role: 'Clinical AI Coordinator',
             badgeColor: '#0D9488',
             avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: `Active adherence currently at ${activeTrial?.adherencePercentage || 92}%. Symptoms show a ${activeTrial?.reductionPercent || 57}% delta from baseline. Monash Low-FODMAP and low-biogenic amine guardrails remain engaged.`,
+            content: `Active adherence currently at ${activeTrial?.adherencePercentage || 92}%. Symptoms show a ${activeTrial?.reductionPercent || 57}% delta from baseline. ${trialName} guardrails remain engaged.`,
             timestamp: '3 hours ago'
           }
         ],
@@ -209,7 +213,7 @@ export default function WarRoom() {
         author: 'physician',
         authorName: 'Dr. Julian Rivera (Metabolic & Functional Medicine)',
         title: 'Functional Biomarker Discordance: Ferritin & Cellular Iron',
-        content: `Biomarker evaluation indicates Serum Ferritin at ${ferritin?.userValue ?? 14} ng/mL (optimal threshold: 50–90 ng/mL). Standard CBC appeared falsely reassuring, but bone marrow iron deficit impairs mitochondrial electron transport and exacerbates orthostatic cerebral hypoperfusion.`,
+        content: `Biomarker evaluation indicates Serum Ferritin at ${ferritinVal} ng/mL (optimal threshold: 50–90 ng/mL). Standard CBC appeared falsely reassuring, but bone marrow iron deficit impairs mitochondrial electron transport and exacerbates orthostatic cerebral hypoperfusion.`,
         timestamp: 'Yesterday',
         specialty: 'metabolic',
         isPinned: false,
@@ -230,7 +234,7 @@ export default function WarRoom() {
     ];
   });
 
-  // Initialize Documents
+  // Initialize Documents from actual clinical records or dynamic biomarker summary
   const [documents, setDocuments] = useState<CanvasDocument[]>(() => {
     try {
       const stored = getItemSync(STORAGE_KEY_DOCS);
@@ -241,14 +245,32 @@ export default function WarRoom() {
     } catch {
       // fallback
     }
+
+    const userRecords = (activeCase as any)?.medicalRecords || (profile as any)?.medicalRecords || [];
+    if (Array.isArray(userRecords) && userRecords.length > 0) {
+      return userRecords.map((r: any, idx: number) => ({
+        id: r.id || `doc_rec_${idx}`,
+        name: r.name || r.title || `Clinical_Record_${idx + 1}.pdf`,
+        size: r.size || '1.4 MB',
+        uploadedAt: r.date || r.uploadedAt || 'Synced with Case',
+        status: 'analyzed' as const,
+        summary: r.summary || `Extracted clinical records synced with ${activeCase?.title || 'active case'}.`
+      }));
+    }
+
+    const patientName = profile?.name || profile?.demographics?.name || 'Patient';
+    const ferritinVal = biomarkers.find(b => b.id === 'ferritin')?.userValue ?? (profile?.vitals?.latestLabValues?.ferritin ?? 14);
+    const freeT3Val = biomarkers.find(b => b.id === 'freet3')?.userValue ?? (profile?.vitals?.latestLabValues?.freeT3 ?? 2.4);
+    const crpVal = biomarkers.find(b => b.id === 'hscrp')?.userValue ?? (profile?.vitals?.latestLabValues?.hsCRP ?? '< 0.5');
+
     return [
       {
         id: 'doc_init_1',
-        name: 'Comprehensive_Metabolic_Iron_Panel_Q3.pdf',
+        name: `${patientName.replace(/\s+/g, '_')}_Comprehensive_Metabolic_Panel.pdf`,
         size: '1.4 MB',
-        uploadedAt: 'Yesterday at 4:15 PM',
+        uploadedAt: 'Synced with Clinical Baseline',
         status: 'analyzed',
-        summary: 'Analyzed by Ava AI · Ferritin depleted (14 ng/mL), Free T3 conversion lag (2.4 pg/mL), hs-CRP baseline normal.'
+        summary: `Analyzed by Ava AI · Serum Ferritin (${ferritinVal} ng/mL), Free T3 (${freeT3Val} pg/mL), hs-CRP (${crpVal} mg/L). Calibrated against functional optimal ranges.`
       }
     ];
   });
