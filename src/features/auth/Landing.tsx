@@ -28,6 +28,7 @@ import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
 import { useMDTStore } from '../../stores/useMDTStore';
 import styles from './Landing.module.css';
+import { HCLogo } from '../../components/ui/HCLogo';
 import { getActiveSession } from '../../services/authSession';
 import { supabase } from '../../services/supabaseClient';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
@@ -495,12 +496,7 @@ export default function Landing() {
       {/* 1. Floating Neutral Glass Navbar */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ''}`}>
         <div className={styles.logoContainer}>
-          <img 
-            src="/logo.png" 
-            alt="HealthChain360.ai" 
-            style={{ width: '32px', height: '32px', objectFit: 'contain' }} 
-            onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
-          />
+          <HCLogo size={32} />
           <span className={styles.logoText}>HealthChain360.ai</span>
         </div>
         <div className={styles.navActions}>
@@ -677,12 +673,7 @@ export default function Landing() {
           
           {/* Top Brand Pill */}
           <div className={styles.convergenceTopBrand}>
-            <img 
-              src="/logo.png" 
-              alt="HealthChain360.ai" 
-              style={{ width: '20px', height: '20px', objectFit: 'contain' }} 
-              onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
-            />
+            <HCLogo size={18} />
             <span>HealthChain360.ai</span>
           </div>
 
@@ -779,12 +770,7 @@ export default function Landing() {
             {/* Dashboard Top Header */}
             <div className={styles.convergenceCardHeader}>
               <div className={styles.convergenceBrandArea}>
-                <img 
-                  src="/logo.png" 
-                  alt="HealthChain360.ai" 
-                  style={{ width: '22px', height: '22px', objectFit: 'contain' }} 
-                  onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
-                />
+                <HCLogo size={22} />
                 <span className={styles.convergenceBrandName}>HealthChain360.ai</span>
               </div>
               <div className={styles.convergenceNavTabs}>
@@ -1467,12 +1453,7 @@ export default function Landing() {
         <div className={styles.footerGrid}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>
-              <img 
-                src="/logo.png" 
-                alt="HealthChain360.ai" 
-                style={{ width: '26px', height: '26px', objectFit: 'contain' }} 
-                onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
-              />
+              <HCLogo size={26} />
               <span>HealthChain360.ai</span>
             </div>
             <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="512" height="512" role="img" aria-label="HealthChain360.ai Logo">
+  <defs>
+    <mask id="hc-mask">
+      <rect x="0" y="0" width="1000" height="1000" fill="#ffffff" />
+      <path d="M 597.5 500 L 821 642.38 A 265 265 0 1 1 821 357.62 Z" fill="#000000" />
+    </mask>
+  </defs>
+
+  <!-- Obsidian Slate "H" letter -->
+  <g mask="url(#hc-mask)">
+    <rect x="153.5" y="196" width="88" height="608" rx="44" fill="#0F172A" />
+    <rect x="348.5" y="196" width="88" height="608" rx="44" fill="#0F172A" />
+    <rect x="197.5" y="456" width="195" height="88" fill="#0F172A" />
+  </g>
+
+  <!-- Medical Emerald "C" letter -->
+  <path d="M 727.75 594.63 L 798.95 646.36 A 249 249 0 1 1 798.95 353.64 L 727.75 405.37 A 161 161 0 1 0 727.75 594.63 Z" fill="#3D7D5E" />
+</svg>

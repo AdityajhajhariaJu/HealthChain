@@ -4,6 +4,7 @@ import { Activity, ArrowRight, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
+import { HCLogo } from '../../components/ui/HCLogo';
 
 export default function UpdatePassword() {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function UpdatePassword() {
       {/* Nav */}
       <nav style={{ padding: '24px 40px', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.png" alt="HealthChain360.ai" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+          <HCLogo size={32} />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>HealthChain360.ai</span>
         </div>
       </nav>

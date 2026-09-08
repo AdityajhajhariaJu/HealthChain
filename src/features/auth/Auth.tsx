@@ -8,6 +8,7 @@ import { setItemSync } from '../../services/storage';
 import { useToast } from '../../components/ui/ToastProvider';
 import { awardSignupBonus } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight } from '../../services/haptics';
+import { HCLogo } from '../../components/ui/HCLogo';
 
 export default function Auth() {
   const isMobile = useIsMobile();
@@ -193,12 +194,7 @@ export default function Auth() {
           onClick={() => navigate('/')}
           aria-label="HealthChain360 Home"
         >
-          <img 
-            src="/logo.png" 
-            alt="HealthChain360.ai" 
-            style={{ width: '30px', height: '30px', objectFit: 'contain' }} 
-            onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
-          />
+          <HCLogo size={32} />
           <span style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '18px' }}>
             HealthChain360.ai
           </span>

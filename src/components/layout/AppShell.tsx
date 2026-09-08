@@ -25,6 +25,7 @@ import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
+import { HCLogo } from '../ui/HCLogo';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -254,12 +255,7 @@ const enforceSafeArea = () => {
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
-            <img 
-              src="/logo.png" 
-              alt="HealthChain360.ai" 
-              style={{ width: '38px', height: '38px', objectFit: 'contain' }} 
-              onError={(e) => { e.currentTarget.src = '/logo.jpg'; }}
-            />
+            <HCLogo size={36} />
             <div>
               <span className="sidebar__logo-text">HealthChain360.ai</span>
               <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>

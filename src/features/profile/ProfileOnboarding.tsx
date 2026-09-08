@@ -30,6 +30,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
 import { syncMedicationsFromProfile } from '../../services/VitaminScheduleService';
+import { HCLogo } from '../../components/ui/HCLogo';
 
 type CircadianSlot = 'morning' | 'midday' | 'evening' | 'bedtime';
 type AllergySeverity = 'mild' | 'moderate' | 'severe';
@@ -310,14 +311,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#0F172A', fontWeight: 850, fontSize: '17px' }}>
-            <img
-              src="/logo.png"
-              alt="HealthChain360.ai"
-              style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'contain' }}
-              onError={(e) => {
-                e.currentTarget.src = '/logo.jpg';
-              }}
-            />
+            <HCLogo size={28} />
             <span>HealthChain360<span style={{ color: '#0D9488' }}>.ai</span></span>
           </div>
 

@@ -192,11 +192,13 @@ textarea {
   font-weight: 800;
   font-size: 16.5px;
   letter-spacing: -0.4px;
+  line-height: 1.2;
 }
 .sidebar__logo-sub {
   font-size: 10.5px;
   color: var(--text-muted);
   display: block;
+  margin-top: 2px;
 }
 
 .sidebar__nav {
