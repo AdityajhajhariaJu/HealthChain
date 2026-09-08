@@ -183,12 +183,12 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 width: '38px',
                 height: '38px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#FFF',
-                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25), inset 0 1px 0 rgba(255,255,255,0.4)'
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25), inset 0 1px 0 rgba(255,255,255,0.4)'
               }}>
                 <Droplets size={20} />
               </div>
@@ -254,9 +254,9 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  background: percentage >= 100 ? '#DCFCE7' : '#ECFDF5',
-                  color: percentage >= 100 ? '#15803D' : '#065F46',
-                  border: percentage >= 100 ? '1px solid #86EFAC' : '1px solid #A7F3D0',
+                  background: percentage >= 100 ? '#E0F2FE' : '#F0F9FF',
+                  color: percentage >= 100 ? '#0284C7' : '#0369A1',
+                  border: percentage >= 100 ? '1px solid #7DD3FC' : '1px solid #BAE6FD',
                   padding: '3px 9px',
                   borderRadius: '999px',
                   fontSize: '11px',
@@ -303,8 +303,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                 <svg width={ringSize} height={ringSize} style={{ transform: 'rotate(-90deg)' }}>
                   <defs>
                     <linearGradient id="hcWaterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#34D399" />
-                      <stop offset="100%" stopColor="#059669" />
+                      <stop offset="0%" stopColor="#38BDF8" />
+                      <stop offset="100%" stopColor="#0284C7" />
                     </linearGradient>
                   </defs>
 
@@ -314,7 +314,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     cy={ringSize / 2}
                     r={radius}
                     fill="none"
-                    stroke="rgba(16, 185, 129, 0.12)"
+                    stroke="rgba(14, 165, 233, 0.12)"
                     strokeWidth={strokeWidth}
                   />
 
@@ -346,7 +346,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   <span className="tabular-nums" style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', lineHeight: 1 }}>
                     {percentage}%
                   </span>
-                  <span style={{ fontSize: '9px', fontWeight: 800, color: '#059669', letterSpacing: '0.04em', textTransform: 'uppercase', marginTop: '2px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 800, color: '#0284C7', letterSpacing: '0.04em', textTransform: 'uppercase', marginTop: '2px' }}>
                     Goal
                   </span>
                 </div>
@@ -366,7 +366,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#059669',
+                      color: '#0284C7',
                       fontSize: '12px',
                       fontWeight: 700,
                       display: 'flex',
@@ -431,8 +431,8 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     background: '#FFFFFF',
                     borderRadius: '20px',
                     padding: '14px 10px',
-                    border: '1.5px solid #10B981',
-                    boxShadow: '0 6px 20px rgba(16, 185, 129, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
+                    border: '1.5px solid #0284C7',
+                    boxShadow: '0 6px 20px rgba(2, 132, 199, 0.15), inset 0 1px 0 rgba(255,255,255,0.9)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -444,19 +444,19 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     width: '38px',
                     height: '38px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#FFFFFF',
-                    boxShadow: '0 3px 10px rgba(16, 185, 129, 0.3)'
+                    boxShadow: '0 3px 10px rgba(2, 132, 199, 0.3)'
                   }}>
                     <Droplets size={19} />
                   </div>
-                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#065F46', letterSpacing: '-0.3px' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0369A1', letterSpacing: '-0.3px' }}>
                     +500 ml
                   </span>
-                  <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
+                  <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: 700 }}>
                     Daily Kickstart
                   </span>
                 </motion.button>
@@ -543,7 +543,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                           borderRadius: '9px',
                           border: 'none',
                           background: isSelected ? '#FFFFFF' : 'transparent',
-                          color: isSelected ? '#059669' : '#78716C',
+                          color: isSelected ? '#0284C7' : '#78716C',
                           boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                           fontSize: '12px',
                           fontWeight: isSelected ? 800 : 600,
@@ -567,11 +567,11 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     width: '32px',
                     height: '32px',
                     borderRadius: '10px',
-                    background: data.remindersEnabled ? '#ECFDF5' : '#F5EFEB',
+                    background: data.remindersEnabled ? '#E0F2FE' : '#F5EFEB',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: data.remindersEnabled ? '#059669' : '#94A3B8'
+                    color: data.remindersEnabled ? '#0284C7' : '#94A3B8'
                   }}>
                     {data.remindersEnabled ? <Bell size={16} /> : <BellOff size={16} />}
                   </div>
@@ -594,7 +594,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                     height: '26px',
                     borderRadius: '999px',
                     border: 'none',
-                    background: data.remindersEnabled ? '#10B981' : '#E2D9D2',
+                    background: data.remindersEnabled ? '#0284C7' : '#E2D9D2',
                     display: 'flex',
                     alignItems: 'center',
                     padding: '2px',

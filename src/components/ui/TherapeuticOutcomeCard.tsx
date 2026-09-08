@@ -99,10 +99,10 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               minHeight: isMobile ? '38px' : '44px',
               flexShrink: 0,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)',
+              background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.95) 0%, rgba(109, 40, 217, 0.85) 100%)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)',
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)',
               border: '1px solid rgba(255,255,255,0.2)',
               display: 'flex',
               alignItems: 'center',
@@ -116,8 +116,8 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
             <div
               className="tabular-nums micro-badge"
               style={{
-                background: 'rgba(13, 148, 136, 0.12)',
-                color: '#0F766E',
+                background: 'rgba(124, 58, 237, 0.12)',
+                color: '#6D28D9',
                 padding: '3px 8px',
                 borderRadius: '999px',
                 fontSize: '10px',
@@ -193,13 +193,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  background: 'rgba(13, 148, 136, 0.1)',
-                  border: '1px solid rgba(13, 148, 136, 0.25)',
+                  background: 'rgba(124, 58, 237, 0.1)',
+                  border: '1px solid rgba(124, 58, 237, 0.25)',
                   borderRadius: '6px',
                   padding: '2px 7px',
                   fontSize: '10px',
                   fontWeight: 700,
-                  color: '#0F766E',
+                  color: '#6D28D9',
                   cursor: 'pointer',
                   minWidth: 'unset',
                   minHeight: 'unset',
@@ -267,13 +267,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: showRationale ? 'rgba(13, 148, 136, 0.18)' : 'rgba(13, 148, 136, 0.08)',
-                border: '1px solid rgba(13, 148, 136, 0.22)',
+                background: showRationale ? 'rgba(124, 58, 237, 0.18)' : 'rgba(124, 58, 237, 0.08)',
+                border: '1px solid rgba(124, 58, 237, 0.22)',
                 borderRadius: '6px',
                 padding: '2px 7px',
                 fontSize: '10px',
                 fontWeight: 600,
-                color: '#0F766E',
+                color: '#6D28D9',
                 cursor: 'pointer',
                 minWidth: 'unset',
                 minHeight: 'unset',
@@ -309,13 +309,13 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                 backdropFilter: 'blur(16px)',
                 borderRadius: '14px',
                 padding: '8px 10px',
-                border: '1px solid rgba(13, 148, 136, 0.25)',
-                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+                border: '1px solid rgba(124, 58, 237, 0.25)',
+                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                <span style={{ fontSize: '9px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '9px', fontWeight: 800, color: '#6D28D9', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                   Mechanism
                 </span>
                 <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>

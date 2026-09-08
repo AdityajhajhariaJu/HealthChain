@@ -341,7 +341,7 @@ export default function CaseDashboard() {
                 
                 <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
                    <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
+                   <p style={{ fontSize: '11px', color: '#E11D48', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
                 </div>
               </motion.div>
 
@@ -514,10 +514,10 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)', 
+                    background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.95) 0%, rgba(190, 18, 60, 0.85) 100%)', 
                     backdropFilter: 'blur(12px)', 
                     WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
+                    boxShadow: '0 4px 12px rgba(225, 29, 72, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
                     border: '1px solid rgba(255,255,255,0.2)', 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -525,7 +525,7 @@ export default function CaseDashboard() {
                   }}>
                     <Sparkles size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     WAR ROOM
                   </div>
                 </div>
@@ -538,13 +538,13 @@ export default function CaseDashboard() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: 'rgba(13, 148, 136, 0.1)',
-                        border: '1px solid rgba(13, 148, 136, 0.25)',
+                        background: 'rgba(225, 29, 72, 0.1)',
+                        border: '1px solid rgba(225, 29, 72, 0.25)',
                         borderRadius: '6px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#0F766E'
+                        color: '#BE123C'
                       }}
                     >
                       <span>Open Workspace</span>
@@ -576,9 +576,9 @@ export default function CaseDashboard() {
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: completedHabits['hydration'] ? '1.5px solid #10B981' : '1px solid rgba(255, 255, 255, 0.85)', 
+                  border: completedHabits['hydration'] ? '1.5px solid #0284C7' : '1px solid rgba(255, 255, 255, 0.85)', 
                   boxShadow: completedHabits['hydration'] 
-                    ? '0 20px 40px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.95)' 
+                    ? '0 20px 40px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255,255,255,0.95)' 
                     : '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95)', 
                   borderRadius: isMobile ? '24px' : '32px',
                   padding: isMobile ? '14px 14px' : '20px',
@@ -614,10 +614,10 @@ export default function CaseDashboard() {
                       flexShrink: 0,
                       borderRadius: '50%', 
                       background: completedHabits['hydration'] 
-                        ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.1) 100%)', 
-                      boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                      border: completedHabits['hydration'] ? 'none' : '1px solid rgba(16, 185, 129, 0.3)',
+                        ? 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)' 
+                        : 'linear-gradient(135deg, rgba(14, 165, 233, 0.18) 0%, rgba(2, 132, 199, 0.1) 100%)', 
+                      boxShadow: completedHabits['hydration'] ? '0 4px 12px rgba(2, 132, 199, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
+                      border: completedHabits['hydration'] ? 'none' : '1px solid rgba(14, 165, 233, 0.3)',
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
@@ -628,7 +628,7 @@ export default function CaseDashboard() {
                     {completedHabits['hydration'] ? (
                       <Check size={isMobile ? 18 : 20} color="#FFF" />
                     ) : (
-                      <Droplets size={isMobile ? 18 : 20} color="#059669" />
+                      <Droplets size={isMobile ? 18 : 20} color="#0284C7" />
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -638,13 +638,13 @@ export default function CaseDashboard() {
                       title="Quick log 1 glass (+250ml)"
                       aria-label="Quick log 250ml water"
                       style={{
-                        background: 'rgba(16, 185, 129, 0.1)',
-                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        background: 'rgba(14, 165, 233, 0.1)',
+                        border: '1px solid rgba(14, 165, 233, 0.25)',
                         borderRadius: '999px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#065F46',
+                        color: '#0369A1',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '3px',
@@ -657,8 +657,8 @@ export default function CaseDashboard() {
                     <div 
                       className="tabular-nums micro-badge"
                       style={{ 
-                        background: completedHabits['hydration'] ? '#DCFCE7' : 'rgba(16, 185, 129, 0.12)', 
-                        color: completedHabits['hydration'] ? '#15803D' : '#065F46', 
+                        background: completedHabits['hydration'] ? '#E0F2FE' : 'rgba(14, 165, 233, 0.12)', 
+                        color: completedHabits['hydration'] ? '#0284C7' : '#0369A1', 
                         padding: '3px 8px', 
                         borderRadius: '999px',
                         fontSize: '10px',
@@ -681,7 +681,7 @@ export default function CaseDashboard() {
                         ? 'Hydrated 💧' 
                         : 'Hydrate 500ml'}
                   </h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['hydration'] ? '#10B981' : '#64748B', margin: '0 0 4px', fontWeight: 500, lineHeight: 1.3 }}>
+                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['hydration'] ? '#0284C7' : '#64748B', margin: '0 0 4px', fontWeight: 500, lineHeight: 1.3 }}>
                     {hydrationData.currentMl > 0 
                       ? `${hydrationData.currentMl.toLocaleString()} / ${hydrationData.targetMl.toLocaleString()} ml • ${Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%`
                       : 'Tap to log sips & track'}
@@ -692,7 +692,7 @@ export default function CaseDashboard() {
                     width: '100%',
                     height: '4px',
                     borderRadius: '999px',
-                    background: 'rgba(16, 185, 129, 0.15)',
+                    background: 'rgba(14, 165, 233, 0.15)',
                     overflow: 'hidden',
                     marginBottom: '8px',
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
@@ -700,7 +700,7 @@ export default function CaseDashboard() {
                     <div style={{
                       height: '100%',
                       width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
-                      background: 'linear-gradient(90deg, #34D399 0%, #059669 100%)',
+                      background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
                       borderRadius: '999px',
                       transition: 'width 0.4s ease'
                     }} />
@@ -720,13 +720,13 @@ export default function CaseDashboard() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: 'rgba(16, 185, 129, 0.1)',
-                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        background: 'rgba(14, 165, 233, 0.1)',
+                        border: '1px solid rgba(14, 165, 233, 0.25)',
                         borderRadius: '6px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#065F46',
+                        color: '#0369A1',
                         cursor: 'pointer',
                         minWidth: 'unset',
                         minHeight: 'unset',
@@ -747,13 +747,13 @@ export default function CaseDashboard() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: expandedRationale === 'hydration' ? 'rgba(16, 185, 129, 0.16)' : 'rgba(16, 185, 129, 0.08)',
-                        border: '1px solid rgba(16, 185, 129, 0.22)',
+                        background: expandedRationale === 'hydration' ? 'rgba(14, 165, 233, 0.16)' : 'rgba(14, 165, 233, 0.08)',
+                        border: '1px solid rgba(14, 165, 233, 0.22)',
                         borderRadius: '6px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 600,
-                        color: '#065F46',
+                        color: '#0369A1',
                         cursor: 'pointer',
                         minWidth: 'unset',
                         minHeight: 'unset',
@@ -788,13 +788,13 @@ export default function CaseDashboard() {
                         backdropFilter: 'blur(16px)',
                         borderRadius: '14px',
                         padding: '8px 10px',
-                        border: '1px solid rgba(16, 185, 129, 0.25)',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
+                        border: '1px solid rgba(14, 165, 233, 0.25)',
+                        boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
                       }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#065F46', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#0369A1', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                           Mechanism
                         </span>
                         <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>

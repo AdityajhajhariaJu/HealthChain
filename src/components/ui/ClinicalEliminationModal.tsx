@@ -185,7 +185,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
             style={{
               padding: isMobile ? '16px 18px' : '20px 24px',
               borderBottom: '1px solid #F1F5F9',
-              background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
+              background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
               display: 'flex',
               alignItems: 'flex-start',
               justifyContent: 'space-between',
@@ -198,12 +198,12 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                   width: isMobile ? '40px' : '46px',
                   height: isMobile ? '40px' : '46px',
                   borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#FFFFFF',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+                  boxShadow: '0 4px 12px rgba(124, 58, 237, 0.35)',
                   flexShrink: 0,
                 }}
               >
@@ -215,8 +215,8 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                     style={{
                       fontSize: '10.5px',
                       fontWeight: 800,
-                      color: '#047857',
-                      background: '#D1FAE5',
+                      color: '#6D28D9',
+                      background: '#EDE9FE',
                       padding: '2px 8px',
                       borderRadius: '999px',
                       letterSpacing: '0.4px',
