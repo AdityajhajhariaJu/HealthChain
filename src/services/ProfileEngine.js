@@ -830,7 +830,7 @@ export function saveDigestionLog(dateKey, logData) {
       true,
       profile
     );
-  } catch (err) {
+  } catch {
     // Graceful fallback
   }
 
@@ -1025,8 +1025,8 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       await flushSyncOutbox(userId);
       console.log('Profile snapshots synced successfully from Supabase');
     }
-  } catch (err) {
-    console.error('Failed to sync profile from Supabase:', err);
+  } catch (error) {
+    console.error('Failed to sync profile from Supabase:', error);
   }
 }
 
@@ -1081,8 +1081,8 @@ export async function verifyProStatus() {
       }
       return false;
     }
-  } catch (err) {
-    console.warn('verifyProStatus unexpected error, falling back to cache:', err);
+  } catch (error) {
+    console.warn('verifyProStatus unexpected error, falling back to cache:', error);
     return isProUser();
   }
 }

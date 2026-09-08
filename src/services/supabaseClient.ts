@@ -8,6 +8,16 @@ if (supabaseUrl === 'https://placeholder-project.supabase.co') {
   console.error('CRITICAL: VITE_SUPABASE_URL is not set. Supabase features will fail.');
 }
 
+
+// Mock WebSocket for Node environments (Vitest < v22)
+if (typeof globalThis !== 'undefined' && !globalThis.WebSocket) {
+  globalThis.WebSocket = class WebSocket {
+    constructor() {}
+    send() {}
+    close() {}
+  } as any;
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
