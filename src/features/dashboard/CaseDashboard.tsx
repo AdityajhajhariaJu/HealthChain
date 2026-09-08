@@ -341,7 +341,7 @@ export default function CaseDashboard() {
                 
                 <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
                    <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#E11D48', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
+                   <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
                 </div>
               </motion.div>
 
@@ -514,10 +514,10 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.95) 0%, rgba(190, 18, 60, 0.85) 100%)', 
+                    background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)', 
                     backdropFilter: 'blur(12px)', 
                     WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(225, 29, 72, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
                     border: '1px solid rgba(255,255,255,0.2)', 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -525,7 +525,7 @@ export default function CaseDashboard() {
                   }}>
                     <Sparkles size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     WAR ROOM
                   </div>
                 </div>
@@ -538,13 +538,13 @@ export default function CaseDashboard() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        background: 'rgba(225, 29, 72, 0.1)',
-                        border: '1px solid rgba(225, 29, 72, 0.25)',
+                        background: 'rgba(13, 148, 136, 0.1)',
+                        border: '1px solid rgba(13, 148, 136, 0.25)',
                         borderRadius: '6px',
                         padding: '2px 7px',
                         fontSize: '10px',
                         fontWeight: 700,
-                        color: '#BE123C'
+                        color: '#0F766E'
                       }}
                     >
                       <span>Open Workspace</span>
