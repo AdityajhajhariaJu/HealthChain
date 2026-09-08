@@ -494,7 +494,7 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '580px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '100%' }}
+              style={{ maxWidth: '580px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 'min-content' }}
             >
               {/* Top Navigation & Gamified Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
@@ -836,23 +836,15 @@ export default function OnboardingFlow() {
                 </div>
               </div>
 
-              {/* Sticky Floating Bottom Action Dock */}
+              {/* Action Buttons in Natural Flow (Zero Overlap / Zero Cutout) */}
               <div
                 style={{
-                  position: 'sticky',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  padding: '14px 0 max(16px, env(safe-area-inset-bottom, 0px))',
-                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.94) 30%, #FAF5F0 100%)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
                   alignItems: 'center',
-                  zIndex: 20,
-                  marginTop: 'auto'
+                  marginTop: '14px',
+                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))'
                 }}
               >
                 <motion.button
@@ -912,7 +904,7 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '100%' }}
+              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 'min-content' }}
             >
               {/* Top Navigation & Gamified Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
@@ -1089,23 +1081,15 @@ export default function OnboardingFlow() {
                 </div>
               </div>
 
-              {/* Sticky Floating Bottom Action Dock */}
+              {/* Action Buttons in Natural Flow (Zero Overlap / Zero Cutout) */}
               <div
                 style={{
-                  position: 'sticky',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  padding: '14px 0 max(16px, env(safe-area-inset-bottom, 0px))',
-                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.94) 30%, #FAF5F0 100%)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
                   alignItems: 'center',
-                  zIndex: 20,
-                  marginTop: 'auto'
+                  marginTop: '14px',
+                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))'
                 }}
               >
                 <motion.button
@@ -1165,7 +1149,7 @@ export default function OnboardingFlow() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -25 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '100%' }}
+              style={{ maxWidth: '620px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 'min-content' }}
             >
               {/* Top Navigation & Gamified Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
@@ -1480,23 +1464,15 @@ export default function OnboardingFlow() {
                 </div>
               </div>
 
-              {/* Sticky Floating Bottom Action Dock */}
+              {/* Action Buttons in Natural Flow (Zero Overlap / Zero Cutout) */}
               <div
                 style={{
-                  position: 'sticky',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  padding: '14px 0 max(16px, env(safe-area-inset-bottom, 0px))',
-                  background: 'linear-gradient(180deg, rgba(250, 245, 240, 0) 0%, rgba(250, 245, 240, 0.94) 30%, #FAF5F0 100%)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
                   alignItems: 'center',
-                  zIndex: 20,
-                  marginTop: 'auto'
+                  marginTop: '14px',
+                  paddingBottom: 'max(36px, calc(env(safe-area-inset-bottom, 0px) + 20px))'
                 }}
               >
                 <motion.button
