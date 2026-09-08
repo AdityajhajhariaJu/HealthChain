@@ -478,6 +478,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <button
                         type="button"
+                        aria-label="Decrease age"
                         onClick={() => {
                           triggerHapticLight();
                           setAge((prev) => Math.max(14, prev - 1));
@@ -494,6 +495,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       />
                       <button
                         type="button"
+                        aria-label="Increase age"
                         onClick={() => {
                           triggerHapticLight();
                           setAge((prev) => Math.min(105, prev + 1));
@@ -596,6 +598,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <button
                           type="button"
+                          aria-label="Decrease height"
                           onClick={() => {
                             triggerHapticLight();
                             setHeightCm((prev) => Math.max(120, prev - 1));
@@ -614,6 +617,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                         />
                         <button
                           type="button"
+                          aria-label="Increase height"
                           onClick={() => {
                             triggerHapticLight();
                             setHeightCm((prev) => Math.min(220, prev + 1));
@@ -638,6 +642,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <button
                           type="button"
+                          aria-label="Decrease weight"
                           onClick={() => {
                             triggerHapticLight();
                             setWeightKg((prev) => Math.max(35, prev - 1));
@@ -656,6 +661,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                         />
                         <button
                           type="button"
+                          aria-label="Increase weight"
                           onClick={() => {
                             triggerHapticLight();
                             setWeightKg((prev) => Math.min(180, prev + 1));

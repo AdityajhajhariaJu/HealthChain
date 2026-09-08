@@ -2,8 +2,6 @@ import { getProfile } from './ProfileEngine';
 import { getActiveCase } from './CaseEngine';
 
 
-let cachedContext = null;
-let lastProfileHash = null;
 
 export function compilePatientContext(options = {}) {
   const { includeActiveCase = false, includeDailyCheckins = false } = options;
@@ -113,7 +111,7 @@ export function compilePatientContext(options = {}) {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('hc_logout', () => {
-    cachedContext = null;
-    lastProfileHash = null;
+    let cachedContext = null;
+    let lastProfileHash = null;
   });
 }
