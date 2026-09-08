@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Network } from 'lucide-react';
+import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
 import FocusTrap from './FocusTrap';
 import { ConnectionDetectiveView } from './ConnectionDetectiveView';
 import { triggerHapticLight } from '../../services/haptics';
@@ -32,7 +33,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <FocusTrap isActive={isOpen}>
         <div
@@ -45,7 +46,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 10000,
+            zIndex: 999999,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'flex-end',
@@ -63,7 +64,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: '640px',
+              maxWidth: '680px',
               maxHeight: '94vh',
               background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
               borderTopLeftRadius: '32px',
@@ -83,19 +84,55 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             {/* Header */}
             <div
               style={{
-                padding: '14px 20px 10px 20px',
+                padding: '12px 18px 10px 18px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
+                gap: '12px'
               }}
             >
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                  MULTI-SYSTEM CLINICAL DETECTIVE
-                </span>
-                <h2 style={{ margin: '2px 0 0 0', fontSize: '22px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px' }}>
-                  Connection <span style={{ color: '#E11D48' }}>Detective</span>
-                </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    onClose();
+                  }}
+                  aria-label="Back to dashboard"
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    minWidth: '38px',
+                    minHeight: '38px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#1E293B',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  <ArrowLeft size={18} />
+                </button>
+
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#4F46E5', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                      CLINICAL DETECTIVE
+                    </span>
+                    <span style={{ background: '#EEF2FF', color: '#4338CA', padding: '1px 6px', borderRadius: '6px', fontSize: '9.5px', fontWeight: 800 }}>
+                      ROOT CAUSE
+                    </span>
+                  </div>
+                  <h2 style={{ margin: '1px 0 0 0', fontSize: '18px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    Connection <span style={{ color: '#4F46E5' }}>Detective</span>
+                  </h2>
+                </div>
               </div>
 
               <button
@@ -106,16 +143,20 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 }}
                 aria-label="Close Connection Detective"
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '38px',
+                  height: '38px',
+                  minWidth: '38px',
+                  minHeight: '38px',
                   borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  border: '1.5px solid #E2E8F0',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #E2E8F0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#64748B',
                   cursor: 'pointer',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
                 }}
               >
                 <X size={18} />
@@ -146,6 +187,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           </motion.div>
         </div>
       </FocusTrap>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

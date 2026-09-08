@@ -22,13 +22,13 @@ import {
   ChevronRight,
   ShieldCheck,
   ExternalLink,
-  ClipboardList
+  ClipboardList,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getProfile } from '../../services/ProfileEngine';
-import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getFunctionalBiomarkers, FunctionalBiomarker } from '../../services/ConnectionDetectiveEngine';
 import { getSuspectFoodsLeaderboard, getActiveTrial, ActiveTrialState } from '../../services/TriggerEngine';
@@ -436,8 +436,8 @@ export default function WarRoom() {
 
       {/* Sticky Premium Header */}
       <header style={{
-        padding: isMobile ? 'calc(env(safe-area-inset-top, 12px) + 12px) 16px 12px' : '20px 24px',
-        background: 'rgba(255, 255, 255, 0.95)',
+        padding: isMobile ? 'calc(env(safe-area-inset-top, 12px) + 8px) 14px 10px' : '20px 24px',
+        background: 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         position: 'sticky',
@@ -450,9 +450,10 @@ export default function WarRoom() {
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
         width: '100%',
         boxSizing: 'border-box',
-        gap: '12px'
+        gap: '8px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+        {/* Left: Back Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flex: 1, minWidth: 0 }}>
           <button 
             type="button"
             aria-label="Back to previous screen"
@@ -462,115 +463,156 @@ export default function WarRoom() {
               else navigate('/app/today'); 
             }}
             style={{ 
-              width: '40px', 
-              height: '40px', 
-              minWidth: '40px', 
-              minHeight: '40px', 
+              width: '38px', 
+              height: '38px', 
+              minWidth: '38px', 
+              minHeight: '38px', 
               borderRadius: '50%', 
               background: '#F1F5F9', 
-              border: 'none', 
+              border: '1px solid #E2E8F0', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
               cursor: 'pointer',
+              flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
               transition: 'background 0.15s ease'
             }}
           >
-            <ArrowLeft size={20} color="#0F172A" />
+            <ArrowLeft size={18} color="#0F172A" />
           </button>
           
           <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
               <h1 style={{ 
-                fontSize: isMobile ? '17px' : '20px', 
+                fontSize: isMobile ? '15.5px' : '19px', 
                 fontWeight: 800, 
                 margin: 0, 
                 color: '#0F172A', 
-                letterSpacing: '-0.4px',
+                letterSpacing: '-0.3px',
                 whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                flexShrink: 0
               }}>
                 Health Canvas
               </h1>
               <span style={{
                 background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                 color: '#FFF',
-                padding: '2px 8px',
+                padding: '2px 6px',
                 borderRadius: '999px',
-                fontSize: '10px',
-                fontWeight: 700,
+                fontSize: '9.5px',
+                fontWeight: 800,
                 letterSpacing: '0.4px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '3px',
                 flexShrink: 0
               }}>
-                <Sparkles size={11} /> ROUNDS
+                <Sparkles size={9} /> ROUNDS
               </span>
             </div>
             <p style={{ 
-              margin: '2px 0 0', 
-              fontSize: '12px', 
+              margin: '1px 0 0', 
+              fontSize: '11px', 
               color: '#64748B', 
               fontWeight: 500,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}>
-              Multi-Specialist Surveillance Board
+              Multi-Specialist Rounds Board
             </p>
           </div>
         </div>
 
-        {/* Header Action: Generate Doctor Dossier */}
-        <button
-          type="button"
-          aria-label="Open Physician Dossier Brief"
-          onClick={() => {
-            triggerHapticSelection();
-            navigate('/app/consult', { state: { tab: 'dossier' } });
-          }}
-          style={{
-            height: '40px',
-            width: isMobile ? '40px' : 'auto',
-            padding: isMobile ? '0' : '0 14px',
-            borderRadius: isMobile ? '50%' : '12px',
-            background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-            color: '#FFF',
-            border: 'none',
-            fontSize: '13px',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
-            flexShrink: 0
-          }}
-        >
-          <ClipboardList size={16} />
-          {!isMobile && <span>Doctor Brief</span>}
-        </button>
+        {/* Right Actions: Doctor Brief + Close (Cross) Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <button
+            type="button"
+            aria-label="Open Physician Dossier Brief"
+            onClick={() => {
+              triggerHapticSelection();
+              navigate('/app/consult', { state: { tab: 'dossier' } });
+            }}
+            style={{
+              height: '38px',
+              width: isMobile ? '38px' : 'auto',
+              minWidth: '38px',
+              padding: isMobile ? '0' : '0 12px',
+              borderRadius: isMobile ? '50%' : '10px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+              color: '#FFF',
+              border: 'none',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              boxShadow: '0 3px 10px rgba(13, 148, 136, 0.25)',
+              flexShrink: 0
+            }}
+          >
+            <ClipboardList size={16} />
+            {!isMobile && <span>Doctor Brief</span>}
+          </button>
+
+          <button
+            type="button"
+            aria-label="Close Health Canvas"
+            onClick={() => {
+              triggerHapticLight();
+              navigate('/app/today');
+            }}
+            style={{
+              width: '38px',
+              height: '38px',
+              minWidth: '38px',
+              minHeight: '38px',
+              borderRadius: '50%',
+              background: '#F1F5F9',
+              border: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#64748B',
+              cursor: 'pointer',
+              flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+              transition: 'background 0.15s ease'
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
-      <main style={{ maxWidth: '1024px', margin: '0 auto', padding: isMobile ? '16px' : '24px', display: 'grid', gap: '20px' }}>
-
-
+      <main style={{ 
+        maxWidth: '1024px', 
+        width: '100%', 
+        margin: '0 auto', 
+        boxSizing: 'border-box',
+        padding: isMobile ? '16px 14px 100px' : '24px 20px 100px', 
+        display: 'grid', 
+        gap: '16px',
+        overflowX: 'hidden'
+      }}>
 
         {/* Live Patient Surveillance Status Banner */}
         <section 
           aria-label="Clinical Surveillance Summary"
           style={{
             background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-            borderRadius: '24px',
-            padding: isMobile ? '18px 16px' : '22px 24px',
+            borderRadius: isMobile ? '20px' : '24px',
+            padding: isMobile ? '16px 14px' : '22px 24px',
             color: '#FFF',
             boxShadow: '0 16px 36px rgba(15, 23, 42, 0.12)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            width: '100%',
+            boxSizing: 'border-box'
           }}
         >
           <div style={{ position: 'relative', zIndex: 2 }}>
@@ -605,14 +647,14 @@ export default function WarRoom() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
-              <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '14px', padding: '12px 14px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', marginBottom: '3px' }}>Active Clinical Case</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#F8FAFC' }}>{activeCaseTitle}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '10px' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '14px', padding: '12px 14px', border: '1px solid rgba(255, 255, 255, 0.08)', minWidth: 0, overflow: 'hidden' }}>
+                <div style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', marginBottom: '3px' }}>Active Clinical Case</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#F8FAFC', wordBreak: 'break-word', lineHeight: 1.3 }}>{activeCaseTitle}</div>
               </div>
-              <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '14px', padding: '12px 14px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', marginBottom: '3px' }}>Active Elimination Phase</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#38BDF8' }}>{activeTrialTitle}</div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '14px', padding: '12px 14px', border: '1px solid rgba(255, 255, 255, 0.08)', minWidth: 0, overflow: 'hidden' }}>
+                <div style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', marginBottom: '3px' }}>Active Elimination Phase</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#38BDF8', wordBreak: 'break-word', lineHeight: 1.3 }}>{activeTrialTitle}</div>
               </div>
             </div>
           </div>
@@ -872,8 +914,21 @@ export default function WarRoom() {
         )}
 
         {/* Specialty Filter Tabs */}
-        <section aria-label="Specialty Filter Tabs" style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px' }}>
+        <section 
+          aria-label="Specialty Filter Tabs" 
+          className="hide-scrollbar"
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            overflowX: 'auto', 
+            paddingBottom: '4px',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px', flexShrink: 0 }}>
             <Filter size={13} /> Filter:
           </div>
           {[
@@ -900,6 +955,7 @@ export default function WarRoom() {
                 fontWeight: 600,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
                 transition: 'all 0.15s ease'
               }}
             >

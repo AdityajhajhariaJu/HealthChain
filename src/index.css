@@ -996,6 +996,10 @@ html.dark-theme body {
     overscroll-behavior-y: contain;
   }
 
+  .app-shell__content.war-room-shell {
+    padding: 0 !important;
+  }
+
   .mobile-top-bar {
     position: fixed;
     top: 0;
