@@ -141,6 +141,18 @@ textarea {
   overscroll-behavior-y: contain;
 }
 
+.war-room-shell,
+.app-shell__content.war-room-shell {
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 .skip-link {
   position: absolute;
   top: -40px;

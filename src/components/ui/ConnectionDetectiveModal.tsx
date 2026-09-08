@@ -65,10 +65,10 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             style={{
               width: '100%',
               maxWidth: '680px',
-              maxHeight: '94vh',
+              maxHeight: '96dvh',
               background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
-              borderTopLeftRadius: '32px',
-              borderTopRightRadius: '32px',
+              borderTopLeftRadius: '28px',
+              borderTopRightRadius: '28px',
               border: '1.5px solid #CCFBF1',
               boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.18)',
               display: 'flex',
@@ -84,15 +84,15 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             {/* Header */}
             <div
               style={{
-                padding: '12px 18px 10px 18px',
+                padding: '12px 16px 10px 16px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
-                gap: '12px'
+                gap: '8px'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -129,7 +129,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                       ROOT CAUSE
                     </span>
                   </div>
-                  <h2 style={{ margin: '1px 0 0 0', fontSize: '18px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <h2 style={{ margin: '1px 0 0 0', fontSize: '16px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     Connection <span style={{ color: '#4F46E5' }}>Detective</span>
                   </h2>
                 </div>
@@ -168,7 +168,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               style={{
                 flex: 1,
                 overflowY: 'auto',
-                padding: '0 20px 32px 20px',
+                padding: '0 14px 32px 14px',
               }}
             >
               <ConnectionDetectiveView

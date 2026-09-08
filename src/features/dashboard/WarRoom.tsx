@@ -35,6 +35,7 @@ import { getSuspectFoodsLeaderboard, getActiveTrial, ActiveTrialState } from '..
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { getItemSync, setItemSync } from '../../services/storage';
 
 interface ObservationReply {
@@ -129,6 +130,7 @@ export default function WarRoom() {
   // Interactive Modals
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [showTriageModal, setShowTriageModal] = useState(false);
+  const [showConnectionDetective, setShowConnectionDetective] = useState(false);
 
   // Filtering & Post Input
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'cardio' | 'gastro' | 'immuno' | 'metabolic'>('all');
@@ -423,7 +425,15 @@ export default function WarRoom() {
     : 'MONASH PROTOCOL (Active)';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', paddingBottom: '120px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      width: '100%', 
+      maxWidth: '100vw', 
+      background: '#F8FAFC', 
+      paddingBottom: '120px', 
+      overflowX: 'hidden', 
+      boxSizing: 'border-box' 
+    }}>
       
       {/* Hidden File Input for Real Document Upload */}
       <input 
@@ -436,18 +446,18 @@ export default function WarRoom() {
 
       {/* Sticky Premium Header */}
       <header style={{
-        padding: isMobile ? 'calc(env(safe-area-inset-top, 12px) + 8px) 14px 10px' : '20px 24px',
-        background: 'rgba(255, 255, 255, 0.96)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
+        padding: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 12px) 14px 12px' : '18px 24px',
+        background: 'rgba(255, 255, 255, 0.98)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         position: 'sticky',
         top: 0,
         zIndex: 100,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.85)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
         width: '100%',
         boxSizing: 'border-box',
         gap: '8px'
@@ -594,7 +604,7 @@ export default function WarRoom() {
         width: '100%', 
         margin: '0 auto', 
         boxSizing: 'border-box',
-        padding: isMobile ? '16px 14px 100px' : '24px 20px 100px', 
+        padding: isMobile ? '14px 12px 100px' : '24px 20px 100px', 
         display: 'grid', 
         gap: '16px',
         overflowX: 'hidden'
@@ -626,7 +636,7 @@ export default function WarRoom() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <button
                   type="button"
-                  onClick={() => { triggerHapticLight(); navigate('/app/consult'); }}
+                  onClick={() => { triggerHapticLight(); setShowConnectionDetective(true); }}
                   style={{
                     background: 'rgba(255, 255, 255, 0.12)',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -1066,14 +1076,20 @@ export default function WarRoom() {
                 )}
 
                 {/* Direct Action Buttons */}
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  flexDirection: isMobile ? 'column' : 'row',
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}>
                   {obs.actionPrompt && (
                     <button
                       type="button"
                       onClick={() => {
                         triggerHapticLight();
                         if (obs.actionRoute === 'detective_modal') {
-                          navigate('/app/consult');
+                          setShowConnectionDetective(true);
                         } else if (obs.actionRoute) {
                           navigate(obs.actionRoute, {
                             state: {
@@ -1085,8 +1101,8 @@ export default function WarRoom() {
                       }}
                       style={{
                         flex: 1,
-                        minWidth: '160px',
-                        padding: '10px 14px',
+                        width: isMobile ? '100%' : 'auto',
+                        padding: '11px 14px',
                         borderRadius: '12px',
                         background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                         color: '#FFF',
@@ -1114,8 +1130,8 @@ export default function WarRoom() {
                     }}
                     style={{
                       flex: 1,
-                      minWidth: '140px',
-                      padding: '10px 14px',
+                      width: isMobile ? '100%' : 'auto',
+                      padding: '11px 14px',
                       borderRadius: '12px',
                       background: '#F8FAFC',
                       color: '#0F172A',
@@ -1164,7 +1180,7 @@ export default function WarRoom() {
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
               type="button"
-              onClick={() => { triggerHapticLight(); navigate('/app/consult'); }}
+              onClick={() => { triggerHapticLight(); setShowConnectionDetective(true); }}
               style={{
                 background: '#FFF',
                 border: '1px solid #CBD5E1',
@@ -1224,7 +1240,13 @@ export default function WarRoom() {
 
       </main>
 
-
+      {/* Connection Detective Modal */}
+      <ConnectionDetectiveModal
+        isOpen={showConnectionDetective}
+        onClose={() => setShowConnectionDetective(false)}
+        onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
+        onOpenConsult={() => navigate('/app/consult')}
+      />
 
       {/* Emergency Triage Modal Guardrail */}
       <EmergencyTriageModal
