@@ -45,6 +45,7 @@ import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { EliminationProtocolSuite } from './EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
+import { trackButtonClick } from '../../services/analytics';
 
 interface ConnectionDetectiveViewProps {
   initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination' | 'insights';
@@ -105,6 +106,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
   const handleCopySbar = () => {
     triggerHapticLight();
+    trackButtonClick('sbar_dossier_copied', report.patientName);
     const text = `HEALTHCHAIN 360 • CLINIC USP CONNECTION DETECTIVE REPORT
 Patient: ${report.patientName}
 Generated: ${report.generatedAt}
@@ -138,6 +140,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
   const handlePrint = () => {
     triggerHapticLight();
+    trackButtonClick('sbar_dossier_printed', report.patientName);
     window.print();
   };
 
@@ -351,6 +354,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               onClick={() => {
                 triggerHapticLight();
                 setActiveTab(t.id as any);
+                trackButtonClick('clinical_engine_tab_switched', t.id);
               }}
               style={{
                 display: 'inline-flex',

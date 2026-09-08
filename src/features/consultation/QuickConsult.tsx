@@ -15,7 +15,8 @@ import {
   X,
   FileUp,
   Loader2,
-  MessageCircle
+  MessageCircle,
+  Network
 } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { ALL_SPECIALISTS } from '../../data/specialists';
@@ -390,12 +391,17 @@ export default function QuickConsult() {
       // otherwise a refresh during the completion phase can restore a draft
       // case from sessionStorage without its saved review.
       setActiveCase(savedCase);
+      window.dispatchEvent(new Event('hc_cases_updated'));
+      window.dispatchEvent(new Event('hc_biomarkers_updated'));
       awardPoints(5, `Quick Consult: ${selectedSpecialist?.label || 'Specialist'}`, 'consult');
       recordTrialUsage('quick_consult');
 
       // Fire and forget: Generate connection map
       generateCaseConnectionMap(reportData.topDiagnoses || []).then((mapData) => {
-        if (mapData) updateCaseConnectionMap(savedCase.id, mapData);
+        if (mapData) {
+          updateCaseConnectionMap(savedCase.id, mapData);
+          window.dispatchEvent(new Event('hc_cases_updated'));
+        }
       }).catch(err => console.error("Failed to generate connection map:", err));
     }
   };
@@ -989,11 +995,19 @@ export default function QuickConsult() {
               </button>
               
               <button 
-                onClick={() => navigate('/app/collab')}
+                onClick={() => {
+                  triggerHapticLight();
+                  const el = document.getElementById('clinical-data-engine');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    navigate('/app/consult#clinical-data-engine');
+                  }
+                }}
                 style={{
                   width: '100%',
-                  padding: '16px',
-                  background: 'linear-gradient(135deg, #4F46E5, #9333EA)',
+                  padding: '16px 20px',
+                  background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
                   border: 'none',
                   borderRadius: '16px',
                   fontWeight: 700,
@@ -1003,18 +1017,18 @@ export default function QuickConsult() {
                   justifyContent: 'space-between',
                   cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
-                  boxShadow: '0 10px 25px rgba(147, 51, 234, 0.2)'
+                  boxShadow: '0 10px 25px rgba(5, 150, 105, 0.25)'
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(147, 51, 234, 0.3)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(147, 51, 234, 0.2)'; }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(5, 150, 105, 0.35)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(5, 150, 105, 0.25)'; }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Stethoscope size={16} />
+                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Network size={18} color="#FFF" />
                   </div>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: '15px' }}>Escalate to Collaborative Specialists</div>
-                    <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.25)', fontWeight: 500 }}>Organize multiple AI perspectives for your next clinician visit</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800 }}>Explore in Autonomous Clinical Data Engine</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: 500 }}>Multi-system causal cascades, biomarker deltas &amp; doctor-ready dossier</div>
                   </div>
                 </div>
                 <ChevronRight size={20} />
