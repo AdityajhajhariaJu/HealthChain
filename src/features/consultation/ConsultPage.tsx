@@ -48,12 +48,67 @@ export default function ConsultPage() {
         <QuickConsult />
       </section>
 
+      {/* Consult Divider: OR */}
+      <div 
+        style={{ 
+          maxWidth: '800px', 
+          margin: '28px auto 16px auto', 
+          padding: '0 20px',
+          textAlign: 'center',
+          position: 'relative',
+          zIndex: 2
+        }}
+      >
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            width: '100%',
+            gap: '16px'
+          }}
+        >
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.25))' }} />
+          
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              background: '#F0FDFA',
+              borderRadius: '50%',
+              border: '1px solid #99F6E4',
+              boxShadow: '0 2px 8px rgba(13, 148, 136, 0.12)',
+              flexShrink: 0
+            }}
+          >
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#0F766E',
+                textTransform: 'uppercase',
+                letterSpacing: '0.8px',
+              }}
+            >
+              OR
+            </span>
+          </div>
+          
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.25))' }} />
+        </motion.div>
+      </div>
+
       {/* Elegant Conduit Transition Banner */}
       <div 
         id="clinical-data-engine"
         style={{ 
           maxWidth: '840px', 
-          margin: '32px auto 20px auto', 
+          margin: '16px auto 20px auto', 
           padding: '0 8px',
           textAlign: 'center',
           position: 'relative',
