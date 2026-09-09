@@ -30,69 +30,6 @@ export interface PostMealTimelineItem {
   tags?: string[];
 }
 
-const DEFAULT_TIMELINE_ITEMS: PostMealTimelineItem[] = [
-  {
-    id: 'demo_1',
-    time: '9:30 AM',
-    timestamp: Date.now() - 5.5 * 3600 * 1000,
-    mealName: 'Pancakes with maple syrup',
-    slot: 'morning',
-    slotLabel: 'Morning',
-    slotEmoji: '🌅',
-    incubationHours: 2.0,
-    reaction: {
-      reactionType: 'stomach_upset',
-      system: 'stomach',
-      severity: 1,
-      label: 'Mild discomfort',
-      emoji: '😐',
-      incubationHours: 2.0,
-      loggedAt: new Date(Date.now() - 3.5 * 3600 * 1000).toISOString(),
-    },
-    tags: ['High Glycemic', 'Fructose'],
-  },
-  {
-    id: 'demo_2',
-    time: '2:30 PM',
-    timestamp: Date.now() - 3.0 * 3600 * 1000,
-    mealName: 'Yogurt with granola and fruit',
-    slot: 'noon',
-    slotLabel: 'Noon',
-    slotEmoji: '☀️',
-    incubationHours: 1.5,
-    reaction: {
-      reactionType: 'none',
-      system: 'bloating',
-      severity: 0,
-      label: 'No bloating',
-      emoji: '🙂',
-      incubationHours: 1.5,
-      loggedAt: new Date(Date.now() - 1.5 * 3600 * 1000).toISOString(),
-    },
-    tags: ['Probiotic', 'Lactose'],
-  },
-  {
-    id: 'demo_3',
-    time: '8:00 PM',
-    timestamp: Date.now() - 1.2 * 3600 * 1000,
-    mealName: 'Fried chicken with mashed potatoes',
-    slot: 'evening',
-    slotLabel: 'Evening',
-    slotEmoji: '🌆',
-    incubationHours: 2.0,
-    reaction: {
-      reactionType: 'stomach_upset',
-      system: 'stomach',
-      severity: 2,
-      label: 'Stomach upset',
-      sublabel: 'burning',
-      emoji: '😖',
-      incubationHours: 2.0,
-      loggedAt: new Date(Date.now() - 0.2 * 3600 * 1000).toISOString(),
-    },
-    tags: ['Deep Fried', 'Histamine Rich'],
-  },
-];
 
 const REACTION_OPTIONS: Array<{
   type: PostMealReaction['reactionType'];
@@ -209,7 +146,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
     const recentLogs: any[] = profile?.nutrition?.recentLogs || [];
 
     if (recentLogs.length === 0) {
-      return DEFAULT_TIMELINE_ITEMS;
+      return [];
     }
 
     return recentLogs.slice(-6).reverse().map((log: any, idx: number) => {
@@ -441,8 +378,77 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
         </motion.div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {timelineItems.map((item) => {
+      {timelineItems.length === 0 ? (
+        <div
+          style={{
+            padding: '36px 20px',
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+            borderRadius: '24px',
+            border: '1.5px dashed #CBD5E1',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '14px',
+          }}
+        >
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '16px',
+              background: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+            }}
+          >
+            🍽️
+          </div>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+              No Meals Logged Today
+            </div>
+            <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '4px', maxWidth: '320px', lineHeight: 1.4 }}>
+              Track your meals to discover delayed gut distension, reflux, or heart rate fluctuations in the 1.5h – 2.0h incubation window.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              if (onOpenQuickMeal) {
+                onOpenQuickMeal();
+              } else {
+                setIsQuickMealSheetOpen(true);
+              }
+            }}
+            style={{
+              marginTop: '4px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 18px',
+              borderRadius: '999px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+              color: '#FFFFFF',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.25)',
+              border: 'none',
+            }}
+          >
+            <Plus size={15} />
+            <span>Log Your First Meal</span>
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {timelineItems.map((item) => {
           const isSelected = selectedMealForReaction === item.id;
           const latencyPillColor =
             item.reaction?.severity === 0
@@ -709,6 +715,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
           );
         })}
       </div>
+    )}
 
       <QuickMealIntakeSheet
         isOpen={isQuickMealSheetOpen}

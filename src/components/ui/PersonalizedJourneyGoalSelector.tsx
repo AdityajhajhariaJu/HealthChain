@@ -22,7 +22,7 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
     name: 'Bloating Hunt',
     emoji: '🎈',
     durationLabel: '4 weeks',
-    description: 'Systematic Monash Low-FODMAP washout of fermentable gas & SIBO triggers',
+    description: 'Systematic Low-FODMAP washout of fermentable gas & SIBO triggers',
     badgeBg: '#F3E8FF',
     badgeColor: '#7E22CE',
   },

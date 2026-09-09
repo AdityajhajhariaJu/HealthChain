@@ -273,11 +273,7 @@ function generateClinicalBaselineForDate(dateStr: string, mealsOnDate: any[] = [
         calories: m.calories || 420,
         reaction: m.reaction ? (typeof m.reaction === 'string' ? m.reaction : m.reaction.title || m.reaction.label) : undefined,
       }))
-    : [
-        { name: 'Oatmeal & Almond Milk', time: '08:30', calories: 340, reaction: 'Calm 🙂' },
-        { name: 'Moong Dal & Brown Rice Bowl', time: '13:15', calories: 480, reaction: isOccasionalFlare ? 'Mild Bloat 💨' : 'Calm 🙂' },
-        { name: 'Steamed Greens & Tofu Stir-Fry', time: '19:45', calories: 410, reaction: isOccasionalFlare ? 'Epigastric Warmth 🔥' : 'Calm 🙂' },
-      ];
+    : [];
 
   return {
     date: dateStr,

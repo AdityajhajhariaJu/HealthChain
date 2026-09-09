@@ -435,7 +435,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       title: 'Subclinical Iron & Mitochondrial Starvation',
       organSystem: 'Mitochondrial / Bone Marrow',
       organIcon: '🔬',
-      mechanism: 'Ferritin drops to 14 ng/mL. Without catalytic iron cofactors, mitochondrial respiratory complexes cannot generate cellular ATP, starving high-metabolic tissues (brain and autonomic ganglia).',
+      mechanism: ferritinFound
+        ? `Ferritin reads ${ferritinStr}. Without catalytic iron cofactors, mitochondrial respiratory complexes cannot generate cellular ATP, starving high-metabolic tissues (brain and autonomic ganglia).`
+        : 'Depleted storage iron reserves starve mitochondrial electron transport complexes of catalytic cofactors, reducing cellular ATP synthesis across high-metabolic tissues.',
       clinicalSigns: ['Afternoon cognitive fog', 'Cold extremities', 'Exercise intolerance'],
       biochemicalLag: '3–6 months occult depletion prior to symptom onset',
       upstreamCause: 'Low dietary bioavailable iron + occult gut mucosal malabsorption',
@@ -446,7 +448,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       title: 'Dietary Histamine Overload & DAO Saturation',
       organSystem: 'Gastrointestinal & Enteric',
       organIcon: '🥗',
-      mechanism: 'Stacked dinner with red wine, aged cheese, and cured meats floods the intestinal lumen. Intestinal diamine oxidase (DAO) capacity is overwhelmed, permitting mucosal mast cell degranulation.',
+      mechanism: `Stacked meals with ${suspect1 ? suspect1.name : 'biogenic amines'} flood the intestinal lumen. Intestinal diamine oxidase (DAO) capacity is overwhelmed, permitting mucosal mast cell degranulation.`,
       clinicalSigns: ['Gut distension within 90 min', 'Facial flushing', 'Pruritus / itchy skin'],
       biochemicalLag: 'Peak plasma histamine 45–120 minutes post-ingestion',
       upstreamCause: 'Enzymatic DAO deficit + gut microbial dysbiosis',
@@ -468,7 +470,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       title: 'Compensatory Hyperadrenergic POTS Surge',
       organSystem: 'Autonomic Baroreceptor Axis',
       organIcon: '📈',
-      mechanism: 'Upon standing, up to 700 mL of blood pools in dilated splanchnic and lower-extremity venous beds. The carotid sinus detects reduced stroke volume, firing a norepinephrine surge that spikes heart rate by +38 bpm.',
+      mechanism: `Upon standing, venous pooling in splanchnic and lower-extremity capacitance vessels prompts a compensatory norepinephrine surge, driving an orthostatic standing delta of ${deltaSign} bpm.`,
       clinicalSigns: ['Heart racing upon standing', 'Lightheadedness / presyncope', 'Tremulousness'],
       biochemicalLag: 'Occurs within 2–10 minutes of upright posture',
       upstreamCause: 'Venous pooling + hypovolemia from vascular permeability',
@@ -494,7 +496,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       name: 'Chronic Brain Fog & Fatigue',
       icon: '⚡',
       commonMisattribution: 'Dismissed as "stress, poor sleep, or depression"',
-      rootCauseAxis: 'Metabolic & Mitochondrial (Ferritin 14 ng/mL ATP starvation)',
+      rootCauseAxis: ferritinFound
+        ? `Metabolic & Mitochondrial (Ferritin ${ferritinStr} ATP starvation)`
+        : 'Metabolic & Mitochondrial (Cellular ATP starvation)',
       involvedBoards: ['Endocrinology', 'Neurology'],
     },
     {
@@ -534,7 +538,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       name: 'Orthostatic Standing Dizziness',
       icon: '😫',
       commonMisattribution: 'Dismissed as "benign dehydration or lack of fitness"',
-      rootCauseAxis: 'Autonomic Splanchnic Blood Pooling (+38 bpm delta)',
+      rootCauseAxis: `Autonomic Splanchnic Blood Pooling (${deltaSign} bpm delta)`,
       involvedBoards: ['Cardiology', 'Neurology'],
     },
     {
@@ -1216,22 +1220,32 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     conditions: finalConditions,
     connections: dynamicConnections,
     precautions: [
-      {
-        text: orthoDeltaVal >= 30
-          ? `Do not start vigorous upright aerobic training until orthostatic volume is stabilized (active stand delta: ${deltaSign} bpm). Hydrate with electrolyte fluids.`
-          : 'Maintain gradual posture adjustments and consistent fluid balance during prolonged standing.',
-        severity: 'watch',
+      ...(orthoDeltaVal >= 30 ? [{
+        text: `Do not start vigorous upright aerobic training until orthostatic volume is stabilized (active stand delta: ${deltaSign} bpm). Hydrate with electrolyte fluids.`,
+        severity: 'watch' as const,
         relatedConditions: ['cond_pots'],
-      },
-      {
-        text: `Avoid sudden cessation of iron support (${ferritinStr}) or unmonitored exposure to flagged triggers (${suspect1?.name || 'aged/fermented items'}).`,
-        severity: 'watch',
-        relatedConditions: ['cond_histamine', 'cond_ferritin'],
-      },
+      }] : [{
+        text: 'Maintain gradual posture adjustments, adequate hydration, and consistent fluid balance during prolonged standing.',
+        severity: 'watch' as const,
+        relatedConditions: [],
+      }]),
+      ...(ferritinFound && ferritinMarker && ferritinMarker.status !== 'optimal' ? [{
+        text: `Avoid sudden cessation of iron support (${ferritinStr}) or unmonitored exposure to flagged triggers (${suspect1?.name || 'fermented items'}).`,
+        severity: 'watch' as const,
+        relatedConditions: ['cond_ferritin'],
+      }] : suspect1 ? [{
+        text: `Monitor postprandial symptom latency and limit unmonitored exposure to flagged dietary trigger (${suspect1.name}).`,
+        severity: 'watch' as const,
+        relatedConditions: ['cond_histamine'],
+      }] : [{
+        text: 'Maintain an unrestrictive, nutrient-dense diet and track meals if postprandial distension occurs.',
+        severity: 'watch' as const,
+        relatedConditions: [],
+      }]),
       {
         text: `Seek urgent clinical evaluation if syncope (fainting) or sustained resting tachycardia >${Math.max(115, rhrVal + 35)} bpm occurs.`,
-        severity: 'red_flag',
-        relatedConditions: ['cond_pots', 'cond_roemheld'],
+        severity: 'red_flag' as const,
+        relatedConditions: orthoDeltaVal >= 30 ? ['cond_pots'] : [],
       },
     ],
     missingEvidence: [

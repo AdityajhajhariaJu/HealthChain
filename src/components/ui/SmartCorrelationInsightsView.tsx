@@ -601,46 +601,61 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
 
                     {/* Day Match Ratio Badge */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          color: '#64748B',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                        }}
-                      >
-                        <span>📊</span> {item.matchingDays}/{item.totalDays} day match
-                      </span>
-
                       {item.isUserVerified ? (
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 800,
-                            color: '#059669',
-                            background: '#ECFDF5',
-                            padding: '1px 7px',
-                            borderRadius: '999px',
-                            border: '1px solid #A7F3D0',
-                          }}
-                        >
-                          ✓ From Your Diary
-                        </span>
+                        <>
+                          <span
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              color: '#64748B',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <span>📊</span> {item.matchingDays}/{item.totalDays} day match ({item.correlationPercent}%)
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              color: '#059669',
+                              background: '#ECFDF5',
+                              padding: '1px 7px',
+                              borderRadius: '999px',
+                              border: '1px solid #A7F3D0',
+                            }}
+                          >
+                            ✓ From Your Diary
+                          </span>
+                        </>
                       ) : (
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 700,
-                            color: '#7E22CE',
-                            background: '#F3E8FF',
-                            padding: '1px 7px',
-                            borderRadius: '999px',
-                          }}
-                        >
-                          Monash Study Cohort
-                        </span>
+                        <>
+                          <span
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              color: '#64748B',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <span>🔬</span> Reference Clinical Pattern
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              color: '#7E22CE',
+                              background: '#F3E8FF',
+                              padding: '1px 7px',
+                              borderRadius: '999px',
+                            }}
+                          >
+                            Evidence Benchmark
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
@@ -745,7 +760,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                         }}
                       >
                         <strong style={{ color: '#047857', display: 'block', marginBottom: '2px' }}>
-                          🌱 Monash Safe Alternative:
+                          🌱 Clinical Safe Alternative:
                         </strong>
                         Replace with <strong>{item.safeSwap.swapTo}</strong>.
                         <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
