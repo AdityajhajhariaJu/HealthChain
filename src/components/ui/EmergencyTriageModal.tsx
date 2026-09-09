@@ -180,29 +180,51 @@ export const EmergencyTriageModal: React.FC<EmergencyTriageModalProps> = ({
               </p>
             </div>
 
-            {/* High-Contrast Immediate Call Button */}
-            <a
-              href={`tel:${emergencyNumber}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                width: '100%',
-                padding: '16px',
-                borderRadius: '18px',
-                background: '#DC2626',
-                color: '#FFFFFF',
-                textDecoration: 'none',
-                fontSize: '16px',
-                fontWeight: 800,
-                boxShadow: '0 6px 20px rgba(220, 38, 38, 0.4)',
-                marginBottom: '12px',
-                cursor: 'pointer',
-              }}
-            >
-              <PhoneCall size={20} /> Call {emergencyNumber} Now
-            </a>
+            {/* High-Contrast Immediate Call Buttons (US & India/EU) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+              <a
+                href={`tel:${isPsych ? '988' : '911'}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '14px',
+                  borderRadius: '16px',
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  textDecoration: 'none',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                <PhoneCall size={18} /> {isPsych ? 'Call 988 (US)' : 'Call 911 (US)'}
+              </a>
+              <a
+                href={`tel:${isPsych ? '14416' : '112'}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '14px',
+                  borderRadius: '16px',
+                  background: '#991B1B',
+                  color: '#FFFFFF',
+                  textDecoration: 'none',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 14px rgba(153, 27, 27, 0.35)',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                <PhoneCall size={18} /> {isPsych ? 'Call 14416 (IN)' : 'Call 112 (IN/EU)'}
+              </a>
+            </div>
 
             {!isPsych && (
               <a

@@ -426,7 +426,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       } else {
         ambientAudioRef.current.volume = isMuted ? 0 : ambientVolume;
         if (isPlaying) {
-          ambientAudioRef.current.play().catch(e => console.log('Ambient play error:', e));
+          ambientAudioRef.current.play().catch(() => {});
         } else {
           ambientAudioRef.current.pause();
         }
@@ -591,7 +591,9 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
       if (isPlaying) {
-        audioRef.current.play().catch(e => console.log('Audio play error:', e));
+        audioRef.current.play().catch(() => {
+          setIsPlaying(false);
+        });
       } else {
         audioRef.current.pause();
       }

@@ -207,6 +207,7 @@ export default function MultiSpecialist() {
       setTimeout(() => setPhase('report'), 800);
     } catch (error) {
       console.error('Failed to force consensus:', error);
+      toast.error('Synthesis Interrupted', 'Could not synthesize specialist consensus. Please check your connection and retry.');
       setPhase('running');
     } finally {
       consensusInFlightRef.current = false;

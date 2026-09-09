@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, TrendingUp, Clock, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Clock, ShieldCheck, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { getSuspectFoodsLeaderboard, SuspectFoodItem } from '../../services/TriggerEngine';
+import { getClinicalDietarySwap } from '../../services/clinicalDietarySwaps';
 import { triggerHapticLight } from '../../services/haptics';
 import { EmpiricalMatchInsights } from './EmpiricalMatchInsights';
 
@@ -202,53 +203,69 @@ export const SuspectFoodsView: React.FC<SuspectFoodsViewProps> = ({ onStartTrial
               {item.mechanism}
             </div>
 
-            {/* Safe Swap Box */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                borderRadius: '12px',
-                background: '#F0FDF4',
-                border: '1px solid #BBF7D0',
-                gap: '10px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} color="#16A34A" />
-                <span style={{ fontSize: '12px', color: '#166534', fontWeight: 600 }}>
-                  Safe Swap: {item.safeSwap}
-                </span>
-              </div>
+            {/* Safe Swap Box with Clinical Mechanism & Relief Timeline */}
+            {(() => {
+              const clinicalSwap = getClinicalDietarySwap(item.name);
+              const displaySwap = clinicalSwap?.smartReplacement || item.safeSwap;
+              const reliefTimeline = clinicalSwap?.expectedReliefTimeline;
 
-              {onStartTrial && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    onStartTrial('low_histamine');
-                  }}
+              return (
+                <div
                   style={{
-                    background: '#DCFCE7',
-                    border: 'none',
-                    color: '#15803D',
-                    borderRadius: '8px',
-                    padding: '4px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
+                    flexDirection: 'column',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    background: '#F0FDF4',
+                    border: '1px solid #BBF7D0',
+                    gap: '8px',
                   }}
                 >
-                  Test in Trial <ArrowRight size={12} />
-                </button>
-              )}
-            </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <ShieldCheck size={16} color="#16A34A" />
+                      <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 700 }}>
+                        Smart Clinical Swap: {displaySwap}
+                      </span>
+                    </div>
+
+                    {onStartTrial && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          onStartTrial('low_histamine');
+                        }}
+                        style={{
+                          background: '#DCFCE7',
+                          border: 'none',
+                          color: '#15803D',
+                          borderRadius: '8px',
+                          padding: '4px 10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
+                        }}
+                      >
+                        Test in Trial <ArrowRight size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  {reliefTimeline && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#15803D', background: '#DCFCE7', padding: '3px 8px', borderRadius: '6px', width: 'fit-content' }}>
+                      <Clock size={12} />
+                      <span>Expected Relief: {reliefTimeline}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </motion.div>
         ))}
       </div>

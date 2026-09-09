@@ -33,6 +33,7 @@ import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../s
 import { loadRazorpaySDK } from '../../services/razorpay';
 import { triggerHapticLight } from '../../services/haptics';
 import { motion } from 'framer-motion';
+const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
 interface FeatureItem {
   name: string;
@@ -142,7 +143,7 @@ export default function Pricing() {
       const orderController = new AbortController();
       const orderTimeout = setTimeout(() => orderController.abort(), 20000);
 
-      const orderRes = await fetch('/api/create-order', {
+      const orderRes = await fetch(`${BACKEND_BASE}/api/create-order`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({ plan_id: planId }),
@@ -181,7 +182,7 @@ export default function Pricing() {
             const verifyController = new AbortController();
             const verifyTimeout = setTimeout(() => verifyController.abort(), 25000);
 
-            const verifyRes = await fetch('/api/verify-payment', {
+            const verifyRes = await fetch(`${BACKEND_BASE}/api/verify-payment`, {
               method: 'POST',
               headers: authHeaders,
               body: JSON.stringify({

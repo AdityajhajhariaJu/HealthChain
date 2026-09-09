@@ -1523,7 +1523,12 @@ export default function MedicalProfile() {
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} domain={chartMetric === 'eGFR' ? [0, 100] : chartMetric === 'weight' ? [75, 90] : [80, 160]} />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 12, fill: '#64748b' }} 
+                    domain={chartMetric === 'eGFR' ? [0, 120] : ['dataMin - 5', 'dataMax + 5']} 
+                  />
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)', background: 'var(--surface)' }} 

@@ -402,7 +402,13 @@ const enforceSafeArea = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {location.pathname.startsWith('/app/ava') && (
                 <button
-                  onClick={() => window.history.back()}
+                  onClick={() => {
+                    if (window.history.state && window.history.state.idx > 0) {
+                      navigate(-1);
+                    } else {
+                      navigate('/app/today');
+                    }
+                  }}
                   style={{
                     background: 'rgba(255, 255, 255, 0.9)',
                     border: '1px solid rgba(244, 63, 94, 0.2)',

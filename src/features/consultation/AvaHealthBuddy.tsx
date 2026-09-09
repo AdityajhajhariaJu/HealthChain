@@ -1023,7 +1023,13 @@ export default function AvaHealthBuddy() {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <button
                 aria-label="Go back"
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate('/app/today');
+                  }
+                }}
                 style={{
                   background: 'none',
                   border: 'none',

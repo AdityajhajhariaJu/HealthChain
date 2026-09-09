@@ -6,6 +6,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { trackPurchase } from '../../services/analytics';
 import { loadRazorpaySDK } from '../../services/razorpay';
 import { triggerHapticLight } from '../../services/haptics';
+const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
 interface TopUpModalProps {
   feature: 'ava_replies' | 'quick_consult' | 'deep_collab' | 'jarvis' | 'pharmacy_hub' | 'lab_report';
@@ -61,7 +62,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
       const orderController = new AbortController();
       const orderTimeout = setTimeout(() => orderController.abort(), 20000);
 
-      const orderRes = await fetch('/api/create-order', {
+      const orderRes = await fetch(`${BACKEND_BASE}/api/create-order`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({ plan_id: plan.id }),
@@ -88,7 +89,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
             const verifyController = new AbortController();
             const verifyTimeout = setTimeout(() => verifyController.abort(), 25000);
 
-            const verifyRes = await fetch('/api/verify-payment', {
+            const verifyRes = await fetch(`${BACKEND_BASE}/api/verify-payment`, {
               method: 'POST',
               headers: authHeaders,
               body: JSON.stringify({

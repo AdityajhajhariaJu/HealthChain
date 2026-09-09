@@ -30,6 +30,8 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
   }
 };
 
+const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || (import.meta.env.DEV ? 'http://localhost:3000' : '');
+
 /**
  * Fetch live, recruiting clinical trials for the given conditions.
  */
@@ -38,17 +40,19 @@ export async function fetchLiveTrials(conditions: string[]): Promise<ClinicalTri
 
   const primaryCondition = conditions[0];
 
-  // Try backend proxy /api/trials first
-  try {
-    const backendRes = await fetchWithTimeout(`/api/trials?condition=${encodeURIComponent(primaryCondition)}&pageSize=6`, {}, 8000);
-    if (backendRes.ok) {
-      const json = await backendRes.json();
-      if (json.studies && Array.isArray(json.studies)) {
-        return json.studies;
+  // Try backend proxy if available
+  if (BACKEND_BASE || import.meta.env.DEV) {
+    try {
+      const backendRes = await fetchWithTimeout(`${BACKEND_BASE}/api/trials?condition=${encodeURIComponent(primaryCondition)}&pageSize=6`, {}, 4000);
+      if (backendRes.ok) {
+        const json = await backendRes.json();
+        if (json.studies && Array.isArray(json.studies)) {
+          return json.studies;
+        }
       }
+    } catch (backendErr) {
+      // Fallback to direct client-side fetch
     }
-  } catch (backendErr) {
-    // Fallback to direct client-side fetch
   }
 
   const url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(
