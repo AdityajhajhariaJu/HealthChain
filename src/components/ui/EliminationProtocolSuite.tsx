@@ -80,11 +80,11 @@ export interface EliminationProtocolDef {
 export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
   bloating_hunt: {
     id: 'bloating_hunt',
-    name: 'Monash Low-FODMAP Bloating Hunt',
+    name: 'Low-FODMAP Bloating & Fermentation Protocol',
     tagline: 'Systematic 28-day washout of fermentable carbohydrates & SIBO gas triggers',
-    badge: 'MONASH UNIVERSITY GI PROTOCOL',
+    badge: 'CLINICAL GI WASHOUT PROTOCOL',
     targetDurationDays: 28,
-    clinicalAuthority: 'Monash Dept of Gastroenterology (FODMAP Protocol v4.2)',
+    clinicalAuthority: 'Clinical Gastroenterology Low-FODMAP Protocol (Rome IV Standards)',
     icon: '💨',
     themeColor: '#0D9488',
     themeBg: '#F0FDFA',

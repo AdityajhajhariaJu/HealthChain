@@ -199,7 +199,9 @@ export default function WarRoom() {
             role: 'Clinical AI Coordinator',
             badgeColor: '#0D9488',
             avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: `Active adherence currently at ${activeTrial?.adherencePercentage || 92}%. Symptoms show a ${activeTrial?.reductionPercent || 57}% delta from baseline. ${trialName} guardrails remain engaged.`,
+            content: activeTrial
+              ? `Active adherence currently at ${activeTrial.adherencePercentage}%. Symptoms show a ${activeTrial.reductionPercent}% delta from baseline. ${trialName} guardrails remain engaged.`
+              : 'Targeted elimination protocol is configured. Start the washout phase to isolate active dietary culprits.',
             timestamp: '3 hours ago'
           }
         ],
@@ -212,8 +214,12 @@ export default function WarRoom() {
         id: 'obs_init_metabolic',
         author: 'physician',
         authorName: 'Dr. Julian Rivera (Metabolic & Functional Medicine)',
-        title: 'Functional Biomarker Discordance: Ferritin & Cellular Iron',
-        content: `Biomarker evaluation indicates Serum Ferritin at ${ferritinVal} ng/mL (optimal threshold: 50–90 ng/mL). Standard CBC appeared falsely reassuring, but bone marrow iron deficit impairs mitochondrial electron transport and exacerbates orthostatic cerebral hypoperfusion.`,
+        title: ferritin && ferritin.status !== 'optimal'
+          ? 'Functional Biomarker Discordance: Ferritin & Cellular Iron'
+          : 'Functional Metabolic & Cellular Reserve Evaluation',
+        content: ferritin && ferritin.status !== 'optimal'
+          ? `Biomarker evaluation indicates Serum Ferritin at ${ferritinVal} ng/mL (optimal threshold: 50–90 ng/mL). Cellular storage iron deficit impairs mitochondrial electron transport and exacerbates orthostatic cerebral hypoperfusion.`
+          : `Metabolic screening calibrated for ${patientName}. Cellular energetic reserves and functional biomarkers cross-referenced with autonomic baseline.`,
         timestamp: 'Yesterday',
         specialty: 'metabolic',
         isPinned: false,
@@ -223,11 +229,11 @@ export default function WarRoom() {
             role: 'Clinical AI Coordinator',
             badgeColor: '#0D9488',
             avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: 'Cross-system root cause map updated. Subclinical iron depletion added to Connection Detective cross-system cascade.',
+            content: 'Cross-system root cause map updated and synchronized with Connection Detective.',
             timestamp: 'Yesterday'
           }
         ],
-        actionPrompt: 'Open Connection Detective to inspect the full biochemical mechanism connecting ferritin, autonomic tone, and gut transit.',
+        actionPrompt: 'Open Connection Detective to inspect the full biochemical mechanism connecting metabolic tone, autonomic regulation, and gut transit.',
         actionLabel: 'Inspect Root Cause Map',
         actionRoute: 'detective_modal'
       }

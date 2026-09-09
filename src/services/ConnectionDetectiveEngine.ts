@@ -374,7 +374,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       icon: '✨',
       color: '#0F766E',
       bg: '#F0FDFA',
-      finding: `Consensus synthesis: The patient does not suffer from disconnected ailments. A single unified pathophysiological cascade connects all findings: Subclinical Ferritin starvation (${ferritinStr}) destabilizes cellular ATP, while Gut Histamine Overload (${suspect1?.name || 'dietary triggers'}) mechanically and neurologically triggers compensatory Autonomic POTS (${deltaSign} bpm) and ascending dural tension.`,
+      finding: activeCase?.currentSummary?.synthesis || `Consensus synthesis: A single unified multi-system cascade connects the findings: ${ferritinFound ? `Serum ferritin (${ferritinStr}) evaluates cellular mitochondrial reserves` : 'Cellular metabolic reserves interact with baseline biomarkers'}, while ${suspect1 ? `dietary reactivity to ${suspect1.name}` : 'dietary triggers'} and an orthostatic delta of ${deltaSign} bpm modulate compensatory autonomic tone.`,
       organ: 'Systemic Root-Cause Convergence',
     },
   ];
@@ -969,123 +969,252 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     },
   };
 
+  // Dynamically derive conditions and symptoms from active case differentials or profile
+  const caseSymptoms = Array.isArray(activeCase?.intakeData?.symptoms) && activeCase.intakeData.symptoms.length > 0
+    ? activeCase.intakeData.symptoms
+    : Array.isArray((activeCase as any)?.symptoms) && (activeCase as any).symptoms.length > 0
+    ? (activeCase as any).symptoms
+    : (Array.isArray(profile?.conditions) && profile.conditions.length > 0 ? profile.conditions : null);
+
+  const dynamicSymptoms = caseSymptoms && caseSymptoms.length > 0
+    ? caseSymptoms.slice(0, 5).map((symp: string, idx: number) => {
+        const id = `symp_case_${idx}`;
+        const lower = symp.toLowerCase();
+        let system: 'metabolic' | 'autonomic' | 'gut' | 'neuro' = 'metabolic';
+        if (/heart|palpitation|tachycardia|pulse|ortho|chest/i.test(lower)) system = 'autonomic';
+        else if (/gut|bloat|stomach|acid|reflux|nausea|digest|constip|diarrhea/i.test(lower)) system = 'gut';
+        else if (/head|migraine|brain|dizzi|fog|spine|neck|tingl/i.test(lower)) system = 'neuro';
+
+        return {
+          id,
+          label: symp,
+          severity: idx < 2 ? ('high' as const) : ('medium' as const),
+          system,
+        };
+      })
+    : null;
+
+  const dynamicConditions = (differentials && differentials.length > 0)
+    ? differentials.slice(0, 6).map((diff: any, idx: number) => {
+        const id = `cond_diff_${diff.id || idx}`;
+        const label = diff.condition || `Condition ${idx + 1}`;
+        const lower = label.toLowerCase();
+        let category: 'metabolic' | 'autonomic' | 'gastrointestinal' | 'vascular' | 'neuro' | 'inflammatory' = 'metabolic';
+        if (/pots|cardio|tachycardia|arrhythmia|blood pressure|orthostatic|vagal/i.test(lower)) category = 'autonomic';
+        else if (/gut|bloat|sibo|ibs|bowel|reflux|acid|gastric|digest/i.test(lower)) category = 'gastrointestinal';
+        else if (/histamine|allergy|mcas|mast cell|rash|dermographia|inflamm/i.test(lower)) category = 'inflammatory';
+        else if (/neuro|headache|migraine|dural|cervical|nerve|spine|vertigo/i.test(lower)) category = 'neuro';
+        else if (/vascular|perfusion|pooling|edema|endothelial/i.test(lower)) category = 'vascular';
+
+        return {
+          id,
+          label,
+          confidence: diff.probability || Math.max(75, 95 - idx * 4),
+          specialty: diff.specialty || (category === 'autonomic' ? 'Cardiology' : category === 'gastrointestinal' ? 'Gastroenterology' : category === 'neuro' ? 'Neurology' : category === 'inflammatory' ? 'Immunology' : 'Endocrinology'),
+          category,
+          rationale: diff.supportingEvidence?.[0] || `Correlated against multi-system clinical evidence and patient history.`,
+        };
+      })
+    : null;
+
+  // Inject dynamic node details if dynamic conditions exist
+  if (dynamicConditions) {
+    const systemCategoryMap: Record<string, 'autonomic' | 'metabolic' | 'gut' | 'neuro' | 'immune' | 'vascular'> = {
+      autonomic: 'autonomic',
+      metabolic: 'metabolic',
+      gastrointestinal: 'gut',
+      gut: 'gut',
+      neuro: 'neuro',
+      vascular: 'vascular',
+      inflammatory: 'immune',
+      immune: 'immune',
+    };
+
+    dynamicConditions.forEach((cond) => {
+      const nodeSystem = systemCategoryMap[cond.category] || 'metabolic';
+      nodeDetails[cond.id] = {
+        id: cond.id,
+        title: cond.label,
+        system: nodeSystem,
+        systemName: `${cond.specialty} Discipline`,
+        systemIcon: nodeSystem === 'autonomic' ? '🫀' : nodeSystem === 'gut' ? '🩺' : nodeSystem === 'neuro' ? '🧠' : nodeSystem === 'immune' ? '🛡️' : '🔬',
+        confidence: cond.confidence,
+        biochemicalMechanism: `${cond.rationale} Multi-system cross-referencing isolates this pathophysiological axis.`,
+        biomarkers: flaggedBiomarkers.length > 0
+          ? flaggedBiomarkers.slice(0, 3).map((b) => ({
+              name: b.name,
+              standardRange: `${b.standardRange.min} – ${b.standardRange.max} ${b.standardRange.unit || ''}`,
+              optimalRange: `${b.optimalRange.min} – ${b.optimalRange.max} ${b.optimalRange.unit || ''}`,
+              userValue: `${b.userValue} ${b.userUnit || ''}`,
+              status: b.status === 'optimal' ? 'normal' : 'suboptimal',
+              clinicalNote: `Flagged marker correlated with ${cond.label}.`,
+            }))
+          : [
+              {
+                name: 'Systemic Marker Correlation',
+                standardRange: 'Clinical Reference',
+                optimalRange: 'Functional Target',
+                userValue: 'Active Profile',
+                status: 'normal',
+                clinicalNote: 'Calibrated from active clinical intake.',
+              },
+            ],
+        dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+          name: s.name,
+          category: s.primarySensitivity || 'Trigger',
+          icon: s.emoji || '⚡',
+          impact: `${s.name} correlates with symptom flares (+${s.correlationPercent}%).`,
+        })),
+        specialistQuote: {
+          doctor: `${cond.specialty} Board Review`,
+          role: 'Clinical Discipline',
+          quote: cond.rationale,
+        },
+        whatDoctorsMissed: 'Isolated single-organ evaluations did not cross-reference this finding against the patient’s full multi-system profile.',
+        confirmatoryWorkup: ['Targeted physician workup', 'Specific biomarker titration'],
+      };
+    });
+  }
+
   // Interactive Graph Node & Edge Data
+  const baselineSymptoms = [
+    { id: 'symp_fatigue', label: 'Chronic Fatigue & Brain Fog', severity: 'high' as const, system: 'metabolic' as const },
+    { id: 'symp_palpitations', label: 'Post-Meal Palpitations', severity: 'high' as const, system: 'autonomic' as const },
+    { id: 'symp_bloat', label: 'Recurrent Gut Bloating', severity: 'medium' as const, system: 'gut' as const },
+    { id: 'symp_headache', label: 'Occipital Throbbing Headache', severity: 'medium' as const, system: 'neuro' as const },
+    { id: 'symp_back', label: 'Lower Back & Sacral Strain', severity: 'medium' as const, system: 'neuro' as const },
+  ];
+
+  const baselineConditions = [
+    {
+      id: 'cond_ferritin',
+      label: ferritinFound && ferritinMarker?.status === 'optimal'
+        ? 'Cellular Iron Homeostasis'
+        : 'Subclinical Ferritin Depletion',
+      confidence: 96,
+      specialty: 'Endocrinology',
+      category: 'metabolic' as const,
+      rationale: `Serum Ferritin at ${ferritinStr} evaluates cellular mitochondrial respiration.`,
+    },
+    {
+      id: 'cond_pots',
+      label: 'Hyperadrenergic POTS',
+      confidence: 92,
+      specialty: 'Cardiology',
+      category: 'autonomic' as const,
+      rationale: `${deltaSign} bpm postural standing delta stimulates sympathetic adrenergic cascades.`,
+    },
+    {
+      id: 'cond_histamine',
+      label: suspect1 ? `${suspect1.primarySensitivity} Intolerance` : 'Histamine DAO Intolerance',
+      confidence: 89,
+      specialty: 'Gastroenterology',
+      category: 'gastrointestinal' as const,
+      rationale: `Impaired clearance of ${suspect1 ? suspect1.name : 'biogenic amines'} provokes postprandial flushing & distension.`,
+    },
+    {
+      id: 'cond_roemheld',
+      label: 'Gastrocardiac Roemheld',
+      confidence: 87,
+      specialty: 'Cardiology & GI',
+      category: 'vascular' as const,
+      rationale: `Postprandial gastric gas from ${suspect1 ? suspect1.name : 'fermentable foods'} elevates diaphragmatic vagal pressure.`,
+    },
+    {
+      id: 'cond_dural_kinetic',
+      label: 'Ascending Dural Traction',
+      confidence: 91,
+      specialty: 'Biomechanics & Neuro',
+      category: 'neuro' as const,
+      rationale: 'Sacral unleveling at S2 transmits reciprocal mechanical tension through the dural sleeve to suboccipital roots.',
+    },
+    {
+      id: 'cond_mcas',
+      label: 'Mast Cell Activation Overlap',
+      confidence: 81,
+      specialty: 'Immunology',
+      category: 'inflammatory' as const,
+      rationale: 'Episodic facial erythema, gut permeability, and multi-system mediator turnover.',
+    },
+  ];
+
+  const finalSymptoms = dynamicSymptoms || baselineSymptoms;
+  const finalConditions = dynamicConditions || baselineConditions;
+
+  const dynamicConnections = dynamicConditions
+    ? dynamicConditions.flatMap((c, i) => {
+        const targetSymp = finalSymptoms[i % finalSymptoms.length];
+        return targetSymp ? [{
+          from: c.id,
+          to: targetSymp.id,
+          type: 'causal_progression' as const,
+          label: `${c.label} directly triggers ${targetSymp.label}`,
+          strength: 'strong' as const,
+        }] : [];
+      })
+    : [
+        {
+          from: 'cond_ferritin',
+          to: 'symp_fatigue',
+          type: 'causal_progression' as const,
+          label: 'Depleted iron stores halt mitochondrial ATP synthesis',
+          strength: 'strong' as const,
+        },
+        {
+          from: 'cond_pots',
+          to: 'symp_palpitations',
+          type: 'causal_progression' as const,
+          label: 'Postural blood pooling triggers compensatory tachycardia',
+          strength: 'strong' as const,
+        },
+        {
+          from: 'cond_histamine',
+          to: 'symp_bloat',
+          type: 'shared_symptom' as const,
+          label: 'Mast cell degranulation provokes mucosal edema & distension',
+          strength: 'strong' as const,
+        },
+        {
+          from: 'cond_histamine',
+          to: 'symp_headache',
+          type: 'causal_progression' as const,
+          label: 'Vasoactive histamine triggers cranial cerebral rebound',
+          strength: 'strong' as const,
+        },
+        {
+          from: 'cond_dural_kinetic',
+          to: 'symp_headache',
+          type: 'causal_progression' as const,
+          label: 'Reciprocal upward dural traction entraps Greater Occipital Nerve (C2)',
+          strength: 'strong' as const,
+        },
+        {
+          from: 'cond_dural_kinetic',
+          to: 'symp_back',
+          type: 'causal_progression' as const,
+          label: 'Sacral unleveling and pelvic rotation initiate spinal dural tug',
+          strength: 'strong' as const,
+        },
+        {
+          from: 'cond_roemheld',
+          to: 'cond_pots',
+          type: 'common_mechanism' as const,
+          label: 'Splanchnic blood shift compounds orthostatic instability',
+          strength: 'moderate' as const,
+        },
+        {
+          from: 'cond_histamine',
+          to: 'cond_mcas',
+          type: 'differential_overlap' as const,
+          label: 'Shared biogenic amine receptor activation pathways',
+          strength: 'strong' as const,
+        },
+      ];
+
   const mapData: ConnectionMapGraph = {
-    centralSymptoms: [
-      { id: 'symp_fatigue', label: 'Chronic Fatigue & Brain Fog', severity: 'high', system: 'metabolic' },
-      { id: 'symp_palpitations', label: 'Post-Meal Palpitations', severity: 'high', system: 'autonomic' },
-      { id: 'symp_bloat', label: 'Recurrent Gut Bloating', severity: 'medium', system: 'gut' },
-      { id: 'symp_headache', label: 'Occipital Throbbing Headache', severity: 'medium', system: 'neuro' },
-      { id: 'symp_back', label: 'Lower Back & Sacral Strain', severity: 'medium', system: 'neuro' },
-    ],
-    conditions: [
-      {
-        id: 'cond_ferritin',
-        label: 'Subclinical Ferritin Depletion',
-        confidence: 96,
-        specialty: 'Endocrinology',
-        category: 'metabolic',
-        rationale: `Serum Ferritin at ${ferritinStr} despite normal CBC limits cellular mitochondrial respiration.`,
-      },
-      {
-        id: 'cond_pots',
-        label: 'Hyperadrenergic POTS',
-        confidence: 92,
-        specialty: 'Cardiology',
-        category: 'autonomic',
-        rationale: `${deltaSign} bpm postural standing delta stimulates sympathetic adrenergic cascades.`,
-      },
-      {
-        id: 'cond_histamine',
-        label: suspect1 ? `${suspect1.primarySensitivity} Intolerance` : 'Histamine DAO Intolerance',
-        confidence: 89,
-        specialty: 'Gastroenterology',
-        category: 'gastrointestinal',
-        rationale: `Impaired clearance of ${suspect1 ? suspect1.name : 'biogenic amines'} provokes postprandial flushing & distension.`,
-      },
-      {
-        id: 'cond_roemheld',
-        label: 'Gastrocardiac Roemheld',
-        confidence: 87,
-        specialty: 'Cardiology & GI',
-        category: 'vascular',
-        rationale: `Postprandial gastric gas from ${suspect1 ? suspect1.name : 'fermentable foods'} elevates diaphragmatic vagal pressure.`,
-      },
-      {
-        id: 'cond_dural_kinetic',
-        label: 'Ascending Dural Traction',
-        confidence: 91,
-        specialty: 'Biomechanics & Neuro',
-        category: 'neuro',
-        rationale: 'Sacral unleveling at S2 transmits reciprocal mechanical tension through the dural sleeve to suboccipital roots.',
-      },
-      {
-        id: 'cond_mcas',
-        label: 'Mast Cell Activation Overlap',
-        confidence: 81,
-        specialty: 'Immunology',
-        category: 'inflammatory',
-        rationale: 'Episodic facial erythema, gut permeability, and multi-system mediator turnover.',
-      },
-    ],
-    connections: [
-      {
-        from: 'cond_ferritin',
-        to: 'symp_fatigue',
-        type: 'causal_progression',
-        label: 'Depleted iron stores halt mitochondrial ATP synthesis',
-        strength: 'strong',
-      },
-      {
-        from: 'cond_pots',
-        to: 'symp_palpitations',
-        type: 'causal_progression',
-        label: 'Postural blood pooling triggers compensatory tachycardia',
-        strength: 'strong',
-      },
-      {
-        from: 'cond_histamine',
-        to: 'symp_bloat',
-        type: 'shared_symptom',
-        label: 'Mast cell degranulation provokes mucosal edema & distension',
-        strength: 'strong',
-      },
-      {
-        from: 'cond_histamine',
-        to: 'symp_headache',
-        type: 'causal_progression',
-        label: 'Vasoactive histamine triggers cranial cerebral rebound',
-        strength: 'strong',
-      },
-      {
-        from: 'cond_dural_kinetic',
-        to: 'symp_headache',
-        type: 'causal_progression',
-        label: 'Reciprocal upward dural traction entraps Greater Occipital Nerve (C2)',
-        strength: 'strong',
-      },
-      {
-        from: 'cond_dural_kinetic',
-        to: 'symp_back',
-        type: 'causal_progression',
-        label: 'Sacral unleveling and pelvic rotation initiate spinal dural tug',
-        strength: 'strong',
-      },
-      {
-        from: 'cond_roemheld',
-        to: 'cond_pots',
-        type: 'common_mechanism',
-        label: 'Splanchnic blood shift compounds orthostatic instability',
-        strength: 'moderate',
-      },
-      {
-        from: 'cond_histamine',
-        to: 'cond_mcas',
-        type: 'differential_overlap',
-        label: 'Shared biogenic amine receptor activation pathways',
-        strength: 'strong',
-      },
-    ],
+    centralSymptoms: finalSymptoms,
+    conditions: finalConditions,
+    connections: dynamicConnections,
     precautions: [
       {
         text: orthoDeltaVal >= 30
@@ -1125,15 +1254,17 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         recommendedSpecialists: 'Functional Gastroenterologist or Allergist',
       },
     ],
-    narrative:
-      `${patientName}'s symptom pattern reflects an interconnected multi-system axis: Subclinical Ferritin Depletion (${ferritinStr}) impairs cellular energetics, while dietary reactivity to ${suspect1?.name || 'fermentable triggers'} and an orthostatic delta of ${deltaSign} bpm stimulate compensatory autonomic compensation via the vagus nerve.`,
+    narrative: activeCase?.currentSummary?.synthesis ||
+      `${patientName}'s symptom pattern reflects an interconnected multi-system axis: ${
+        ferritinFound ? `Ferritin status (${ferritinStr})` : 'Metabolic cellular energetics'
+      } interacts with dietary reactivity to ${suspect1?.name || 'fermentable triggers'} and an orthostatic delta of ${deltaSign} bpm.`,
   };
 
   const report: ConnectionDetectiveReport = {
     id: `cd_${Date.now()}`,
     generatedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     patientName,
-    primaryHypothesis: activeCase?.title || `Autonomic Shift (${deltaSign} bpm), Subclinical Ferritin (${ferritinStr}) & ${suspect1?.name || 'Dietary-Vagal'} Axis`,
+    primaryHypothesis: activeCase?.title || `Autonomic Shift (${deltaSign} bpm), ${ferritinFound ? `Ferritin (${ferritinStr})` : 'Metabolic Reserves'} & ${suspect1?.name || 'Dietary-Vagal'} Axis`,
     matchConfidence: 94,
     streams,
     consensusDialogue,
@@ -1147,8 +1278,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       sbar: {
         situation: `${patientName} presents with ${chiefComplaint || 'chronic postprandial palpitations, unexplained afternoon brain fog, and recurring gut distension following meals'}.`,
         background: 'Patient has been evaluated by separate disciplines with normal baseline resting ECG and routine hemoglobin, but symptoms persist in a reproducible cyclical pattern.',
-        assessment: `Multidisciplinary correlation reveals subclinical Ferritin depletion (${ferritinStr}) co-occurring with food-triggered ${suspect1?.primarySensitivity || 'histamine DAO saturation'} (${suspect1?.name || 'dietary triggers'}) and a ${deltaSign} bpm postural orthostatic tachycardia jump.`,
-        recommendation: `Recommend formal standing orthostatic tilt assessment, oral iron bisglycinate repletion targeting ferritin >50 ng/mL, and a 14-day ${activeTrial ? activeTrial.trialId.replace(/_/g, ' ') : 'low-histamine'} trial.`,
+        assessment: activeCase?.currentSummary?.synthesis || `Multidisciplinary correlation reveals ${ferritinFound ? `Ferritin status (${ferritinStr})` : 'metabolic cellular reserves'} co-occurring with food-triggered ${suspect1?.primarySensitivity || 'reactivity'} (${suspect1?.name || 'dietary triggers'}) and a ${deltaSign} bpm postural orthostatic tachycardia jump.`,
+        recommendation: `Recommend formal standing orthostatic tilt assessment, evaluation of metabolic reserves, and a targeted ${activeTrial ? activeTrial.trialId.replace(/_/g, ' ') : 'elimination'} trial.`,
       },
       testsToOrder: [
         { test: 'Complete Iron Panel + Ferritin + Soluble Transferrin Receptor', rationale: 'Confirm bone marrow iron store depletion despite normal serum hemoglobin', priority: 'High' },

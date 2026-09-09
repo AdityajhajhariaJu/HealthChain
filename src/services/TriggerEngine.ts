@@ -1223,25 +1223,28 @@ export function getActiveTrial(): ActiveTrialState | null {
     if (!raw) {
       const initial: ActiveTrialState = {
         trialId: 'low_histamine',
-        startDate: new Date(Date.now() - 3 * 86400000).toISOString(),
-        currentDay: 4,
+        startDate: new Date().toISOString(),
+        currentDay: 1,
         totalDays: 7,
-        completedDays: 3,
-        adherencePercentage: 92,
+        completedDays: 0,
+        adherencePercentage: 100,
         symptomScores: [
-          { day: 1, severity: 8, adhered: true, note: 'Baseline day. Bloating moderate-high.' },
-          { day: 2, severity: 6, adhered: true, note: 'Swapped red wine for sparkling water.' },
-          { day: 3, severity: 4, adhered: true, note: 'Noticeable reduction in afternoon brain fog.' },
-          { day: 4, severity: 3, adhered: true, note: 'Woke up without gut distension.' },
+          { day: 1, severity: 7, adhered: true, note: 'Trial commenced.' }
         ],
-        baselineSeverity: 8.2,
-        currentSeverity: 3.5,
-        reductionPercent: 57,
+        baselineSeverity: 7.0,
+        currentSeverity: 7.0,
+        reductionPercent: 0,
       };
       setItemSync(TRIAL_STORAGE_KEY, JSON.stringify(initial));
       return initial;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // Self-healing migration: Detect legacy hardcoded mock trial seed (Day 4 of 7, 57% delta)
+    if (parsed && parsed.currentDay === 4 && parsed.reductionPercent === 57 && parsed.adherencePercentage === 92) {
+      const reset = startTrial(parsed.trialId || 'low_histamine');
+      return reset;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -1257,8 +1260,8 @@ export function startTrial(trialId: string): ActiveTrialState {
     completedDays: 0,
     adherencePercentage: 100,
     symptomScores: [{ day: 1, severity: 7, adhered: true, note: 'Trial commenced.' }],
-    baselineSeverity: 7.5,
-    currentSeverity: 7.5,
+    baselineSeverity: 7.0,
+    currentSeverity: 7.0,
     reductionPercent: 0,
   };
   setItemSync(TRIAL_STORAGE_KEY, JSON.stringify(newState));

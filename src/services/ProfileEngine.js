@@ -842,15 +842,37 @@ export function saveDigestionLog(dateKey, logData) {
 
 export function getEliminationProtocolState() {
   const profile = getProfile();
-  return profile.eliminationProtocols || {
+  if (profile.eliminationProtocols) {
+    // Self-healing: clear legacy mock seed (currentDay: 12, adherenceScore: 94)
+    const proto = profile.eliminationProtocols.protocols?.bloating_hunt;
+    if (proto && proto.currentDay === 12 && proto.adherenceScore === 94) {
+      delete profile.eliminationProtocols;
+      saveProfile(profile);
+      return {
+        activeProtocolId: 'bloating_hunt',
+        protocols: {
+          bloating_hunt: {
+            startedAt: new Date().toISOString(),
+            currentDay: 1,
+            targetDays: 28,
+            streakDays: 0,
+            adherenceScore: 100,
+            dailyLogs: {},
+          },
+        },
+      };
+    }
+    return profile.eliminationProtocols;
+  }
+  return {
     activeProtocolId: 'bloating_hunt',
     protocols: {
       bloating_hunt: {
-        startedAt: new Date(Date.now() - 11 * 86400000).toISOString(),
-        currentDay: 12,
+        startedAt: new Date().toISOString(),
+        currentDay: 1,
         targetDays: 28,
-        streakDays: 11,
-        adherenceScore: 94,
+        streakDays: 0,
+        adherenceScore: 100,
         dailyLogs: {},
       },
     },
