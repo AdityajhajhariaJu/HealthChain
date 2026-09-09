@@ -11,7 +11,13 @@ if (supabaseUrl === 'https://placeholder-project.supabase.co') {
 
 // Set up global polyfill for WebSocket in Node environments (e.g. Vitest)
 if (typeof window === 'undefined' && typeof global !== 'undefined') {
-  (global as any).WebSocket = WebSocket;
+  const _global = global as any;
+  if (!_global.WebSocket) {
+    _global.WebSocket = WebSocket;
+  }
+  if (!_global.fetch) {
+    _global.fetch = fetch;
+  }
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
