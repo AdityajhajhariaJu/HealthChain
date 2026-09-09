@@ -28,7 +28,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
   const toast = useToast();
   const reviews = item.reviews || [];
   const [activeReviewId, setActiveReviewId] = useState<string | null>(
-    reviews.length > 0 ? reviews[reviews.length - 1].id : null
+    reviews.length > 0 ? reviews[0].id : null
   );
   const [elifMode, setElifMode] = useState(false);
   const [simulatingAction, setSimulatingAction] = useState<any>(null);
@@ -61,19 +61,19 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
     }
   };
 
-  const handleCopySbar = () => {
+  const handleCopySbar = async () => {
     if (!activeReview?.report) return;
     triggerHapticLight();
     const rep = activeReview.report;
     const primary = rep.primaryHypothesis || rep.topDiagnoses?.[0]?.condition || 'Clinical Finding';
     const sbar = rep.doctorActionPlan?.sbar || {
       situation: rep.executiveSummary || 'Clinical review findings',
-      background: 'Complex multi-system clinical presentation.',
+      background: 'See the original records and reported case history.',
       assessment: primary,
-      recommendation: (rep.doctorActionPlan?.confirmatoryTests || []).map((t: any) => t.test || t).join(', ') || 'Targeted workup.'
+      recommendation: (rep.questionsForClinician || []).join('\n') || 'Review these concerns with the treating clinician.'
     };
     const text = `CLINICAL DATA ENGINE • DOCTOR SBAR BRIEF
-Primary Hypothesis: ${primary} (Confidence: ${rep.matchConfidence || 84}%)
+AI consideration for clinician review: ${primary}
 Generated: ${new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
 
 [S] SITUATION:
@@ -88,16 +88,19 @@ ${sbar.assessment}
 [R] RECOMMENDATION:
 ${sbar.recommendation}
 
-CONFIRMATORY TESTS TO EVALUATE:
-${(rep.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${i + 1}. ${t.test || t} - ${t.rationale || 'Evaluate functional thresholds'}`).join('\n') || 'Comprehensive functional evaluation.'}`;
+QUESTIONS FOR THE VISIT:
+${(rep.questionsForClinician || []).map((question: string, i: number) => `${i + 1}. ${question}`).join('\n') || 'What additional information would help assess these concerns?'}
 
-    navigator.clipboard.writeText(text);
+AI-generated preparation material. Verify against original records.`;
+
+    try { await navigator.clipboard.writeText(text); }
+    catch { toast.error('Copy unavailable', 'Select and copy the report text, or use Export PDF.'); return; }
     setCopiedSbar(true);
     toast.success("SBAR Brief Copied", "Formatted for MyChart/doctor portal notes.");
     setTimeout(() => setCopiedSbar(false), 3000);
   };
 
-  const activeReview = reviews.find(r => r.id === activeReviewId) || reviews[reviews.length - 1] || reviews[0];
+  const activeReview = reviews.find(r => r.id === activeReviewId) || reviews[0];
 
   if (reviews.length === 0) {
     return (
@@ -216,7 +219,7 @@ ${(rep.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${
                       }}
                       onClick={() => {
                         triggerHapticLight();
-                        navigate('/app/ava', { 
+                        navigate(`/app/ava?caseId=${encodeURIComponent(item.id)}`, {
                           state: { 
                             initialPrompt: `I would like to discuss my case snapshot from ${formatDate(activeReview.createdAt)}. Primary hypothesis: "${activeReview.report?.primaryHypothesis || activeReview.report?.topDiagnoses?.[0]?.condition || 'Clinical Finding'}". What are the key takeaways?` 
                           } 
@@ -264,11 +267,7 @@ ${(rep.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${
                         <span style={{ fontSize: 11, fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px', background: '#FFEDD5', padding: '2px 8px', borderRadius: 6 }}>
                           Primary Hypothesis
                         </span>
-                        {activeReview.report?.matchConfidence && (
-                          <span style={{ fontSize: 12, fontWeight: 800, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: 999 }}>
-                            {activeReview.report.matchConfidence}% Match
-                          </span>
-                        )}
+                        <span style={{ fontSize: 12, color: '#475569' }}>AI review · verify with your clinician</span>
                       </div>
                       <h3 style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#0F172A', margin: '0 0 8px' }}>
                         {activeReview.report?.primaryHypothesis || activeReview.report?.topDiagnoses?.[0]?.condition || 'Clinical Finding'}
@@ -278,6 +277,9 @@ ${(rep.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${
                       </p>
                     </div>
 
+                    {activeReview.report?.documentedFacts?.length > 0 && <section className="case-workspace"><h3>What the input documents</h3><ul>{activeReview.report.documentedFacts.map((fact: any, index: number) => <li key={index} style={{ marginBottom: 10 }}>{fact.fact}<small style={{ display: 'block', color: '#475569' }}>Source: {fact.source}</small></li>)}</ul></section>}
+                    {activeReview.report?.uncertainties?.length > 0 && <section className="case-workspace"><h3>What remains uncertain</h3><ul>{activeReview.report.uncertainties.map((entry: string, index: number) => <li key={index}>{entry}</li>)}</ul></section>}
+                    {activeReview.report?.questionsForClinician?.length > 0 && <section className="case-workspace"><h3>Questions for your clinician</h3><ol>{activeReview.report.questionsForClinician.map((entry: string, index: number) => <li key={index} style={{ marginBottom: 10 }}>{entry}</li>)}</ol></section>}
                     {activeReview.report?.dominoChain && (
                       <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -371,7 +373,7 @@ ${(rep.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${
                       </div>
                     )}
 
-                    {activeReview.report?.immediateRelief && (
+                    {activeReview.report?.immediateRelief?.redFlags?.length > 0 && (
                       <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                           <Heart size={16} color="#EA580C" />

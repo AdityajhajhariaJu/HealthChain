@@ -116,6 +116,11 @@ async function sha256Hex(str: string): Promise<string> {
 }
 
 export default function App() {
+  useEffect(() => {
+    if (getItemSync('hc_guest_mode') === 'true') {
+      void initCaseEngine().catch(error => console.warn('Guest case recovery failed', error));
+    }
+  }, []);
 
   // Global User Activity Tracker (Clicks & Inputs)
   useEffect(() => {
@@ -142,7 +147,7 @@ export default function App() {
           if (val.length > 0) {
              const isSearch = target.type === 'search' || (target.placeholder && target.placeholder.toLowerCase().includes('search'));
              trackEvent(isSearch ? 'search_query' : 'chat_prompt', { 
-               query: val.substring(0, 150), // Keep it concise
+               inputLength: val.length,
                path: window.location.pathname
              });
           }

@@ -188,6 +188,16 @@ function safeIsoDate(val?: string | number | Date | null): string {
 
 async function save(cases: CaseItem[]) {
   const safeCases = (typeof structuredClone === 'function') ? structuredClone(cases) : JSON.parse(JSON.stringify(cases));
+  // Persist before awaiting authentication/network work: users can reload as
+  // soon as the case is visible. Capture the profile scope before any await.
+  const storageKey = getCasesKey();
+  const profileId = getActiveProfileId();
+  setItemSync(storageKey, JSON.stringify(safeCases));
+  if (typeof indexedDB !== 'undefined') {
+    idbSet(storageKey, JSON.stringify(safeCases)).catch(error => {
+      window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+    });
+  }
   
   // Find changed cases by checking updatedAt or lengths
   const changedCases = safeCases.filter((c: any) => {
@@ -199,9 +209,11 @@ async function save(cases: CaseItem[]) {
   cachedCases = safeCases;
   window.dispatchEvent(new Event('hc_cases_updated'));
 
+  try {
   const { data: { session } } = await supabase.auth.getSession();
+  if (storageKey !== getCasesKey()) return;
   if (session?.user) {
-    const currentProfileId = getActiveProfileId();
+    const currentProfileId = profileId;
     // Queue before attempting network delivery. This keeps the local update
     // recoverable if the app is closed or Supabase is temporarily unavailable.
     for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
@@ -223,16 +235,18 @@ async function save(cases: CaseItem[]) {
       if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
         idbSet(currentCasesKey || getCasesKey(), JSON.stringify(fallbackCases)).catch(console.warn);
       }
-      try { removeItemSync(currentCasesKey || getCasesKey()); } catch {} // Clear legacy localStorage
     // Keep IndexedDB as a read-only safety net for offline/poor-network scenarios.
     // It will be refreshed on next successful initCaseEngine read from Supabase.
   } else {
-    // Guest - cap at 3 cases
-    const capped = safeCases.slice(0, 3);
+    // Keep all saved guest drafts; silently truncating loses case history.
+    const capped = safeCases;
     if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
       idbSet(getCasesKey(), JSON.stringify(capped)).catch(console.warn);
     }
-    try { removeItemSync(getCasesKey()); } catch {}
+  }
+  } catch (error) {
+    // The durable local copy remains available for a later sync attempt.
+    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
   }
 }
 

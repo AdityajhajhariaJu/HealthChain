@@ -74,25 +74,25 @@ const PRO_90_FEATURES: FeatureItem[] = [
   { name: 'Ava Health Buddy (120 Replies)', desc: 'Extended longitudinal health guidance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable dossiers & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Clinical Dietician (Unlimited)', desc: 'Condition-specific Indian nutritional plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Pharmacy Hub & Interactions', desc: 'Real-time multi-drug safety monitoring', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Pharmacy Hub & Interactions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Lab Report PDF Analyzer (Full)', desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
-  { name: 'Medical Profile & Encrypted Vault', desc: 'Permanent personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Points & Rewards System', desc: 'Full arcade access & tier progression', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const TOPUP_PLANS = [
   { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '+10 Replies', desc: 'Instant AI Chief of Staff consultation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '+1 Session', desc: 'Single-specialist acute review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
-  { id: 'topup_deep_collab', name: 'Specialist Consensus Board', price: 149, qty: '+1 Session', desc: 'Multi-specialist clinical review & consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
-  { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '+1 Session', desc: 'Autonomous root-cause biomarker scan', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
-  { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Real-time drug clash & safety checks', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { id: 'topup_deep_collab', name: 'Clinical Perspectives', price: 149, qty: '+1 Session', desc: 'Multiple AI review perspectives', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
+  { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '+1 Session', desc: 'Connected health record review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
+  { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
 
 const FAQS = [
   {
     q: 'How do Clinical Data Engine Investigations work?',
-    a: 'Clinical Data Engine acts as our autonomous diagnostic intelligence system, cross-analyzing blood labs, clinical notes, and vitals to uncover root-cause multi-system connections.',
+    a: 'Clinical Data Engine organizes your notes, uploaded records, and available profile context into documented facts, uncertainties, and questions to review with a qualified clinician. It does not diagnose or replace medical care.',
   },
   {
     q: 'What happens if I finish my consult quotas early?',
@@ -100,11 +100,11 @@ const FAQS = [
   },
   {
     q: 'Is my personal health data encrypted and private?',
-    a: 'Yes. HealthChain is built with zero-knowledge AES-256 architecture. Your medical history, PDFs, and consultations are 100% private, never sold to insurers or third-party advertisers.',
+    a: 'Health information is stored in your private account workspace and is not sold to insurers or advertisers. AI features send the information needed for the requested analysis to our AI service; the product explains this before upload or review.',
   },
   {
     q: 'Can I renew or switch between 30-Day and 90-Day plans?',
-    a: 'Absolutely. When your plan expires, you can renew seamlessly. All your cases, timeline events, and notes are preserved permanently in your encrypted HealthChain Vault.',
+    a: 'Yes. When your plan expires, you can renew or switch plans. Your saved cases, timeline events, and notes remain available in your account subject to the service retention policy.',
   },
 ];
 
@@ -624,7 +624,7 @@ export default function Pricing() {
             <ShieldCheck size={22} />
           </div>
           <div>
-            <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>AES-256 Vault Encryption</h4>
+            <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Private Account Workspace</h4>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
               Your private health data is strictly segregated and never shared or sold to third parties.
             </p>

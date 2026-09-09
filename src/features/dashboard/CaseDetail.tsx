@@ -65,9 +65,17 @@ export default function CaseDetail() {
 
   useEffect(() => {
     if (!id) return;
-    const item = getCase(id);
-    setCaseItem(item);
-    setActiveCaseIdState(getActiveCaseId());
+    const refresh = () => {
+      setCaseItem(getCase(id));
+      setActiveCaseIdState(getActiveCaseId());
+    };
+    refresh();
+    window.addEventListener('hc_cases_updated', refresh);
+    window.addEventListener('hc_active_case_updated', refresh);
+    return () => {
+      window.removeEventListener('hc_cases_updated', refresh);
+      window.removeEventListener('hc_active_case_updated', refresh);
+    };
   }, [id]);
 
   useEffect(() => {
@@ -248,7 +256,7 @@ export default function CaseDetail() {
             <button
               onClick={() => {
                 triggerHapticLight();
-                navigate('/app/ava', {
+                navigate(`/app/ava?caseId=${encodeURIComponent(caseItem.id)}`, {
                   state: {
                     initialPrompt: `I would like to discuss my case: "${caseItem.title}". What are the key findings and next steps to keep in mind?`
                   }

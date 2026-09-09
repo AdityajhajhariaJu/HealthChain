@@ -29,8 +29,7 @@ import {
   Pill,
   Plus,
   FileText,
-  GitMerge,
-  BrainCircuit
+  GitMerge
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,7 +52,6 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { VitalityNav } from '../../components/ui/FitnessNav';
-import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
 
 import { getProfile } from '../../services/ProfileEngine';
@@ -66,6 +64,7 @@ import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { TodayCaseWorkspace } from '../../components/ui/TodayCaseWorkspace';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -221,70 +220,13 @@ export default function CaseDashboard() {
       paddingBottom: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : '24px',
       overflowX: 'clip'
     }}>
-      <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><VitalityNav /></div>
+      <div style={{ paddingTop: isMobile ? "8px" : "16px" }} />
         
         <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  navigate('/app/ava', {
-                    state: {
-                      initialPrompt: 'Hi Ava, I would like to do a quick clinical health check-in. Can you review my day and recent biomarkers?'
-                    }
-                  });
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
-                  color: '#FFFFFF',
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)'
-                }}
-              >
-                <Sparkles size={14} color="#38BDF8" /> Ask Ava
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  navigate('/app/consult');
-                }}
-                aria-label="Open Clinical Data Engine"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                  color: '#FFFFFF',
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
-                }}
-              >
-                <BrainCircuit size={14} color="#FFF" /> Clinical Engine
-              </button>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                <LivingHeartIcon size={16} color="#F43F5E" />
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
-              </div>
-            </div>
-          </div>
+          <header style={{ marginBottom: 20 }}><h1 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 6px', color: '#0F172A' }}>Today</h1><p style={{ margin: 0, fontSize: 14, color: '#475569' }}>Your next step, with your health story close by.</p></header>
           
+          <VitalityNav />
+          <TodayCaseWorkspace />
           {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
           <VitalityStreakBanner completedHabits={completedHabits} />
 

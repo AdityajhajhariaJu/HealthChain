@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
@@ -7,6 +7,9 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import Skeleton from '../../components/ui/Skeleton';
 import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
+import { caseMatchesSearch } from '../../services/caseWorkspace';
+import '../../components/ui/caseWorkspace.css';
+import { NewCaseForm } from '../../components/ui/NewCaseForm';
 
 const formatDate = (value: string) => {
   try {
@@ -133,6 +136,9 @@ export default function MyCases() {
   const toast = useToast();
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [showNewCase, setShowNewCase] = useState(() => searchParams.get('new') === 'true');
+  const [statusFilter, setStatusFilter] = useState<'active' | 'archived' | 'all'>('active');
   const [isLoading, setIsLoading] = useState(true);
   const [caseToDelete, setCaseToDelete] = useState<CaseItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -143,11 +149,11 @@ export default function MyCases() {
 
   useEffect(() => {
     const refresh = () => {
-      setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
+      setCases([...getCases()].sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0)));
       setIsLoading(false);
     };
     
-    const timer = setTimeout(refresh, 500);
+    refresh();
     
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -159,7 +165,6 @@ export default function MyCases() {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('hc_cases_updated', refresh);
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('hc_cases_updated', refresh);
     };
@@ -175,24 +180,25 @@ export default function MyCases() {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [caseToDelete]);
 
-  const filteredCases = cases.filter(c => (c?.title || 'Untitled Case').toLowerCase().includes(searchTerm.toLowerCase()));
-  const totalPages = Math.ceil(filteredCases.length / itemsPerPage);
-  const paginatedCases = filteredCases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredCases = cases.filter(c => (statusFilter === 'all' || c.status === statusFilter) && caseMatchesSearch(c, searchTerm));
+  const totalPages = Math.max(1, Math.ceil(filteredCases.length / itemsPerPage));
+  const visiblePage = Math.min(currentPage, totalPages);
+  const paginatedCases = filteredCases.slice((visiblePage - 1) * itemsPerPage, visiblePage * itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, statusFilter]);
   const openActions = cases.reduce((total, item) => total + (item?.actions || []).filter(action => action && action.status !== 'completed').length, 0);
   const evidenceItems = cases.reduce((total, item) => total + (item?.medicalRecords?.length || 0), 0);
 
   const stats = [
-    { label: 'Active cases', value: cases.length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },
+    { label: 'Active cases', value: cases.filter(c => c.status === 'active').length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },
     { label: 'Open next steps', value: openActions, icon: ClipboardList, color: '#4F46E5', bg: '#EEF2FF' },
     { label: 'Evidence saved', value: evidenceItems, icon: FileText, color: '#B45309', bg: '#FFFBEB' },
   ];
 
   return (
-    <div style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 24 }}>
+    <div className="connected-experience" style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 24 }}>
       <header style={{ marginBottom: 16 }}>
         <div style={{ color: '#0f9488', fontWeight: 800, fontSize: 12, letterSpacing: '.9px', marginBottom: 6 }}>YOUR CASEWORK</div>
         <h1 style={{ fontSize: isMobile ? 26 : 32, margin: '0 0 4px', letterSpacing: '-1.2px' }}>My Cases</h1>
@@ -201,6 +207,8 @@ export default function MyCases() {
           Manage your ongoing medical cases and multi-specialist discussions.
         </p>
       </header>
+      <button type="button" className="btn btn-primary" style={{ marginBottom: 16 }} onClick={() => setShowNewCase(true)}>New case</button>
+      {showNewCase && <NewCaseForm onCancel={() => setShowNewCase(false)} onCreated={id => navigate(`/app/cases/${id}`)} />}
 
       <section style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 16 }}>
         {stats.map((stat) => {
@@ -218,7 +226,7 @@ export default function MyCases() {
           style={{ flex: 1, padding: '10px', borderRadius: '12px',
                    background: '#F0F4FF', border: '1px solid #DBEAFE',
                    fontSize: '12.5px', fontWeight: 600, color: '#1E40AF', cursor: 'pointer' }}>
-          🔬 Root Cause Engine
+          Clinical Data Engine
         </button>
         <button onClick={() => navigate('/app/war-room')}
           style={{ flex: 1, padding: '10px', borderRadius: '12px',
@@ -251,6 +259,11 @@ export default function MyCases() {
       )}
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+        <label style={{ color: '#475569', fontSize: 13 }}>Show
+          <select className="case-context-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}>
+            <option value="active">Active cases</option><option value="archived">Archived cases</option><option value="all">All cases</option>
+          </select>
+        </label>
         <div
           style={{
             flex: 1,
@@ -357,11 +370,11 @@ export default function MyCases() {
                           </div>
                           <h3 style={{ margin: '0 0 6px', fontSize: 18, color: '#0F172A' }}>{caseItem.title}</h3>
                           <p style={{ margin: 0, color: '#475569', fontSize: 14 }}>
-                            {primary?.condition ? `Leading pathway: ${primary.condition}` : 'Awaiting evidence synthesis'}
+                            {primary?.condition ? `AI consideration: ${primary.condition}` : 'Draft — add your story and records when ready'}
                           </p>
                        </div>
                        <span className="badge badge-teal" style={{ textTransform: 'capitalize', whiteSpace: 'nowrap' }}>
-                         {caseItem.currentStage.replace('_', ' ')}
+                         {(caseItem.currentStage || 'gathering_evidence').replace(/_/g, ' ')}
                        </span>
                     </div>
                     
@@ -385,7 +398,7 @@ export default function MyCases() {
                      aria-label={`Discuss ${caseItem.title} with Ava`}
                      onClick={(e) => {
                        e.stopPropagation();
-                       navigate('/app/ava', {
+                       navigate(`/app/ava?caseId=${encodeURIComponent(caseItem.id)}`, {
                          state: {
                            initialPrompt: `Hi Ava, let's review my clinical case: "${caseItem.title}". Leading pathway: ${primary?.condition || 'Awaiting evidence synthesis'}. Can you summarize potential clinical blind spots or suggest questions for my doctor?`
                          }
@@ -426,11 +439,10 @@ export default function MyCases() {
         ) : (
           <div style={{ padding: 60, textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e2e8f0' }}>
             <Archive size={40} color="#cbd5e1" style={{ marginBottom: 16 }} />
-            <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>No cases found</h3>
-            <p style={{ margin: '0 0 24px' }}>You don't have any cases matching your search.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/app/multi')}>
-              Start a New Case
-            </button>
+            <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>{cases.length ? 'No matching cases' : 'Your health story belongs here'}</h3>
+            <p style={{ margin: '0 0 24px' }}>{cases.length ? 'Try a different title, condition, document name, or case filter.' : 'Save your concern, timeline, and questions. You can add records and AI reviews later.'}</p>
+            {cases.length > 0 && <button className="btn btn-outline" onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}>Clear filters</button>}
+            <button className="btn btn-primary" onClick={() => { setShowNewCase(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Start a New Case</button>
           </div>
         )}
       </div>
@@ -439,16 +451,16 @@ export default function MyCases() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 24 }}>
           <button 
             className="btn btn-outline btn-sm" 
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={visiblePage === 1}
+            onClick={() => setCurrentPage(Math.max(1, visiblePage - 1))}
           >
             Previous
           </button>
-          <span style={{ fontSize: 14, color: '#64748b' }}>Page {currentPage} of {totalPages}</span>
+          <span aria-live="polite" style={{ fontSize: 14, color: '#64748b' }}>Page {visiblePage} of {totalPages}</span>
           <button 
             className="btn btn-outline btn-sm" 
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={visiblePage === totalPages}
+            onClick={() => setCurrentPage(Math.min(totalPages, visiblePage + 1))}
           >
             Next
           </button>
@@ -513,7 +525,7 @@ export default function MyCases() {
                 <button
                   onClick={() => {
                     deleteCase(caseToDelete.id);
-                    setCases(getCases().filter((c: any) => c.reviews && c.reviews.length > 0));
+                    setCases([...getCases()]);
                     toast.success('Case Deleted', 'The selected case record has been removed.');
                     setCaseToDelete(null);
                   }}

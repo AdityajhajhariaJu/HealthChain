@@ -234,7 +234,7 @@ export default function CasePrep() {
               triggerHapticLight();
               const questionList = (brief.questionsForClinician || []).map((q: any, i: number) => `${i + 1}. ${typeof q === 'string' ? q : q?.question || q?.text}`).join('\n');
               const prompt = `I am preparing for an upcoming doctor appointment for my case: "${selectedCase?.title || 'Clinical Evaluation'}".\n\nMain concern: ${brief.mainConcern?.text || 'Clinical checkup'}\n\nQuestions I plan to ask:\n${questionList || 'General clinical review'}\n\nPlease help me rehearse this visit: what questions might my doctor ask in response, and how can I clearly communicate my symptoms?`;
-              navigate('/app/ava', { state: { initialPrompt: prompt } });
+              navigate(`/app/ava?caseId=${encodeURIComponent(selectedCase?.id || '')}`, { state: { initialPrompt: prompt } });
             }}
             style={{ background: 'linear-gradient(135deg, #0F766E 0%, #0D9488 100%)', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
             aria-label="Rehearse appointment with Ava AI"

@@ -13,10 +13,10 @@ test('guest can enter the assessment workspace from the public page', async ({ p
     await consent.click({ force: true });
   }
 
-  await expect(page.getByRole('heading', { name: /Your Symptoms\. Finally Explained\./i })).toBeVisible();
-  await page.getByRole('button', { name: 'Start Your Assessment' }).click();
+  await expect(page.getByRole('heading', { name: /Your Health Story\. Finally Connected\./i })).toBeVisible();
+  await page.getByRole('button', { name: 'Get Started' }).click();
 
-  await expect(page).toHaveURL(/\/app\/collab\?new=true/);
+  await expect(page).toHaveURL(/\/app\/onboarding$/);
   await expect(page.locator('.app-shell')).toBeVisible();
   await expect(page.getByText('Health Today')).toBeVisible();
   await expect(page.getByText(/Ready to find your root cause/i)).toHaveCount(0);

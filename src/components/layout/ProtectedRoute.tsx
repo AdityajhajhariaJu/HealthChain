@@ -1,31 +1,22 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../../services/supabaseClient';
-import { safariSafeAuthStorage } from '../../services/safariSafeAuthStorage';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(() => {
     try {
       if (localStorage.getItem('hc_guest_mode') === 'true') return true;
-      if (localStorage.getItem('isAuthenticated') === 'true') return true;
     } catch {}
     return null;
   });
 
   // Track the last SIGNED_IN timestamp so we can debounce false SIGNED_OUT events.
   // This mirrors the same debounce logic in App.tsx.
-  const lastSignedInRef = React.useRef<number>(
-    (() => {
-      try {
-        return localStorage.getItem('isAuthenticated') === 'true' ? Date.now() : 0;
-      } catch {
-        return 0;
-      }
-    })()
-  );
+  const lastSignedInRef = React.useRef(0);
 
   React.useEffect(() => {
     let isMounted = true;
+    let recoveryTimer: ReturnType<typeof setTimeout> | undefined;
     let isGuest = false;
     try { isGuest = localStorage.getItem('hc_guest_mode') === 'true'; } catch (e) {}
     if (isGuest) {
@@ -44,30 +35,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           return;
         }
 
-        const getAuthFlag = () => {
-          try {
-            return typeof localStorage !== 'undefined' && localStorage.getItem('isAuthenticated') === 'true';
-          } catch {
-            return false;
-          }
-        };
-
-        // Check if there is an auth token in multi-tier storage (localStorage, cookie, memory)
-        const storedToken = await safariSafeAuthStorage.getItem('healthchain_auth_token');
-        const hasStoredToken = Boolean(
-          storedToken || getAuthFlag()
-        );
-
         // Also check if there's a PKCE code in the URL — if so, Supabase is about to
         // exchange it for a session. Do NOT declare unauthenticated yet.
         const urlHasAuthCode = window.location.search.includes('code=') ||
           window.location.hash.includes('access_token=');
 
-        if (hasStoredToken || urlHasAuthCode) {
-          // Session recovery or PKCE exchange is still in progress.
-          // Assume authenticated to prevent redirect flicker.
-          // The onAuthStateChange listener below will correct this if the token is truly invalid.
-          setIsAuthenticated(true);
+        if (urlHasAuthCode) {
+          // Wait for the auth callback, but never grant access based on URL
+          // parameters or leave an invalid callback loading indefinitely.
+          setIsAuthenticated(null);
+          recoveryTimer = setTimeout(() => {
+            if (isMounted) setIsAuthenticated(false);
+          }, 10000);
           return;
         }
 
@@ -76,14 +55,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         setIsAuthenticated(false);
       } catch (err) {
         if (!isMounted) return;
-        // On network error or offline, preserve session if previously logged in
-        const stored = await safariSafeAuthStorage.getItem('healthchain_auth_token');
-        const fallbackAuthFlag = (() => { try { return localStorage.getItem('isAuthenticated') === 'true'; } catch { return false; }})();
-        if (fallbackAuthFlag || stored) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
+        // A browser flag is not evidence of a usable session.
+        setIsAuthenticated(false);
       }
     }
 
@@ -93,6 +66,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || (event === 'INITIAL_SESSION' && session)) {
+        if (!session) return;
+        clearTimeout(recoveryTimer);
         lastSignedInRef.current = Date.now();
         setIsAuthenticated(true);
         try { localStorage.setItem('isAuthenticated', 'true'); } catch {}
@@ -132,6 +107,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     return () => {
       isMounted = false;
+      clearTimeout(recoveryTimer);
       subscription.unsubscribe();
       window.removeEventListener('focus', onWake);
       window.removeEventListener('pageshow', onWake);

@@ -11,13 +11,19 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
 import { createCaseDraft, saveReviewSnapshot, getActiveCase, getCase } from '../../services/CaseEngine';
 import { getActiveSession } from '../../services/authSession';
-import { getProfile } from '../../services/ProfileEngine';
+import { getProfile, getProfileKey, getProfileEngineState } from '../../services/ProfileEngine';
 import { openTrialModal } from '../../services/TrialEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { triggerHapticSelection, triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import { buildCaseContext } from '../../services/caseWorkspace';
+import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import '../../components/ui/caseWorkspace.css';
+
+const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
+const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${caseId || 'new'}`;
 
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
@@ -34,12 +40,38 @@ export default function JarvisInvestigator() {
   }, []);
   
   const [phase, setPhase] = useState<'input' | 'analyzing' | 'done'>('input');
-  const [history, setHistory] = useState('');
+  const [history, setHistory] = useState(() => {
+    try { return sessionStorage.getItem(engineDraftKey(searchParams.get('caseId') || location.state?.caseId || '')) || ''; } catch { return ''; }
+  });
   const [files, setFiles] = useState<{ file: File; base64: string; size: number }[]>([]);
   const [report, setReport] = useState<any>(null);
   const [isIsolated, setIsIsolated] = useState(false);
   const [copiedSbar, setCopiedSbar] = useState(false);
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
+  const availableCases = useCaseWorkspace();
+  const [selectedCaseId, setSelectedCaseId] = useState(() => searchParams.get('caseId') || location.state?.caseId || '');
+  const [isReadingFiles, setIsReadingFiles] = useState(false);
+  const runningRef = useRef(false);
+  const readingRef = useRef(false);
+  const scopeRef = useRef(engineScope());
+  useEffect(() => {
+    const changeScope = () => {
+      if (scopeRef.current === engineScope()) return;
+      scopeRef.current = engineScope();
+      setHistory(''); setFiles([]); setReport(null); setPhase('input'); setSelectedCaseId(''); setCreatedCaseId(null);
+    };
+    window.addEventListener('hc_profile_updated', changeScope);
+    window.addEventListener('hc_logout', changeScope);
+    return () => { window.removeEventListener('hc_profile_updated', changeScope); window.removeEventListener('hc_logout', changeScope); };
+  }, []);
+  useEffect(() => {
+    try {
+      const key = engineDraftKey(selectedCaseId);
+      if (phase === 'done') sessionStorage.removeItem(key);
+      else if (history.trim()) sessionStorage.setItem(key, history);
+      else sessionStorage.removeItem(key);
+    } catch { /* Keep editing available when browser storage is disabled. */ }
+  }, [history, selectedCaseId, phase]);
 
   // Rehydrate existing case if caseId is passed in URL query or navigation state
   useEffect(() => {
@@ -47,8 +79,10 @@ export default function JarvisInvestigator() {
     if (caseId && phase === 'input') {
       const existing = getCase(caseId);
       if (existing) {
+        setSelectedCaseId(existing.id);
+        setHistory(previous => previous || existing.intakeData?.chiefComplaint || existing.intakeData?.concern || '');
         const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
-        if (jarvisReview?.report) {
+        if (jarvisReview?.report && searchParams.get('review') !== 'new') {
           setReport(jarvisReview.report);
           setCreatedCaseId(existing.id);
           setHistory(existing.intakeData?.chiefComplaint || '');
@@ -56,7 +90,7 @@ export default function JarvisInvestigator() {
         }
       }
     }
-  }, [searchParams, location.state]);
+  }, [searchParams, location.state, availableCases.length]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -95,8 +129,13 @@ export default function JarvisInvestigator() {
 
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+    if (!e.target.files || readingRef.current) return;
     const selected = Array.from(e.target.files);
+    e.target.value = '';
+    if (selected.some(file => !['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(file.type) || !file.size || file.size > 3 * 1024 * 1024)) {
+      toast.error('Unsupported document', 'Choose non-empty PDF, JPG, PNG, or WebP files, each under 3 MB.');
+      return;
+    }
     
     // Limits: Max 10 files total
     if (files.length + selected.length > 10) {
@@ -104,6 +143,8 @@ export default function JarvisInvestigator() {
       return;
     }
 
+    readingRef.current = true;
+    setIsReadingFiles(true);
     const processed = await Promise.all(selected.map(async (f) => {
       return new Promise<{file: File, base64: string, size: number}>((resolve) => {
         if (f.type.startsWith('image/')) {
@@ -133,7 +174,7 @@ export default function JarvisInvestigator() {
             const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
             const base64 = (dataUrl && dataUrl.includes(',')) ? dataUrl.split(',')[1] : (dataUrl || '');
             const estimatedBytes = Math.round((base64.length * 3) / 4);
-            resolve({ file: f, base64, size: estimatedBytes });
+            resolve({ file: new File([f], f.name, { type: 'image/jpeg' }), base64, size: estimatedBytes });
           };
           img.onerror = () => {
             URL.revokeObjectURL(objectUrl);
@@ -162,7 +203,17 @@ export default function JarvisInvestigator() {
       });
     }));
 
+    readingRef.current = false;
     if (!isMounted.current) return;
+    setIsReadingFiles(false);
+    if (processed.some(file => !file.base64)) {
+      toast.error('Could not read a document', 'Please select the file again or use a clearer copy.');
+      return;
+    }
+    if ([...files, ...processed].reduce((sum, file) => sum + file.base64.length, 0) > 3_500_000) {
+      toast.error('Upload too large', 'Use fewer documents or smaller scans. The combined upload must fit within 3.5 MB after processing.');
+      return;
+    }
     setFiles(prev => [...prev, ...processed]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -179,22 +230,24 @@ export default function JarvisInvestigator() {
     setFiles([]);
     setReport(null);
     setCreatedCaseId(null);
+    setSelectedCaseId('');
+    navigate('/app/consult', { replace: true, state: null });
     setCopiedSbar(false);
   };
 
-  const handleCopySbar = () => {
+  const handleCopySbar = async () => {
     if (!report) return;
     triggerHapticSuccess();
     const primary = report.primaryHypothesis || report.topDiagnoses?.[0]?.condition || 'Clinical Finding';
     const sbar = report.doctorActionPlan?.sbar || {
       situation: report.executiveSummary || history,
-      background: 'Complex multi-system clinical presentation with standard testing.',
+      background: 'See the attached case history; no additional history inferred.',
       assessment: primary,
-      recommendation: (report.doctorActionPlan?.confirmatoryTests || []).map((t: any) => t.test || t).join(', ') || 'Targeted workup.'
+      recommendation: (report.questionsForClinician || []).join('\n') || 'Review the concerns and records with the treating clinician.'
     };
 
     const text = `CLINICAL DATA ENGINE • DOCTOR SBAR BRIEF
-Primary Hypothesis: ${primary} (Confidence: ${report.matchConfidence || 84}%)
+AI consideration for clinician review: ${primary}
 Generated: ${new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
 
 [S] SITUATION:
@@ -209,23 +262,40 @@ ${sbar.assessment}
 [R] RECOMMENDATION:
 ${sbar.recommendation}
 
-CONFIRMATORY TESTS TO EVALUATE:
-${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${i + 1}. ${t.test || t} - ${t.rationale || 'Evaluate functional thresholds'}`).join('\n') || 'Comprehensive functional metabolic and autonomic evaluation.'}`;
+QUESTIONS FOR THE VISIT:
+${(report.questionsForClinician || []).map((question: string, i: number) => `${i + 1}. ${question}`).join('\n') || 'What additional information would help you assess these concerns?'}
 
-    navigator.clipboard.writeText(text);
+AI-generated preparation material. Verify against original records; this is not a diagnosis or a treatment plan.`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      toast.error('Copy unavailable', 'Your browser could not access the clipboard. You can select and copy the report text.');
+      return;
+    }
     setCopiedSbar(true);
     toast.success("SBAR Brief Copied", "Formatted for MyChart/doctor portal notes.");
     setTimeout(() => setCopiedSbar(false), 3000);
   };
 
   const handleRunInvestigation = async () => {
+    if (runningRef.current || readingRef.current) return;
+    const requestScope = engineScope();
+    const linkedCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
+    if (selectedCaseId && !linkedCase) {
+      toast.error('Case unavailable', 'Select an available case or start a new case.');
+      return;
+    }
     if (!history.trim() && files.length === 0) {
       toast.error("Input Required", "Please enter your symptoms, clinical timeline, or attach lab reports to run the engine.");
       return;
     }
 
-    const session = getActiveSession();
+    runningRef.current = true;
+    const session = await getActiveSession();
+    if (!isMounted.current || requestScope !== engineScope()) { runningRef.current = false; return; }
     if (!session) {
+      runningRef.current = false;
       window.dispatchEvent(new CustomEvent('hc_require_auth', {
         detail: {
           title: 'Authentication Required',
@@ -237,10 +307,12 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
 
     const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
+      runningRef.current = false;
       openTrialModal('Clinical Data Engine');
       return;
     }
 
+    runningRef.current = true;
     setPhase('analyzing');
     
     const mappedFiles = files.map(f => ({
@@ -250,15 +322,16 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
 
     try {
       const contextProfile = isIsolated ? null : profile;
-      const result = await runJarvisInvestigation(history, mappedFiles, contextProfile);
+      const caseHistory = linkedCase ? `${history}\n\nSelected case evidence (prior AI interpretations are unverified):\n${buildCaseContext(linkedCase)}` : history;
+      const result = await runJarvisInvestigation(caseHistory, mappedFiles, contextProfile);
       
-      if (!isMounted.current) return;
+      if (!isMounted.current || requestScope !== engineScope()) return;
       
       if (result) {
         setReport(result);
         
         const primaryTitle = result.primaryHypothesis || result.topDiagnoses?.[0]?.condition || history.slice(0, 32);
-        const newCase = createCaseDraft({
+        const newCase = linkedCase || createCaseDraft({
           title: `Clinical Data Engine: ${primaryTitle.slice(0, 36)}`,
           mode: 'jarvis',
           intakeData: { 
@@ -284,7 +357,6 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
           caseId: newCase.id,
           payload: {
             primaryHypothesis: result.primaryHypothesis || result.topDiagnoses?.[0]?.condition,
-            matchConfidence: result.matchConfidence || 84,
             dominoChain: result.dominoChain,
             topDiagnoses: result.topDiagnoses || [],
             missingLinks: result.missingLinks || [],
@@ -306,6 +378,8 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
         toast.error("Analysis Error", "An error occurred during analysis. Please try again.");
         setPhase('input');
       }
+    } finally {
+      runningRef.current = false;
     }
   };
 
@@ -319,12 +393,10 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
 
   if (phase === 'done' && report) {
     const primaryCondition = report.primaryHypothesis || report.topDiagnoses?.[0]?.condition || 'Multi-System Clinical Pattern';
-    const confidencePct = typeof report.matchConfidence === 'number' 
-      ? report.matchConfidence 
-      : (typeof report.topDiagnoses?.[0]?.confidence === 'number' ? report.topDiagnoses[0].confidence : 84);
+    const confidencePct = 0; // Model-generated percentages are not calibrated clinical probabilities.
 
     return (
-      <div 
+      <div className="connected-experience"
         style={{ 
           padding: isMobile ? '12px 0 80px' : '24px 0 100px', 
           maxWidth: '960px', 
@@ -332,6 +404,19 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
           position: 'relative' 
         }}
       >
+        <section className="case-workspace" aria-labelledby="review-ready-title">
+          <span className="case-workspace-eyebrow">REVIEW SAVED TO MY CASES</span>
+          <h2 id="review-ready-title">Your record review is ready</h2>
+          <p>AI-generated information for a conversation with your clinician. Check extracted details against your original records.</p>
+          <div className="case-workspace-grid">
+            <button className="btn btn-outline" onClick={() => navigate(`/app/cases/${createdCaseId}`)}>Open case timeline</button>
+            <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
+            <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy visit summary'}</button>
+          </div>
+          {report.documentedFacts?.length > 0 && <div className="case-workspace-next"><h3>What the input documents</h3><ul>{report.documentedFacts.map((fact: any, index: number) => <li key={index} style={{ padding: '10px 0' }}>{fact.fact}<small style={{ display: 'block', color: '#475569' }}>Source: {fact.source}</small></li>)}</ul></div>}
+          {report.uncertainties?.length > 0 && <div className="case-workspace-next"><h3>What remains uncertain</h3><ul>{report.uncertainties.map((item: string, index: number) => <li key={index} style={{ padding: '10px 0' }}>{item}</li>)}</ul></div>}
+          {report.questionsForClinician?.length > 0 && <div className="case-workspace-next"><h3>Questions to take to your visit</h3><ol>{report.questionsForClinician.map((question: string, index: number) => <li key={index} style={{ padding: '6px 0', lineHeight: 1.6 }}>{question}</li>)}</ol></div>}
+        </section>
         {/* Top Header Badge */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -470,7 +555,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
           </motion.div>
 
           {/* PART 2: THE 3-STEP MECHANISTIC DOMINO CHAIN */}
-          <motion.div 
+          {report.dominoChain && <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -485,7 +570,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <Zap size={18} color="#EA580C" />
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                The 3-Step Mechanistic Domino Chain
+                Possible connections to discuss
               </h3>
             </div>
 
@@ -502,7 +587,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
                   STEP 1 • ROOT TRIGGER
                 </div>
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
-                  {report.dominoChain?.step1_trigger || 'Biochemical or Gut Axis Disruption'}
+                  {report.dominoChain?.step1_trigger || 'Not established'}
                 </div>
               </div>
 
@@ -517,7 +602,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
                   STEP 2 • PHYSIOLOGICAL CASCADE
                 </div>
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
-                  {report.dominoChain?.step2_cascade || 'Cross-System Vasodilation & Autonomic Compensation'}
+                  {report.dominoChain?.step2_cascade || 'Not established'}
                 </div>
               </div>
 
@@ -532,11 +617,11 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
                   STEP 3 • CURRENT SYMPTOMS
                 </div>
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
-                  {report.dominoChain?.step3_symptoms || 'Orthostatic Tachycardia, Dizziness & Cognitive Slowing'}
+                  {report.dominoChain?.step3_symptoms || 'Not established'}
                 </div>
               </div>
             </div>
-          </motion.div>
+          </motion.div>}
 
           {/* PART 3: SUB-CLINICAL BIOMARKER DISCREPANCY MATRIX */}
           {Array.isArray(report.functionalBiomarkers) && report.functionalBiomarkers.length > 0 && (
@@ -556,11 +641,11 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Activity size={18} color="#EA580C" />
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                    Sub-Clinical Biomarker Discrepancies
+                    Measurements in your records
                   </h3>
                 </div>
                 <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
-                  Standard "Normal" vs. Functional Health Thresholds
+                  Verify values, units, and reference ranges against the original
                 </span>
               </div>
 
@@ -665,7 +750,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Stethoscope size={18} color="#EA580C" />
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                  Doctor-Ready Action Plan: Confirmatory Tests
+                  Topics for your clinician
                 </h3>
               </div>
               
@@ -691,7 +776,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {(report.doctorActionPlan?.confirmatoryTests || report.questionsForClinician || []).map((item: any, i: number) => {
+              {(report.doctorActionPlan?.confirmatoryTests?.length ? report.doctorActionPlan.confirmatoryTests : report.questionsForClinician || []).map((item: any, i: number) => {
                 const testName = typeof item === 'string' ? item : item.test || 'Confirmatory Test';
                 const rationale = typeof item === 'string' ? '' : item.rationale;
                 const priority = typeof item === 'string' ? 'Priority' : item.priority || 'High';
@@ -727,7 +812,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
           </motion.div>
 
           {/* PART 6: 24-HOUR IMMEDIATE RELIEF PROTOCOL */}
-          {report.immediateRelief && (
+          {report.immediateRelief?.redFlags?.length > 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -743,7 +828,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                 <Heart size={18} color="#EA580C" />
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                  24-Hour Immediate Relief Protocol
+                  When to seek urgent care
                 </h3>
               </div>
 
@@ -929,16 +1014,16 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
               <BrainCircuit size={20} color="#FFFFFF" />
             </div>
             <span style={{ color: '#9A3412', fontWeight: 800, fontSize: '12px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              CLINICAL DATA ENGINE • AUTONOMOUS ROOT CAUSE
+              CLINICAL DATA ENGINE • CONNECTED CASE REVIEW
             </span>
           </div>
 
           <h1 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 12px 0', letterSpacing: '-0.5px', lineHeight: 1.25 }}>
-            Multi-System Diagnostic Synthesis
+            Make sense of your health records
           </h1>
 
           <p style={{ color: '#475569', fontSize: '14.5px', margin: '0 0 18px 0', lineHeight: 1.6, maxWidth: '680px' }}>
-            Uncover non-obvious root-cause connections across disparate body systems. Connect your clinical timeline, functional lab discrepancies, and doctor blindspots into one unified case file.
+            Bring your timeline and records together. Review what is documented, what is uncertain, and which questions to discuss with your clinician.
           </p>
 
           {/* Honest Intake Data Bar (No fake metrics - computes real local state) */}
@@ -1033,25 +1118,34 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
 
         {/* Form Body */}
         <div style={{ padding: isMobile ? '20px 16px' : '32px 36px' }}>
+          <div className="connected-experience" style={{ marginBottom: 24 }}>
+            <label htmlFor="engine-case-context" style={{ fontWeight: 700 }}>Where should this review be saved?</label>
+            <select id="engine-case-context" className="case-context-select" value={selectedCaseId} onChange={e => setSelectedCaseId(e.target.value)}>
+              <option value="">Start a new case</option>
+              {availableCases.filter(item => item.status !== 'archived').map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+            </select>
+            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{selectedCaseId ? 'This case’s saved concern, record findings, and prior review will be included. Your new review will stay in the same case.' : 'A new case will be saved after your review completes.'}</p>
+            <p style={{ fontSize: 12, color: '#475569' }}>Running a review sends your notes, selected case context, attached documents, and included profile information to our AI service.</p>
+            {isReadingFiles && <p role="status">Preparing your documents… Please wait before starting the review.</p>}
+          </div>
 
           {/* 1-Tap Multi-System Clinical Clusters */}
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Sparkles size={13} color="#EA580C" />
-                1-Tap Multi-System Clinical Clusters
+                Build your timeline
               </span>
-              <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Tap to autofill timeline</span>
+              <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Add a writing prompt</span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
               {[
-                { label: 'Brain Fog & Post-Meal Crash', icon: '🧠', text: 'Persistent neurocognitive slowing and marked postprandial fatigue (severe sleepiness within 45 mins of carbohydrates), accompanied by executive dysfunction for 6+ months.' },
-                { label: 'Chronic Fatigue & PEM', icon: '⚡', text: 'Profound unrefreshing sleep with post-exertional malaise crashing 24-48 hours after minor physical activity; normal routine blood work.' },
-                { label: 'Histamine & Flushing', icon: '🔥', text: 'Episodic facial flushing, sudden sinus congestion, and dermatographia triggered by aged cheeses, wine, or high-histamine foods; normal IgE allergy panels.' },
-                { label: 'Tachycardia & POTS', icon: '🫀', text: 'Orthostatic intolerance: sustained heart rate jump of >30 bpm on standing with lightheadedness, blood pooling in lower extremities, and heat intolerance.' },
-                { label: 'Hypermobility & Dysbiosis', icon: '🧬', text: 'Beighton score 6/9 joint hypermobility with chronic refractory constipation/bloating, early satiety, and recurring joint subluxations.' },
-                { label: 'Subclinical Thyroid / Cold', icon: '🩸', text: 'Persistent hypothermia/cold hands and feet, constipation, dry skin, and hair thinning with TSH borderline high and low-normal free T3.' }
+                { label: 'When it started', icon: '📅', text: 'When this started and how it has changed: ' },
+                { label: 'What I notice', icon: '📝', text: 'Symptoms I have noticed, how often they happen, and their effect on my day: ' },
+                { label: 'What changes it', icon: '🔎', text: 'Things that seem to improve or worsen symptoms (if known): ' },
+                { label: 'Care so far', icon: '📋', text: 'Appointments, tests, treatments, and what my clinician told me: ' },
+                { label: 'My main question', icon: '💬', text: 'What I most want help understanding: ' }
               ].map((cluster, cIdx) => (
                 <button
                   key={cIdx}
@@ -1094,7 +1188,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
 
           {/* Clinical Timeline & Symptoms Textarea */}
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+            <label htmlFor="clinical-timeline" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
               <span style={{ fontSize: '14.5px' }}>Clinical Timeline, Symptoms & Chief Concerns</span>
               <span style={{ fontSize: '12px', fontWeight: 700, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 800) ? '#EF4444' : '#64748B' }}>
                 {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 800 words
@@ -1102,6 +1196,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
             </label>
 
             <textarea 
+              id="clinical-timeline"
               value={history}
               onChange={(e) => {
                 const text = e.target.value;
@@ -1143,7 +1238,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
               ref={fileInputRef} 
               onChange={handleFileSelect} 
               multiple 
-              accept="image/*,application/pdf"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
               aria-label="Upload medical records, lab reports, or health documents"
               style={{ display: 'none' }} 
             />
@@ -1181,7 +1276,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
               </div>
               <div style={{ textAlign: 'center' }}>
                 <span style={{ fontSize: '14.5px', color: '#0F172A', display: 'block' }}>Upload Lab Reports, Discharge Summaries, or Imaging</span>
-                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>PDFs, JPG, PNG up to 10 files</span>
+                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>PDF, JPG, PNG or WebP · up to 10 files · 3 MB per file</span>
               </div>
             </button>
 
@@ -1287,6 +1382,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
           <button
             type="button"
             onClick={handleRunInvestigation}
+            disabled={isReadingFiles || (!history.trim() && !files.length)}
             style={{
               width: '100%',
               padding: '16px',
@@ -1308,7 +1404,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
             onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             <Sparkles size={18} />
-            <span>Run Autonomous Root-Cause Engine</span>
+            <span>{isReadingFiles ? 'Preparing documents…' : 'Review and save to My Cases'}</span>
             <ArrowRight size={18} />
           </button>
 

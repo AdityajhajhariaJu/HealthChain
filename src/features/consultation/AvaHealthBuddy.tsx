@@ -22,6 +22,10 @@ import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiv
 import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
+import { getCase, addCaseEvent } from '../../services/CaseEngine';
+import { buildCaseContext } from '../../services/caseWorkspace';
+import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import '../../components/ui/caseWorkspace.css';
 
 const QUICK_ACTION_PILLS = [
   {
@@ -31,7 +35,7 @@ const QUICK_ACTION_PILLS = [
     bg: '#F0FDFA',
     color: '#0F766E',
     border: '#CCFBF1',
-    prompt: 'I sat at my desk for 4 hours without taking a break. Now my lower back is locked and I have a throbbing headache behind my right eye. Could these be connected?',
+    prompt: 'Help me describe when my back discomfort or headache happens and what information to record for my clinician.',
   },
   {
     id: 'health_river',
@@ -49,7 +53,7 @@ const QUICK_ACTION_PILLS = [
     bg: '#CCFBF1',
     color: '#0F766E',
     border: '#99F6E4',
-    prompt: 'I slept well last night. For breakfast I had oatmeal with blueberries and a coffee, then worked at my laptop for 4 hours. By the afternoon my lower back was stiff and I felt a throbbing headache.',
+    prompt: 'Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.',
   },
   {
     id: 'food_detective',
@@ -135,7 +139,7 @@ const QUICK_ACTION_PILLS = [
 ];
 
 const SUGGESTIONS = [
-  "What could standard 15-minute visits miss across my labs, vitals, and diet?",
+  "Help me organize what changed in my health and what I should ask at my next visit.",
   "I'm looking for mental peace and a calm space to de-stress.",
   "Are there any side effects to my new meds?",
   "I have a headache, is it related to my condition?",
@@ -147,7 +151,7 @@ const CASE_RECHECK_SUGGESTIONS = [
   "Re-evaluate: What other alternative conditions could explain this?",
   "Could any of my active medications be causing or worsening this?",
   "Help me prepare the most important questions for my doctor.",
-  "What specific blood tests or imaging would confirm or rule this out?",
+  "What information is missing, and what should I ask my clinician about it?",
   "Can you explain the underlying biological mechanism in simple terms?"
 ];
 
@@ -185,15 +189,18 @@ const getAvaVaultKey = () => {
 const INITIAL_MSG = {
   role: 'model',
   content:
-    "Hi there. I'm Ava, your AI Medical Chief of Staff. I synthesize your complete health record, lab results, and active medications with clinical intelligence. How are you feeling today?",
+    "Hi, I'm Ava. I can help you reflect on your day, understand your records, and prepare questions for your clinician. Connect a case to keep our conversation focused. What would you like help with?",
 };
+
+type AvaRequest = { messages: any[]; caseId: string; context: string; scope: string };
 
 function getSavedMessages() {
   const profile = getProfile();
-  if (profile && profile.avaData) return profile.avaData;
+  if (profile && Array.isArray(profile.avaData) && profile.avaData.length > 0) return profile.avaData;
   try {
     const saved = getItemSync(getAvaVaultKey());
-    return saved ? JSON.parse(saved) : [INITIAL_MSG];
+    const parsed = saved ? JSON.parse(saved) : null;
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [INITIAL_MSG];
   } catch {
     return [INITIAL_MSG];
   }
@@ -206,6 +213,11 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
   useEffect(() => {
     isMounted.current = true;
     let current = '';
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setDisplayed(content);
+      onComplete();
+      return;
+    }
     const type = async () => {
       const chunkSize = 3;
       for (let i = 0; i < content.length; i += chunkSize) {
@@ -238,7 +250,7 @@ const TypewriterText = ({ content, onComplete, messagesEndRef }: any) => {
     return () => { isMounted.current = false; };
   }, [content, messagesEndRef]);
 
-  return <span>{displayed}</span>;
+  return <span style={{ whiteSpace: 'pre-wrap' }}>{displayed}</span>;
 };
 
 export function cleanChatMessageText(text: string): string {
@@ -605,18 +617,20 @@ export default function AvaHealthBuddy() {
   const incomingPrompt = location.state?.initialPrompt || location.state?.initialMessage;
   const [input, setInput] = useState(() => { 
     try { 
-      return incomingPrompt || sessionStorage.getItem('hc_ava_draft') || ''; 
+      return incomingPrompt || sessionStorage.getItem(`${getAvaVaultKey()}_draft`) || '';
     } catch { 
       return ''; 
     } 
   });
-  useEffect(() => { try { if (input.trim()) sessionStorage.setItem('hc_ava_draft', input); else sessionStorage.removeItem('hc_ava_draft'); } catch(e){} }, [input]);
+  useEffect(() => { try { if (input.trim()) sessionStorage.setItem(`${getAvaVaultKey()}_draft`, input); else sessionStorage.removeItem(`${getAvaVaultKey()}_draft`); } catch(e){} }, [input]);
   useEffect(() => {
     if (incomingPrompt) {
       setInput(incomingPrompt);
     }
   }, [incomingPrompt]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
+  const [isProcessingAttachment, setIsProcessingAttachment] = useState(false);
+  const attachmentBusyRef = useRef(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isWholeHealthOpen, setIsWholeHealthOpen] = useState(false);
@@ -625,6 +639,7 @@ export default function AvaHealthBuddy() {
   const [isListening, setIsListening] = useState(false);
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
+  const [showQuickTools, setShowQuickTools] = useState(false);
   const [detectiveTab, setDetectiveTab] = useState<string>('map');
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -712,57 +727,38 @@ export default function AvaHealthBuddy() {
   };
 
 
-  const [importedCase, setImportedCase] = useState<any>(() => {
-    try {
-      const stored = sessionStorage.getItem('hc_imported_case_brief');
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const initializedImportRef = useRef(false);
-
+  const availableCases = useCaseWorkspace();
+  const [selectedCaseId, setSelectedCaseId] = useState(() => new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId || '');
+  const selectedCase = availableCases.find(item => item.id === selectedCaseId);
+  const importedCase = selectedCase ? { caseId: selectedCase.id, title: selectedCase.title, type: 'Saved case', topConditions: '' } : null;
+  const setImportedCase = () => setSelectedCaseId('');
+  const [sendError, setSendError] = useState(false);
+  const lastRequestRef = useRef<AvaRequest | null>(null);
+  const sendingRef = useRef(false);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const caseId = params.get('importCase');
-    if (caseId && !initializedImportRef.current) {
-      initializedImportRef.current = true;
-      try {
-        const stored = sessionStorage.getItem('hc_imported_case_brief');
-        const parsed = stored ? JSON.parse(stored) : null;
-        if (parsed) {
-          setImportedCase(parsed);
-          const caseGreeting = `I have imported and reviewed your **${parsed.title}** (${parsed.type || 'Consultation'}).\n\nI've loaded your primary differential considerations (**${parsed.topConditions || 'findings'}**) and clinical notes.\n\nI'm ready to help you re-evaluate alternative hypotheses, cross-correlate with your medications, or prepare what to ask your doctor. What would you like to explore?`;
-          
-          setMessages((prev: any[]) => {
-            if (prev.length <= 1) {
-              return [{ role: 'model', content: caseGreeting, isStreaming: true }];
-            } else {
-              return [...prev, { role: 'model', content: caseGreeting, isStreaming: true }];
-            }
-          });
-          setIsStreaming(true);
-        }
-      } catch (e) {
-        console.error('Error importing case into Ava:', e);
-      }
-    }
-  }, [location.search]);
+    setSelectedCaseId(params.get('caseId') || params.get('importCase') || location.state?.caseId || '');
+  }, [location.search, location.state?.caseId]);
 
   const currentProfileId = useRef<string | null>(null);
 
   useEffect(() => {
-    const state = getProfileEngineState();
-    currentProfileId.current = state?.activeId || null;
+    currentProfileId.current = getAvaVaultKey();
   }, []);
 
   useEffect(() => {
     const handleProfileUpdate = () => {
-      const state = getProfileEngineState();
-      if (state?.activeId !== currentProfileId.current) {
-        currentProfileId.current = state?.activeId || null;
+      const scope = getAvaVaultKey();
+      if (scope !== currentProfileId.current) {
+        currentProfileId.current = scope;
         setMessages(getSavedMessages());
+        setSelectedCaseId('');
+        setInput('');
+        setAttachments([]);
+        setSendError(false);
+        lastRequestRef.current = null;
+        setIsTyping(false);
+        setIsStreaming(false);
       }
     };
     window.addEventListener('hc_profile_updated', handleProfileUpdate);
@@ -800,8 +796,10 @@ export default function AvaHealthBuddy() {
 
   const isMounted = useRef(true);
   useEffect(() => {
+    isMounted.current = true;
     return () => {
       isMounted.current = false;
+      recognitionRef.current?.abort();
     };
   }, []);
 
@@ -820,18 +818,20 @@ export default function AvaHealthBuddy() {
   }, [messages.length, isTyping]); // Only run on length change or typing status change
 
   const chatMutation = useMutation({
-    mutationFn: (newMessages: any[]) => chatWithTherapyGemini(newMessages),
-    onMutate: () => setIsTyping(true),
+    mutationFn: (request: AvaRequest) => chatWithTherapyGemini(request.messages.filter(message => (message.caseId || '') === request.caseId), request.context),
+    onMutate: () => { setIsTyping(true); setSendError(false); },
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
-    onSuccess: async (response: any, newMessages: any[]) => {
+    onSuccess: async (response: any, request: AvaRequest) => {
+        if (!isMounted.current || request.scope !== getAvaVaultKey()) return;
+        const newMessages = request.messages;
         setIsTyping(false);
         const hasWidget = response && response.includes('[WIDGET:');
         setIsStreaming(!hasWidget);
-        const finalMessages = [...newMessages, { role: 'model', content: response, isStreaming: !hasWidget }];
+        const finalMessages = [...newMessages, { role: 'model', content: response, isStreaming: !hasWidget, caseId: request.caseId }];
         
         if (finalMessages.length >= 10) {
           extractClinicalMemory(finalMessages).then((facts) => {
-            if (facts && facts.length > 0) {
+            if (request.scope === getAvaVaultKey() && Array.isArray(facts) && facts.length > 0) {
               facts.forEach((fact: string) => {
                 recordHealthMemory({
                   kind: 'health_buddy',
@@ -844,8 +844,7 @@ export default function AvaHealthBuddy() {
               });
             }
           });
-          const keptMessages = [finalMessages[0], ...finalMessages.slice(-6)];
-          setMessages(keptMessages);
+          setMessages([finalMessages[0], ...finalMessages.slice(-20)]);
         } else {
           setMessages(finalMessages);
         }
@@ -858,19 +857,23 @@ export default function AvaHealthBuddy() {
         awardPoints(5, 'Consulted Ava Clinical Chief of Staff', 'consult', `ava_consult_${todayDateStr}`);
         recordTrialUsage('ava');
       },
-    onError: () => {
+    onError: (_error, request) => {
+      if (!isMounted.current || request.scope !== getAvaVaultKey()) return;
       setIsTyping(false);
       setIsStreaming(false);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'model', content: 'Sorry, I am having trouble connecting right now.' },
-      ]);
+      setSendError(true);
     },
+    onSettled: () => { sendingRef.current = false; },
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || attachmentBusyRef.current) return;
+    e.target.value = '';
+    if (attachments.length >= 3 || !['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Attachment unavailable', 'Attach up to three PDF, JPG, PNG, or WebP files.');
+      return;
+    }
 
     if (file.size > 3 * 1024 * 1024) {
       toast.error("File Too Large", "Maximum file size is 3MB.");
@@ -891,8 +894,13 @@ export default function AvaHealthBuddy() {
       return;
     }
     
+    const attachmentScope = getAvaVaultKey();
+    attachmentBusyRef.current = true;
+    setIsProcessingAttachment(true);
     const reader = new FileReader();
     reader.onerror = () => {
+      attachmentBusyRef.current = false;
+      setIsProcessingAttachment(false);
       toast.error("Upload Error", "Failed to read the file. Please try another.");
     };
     reader.onload = async (event) => {
@@ -904,17 +912,18 @@ export default function AvaHealthBuddy() {
       try {
         const profile = getProfile() || {};
         const parsed = await analyzeLabReport(cleanBase64, file.type, profile);
-        if (parsed?.biomarkers && Object.keys(parsed.biomarkers).length > 0) {
-          updateVitals(parsed.biomarkers, 'ava_chat_upload');
-        }
         if (parsed?.keyFindings) {
           attachmentItem.findings = `Test: ${parsed.testName || 'Lab/Image Report'} | Key Findings: ${parsed.keyFindings}${parsed.interpretation ? ' | Interpretation: ' + parsed.interpretation : ''}`;
         }
       } catch (e) {
-        console.error('Error pre-analyzing file in Ava:', e);
+        toast.error('Document could not be read', 'Try another copy, or paste the relevant text into your message.');
       }
-
-      setAttachments(prev => [...prev, attachmentItem]);
+      attachmentBusyRef.current = false;
+      if (!isMounted.current) return;
+      setIsProcessingAttachment(false);
+      if (attachmentScope !== getAvaVaultKey()) return;
+      if (attachmentItem.findings) setAttachments(prev => [...prev, attachmentItem]);
+      else toast.error('No readable findings', 'Paste the relevant text or try a clearer report.');
     };
     reader.readAsDataURL(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -925,16 +934,22 @@ export default function AvaHealthBuddy() {
   };
 
   const handleSend = async (text: string) => {
+    if ((!text.trim() && attachments.length === 0) || sendingRef.current || isTyping || isStreaming || attachmentBusyRef.current || (selectedCaseId && !selectedCase)) return;
     const triage = evaluateEmergencyTriage(text);
     if (triage.isEmergency) {
       setEmergencyTriage(triage);
       return;
     }
 
-    if (!(await getActiveSession())) {
+    sendingRef.current = true;
+    const messageScope = getAvaVaultKey();
+    const session = await getActiveSession();
+    if (!isMounted.current || messageScope !== getAvaVaultKey()) { sendingRef.current = false; return; }
+    if (!session) {
       const errorCount = messages.filter((m: any) => m.role === 'model' && m.content && m.content.includes("trouble connecting")).length;
       const userMessageCount = messages.filter((m: any) => m.role === 'user').length - errorCount;
         if (userMessageCount >= 5) {
+          sendingRef.current = false;
           window.dispatchEvent(new CustomEvent('hc_require_auth', { 
             detail: { 
             title: 'Guest Limit Reached', 
@@ -946,11 +961,12 @@ export default function AvaHealthBuddy() {
     }
 
     if (!canUseTrial('ava')) {
+      sendingRef.current = false;
       openTrialModal('Ava Health Buddy (10 Free Trial Replies)');
       return;
     }
 
-    if ((!text.trim() && attachments.length === 0) || isTyping || isStreaming) return;
+    if ((!text.trim() && attachments.length === 0) || isTyping || isStreaming) { sendingRef.current = false; return; }
 
     let finalContent = text.trim();
     if (attachments.length > 0) {
@@ -962,16 +978,21 @@ export default function AvaHealthBuddy() {
       finalContent = finalContent ? `${finalContent}\n\n${attachStr}` : attachStr;
     }
 
-    const newMessages = [...messages, { role: 'user', content: finalContent, attachments: attachments.map((a: any) => a.name) }];
+    const newMessages = [...messages, { role: 'user', content: finalContent, caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) }];
+    sendingRef.current = true;
+    const contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
+    const request = { messages: newMessages, caseId: selectedCaseId, context: contextCase ? buildCaseContext(contextCase) : '', scope: messageScope };
+    lastRequestRef.current = request;
     setMessages(newMessages);
     setInput('');
     setAttachments([]);
 
-    chatMutation.mutate(newMessages);
+    chatMutation.mutate(request);
   };
 
   return (
     <div
+      className="connected-experience"
       style={{
         padding: isMobile ? '8px 12px calc(var(--safe-area-bottom, 0px) + 12px) 12px' : '0 24px',
         position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
@@ -1006,6 +1027,14 @@ export default function AvaHealthBuddy() {
           boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.35)',
         }}
       >
+        <div style={{ padding: '12px 18px', background: '#F0FDFA', flexShrink: 0 }}>
+          <label htmlFor="ava-case-context" style={{ fontSize: 12, fontWeight: 700, color: '#115E59' }}>Conversation context</label>
+          <select id="ava-case-context" className="case-context-select" value={selectedCaseId} disabled={isTyping || isStreaming} onChange={e => { setSelectedCaseId(e.target.value); setSendError(false); lastRequestRef.current = null; }}>
+            <option value="">General health check-in</option>
+            {availableCases.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+          </select>
+          {selectedCaseId && !selectedCase && <p role="status">This case is not available in the current profile. Select another case or a general check-in.</p>}
+        </div>
         {/* Header - Desktop Only (Mobile uses AppShell's clean top bar) */}
         {!isMobile && (
           <div
@@ -1198,7 +1227,7 @@ export default function AvaHealthBuddy() {
                   )}
                   <button
                     onClick={() => {
-                      setImportedCase(null);
+                      setImportedCase();
                       try { sessionStorage.removeItem('hc_imported_case_brief'); } catch(e){}
                     }}
                     aria-label="Close imported case context"
@@ -1255,7 +1284,9 @@ export default function AvaHealthBuddy() {
 
                   <div
                     style={{
-                      background: msg.role === 'user' 
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'anywhere',
+                      background: msg.role === 'user'
                         ? 'linear-gradient(135deg, #FF5A5F 0%, #E11D48 100%)' 
                         : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.88) 100%)',
                       backdropFilter: 'blur(20px)',
@@ -1273,6 +1304,7 @@ export default function AvaHealthBuddy() {
                       maxWidth: isMobile ? '88%' : '80%',
                     }}
                   >
+                    {msg.caseId && <small style={{ display: 'block', marginBottom: 8, fontWeight: 700 }}>Case: {availableCases.find(item => item.id === msg.caseId)?.title || 'Previous case'}</small>}
                     {msg.isStreaming ? (
                       <TypewriterText 
                         content={msg.content} 
@@ -1548,6 +1580,7 @@ export default function AvaHealthBuddy() {
           )}
 
           <form
+            className="ava-composer"
             onSubmit={(e) => {
               e.preventDefault();
               handleSend(input);
@@ -1564,7 +1597,7 @@ export default function AvaHealthBuddy() {
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              accept="image/*,application/pdf"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
               aria-label="Upload medical file or health image"
               style={{ display: 'none' }}
             />
@@ -1591,8 +1624,10 @@ export default function AvaHealthBuddy() {
             >
               <Plus size={isMobile ? 16 : 18} />
             </button>
-            <input
-              type="text"
+            <textarea
+              rows={2}
+              maxLength={8000}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); handleSend(input); } }}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               aria-label="Ask Ava Health Buddy a question"
@@ -1601,7 +1636,7 @@ export default function AvaHealthBuddy() {
                 width: '100%',
                 boxSizing: 'border-box',
                 padding: isMobile ? '12px 116px 12px 46px' : '15px 128px 15px 52px',
-                borderRadius: '99px',
+                borderRadius: '20px',
                 border: '1.5px solid #CCFBF1',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(24px)',
@@ -1677,7 +1712,7 @@ export default function AvaHealthBuddy() {
               <button
                 aria-label="Send message"
                 type="submit"
-                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming}
+                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming || isProcessingAttachment || Boolean(selectedCaseId && !selectedCase)}
                 style={{
                   width: isMobile ? '34px' : '36px',
                   height: isMobile ? '34px' : '36px',
@@ -1698,6 +1733,13 @@ export default function AvaHealthBuddy() {
               </button>
             </div>
           </form>
+          <div style={{ width: '100%', maxWidth: 720, marginTop: 8, fontSize: 12, color: '#475569' }}>
+            {isProcessingAttachment && <p role="status">Reading your document… You can keep writing while it is processed.</p>}
+            <p style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Attachments are sent to our AI service to extract text. Check extracted details against the original.</p>
+            {sendError && <div role="alert">Ava couldn’t respond. Your message is still here. <button type="button" className="btn btn-outline" onClick={() => { if (lastRequestRef.current && !sendingRef.current) { sendingRef.current = true; chatMutation.mutate(lastRequestRef.current); } }}>Retry message</button></div>}
+            {selectedCase && input.trim() && <button type="button" className="btn btn-outline" onClick={() => { addCaseEvent(selectedCase.id, input.trim(), 'Personal update from Ava'); toast.success('Update saved', 'Your words have been added to this case timeline.'); setInput(''); }}>Save draft as a case update</button>}
+            <p style={{ margin: 0, lineHeight: 1.5 }}>Enter to send · Shift + Enter for a new line · AI responses can be mistaken.</p>
+          </div>
 
           {/* Primary Dual-Action Capsule Dock (Reference media_1788642371467.png) */}
           <div
@@ -1771,8 +1813,9 @@ export default function AvaHealthBuddy() {
             </button>
           </div>
 
-          {/* Floating Quick Action Pastel Pills (Reference Images 1 & 2) */}
-          <div
+          <button type="button" className="ava-more-tools" aria-expanded={showQuickTools} onClick={() => setShowQuickTools(value => !value)}>{showQuickTools ? 'Hide extra tools' : 'More ways Ava can help'}</button>
+          {/* Additional tools stay available without crowding the composer. */}
+          {showQuickTools && <div
             style={{
               width: '100%',
               maxWidth: '720px',
@@ -1827,7 +1870,7 @@ export default function AvaHealthBuddy() {
                 <span>{pill.label}</span>
               </button>
             ))}
-          </div>
+          </div>}
         </div>
       </div>{' '}
       {/* Close Outer White Card Container */}

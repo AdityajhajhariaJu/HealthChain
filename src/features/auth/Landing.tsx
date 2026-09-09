@@ -127,15 +127,15 @@ const BENTO_COL_RIGHT = [
 ];
 
 const LIVE_NETWORK_UPDATES = [
-  'Debating Cases in Real Time',
-  '1,420+ Clinical Inquiries Analyzed Today',
-  'Resolving Complex & Unexplained Symptoms',
-  'Grounded in PubMed & NIH Clinical Trials',
+  'Organize Your Complete Health Story',
+  'Keep Questions, Records & Timelines Connected',
+  'Prepare for More Productive Appointments',
+  'Separate Documented Facts from Open Questions',
   'Instant Intake • Zero Medical Jargon',
 ];
 
 const CASE_TABS = [
-  { id: 'all', label: 'All Cases (1,420)', icon: '🌐' },
+  { id: 'all', label: 'All Examples', icon: '🌐' },
   { id: 'endo', label: '⚡ Fatigue & Hormones', icon: '🔬' },
   { id: 'neuro', label: '🧠 Migraine & Brain Fog', icon: '🤕' },
   { id: 'cardio', label: '🫀 Palpitations & POTS', icon: '💓' },
@@ -151,9 +151,9 @@ const RANKED_CASES = [
     title: 'Subclinical Ferritin Depletion & Post-Viral Autonomic Fatigue',
     icon: '🔬',
     specialistTag: 'Endocrinology & Neurology',
-    score: '96% Match',
-    desc: 'Correlated standard "normal" iron (65 μg/dL) with depleted ferritin (18 ng/mL) and blunted morning cortisol curve—explaining severe afternoon brain fog.',
-    meta: '#1 in Endocrinology · 2 days ago · 3,420 matched cases',
+    score: 'Example',
+    desc: 'Shows how a patient could organize fatigue symptoms, dated iron results, and questions about possible connections for clinician review.',
+    meta: 'Illustrative workflow · values are examples',
     symptom: 'Chronic fatigue, brain fog, and low ferritin symptoms',
     specId: 'endo',
   },
@@ -164,9 +164,9 @@ const RANKED_CASES = [
     title: 'Histamine-Mediated Neuro-Vascular Migraine with Morning Spikes',
     icon: '🧠',
     specialistTag: 'Neurology & Gastroenterology',
-    score: '94% Match',
-    desc: 'Identified gut-brain axis dysbiosis with histamine sensitivity triggering daily throbbing occipital pressure and morning vasomotor blood pressure spikes.',
-    meta: '#1 in Neurology · 3 days ago · 2,890 matched cases',
+    score: 'Example',
+    desc: 'Shows how headache timing, food observations, and prior care can become a focused timeline and appointment question list.',
+    meta: 'Illustrative workflow · not a diagnosis',
     symptom: 'Daily throbbing headache and occipital pressure',
     specId: 'neuro',
   },
@@ -177,9 +177,9 @@ const RANKED_CASES = [
     title: 'Gastrocardiac (Roemheld) Post-Meal Palpitations & Vagal Irritation',
     icon: '🫀',
     specialistTag: 'Cardiology & Gastroenterology',
-    score: '93% Match',
-    desc: 'Traced sinus tachycardia and lightheadedness after meals to splanchnic blood pooling and diaphragmatic vagus nerve compression.',
-    meta: '#1 in Cardiology · 4 days ago · 4,110 matched cases',
+    score: 'Example',
+    desc: 'Shows how meal timing, measured heart rate, and symptoms can be recorded without assuming what caused them.',
+    meta: 'Illustrative workflow · not a diagnosis',
     symptom: 'Post-meal palpitations, dizziness, and rapid heart rate',
     specId: 'cardio',
   },
@@ -190,9 +190,9 @@ const RANKED_CASES = [
     title: 'Mast Cell Mediator Release & Postural Tachycardia Overlap',
     icon: '🛡️',
     specialistTag: 'Immunology & Cardiology',
-    score: '91% Match',
-    desc: 'Identified episodic facial flushing, dermographia, and postural heart rate spikes matching hyperadrenergic POTS / MCAS overlap profile.',
-    meta: '#1 in Immunology · 5 days ago · 1,940 matched cases',
+    score: 'Example',
+    desc: 'Shows how recurring observations can be grouped into documented facts, uncertainties, and questions for a clinician.',
+    meta: 'Illustrative workflow · not a diagnosis',
     symptom: 'Postural tachycardia, flushing, and mast cell triggers',
     specId: 'immuno',
   },
@@ -214,11 +214,11 @@ const SPECIALIST_TICKER = [
 ];
 
 const LATEST_ACTIVITIES = [
-  { icon: '🧪', text: 'Iron Panel & Ferritin mapped for patient in Chicago', time: '1m ago', specId: 'endo', symptom: 'Iron panel and ferritin check' },
-  { icon: '🧠', text: 'POTS Tilt Correlation for patient in London', time: '4m ago', specId: 'neuro', symptom: 'POTS tilt and autonomic correlation' },
-  { icon: '🔬', text: 'Thyroid Free T3/T4 ratio analyzed', time: '16m ago', specId: 'endo', symptom: 'Thyroid panel Free T3/T4 analysis' },
-  { icon: '🩺', text: 'Histamine elimination brief generated', time: '27m ago', specId: 'gastro', symptom: 'Histamine elimination protocol' },
-  { icon: '🫀', text: 'Resting ECG & Holter cross-analyzed', time: '33m ago', specId: 'cardio', symptom: 'Holter monitor and resting ECG' },
+  { icon: '🧪', text: 'Organize a dated iron panel and symptom timeline', time: 'Example', specId: 'endo', symptom: 'Iron panel and ferritin check' },
+  { icon: '🧠', text: 'Prepare questions about orthostatic symptoms', time: 'Example', specId: 'neuro', symptom: 'POTS tilt and autonomic correlation' },
+  { icon: '🔬', text: 'Extract thyroid values with units and ranges', time: 'Example', specId: 'endo', symptom: 'Thyroid panel Free T3/T4 analysis' },
+  { icon: '🩺', text: 'Build a food and symptom observation log', time: 'Example', specId: 'gastro', symptom: 'Food and symptom observations' },
+  { icon: '🫀', text: 'Summarize ECG and Holter record findings', time: 'Example', specId: 'cardio', symptom: 'Holter monitor and resting ECG' },
 ];
 
 const landingFaqs = [
@@ -561,12 +561,12 @@ export default function Landing() {
             </motion.div>
             
             <motion.h1 variants={itemVariants} className={styles.heroTitle}>
-              Your Symptoms. <br/>
-              <span className={styles.heroHighlight}>Finally Explained.</span>
+              Your Health Story. <br/>
+              <span className={styles.heroHighlight}>Finally Connected.</span>
             </motion.h1>
             
             <motion.p variants={itemVariants} className={styles.heroDescription}>
-              Been to 5 different doctors with no answers? HealthChain360.ai convenes AI medical specialists to cross-analyze your complex symptoms, blood work, and history—uncovering root-cause connections standard 15-minute visits miss.
+              Bring scattered symptoms, records, and questions into one evolving case. HealthChain360.ai helps you understand what is documented, what remains uncertain, and what to discuss at your next appointment.
             </motion.p>
 
             {/* Instant Symptom Input Box */}
@@ -652,7 +652,7 @@ export default function Landing() {
               <div className={styles.demoFooter}>
                 <div className={styles.demoConfidenceText}>
                   <Sparkles size={14} />
-                  <span>Synthesizing root-cause differentials & clinician discussion brief...</span>
+                  <span>Organizing documented facts, uncertainties, and clinician questions...</span>
                 </div>
                 <button 
                   className={styles.demoCtaMini}
@@ -814,16 +814,16 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* KPI 2: Specialist Consensus */}
+              {/* KPI 2: Evidence review */}
               <div className={styles.convergenceKpiCard}>
                 <div className={styles.kpiHeader}>
-                  <span className={styles.kpiLabel}>SPECIALIST CONSENSUS</span>
-                  <span className={styles.kpiBadge}>12 Boards</span>
+                  <span className={styles.kpiLabel}>EVIDENCE REVIEW</span>
+                  <span className={styles.kpiBadge}>Illustrative</span>
                 </div>
-                <div className={styles.kpiValue}>94% Match</div>
+                <div className={styles.kpiValue}>Sources linked</div>
                 <div className={styles.kpiTrend}>
                   <span className={styles.kpiTrendIcon}>🟢</span>
-                  <span>Board Aligned</span>
+                  <span>Uncertainty visible</span>
                 </div>
                 <div className={styles.kpiSparkline}>
                   <svg viewBox="0 0 100 20" width="100%" height="20">
@@ -924,7 +924,7 @@ export default function Landing() {
               <span>Check Live Demo →</span>
             </button>
             <div className={styles.convergenceMicrocopy}>
-              Live in seconds • Client-side encrypted • No credit card required
+              Private account workspace • Review before sharing • No credit card required
             </div>
           </div>
 
@@ -1012,7 +1012,7 @@ export default function Landing() {
             <span className={styles.heroHighlight}>Clinical Clarity That Delivers</span>
           </h2>
           <p className={styles.statsMainSubtitle}>
-            Patients don't just get answers — they get clarity. HealthChain360.ai drives measurable improvements across root-cause discovery, lab synthesis, and clinician appointment preparation.
+            Move from scattered information to a case you can revisit. Each review keeps source details, uncertainties, and appointment questions visible.
           </p>
         </div>
 
@@ -1051,12 +1051,12 @@ export default function Landing() {
               </svg>
             </div>
             <div className={styles.statValueRow}>
-              <span className={styles.statNumber}>94%</span>
+              <span className={styles.statNumber}>Clear</span>
               <span className={styles.statTrend}>↗</span>
             </div>
-            <h4 className={styles.statTitle}>Diagnostic Consensus</h4>
+            <h4 className={styles.statTitle}>Evidence Boundaries</h4>
             <p className={styles.statDesc}>
-              Multi-specialist AI agreement rate on complex cross-system differential diagnoses and root causes.
+              Reported information, record findings, AI considerations, and unknowns stay visibly distinct.
             </p>
             <button className={styles.statCtaLink} onClick={() => handleStartInvestigation('stats_card_1')}>
               Start Free Review →
@@ -1099,12 +1099,12 @@ export default function Landing() {
               </svg>
             </div>
             <div className={styles.statValueRow}>
-              <span className={styles.statNumber}>4.8x</span>
+              <span className={styles.statNumber}>One</span>
               <span className={styles.statTrend}>↗</span>
             </div>
             <h4 className={styles.statTitle}>Evidence Breadth</h4>
             <p className={styles.statDesc}>
-              Evaluates 4.8x more multi-system biomarker correlations than standard 15-minute primary care visits.
+              Keeps your timeline, documents, daily updates, and appointment preparation in one connected case.
             </p>
             <button className={styles.statCtaLink} onClick={() => handleStartInvestigation('stats_card_2')}>
               Start Free Review →

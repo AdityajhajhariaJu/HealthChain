@@ -830,7 +830,7 @@ export function saveDigestionLog(dateKey, logData) {
       true,
       profile
     );
-  } catch (err) {
+  } catch {
     // Graceful fallback
   }
 

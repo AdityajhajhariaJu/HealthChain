@@ -16,6 +16,14 @@ declare global {
 
 let inMemoryAnonId: string | null = null;
 
+export const hasAnalyticsConsent = () => {
+  try {
+    return typeof window !== 'undefined' && localStorage.getItem('hc_cookies_accepted') === 'accepted';
+  } catch {
+    return false;
+  }
+};
+
 const getAnonymousId = () => {
   if (typeof window === 'undefined') return 'unknown';
   try {
@@ -37,6 +45,8 @@ const getAnonymousId = () => {
 };
 
 export const trackEvent = (eventName: string, payload: any = {}) => {
+  // Optional analytics must remain completely dormant until the user opts in.
+  if (!hasAnalyticsConsent()) return;
   // 1. Google Ads & Google Tag (gtag.js)
   if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
     try {
