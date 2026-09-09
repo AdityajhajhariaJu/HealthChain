@@ -1418,7 +1418,7 @@ export default function MedicalProfile() {
                           }}
                         >
                           <span style={{ textTransform: 'capitalize' }}>
-                            {item.source ? item.source.replace('_', ' ') : 'MDT Hub'}
+                            {item.source ? item.source.replace('_', ' ') : 'Clinical Engine'}
                           </span>
                           {item.timeline && (
                             <span>• {item.timeline}</span>

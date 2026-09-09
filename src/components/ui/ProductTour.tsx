@@ -17,12 +17,12 @@ const TOUR_STEPS = [
     content: 'Start here to get an overview of your active cases, open action items, and recent updates.',
   },
   {
-    title: 'Multiple Specialists',
-    content: 'Get a parallel evaluation from different AI medical experts at the same time to see the whole picture.',
+    title: 'Clinical Data Engine',
+    content: 'Uncover subclinical root causes, 3-step biological cascades, and doctor blind spots across multi-stream clinical data.',
   },
   {
-    title: 'Deep Collaborative Specialists',
-    content: 'Our Orchestrator synthesizes findings from all specialists into one unified clinical report.',
+    title: 'Physician Action Briefs',
+    content: 'Generate doctor-ready SBAR briefs and confirmatory lab test requisitions with a single click.',
   },
   {
     title: 'Privacy First',

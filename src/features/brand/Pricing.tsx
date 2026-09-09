@@ -57,7 +57,7 @@ const BASIC_FEATURES: FeatureItem[] = [
 const PRO_30_FEATURES: FeatureItem[] = [
   { name: '3 Quick Consult Sessions', desc: 'Instant single-specialist reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
   { name: '2 Deep Collab Specialist Boards', desc: 'Multi-specialist clinical consensus', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '1 Clinical Data Engine Session', desc: 'Full-body autonomous biomarker correlation', icon: BrainCircuit, color: '#7C3AED', bg: '#F5F3FF', highlight: true },
+  { name: '1 Clinical Data Engine Session', desc: 'Full-body autonomous biomarker correlation', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
   { name: 'Ava Health Buddy (30 Replies)', desc: 'AI Chief of Staff assistance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Doctor dossiers & trial matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Clinical Dietician (Unlimited)', desc: 'Precision metabolic meal plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
@@ -70,7 +70,7 @@ const PRO_30_FEATURES: FeatureItem[] = [
 const PRO_90_FEATURES: FeatureItem[] = [
   { name: '10 Quick Consult Sessions', desc: 'Continuous specialist evaluation', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
   { name: '8 Deep Collab Specialist Boards', desc: 'Complex multi-system case reviews', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '3 Clinical Data Engine Sessions', desc: 'Deep systemic pattern discovery', icon: BrainCircuit, color: '#7C3AED', bg: '#F5F3FF', highlight: true },
+  { name: '3 Clinical Data Engine Sessions', desc: 'Deep systemic pattern discovery', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
   { name: 'Ava Health Buddy (120 Replies)', desc: 'Extended longitudinal health guidance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable dossiers & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Clinical Dietician (Unlimited)', desc: 'Condition-specific Indian nutritional plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
@@ -84,7 +84,7 @@ const TOPUP_PLANS = [
   { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '+10 Replies', desc: 'Instant AI Chief of Staff consultation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '+1 Session', desc: 'Single-specialist acute review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
   { id: 'topup_deep_collab', name: 'Specialist Consensus Board', price: 149, qty: '+1 Session', desc: 'Multi-specialist clinical review & consensus', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
-  { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '+1 Session', desc: 'Autonomous root-cause biomarker scan', icon: BrainCircuit, color: '#7C3AED', bg: '#F5F3FF' },
+  { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '+1 Session', desc: 'Autonomous root-cause biomarker scan', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
   { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Real-time drug clash & safety checks', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
