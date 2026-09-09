@@ -293,7 +293,7 @@ export default function MyCases() {
         ) : paginatedCases.length > 0 ? (
           paginatedCases.map(caseItem => {
             const primary = caseItem.currentSummary?.topDiagnoses?.[0];
-            const isJarvis = caseItem.currentStage === 'jarvis_complete' || caseItem.reviews?.[0]?.type === 'jarvis' || caseItem.title?.toLowerCase().includes('j.a.r.v.i.s.');
+            const isJarvis = caseItem.mode === 'jarvis' || caseItem.currentStage === 'jarvis_complete' || caseItem.reviews?.[0]?.type === 'jarvis' || caseItem.title?.toLowerCase().includes('clinical data engine') || caseItem.title?.toLowerCase().includes('j.a.r.v.i.s.');
             const isQuick = caseItem.title?.toLowerCase().includes('quick consult') || caseItem.reviews?.[0]?.type === 'parallel';
 
             let badgeBg = '#F0FDFA';
@@ -305,12 +305,12 @@ export default function MyCases() {
             let IconComponent = Users;
 
             if (isJarvis) {
-              badgeBg = '#CCFBF1';
-              badgeColor = '#0F766E';
-              badgeBorder = '#99F6E4';
+              badgeBg = '#FFF7ED';
+              badgeColor = '#C2410C';
+              badgeBorder = '#FED7AA';
               badgeLabel = 'Clinical Data Engine';
-              iconBg = '#CCFBF1';
-              iconColor = '#0D9488';
+              iconBg = '#FFF7ED';
+              iconColor = '#EA580C';
               IconComponent = BrainCircuit;
             } else if (isQuick) {
               badgeBg = '#EFF6FF';

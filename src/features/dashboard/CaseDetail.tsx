@@ -170,11 +170,11 @@ export default function CaseDetail() {
                 fontWeight: 700, 
                 padding: '4px 10px', 
                 borderRadius: 999, 
-                background: caseItem.mode === 'mdt' ? '#FFF7ED' : '#ECFDF5', 
-                color: caseItem.mode === 'mdt' ? '#EA580C' : '#047857',
-                border: `1px solid ${caseItem.mode === 'mdt' ? '#FED7AA' : '#A7F3D0'}`
+                background: (caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? '#FFF7ED' : '#ECFDF5', 
+                color: (caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? '#EA580C' : '#047857',
+                border: `1px solid ${(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? '#FED7AA' : '#A7F3D0'}`
               }}>
-                {caseItem.mode === 'mdt' ? 'Clinical Data Engine' : 'Clinical Consultation'}
+                {(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? 'Clinical Data Engine' : 'Clinical Consultation'}
               </span>
               <span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>
                 Stage: {caseItem.currentStage.replace(/_/g, ' ')}

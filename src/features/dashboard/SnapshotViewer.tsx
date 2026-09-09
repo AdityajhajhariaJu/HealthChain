@@ -1,6 +1,10 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, BookOpen, Brain, BrainCircuit, FileText, Sparkles, MessageCircle } from 'lucide-react';
+import { 
+  GitMerge, Network, CalendarClock, ChevronRight, CheckCircle2, Download, 
+  BookOpen, Brain, BrainCircuit, FileText, Sparkles, MessageCircle,
+  Zap, AlertTriangle, Heart, Copy, Check, Activity, ArrowRight, ShieldCheck, AlertCircle
+} from 'lucide-react';
 import { CaseItem, ReviewSnapshot } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -28,6 +32,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
   );
   const [elifMode, setElifMode] = useState(false);
   const [simulatingAction, setSimulatingAction] = useState<any>(null);
+  const [copiedSbar, setCopiedSbar] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
 
   const exportToPDF = async () => {
@@ -56,22 +61,58 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
     }
   };
 
+  const handleCopySbar = () => {
+    if (!activeReview?.report) return;
+    triggerHapticLight();
+    const rep = activeReview.report;
+    const primary = rep.primaryHypothesis || rep.topDiagnoses?.[0]?.condition || 'Clinical Finding';
+    const sbar = rep.doctorActionPlan?.sbar || {
+      situation: rep.executiveSummary || 'Clinical review findings',
+      background: 'Complex multi-system clinical presentation.',
+      assessment: primary,
+      recommendation: (rep.doctorActionPlan?.confirmatoryTests || []).map((t: any) => t.test || t).join(', ') || 'Targeted workup.'
+    };
+    const text = `CLINICAL DATA ENGINE • DOCTOR SBAR BRIEF
+Primary Hypothesis: ${primary} (Confidence: ${rep.matchConfidence || 84}%)
+Generated: ${new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
+
+[S] SITUATION:
+${sbar.situation}
+
+[B] BACKGROUND:
+${sbar.background}
+
+[A] ASSESSMENT:
+${sbar.assessment}
+
+[R] RECOMMENDATION:
+${sbar.recommendation}
+
+CONFIRMATORY TESTS TO EVALUATE:
+${(rep.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => `${i + 1}. ${t.test || t} - ${t.rationale || 'Evaluate functional thresholds'}`).join('\n') || 'Comprehensive functional evaluation.'}`;
+
+    navigator.clipboard.writeText(text);
+    setCopiedSbar(true);
+    toast.success("SBAR Brief Copied", "Formatted for MyChart/doctor portal notes.");
+    setTimeout(() => setCopiedSbar(false), 3000);
+  };
+
   const activeReview = reviews.find(r => r.id === activeReviewId) || reviews[reviews.length - 1] || reviews[0];
 
   if (reviews.length === 0) {
     return (
       <div className="card" style={{ padding: 36, textAlign: 'center' }}>
         <h2>No reviews yet</h2>
-        <p style={{ color: '#64748b' }}>Start a parallel review to generate your first snapshot.</p>
+        <p style={{ color: '#64748b' }}>Start a clinical investigation to generate your first snapshot.</p>
       </div>
     );
   }
 
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : 'unset', gridTemplateColumns: isMobile ? 'unset' : '320px 1fr', gap: 16, alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '280px 1fr', gap: 24, alignItems: 'start' }}>
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-         <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-            <h3 style={{ margin: 0, fontSize: 16 }}>Review History</h3>
+         <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#F8FAFC' }}>
+            <h3 style={{ margin: 0, fontSize: 16 }}>Clinical Snapshots ({reviews.length})</h3>
          </div>
          <div>
            {[...reviews].reverse().map((review, index) => {
@@ -174,13 +215,34 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                         fontWeight: 600
                       }}
                       onClick={() => {
-                        window.dispatchEvent(new CustomEvent('hc_open_ava', { 
-                          detail: { initialPrompt: `Let's discuss my latest review from ${formatDate(activeReview.createdAt)}. What are the main takeaways?` } 
-                        }));
+                        triggerHapticLight();
+                        navigate('/app/ava', { 
+                          state: { 
+                            initialPrompt: `I would like to discuss my case snapshot from ${formatDate(activeReview.createdAt)}. Primary hypothesis: "${activeReview.report?.primaryHypothesis || activeReview.report?.topDiagnoses?.[0]?.condition || 'Clinical Finding'}". What are the key takeaways?` 
+                          } 
+                        });
                       }}
                     >
                       <MessageCircle size={16} /> Discuss with Ava
                     </button>
+                    {activeReview.type === 'jarvis' && (
+                      <button
+                        className="btn btn-outline"
+                        onClick={handleCopySbar}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          color: copiedSbar ? '#047857' : '#C2410C',
+                          borderColor: copiedSbar ? '#A7F3D0' : '#FED7AA',
+                          background: copiedSbar ? '#ECFDF5' : '#FFF7ED',
+                          fontWeight: 700
+                        }}
+                      >
+                        {copiedSbar ? <Check size={14} color="#059669" /> : <Copy size={14} />}
+                        <span>{copiedSbar ? 'Copied SBAR' : 'Copy SBAR'}</span>
+                      </button>
+                    )}
                     <button 
                       className={`btn ${elifMode ? 'btn-primary' : 'btn-outline'}`}
                       aria-label={elifMode ? 'Switch to detailed clinical view' : 'Switch to simplified ELIF view'}
@@ -194,107 +256,255 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                 </div>
              </div>
 
-             <div ref={reportRef} style={{ display: 'grid', gap: 16, padding: '10px 0' }}>
-               <section>
-                  <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Executive Summary</h3>
-                  <p style={{ margin: 0, lineHeight: 1.6, color: '#334155' }}>
-                     {elifMode 
-                        ? (activeReview.report?.executiveSummary ? "Basically, the doctors looked at everything and think we have a clear idea of what's going on. Here are the main things you need to know in simple terms." : 'No summary available.') 
-                        : (activeReview.report?.executiveSummary || 'No summary available.')}
-                  </p>
-               </section>
-
-               <section>
-                  <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Discussion Pathways</h3>
-                  <div style={{ display: 'grid', gap: 12 }}>
-                    {(activeReview.report?.topDiagnoses || []).map((d: any, i: number) => {
-                      const condition = typeof d === 'string' ? d : d?.condition || 'Diagnosis';
-                      const rationale = typeof d === 'string' ? '' : d?.rationale || '';
-                      const specialty = typeof d === 'string' ? 'Review' : d?.specialty || 'Review';
-                      return (
-                        <div
-                          key={i}
-                          style={{
-                            padding: 16,
-                            borderRadius: 14,
-                            background: '#f8fafc',
-                            borderLeft: '4px solid #10B981',
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                            <strong>{condition}</strong>
-                            <span className="badge badge-teal">{specialty}</span>
-                          </div>
-                          <p
-                            style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
-                          >
-                            {elifMode ? `We think it might be ${condition}. The doctors discussed this and agree on the next steps.` : rationale}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-               </section>
-               
-               <section>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-                    <h3 style={{ fontSize: 18, margin: 0 }}>Recommended Actions</h3>
-                    <span style={{ fontSize: 12, color: '#64748B' }}>Tap "Simulate & Guide" to prepare your doctor discussion</span>
-                  </div>
-                  <div style={{ display: 'grid', gap: 8 }}>
-                     {(activeReview.report?.recommendedActionPlan || []).map((action: any, idx: number) => {
-                        const actionText = typeof action === 'string' ? action : action?.step || action?.title || action?.action || 'Action item';
-                        const actionObj = typeof action === 'string' ? { step: action, id: `action_${idx}` } : action;
-                        return (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 12, padding: '12px 16px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0 }}>
-                                <CheckCircle2 size={18} color="#10B981" style={{ flexShrink: 0 }} />
-                                <span style={{ fontSize: 14, color: '#334155', fontWeight: 500, lineHeight: 1.4 }}>
-                                   {actionText}
-                                </span>
-                             </div>
-                             <button
-                               type="button"
-                               className="btn btn-outline"
-                               style={{
-                                 padding: '6px 12px',
-                                 fontSize: 12,
-                                 fontWeight: 600,
-                                 display: 'inline-flex',
-                                 alignItems: 'center',
-                                 gap: 6,
-                                 borderRadius: 8,
-                                 borderColor: '#cbd5e1',
-                                 color: '#2563eb',
-                                 background: '#eff6ff',
-                                 cursor: 'pointer',
-                                 flexShrink: 0,
-                                 alignSelf: isMobile ? 'flex-end' : 'center'
-                               }}
-                               onClick={() => setSimulatingAction(actionObj)}
-                             >
-                               <Sparkles size={14} color="#3b82f6" /> Simulate & Guide
-                             </button>
-                          </div>
-                        );
-                     })}
-                  </div>
-               </section>
-               
-               <section>
-                  <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Participating Specialists</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                     {(activeReview.specialists || []).map((s: any, sIdx: number) => {
-                        const label = typeof s === 'string' ? s : s?.label || s?.name || 'Specialist';
-                        return (
-                          <span key={label + sIdx} style={{ background: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: 6, fontSize: 13 }}>
-                             {label}
+              <div ref={reportRef} style={{ display: 'grid', gap: 16, padding: '10px 0' }}>
+                {activeReview.type === 'jarvis' ? (
+                  <>
+                    <div style={{ background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF7ED 100%)', border: '1.5px solid #FED7AA', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px', background: '#FFEDD5', padding: '2px 8px', borderRadius: 6 }}>
+                          Primary Hypothesis
+                        </span>
+                        {activeReview.report?.matchConfidence && (
+                          <span style={{ fontSize: 12, fontWeight: 800, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: 999 }}>
+                            {activeReview.report.matchConfidence}% Match
                           </span>
-                        );
-                     })}
-                  </div>
-               </section>
-            </div>
+                        )}
+                      </div>
+                      <h3 style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#0F172A', margin: '0 0 8px' }}>
+                        {activeReview.report?.primaryHypothesis || activeReview.report?.topDiagnoses?.[0]?.condition || 'Clinical Finding'}
+                      </h3>
+                      <p style={{ margin: 0, color: '#334155', fontSize: 14, lineHeight: 1.55 }}>
+                        {activeReview.report?.executiveSummary || 'Multi-system physiological correlation.'}
+                      </p>
+                    </div>
+
+                    {activeReview.report?.dominoChain && (
+                      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                          <Zap size={16} color="#EA580C" />
+                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>
+                            3-Step Mechanistic Domino Chain
+                          </h4>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr auto 1fr', gap: 10, alignItems: 'center' }}>
+                          <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 12, padding: 12 }}>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: '#9A3412', marginBottom: 2 }}>TRIGGER</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{activeReview.report.dominoChain.step1_trigger}</div>
+                          </div>
+                          {!isMobile && <ArrowRight size={16} color="#F97316" />}
+                          <div style={{ background: '#FFFDFB', border: '1px solid #FDBA74', borderRadius: 12, padding: 12 }}>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: '#C2410C', marginBottom: 2 }}>CASCADE</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{activeReview.report.dominoChain.step2_cascade}</div>
+                          </div>
+                          {!isMobile && <ArrowRight size={16} color="#F97316" />}
+                          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: 12 }}>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: '#991B1B', marginBottom: 2 }}>SYMPTOMS</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{activeReview.report.dominoChain.step3_symptoms}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(activeReview.report?.functionalBiomarkers) && activeReview.report.functionalBiomarkers.length > 0 && (
+                      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                          <Activity size={16} color="#EA580C" />
+                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Sub-Clinical Biomarker Discrepancies</h4>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {activeReview.report.functionalBiomarkers.map((b: any, idx: number) => (
+                            <div key={idx} style={{ background: '#FFFDFB', border: '1px solid #FED7AA', borderRadius: 10, padding: '10px 14px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                <strong style={{ fontSize: 13.5, color: '#0F172A' }}>{b.biomarker}</strong>
+                                {b.value && <span style={{ fontSize: 11, fontWeight: 800, color: '#C2410C', background: '#FFF7ED', padding: '2px 8px', borderRadius: 999 }}>{b.value}</span>}
+                              </div>
+                              <div style={{ fontSize: 12, color: '#64748B', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                <span>Standard: {b.standardRange}</span>
+                                <span>•</span>
+                                <span>Optimal: <strong style={{ color: '#047857' }}>{b.optimalRange}</strong></span>
+                              </div>
+                              {(b.clinicalRisk || b.insight) && (
+                                <p style={{ margin: '6px 0 0', fontSize: 12.5, color: '#334155', lineHeight: 1.4 }}>{b.clinicalRisk || b.insight}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(activeReview.report?.missingLinks) && activeReview.report.missingLinks.length > 0 && (
+                      <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                          <AlertTriangle size={16} color="#D97706" />
+                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#92400E' }}>What Previous Doctors Overlooked</h4>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {activeReview.report.missingLinks.map((link: string, idx: number) => (
+                            <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 13, color: '#78350F', lineHeight: 1.4 }}>
+                              <span>•</span>
+                              <span>{link}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {Array.isArray(activeReview.report?.doctorActionPlan?.confirmatoryTests) && activeReview.report.doctorActionPlan.confirmatoryTests.length > 0 && (
+                      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
+                        <h4 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Doctor-Ready Action Plan: Confirmatory Tests</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {activeReview.report.doctorActionPlan.confirmatoryTests.map((t: any, idx: number) => {
+                            const name = typeof t === 'string' ? t : t.test;
+                            const rat = typeof t === 'string' ? '' : t.rationale;
+                            const prio = typeof t === 'string' ? 'High' : t.priority || 'High';
+                            return (
+                              <div key={idx} style={{ padding: '10px 14px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <strong style={{ fontSize: 13.5, color: '#0F172A' }}>{name}</strong>
+                                  <span style={{ fontSize: 10.5, fontWeight: 800, color: '#047857', background: '#ECFDF5', padding: '2px 6px', borderRadius: 6 }}>{prio}</span>
+                                </div>
+                                {rat && <p style={{ margin: '4px 0 0', fontSize: 12.5, color: '#64748B' }}>{rat}</p>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {activeReview.report?.immediateRelief && (
+                      <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                          <Heart size={16} color="#EA580C" />
+                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>24-Hour Immediate Relief Protocol</h4>
+                        </div>
+                        {Array.isArray(activeReview.report.immediateRelief.dietSwaps) && (
+                          <div style={{ marginBottom: 10 }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Diet Swaps:</div>
+                            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: '#334155' }}>
+                              {activeReview.report.immediateRelief.dietSwaps.map((s: string, idx: number) => (
+                                <li key={idx}>{s}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {activeReview.report.immediateRelief.pacingProtocol && (
+                          <div style={{ marginBottom: 10 }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 2 }}>Pacing & Hydration:</div>
+                            <p style={{ margin: 0, fontSize: 13, color: '#334155', lineHeight: 1.4 }}>{activeReview.report.immediateRelief.pacingProtocol}</p>
+                          </div>
+                        )}
+                        {Array.isArray(activeReview.report.immediateRelief.redFlags) && activeReview.report.immediateRelief.redFlags.length > 0 && (
+                          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#991B1B' }}>
+                            <strong>RED FLAGS: </strong> {activeReview.report.immediateRelief.redFlags.join(' ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <section>
+                       <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Executive Summary</h3>
+                       <p style={{ margin: 0, lineHeight: 1.6, color: '#334155' }}>
+                          {elifMode 
+                             ? (activeReview.report?.executiveSummary ? "Basically, the doctors looked at everything and think we have a clear idea of what's going on. Here are the main things you need to know in simple terms." : 'No summary available.') 
+                             : (activeReview.report?.executiveSummary || 'No summary available.')}
+                       </p>
+                    </section>
+
+                    <section>
+                       <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Discussion Pathways</h3>
+                       <div style={{ display: 'grid', gap: 12 }}>
+                         {(activeReview.report?.topDiagnoses || []).map((d: any, i: number) => {
+                           const condition = typeof d === 'string' ? d : d?.condition || 'Diagnosis';
+                           const rationale = typeof d === 'string' ? '' : d?.rationale || '';
+                           const specialty = typeof d === 'string' ? 'Review' : d?.specialty || 'Review';
+                           return (
+                             <div
+                               key={i}
+                               style={{
+                                 padding: 16,
+                                 borderRadius: 14,
+                                 background: '#f8fafc',
+                                 borderLeft: '4px solid #10B981',
+                               }}
+                             >
+                               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                                 <strong>{condition}</strong>
+                                 <span className="badge badge-teal">{specialty}</span>
+                               </div>
+                               <p
+                                 style={{ margin: '8px 0 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}
+                               >
+                                 {elifMode ? `We think it might be ${condition}. The doctors discussed this and agree on the next steps.` : rationale}
+                               </p>
+                             </div>
+                           );
+                         })}
+                       </div>
+                    </section>
+                    
+                    <section>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                         <h3 style={{ fontSize: 18, margin: 0 }}>Recommended Actions</h3>
+                         <span style={{ fontSize: 12, color: '#64748B' }}>Tap "Simulate & Guide" to prepare your doctor discussion</span>
+                       </div>
+                       <div style={{ display: 'grid', gap: 8 }}>
+                          {(activeReview.report?.recommendedActionPlan || []).map((action: any, idx: number) => {
+                             const actionText = typeof action === 'string' ? action : action?.step || action?.title || action?.action || 'Action item';
+                             const actionObj = typeof action === 'string' ? { step: action, id: `action_${idx}` } : action;
+                             return (
+                               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 12, padding: '12px 16px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                     <CheckCircle2 size={18} color="#10B981" style={{ flexShrink: 0 }} />
+                                     <span style={{ fontSize: 14, color: '#334155', fontWeight: 500, lineHeight: 1.4 }}>
+                                        {actionText}
+                                     </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline"
+                                    style={{
+                                      padding: '6px 12px',
+                                      fontSize: 12,
+                                      fontWeight: 600,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 6,
+                                      borderRadius: 8,
+                                      borderColor: '#cbd5e1',
+                                      color: '#2563eb',
+                                      background: '#eff6ff',
+                                      cursor: 'pointer',
+                                      flexShrink: 0,
+                                      alignSelf: isMobile ? 'flex-end' : 'center'
+                                    }}
+                                    onClick={() => setSimulatingAction(actionObj)}
+                                  >
+                                    <Sparkles size={14} color="#3b82f6" /> Simulate & Guide
+                                  </button>
+                               </div>
+                             );
+                          })}
+                       </div>
+                    </section>
+                    
+                    <section>
+                       <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Participating Specialists</h3>
+                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {(activeReview.specialists || []).map((s: any, sIdx: number) => {
+                             const label = typeof s === 'string' ? s : s?.label || s?.name || 'Specialist';
+                             return (
+                               <span key={label + sIdx} style={{ background: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: 6, fontSize: 13 }}>
+                                  {label}
+                               </span>
+                             );
+                          })}
+                       </div>
+                    </section>
+                  </>
+                )}
+              </div>
          </div>
       ) : (
          <div className="card" style={{ padding: 36, textAlign: 'center' }}>

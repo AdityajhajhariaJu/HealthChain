@@ -29,7 +29,8 @@ import {
   Pill,
   Plus,
   FileText,
-  GitMerge
+  GitMerge,
+  BrainCircuit
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -257,14 +258,14 @@ export default function CaseDashboard() {
                 type="button"
                 onClick={() => {
                   triggerHapticLight();
-                  navigate('/app/consult', { state: { tab: 'dossier' } });
+                  navigate('/app/consult');
                 }}
-                aria-label="Open 10-minute Doctor Visit Brief"
+                aria-label="Open Clinical Data Engine"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
                   color: '#FFFFFF',
                   padding: '6px 14px',
                   borderRadius: '999px',
@@ -272,10 +273,10 @@ export default function CaseDashboard() {
                   fontSize: '12px',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)'
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
                 }}
               >
-                <FileText size={14} color="#FFF" /> Doctor Brief
+                <BrainCircuit size={14} color="#FFF" /> Clinical Engine
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                 <LivingHeartIcon size={16} color="#F43F5E" />

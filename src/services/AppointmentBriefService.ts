@@ -118,7 +118,26 @@ export function generateDeterministicBrief(caseItem: CaseItem, profile: any): Ap
       if (report.executiveSummary) summary = report.executiveSummary;
       else if (report.patientFriendlySummary) summary = report.patientFriendlySummary;
       
-      if (r.type === 'parallel') {
+      if (r.type === 'jarvis') {
+        priorPerspectives.push({ title: 'Clinical Data Engine Dossier', summary, sourceId: `jarvis-${i}` });
+        if (report.primaryHypothesis) {
+          addQuestion(`Could my presentation be explained by ${report.primaryHypothesis}?`, `jarvis-${i}`);
+        }
+        if (report.doctorActionPlan?.confirmatoryTests && Array.isArray(report.doctorActionPlan.confirmatoryTests)) {
+          report.doctorActionPlan.confirmatoryTests.slice(0, 3).forEach((ct: any) => {
+            const testName = typeof ct === 'string' ? ct : ct.test;
+            const rationale = typeof ct === 'string' ? '' : ct.rationale;
+            if (testName) {
+              addQuestion(`Should we consider evaluating: ${testName}${rationale ? ` (${rationale})` : ''}?`, `jarvis-${i}`);
+            }
+          });
+        }
+        if (report.missingLinks && Array.isArray(report.missingLinks)) {
+          report.missingLinks.slice(0, 2).forEach((link: string) => {
+            missingInformation.push({ missingText: link, reason: 'Identified as potential diagnostic blindspot' });
+          });
+        }
+      } else if (r.type === 'parallel') {
         priorPerspectives.push({ title: 'Quick Consult Overview', summary, sourceId: `qc-${i}` });
       } else if (r.type === 'mdt') {
         priorPerspectives.push({ title: 'Collaborative Review', summary, sourceId: `mdt-${i}` });

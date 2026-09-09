@@ -1,15 +1,15 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { 
   FileUp, Sparkles, Activity, Search, ArrowRight, 
   X, CheckCircle2, HelpCircle, BrainCircuit, Copy, Check,
   AlertTriangle, ShieldCheck, Stethoscope, Heart, CalendarClock,
-  FileText, Zap, ChevronRight, Share2, AlertCircle
+  FileText, Zap, ChevronRight, AlertCircle
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
-import { createCaseDraft, saveReviewSnapshot, getActiveCase } from '../../services/CaseEngine';
+import { createCaseDraft, saveReviewSnapshot, getActiveCase, getCase } from '../../services/CaseEngine';
 import { getActiveSession } from '../../services/authSession';
 import { getProfile } from '../../services/ProfileEngine';
 import { openTrialModal } from '../../services/TrialEngine';
@@ -17,14 +17,13 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
-import { Accordion } from '../../components/ui/RichReportTemplate';
-import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
 import { triggerHapticSelection, triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
 
 export default function JarvisInvestigator() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const toast = useToast();
   const [profile, setProfile] = useState(() => getProfile());
 
@@ -41,6 +40,23 @@ export default function JarvisInvestigator() {
   const [isIsolated, setIsIsolated] = useState(false);
   const [copiedSbar, setCopiedSbar] = useState(false);
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
+
+  // Rehydrate existing case if caseId is passed in URL query or navigation state
+  useEffect(() => {
+    const caseId = searchParams.get('caseId') || (location.state as any)?.caseId;
+    if (caseId && phase === 'input') {
+      const existing = getCase(caseId);
+      if (existing) {
+        const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
+        if (jarvisReview?.report) {
+          setReport(jarvisReview.report);
+          setCreatedCaseId(existing.id);
+          setHistory(existing.intakeData?.chiefComplaint || '');
+          setPhase('done');
+        }
+      }
+    }
+  }, [searchParams, location.state]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -244,6 +260,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
         const primaryTitle = result.primaryHypothesis || result.topDiagnoses?.[0]?.condition || history.slice(0, 32);
         const newCase = createCaseDraft({
           title: `Clinical Data Engine: ${primaryTitle.slice(0, 36)}`,
+          mode: 'jarvis',
           intakeData: { 
             chiefComplaint: history || "Clinical Data Engine investigation",
             filesCount: mappedFiles.length,

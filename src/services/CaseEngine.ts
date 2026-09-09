@@ -56,7 +56,7 @@ export interface Differential {
 export interface CaseItem {
   id: string;
   title: string;
-  mode?: 'multi' | 'mdt';
+  mode?: 'multi' | 'mdt' | 'jarvis';
   status: 'active' | 'archived';
   createdAt: string;
   updatedAt: string;
@@ -290,7 +290,7 @@ export function resolveCase(caseId: string) {
   }
 }
 
-export function createCaseDraft({ title, intakeData = {}, specialists = [], mode }: { title?: string, intakeData?: any, specialists?: any[], mode?: 'multi' | 'mdt' }): CaseItem {
+export function createCaseDraft({ title, intakeData = {}, specialists = [], mode }: { title?: string, intakeData?: any, specialists?: any[], mode?: 'multi' | 'mdt' | 'jarvis' }): CaseItem {
   const now = new Date().toISOString();
   const item: CaseItem = {
     id: id(),
@@ -402,7 +402,17 @@ export function saveReviewSnapshot({
   };
 
   const priorActions = existing.actions || [];
-  const nextActions = (Array.isArray(report?.recommendedActionPlan) ? report.recommendedActionPlan : []).map((action: any, index: number) => ({
+  const rawActions = Array.isArray(report?.recommendedActionPlan) && report.recommendedActionPlan.length > 0
+    ? report.recommendedActionPlan
+    : Array.isArray(report?.doctorActionPlan?.confirmatoryTests)
+      ? report.doctorActionPlan.confirmatoryTests.map((t: any) => ({
+          title: typeof t === 'string' ? t : `Request ${t.test || 'Test'}`,
+          description: typeof t === 'string' ? '' : t.rationale || '',
+          category: 'diagnostic',
+          priority: typeof t === 'string' ? 'high' : (t.priority?.toLowerCase() || 'high')
+        }))
+      : [];
+  const nextActions = rawActions.map((action: any, index: number) => ({
     id: id(),
     ...action,
     status: 'pending' as const,
