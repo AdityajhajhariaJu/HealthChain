@@ -64,26 +64,37 @@ export const trackEvent = (eventName: string, payload: any = {}) => {
 
   // 4. Supabase Analytics
   try {
-    const platform = Capacitor.getPlatform();
-    supabase.auth.getSession().then(({ data }) => {
-      supabase.from('analytics_events').insert({
-        
-        event_name: eventName,
-        event_params: { ...payload, anonymous_id: getAnonymousId() },
+    let platform = 'web';
+    try {
+      platform = Capacitor.getPlatform();
+    } catch {
+      platform = 'web';
+    }
 
-        user_id: data?.session?.user?.id || null,
-        platform: platform,
-        created_at: new Date().toISOString()
-      }).then(({ error }) => {
-        if (error) console.error('Failed to log event', error);
-      }, (err) => {
-        console.warn('Analytics DB unreachable:', err);
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        return supabase.from('analytics_events').insert({
+          event_name: eventName,
+          event_params: { ...payload, anonymous_id: getAnonymousId() },
+          user_id: data?.session?.user?.id || null,
+          platform: platform,
+          created_at: new Date().toISOString()
+        });
+      })
+      .then((res: any) => {
+        if (res?.error && import.meta.env.DEV) {
+          console.warn('Failed to log analytics event:', res.error);
+        }
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) {
+          console.warn('Analytics pipeline unreachable:', err);
+        }
       });
-    }, (err) => {
-      console.warn('Auth session check failed during analytics:', err);
-    });
   } catch (e) {
-    console.error('Analytics error', e);
+    if (import.meta.env.DEV) {
+      console.warn('Analytics dispatch error:', e);
+    }
   }
 };
 

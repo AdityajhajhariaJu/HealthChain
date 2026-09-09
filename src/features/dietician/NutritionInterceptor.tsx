@@ -20,11 +20,33 @@ const RAPID_MEAL_BUILDERS = [
   '🐟 Salmon Bowl & Quinoa'
 ];
 
+interface NutritionItem {
+  name?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fats?: number;
+  sugar?: number;
+  giTag?: string;
+}
+
+interface NutritionAnalysisPayload {
+  clinical_insight?: string;
+  items?: NutritionItem[];
+  total?: {
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+    calories?: number;
+  };
+}
+
 export const NutritionInterceptor: React.FC = () => {
   const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [recentLog, setRecentLog] = useState<any>(null);
+  const [recentLog, setRecentLog] = useState<NutritionAnalysisPayload | null>(null);
 
   const handleAppendQuickMeal = (meal: string) => {
     triggerHapticLight();

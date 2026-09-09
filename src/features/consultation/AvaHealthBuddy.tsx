@@ -662,7 +662,9 @@ export default function AvaHealthBuddy() {
 
   const toggleListening = () => {
     triggerHapticLight();
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (typeof window === 'undefined') return;
+    const win = window as unknown as { SpeechRecognition?: new () => any; webkitSpeechRecognition?: new () => any };
+    const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.info('Voice Dictation', 'Voice dictation is not supported in this browser. Please type directly.');
       return;

@@ -191,20 +191,30 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
 
   const realIronEntry = profile?.vitals?.latestLabValues?.['Serum Iron'] || profile?.vitals?.latestLabValues?.['Iron'];
   const ironStr = realIronEntry ? `${realIronEntry.value} ${realIronEntry.unit || 'μg/dL'}` : '65 μg/dL';
+  const ironFound = Boolean(realIronEntry);
+
+  const freeT3Found = latestLabKeys.some((k) => /t3|free\s*t3/i.test(k));
+  const vitDFound = latestLabKeys.some((k) => /vit(amin)?\s*d/i.test(k));
+  const hsCrpFound = latestLabKeys.some((k) => /crp|hs-?crp/i.test(k));
+
+  const ferritinTag = ferritinFound ? '' : '[Reference Baseline] ';
+  const ironTag = ironFound ? '' : '[Reference Baseline] ';
+  const freeT3Tag = freeT3Found ? '' : '[Reference Baseline] ';
+  const vitDTag = vitDFound ? '' : '[Reference Baseline] ';
 
   const labItems: string[] = hasUserClinicalData ? [
-    `Serum Ferritin: ${ferritinStr} (${
+    `${ferritinTag}Serum Ferritin: ${ferritinStr} (${
       ferritinMarker?.status === 'optimal'
         ? 'Optimal bone marrow storage'
         : ferritinMarker?.status === 'critical_low'
         ? 'Severe bone marrow depletion'
         : 'Subclinical bone marrow depletion'
     })`,
-    `Standard Iron: ${ironStr} (Falsely reassuring standard range)`,
-    `Free T3: ${freeT3Marker?.userValue ?? 2.4} pg/mL (${
+    `${ironTag}Standard Iron: ${ironStr} (Falsely reassuring standard range)`,
+    `${freeT3Tag}Free T3: ${freeT3Marker?.userValue ?? 2.4} pg/mL (${
       freeT3Marker?.status === 'optimal' ? 'Optimal metabolic conversion' : 'Conversion lag under autonomic strain'
     })`,
-    `Vitamin D3: ${vitDMarker?.userValue ?? 26} ng/mL (${
+    `${vitDTag}Vitamin D3: ${vitDMarker?.userValue ?? 26} ng/mL (${
       vitDMarker?.status === 'optimal' ? 'Adequate immune threshold' : 'Sub-optimal immune threshold'
     })`,
   ] : [
@@ -212,7 +222,8 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   ];
 
   if (hasUserClinicalData && hsCrpMarker && hsCrpMarker.status !== 'optimal') {
-    labItems.push(`hs-CRP: ${hsCrpMarker.userValue} mg/L (Low-grade endothelial inflammation)`);
+    const hsCrpTag = hsCrpFound ? '' : '[Reference Baseline] ';
+    labItems.push(`${hsCrpTag}hs-CRP: ${hsCrpMarker.userValue} mg/L (Low-grade endothelial inflammation)`);
   }
 
   // Vitals & Wearables live telemetry
@@ -260,13 +271,18 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     : (hasUserClinicalData ? '12 Boards Aligned' : 'No Consultations Logged');
 
   // Vitals Stream items
-  const hasVitalsData = Boolean(profile?.vitals && (profile.vitals.restingHeartRate || profile.vitals.standingHRDelta || profile.vitals.orthostaticDelta));
+  const hasTelemetryRHR = Boolean(profile?.vitals?.restingHeartRate || profile?.vitals?.restingHR);
+  const hasTelemetryOrtho = Boolean(profile?.vitals?.orthostaticDelta || profile?.vitals?.standingHRDelta);
+  const hasTelemetrySleep = Boolean(profile?.vitals?.sleepDuration || profile?.vitals?.sleepHours);
+  const hasTelemetryHRV = Boolean(profile?.vitals?.hrv);
+
+  const hasVitalsData = Boolean(hasTelemetryRHR || hasTelemetryOrtho || hasTelemetrySleep || hasTelemetryHRV);
   const vitalsItems: string[] = (hasVitalsData || hasUserClinicalData)
     ? [
-        `Resting Heart Rate: ${rhrVal} bpm (${profile?.vitals?.restingHeartRate ? 'From telemetry baseline' : 'Stable baseline'})`,
-        `Orthostatic Shift: ${deltaSign} bpm upon standing (${orthoDeltaVal >= 30 ? 'Autonomic signature' : 'Normal baroreflex range'})`,
-        `Sleep Architecture: ${sleepVal} (Fragmented deep sleep stage)`,
-        `Heart Rate Variability (HRV): ${hrvVal} ms (${hrvVal < 35 ? 'Dampened high-frequency vagal power' : 'Optimal parasympathetic vagal recovery'})`,
+        `Resting Heart Rate: ${rhrVal} bpm (${hasTelemetryRHR ? 'Telemetry baseline' : 'Reference baseline'})`,
+        `Orthostatic Shift: ${deltaSign} bpm upon standing (${orthoDeltaVal >= 30 ? (hasTelemetryOrtho ? 'Autonomic signature' : 'Reference autonomic profile') : 'Normal baroreflex range'})`,
+        `Sleep Architecture: ${sleepVal} (${hasTelemetrySleep ? 'Sleep tracker telemetry' : 'Reference sleep baseline'})`,
+        `Heart Rate Variability (HRV): ${hrvVal} ms (${hrvVal < 35 ? (hasTelemetryHRV ? 'Dampened high-frequency vagal power' : 'Reference vagal profile') : 'Optimal parasympathetic vagal recovery'})`,
       ]
     : ['Sync resting heart rate, active stand delta, or HRV to assess autonomic tone.'];
 
@@ -280,16 +296,16 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     ? [
         suspect1
           ? `${suspect1.primarySensitivity}: ${suspect1.name} (+${suspect1.correlationPercent}% flare rate)`
-          : 'Histamine Overload: Red Wine & Aged Cheese (+34% flare rate)',
+          : '[Clinical Protocol] Histamine Overload: Red Wine & Aged Cheese (+34% flare rate)',
         suspect2
           ? `${suspect2.primarySensitivity}: ${suspect2.name} (+${suspect2.correlationPercent}% flare rate)`
-          : 'FODMAP Fructans: Garlic & Allium cecal fermentation (+22%)',
+          : '[Clinical Protocol] FODMAP Fructans: Garlic & Allium cecal fermentation (+22%)',
         suspect3
           ? `${suspect3.name}: ${suspect3.safeSwap ? `Safe swap: ${suspect3.safeSwap}` : suspect3.mechanism}`
-          : 'DAO Enzyme Clearance: Saturation during stacked evening meals',
+          : '[Clinical Protocol] DAO Enzyme Clearance: Saturation during stacked evening meals',
         activeTrial
           ? `Active Protocol: ${activeTrial.trialId.replace(/_/g, ' ').toUpperCase()} (-${activeTrial.reductionPercent}% flares)`
-          : 'Low-Histamine Protocol active',
+          : '[Clinical Protocol] Low-Histamine Protocol active',
       ]
     : ['Log meals or select an elimination protocol to isolate inflammatory culprits.'];
 

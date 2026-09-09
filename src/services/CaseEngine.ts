@@ -187,7 +187,7 @@ function safeIsoDate(val?: string | number | Date | null): string {
 }
 
 async function save(cases: CaseItem[]) {
-  const safeCases = JSON.parse(JSON.stringify(cases));
+  const safeCases = (typeof structuredClone === 'function') ? structuredClone(cases) : JSON.parse(JSON.stringify(cases));
   
   // Find changed cases by checking updatedAt or lengths
   const changedCases = safeCases.filter((c: any) => {

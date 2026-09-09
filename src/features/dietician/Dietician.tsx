@@ -221,12 +221,16 @@ export default function Dietician() {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const initialTab = ((location.state as any)?.tab || 'dashboard') as 'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'insights' | 'grocery' | 'guardrails' | 'longevity';
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'mealplan' | 'sensitivities' | 'calendar' | 'elimination' | 'insights' | 'grocery' | 'guardrails' | 'longevity'>(initialTab);
+  const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'elimination', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
+  type DietTab = typeof validTabs[number];
+  const stateTab = (location.state as { tab?: string } | null)?.tab;
+  const initialTab: DietTab = (stateTab && (validTabs as readonly string[]).includes(stateTab)) ? (stateTab as DietTab) : 'dashboard';
+  const [activeTab, setActiveTab] = useState<DietTab>(initialTab);
 
   useEffect(() => {
-    if ((location.state as any)?.tab) {
-      setActiveTab((location.state as any).tab);
+    const nextTab = (location.state as { tab?: string } | null)?.tab;
+    if (nextTab && (validTabs as readonly string[]).includes(nextTab)) {
+      setActiveTab(nextTab as DietTab);
     }
   }, [location.state]);
   const [profile, setProfile] = useState<any>(null);

@@ -238,7 +238,7 @@ export const AdminContentDashboard: React.FC = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Type</label>
                     <select 
                       value={editForm.type || 'breathwork'}
-                      onChange={e => setEditForm({...editForm, type: e.target.value as any})}
+                      onChange={e => setEditForm({...editForm, type: e.target.value as FitnessContent['type']})}
                       aria-label="Content type"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white appearance-none"
                     >
@@ -265,7 +265,7 @@ export const AdminContentDashboard: React.FC = () => {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Difficulty</label>
                     <select 
                       value={editForm.difficulty || 'Beginner'}
-                      onChange={e => setEditForm({...editForm, difficulty: e.target.value as any})}
+                      onChange={e => setEditForm({...editForm, difficulty: e.target.value as FitnessContent['difficulty']})}
                       aria-label="Content difficulty"
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white appearance-none"
                     >

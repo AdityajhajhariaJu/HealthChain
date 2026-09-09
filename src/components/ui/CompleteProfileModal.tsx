@@ -731,10 +731,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
               border: '1px solid #E2E8F0'
             }}>
               {[
-                { id: 0, label: 'Profile', icon: '👤' },
-                { id: 1, label: 'Conditions', icon: '🩺' },
-                { id: 2, label: 'Meds', icon: '💊' },
-                { id: 3, label: 'Allergies', icon: '🛡️' }
+                { id: 0 as const, label: 'Profile', icon: '👤' },
+                { id: 1 as const, label: 'Conditions', icon: '🩺' },
+                { id: 2 as const, label: 'Meds', icon: '💊' },
+                { id: 3 as const, label: 'Allergies', icon: '🛡️' }
               ].map((s) => {
                 const isCurrent = activeStep === s.id;
                 const isDone = activeStep > s.id;
@@ -744,7 +744,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      setActiveStep(s.id as any);
+                      setActiveStep(s.id);
                     }}
                     style={{
                       padding: '8px 4px',
@@ -2644,7 +2644,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 type="button"
                 onClick={() => {
                   triggerHapticLight();
-                  setActiveStep(prev => (prev - 1) as any);
+                  setActiveStep(prev => Math.max(0, prev - 1) as 0 | 1 | 2 | 3);
                 }}
                 style={{
                   padding: '13px 18px',
@@ -2692,7 +2692,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   type="button"
                   onClick={() => {
                     triggerHapticLight();
-                    setActiveStep(prev => (prev + 1) as any);
+                    setActiveStep(prev => Math.min(3, prev + 1) as 0 | 1 | 2 | 3);
                   }}
                   style={{
                     flex: 1,

@@ -1,6 +1,6 @@
 import WarRoom from './features/dashboard/WarRoom';
 import React, { Suspense, useEffect } from 'react';
-import { trackButtonClick } from './services/analytics';
+import { trackButtonClick, trackEvent } from './services/analytics';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
 import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfillHealthMemoryFromProfile, getProfile } from './services/ProfileEngine';
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
@@ -39,7 +39,6 @@ const ConsultPage = React.lazy(() => import('./features/consultation/ConsultPage
 const MyCases = React.lazy(() => import('./features/dashboard/MyCases'));
 const MedicineLabPage = React.lazy(() => import('./features/tools/MedicineLabPage'));
 const AvaHealthBuddy = React.lazy(() => import('./features/consultation/AvaHealthBuddy'));
-const JarvisInvestigator = React.lazy(() => import('./features/jarvis/JarvisInvestigator'));
 
 const Settings = React.lazy(() => import('./features/profile/Settings'));
 const Dietician = React.lazy(() => import('./features/dietician/Dietician'));
@@ -142,11 +141,9 @@ export default function App() {
           const val = target.value.trim();
           if (val.length > 0) {
              const isSearch = target.type === 'search' || (target.placeholder && target.placeholder.toLowerCase().includes('search'));
-             import('./services/analytics').then(({ trackEvent }) => {
-               trackEvent(isSearch ? 'search_query' : 'chat_prompt', { 
-                 query: val.substring(0, 150), // Keep it concise
-                 path: window.location.pathname
-               });
+             trackEvent(isSearch ? 'search_query' : 'chat_prompt', { 
+               query: val.substring(0, 150), // Keep it concise
+               path: window.location.pathname
              });
           }
         }

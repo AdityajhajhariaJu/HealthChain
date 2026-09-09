@@ -95,14 +95,33 @@ export default function AppShell() {
     };
     checkCheckin();
     const handleOpenNotifications = () => setShowNotifications(true);
+    const handleSyncError = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (import.meta.env.DEV) console.warn('[AppShell] Cloud sync error:', detail);
+    };
+    const handleSyncPending = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (import.meta.env.DEV) console.log('[AppShell] Cloud sync pending:', detail);
+    };
+    const handleSyncComplete = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      if (import.meta.env.DEV) console.log('[AppShell] Cloud sync complete:', detail);
+    };
+
     window.addEventListener('hc_daily_checkin_completed', checkCheckin);
     window.addEventListener('hc_profile_updated', checkCheckin);
     window.addEventListener('hc_open_notifications_panel', handleOpenNotifications);
+    window.addEventListener('hc_sync_error', handleSyncError);
+    window.addEventListener('hc_sync_pending', handleSyncPending);
+    window.addEventListener('hc_sync_complete', handleSyncComplete);
     initDailyReminderService((route) => navigate(route));
     return () => {
       window.removeEventListener('hc_daily_checkin_completed', checkCheckin);
       window.removeEventListener('hc_profile_updated', checkCheckin);
       window.removeEventListener('hc_open_notifications_panel', handleOpenNotifications);
+      window.removeEventListener('hc_sync_error', handleSyncError);
+      window.removeEventListener('hc_sync_pending', handleSyncPending);
+      window.removeEventListener('hc_sync_complete', handleSyncComplete);
     };
   }, [navigate]);
 

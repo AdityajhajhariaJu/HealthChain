@@ -226,7 +226,7 @@ ${(report.doctorActionPlan?.confirmatoryTests || []).map((t: any, i: number) => 
 
     const session = getActiveSession();
     if (!session) {
-      window.dispatchEvent(new CustomEvent('hc_open_auth_modal', {
+      window.dispatchEvent(new CustomEvent('hc_require_auth', {
         detail: {
           title: 'Authentication Required',
           message: 'You need to log in or sign up to run a Clinical Data Engine investigation.'
