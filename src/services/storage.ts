@@ -29,7 +29,7 @@ export async function syncStorageFromPreferences() {
         } catch {}
       }
     }
-    console.log('✨ Storage synced from Capacitor Preferences');
+    if (import.meta.env.DEV) console.log('✨ Storage synced from Capacitor Preferences');
   } catch (e) {
     console.warn('Failed to sync from preferences (or timed out)', e);
   }

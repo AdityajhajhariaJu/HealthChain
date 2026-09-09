@@ -1244,8 +1244,9 @@ export function getActiveTrial(): ActiveTrialState | null {
   }
 }
 
-export function startTrial(trialId: string): ActiveTrialState {
+export function startTrial(trialId: string, initialSeverity?: number): ActiveTrialState {
   const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === trialId) || ELIMINATION_PROTOCOLS[0];
+  const baseline = typeof initialSeverity === 'number' ? initialSeverity : 0;
   const newState: ActiveTrialState = {
     trialId: protocol.id,
     startDate: new Date().toISOString(),
@@ -1253,9 +1254,9 @@ export function startTrial(trialId: string): ActiveTrialState {
     totalDays: protocol.durationDays,
     completedDays: 0,
     adherencePercentage: 100,
-    symptomScores: [{ day: 1, severity: 7, adhered: true, note: 'Trial commenced.' }],
-    baselineSeverity: 7.0,
-    currentSeverity: 7.0,
+    symptomScores: baseline > 0 ? [{ day: 1, severity: baseline, adhered: true, note: 'Trial commenced.' }] : [],
+    baselineSeverity: baseline,
+    currentSeverity: baseline,
     reductionPercent: 0,
     userInitiated: true,
   } as any;

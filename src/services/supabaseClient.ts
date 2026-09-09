@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { safariSafeAuthStorage } from './safariSafeAuthStorage';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://supabase.healthchain.local';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'hc-anon-fallback';
 
-if (supabaseUrl === 'https://placeholder-project.supabase.co') {
-  console.error('CRITICAL: VITE_SUPABASE_URL is not set. Supabase features will fail.');
+if (!import.meta.env.VITE_SUPABASE_URL && !import.meta.env.DEV) {
+  console.error('CRITICAL: VITE_SUPABASE_URL environment variable is not configured. Supabase cloud features will fail.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

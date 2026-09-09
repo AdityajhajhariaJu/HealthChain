@@ -116,7 +116,7 @@ export default function Settings() {
   try { account = accountStr ? JSON.parse(accountStr) : null; } catch {}
   const storageScope = account?.id || 'guest';
   const scopedExportPrefixes = EXPORTABLE_STORAGE_PREFIXES.map((prefix) => `${prefix}_${storageScope}`);
-  const userEmail = account?.email || account?.user?.email || 'user@example.com';
+  const userEmail = account?.email || account?.user?.email || 'No email linked';
 
   useEffect(() => {
     verifyProStatus().then(setIsPremium).catch(() => {});

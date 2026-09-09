@@ -56,7 +56,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [activeTab, setActiveTab] = useState<'guardrails' | 'rechallenge' | 'outcomes' | 'dossier'>('guardrails');
   
   // Interactive check-in state
-  const [severityScore, setSeverityScore] = useState<number>(trial?.currentSeverity || 4);
+  const [severityScore, setSeverityScore] = useState<number>(trial?.currentSeverity ?? 0);
   const [checkinNote, setCheckinNote] = useState<string>('');
   const [justLogged, setJustLogged] = useState<boolean>(false);
 
@@ -75,7 +75,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (isOpen) {
       const current = getActiveTrial();
       setTrial(current);
-      if (current) setSeverityScore(current.currentSeverity || 4);
+      if (current) setSeverityScore(current.currentSeverity ?? 0);
     }
   }, [isOpen]);
 
@@ -1049,7 +1049,7 @@ B (Background):
 Baseline severity recorded at ${trial.baselineSeverity}/10 prior to intervention. Habitual intake involved uncalibrated exposure to ${activeProtocolDef.eliminatedFoods.slice(0, 3).join(', ')}.
 
 A (Assessment):
-Over ${trial.currentDay} days on protocol, symptoms shifted by -${trial.reductionPercent}% down to ${trial.currentSeverity}/10 (Adherence: ${trial.adherencePercentage}%). Primary isolated culprit: ${topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ')} (+${topSuspectFood?.correlationPercent || 78}% flare correlation). Confirmed tolerated baseline: ${activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ')}.
+Over ${trial.currentDay} days on protocol, symptoms shifted by -${trial.reductionPercent}% down to ${trial.currentSeverity}/10 (Adherence: ${trial.adherencePercentage}%). Primary isolated culprit: ${topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ')}${topSuspectFood?.correlationPercent ? ` (+${topSuspectFood.correlationPercent}% flare correlation)` : ''}. Confirmed tolerated baseline: ${activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ')}.
 
 R (Recommendation):
 1. ${activeProtocolDef.expectedBiomarkerImpact || 'Assess gut barrier integrity and inflammatory clearance.'}

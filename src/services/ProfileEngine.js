@@ -968,7 +968,7 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       const localPrimary = state.profiles.profile_1 || state.profiles[state.activeId];
       const localUpdated = localPrimary?.demographics?.updatedAt || localPrimary?.updatedAt;
       if (localUpdated && data.updated_at && new Date(localUpdated).getTime() > new Date(data.updated_at).getTime()) {
-        console.log('Local primary profile is newer than remote. Pushing local changes to cloud.');
+        if (import.meta.env?.DEV) console.log('Local primary profile is newer than remote. Pushing local changes to cloud.');
         await enqueueSync('profile_upsert', userId, {
           id: userId,
           full_name: localPrimary.profileName,
@@ -1027,7 +1027,7 @@ export async function syncProfileFromSupabase(overrideUserId = null) {
       localStorage.setItem(getProfileKey(), JSON.stringify(state));
       window.dispatchEvent(new Event('hc_profile_updated'));
       await flushSyncOutbox(userId);
-      console.log('Profile snapshots synced successfully from Supabase');
+      if (import.meta.env?.DEV) console.log('Profile snapshots synced successfully from Supabase');
     }
   } catch (err) {
     console.error('Failed to sync profile from Supabase:', err);

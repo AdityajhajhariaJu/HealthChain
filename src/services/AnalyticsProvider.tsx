@@ -9,13 +9,12 @@ const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefin
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    // Initialize analytics (e.g. PostHog or Mixpanel)
-    console.log('[Analytics] Initialized');
+    // Initialize analytics
+    if (import.meta.env.DEV) console.log('[Analytics] Initialized');
   }, []);
 
   const track = (eventName: string, properties?: Record<string, any>) => {
-    // Mock tracking
-    console.log(`[Analytics] Track: ${eventName}`, properties || {});
+    if (import.meta.env.DEV) console.log(`[Analytics] Track: ${eventName}`, properties || {});
   };
 
   const getFeatureFlag = (flagName: string) => {

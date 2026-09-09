@@ -1323,10 +1323,10 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     doctorDossier: {
       sbar: {
         situation: hasUserClinicalData
-          ? `${patientName} presents with ${chiefComplaint || 'chronic postprandial palpitations, unexplained afternoon brain fog, and recurring gut distension following meals'}.`
+          ? `${patientName} presents with ${chiefComplaint || 'symptoms under active investigation'}.`
           : 'No active clinical consultation or patient intake on file.',
         background: hasUserClinicalData
-          ? 'Patient has been evaluated by separate disciplines with normal baseline resting ECG and routine hemoglobin, but symptoms persist in a reproducible cyclical pattern.'
+          ? 'Patient symptoms are being tracked across disciplines to establish physiological correlation patterns.'
           : 'Patient has not yet logged active symptoms or uploaded laboratory reports.',
         assessment: hasUserClinicalData
           ? (activeCase?.currentSummary?.synthesis || `Multidisciplinary correlation reveals ${ferritinFound ? `Ferritin status (${ferritinStr})` : 'metabolic cellular reserves'} co-occurring with food-triggered ${suspect1?.primarySensitivity || 'reactivity'} (${suspect1?.name || 'dietary triggers'}) and a ${deltaSign} bpm postural orthostatic tachycardia jump.`)

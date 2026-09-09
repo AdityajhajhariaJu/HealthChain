@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { getWeeklySymptomSeverity, getExposureTrends } from '../../services/TriggerEngine';
+import { getProfile } from '../../services/ProfileEngine';
 import FocusTrap from './FocusTrap';
 import { FoodDetectiveView } from './FoodDetectiveView';
 import { SuspectFoodsView } from './SuspectFoodsView';
@@ -47,6 +48,14 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
   const [historyMode, setHistoryMode] = useState<'month' | '7day'>('month');
   const weeklySeverity = getWeeklySymptomSeverity();
   const exposureTrends = getExposureTrends();
+  const profile = getProfile();
+  const restingHR = (profile as any)?.biometrics?.restingHR || (profile as any)?.vitals?.restingHR;
+  const hrDisplay = restingHR ? `${restingHR} bpm` : '-- bpm';
+  const steps = (profile as any)?.biometrics?.steps || (profile as any)?.vitals?.steps;
+  const stepsDisplay = steps ? Number(steps).toLocaleString() : '--';
+  const checkins = (profile?.timeline || []).filter((t: any) => t.type === 'checkin' || t.category === 'symptom');
+  const latestCheckin = checkins[checkins.length - 1];
+  const symptomDisplay = latestCheckin?.severity ? `Severity ${latestCheckin.severity}/10` : 'None logged';
 
 
   React.useEffect(() => {
@@ -296,7 +305,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                       </div>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Resting HR</div>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>64 bpm</div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>{hrDisplay}</div>
                       </div>
                     </div>
 
@@ -328,7 +337,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                       </div>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Steps</div>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>8,420</div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>{stepsDisplay}</div>
                       </div>
                     </div>
 
@@ -360,7 +369,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                       </div>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Symptoms</div>
-                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>Mild (Gut)</div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>{symptomDisplay}</div>
                       </div>
                     </div>
                   </div>

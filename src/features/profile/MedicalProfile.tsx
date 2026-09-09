@@ -889,7 +889,7 @@ export default function MedicalProfile() {
                   width: isMobile ? '80px' : '100px',
                   height: isMobile ? '80px' : '100px',
                   borderRadius: '50%',
-                  background: 'url(https://images.unsplash.com/photo-1542360663-8f40200049d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80) center/cover, linear-gradient(135deg, #4F46E5, #3B82F6)',
+                  background: 'linear-gradient(135deg, #4F46E5, #3B82F6)',
                   color: '#FFF',
                   display: 'flex',
                   alignItems: 'center',
@@ -900,7 +900,7 @@ export default function MedicalProfile() {
                   border: '3px solid #FFF',
                 }}
               >
-                {!profile.demographics.name && '👤'}
+                {profile.demographics.name ? profile.demographics.name.charAt(0).toUpperCase() : '👤'}
               </div>
               {!isEditingDemo && (
                 <button

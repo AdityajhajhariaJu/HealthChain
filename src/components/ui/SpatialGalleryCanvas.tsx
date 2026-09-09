@@ -1,18 +1,18 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Html, Text } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { getProfile } from '../../services/ProfileEngine';
 
-const MOCK_RECORDS = [
-  { id: 1, title: 'Lumbar MRI', date: '2018-04-12', type: 'Imaging' },
-  { id: 2, title: 'Lipid Panel', date: '2019-11-20', type: 'Lab Test' },
-  { id: 3, title: 'ECG Report', date: '2021-02-15', type: 'Cardiology' },
-  { id: 4, title: 'Knee X-Ray', date: '2022-08-05', type: 'Imaging' },
-  { id: 5, title: 'Comprehensive Metabolic', date: '2023-01-10', type: 'Lab Test' },
-  { id: 6, title: 'Genetic Screening', date: '2023-09-30', type: 'Genomics' },
-];
+export interface SpatialRecordItem {
+  id: string | number;
+  title: string;
+  date: string;
+  type: string;
+  summary?: string;
+}
 
-function DocumentMesh({ index, total, data }: { index: number; total: number; data: any }) {
+function DocumentMesh({ index, total, data }: { index: number; total: number; data: SpatialRecordItem }) {
   const meshRef = useRef<THREE.Mesh>(null);
   
   // Calculate position in a circle (cylinder)
@@ -20,7 +20,6 @@ function DocumentMesh({ index, total, data }: { index: number; total: number; da
   const angle = (index / total) * Math.PI * 2;
   const x = Math.cos(angle) * radius;
   const z = Math.sin(angle) * radius;
-  // Slight y-offset to make it feel like a helix
   const y = (Math.random() - 0.5) * 1.5;
 
   return (
@@ -29,7 +28,6 @@ function DocumentMesh({ index, total, data }: { index: number; total: number; da
       position={[x, y, z]} 
       rotation={[0, -angle - Math.PI / 2, 0]} // Face inward
     >
-      {/* Invisible plane to catch clicks if needed, but we use Html */}
       <planeGeometry args={[2, 2.5]} />
       <meshBasicMaterial color="#ffffff" transparent opacity={0.05} />
       
@@ -66,7 +64,7 @@ function DocumentMesh({ index, total, data }: { index: number; total: number; da
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <span style={{color: '#CBD5E1'}}>Preview</span>
+            <span style={{color: '#CBD5E1', fontSize: '13px'}}>{data.summary || 'Verified Document'}</span>
           </div>
         </div>
       </Html>
@@ -74,11 +72,11 @@ function DocumentMesh({ index, total, data }: { index: number; total: number; da
   );
 }
 
-function GalleryRig() {
+function GalleryRig({ records }: { records: SpatialRecordItem[] }) {
   const groupRef = useRef<THREE.Group>(null);
-  const [velocity, setVelocity] = useState(0.005); // Slow auto-rotation
+  const [velocity] = useState(0.005); // Slow auto-rotation
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (groupRef.current) {
       groupRef.current.rotation.y += velocity;
     }
@@ -86,22 +84,105 @@ function GalleryRig() {
 
   return (
     <group ref={groupRef}>
-      {MOCK_RECORDS.map((rec, i) => (
-        <DocumentMesh key={rec.id} index={i} total={MOCK_RECORDS.length} data={rec} />
+      {records.map((rec, i) => (
+        <DocumentMesh key={rec.id} index={i} total={records.length} data={rec} />
       ))}
     </group>
   );
 }
 
-export function SpatialGalleryCanvas() {
+export function SpatialGalleryCanvas({ records: propRecords }: { records?: SpatialRecordItem[] }) {
+  const records = useMemo(() => {
+    if (propRecords && propRecords.length > 0) return propRecords;
+    try {
+      const profile = getProfile();
+      const labRecords: SpatialRecordItem[] = (profile?.vitals?.historicalLabs || []).map((lab: any, i: number) => ({
+        id: lab.id || `lab_${i}`,
+        title: lab.name || lab.test || 'Laboratory Panel',
+        date: lab.date || 'Recent',
+        type: 'Laboratory',
+        summary: lab.result ? `Result: ${lab.result}` : undefined,
+      }));
+      const timelineRecords: SpatialRecordItem[] = (profile?.timeline || [])
+        .filter((t: any) => t.type === 'investigation' || t.type === 'lab' || t.type === 'imaging')
+        .map((t: any, i: number) => ({
+          id: t.id || `tl_${i}`,
+          title: t.title || t.event || 'Clinical Record',
+          date: t.date || 'Recorded',
+          type: t.category || 'Diagnostic',
+          summary: t.description || undefined,
+        }));
+      return [...labRecords, ...timelineRecords];
+    } catch {
+      return [];
+    }
+  }, [propRecords]);
+
+  if (records.length === 0) {
+    return (
+      <div style={{
+        width: '100%',
+        minHeight: '420px',
+        background: 'radial-gradient(circle at center, #F8FAFC 0%, #E2E8F0 100%)',
+        borderRadius: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '32px',
+        textAlign: 'center',
+        border: '1px dashed #CBD5E1',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{
+          width: '56px',
+          height: '56px',
+          borderRadius: '16px',
+          background: '#FFFFFF',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          marginBottom: '16px'
+        }}>
+          📁
+        </div>
+        <h4 style={{ margin: '0 0 8px', fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
+          Spatial Memory Vault Inactive
+        </h4>
+        <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#64748B', maxWidth: '340px', lineHeight: 1.5 }}>
+          No diagnostic scans, laboratory panels, or clinical imaging records uploaded yet.
+        </p>
+        <button
+          onClick={() => {
+            window.location.hash = '#/profile';
+          }}
+          style={{
+            padding: '10px 20px',
+            background: '#0F172A',
+            color: '#FFF',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: 600,
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          Upload First Record
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%', height: '500px', background: 'radial-gradient(circle at center, #F8FAFC 0%, #E2E8F0 100%)', borderRadius: '24px', overflow: 'hidden', position: 'relative' }}>
       <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
         <ambientLight intensity={0.5} />
-        <GalleryRig />
+        <GalleryRig records={records} />
       </Canvas>
       <div style={{ position: 'absolute', bottom: '24px', left: '0', width: '100%', textAlign: 'center', pointerEvents: 'none' }}>
-        <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#64748B' }}>Drag to explore spatial memory</p>
+        <p style={{ margin: 0, fontSize: '14px', fontWeight: 500, color: '#64748B' }}>Drag to explore spatial memory ({records.length} records)</p>
       </div>
     </div>
   );

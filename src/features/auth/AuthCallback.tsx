@@ -24,7 +24,7 @@ export default function AuthCallback() {
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.removeItem('hc_guest_mode');
       } catch (e) {}
-      console.log('[AuthCallback] Session confirmed, routing to /app');
+      if (import.meta.env.DEV) console.log('[AuthCallback] Session confirmed, routing to /app');
       navigate('/app', { replace: true });
     };
 
@@ -61,7 +61,7 @@ export default function AuthCallback() {
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         if (accessToken && refreshToken) {
-          console.log('[AuthCallback] Found access_token in hash, setting session...');
+          if (import.meta.env.DEV) console.log('[AuthCallback] Found access_token in hash, setting session...');
           const { data, error: setErr } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -76,7 +76,7 @@ export default function AuthCallback() {
         // Strategy 2: Query param (PKCE Flow: ?code=...)
         const code = searchParams.get('code');
         if (code) {
-          console.log('[AuthCallback] Found code in query, exchanging code for session...');
+          if (import.meta.env.DEV) console.log('[AuthCallback] Found code in query, exchanging code for session...');
           const { data, error: exchErr } = await supabase.auth.exchangeCodeForSession(code);
           if (!exchErr && data?.session) {
             clearTimeout(timeout);

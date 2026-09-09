@@ -60,7 +60,16 @@ export function generateDistilledBiometricContext(): string {
     casesBlock = '- Active Medical Cases: None';
   }
 
-  // To preserve the pitch/demo feel, we'll keep the HRV/Sleep mock since we don't have a real Apple Health hook yet
+  // Biometrics & Wearable Integration
+  const biometrics = profile?.biometrics || profile?.vitals || profile?.wearables;
+  let biometricLine = '- HRV & Sleep: Not connected (no wearable data available)';
+  if (biometrics && (biometrics.hrv || biometrics.sleep)) {
+    const parts: string[] = [];
+    if (biometrics.hrv) parts.push(`HRV: ${biometrics.hrv}ms`);
+    if (biometrics.sleep) parts.push(`Sleep: ${biometrics.sleep}`);
+    biometricLine = `- HRV & Sleep: ${parts.join(', ')}`;
+  }
+
   const distilled = `
 [SYSTEM: DISTILLED_USER_STATE_V1]
 ${demoLine}
@@ -69,7 +78,7 @@ ${demoLine}
 - Meds: ${meds}
 ${dietLine}
 ${casesBlock}
-- HRV & Sleep: Low HRV (32ms), Sleep 4h 12m (from Apple Health mock)
+${biometricLine}
 [END_DISTILLATION]
   `.trim();
   

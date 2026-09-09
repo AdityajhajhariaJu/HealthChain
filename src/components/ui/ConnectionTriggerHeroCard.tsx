@@ -42,7 +42,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
   }, []);
 
   // Compute dynamic counts & states
-  const totalBiomarkersCount = Math.max(profile?.biomarkers?.length || 48, biomarkers.length);
+  const totalBiomarkersCount = profile?.biomarkers?.length || biomarkers.length;
   const flaggedBiomarkers = biomarkers.filter((b) => b.status !== 'optimal');
 
   // Top Flagged Lab (Priority to Ferritin if not optimal, or the most abnormal marker)
@@ -52,23 +52,23 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
     biomarkers.find((b) => b.status.startsWith('suboptimal')) ||
     biomarkers[0];
 
-  const labDisplayName = topFlaggedMarker ? topFlaggedMarker.name.split('(')[0].trim() : 'Ferritin';
-  const labDisplayVal = topFlaggedMarker ? `${topFlaggedMarker.userValue} ${topFlaggedMarker.userUnit}` : '14 ng/mL';
+  const labDisplayName = topFlaggedMarker ? topFlaggedMarker.name.split('(')[0].trim() : 'Biomarker Status';
+  const labDisplayVal = topFlaggedMarker ? `${topFlaggedMarker.userValue} ${topFlaggedMarker.userUnit}` : '--';
   const labStatusLabel =
     !topFlaggedMarker || topFlaggedMarker.status === 'optimal'
       ? 'Optimal longevity'
       : topFlaggedMarker.status === 'critical_low'
       ? 'Pathology deficit'
       : topFlaggedMarker.status === 'suboptimal_low'
-      ? 'Bone marrow gap'
+      ? 'Suboptimal baseline'
       : topFlaggedMarker.status === 'critical_high'
       ? 'Pathology excess'
       : 'Subclinical surge';
 
   // Clinic Notes Conduit
   const topMiss = report.clinicalMisses?.[0];
-  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} × Vagal` : 'Cardio × GI Vagal';
-  const rawNotesSub = topMiss?.hiddenConnection ? topMiss.hiddenConnection.split('—')[0].trim() : 'Roemheld reflex';
+  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} × Vagal` : 'Clinical Synthesis';
+  const rawNotesSub = topMiss?.hiddenConnection ? topMiss.hiddenConnection.split('—')[0].trim() : 'Cross-discipline correlation';
   const notesSubtitle = rawNotesSub.toLowerCase().includes('without anemia')
     ? 'Iron deficiency w/o anemia'
     : rawNotesSub.length > 26
@@ -78,25 +78,27 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
   // Vitals Stream Conduit
   const vitalsStream = report.streams.find((s) => s.id === 'vitals');
   const vitalsItem =
-    vitalsStream?.items?.find((it) => it.includes('Orthostatic Shift') || it.includes('bpm')) || '+38 bpm Standing';
-  const vitalsTitle = vitalsItem.includes('Orthostatic Shift:')
-    ? vitalsItem.split('(')[0].replace('Orthostatic Shift:', '').trim()
-    : vitalsItem.includes('+')
-    ? vitalsItem.split('(')[0].trim()
-    : '+38 bpm Standing';
-  const vitalsSubtitle = 'Orthostatic surge';
+    vitalsStream?.items?.find((it) => it.includes('Orthostatic Shift') || it.includes('bpm')) || null;
+  const vitalsTitle = vitalsItem
+    ? (vitalsItem.includes('Orthostatic Shift:')
+      ? vitalsItem.split('(')[0].replace('Orthostatic Shift:', '').trim()
+      : vitalsItem.split('(')[0].trim())
+    : 'No orthostatic data';
+  const vitalsSubtitle = vitalsItem ? 'Orthostatic surge' : 'Awaiting vitals log';
 
   // Diet Sensitivity Conduit
   const topFood = suspectFoods?.[0];
-  const dietTitle = topFood ? `${topFood.name} (+${topFood.correlationPercent}%)` : 'Histamine / Fructan';
-  const dietSubtitle = topFood?.primarySensitivity || 'Mast cell flare';
+  const dietTitle = topFood ? `${topFood.name} (+${topFood.correlationPercent}%)` : 'No food triggers';
+  const dietSubtitle = topFood?.primarySensitivity || 'Awaiting meal logs';
 
   // Narrative Synthesis
-  const narrative = `Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered root-cause ${
-    topFlaggedMarker?.id === 'ferritin'
-      ? 'subclinical ferritin depletion'
-      : `${labDisplayName.toLowerCase()} imbalance`
-  } mimicking ${report.primaryHypothesis ? report.primaryHypothesis.toLowerCase() : 'refractory dysautonomia'}.`;
+  const narrative = flaggedBiomarkers.length > 0
+    ? `Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered ${
+        topFlaggedMarker?.id === 'ferritin'
+          ? 'subclinical ferritin depletion'
+          : `${labDisplayName.toLowerCase()} imbalance`
+      } impacting ${report.primaryHypothesis ? report.primaryHypothesis.toLowerCase() : 'autonomic equilibrium'}.`
+    : 'Log vitals, meals, and symptoms to discover cross-system physiological connections.';
 
   return (
     <motion.div
