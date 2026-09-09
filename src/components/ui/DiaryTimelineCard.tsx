@@ -163,65 +163,71 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
           {date}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {entries.map((entry, idx) => {
-            const meta = getCategoryMeta(entry.category, entry.items);
-            return (
-              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F766E' }}>
-                    {entry.time}
-                  </span>
-                  {entry.category && (
-                    <span
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        padding: '1px 7px',
-                        borderRadius: '999px',
-                        background: meta.bg,
-                        color: meta.color,
-                        border: `1px solid ${meta.border}`,
-                      }}
-                    >
-                      {meta.label}
+        {entries.length === 0 ? (
+          <div style={{ padding: '16px 0', textAlign: 'center', fontSize: '13px', color: '#64748B' }}>
+            No journal entries recorded for this timeline yet.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {entries.map((entry, idx) => {
+              const meta = getCategoryMeta(entry.category, entry.items);
+              return (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0F766E' }}>
+                      {entry.time}
                     </span>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <span style={{ fontSize: '16px', marginTop: '2px', flexShrink: 0 }}>
-                    {meta.icon}
-                  </span>
-
-                  {/* Pill Chips */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1 }}>
-                    {entry.items.map((item, iIdx) => (
+                    {entry.category && (
                       <span
-                        key={iIdx}
                         style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          padding: '5px 12px',
-                          background: meta.bg,
-                          borderRadius: '999px',
-                          border: `1px solid ${meta.border}`,
-                          fontSize: '12.5px',
+                          fontSize: '10.5px',
                           fontWeight: 700,
-                          color: meta.color === '#1E293B' ? '#1E293B' : meta.color,
-                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+                          padding: '1px 7px',
+                          borderRadius: '999px',
+                          background: meta.bg,
+                          color: meta.color,
+                          border: `1px solid ${meta.border}`,
                         }}
                       >
-                        {item}
+                        {meta.label}
                       </span>
-                    ))}
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <span style={{ fontSize: '16px', marginTop: '2px', flexShrink: 0 }}>
+                      {meta.icon}
+                    </span>
+
+                    {/* Pill Chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flex: 1 }}>
+                      {entry.items.map((item, iIdx) => (
+                        <span
+                          key={iIdx}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '5px 12px',
+                            background: meta.bg,
+                            borderRadius: '999px',
+                            border: `1px solid ${meta.border}`,
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            color: meta.color === '#1E293B' ? '#1E293B' : meta.color,
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+                          }}
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Footer Actions */}
         <div
@@ -234,8 +240,14 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
             alignItems: 'center',
           }}
         >
-          <span style={{ fontSize: '11.5px', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <CheckCircle2 size={13} /> Synced to Health River
+          <span style={{ fontSize: '11.5px', color: entries.length > 0 ? '#059669' : '#94A3B8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {entries.length > 0 ? (
+              <>
+                <CheckCircle2 size={13} /> Synced to Health River
+              </>
+            ) : (
+              'Awaiting diary input'
+            )}
           </span>
 
           <button

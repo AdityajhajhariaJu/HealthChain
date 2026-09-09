@@ -1,12 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { triggerHapticLight } from '../../services/haptics';
+import { getProfile } from '../../services/ProfileEngine';
 
-export const SensualLineChart = () => {
+export interface SensualLineChartProps {
+  data?: number[];
+}
+
+export const SensualLineChart: React.FC<SensualLineChartProps> = ({ data: propData }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   
-  // Fake data for the chart (7 days of "Health Score")
-  const data = [65, 78, 70, 85, 82, 95, 90];
+  const chartData = useMemo(() => {
+    if (propData && propData.length >= 2) return propData;
+    const profile = getProfile();
+    const checkins = profile?.dailyCheckins || [];
+    if (checkins.length >= 2) {
+      return checkins.slice(-7).map((c: any) => {
+        if (typeof c.score === 'number') return Math.min(100, c.score * 10);
+        if (c.severity === 'Severe') return 35;
+        if (c.severity === 'Mild') return 70;
+        return 90;
+      });
+    }
+    return [];
+  }, [propData]);
+
+  if (chartData.length < 2) {
+    return (
+      <div
+        style={{
+          padding: '16px',
+          textAlign: 'center',
+          background: '#F8FAFC',
+          borderRadius: '14px',
+          border: '1.5px dashed #CBD5E1',
+          marginTop: '12px',
+          fontSize: '12px',
+          color: '#64748B',
+        }}
+      >
+        <span style={{ fontWeight: 700, color: '#0F172A', display: 'block', marginBottom: '3px' }}>
+          Continuous 7-Day Curve Inactive
+        </span>
+        Complete 2 or more daily check-ins to unlock your personalized health momentum trajectory.
+      </div>
+    );
+  }
+
+  const data = chartData;
   const max = 100;
   const width = 300;
   const height = 140;

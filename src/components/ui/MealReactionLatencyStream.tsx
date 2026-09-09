@@ -145,57 +145,6 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
       });
     }
 
-    // If fewer than 3 events, provide rich clinical baseline context
-    if (events.length < 3) {
-      events.push(
-        {
-          id: 'baseline-1',
-          mealName: 'Besan Chilla + Mint Chutney',
-          mealTime: '08:30 AM',
-          slot: 'Morning',
-          tags: ['Besan / Gram Flour', 'Green Mint'],
-          latencyHours: 1.5,
-          reaction: {
-            symptom: 'Upper Abdominal Distension & Mild Bloating',
-            severity: 'Mild',
-            severityScore: 5,
-            color: '#D97706',
-            bg: '#FFFBEB',
-            border: '#FDE68A',
-            mechanism: 'Galacto-oligosaccharides fermented rapidly in proximal colon.',
-            confirmedTrigger: 'GOS / FODMAP',
-          },
-        },
-        {
-          id: 'baseline-2',
-          mealName: 'Curd Rice + Tadka Dal + Mango Pickle (Achaar)',
-          mealTime: '01:15 PM',
-          slot: 'Noon',
-          tags: ['Mango Achaar', 'Curd / Dahi', 'Toor Dal'],
-          latencyHours: 1.75,
-          reaction: {
-            symptom: 'Postprandial Palpitations & Temple Flushing',
-            severity: 'Severe',
-            severityScore: 8,
-            color: '#DC2626',
-            bg: '#FEF2F2',
-            border: '#FCA5A5',
-            mechanism: 'High histamine in aged pickle saturated intestinal DAO enzymes, triggering reactive splanchnic vasodilation.',
-            confirmedTrigger: 'Biogenic Amines',
-          },
-        },
-        {
-          id: 'baseline-3',
-          mealName: 'Moong Dal Khichdi + 1 tsp Pure Ghee',
-          mealTime: '08:00 PM',
-          slot: 'Night',
-          tags: ['Yellow Moong', 'Grass-Fed Ghee', 'Gut Soothing'],
-          latencyHours: 2.0,
-          reaction: null, // Asymptomatic!
-        }
-      );
-    }
-
     return events;
   }, [profile]);
 
@@ -273,7 +222,67 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
 
       {/* Chronological Vertical Latency Stream */}
       <div style={{ position: 'relative', paddingLeft: '8px' }}>
-        {streamEvents.map((evt, idx) => {
+        {streamEvents.length === 0 ? (
+          <div
+            style={{
+              padding: '36px 20px',
+              textAlign: 'center',
+              background: '#F8FAFC',
+              borderRadius: '16px',
+              border: '1.5px dashed #CBD5E1',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '12px',
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: '#F0FDFA',
+                border: '1px solid #CCFBF1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#0D9488',
+              }}
+            >
+              <Utensils size={22} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
+                No Meal Latency Events Recorded
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#64748B', maxWidth: '380px', margin: '0 auto', lineHeight: 1.5 }}>
+                Log your meals alongside daily check-ins to track postprandial symptom latency and pinpoint immunological food sensitivities.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsQuickIntakeOpen(true)}
+              style={{
+                background: '#0D9488',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '8px 16px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                marginTop: '4px',
+                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.24)',
+              }}
+            >
+              <Plus size={14} />
+              <span>Log First Meal</span>
+            </button>
+          </div>
+        ) : (
+          streamEvents.map((evt, idx) => {
           const isExpanded = selectedEventId === evt.id;
           const isLast = idx === streamEvents.length - 1;
 
@@ -535,7 +544,8 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
               </div>
             </div>
           );
-        })}
+        })
+      )}
       </div>
 
       {/* Non-blocking Clinical Reference & Safety Disclaimer */}

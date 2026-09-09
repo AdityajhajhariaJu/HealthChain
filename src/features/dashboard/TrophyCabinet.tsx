@@ -54,14 +54,9 @@ export const TrophyCabinet: React.FC = () => {
         const badges = await FitnessService.getUserBadges(session.user.id);
         const slugs = new Set(badges.map(b => b.badge_slug));
         setEarnedSlugs(slugs);
-        
-        // Mock data if none earned yet
-        if (slugs.size === 0) {
-          setEarnedSlugs(new Set(['first_checkin', 'early_bird']));
-        }
       } else {
-        // Mock data for preview
-        setEarnedSlugs(new Set(['first_checkin', '3_day_streak', 'mindful_master']));
+        // Guest user starts with zero unlocked badges until earned
+        setEarnedSlugs(new Set());
       }
     } catch (err) {
       console.error(err);

@@ -1,16 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Activity, Coffee, AlertCircle } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
+import { getProfile } from '../../services/ProfileEngine';
 
 export const PredictiveTimeline = () => {
   const [timeIndex, setTimeIndex] = useState(1); // 0 = Past, 1 = Now, 2 = Future
 
-  const timelineData = [
-    { time: '11:30 AM', title: 'Post-Meal Glucose Peak', type: 'past', desc: 'Spiked to 142 mg/dL after lunch.', icon: Activity, color: '#F59E0B' },
-    { time: '2:15 PM', title: 'Current Baseline', type: 'now', desc: 'Glucose stabilized. Heart rate 68 bpm.', icon: Activity, color: '#10B981' },
-    { time: '5:00 PM', title: 'Optimal Circadian Window', type: 'future', desc: 'Predicted peak cognitive & metabolic alignment. Ideal for deep focus or a brisk walk.', icon: Coffee, color: '#3B82F6' },
-  ];
+  const profile = getProfile();
+  const recentLogs = profile?.nutrition?.recentLogs || [];
+  const checkins = profile?.dailyCheckins || [];
+  const hasActivity = recentLogs.length > 0 || checkins.length > 0;
+
+  const timelineData = useMemo(() => {
+    const latestLog = recentLogs.length > 0 ? recentLogs[recentLogs.length - 1] : null;
+    const latestCheckin = checkins.length > 0 ? checkins[0] : null;
+
+    return [
+      {
+        time: latestLog ? (latestLog.slot || 'Earlier Intake') : 'Morning Horizon',
+        title: latestLog ? `Intake: ${latestLog.name || 'Meal'}` : 'Circadian Baseline',
+        type: 'past',
+        desc: latestLog ? `Digestive latency monitoring active for ${latestLog.name || 'meal'}.` : 'Metabolic baseline logged at circadian dawn.',
+        icon: Activity,
+        color: '#F59E0B',
+      },
+      {
+        time: 'Right Now',
+        title: latestCheckin && latestCheckin.severity !== 'None' ? `Active: ${latestCheckin.symptom}` : 'Resting Baseline',
+        type: 'now',
+        desc: latestCheckin && latestCheckin.severity !== 'None'
+          ? `Monitoring ${latestCheckin.symptom} (${latestCheckin.severity}) across postprandial window.`
+          : 'Physiological equilibrium. No acute adverse flares recorded in today\'s log.',
+        icon: Activity,
+        color: '#10B981',
+      },
+      {
+        time: 'Evening Horizon',
+        title: 'Circadian Alignment Window',
+        type: 'future',
+        desc: 'Predicted recovery phase. Prioritize digestive rest and restorative hydration.',
+        icon: Coffee,
+        color: '#3B82F6',
+      },
+    ];
+  }, [recentLogs, checkins]);
 
   const current = timelineData[timeIndex];
   const Icon = current.icon;
@@ -22,9 +56,43 @@ export const PredictiveTimeline = () => {
       </div>
 
       <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  background: '#FFF', borderRadius: '24px', padding: '16px', boxShadow: '0 12px 32px rgba(0,0,0,0.03)', border: '1px solid #F1F5F9' }}>
-        
-        {/* The Scrubber */}
-        <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  position: 'relative', height: '4px', background: '#E2E8F0', borderRadius: '2px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {!hasActivity ? (
+          <div
+            style={{
+              padding: '24px 16px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: '#EFF6FF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#3B82F6',
+                marginBottom: '4px',
+              }}
+            >
+              <Clock size={20} />
+            </div>
+            <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+              Predictive Timeline Inactive
+            </span>
+            <span style={{ fontSize: '12.5px', color: '#64748B', maxWidth: '320px', lineHeight: 1.5 }}>
+              Log your daily nutrition or check-in to generate continuous circadian and metabolic alignment projections.
+            </span>
+          </div>
+        ) : (
+          <>
+            {/* The Scrubber */}
+            <div style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y',  position: 'relative', height: '4px', background: '#E2E8F0', borderRadius: '2px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {[0, 1, 2].map(idx => (
             <div 
               key={idx}
@@ -93,6 +161,8 @@ export const PredictiveTimeline = () => {
             </div>
           </motion.div>
         </AnimatePresence>
+          </>
+        )}
 
       </div>
     </div>

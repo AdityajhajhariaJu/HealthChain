@@ -416,16 +416,16 @@ export const caseTimeline = [
 ];
 
 export const patientProfile = {
-  name: 'Aditya Jhajharia',
-  age: 22,
-  gender: 'Male',
-  bloodGroup: 'B+',
-  journeyStart: '2021-03',
-  journeyDuration: '5 years',
-  chainsMatched: 2,
-  testsDone: 8,
-  testsPending: 6,
-  doctorsVisited: 3,
-  currentPhase: 2,
-  completionPercent: 42,
+  name: 'Patient',
+  age: null,
+  gender: '',
+  bloodGroup: '',
+  journeyStart: '',
+  journeyDuration: '',
+  chainsMatched: 0,
+  testsDone: 0,
+  testsPending: 0,
+  doctorsVisited: 0,
+  currentPhase: 1,
+  completionPercent: 0,
 };

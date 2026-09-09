@@ -336,14 +336,14 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid #E2E8F0' }}>
                 <Brain color="#10B981" size={24} style={{ flexShrink: 0 }} />
                 <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#0F172A' }}>Clinical Balance Insight:</strong> Your biomarker monitoring and autonomic calm are well supported. Maintain consistent protein pacing and evening circadian wind-downs to keep metabolic recovery optimal.
+                  <strong style={{ color: '#0F172A' }}>Clinical Balance Insight:</strong> {history.length > 0 ? 'Your biomarker monitoring and autonomic calm are well supported. Maintain consistent protein pacing and evening circadian wind-downs to keep metabolic recovery optimal.' : 'Complete your daily check-in, nutrition log, and mindfulness sessions to calibrate your personalized 5-pillar health balance radar.'}
                 </p>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Tab 3: Photos (Existing Mock Gallery) */}
+        {/* Tab 3: Photos */}
         {activeTab === 'photos' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
              <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
@@ -363,36 +363,51 @@ export const ProgressGallery: React.FC = () => {
                 </button>
               </div>
 
-              {/* Stacked Polaroids */}
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
-                <div style={{ position: 'relative', zIndex: 1, transform: 'rotate(-5deg) translateY(10px)', background: 'white', padding: '10px 10px 40px', borderRadius: '12px', boxShadow: '0 10px 20px rgba(0,0,0,0.08)', border: '1px solid #E2E8F0' }}>
-                  <div style={{ width: '130px', height: '150px', background: '#e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-                    <img 
-                      src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" 
-                      alt="Baseline" 
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80';
-                      }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
+              {userPhoto ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0 40px', position: 'relative' }}>
+                  <div style={{ position: 'relative', zIndex: 3, background: 'white', padding: '12px 12px 50px', borderRadius: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
+                    <div style={{ width: '180px', height: '210px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                      <img 
+                        src={userPhoto} 
+                        alt="Latest Progress" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
+                    </div>
+                    <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>Current Benchmark</div>
                   </div>
-                  <div style={{ position: 'absolute', bottom: '12px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '13px', fontWeight: 700, color: '#1E293B', letterSpacing: '0.3px' }}>Baseline</div>
                 </div>
-                
-                <div style={{ position: 'absolute', zIndex: 3, transform: 'rotate(2deg) translateY(-10px)', background: 'white', padding: '12px 12px 50px', borderRadius: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #E2E8F0' }}>
-                  <div style={{ width: '150px', height: '170px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
-                    <img 
-                      src={userPhoto || "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80"} 
-                      alt={userPhoto ? "Latest Progress" : "Current Benchmark"} 
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80';
-                      }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                    />
+              ) : (
+                <div style={{ padding: '40px 20px', textAlign: 'center', background: '#F8FAFC', borderRadius: '20px', border: '1.5px dashed #CBD5E1', margin: '16px 0 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', marginBottom: '16px' }}>
+                    <Camera size={26} />
                   </div>
-                  <div style={{ position: 'absolute', bottom: '15px', width: '100%', textAlign: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '0.3px' }}>{userPhoto ? 'Latest' : 'Current'}</div>
+                  <h4 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700, color: '#1E293B' }}>
+                    No Transformation Photos Yet
+                  </h4>
+                  <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#64748B', maxWidth: '340px', lineHeight: 1.5 }}>
+                    Snap or upload your first photo to track longitudinal posture, skin vitality, and transformation milestones privately.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { triggerHapticLight(); fileInputRef.current?.click(); }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 20px',
+                      borderRadius: '12px',
+                      background: '#0F172A',
+                      color: '#FFFFFF',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Camera size={16} /> Snap Baseline Photo
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         )}

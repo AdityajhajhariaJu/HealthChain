@@ -69,12 +69,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
   // Daily checklist state
-  const [checklist, setChecklist] = useState<Record<string, boolean>>({
-    task_0: true,
-    task_1: true,
-    task_2: false,
-    task_3: false,
-  });
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isOpen) {

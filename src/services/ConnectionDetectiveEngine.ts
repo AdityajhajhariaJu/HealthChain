@@ -2398,8 +2398,8 @@ export function getClinicalProfilePresets(): ClinicalProfilePreset[] {
   return [
     {
       id: 'profile_baseline',
-      name: 'Aditya\'s Active Case Baseline',
-      badge: 'Current Telemetry',
+      name: 'Clinical Reference Benchmark',
+      badge: 'Reference Baseline',
       description: 'Occult iron depletion without anemia, compensatory TSH rise, low DAO activity, and blunted RBC magnesium.',
       biomarkerValues: {
         ferritin: 14,

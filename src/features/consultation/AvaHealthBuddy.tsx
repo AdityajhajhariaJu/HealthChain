@@ -361,14 +361,18 @@ const MessageRenderer = ({
   // DIARY TIMELINE WIDGET (Triggerbites Diary Reference)
   if (content.includes('[WIDGET:DIARY_TIMELINE')) {
     const { payload, before, after } = extractBalancedWidget(content, 'DIARY_TIMELINE');
-    const parsed = payload && payload.entries ? payload : {
+    const profile = getProfile();
+    const recentLogs = profile?.nutrition?.recentLogs || [];
+    const dynamicEntries = recentLogs.slice(-3).map((l: any, i: number) => ({
+      time: l.loggedAt ? new Date(l.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `${String(8 + i * 4).padStart(2, '0')}:00`,
+      category: l.slot || 'Intake',
+      items: l.tags && l.tags.length > 0 ? l.tags : [l.name || 'Logged Intake'],
+    }));
+
+    const parsed = payload && Array.isArray(payload.entries) && payload.entries.length > 0 ? payload : {
       title: 'Logged in your diary',
       date: 'Today',
-      entries: [
-        { time: '08:00', category: 'Breakfast', items: ['🥣 Oats', '🫐 Blueberries', '☕ Coffee'] },
-        { time: '13:00', category: 'Lunch', items: ['🥩 Salami', '🍞 Wheat', '🧀 Aged Cheese', '🍷 Red Wine'] },
-        { time: '15:00', category: 'Symptoms', items: ['💨 Bloating', '🌫️ Brain Fog'] },
-      ],
+      entries: dynamicEntries,
     };
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>

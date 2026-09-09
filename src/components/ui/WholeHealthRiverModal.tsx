@@ -14,6 +14,7 @@ import {
   Activity
 } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
+import { getProfile } from '../../services/ProfileEngine';
 
 export interface RiverMoment {
   id: string;
@@ -33,59 +34,64 @@ interface WholeHealthRiverModalProps {
   onAskAvaAboutConnection?: (upstream: string, downstream: string) => void;
 }
 
-const INITIAL_MOMENTS: RiverMoment[] = [
-  {
-    id: 'm1',
-    time: '08:15',
-    type: 'nutrition',
-    title: 'Breakfast & Morning Baseline',
-    items: ['🥣 Steel-Cut Oats', '🫐 Blueberries', '💊 Vitamin D3 2000IU']
-  },
-  {
-    id: 'm2',
-    time: '10:30',
-    type: 'vascular',
-    title: 'Vascular Intake',
-    items: ['☕ Double Espresso (130mg caffeine)', '💧 500ml Water']
-  },
-  {
-    id: 'm3',
-    time: '11:45',
-    type: 'posture',
-    title: 'Prolonged Seated Desk Slouch',
-    items: ['🪑 3.5h Continuous Laptop Work', 'Anterior Pelvic Tilt'],
-    notes: 'Static immobility under poor lumbar support',
-    isCausalTrigger: true,
-    causalConnectionId: 'link_1'
-  },
-  {
-    id: 'm4',
-    time: '14:00',
-    type: 'symptom',
-    title: 'Lumbar Strain & Sacral Torque',
-    items: ['🦴 L4-S1 Dull Ache (Severity 4/10)'],
-    notes: 'Pelvic asymmetry pulling thoracolumbar fascia',
-    isCausalTrigger: true,
-    causalConnectionId: 'link_1'
-  },
-  {
-    id: 'm5',
-    time: '15:30',
-    type: 'symptom',
-    title: 'Occipital & Temple Headache',
-    items: ['⚡ Throbbing Temple Pressure (Severity 7/10)', '👁️ Retro-Orbital Ache'],
-    notes: 'Referred pain from suboccipital nerve traction',
-    isCausalReaction: true,
-    causalConnectionId: 'link_1'
+export const getInitialRiverMoments = (): RiverMoment[] => {
+  const profile = getProfile();
+  const list: RiverMoment[] = [];
+
+  const recentLogs = profile?.nutrition?.recentLogs || [];
+  recentLogs.slice(-4).forEach((log: any, idx: number) => {
+    const time = log.loggedAt
+      ? new Date(log.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : `${String(8 + idx * 3).padStart(2, '0')}:00`;
+    list.push({
+      id: `nut_${idx}_${log.name || 'meal'}`,
+      time,
+      type: 'nutrition',
+      title: log.name || 'Nutrition Intake',
+      items: log.tags && log.tags.length > 0 ? log.tags : [log.name || 'Logged Intake'],
+      notes: log.slot ? `Logged under ${log.slot}` : undefined,
+    });
+  });
+
+  const checkins = profile?.dailyCheckins || [];
+  checkins.slice(0, 3).forEach((chk: any, idx: number) => {
+    if (chk.symptom && chk.severity !== 'None') {
+      const time = chk.timestamp
+        ? new Date(chk.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : `${String(12 + idx * 2).padStart(2, '0')}:30`;
+      list.push({
+        id: `sym_${idx}_${chk.symptom}`,
+        time,
+        type: 'symptom',
+        title: chk.symptom,
+        items: [`Severity: ${chk.severity || 'Mild'}`, `Score: ${chk.score || 5}/10`],
+        notes: chk.notes || 'Recorded via Daily Check-in',
+      });
+    }
+  });
+
+  // Sort chronologically if times exist
+  list.sort((a, b) => a.time.localeCompare(b.time));
+
+  // If we have both nutrition and a symptom, link the first nutrition to the first symptom causally
+  const firstNut = list.find(m => m.type === 'nutrition');
+  const firstSym = list.find(m => m.type === 'symptom');
+  if (firstNut && firstSym && firstNut !== firstSym) {
+    firstNut.isCausalTrigger = true;
+    firstNut.causalConnectionId = 'link_dyn_1';
+    firstSym.isCausalReaction = true;
+    firstSym.causalConnectionId = 'link_dyn_1';
   }
-];
+
+  return list;
+};
 
 export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
   isOpen,
   onClose,
   onAskAvaAboutConnection
 }) => {
-  const [moments, setMoments] = useState<RiverMoment[]>(INITIAL_MOMENTS);
+  const [moments, setMoments] = useState<RiverMoment[]>(() => getInitialRiverMoments());
   const [activeFilter, setActiveFilter] = useState<'all' | 'causal' | 'symptoms'>('all');
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [newType, setNewType] = useState<RiverMoment['type']>('symptom');
@@ -382,183 +388,254 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
           }}
         >
           {/* Visual Vertical Thread Line */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '20px',
-              bottom: '20px',
-              left: '37px',
-              width: '2px',
-              background: 'linear-gradient(180deg, #CCFBF1 0%, #0D9488 50%, #99F6E4 100%)',
-              zIndex: 0,
-            }}
-          />
+          {filteredMoments.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '20px',
+                bottom: '20px',
+                left: '37px',
+                width: '2px',
+                background: 'linear-gradient(180deg, #CCFBF1 0%, #0D9488 50%, #99F6E4 100%)',
+                zIndex: 0,
+              }}
+            />
+          )}
 
-          {filteredMoments.map((moment, idx) => {
-            const style = getMomentStyle(moment.type);
-            const isHighlightedCausal = moment.isCausalTrigger || moment.isCausalReaction;
-
-            return (
+          {filteredMoments.length === 0 ? (
+            <div
+              style={{
+                padding: '48px 24px',
+                textAlign: 'center',
+                background: '#F8FAFC',
+                borderRadius: '20px',
+                border: '1.5px dashed #CBD5E1',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '14px',
+                margin: 'auto 0',
+              }}
+            >
               <div
-                key={moment.id}
                 style={{
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '50%',
+                  background: '#F0FDFA',
+                  border: '1px solid #CCFBF1',
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '14px',
-                  position: 'relative',
-                  zIndex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#0D9488',
                 }}
               >
-                {/* Time Indicator Node */}
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    background: isHighlightedCausal ? '#0D9488' : '#FFFFFF',
-                    border: isHighlightedCausal ? '2.5px solid #CCFBF1' : '2px solid #E2E8F0',
-                    color: isHighlightedCausal ? '#FFFFFF' : '#0F766E',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: isHighlightedCausal ? '0 0 12px rgba(13, 148, 136, 0.4)' : 'none',
-                  }}
-                >
-                  {style.icon}
-                </div>
-
-                {/* River Card Box */}
-                <div
-                  style={{
-                    flex: 1,
-                    background: isHighlightedCausal ? '#F0FDFA' : '#FFFFFF',
-                    border: isHighlightedCausal ? '1.5px solid #99F6E4' : '1px solid #E2E8F0',
-                    borderRadius: '18px',
-                    padding: '14px',
-                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
-                        {moment.time}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          padding: '2px 8px',
-                          borderRadius: '999px',
-                          background: style.badgeBg,
-                          color: style.badgeColor,
-                        }}
-                      >
-                        {style.label}
-                      </span>
-                    </div>
-
-                    {isHighlightedCausal && (
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          fontWeight: 800,
-                          padding: '2px 8px',
-                          borderRadius: '999px',
-                          background: moment.isCausalReaction ? '#FFE4E6' : '#CCFBF1',
-                          color: moment.isCausalReaction ? '#E11D48' : '#0F766E',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '3px',
-                        }}
-                      >
-                        <GitMerge size={10} />
-                        {moment.isCausalReaction ? 'Downstream Reaction' : 'Upstream Causal Vector'}
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>
-                    {moment.title}
-                  </div>
-
-                  {/* Pills */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '2px' }}>
-                    {moment.items.map((item, iIdx) => (
-                      <span
-                        key={iIdx}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: '999px',
-                          background: '#FFFFFF',
-                          border: '1px solid #E2E8F0',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: '#334155',
-                        }}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-
-                  {moment.notes && (
-                    <div style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic', marginTop: '2px' }}>
-                      “{moment.notes}”
-                    </div>
-                  )}
-
-                  {/* Special Link Prompt if Causal Reaction */}
-                  {moment.isCausalReaction && (
-                    <div
-                      style={{
-                        marginTop: '6px',
-                        padding: '8px 10px',
-                        borderRadius: '12px',
-                        background: '#FFFFFF',
-                        border: '1px dashed #0D9488',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <div style={{ fontSize: '11px', color: '#0F766E', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Sparkles size={12} /> Causal link: 11:45 Posture ➔ 15:30 Headache
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHapticLight();
-                          onClose();
-                          if (onAskAvaAboutConnection) {
-                            onAskAvaAboutConnection('11:45 Desk Slouch & Lumbar Strain', '15:30 Occipital Headache');
-                          }
-                        }}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#0D9488',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '2px',
-                        }}
-                      >
-                        Ask Ava <ChevronRight size={12} />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <Waves size={26} />
               </div>
-            );
-          })}
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
+                  No River Moments Logged Today
+                </div>
+                <p style={{ fontSize: '0.82rem', color: '#64748B', maxWidth: '360px', margin: '0 auto', lineHeight: 1.5 }}>
+                  The Whole Health River chronologically maps nutrition, posture, physical stress, and symptoms to discover hidden causal connections.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddSheet(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '10px 18px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  marginTop: '4px',
+                  boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+                }}
+              >
+                <Plus size={15} />
+                <span>Add First Moment</span>
+              </button>
+            </div>
+          ) : (
+            filteredMoments.map((moment, idx) => {
+              const style = getMomentStyle(moment.type);
+              const isHighlightedCausal = moment.isCausalTrigger || moment.isCausalReaction;
+
+              return (
+                <div
+                  key={moment.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '14px',
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                >
+                  {/* Time Indicator Node */}
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: isHighlightedCausal ? '#0D9488' : '#FFFFFF',
+                      border: isHighlightedCausal ? '2.5px solid #CCFBF1' : '2px solid #E2E8F0',
+                      color: isHighlightedCausal ? '#FFFFFF' : '#0F766E',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: isHighlightedCausal ? '0 0 12px rgba(13, 148, 136, 0.4)' : 'none',
+                    }}
+                  >
+                    {style.icon}
+                  </div>
+
+                  {/* River Card Box */}
+                  <div
+                    style={{
+                      flex: 1,
+                      background: isHighlightedCausal ? '#F0FDFA' : '#FFFFFF',
+                      border: isHighlightedCausal ? '1.5px solid #99F6E4' : '1px solid #E2E8F0',
+                      borderRadius: '18px',
+                      padding: '14px',
+                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E' }}>
+                          {moment.time}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            padding: '2px 7px',
+                            borderRadius: '6px',
+                            background: style.badgeBg,
+                            color: style.badgeColor,
+                          }}
+                        >
+                          {style.label}
+                        </span>
+                      </div>
+
+                      {isHighlightedCausal && (
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            color: '#0D9488',
+                            background: '#CCFBF1',
+                            padding: '2px 6px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                          }}
+                        >
+                          <GitMerge size={10} /> Causal Node
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A' }}>
+                      {moment.title}
+                    </div>
+
+                    {/* Chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '2px' }}>
+                      {moment.items.map((item, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            fontSize: '11px',
+                            padding: '3px 8px',
+                            borderRadius: '8px',
+                            background: isHighlightedCausal ? '#FFFFFF' : '#F1F5F9',
+                            color: '#334155',
+                            fontWeight: 600,
+                            border: isHighlightedCausal ? '1px solid #CCFBF1' : 'none',
+                          }}
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+
+                    {moment.notes && (
+                      <div style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic', marginTop: '2px' }}>
+                        “{moment.notes}”
+                      </div>
+                    )}
+
+                    {/* Special Link Prompt if Causal Reaction */}
+                    {moment.isCausalReaction && (() => {
+                      const linkedTrigger = moments.find(
+                        m => m.causalConnectionId === moment.causalConnectionId && m.isCausalTrigger
+                      );
+                      const triggerLabel = linkedTrigger ? `${linkedTrigger.time} ${linkedTrigger.title}` : 'Upstream trigger';
+                      const reactionLabel = `${moment.time} ${moment.title}`;
+                      return (
+                        <div
+                          style={{
+                            marginTop: '6px',
+                            padding: '8px 10px',
+                            borderRadius: '12px',
+                            background: '#FFFFFF',
+                            border: '1px dashed #0D9488',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', color: '#0F766E', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Sparkles size={12} /> Causal link: {triggerLabel} ➔ {reactionLabel}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticLight();
+                              onClose();
+                              if (onAskAvaAboutConnection) {
+                                onAskAvaAboutConnection(triggerLabel, reactionLabel);
+                              }
+                            }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#0D9488',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                            }}
+                          >
+                            Ask Ava <ChevronRight size={12} />
+                          </button>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Footer Summary */}
@@ -573,7 +650,8 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
           }}
         >
           <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-            {filteredMoments.length} moments tracked today · 1 active causal loop
+            {filteredMoments.length} moment{filteredMoments.length === 1 ? '' : 's'} tracked today
+            {moments.some(m => m.isCausalReaction) ? ' · 1 active causal loop' : ''}
           </div>
           <button
             type="button"

@@ -1300,32 +1300,38 @@ const GARDEN_STORAGE_KEY = 'hc_wellness_zen_garden';
 export function getGardenState(): GardenState {
   try {
     const raw = getItemSync(GARDEN_STORAGE_KEY);
-    if (!raw) {
-      const initial: GardenState = {
-        level: 3,
-        vitalityScore: 84,
-        streakDays: 6,
-        bloomCount: 14,
-        waterCount: 22,
-        breathworkMinutes: 45,
-        cleanMealsCount: 18,
-        lastWateredDate: new Date().toISOString().split('T')[0],
-        gardenStage: 'blooming',
-      };
-      setItemSync(GARDEN_STORAGE_KEY, JSON.stringify(initial));
-      return initial;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Self-healing: clear legacy mock seed (waterCount 22, breathworkMinutes 45, level 3)
+      if (parsed && (parsed.waterCount === 22 && parsed.breathworkMinutes === 45 && parsed.cleanMealsCount === 18)) {
+        removeItemSync(GARDEN_STORAGE_KEY);
+      } else {
+        return parsed;
+      }
     }
-    return JSON.parse(raw);
+    const initial: GardenState = {
+      level: 1,
+      vitalityScore: 0,
+      streakDays: 0,
+      bloomCount: 0,
+      waterCount: 0,
+      breathworkMinutes: 0,
+      cleanMealsCount: 0,
+      lastWateredDate: '',
+      gardenStage: 'sprout',
+    };
+    setItemSync(GARDEN_STORAGE_KEY, JSON.stringify(initial));
+    return initial;
   } catch {
     return {
       level: 1,
-      vitalityScore: 60,
-      streakDays: 1,
-      bloomCount: 4,
-      waterCount: 5,
-      breathworkMinutes: 10,
-      cleanMealsCount: 5,
-      lastWateredDate: new Date().toISOString().split('T')[0],
+      vitalityScore: 0,
+      streakDays: 0,
+      bloomCount: 0,
+      waterCount: 0,
+      breathworkMinutes: 0,
+      cleanMealsCount: 0,
+      lastWateredDate: '',
       gardenStage: 'sprout',
     };
   }
@@ -1374,8 +1380,8 @@ export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal'
 // ─────────────────────────────────────────────────────────────
 export function generateDoctorSummary(): DoctorSummaryReport {
   const profile = getProfile();
-  const patientName = profile?.name || profile?.demographics?.name || 'Aditya (Patient)';
-  const age = profile?.age || profile?.demographics?.age || 26;
+  const patientName = profile?.name || profile?.demographics?.name || 'Patient';
+  const age = profile?.age || profile?.demographics?.age || null;
   const culprits = getSuspectFoodsLeaderboard();
   const activeTrial = getActiveTrial();
   const trialProtocol = ELIMINATION_PROTOCOLS.find((p) => p.id === activeTrial?.trialId);
@@ -1389,7 +1395,7 @@ export function generateDoctorSummary(): DoctorSummaryReport {
   const topSymptom = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
   const chiefComplaint = topSymptom
     ? `Recurrent ${topSymptom.toLowerCase()} flares, postprandial gut distension, and suspected dietary sensitivity.`
-    : (profile?.conditions?.[0] ? `Evaluation of ${profile.conditions[0]} and postprandial metabolic triggers.` : 'Postprandial bloating, tension headaches, and suspected histamine & FODMAP sensitivities.');
+    : (profile?.conditions?.[0] ? `Evaluation of ${profile.conditions[0]} and postprandial metabolic triggers.` : 'Routine dietary intake evaluation and symptom correlation assessment.');
 
   // Generate dynamic 7-day symptom trend summary
   const weeklyData = getWeeklySymptomSeverity();
@@ -1398,8 +1404,8 @@ export function generateDoctorSummary(): DoctorSummaryReport {
     severity: d.severity === 3 ? 'Severe (+3)' : d.severity === 2 ? 'Moderate (+2)' : d.severity === 1 ? 'Mild (+1)' : 'Calm (0)'
   }));
 
-  const primarySensitivity1 = culprits[0]?.primarySensitivity || 'Histamine Biogenic Amines';
-  const primarySensitivity2 = culprits[1]?.primarySensitivity || 'FODMAPs (Fructans)';
+  const primarySensitivity1 = culprits[0]?.primarySensitivity || (culprits.length > 0 ? 'Histamine Biogenic Amines' : 'None detected');
+  const primarySensitivity2 = culprits[1]?.primarySensitivity || (culprits.length > 1 ? 'FODMAPs (Fructans)' : 'None detected');
 
   return {
     generatedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -1408,26 +1414,33 @@ export function generateDoctorSummary(): DoctorSummaryReport {
     chiefComplaint,
     symptomTrends,
     topCulpritFoods: culprits,
-    biochemicalSensitivities: [
+    biochemicalSensitivities: culprits.length > 0 ? [
       { name: primarySensitivity1, percentage: culprits[0]?.correlationPercent || 38, window: culprits[0]?.reactionWindow || 'within 1 day' },
-      { name: primarySensitivity2, percentage: culprits[1]?.correlationPercent || 32, window: culprits[1]?.reactionWindow || '2 - 8 hours' },
-      { name: 'Caffeine & Adenosine Dynamics', percentage: 25, window: 'within 2 hours' },
-      { name: 'Oxalates & Mucosal Friction', percentage: 20, window: '12 - 24 hours' },
-    ],
+      ...(culprits.length > 1 ? [{ name: primarySensitivity2, percentage: culprits[1]?.correlationPercent || 32, window: culprits[1]?.reactionWindow || '2 - 8 hours' }] : []),
+    ] : [],
     activeTrials: activeTrial
       ? `${trialProtocol?.name || 'Dietary Trial'} (Day ${activeTrial.currentDay} of ${activeTrial.totalDays}, Adherence: ${activeTrial.adherencePercentage}%, Flare Reduction: -${activeTrial.reductionPercent}%)`
-      : 'Structured 7-Day Low-Histamine elimination protocol active.',
-    clinicalRecommendations: [
+      : 'No active elimination trial; baseline food logging active.',
+    clinicalRecommendations: culprits.length > 0 ? [
       `Maintain enzymatic clearance support by restricting identified high-risk culprits (${culprits.slice(0, 2).map(c => c.name).join(', ')}).`,
       'Incorporate 4-7-8 parasympathetic breathwork prior to main meals to enhance cephalic vagal tone and digestive motility.',
       'Separate reactive supplements and chronotherapy dosing by at least 4 hours to avoid chelation.',
       'Consider DAO activity serum testing and urinary organic acid panel if flares persist beyond 14 days.',
+    ] : [
+      'Log recurring meals and postprandial physical symptoms to establish statistically significant trigger patterns.',
+      'Incorporate structured mindful pacing and autonomic relaxation around main meals.',
     ],
     sbarSummary: {
-      situation: `${patientName} (${age}y) presents with ${chiefComplaint.toLowerCase()}`,
-      background: `Patient has tracked ${Math.max(7, checkins.length)} daily check-in cycles alongside time-stamped meal entries, hydration, and onset latencies.`,
-      assessment: `Clinical correlation indicates suspect reactivity to ${culprits.slice(0, 2).map(c => `${c.name} (+${c.correlationPercent}%)`).join(' and ')}, predominantly mediated by ${primarySensitivity1}. ${activeTrial ? `Active protocol demonstrates a ${activeTrial.reductionPercent}% reduction in symptom flares.` : ''}`,
-      recommendation: `1. Continue targeted exclusion of identified suspect culprits (${culprits.slice(0, 2).map(c => c.name).join(', ')}). 2. Complete active ${trialProtocol?.name || 'dietary reset'} phase with structured single-food challenge reintroductions. 3. Correlate with specialist multi-system evaluation.`,
+      situation: `${patientName}${age ? ` (${age}y)` : ''} presents with ${chiefComplaint.toLowerCase()}`,
+      background: checkins.length > 0
+        ? `Patient has tracked ${checkins.length} daily check-in cycles alongside time-stamped meal entries, hydration, and onset latencies.`
+        : 'Patient has initialized baseline health profile; awaiting longitudinal check-in records.',
+      assessment: culprits.length > 0
+        ? `Clinical correlation indicates suspect reactivity to ${culprits.slice(0, 2).map(c => `${c.name} (+${c.correlationPercent}%)`).join(' and ')}, predominantly mediated by ${primarySensitivity1}. ${activeTrial ? `Active protocol demonstrates a ${activeTrial.reductionPercent}% reduction in symptom flares.` : ''}`
+        : 'No recurring food culprits or high-confidence sensitivities identified from current logs.',
+      recommendation: culprits.length > 0
+        ? `1. Continue targeted exclusion of identified suspect culprits (${culprits.slice(0, 2).map(c => c.name).join(', ')}). 2. Complete active ${trialProtocol?.name || 'dietary reset'} phase with structured single-food challenge reintroductions. 3. Correlate with specialist multi-system evaluation.`
+        : '1. Continue logging daily meals and symptom onset. 2. Begin targeted elimination trial if symptoms recur postprandially.',
     },
   };
 }
@@ -1439,19 +1452,19 @@ export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTrig
   const normSymptom = symptomName.trim().toLowerCase();
   const profile = getProfile();
   const checkins = profile?.dailyCheckins || [];
-  const totalDays = Math.max(14, checkins.length);
+  const totalDays = checkins.length;
 
   if (normSymptom.includes('bloat') || normSymptom.includes('gut') || normSymptom.includes('digest')) {
     return {
       symptom: 'Bloating & Distension',
       reactionWindow: 'within 1 - 4 hours',
       sensitivities: [
-        { id: 'fodmaps', name: 'FODMAPs (Fructans & GOS)', type: 'sensitivity', icon: 'grain', daysTracked: Math.min(14, totalDays), correlationPercent: 36, reactionWindow: '4 - 8 hours' },
-        { id: 'histamine', name: 'Histamine & Amines', type: 'sensitivity', icon: 'flask', daysTracked: Math.min(18, totalDays), correlationPercent: 32, reactionWindow: 'within 2 hours' },
+        { id: 'fodmaps', name: 'FODMAPs (Fructans & GOS)', type: 'sensitivity', icon: 'grain', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 36 : 0, reactionWindow: '4 - 8 hours' },
+        { id: 'histamine', name: 'Histamine & Amines', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(18, totalDays) : 0, correlationPercent: totalDays > 0 ? 32 : 0, reactionWindow: 'within 2 hours' },
       ],
       ingredients: [
-        { id: 'chana_dal', name: 'Chana Dal & Besan', type: 'ingredient', icon: '🍲', daysTracked: Math.min(12, totalDays), correlationPercent: 32, reactionWindow: '4 - 8 hours' },
-        { id: 'alliums', name: 'Raw Onion & Garlic', type: 'ingredient', icon: '🧄', daysTracked: Math.min(14, totalDays), correlationPercent: 28, reactionWindow: 'within 4 hours' },
+        { id: 'chana_dal', name: 'Chana Dal & Besan', type: 'ingredient', icon: '🍲', daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0, correlationPercent: totalDays > 0 ? 32 : 0, reactionWindow: '4 - 8 hours' },
+        { id: 'alliums', name: 'Raw Onion & Garlic', type: 'ingredient', icon: '🧄', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 28 : 0, reactionWindow: 'within 4 hours' },
       ],
     };
   }
@@ -1461,12 +1474,12 @@ export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTrig
       symptom: 'Headache & Cephalgia',
       reactionWindow: 'within 2 - 4 hours',
       sensitivities: [
-        { id: 'tyramine', name: 'Tyramine Vasoactivity', type: 'sensitivity', icon: 'meat', daysTracked: Math.min(16, totalDays), correlationPercent: 38, reactionWindow: 'within 4 hours' },
-        { id: 'caffeine', name: 'Caffeine Rebound', type: 'sensitivity', icon: 'flask', daysTracked: Math.min(14, totalDays), correlationPercent: 31, reactionWindow: 'within 2 hours' },
+        { id: 'tyramine', name: 'Tyramine Vasoactivity', type: 'sensitivity', icon: 'meat', daysTracked: totalDays > 0 ? Math.min(16, totalDays) : 0, correlationPercent: totalDays > 0 ? 38 : 0, reactionWindow: 'within 4 hours' },
+        { id: 'caffeine', name: 'Caffeine Rebound', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 31 : 0, reactionWindow: 'within 2 hours' },
       ],
       ingredients: [
-        { id: 'masala_chai', name: 'Concentrated Chai / Coffee', type: 'ingredient', icon: '☕', daysTracked: Math.min(15, totalDays), correlationPercent: 34, reactionWindow: 'within 2 hours' },
-        { id: 'fermented_pickles', name: 'Aged Achaar / Cheese', type: 'ingredient', icon: '🧀', daysTracked: Math.min(11, totalDays), correlationPercent: 29, reactionWindow: 'within 4 hours' },
+        { id: 'masala_chai', name: 'Concentrated Chai / Coffee', type: 'ingredient', icon: '☕', daysTracked: totalDays > 0 ? Math.min(15, totalDays) : 0, correlationPercent: totalDays > 0 ? 34 : 0, reactionWindow: 'within 2 hours' },
+        { id: 'fermented_pickles', name: 'Aged Achaar / Cheese', type: 'ingredient', icon: '🧀', daysTracked: totalDays > 0 ? Math.min(11, totalDays) : 0, correlationPercent: totalDays > 0 ? 29 : 0, reactionWindow: 'within 4 hours' },
       ],
     };
   }
@@ -1476,12 +1489,12 @@ export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTrig
       symptom: 'Brain Fog & Fatigue',
       reactionWindow: 'within 1 - 3 hours',
       sensitivities: [
-        { id: 'histamine', name: 'Histamine & Mast Cell Load', type: 'sensitivity', icon: 'flask', daysTracked: Math.min(14, totalDays), correlationPercent: 36, reactionWindow: 'within 3 hours' },
-        { id: 'glycemic', name: 'Reactive Hypoglycemia', type: 'sensitivity', icon: 'gem', daysTracked: Math.min(12, totalDays), correlationPercent: 30, reactionWindow: 'within 2 hours' },
+        { id: 'histamine', name: 'Histamine & Mast Cell Load', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 36 : 0, reactionWindow: 'within 3 hours' },
+        { id: 'glycemic', name: 'Reactive Hypoglycemia', type: 'sensitivity', icon: 'gem', daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0, correlationPercent: totalDays > 0 ? 30 : 0, reactionWindow: 'within 2 hours' },
       ],
       ingredients: [
-        { id: 'refined_carbs', name: 'Refined Wheat / Maida', type: 'ingredient', icon: '🍞', daysTracked: Math.min(10, totalDays), correlationPercent: 28, reactionWindow: 'within 2 hours' },
-        { id: 'sugars', name: 'High-Glycemic Sweeteners', type: 'ingredient', icon: '🍬', daysTracked: Math.min(12, totalDays), correlationPercent: 26, reactionWindow: 'within 1 hour' },
+        { id: 'refined_carbs', name: 'Refined Wheat / Maida', type: 'ingredient', icon: '🍞', daysTracked: totalDays > 0 ? Math.min(10, totalDays) : 0, correlationPercent: totalDays > 0 ? 28 : 0, reactionWindow: 'within 2 hours' },
+        { id: 'sugars', name: 'High-Glycemic Sweeteners', type: 'ingredient', icon: '🍬', daysTracked: totalDays > 0 ? Math.min(12, totalDays) : 0, correlationPercent: totalDays > 0 ? 26 : 0, reactionWindow: 'within 1 hour' },
       ],
     };
   }
@@ -1490,12 +1503,12 @@ export function computeTriggersForSymptom(symptomName = 'Bloating'): SymptomTrig
     symptom: symptomName,
     reactionWindow: 'within 2 - 6 hours',
     sensitivities: [
-      { id: 'histamine', name: 'Histamine', type: 'sensitivity', icon: 'flask', daysTracked: Math.min(14, totalDays), correlationPercent: 33, reactionWindow: 'within 1 day' },
-      { id: 'fodmaps', name: 'FODMAPs', type: 'sensitivity', icon: 'grain', daysTracked: Math.min(11, totalDays), correlationPercent: 22, reactionWindow: 'within 1 day' },
+      { id: 'histamine', name: 'Histamine', type: 'sensitivity', icon: 'flask', daysTracked: totalDays > 0 ? Math.min(14, totalDays) : 0, correlationPercent: totalDays > 0 ? 33 : 0, reactionWindow: 'within 1 day' },
+      { id: 'fodmaps', name: 'FODMAPs', type: 'sensitivity', icon: 'grain', daysTracked: totalDays > 0 ? Math.min(11, totalDays) : 0, correlationPercent: totalDays > 0 ? 22 : 0, reactionWindow: 'within 1 day' },
     ],
     ingredients: [
-      { id: 'dairy', name: 'Aged Dairy / Paneer', type: 'ingredient', icon: '🧀', daysTracked: Math.min(9, totalDays), correlationPercent: 25, reactionWindow: 'within 1 day' },
-      { id: 'preservatives', name: 'Fermented Spices', type: 'ingredient', icon: '🥒', daysTracked: Math.min(8, totalDays), correlationPercent: 19, reactionWindow: 'within 1 day' },
+      { id: 'dairy', name: 'Aged Dairy / Paneer', type: 'ingredient', icon: '🧀', daysTracked: totalDays > 0 ? Math.min(9, totalDays) : 0, correlationPercent: totalDays > 0 ? 25 : 0, reactionWindow: 'within 1 day' },
+      { id: 'preservatives', name: 'Fermented Spices', type: 'ingredient', icon: '🥒', daysTracked: totalDays > 0 ? Math.min(8, totalDays) : 0, correlationPercent: totalDays > 0 ? 19 : 0, reactionWindow: 'within 1 day' },
     ],
   };
 }

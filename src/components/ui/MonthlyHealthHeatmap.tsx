@@ -75,24 +75,12 @@ export const MonthlyHealthHeatmap: React.FC = () => {
           symptom = 'Calm / Optimal';
         }
       } else {
-        // Clinical algorithmic distribution if sparse logs
-        // Pseudo-deterministic distribution based on day number so it looks authentic and consistent
-        if (day % 7 === 2) {
-          status = 'severe';
-          score = 8;
-          symptom = selectedOrgan === 'gut' ? 'Cecal Distension & Bloat' : selectedOrgan === 'kinetic' ? 'Occipital Throbbing' : 'Post-Meal Palpitations';
-          triggerNote = 'Exposure to high-histamine fermented food + prolonged sitting.';
-          kineticNote = 'C1-C2 suboccipital tension band trapped greater occipital nerve.';
-        } else if (day % 4 === 1) {
-          status = 'mild';
-          score = 4;
-          symptom = selectedOrgan === 'gut' ? 'Mild Lower Abdominal Gas' : selectedOrgan === 'cardiac' ? 'Mild Tachycardia on Standing' : 'Neck Stiffness';
-          triggerNote = 'Moderate FODMAP meal consumption.';
-        } else if (day <= now.getDate()) {
-          status = 'calm';
-          score = 1;
-          symptom = 'Calm / Asymptomatic';
-        }
+        // Authentic zero-state when no check-in exists for this calendar day
+        status = 'none';
+        score = 0;
+        symptom = 'No check-in recorded';
+        triggerNote = '';
+        kineticNote = '';
       }
 
       days.push({
@@ -101,7 +89,7 @@ export const MonthlyHealthHeatmap: React.FC = () => {
         status,
         score,
         symptom,
-        meals: meals.length > 0 ? meals : day % 2 === 0 ? ['Moong Dal Khichdi', 'Masala Chai'] : ['Poha', 'Roti + Seasonal Sabzi'],
+        meals: meals.length > 0 ? meals : [],
         triggerNote,
         kineticNote,
       });

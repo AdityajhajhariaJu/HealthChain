@@ -1,4 +1,4 @@
-import { awardPoints } from '../../services/VitalityPointsEngine';
+import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { VitalityRing } from '../../components/ui/VitalityRing';
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
@@ -153,6 +153,20 @@ export default function MedicalProfile() {
   }).filter(d => d.eGFR !== null || d.weight !== null || d.bpSystolic !== null);
   
   const displayData = computedLongitudinalData;
+
+  const vitalityScore = useMemo(() => {
+    const checkins = profile?.dailyCheckins || [];
+    if (checkins.length === 0) {
+      const vState = getVitalityState();
+      return vState.points > 0 ? Math.min(100, vState.points) : 0;
+    }
+    const recent = checkins.slice(-7);
+    const avg = recent.reduce((sum: number, c: any) => {
+      const s = typeof c.score === 'number' ? c.score * 10 : (c.severity === 'Severe' ? 35 : (c.severity === 'Mild' ? 70 : 90));
+      return sum + s;
+    }, 0) / recent.length;
+    return Math.round(avg);
+  }, [profile]);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -1639,7 +1653,7 @@ export default function MedicalProfile() {
         >
           <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
           <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '13px' }}>Your 7-day health momentum.</p>
-          <VitalityRing progress={82} />
+          <VitalityRing progress={vitalityScore} />
           <SensualLineChart />
           
           <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)', fontSize: '13px', color: '#64748B', lineHeight: '1.6' }}>

@@ -149,7 +149,8 @@ export default function WarRoom() {
           p.id?.startsWith('obs_init_') || 
           p.authorName?.includes('Sarah Jenkins') || 
           p.authorName?.includes('Marcus Vance') || 
-          p.authorName?.includes('Julian Rivera')
+          p.authorName?.includes('Julian Rivera') ||
+          p.authorName?.includes('Elena Rostova')
         )) {
           removeItemSync(STORAGE_KEY_OBSERVATIONS);
         } else if (Array.isArray(parsed) && parsed.length > 0) {
@@ -222,7 +223,6 @@ export default function WarRoom() {
         summary: r.summary || `Extracted clinical records synced with ${activeCase?.title || 'active case'}.`
       }));
     }
-
     return [];
   });
 
@@ -244,11 +244,11 @@ export default function WarRoom() {
   }, [documents]);
 
   // Handle Post Observation
-  const handlePostObservation = () => {
+  const handleCreateObservation = async () => {
     const text = observationInput.trim();
-    if (!text) return;
+    if (!text || isSubmitting) return;
 
-    // 1. Emergency Safety Triage Check (< 2ms zero-token guardrail)
+    // 1. Run Emergency Triage Pre-Screen
     const triage = evaluateEmergencyTriage(text);
     if (triage.isEmergency) {
       setEmergencyTriage(triage);
@@ -262,25 +262,25 @@ export default function WarRoom() {
     // 2. Classify Specialty deterministically
     const lower = text.toLowerCase();
     let specialty: 'cardio' | 'gastro' | 'immuno' | 'metabolic' = 'metabolic';
-    let doctorName = 'Dr. Julian Rivera (Metabolic & Functional Medicine)';
+    let doctorName = 'Metabolic & Functional Medicine AI';
     let doctorBadgeColor = '#F59E0B';
-    let specialistAnalysis = 'Likely bioenergetic or metabolic reserve shift — review postprandial glucose curve and recent micronutrient intake.';
+    let specialistAnalysis = 'Bioenergetic & metabolic reserve assessment: review postprandial glucose dynamics, fasting insulin, and micronutrient cofactors.';
 
     if (/\b(tachycardia|heart|palpitat|rate|pot|orthostatic|dizzy|lighthead|standing|blood pressure|hrv|syncope)\b/i.test(lower)) {
       specialty = 'cardio';
-      doctorName = 'Dr. Sarah Jenkins (Cardiology & Autonomics)';
+      doctorName = 'Cardiology & Autonomic Specialist AI';
       doctorBadgeColor = '#EF4444';
-      specialistAnalysis = 'Likely splanchnic-mediated tachycardia — log standing HR for 10 min and hydrate with electrolytes before next meal.';
+      specialistAnalysis = 'Autonomic & baroreflex triage: review standing heart rate transitions, orthostatic blood pressure stability, and hydration status.';
     } else if (/\b(bloat|distension|gut|stomach|gas|reflux|gerd|bowel|abdominal|cramp|constipat|diarrhea|fodmap|nausea)\b/i.test(lower)) {
       specialty = 'gastro';
-      doctorName = 'Dr. Marcus Vance (Functional Gastroenterology)';
+      doctorName = 'Functional Gastroenterology AI';
       doctorBadgeColor = '#0D9488';
-      specialistAnalysis = 'Possible rapid fermentation transit or visceral hypersensitivity — log exact meal ingredients to cross-check elimination trial.';
+      specialistAnalysis = 'Enteric motility & fermentation triage: review food timing, FODMAP sensitivity, and transit-rate correlations.';
     } else if (/\b(histamine|rash|itch|flush|hive|allergy|sinus|headache|mast cell|mcas|sneez)\b/i.test(lower)) {
       specialty = 'immuno';
-      doctorName = 'Dr. Elena Rostova (Clinical Immunology & Allergy)';
+      doctorName = 'Clinical Immunology & Allergy AI';
       doctorBadgeColor = '#8B5CF6';
-      specialistAnalysis = 'Suspect acute histamine saturation or mediator release — review dietary intake over last 6 hours and ensure DAO support.';
+      specialistAnalysis = 'Histamine & mediator clearance triage: evaluate biogenic amine threshold, DAO enzyme cofactors, and allergic cascade timing.';
     }
 
     const patientName = profile?.name || profile?.demographics?.name || 'You';
@@ -298,7 +298,7 @@ export default function WarRoom() {
       replies: [
         {
           author: doctorName,
-          role: 'Attending Specialist',
+          role: 'Clinical Specialist AI',
           badgeColor: doctorBadgeColor,
           avatarBg: doctorBadgeColor + '18',
           content: specialistAnalysis,
@@ -723,7 +723,7 @@ export default function WarRoom() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handlePostObservation();
+                  handleCreateObservation();
                 }
               }}
             />
@@ -757,7 +757,7 @@ export default function WarRoom() {
             <button
               type="button"
               disabled={isSubmitting || !observationInput.trim()}
-              onClick={handlePostObservation}
+              onClick={handleCreateObservation}
               style={{
                 background: !observationInput.trim() ? '#94A3B8' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                 color: '#FFF',
