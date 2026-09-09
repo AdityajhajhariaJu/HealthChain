@@ -23,6 +23,7 @@ import {
   Search,
 } from 'lucide-react';
 import { getProfile, getEliminationProtocolState, saveEliminationProtocolState } from '../../services/ProfileEngine';
+import { getActiveTrial } from '../../services/TriggerEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useToast } from './ToastProvider';
@@ -300,11 +301,12 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
 
   // Protocol specific saved progress
   const currentProtocolData = useMemo(() => {
+    const liveTrial = getActiveTrial();
     return protocolState?.protocols?.[activeProtocolId] || {
-      currentDay: 12,
-      targetDays: activeProtocol.targetDurationDays,
-      streakDays: 11,
-      adherenceScore: 94,
+      currentDay: liveTrial?.currentDay || 1,
+      targetDays: liveTrial?.totalDays || activeProtocol.targetDurationDays,
+      streakDays: liveTrial?.currentDay ? Math.max(1, liveTrial.currentDay - 1) : 0,
+      adherenceScore: liveTrial?.adherencePercentage || 95,
     };
   }, [protocolState, activeProtocolId, activeProtocol]);
 

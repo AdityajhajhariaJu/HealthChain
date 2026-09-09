@@ -440,11 +440,11 @@ export default function WarRoom() {
     ? observations 
     : observations.filter(o => o.specialty === selectedFilter);
 
-  const patientDisplayName = profile?.name || profile?.demographics?.name || 'Aditya (Patient)';
+  const patientDisplayName = profile?.name || profile?.demographics?.name || 'Patient';
   const activeCaseTitle = activeCase?.title || 'Multi-System Autonomic & Gut Profiling';
   const activeTrialTitle = activeTrial 
-    ? `${activeTrial.trialId.replace('_', ' ').toUpperCase()} (Day ${activeTrial.currentDay}/${activeTrial.totalDays} · -${activeTrial.reductionPercent}% flares)`
-    : 'MONASH PROTOCOL (Active)';
+    ? `${activeTrial.trialId.replace(/_/g, ' ').toUpperCase()} (Day ${activeTrial.currentDay}/${activeTrial.totalDays} · -${activeTrial.reductionPercent}% flares)`
+    : 'ELIMINATION PROTOCOL (Inactive)';
 
   return (
     <div style={{ 

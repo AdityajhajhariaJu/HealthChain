@@ -21,6 +21,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { getProfile, getDigestionLogs, saveDigestionLog } from '../../services/ProfileEngine';
+import { getSuspectFoodsLeaderboard } from '../../services/TriggerEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useToast } from './ToastProvider';
@@ -248,7 +249,9 @@ function generateClinicalBaselineForDate(dateStr: string, mealsOnDate: any[] = [
     distensionPattern = (absHash % 2 === 0) ? 'flat_am_bloated_pm' : 'post_meal_distension';
     bristolType = (absHash % 2 === 0) ? 6 : 2;
     bowelFrequency = (absHash % 2 === 0) ? 3 : 0;
-    triggers = ['High-Alliums (Garlic/Onion)', 'Night Eating >9:30 PM', 'Carbonated Beverage'];
+    const liveSuspects = getSuspectFoodsLeaderboard();
+    const mainSuspect = liveSuspects[0]?.name || 'Fermentable Triggers';
+    triggers = [mainSuspect, 'Night Eating >9:30 PM', 'Carbonated Beverage'];
     insight = 'Marked Roemheld distension and reflux. High fermentation latency observed post-dinner.';
   } else if (isMildDay) {
     status = 'mild_flare';
@@ -527,7 +530,7 @@ Patient Profile: ${profile?.profileName || 'Active Patient'}
 • Clinical Motility Annotation: ${BRISTOL_STOOL_INFO[monthlyStats.dominantBristol].clinicalNote}
 
 3. PRIMARY DETECTED TRIGGERS & SENSITIVITIES:
-• Suspect Foods: High-Fructan Alliums (Garlic/Onion), Late Night Meals (>9:30 PM), Fast Dining (<12 mins)
+• Suspect Foods: ${getSuspectFoodsLeaderboard().slice(0, 2).map(s => s.name).join(', ') || 'Identified Dietary Triggers'}, Late Night Meals (>9:30 PM), Rapid Ingestion
 • Roemheld / Postprandial Incubation: 60–120 minute peak distension window observed on flare days.
 
 Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
@@ -754,7 +757,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
         >
           <Sparkles size={16} color="#0D9488" style={{ flexShrink: 0 }} />
           <span>
-            <strong>Ava Pattern Detection:</strong> 82% of flare episodes correlate with high-fructan alliums (garlic/onion) or meals consumed within 90 mins of sleep.
+            <strong>Ava Pattern Detection:</strong> High correlation observed between flare episodes, {getSuspectFoodsLeaderboard()[0]?.name || 'dietary triggers'}, and meals consumed within 90 mins of sleep.
           </span>
         </div>
       </div>

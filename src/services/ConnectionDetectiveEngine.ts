@@ -149,7 +149,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   const activeCase = getActiveCase();
   const suspectFoods = getSuspectFoodsLeaderboard();
   const activeTrial = getActiveTrial();
-  const patientName = profile?.name || profile?.demographics?.name || 'Aditya (Patient)';
+  const patientName = profile?.name || profile?.demographics?.name || 'Patient';
 
   // Synthesize the 4 Data Convergence Streams from live user profile & history
   const functionalBiomarkers = getFunctionalBiomarkers();
@@ -162,6 +162,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   const hsCrpMarker = functionalBiomarkers.find((b) => b.id === 'hs_crp');
   const ferritinNum = ferritinMarker?.userValue ?? 14;
   const ferritinStr = `${ferritinNum} ng/mL`;
+  const ferritinFound = latestLabKeys.some((k) => /ferritin/i.test(k));
 
   const realIronEntry = profile?.vitals?.latestLabValues?.['Serum Iron'] || profile?.vitals?.latestLabValues?.['Iron'];
   const ironStr = realIronEntry ? `${realIronEntry.value} ${realIronEntry.unit || 'μg/dL'}` : '65 μg/dL';
@@ -689,10 +690,12 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           clinicalNote: 'Elevated metabolic breakdown product confirms systemic histamine load.',
         },
       ],
-      dietaryTriggers: [
-        { name: 'Red Wine & Aged Cheese', category: 'Fermented Amine', icon: '🍷', impact: 'Packed with 200+ mg/kg of tyramine and histamine; overwhelms DAO immediately.' },
-        { name: 'Cured Meats (Salami, Pepperoni)', category: 'Biogenic Amine', icon: '🥩', impact: 'High bacterial degradation amine concentration provokes delayed flushing.' },
-      ],
+      dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+        name: s.name,
+        category: s.category || s.primarySensitivity,
+        icon: s.emoji || '⚡',
+        impact: `Empirical ${s.correlationPercent}% correlation with postprandial symptom reactivity.`,
+      })),
       specialistQuote: {
         doctor: 'Neuro-Gastroenterology & Enteric Panel',
         role: 'FACG Enteric Consensus',
@@ -720,7 +723,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           name: 'Postprandial Heart Rate Jump',
           standardRange: '<10 bpm',
           optimalRange: '<8 bpm',
-          userValue: '+22 bpm after dinner',
+          userValue: `+${Math.min(30, Math.max(10, Math.round(orthoDeltaVal * 0.7)))} bpm after meal`,
           status: 'elevated',
           clinicalNote: 'Exaggerated gastrocardiac reflex triggered by gastric distension.',
         },
@@ -728,15 +731,17 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           name: 'Abdominal Girth Expansion',
           standardRange: '<1 cm',
           optimalRange: '0 cm',
-          userValue: '+4.5 cm within 90 min',
+          userValue: '+3.5 cm within 90 min',
           status: 'elevated',
           clinicalNote: 'Excessive fermentation causing diaphragmatic upward displacement.',
         },
       ],
-      dietaryTriggers: [
-        { name: 'Garlic, Onions & Allium Fructans', category: 'Cecal FODMAP', icon: '🧄', impact: 'Rapid bacterial gas production distends stomach fundus against diaphragm.' },
-        { name: 'Carbonated Beverages & Soda', category: 'Mechanical Distension', icon: '🥤', impact: 'Introduces acute gastric volume, aggravating vagal irritation.' },
-      ],
+      dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+        name: s.name,
+        category: s.category || 'Fermentable Trigger',
+        icon: s.emoji || '🧄',
+        impact: `Rapid fermentation distends fundus against diaphragm, provoking vagal stimulation.`,
+      })),
       specialistQuote: {
         doctor: 'Complex Internal Medicine Clinical Consensus',
         role: 'Multi-System Diagnostic Guideline',
@@ -847,11 +852,14 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       biochemicalMechanism:
         'Cerebral hypoperfusion combined with intracellular ferritin depletion creates a dual energy crisis: neurons receive 20% less oxygen and lack the iron cofactors needed for ATP synthesis.',
       biomarkers: [
-        { name: 'Ferritin', standardRange: '13-150', optimalRange: '50-90', userValue: '14 ng/mL', status: 'depleted', clinicalNote: 'Core cellular energy bottleneck.' },
+        { name: 'Ferritin', standardRange: '13-150', optimalRange: '50-90', userValue: ferritinStr, status: ferritinMarker?.status === 'optimal' ? 'normal' : 'depleted', clinicalNote: 'Core cellular energy bottleneck.' },
       ],
-      dietaryTriggers: [
-        { name: 'High Glycemic Sugars', category: 'Energy Crash', icon: '🍬', impact: 'Triggers reactive hypoglycemia on top of existing mitochondrial deficit.' },
-      ],
+      dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+        name: s.name,
+        category: s.category || 'Metabolic Stress',
+        icon: s.emoji || '🍬',
+        impact: `Postprandial inflammatory burden exacerbates baseline fatigue.`,
+      })),
       specialistQuote: {
         doctor: 'Endocrine & Cellular Energy Panel',
         role: 'Cellular Metabolism Discipline',
@@ -870,11 +878,14 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       biochemicalMechanism:
         'Vagal compression from stomach gas (Roemheld) combines with splanchnic blood pooling to provoke a compensatory catecholamine surge.',
       biomarkers: [
-        { name: 'Orthostatic Delta', standardRange: '<30 bpm', optimalRange: '<20 bpm', userValue: '+38 bpm', status: 'elevated', clinicalNote: 'Meets POTS threshold.' },
+        { name: 'Orthostatic Delta', standardRange: '<30 bpm', optimalRange: '<20 bpm', userValue: `${deltaSign} bpm`, status: orthoDeltaVal >= 30 ? 'elevated' : 'normal', clinicalNote: 'Postural standing shift.' },
       ],
-      dietaryTriggers: [
-        { name: 'Red Wine & Aged Cheeses', category: 'Histamine Amine', icon: '🍷', impact: 'Accelerates vascular dilation and heart rate spikes.' },
-      ],
+      dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+        name: s.name,
+        category: s.category || 'Autonomic Trigger',
+        icon: s.emoji || '💓',
+        impact: `Postprandial reactivity triggers compensatory heart rate response.`,
+      })),
       specialistQuote: {
         doctor: 'Cardiology & Autonomic Panel',
         role: 'Electrophysiology Discipline',
@@ -895,9 +906,12 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       biomarkers: [
         { name: 'DAO Activity', standardRange: '>10 U/mL', optimalRange: '>14 U/mL', userValue: '6.2 U/mL', status: 'depleted', clinicalNote: 'Enzyme deficiency.' },
       ],
-      dietaryTriggers: [
-        { name: 'Garlic & Onions', category: 'FODMAPs', icon: '🧄', impact: 'Rapid cecal gas production.' },
-      ],
+      dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+        name: s.name,
+        category: s.category || 'Fermentable Trigger',
+        icon: s.emoji || '🎈',
+        impact: `Rapid fermentation provokes visceral distension.`,
+      })),
       specialistQuote: {
         doctor: 'Gastroenterology & Enteric Panel',
         role: 'Neuro-Gastroenterology Discipline',
@@ -916,11 +930,14 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       biochemicalMechanism:
         'Mechanical upward traction along the spinal dural sleeve combines with suboccipital myodural bridge spasm to pinch the Greater Occipital Nerve (C2). Splanchnic blood pooling additionally provokes compensatory intracranial arteriolar dilation upon standing.',
       biomarkers: [
-        { name: 'Diurnal HRV', standardRange: '35-70 ms', optimalRange: '50-85 ms', userValue: '28 ms', status: 'depleted', clinicalNote: 'Autonomic dysregulation.' },
+        { name: 'Diurnal HRV', standardRange: '35-70 ms', optimalRange: '50-85 ms', userValue: `${hrvVal} ms`, status: hrvVal < 35 ? 'depleted' : 'normal', clinicalNote: 'Autonomic dysregulation.' },
       ],
-      dietaryTriggers: [
-        { name: 'Fermented Evening Meals', category: 'Histamine Stack', icon: '🧀', impact: 'Triggers 03:00 AM histamine release and morning headache.' },
-      ],
+      dietaryTriggers: suspectFoods.slice(0, 2).map((s) => ({
+        name: s.name,
+        category: s.category || 'Vasoactive Trigger',
+        icon: s.emoji || '🧀',
+        impact: `Mediator surges provoke cerebral vascular reactivity and morning cephalgia.`,
+      })),
       specialistQuote: {
         doctor: 'Neurology & Biomechanics Panel',
         role: 'Neuro-Vascular Discipline',
@@ -968,7 +985,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         confidence: 96,
         specialty: 'Endocrinology',
         category: 'metabolic',
-        rationale: 'Ferritin 14 ng/mL with normal serum iron causes cellular oxygenation deficits.',
+        rationale: `Serum Ferritin at ${ferritinStr} despite normal CBC limits cellular mitochondrial respiration.`,
       },
       {
         id: 'cond_pots',
@@ -976,15 +993,15 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         confidence: 92,
         specialty: 'Cardiology',
         category: 'autonomic',
-        rationale: '+38 bpm postural heart rate jump with norepinephrine surges.',
+        rationale: `${deltaSign} bpm postural standing delta stimulates sympathetic adrenergic cascades.`,
       },
       {
         id: 'cond_histamine',
-        label: 'Histamine DAO Intolerance',
+        label: suspect1 ? `${suspect1.primarySensitivity} Intolerance` : 'Histamine DAO Intolerance',
         confidence: 89,
         specialty: 'Gastroenterology',
         category: 'gastrointestinal',
-        rationale: 'Inability to clear aged/fermented biogenic amines provokes flushing & vasodilation.',
+        rationale: `Impaired clearance of ${suspect1 ? suspect1.name : 'biogenic amines'} provokes postprandial flushing & distension.`,
       },
       {
         id: 'cond_roemheld',
@@ -992,7 +1009,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         confidence: 87,
         specialty: 'Cardiology & GI',
         category: 'vascular',
-        rationale: 'Gastric distension applies diaphragmatic mechanical pressure on the vagus nerve.',
+        rationale: `Postprandial gastric gas from ${suspect1 ? suspect1.name : 'fermentable foods'} elevates diaphragmatic vagal pressure.`,
       },
       {
         id: 'cond_dural_kinetic',
@@ -1008,7 +1025,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
         confidence: 81,
         specialty: 'Immunology',
         category: 'inflammatory',
-        rationale: 'Episodic facial erythema, gut permeability, and dermatographia.',
+        rationale: 'Episodic facial erythema, gut permeability, and multi-system mediator turnover.',
       },
     ],
     connections: [
@@ -1071,50 +1088,52 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     ],
     precautions: [
       {
-        text: 'Do not start vigorous upright aerobic training until orthostatic volume is stabilized with electrolytes and sodium.',
+        text: orthoDeltaVal >= 30
+          ? `Do not start vigorous upright aerobic training until orthostatic volume is stabilized (active stand delta: ${deltaSign} bpm). Hydrate with electrolyte fluids.`
+          : 'Maintain gradual posture adjustments and consistent fluid balance during prolonged standing.',
         severity: 'watch',
         relatedConditions: ['cond_pots'],
       },
       {
-        text: 'Avoid sudden withdrawal of iron or stacking high-histamine alcohol with fermented charcuterie.',
+        text: `Avoid sudden cessation of iron support (${ferritinStr}) or unmonitored exposure to flagged triggers (${suspect1?.name || 'aged/fermented items'}).`,
         severity: 'watch',
         relatedConditions: ['cond_histamine', 'cond_ferritin'],
       },
       {
-        text: 'Seek urgent clinical evaluation if syncope (fainting) or sustained resting tachycardia >125 bpm occurs.',
+        text: `Seek urgent clinical evaluation if syncope (fainting) or sustained resting tachycardia >${Math.max(115, rhrVal + 35)} bpm occurs.`,
         severity: 'red_flag',
         relatedConditions: ['cond_pots', 'cond_roemheld'],
       },
     ],
     missingEvidence: [
       {
-        test: 'Full Serum Iron Panel + Ferritin + Total Iron Binding Capacity (TIBC)',
+        test: ferritinFound ? 'Soluble Transferrin Receptor (sTfR) & Bone Marrow Iron Quantification' : 'Full Serum Iron Panel + Ferritin + Total Iron Binding Capacity (TIBC)',
         wouldDifferentiate: ['cond_ferritin'],
-        urgency: 'High Priority (Next GP Visit)',
+        urgency: ferritinFound ? 'Routine (Next Check)' : 'High Priority (Next GP Visit)',
         recommendedSpecialists: 'Endocrinologist or Hematologist',
       },
       {
         test: 'Active 10-Minute NASA Lean / Orthostatic Heart Rate Log',
         wouldDifferentiate: ['cond_pots', 'cond_roemheld'],
-        urgency: 'Soon (At-Home Tracker)',
+        urgency: 'Active Telemetry (Daily Check-in)',
         recommendedSpecialists: 'Cardiologist or Autonomic Neurologist',
       },
       {
-        test: 'Serum Diamine Oxidase (DAO) Activity & Urinary N-Methylhistamine',
+        test: `Targeted ${activeTrial ? activeTrial.trialId.replace(/_/g, ' ').toUpperCase() : 'Elimination'} Rechallenge Log & Serum DAO Activity`,
         wouldDifferentiate: ['cond_histamine', 'cond_mcas'],
-        urgency: 'Routine (Specialized Lab)',
+        urgency: 'In-Progress (Active Protocol)',
         recommendedSpecialists: 'Functional Gastroenterologist or Allergist',
       },
     ],
     narrative:
-      'Your fatigue, postprandial palpitations, and morning headaches are not isolated ailments. They represent a unified triad: Subclinical Ferritin Depletion impairs cellular energy, while Histamine Overload and Gastric Distension trigger compensatory autonomic tachycardia via the vagus nerve.',
+      `${patientName}'s symptom pattern reflects an interconnected multi-system axis: Subclinical Ferritin Depletion (${ferritinStr}) impairs cellular energetics, while dietary reactivity to ${suspect1?.name || 'fermentable triggers'} and an orthostatic delta of ${deltaSign} bpm stimulate compensatory autonomic compensation via the vagus nerve.`,
   };
 
   const report: ConnectionDetectiveReport = {
     id: `cd_${Date.now()}`,
     generatedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     patientName,
-    primaryHypothesis: 'Hyperadrenergic POTS, Subclinical Ferritin Depletion & Histamine Gut-Vagal Axis',
+    primaryHypothesis: activeCase?.title || `Autonomic Shift (${deltaSign} bpm), Subclinical Ferritin (${ferritinStr}) & ${suspect1?.name || 'Dietary-Vagal'} Axis`,
     matchConfidence: 94,
     streams,
     consensusDialogue,

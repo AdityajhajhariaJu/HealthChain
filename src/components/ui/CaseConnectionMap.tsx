@@ -472,7 +472,6 @@ export function CaseConnectionMap({
                   fill={categoryConfig.dot}
                 />
 
-                {/* Condition Name */}
                 <text
                   x={isMobile ? 4 : 2}
                   y={-2}
@@ -481,16 +480,7 @@ export function CaseConnectionMap({
                   fontWeight="800"
                   fill="#1C1917"
                 >
-                  {(() => {
-                    if (!nodeLabel) return 'Condition';
-                    if (nodeLabel.includes('Ferritin')) return 'Subclinical Ferritin';
-                    if (nodeLabel.includes('Dural')) return 'Ascending Dural Axis';
-                    if (nodeLabel.includes('POTS')) return 'Hyperadrenergic POTS';
-                    if (nodeLabel.includes('Histamine')) return 'Histamine / DAO Lag';
-                    if (nodeLabel.includes('Roemheld') || nodeLabel.includes('Gastrocardiac')) return 'Gastrocardiac Reflex';
-                    if (nodeLabel.includes('Mast Cell') || nodeLabel.includes('MCAS')) return 'Mast Cell Overlap';
-                    return nodeLabel.length > (isMobile ? 18 : 22) ? nodeLabel.substring(0, isMobile ? 16 : 20) + '…' : nodeLabel;
-                  })()}
+                  {nodeLabel ? (nodeLabel.length > (isMobile ? 20 : 24) ? nodeLabel.substring(0, isMobile ? 18 : 22) + '…' : nodeLabel) : 'Condition'}
                 </text>
 
                 {/* Confidence & Specialty Pill Tag */}
