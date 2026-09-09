@@ -100,7 +100,7 @@ describe('SmartCorrelationInsightsView & PersonalizedJourneyGoalSelector', () =>
 
     it('should update active protocol state when goal is chosen', () => {
       const initial = getEliminationProtocolState();
-      expect(initial.activeProtocolId).toBe('bloating_hunt');
+      expect(initial.activeProtocolId).toBeNull();
 
       saveEliminationProtocolState('vagal_hunt', {
         startedAt: new Date().toISOString(),

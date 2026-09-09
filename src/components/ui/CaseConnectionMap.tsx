@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, HeartPulse, AlertTriangle } from 'lucide-react';
+import { HelpCircle, HeartPulse, AlertTriangle, Sparkles, FileText, ArrowRight } from 'lucide-react';
 
 export interface CaseConnectionMapProps {
   data: any;
@@ -40,7 +40,97 @@ export function CaseConnectionMap({
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
 
-  if (!data || !data.conditions) return null;
+  if (!data || !data.conditions || data.conditions.length === 0) {
+    return (
+      <div
+        style={{
+          minHeight: isMobile ? '300px' : '380px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: isMobile ? '24px 16px' : '36px 24px',
+          background: 'radial-gradient(circle at 50% 30%, #F8FAFC 0%, #F1F5F9 100%)',
+          borderRadius: '20px',
+          border: '1.5px dashed #CBD5E1',
+          textAlign: 'center',
+          gap: '14px',
+        }}
+      >
+        <div
+          style={{
+            width: '54px',
+            height: '54px',
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
+            border: '1px solid #C7D2FE',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.12)',
+          }}
+        >
+          🕸️
+        </div>
+        <div style={{ maxWidth: '380px' }}>
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+            Awaiting Clinical Intake
+          </h4>
+          <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+            No differential diagnoses or active symptoms detected. Start an AI consultation or attach lab reports to map cross-organ root causes.
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '6px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = '/app/consult';
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 18px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+              color: '#FFFFFF',
+              border: 'none',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
+            }}
+          >
+            <Sparkles size={14} />
+            <span>Start Consultation</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = '/app/war-room';
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 18px',
+              borderRadius: '12px',
+              background: '#FFFFFF',
+              color: '#334155',
+              border: '1px solid #CBD5E1',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <FileText size={14} />
+            <span>Attach Lab Report</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const width = isMobile ? 500 : 640;
   const height = isMobile ? 500 : 500;

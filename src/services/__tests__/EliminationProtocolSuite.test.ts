@@ -8,11 +8,11 @@ describe('EliminationProtocolSuite & Protocol State Engine', () => {
     localStorage.clear();
   });
 
-  it('should return initial elimination protocol state with bloating_hunt active', () => {
+  it('should return initial clean elimination protocol state with no active protocol until user starts one', () => {
     const state = getEliminationProtocolState();
     expect(state).toBeDefined();
-    expect(state.activeProtocolId).toBe('bloating_hunt');
-    expect(state.protocols?.bloating_hunt?.targetDays).toBe(28);
+    expect(state.activeProtocolId).toBeNull();
+    expect(state.protocols).toEqual({});
   });
 
   it('should save updated protocol state and dispatch hc_elimination_updated event', () => {

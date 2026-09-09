@@ -51,11 +51,12 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [trial, setTrial] = useState<ActiveTrialState>(() => getActiveTrial() || startTrial('low_histamine'));
+  const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string>('hunt_histamine');
   const [activeTab, setActiveTab] = useState<'guardrails' | 'rechallenge' | 'outcomes' | 'dossier'>('guardrails');
   
   // Interactive check-in state
-  const [severityScore, setSeverityScore] = useState<number>(trial.currentSeverity || 4);
+  const [severityScore, setSeverityScore] = useState<number>(trial?.currentSeverity || 4);
   const [checkinNote, setCheckinNote] = useState<string>('');
   const [justLogged, setJustLogged] = useState<boolean>(false);
 
@@ -77,9 +78,9 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 
   useEffect(() => {
     if (isOpen) {
-      const current = getActiveTrial() || startTrial('low_histamine');
+      const current = getActiveTrial();
       setTrial(current);
-      setSeverityScore(current.currentSeverity || 4);
+      if (current) setSeverityScore(current.currentSeverity || 4);
     }
   }, [isOpen]);
 
@@ -95,7 +96,9 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
 
   if (!isOpen) return null;
 
-  const activeProtocolDef = ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0];
+  const activeProtocolDef = trial 
+    ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0])
+    : (ELIMINATION_PROTOCOLS.find((p) => p.id === selectedProtocolId) || ELIMINATION_PROTOCOLS[0]);
   const suspectFoods = getSuspectFoodsLeaderboard();
   const topSuspectFood = suspectFoods[0];
 
@@ -130,7 +133,8 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     if (match) {
       const start = parseInt(match[1], 10);
       const end = parseInt(match[2], 10);
-      return trial.currentDay >= start && trial.currentDay <= end;
+      const day = trial?.currentDay || 1;
+      return day >= start && day <= end;
     }
     return idx === 0;
   });
@@ -139,7 +143,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   const nextPhaseObj = phases[currentPhaseIndex + 1];
   const currentPhaseEndMatch = activePhaseObj.daysRange.match(/(\d+)\s*[–-]\s*(\d+)/);
   const currentPhaseEnd = currentPhaseEndMatch ? parseInt(currentPhaseEndMatch[2], 10) : 7;
-  const daysUntilNext = Math.max(1, currentPhaseEnd - trial.currentDay + 1);
+  const daysUntilNext = Math.max(1, currentPhaseEnd - (trial?.currentDay || 1) + 1);
 
   const checklistItems = activeProtocolDef.dailyChecklist && activeProtocolDef.dailyChecklist.length > 0
     ? activeProtocolDef.dailyChecklist.map((task, i) => ({
@@ -164,6 +168,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   })();
 
   const handleLogScore = () => {
+    if (!trial) return;
     triggerHapticSuccess();
     const updated = logTrialDay(severityScore, true, checkinNote || undefined);
     setTrial(updated);
@@ -173,6 +178,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   };
 
   const handleApplySosMitigation = (triggerName: string) => {
+    if (!trial) return;
     triggerHapticSuccess();
     setSelectedExposure(triggerName);
     setSosApplied(true);
@@ -187,6 +193,7 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
   };
 
   const handleCopyDossier = () => {
+    if (!trial) return;
     triggerHapticLight();
     const primarySuspectText = topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ');
     const toleratedText = activeProtocolDef.allowedAlternatives.slice(0, 4).join(', ');
@@ -337,11 +344,17 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                       textTransform: 'uppercase',
                     }}
                   >
-                    {activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL'}
+                    {trial ? (activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL') : 'CLINICAL ELIMINATION SUITE'}
                   </span>
-                  <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
-                    Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}%)
-                  </span>
+                  {trial ? (
+                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                      Day {trial.currentDay} of {trial.totalDays} ({Math.round((trial.currentDay / trial.totalDays) * 100)}%)
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
+                      Select a Clinical Washout Protocol
+                    </span>
+                  )}
                 </div>
                 <h2
                   id="elimination-modal-title"
@@ -356,7 +369,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {activeProtocolDef.name}
+                  {trial ? activeProtocolDef.name : 'Targeted Elimination & Washout Trials'}
                 </h2>
               </div>
             </div>
@@ -389,62 +402,64 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
             </button>
           </div>
 
-          {/* Tab Navigation */}
-          <div
-            className="hide-scrollbar"
-            style={{
-              display: 'flex',
-              padding: '8px 16px',
-              background: '#F8FAFC',
-              borderBottom: '1px solid #E2E8F0',
-              gap: '8px',
-              overflowX: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
-            {[
-              { id: 'guardrails', label: "Today's Guardrails", icon: ShieldAlert },
-              { id: 'rechallenge', label: 'Rechallenge Calendar', icon: Calendar },
-              { id: 'outcomes', label: 'Outcomes & Verdict', icon: TrendingDown },
-              { id: 'dossier', label: 'Doctor Dossier', icon: FileText },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    triggerHapticSelection();
-                    setActiveTab(tab.id as any);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: isActive ? '#FFFFFF' : 'transparent',
-                    color: isActive ? '#059669' : '#64748B',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                    flex: '0 0 auto',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <Icon size={14} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Tab Navigation (Only when active trial exists) */}
+          {trial && (
+            <div
+              className="hide-scrollbar"
+              style={{
+                display: 'flex',
+                padding: '8px 16px',
+                background: '#F8FAFC',
+                borderBottom: '1px solid #E2E8F0',
+                gap: '8px',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+            >
+              {[
+                { id: 'guardrails', label: "Today's Guardrails", icon: ShieldAlert },
+                { id: 'rechallenge', label: 'Rechallenge Calendar', icon: Calendar },
+                { id: 'outcomes', label: 'Outcomes & Verdict', icon: TrendingDown },
+                { id: 'dossier', label: 'Doctor Dossier', icon: FileText },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setActiveTab(tab.id as any);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: isActive ? '#FFFFFF' : 'transparent',
+                      color: isActive ? '#059669' : '#64748B',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      flex: '0 0 auto',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Icon size={14} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Modal Body */}
           <div
@@ -457,8 +472,178 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
               gap: '16px',
             }}
           >
-            {/* TAB 1: TODAY'S GUARDRAILS & ACCIDENTAL EXPOSURE SOS */}
-            {activeTab === 'guardrails' && (
+            {!trial ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Introduction Banner */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)',
+                    borderRadius: '16px',
+                    padding: '16px 18px',
+                    border: '1px solid #DDD6FE',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={16} color="#7C3AED" />
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#6D28D9', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      Clinical Trial Protocol Suite
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E1B4B' }}>
+                    Choose an Evidence-Based Elimination Protocol
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: '#4C1D95', lineHeight: 1.5 }}>
+                    Select a structured dietary protocol to isolate inflammatory triggers, test systemic tolerance windows, and generate physician-grade SBAR dossiers.
+                  </div>
+                </div>
+
+                {/* Protocol Options List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {ELIMINATION_PROTOCOLS.map((p) => {
+                    const isSelected = selectedProtocolId === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setSelectedProtocolId(p.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            triggerHapticSelection();
+                            setSelectedProtocolId(p.id);
+                          }
+                        }}
+                        style={{
+                          background: isSelected ? '#FFFFFF' : '#F8FAFC',
+                          borderRadius: '16px',
+                          padding: '16px',
+                          border: isSelected ? '2px solid #7C3AED' : '1px solid #E2E8F0',
+                          boxShadow: isSelected ? '0 4px 14px rgba(124, 58, 237, 0.12)' : 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                borderRadius: '50%',
+                                border: isSelected ? '6px solid #7C3AED' : '2px solid #CBD5E1',
+                                background: '#FFFFFF',
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                            />
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A' }}>
+                                {p.name}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#7C3AED', fontWeight: 700, marginTop: '1px' }}>
+                                Target: {p.targetSensitivity}
+                              </div>
+                            </div>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: '#059669',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              padding: '2px 8px',
+                              borderRadius: '999px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {p.durationDays} Days
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.45, paddingLeft: '32px' }}>
+                          {p.description}
+                        </div>
+
+                        {p.eliminatedFoods && p.eliminatedFoods.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingLeft: '32px' }}>
+                            <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#94A3B8', alignSelf: 'center' }}>
+                              Eliminates:
+                            </span>
+                            {p.eliminatedFoods.slice(0, 3).map((food) => (
+                              <span
+                                key={food}
+                                style={{
+                                  fontSize: '10.5px',
+                                  fontWeight: 600,
+                                  color: '#DC2626',
+                                  background: '#FEF2F2',
+                                  border: '1px solid #FECACA',
+                                  padding: '2px 7px',
+                                  borderRadius: '6px',
+                                }}
+                              >
+                                {food}
+                              </span>
+                            ))}
+                            {p.eliminatedFoods.length > 3 && (
+                              <span style={{ fontSize: '10.5px', color: '#94A3B8', alignSelf: 'center' }}>
+                                +{p.eliminatedFoods.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Start Protocol Button */}
+                <div style={{ position: 'sticky', bottom: 0, background: 'linear-gradient(to top, rgba(255,255,255,1) 80%, rgba(255,255,255,0))', paddingTop: '12px', paddingBottom: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSuccess();
+                      const newTrial = startTrial(selectedProtocolId);
+                      setTrial(newTrial);
+                      onTrialUpdated?.(newTrial);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '14px 20px',
+                      borderRadius: '14px',
+                      background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      fontSize: '14px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                      transition: 'transform 0.1s ease',
+                    }}
+                  >
+                    <span>Begin {activeProtocolDef.name}</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* TAB 1: TODAY'S GUARDRAILS & ACCIDENTAL EXPOSURE SOS */}
+                {activeTab === 'guardrails' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Active Phase Banner */}
                 <div
@@ -926,6 +1111,8 @@ R (Recommendation):
                   </button>
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
 

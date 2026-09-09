@@ -313,6 +313,26 @@ describe('ConnectionDetectiveEngine', () => {
     expect(vitalsStream.items[0]).toContain('Resting Heart Rate: 72 bpm');
     expect(vitalsStream.items[1]).toContain('Orthostatic Shift: +42 bpm');
   });
+
+  it('returns clean zero-state when a fresh user has no clinical records', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem('hc_force_zero_state', 'true');
+
+    const report = getConnectionDetectiveReport();
+    expect(report.matchConfidence).toBe(0);
+    expect(report.primaryHypothesis).toContain('Awaiting Clinical Intake');
+    expect(report.mapData.conditions).toHaveLength(0);
+    expect(report.mapData.centralSymptoms).toHaveLength(0);
+    expect(report.mapData.connections).toHaveLength(0);
+
+    const labs = report.streams.find((s) => s.id === 'labs')!;
+    expect(labs.count).toBe(0);
+    expect(labs.status).toBe('No Labs Attached');
+
+    const notes = report.streams.find((s) => s.id === 'notes')!;
+    expect(notes.count).toBe(0);
+    expect(notes.status).toBe('No Consultations Logged');
+  });
 });
 
 

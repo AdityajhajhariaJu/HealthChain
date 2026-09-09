@@ -23,7 +23,7 @@ import {
   Search,
 } from 'lucide-react';
 import { getProfile, getEliminationProtocolState, saveEliminationProtocolState } from '../../services/ProfileEngine';
-import { getActiveTrial } from '../../services/TriggerEngine';
+import { getActiveTrial, startTrial } from '../../services/TriggerEngine';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useToast } from './ToastProvider';
@@ -299,16 +299,40 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
 
   const activeProtocol = PROTOCOLS[activeProtocolId];
 
+  const isEnrolled = useMemo(() => {
+    const liveTrial = getActiveTrial();
+    return Boolean(
+      (liveTrial && liveTrial.trialId === activeProtocolId) ||
+      (protocolState?.protocols?.[activeProtocolId]?.currentDay !== undefined && protocolState?.protocols?.[activeProtocolId]?.currentDay > 0)
+    );
+  }, [protocolState, activeProtocolId]);
+
   // Protocol specific saved progress
   const currentProtocolData = useMemo(() => {
     const liveTrial = getActiveTrial();
-    return protocolState?.protocols?.[activeProtocolId] || {
-      currentDay: liveTrial?.currentDay || 1,
-      targetDays: liveTrial?.totalDays || activeProtocol.targetDurationDays,
-      streakDays: liveTrial?.currentDay ? Math.max(1, liveTrial.currentDay - 1) : 0,
-      adherenceScore: liveTrial?.adherencePercentage || 95,
+    if (isEnrolled) {
+      return protocolState?.protocols?.[activeProtocolId] || {
+        currentDay: liveTrial?.currentDay || 1,
+        targetDays: liveTrial?.totalDays || activeProtocol.targetDurationDays,
+        streakDays: liveTrial?.currentDay ? Math.max(0, liveTrial.currentDay - 1) : 0,
+        adherenceScore: liveTrial?.adherencePercentage || 100,
+      };
+    }
+    return {
+      currentDay: 0,
+      targetDays: activeProtocol.targetDurationDays,
+      streakDays: 0,
+      adherenceScore: 0,
     };
-  }, [protocolState, activeProtocolId, activeProtocol]);
+  }, [protocolState, activeProtocolId, activeProtocol, isEnrolled]);
+
+  const getPhaseStatus = (weekNum: number) => {
+    if (!isEnrolled) return 'upcoming';
+    const currentWeek = Math.ceil(currentProtocolData.currentDay / 7);
+    if (weekNum < currentWeek) return 'completed';
+    if (weekNum === currentWeek) return 'active';
+    return 'upcoming';
+  };
 
   // Handle checking off checklist items
   const handleToggleCheckItem = (itemId: string) => {
@@ -361,7 +385,7 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
     setTimeout(() => setCopiedSummary(false), 2500);
   };
 
-  const progressPct = Math.round((currentProtocolData.currentDay / activeProtocol.targetDurationDays) * 100);
+  const progressPct = isEnrolled ? Math.round((currentProtocolData.currentDay / activeProtocol.targetDurationDays) * 100) : 0;
 
   // Filter forbidden foods based on search query
   const filteredForbidden = useMemo(() => {
@@ -549,40 +573,74 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  color: '#D97706',
-                  background: '#FFFBEB',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  border: '1px solid #FDE68A',
-                }}
-              >
-                🔥 {currentProtocolData.streakDays}-Day Streak
-              </span>
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  color: '#059669',
-                  background: '#ECFDF5',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  border: '1px solid #A7F3D0',
-                }}
-              >
-                {currentProtocolData.adherenceScore}% Adherence
-              </span>
+              {isEnrolled ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      color: '#D97706',
+                      background: '#FFFBEB',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      border: '1px solid #FDE68A',
+                    }}
+                  >
+                    🔥 {currentProtocolData.streakDays}-Day Streak
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      color: '#059669',
+                      background: '#ECFDF5',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      border: '1px solid #A7F3D0',
+                    }}
+                  >
+                    {currentProtocolData.adherenceScore}% Adherence
+                  </span>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticSuccess();
+                    startTrial(activeProtocolId);
+                    saveEliminationProtocolState(activeProtocolId, {
+                      startedAt: new Date().toISOString(),
+                      currentDay: 1,
+                      targetDays: activeProtocol.targetDurationDays,
+                      streakDays: 0,
+                      adherenceScore: 100,
+                      dailyLogs: {},
+                    });
+                    toast?.success?.(`Enrolled in ${activeProtocol.name}!`);
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '999px',
+                    padding: '6px 14px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
+                  }}
+                >
+                  ▶ Begin This Protocol
+                </button>
+              )}
             </div>
           </div>
 
           {/* Progress bar */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-              <span>Day {currentProtocolData.currentDay} of {activeProtocol.targetDurationDays} ({progressPct}% Complete)</span>
-              <span>{activeProtocol.phases.find((p) => p.status === 'active')?.title || 'Active Phase'}</span>
+              <span>{isEnrolled ? `Day ${currentProtocolData.currentDay} of ${activeProtocol.targetDurationDays} (${progressPct}% Complete)` : `Target Duration: ${activeProtocol.targetDurationDays} Days (Ready to Begin)`}</span>
+              <span>{isEnrolled ? (activeProtocol.phases.find((p) => getPhaseStatus(p.week) === 'active')?.title || 'Active Phase') : 'Not Enrolled'}</span>
             </div>
             <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
               <div
@@ -1048,8 +1106,9 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', position: 'relative' }}>
                 {activeProtocol.phases.map((phase, pIdx) => {
-                  const isDone = phase.status === 'completed';
-                  const isCur = phase.status === 'active';
+                  const pStatus = getPhaseStatus(phase.week);
+                  const isDone = pStatus === 'completed';
+                  const isCur = pStatus === 'active';
                   return (
                     <div
                       key={pIdx}
@@ -1094,7 +1153,7 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
                               textTransform: 'uppercase',
                             }}
                           >
-                            {phase.status}
+                            {pStatus}
                           </span>
                         </div>
                         <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#475569', lineHeight: 1.35 }}>

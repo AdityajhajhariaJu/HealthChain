@@ -36,7 +36,7 @@ import { recordHealthMemory } from '../../services/HealthMemory';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
-import { getItemSync, setItemSync } from '../../services/storage';
+import { getItemSync, setItemSync, removeItemSync } from '../../services/storage';
 
 interface ObservationReply {
   author: string;
@@ -144,109 +144,68 @@ export default function WarRoom() {
       const stored = getItemSync(STORAGE_KEY_OBSERVATIONS);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        // Purge legacy hardcoded mock observations
+        if (Array.isArray(parsed) && parsed.some((p: any) => 
+          p.id?.startsWith('obs_init_') || 
+          p.authorName?.includes('Sarah Jenkins') || 
+          p.authorName?.includes('Marcus Vance') || 
+          p.authorName?.includes('Julian Rivera')
+        )) {
+          removeItemSync(STORAGE_KEY_OBSERVATIONS);
+        } else if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
     } catch {
       // fallback
     }
 
-    const patientName = profile?.name || profile?.demographics?.name || 'Patient';
-    const caseTitle = activeCase?.title || 'Autonomic & Postprandial Multi-System Profiling';
-    const ferritin = biomarkers.find(b => b.id === 'ferritin');
-    const ferritinVal = ferritin?.userValue ?? (profile?.vitals?.latestLabValues?.ferritin ?? 14);
-    const topTrigger = suspectFoods[0]?.name || 'Fermented & High-FODMAP foods';
-    const trialName = activeTrial?.trialId ? activeTrial.trialId.replace(/_/g, ' ').toUpperCase() : 'ELIMINATION PROTOCOL';
-    const rhrVal = profile?.vitals?.restingHeartRate || 68;
-    const orthoDeltaVal = profile?.vitals?.orthostaticDelta || 32;
-    const hrvVal = profile?.vitals?.hrv || 38;
+    // If active case has real reviews, map them
+    if (activeCase && Array.isArray(activeCase.reviews) && activeCase.reviews.length > 0) {
+      return activeCase.reviews.map((rev: any, idx: number) => ({
+        id: rev.id || `obs_case_${idx}`,
+        author: 'physician',
+        authorName: rev.specialists?.[0]?.name || 'Attending Physician',
+        title: rev.report?.clinicalImpression || activeCase.title,
+        content: rev.report?.summary || rev.report?.findings || 'Case review findings recorded.',
+        timestamp: rev.createdAt || 'Recent',
+        specialty: 'cardio',
+        isPinned: idx === 0,
+        replies: []
+      }));
+    }
 
+    // Default clean welcoming orientation card for rounds
     return [
       {
-        id: 'obs_init_cardio',
+        id: 'obs_welcome_canvas',
         author: 'physician',
-        authorName: 'Dr. Sarah Jenkins (Cardiology & Autonomics)',
-        title: 'Postprandial Splanchnic Blood Pooling & Baroreflex',
-        content: `Reviewing ${patientName}'s autonomic markers under case "${caseTitle}". Resting HR is ${rhrVal} bpm with an orthostatic standing shift of +${orthoDeltaVal} bpm and baseline HRV of ${hrvVal} ms. When blood pools in the mesenteric circulation post-meal, venous return drops precipitously, triggering compensatory orthostatic tachycardia. Monitoring diurnal HRV and upright heart rate delta.`,
-        timestamp: '2 hours ago',
+        authorName: 'Ava (Clinical AI Coordinator)',
+        title: 'Collaborative Multi-Specialist Canvas Ready',
+        content: 'Welcome to your Multi-Specialist Health Canvas. As you consult with specialists (Cardiology, Gastroenterology, Immunology, Functional Medicine) or upload diagnostic lab panels, cross-system findings, baroreflex analyses, and clinical consensus will synchronize here in real time.',
+        timestamp: 'Just now',
         specialty: 'cardio',
         isPinned: true,
-        replies: [
-          {
-            author: 'Ava (Clinical AI Coordinator)',
-            role: 'Clinical AI Coordinator',
-            badgeColor: '#0D9488',
-            avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: `Logged. Correlating symptom timeline with active hydration protocol (goal: 2,500 mL) and sodium intake. Upright HR delta (+${orthoDeltaVal} bpm) currently tracked in daily check-ins.`,
-            timestamp: '1 hour ago'
-          }
-        ],
-        actionPrompt: 'I would like to discuss my postprandial heart rate spikes and Dr. Jenkins\' recommendation for splanchnic pooling with Ava.',
-        actionLabel: 'Discuss with Ava',
-        actionRoute: '/app/ava'
-      },
-      {
-        id: 'obs_init_gastro',
-        author: 'physician',
-        authorName: 'Dr. Marcus Vance (Functional Gastroenterology)',
-        title: `Active Elimination Phase: ${trialName}`,
-        content: `Targeted elimination trial is currently active (Day ${activeTrial?.currentDay || 4} of ${activeTrial?.totalDays || 28}). Suspect food correlation flagged ${topTrigger} with elevated post-meal symptom scores. Continuing strict washout phase to prevent visceral mechanoreceptor distension.`,
-        timestamp: '4 hours ago',
-        specialty: 'gastro',
-        isPinned: true,
-        replies: [
-          {
-            author: 'Ava (Clinical AI Coordinator)',
-            role: 'Clinical AI Coordinator',
-            badgeColor: '#0D9488',
-            avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: activeTrial
-              ? `Active adherence currently at ${activeTrial.adherencePercentage}%. Symptoms show a ${activeTrial.reductionPercent}% delta from baseline. ${trialName} guardrails remain engaged.`
-              : 'Targeted elimination protocol is configured. Start the washout phase to isolate active dietary culprits.',
-            timestamp: '3 hours ago'
-          }
-        ],
-        actionPrompt: 'Take me to the elimination protocol suite to review my active rechallenge calendar and safe food swaps.',
-        actionLabel: 'Open Elimination Protocol',
-        actionRoute: '/app/dietician',
-        actionTab: 'elimination'
-      },
-      {
-        id: 'obs_init_metabolic',
-        author: 'physician',
-        authorName: 'Dr. Julian Rivera (Metabolic & Functional Medicine)',
-        title: ferritin && ferritin.status !== 'optimal'
-          ? 'Functional Biomarker Discordance: Ferritin & Cellular Iron'
-          : 'Functional Metabolic & Cellular Reserve Evaluation',
-        content: ferritin && ferritin.status !== 'optimal'
-          ? `Biomarker evaluation indicates Serum Ferritin at ${ferritinVal} ng/mL (optimal threshold: 50–90 ng/mL). Cellular storage iron deficit impairs mitochondrial electron transport and exacerbates orthostatic cerebral hypoperfusion.`
-          : `Metabolic screening calibrated for ${patientName}. Cellular energetic reserves and functional biomarkers cross-referenced with autonomic baseline.`,
-        timestamp: 'Yesterday',
-        specialty: 'metabolic',
-        isPinned: false,
-        replies: [
-          {
-            author: 'Ava (Clinical AI Coordinator)',
-            role: 'Clinical AI Coordinator',
-            badgeColor: '#0D9488',
-            avatarBg: 'rgba(13, 148, 136, 0.12)',
-            content: 'Cross-system root cause map updated and synchronized with Connection Detective.',
-            timestamp: 'Yesterday'
-          }
-        ],
-        actionPrompt: 'Open Connection Detective to inspect the full biochemical mechanism connecting metabolic tone, autonomic regulation, and gut transit.',
-        actionLabel: 'Inspect Root Cause Map',
-        actionRoute: 'detective_modal'
+        replies: [],
+        actionPrompt: 'I would like to start a clinical intake consultation for my symptoms with Ava.',
+        actionLabel: 'Start Clinical Consultation',
+        actionRoute: '/app/consult'
       }
     ];
   });
 
-  // Initialize Documents from actual clinical records or dynamic biomarker summary
+  // Initialize Documents from actual clinical records
   const [documents, setDocuments] = useState<CanvasDocument[]>(() => {
     try {
       const stored = getItemSync(STORAGE_KEY_DOCS);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        // Purge legacy mock PDF
+        if (Array.isArray(parsed) && parsed.some((p: any) => p.id === 'doc_init_1' || p.name?.includes('Comprehensive_Metabolic_Panel.pdf'))) {
+          removeItemSync(STORAGE_KEY_DOCS);
+        } else if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
     } catch {
       // fallback
@@ -264,21 +223,7 @@ export default function WarRoom() {
       }));
     }
 
-    const patientName = profile?.name || profile?.demographics?.name || 'Patient';
-    const ferritinVal = biomarkers.find(b => b.id === 'ferritin')?.userValue ?? (profile?.vitals?.latestLabValues?.ferritin ?? 14);
-    const freeT3Val = biomarkers.find(b => b.id === 'freet3')?.userValue ?? (profile?.vitals?.latestLabValues?.freeT3 ?? 2.4);
-    const crpVal = biomarkers.find(b => b.id === 'hscrp')?.userValue ?? (profile?.vitals?.latestLabValues?.hsCRP ?? '< 0.5');
-
-    return [
-      {
-        id: 'doc_init_1',
-        name: `${patientName.replace(/\s+/g, '_')}_Comprehensive_Metabolic_Panel.pdf`,
-        size: '1.4 MB',
-        uploadedAt: 'Synced with Clinical Baseline',
-        status: 'analyzed',
-        summary: `Analyzed by Ava AI · Serum Ferritin (${ferritinVal} ng/mL), Free T3 (${freeT3Val} pg/mL), hs-CRP (${crpVal} mg/L). Calibrated against functional optimal ranges.`
-      }
-    ];
+    return [];
   });
 
   // Save observations & documents to storage
@@ -447,10 +392,10 @@ export default function WarRoom() {
     : observations.filter(o => o.specialty === selectedFilter);
 
   const patientDisplayName = profile?.name || profile?.demographics?.name || 'Patient';
-  const activeCaseTitle = activeCase?.title || 'Multi-System Autonomic & Gut Profiling';
+  const activeCaseTitle = activeCase?.title || 'No Active Consultation';
   const activeTrialTitle = activeTrial 
     ? `${activeTrial.trialId.replace(/_/g, ' ').toUpperCase()} (Day ${activeTrial.currentDay}/${activeTrial.totalDays} · -${activeTrial.reductionPercent}% flares)`
-    : 'ELIMINATION PROTOCOL (Inactive)';
+    : 'No Active Protocol';
 
   return (
     <div style={{ 
@@ -877,12 +822,12 @@ export default function WarRoom() {
         </section>
 
         {/* Real Documents & Lab Reports Section */}
-        {documents.length > 0 && (
-          <section aria-label="Ingested Clinical Documents">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#334155', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <FileCheck size={16} color="#3B82F6" /> Connected Lab Reports & Vitals
-              </h3>
+        <section aria-label="Ingested Clinical Documents">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#334155', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <FileCheck size={16} color="#3B82F6" /> Connected Lab Reports & Vitals
+            </h3>
+            {documents.length > 0 && (
               <button
                 type="button"
                 onClick={() => { triggerHapticLight(); navigate('/app/medicine-lab#clinical-report-analyzer'); }}
@@ -890,8 +835,57 @@ export default function WarRoom() {
               >
                 Full Lab Analyzer <ChevronRight size={13} />
               </button>
-            </div>
+            )}
+          </div>
 
+          {documents.length === 0 ? (
+            <div style={{
+              background: '#FFF',
+              borderRadius: '16px',
+              padding: '16px 18px',
+              border: '1.5px dashed #CBD5E1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: isMobile ? 'wrap' : 'nowrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <FileText size={18} color="#94A3B8" />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+                    No Lab Reports Attached Yet
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#94A3B8' }}>
+                    Attach blood work or diagnostic PDFs to extract biomarkers for multi-specialist rounds
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  navigate('/app/medicine-lab#clinical-report-analyzer');
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '7px 14px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#FFF',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.2)'
+                }}
+              >
+                + Attach Lab Report
+              </button>
+            </div>
+          ) : (
             <div style={{ display: 'grid', gap: '8px' }}>
               {documents.map((doc) => (
                 <div
@@ -948,8 +942,8 @@ export default function WarRoom() {
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         {/* Specialty Filter Tabs */}
         <section 

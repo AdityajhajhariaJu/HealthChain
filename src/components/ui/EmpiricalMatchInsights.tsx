@@ -73,8 +73,30 @@ export const EmpiricalMatchInsights: React.FC<EmpiricalMatchInsightsProps> = ({
       </div>
 
       {/* Insight Cards Stream */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {insights.map((item) => {
+      {insights.length === 0 ? (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '20px',
+            padding: '28px 20px',
+            border: '1.5px dashed #CBD5E1',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569' }}>
+            No Recurring Triggers Identified Yet
+          </div>
+          <div style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '380px', lineHeight: 1.4 }}>
+            Log your meals and postprandial reactions to detect mathematical trigger correlations and personalized swaps.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {insights.map((item) => {
           const isExpanded = expandedId === item.id;
           const isHighMatch = item.correlationPercent >= 80;
 
@@ -283,7 +305,8 @@ export const EmpiricalMatchInsights: React.FC<EmpiricalMatchInsightsProps> = ({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

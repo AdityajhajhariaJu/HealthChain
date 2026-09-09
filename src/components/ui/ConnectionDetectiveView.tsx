@@ -88,7 +88,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   const [activeSystemFilter, setActiveSystemFilter] = useState<string>('all');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>(['symp_fatigue', 'symp_palpitations', 'symp_bloat']);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [isCopied, setIsCopied] = useState(false);
 
   // Active selected node detail
@@ -190,12 +190,12 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               fontWeight: 800,
               padding: '3px 10px',
               borderRadius: '999px',
-              background: '#ECFDF5',
-              color: '#059669',
-              border: '1px solid #A7F3D0',
+              background: report.matchConfidence > 0 ? '#ECFDF5' : '#F1F5F9',
+              color: report.matchConfidence > 0 ? '#059669' : '#64748B',
+              border: report.matchConfidence > 0 ? '1px solid #A7F3D0' : '1px solid #CBD5E1',
             }}
           >
-            {report.matchConfidence}% Panel Consensus
+            {report.matchConfidence > 0 ? `${report.matchConfidence}% Panel Consensus` : 'Awaiting Clinical Data'}
           </span>
         </div>
 
@@ -687,17 +687,80 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {/* TAB 2: CAUSAL FLOW CASCADE */}
       {activeTab === 'cascade' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '22px',
-              padding: '18px 20px',
-              border: '1.5px solid #E2E8F0',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
-            }}
-          >
-            <div style={{ marginBottom: '14px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+          {report.cascadeStages.length === 0 ? (
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: isMobile ? '28px 20px' : '40px 32px',
+                border: '1.5px dashed #CBD5E1',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '26px',
+                  border: '1px solid #99F6E4',
+                }}
+              >
+                ⚡
+              </div>
+              <div style={{ maxWidth: '420px' }}>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
+                  Awaiting Clinical Intake
+                </h4>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  Multi-stage physiological causal cascades map upstream triggers to downstream symptoms once your profile or consultation is active.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    if (onOpenConsult) onOpenConsult();
+                    else window.location.href = '/app/consult';
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(13, 148, 136, 0.25)',
+                  }}
+                >
+                  + Start Consultation
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '22px',
+                padding: '18px 20px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                 THE ROOT-CAUSE DOMINO EFFECT
               </span>
               <h4 style={{ margin: '2px 0 0 0', fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
@@ -872,6 +935,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               );
             })()}
           </div>
+          )}
         </div>
       )}
 
@@ -1020,14 +1084,78 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {/* TAB 4: SPECIALIST BOARD CONSENSUS */}
       {activeTab === 'consensus' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              6-DISCIPLINE CLINICAL CONSENSUS PANELS
-            </span>
-            <span style={{ fontSize: '11px', color: '#059669', fontWeight: 800 }}>
-              ● All 6 Medical Panels Aligned
-            </span>
-          </div>
+          {report.consensusDialogue.length === 0 ? (
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: isMobile ? '28px 20px' : '40px 32px',
+                border: '1.5px dashed #CBD5E1',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '26px',
+                  border: '1px solid #BFDBFE',
+                }}
+              >
+                🏛️
+              </div>
+              <div style={{ maxWidth: '420px' }}>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
+                  Awaiting Multi-Disciplinary Intake
+                </h4>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  Autonomous specialist boards (Cardiology, Gastroenterology, Endocrinology, Neurology, Biomechanics) assemble and synthesize diagnostic findings once clinical records or symptoms are provided.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    if (onOpenConsult) onOpenConsult();
+                    else window.location.href = '/app/consult';
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(2, 132, 199, 0.25)',
+                  }}
+                >
+                  + Start Consultation
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  6-DISCIPLINE CLINICAL CONSENSUS PANELS
+                </span>
+                <span style={{ fontSize: '11px', color: '#059669', fontWeight: 800 }}>
+                  ● All 6 Medical Panels Aligned
+                </span>
+              </div>
 
           {report.consensusDialogue.map((dialogue, idx) => (
             <motion.div
@@ -1109,86 +1237,218 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               </div>
             </motion.div>
           ))}
+            </>
+          )}
         </div>
       )}
 
       {/* TAB 5: WHAT 15-MINUTE DOCTOR VISITS MISSED */}
       {activeTab === 'misses' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div
-            style={{
-              background: '#FFF1F2',
-              borderRadius: '16px',
-              padding: '14px 16px',
-              border: '1px solid #FECDD3',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-            }}
-          >
-            <AlertTriangle size={20} color="#E11D48" style={{ flexShrink: 0 }} />
-            <div>
-              <strong style={{ fontSize: '13.5px', color: '#BE123C', display: 'block' }}>
-                The Single-Specialist Silo Problem
-              </strong>
-              <span style={{ fontSize: '12px', color: '#9F1239' }}>
-                Standard 15-minute consultations review single organs in isolation. Here are the specific clinical blind spots HealthChain resolved.
-              </span>
-            </div>
-          </div>
-
-          {report.clinicalMisses.map((item, idx) => (
+          {report.clinicalMisses.length === 0 ? (
             <div
-              key={idx}
               style={{
                 background: '#FFFFFF',
-                borderRadius: '18px',
-                padding: '16px 18px',
-                border: '1.5px solid #F1F5F9',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
+                borderRadius: '24px',
+                padding: isMobile ? '28px 20px' : '40px 32px',
+                border: '1.5px dashed #CBD5E1',
+                textAlign: 'center',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
               }}
             >
-              <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                {item.overlookedBy}
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '26px',
+                  border: '1px solid #FECDD3',
+                }}
+              >
+                ⚠️
               </div>
-
-              <div style={{ background: '#FEF2F2', padding: '10px 12px', borderRadius: '10px', border: '1px solid #FCA5A5' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                  Routine 15-Min Conclusion:
-                </span>
-                <span style={{ fontSize: '12.5px', color: '#991B1B' }}>{item.standardFinding}</span>
+              <div style={{ maxWidth: '420px' }}>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
+                  Awaiting Clinical Records
+                </h4>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  Discrepancy and blind-spot detection compares standard 15-minute visits against multi-disciplinary functional targets once your clinical history is logged.
+                </p>
               </div>
-
-              <div style={{ background: '#F0FDF4', padding: '10px 12px', borderRadius: '10px', border: '1px solid #86EFAC' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                  What Was Missed (HealthChain Connection):
-                </span>
-                <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 600 }}>{item.whatWasMissed}</span>
-              </div>
-
-              <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-                <strong>Clinical Consequence:</strong> {item.clinicalImpact}
-              </div>
-
-              <div style={{ fontSize: '11.5px', color: '#0284C7', background: '#F0F9FF', padding: '6px 10px', borderRadius: '8px', border: '1px solid #BAE6FD' }}>
-                🔗 <strong>Hidden Systemic Mechanism:</strong> {item.hiddenConnection}
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    if (onOpenConsult) onOpenConsult();
+                    else window.location.href = '/app/consult';
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(225, 29, 72, 0.25)',
+                  }}
+                >
+                  + Start Consultation
+                </button>
               </div>
             </div>
-          ))}
+          ) : (
+            <>
+              <div
+                style={{
+                  background: '#FFF1F2',
+                  borderRadius: '16px',
+                  padding: '14px 16px',
+                  border: '1px solid #FECDD3',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <AlertTriangle size={20} color="#E11D48" style={{ flexShrink: 0 }} />
+                <div>
+                  <strong style={{ fontSize: '13.5px', color: '#BE123C', display: 'block' }}>
+                    The Single-Specialist Silo Problem
+                  </strong>
+                  <span style={{ fontSize: '12px', color: '#9F1239' }}>
+                    Standard 15-minute consultations review single organs in isolation. Here are the specific clinical blind spots HealthChain resolved.
+                  </span>
+                </div>
+              </div>
+
+              {report.clinicalMisses.map((item, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '18px',
+                    padding: '16px 18px',
+                    border: '1.5px solid #F1F5F9',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                    {item.overlookedBy}
+                  </div>
+
+                  <div style={{ background: '#FEF2F2', padding: '10px 12px', borderRadius: '10px', border: '1px solid #FCA5A5' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      Routine 15-Min Conclusion:
+                    </span>
+                    <span style={{ fontSize: '12.5px', color: '#991B1B' }}>{item.standardFinding}</span>
+                  </div>
+
+                  <div style={{ background: '#F0FDF4', padding: '10px 12px', borderRadius: '10px', border: '1px solid #86EFAC' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      What Was Missed (HealthChain Connection):
+                    </span>
+                    <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 600 }}>{item.whatWasMissed}</span>
+                  </div>
+
+                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
+                    <strong>Clinical Consequence:</strong> {item.clinicalImpact}
+                  </div>
+
+                  <div style={{ fontSize: '11.5px', color: '#0284C7', background: '#F0F9FF', padding: '6px 10px', borderRadius: '8px', border: '1px solid #BAE6FD' }}>
+                    🔗 <strong>Hidden Systemic Mechanism:</strong> {item.hiddenConnection}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 
       {/* TAB 6: DOCTOR DOSSIER (<60s SBAR BRIEF) */}
       {activeTab === 'dossier' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Action Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              PHYSICIAN-READY APPOINTMENT BRIEF
-            </span>
+          {report.doctorDossier.testsToOrder.length === 0 ? (
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                padding: isMobile ? '28px 20px' : '40px 32px',
+                border: '1.5px dashed #CBD5E1',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '26px',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                📋
+              </div>
+              <div style={{ maxWidth: '420px' }}>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
+                  Clinical Dossier Pending Intake
+                </h4>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  A physician-ready SBAR brief and prioritized diagnostic workup orders will generate once an intake consultation is complete or lab panels are analyzed.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHapticLight();
+                    if (onOpenConsult) onOpenConsult();
+                    else window.location.href = '/app/consult';
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(2, 132, 199, 0.25)',
+                  }}
+                >
+                  + Start Consultation
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Action Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  PHYSICIAN-READY APPOINTMENT BRIEF
+                </span>
 
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
@@ -1371,6 +1631,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
 

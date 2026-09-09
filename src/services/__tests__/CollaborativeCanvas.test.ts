@@ -3,9 +3,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { evaluateEmergencyTriage } from '../clinicalTriageEngine';
 import { recordHealthMemory, getHealthMemory } from '../HealthMemory';
 import { getProfile } from '../ProfileEngine';
-import { getActiveCase } from '../CaseEngine';
 import { getFunctionalBiomarkers } from '../ConnectionDetectiveEngine';
-import { getActiveTrial } from '../TriggerEngine';
+import { getActiveTrial, startTrial } from '../TriggerEngine';
 
 describe('Collaborative Canvas & War Room Clinical Engine', () => {
   beforeEach(() => {
@@ -124,6 +123,7 @@ describe('Collaborative Canvas & War Room Clinical Engine', () => {
     });
 
     it('retrieves active elimination trial state with adherence and delta metrics', () => {
+      startTrial('hunt_histamine');
       const trial = getActiveTrial();
       expect(trial).not.toBeNull();
       expect(trial?.trialId).toBeDefined();

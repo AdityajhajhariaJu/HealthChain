@@ -16,12 +16,7 @@ const STORAGE_KEY_VITAMINS = 'healthchain_vitamins_schedule_v2';
 const STORAGE_KEY_LOGS = 'healthchain_vitamins_taken_logs';
 const NOTIFICATION_BASE_ID = 2000;
 
-const DEFAULT_VITAMINS: VitaminItem[] = [
-  { id: 'vit_multi', name: 'Daily Multivitamin', dosage: '1 tablet with meal', time: '08:30', enabled: true },
-  { id: 'vit_d3', name: 'Vitamin D3 & K2', dosage: '2000 IU', time: '09:00', enabled: true },
-  { id: 'vit_omega', name: 'Omega-3 Fish Oil', dosage: '1000mg', time: '13:00', enabled: true },
-  { id: 'vit_mag', name: 'Magnesium Glycinate', dosage: '200mg before sleep', time: '21:30', enabled: true }
-];
+const DEFAULT_VITAMINS: VitaminItem[] = [];
 
 export function getTodayDateString(): string {
   return new Date().toISOString().split('T')[0];
@@ -36,12 +31,17 @@ export function getVitaminSchedule(): VitaminItem[] {
     const raw = getItemSync(STORAGE_KEY_VITAMINS);
     if (raw) {
       list = JSON.parse(raw);
+      // Self-healing migration: strip out any legacy hardcoded mock pill demo seeds
+      if (Array.isArray(list) && list.some(i => ['vit_multi', 'vit_d3', 'vit_omega', 'vit_mag'].includes(i.id))) {
+        list = list.filter(i => !['vit_multi', 'vit_d3', 'vit_omega', 'vit_mag'].includes(i.id));
+        setItemSync(STORAGE_KEY_VITAMINS, JSON.stringify(list));
+      }
     } else {
-      list = [...DEFAULT_VITAMINS];
+      list = [];
       setItemSync(STORAGE_KEY_VITAMINS, JSON.stringify(list));
     }
   } catch (e) {
-    list = [...DEFAULT_VITAMINS];
+    list = [];
   }
 
   // Merge today's taken logs

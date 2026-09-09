@@ -18,7 +18,7 @@ export interface TherapeuticOutcomeCardProps {
 
 export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ span2 = false }) => {
   const isMobile = useIsMobile();
-  const [trial, setTrial] = useState<ActiveTrialState>(() => getActiveTrial() || startTrial('low_histamine'));
+  const [trial, setTrial] = useState<ActiveTrialState | null>(() => getActiveTrial());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [justLogged, setJustLogged] = useState(false);
@@ -27,7 +27,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
   useEffect(() => {
     const handleUpdate = () => {
       const current = getActiveTrial();
-      if (current) setTrial(current);
+      setTrial(current);
     };
     window.addEventListener('hc_trial_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -37,7 +37,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
     };
   }, []);
 
-  const activeProtocolDef = ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0];
+  const activeProtocolDef = trial ? (ELIMINATION_PROTOCOLS.find((p) => p.id === trial.trialId) || ELIMINATION_PROTOCOLS[0]) : null;
 
   const handleQuickLog = (score: number) => {
     triggerHapticSuccess();
@@ -59,7 +59,9 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
       <motion.div
         role="button"
         tabIndex={0}
-        aria-label={`7-Day Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to manage protocol, rechallenges and doctor dossier`}
+        aria-label={trial 
+          ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to manage protocol, rechallenges and doctor dossier` 
+          : 'Elimination Protocol - Inactive. Tap to select a targeted washout protocol'}
         whileHover={{ y: -3, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -113,38 +115,59 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-            <div
-              className="tabular-nums micro-badge"
-              style={{
-                background: 'rgba(124, 58, 237, 0.12)',
-                color: '#6D28D9',
-                padding: '3px 8px',
-                borderRadius: '999px',
-                fontSize: '10px',
-                fontWeight: 700,
-                letterSpacing: '0.4px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0
-              }}
-            >
-              DAY {trial.currentDay}/{trial.totalDays}
-            </div>
-            {trial.reductionPercent > 0 && (
+            {trial ? (
+              <>
+                <div
+                  className="tabular-nums micro-badge"
+                  style={{
+                    background: 'rgba(124, 58, 237, 0.12)',
+                    color: '#6D28D9',
+                    padding: '3px 8px',
+                    borderRadius: '999px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    letterSpacing: '0.4px',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}
+                >
+                  DAY {trial.currentDay}/{trial.totalDays}
+                </div>
+                {trial.reductionPercent > 0 && (
+                  <div
+                    className="tabular-nums micro-badge"
+                    style={{
+                      background: '#DCFCE7',
+                      color: '#15803D',
+                      padding: '3px 7px',
+                      borderRadius: '999px',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      letterSpacing: '0.2px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}
+                  >
+                    -{trial.reductionPercent}%
+                  </div>
+                )}
+              </>
+            ) : (
               <div
-                className="tabular-nums micro-badge"
+                className="micro-badge"
                 style={{
-                  background: '#DCFCE7',
-                  color: '#15803D',
-                  padding: '3px 7px',
+                  background: 'rgba(124, 58, 237, 0.08)',
+                  color: '#7C3AED',
+                  padding: '3px 8px',
                   borderRadius: '999px',
                   fontSize: '10px',
                   fontWeight: 800,
-                  letterSpacing: '0.2px',
+                  letterSpacing: '0.4px',
                   whiteSpace: 'nowrap',
                   flexShrink: 0
                 }}
               >
-                -{trial.reductionPercent}%
+                SELECT PROTOCOL
               </div>
             )}
           </div>
@@ -162,7 +185,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               letterSpacing: '-0.3px'
             }}
           >
-            {activeProtocolDef.name}
+            {activeProtocolDef ? activeProtocolDef.name : 'Clinical Elimination Suite'}
           </h4>
           <p
             style={{
@@ -173,85 +196,111 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
               lineHeight: 1.3
             }}
           >
-            {justLogged
-              ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent}% delta)`
-              : `Phase 1: Washout • ${trial.adherencePercentage}% Adherence`}
+            {trial ? (
+              justLogged
+                ? `✓ Logged: ${trial.currentSeverity}/10 (${trial.reductionPercent}% delta)`
+                : `Phase 1: Washout • ${trial.adherencePercentage}% Adherence`
+            ) : (
+              'Isolate food sensitivities with structured 7-day or 28-day protocols.'
+            )}
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
-            {!isLogging ? (
+            {trial ? (
+              !isLogging ? (
+                <button
+                  type="button"
+                  data-compact="true"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerHapticLight();
+                    setIsLogging(true);
+                  }}
+                  aria-label="Log today symptom severity"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'rgba(124, 58, 237, 0.1)',
+                    border: '1px solid rgba(124, 58, 237, 0.25)',
+                    borderRadius: '6px',
+                    padding: '2px 7px',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    color: '#6D28D9',
+                    cursor: 'pointer',
+                    minWidth: 'unset',
+                    minHeight: 'unset',
+                    height: 'auto',
+                    width: 'fit-content'
+                  }}
+                >
+                  <Activity size={10} />
+                  <span>Check-In</span>
+                </button>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: '#FFFFFF',
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    border: '1px solid #CBD5E1',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span style={{ fontSize: '9px', color: '#64748B', fontWeight: 700 }}>Score:</span>
+                  {[2, 4, 6, 8].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => handleQuickLog(val)}
+                      style={{
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        fontSize: '9.5px',
+                        fontWeight: 800,
+                        border: '1px solid #CBD5E1',
+                        background: val <= 4 ? '#ECFDF5' : '#FEF2F2',
+                        color: val <= 4 ? '#059669' : '#DC2626',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsLogging(false)}
+                    style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '10px', cursor: 'pointer', padding: '0 2px' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )
+            ) : (
               <button
                 type="button"
-                data-compact="true"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  triggerHapticLight();
-                  setIsLogging(true);
-                }}
-                aria-label="Log today symptom severity"
+                onClick={handleOpenModal}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '4px',
-                  background: 'rgba(124, 58, 237, 0.1)',
-                  border: '1px solid rgba(124, 58, 237, 0.25)',
+                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(109, 40, 217, 0.1) 100%)',
+                  border: '1px solid rgba(124, 58, 237, 0.3)',
                   borderRadius: '6px',
-                  padding: '2px 7px',
-                  fontSize: '10px',
+                  padding: '3px 9px',
+                  fontSize: '10.5px',
                   fontWeight: 700,
                   color: '#6D28D9',
-                  cursor: 'pointer',
-                  minWidth: 'unset',
-                  minHeight: 'unset',
-                  height: 'auto',
-                  width: 'fit-content'
+                  cursor: 'pointer'
                 }}
               >
-                <Activity size={10} />
-                <span>Check-In</span>
+                + Choose Protocol
               </button>
-            ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: '#FFFFFF',
-                  padding: '2px 6px',
-                  borderRadius: '6px',
-                  border: '1px solid #CBD5E1',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span style={{ fontSize: '9px', color: '#64748B', fontWeight: 700 }}>Score:</span>
-                {[2, 4, 6, 8].map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => handleQuickLog(val)}
-                    style={{
-                      padding: '1px 5px',
-                      borderRadius: '4px',
-                      fontSize: '9.5px',
-                      fontWeight: 800,
-                      border: '1px solid #CBD5E1',
-                      background: val <= 4 ? '#ECFDF5' : '#FEF2F2',
-                      color: val <= 4 ? '#059669' : '#DC2626',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {val}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setIsLogging(false)}
-                  style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '10px', cursor: 'pointer', padding: '0 2px' }}
-                >
-                  ✕
-                </button>
-              </div>
             )}
 
             <button
