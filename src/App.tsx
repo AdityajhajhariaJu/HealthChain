@@ -179,7 +179,7 @@ export default function App() {
             localStorage.setItem('hc_vip_tester', 'true');
             localStorage.setItem('hc_guest_mode', 'false');
             window.dispatchEvent(new Event('hc_profile_updated'));
-            info('ðŸŽ‰ VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
+            info('🎉 VIP Tester Pass Activated! All 16 AI Specialists & Pro features are unlocked.');
             params.delete('vip_pass');
             params.delete('tester');
             params.delete('test_pass');

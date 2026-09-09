@@ -1,4 +1,5 @@
 import React, { useRef, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -92,6 +93,7 @@ function GalleryRig({ records }: { records: SpatialRecordItem[] }) {
 }
 
 export function SpatialGalleryCanvas({ records: propRecords }: { records?: SpatialRecordItem[] }) {
+  const navigate = useNavigate();
   const records = useMemo(() => {
     if (propRecords && propRecords.length > 0) return propRecords;
     try {
@@ -156,7 +158,7 @@ export function SpatialGalleryCanvas({ records: propRecords }: { records?: Spati
         </p>
         <button
           onClick={() => {
-            window.location.hash = '#/profile';
+            navigate('/app/profile');
           }}
           style={{
             padding: '10px 20px',

@@ -388,7 +388,10 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
               if (onOpenKineticMap) {
                 onOpenKineticMap();
               } else {
-                window.location.hash = '/app/connection-detective';
+                window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'map' } }));
+                if (!window.location.pathname.includes('/consult') && !window.location.pathname.includes('/ava')) {
+                  window.location.assign('/app/consult');
+                }
               }
             }}
             style={{

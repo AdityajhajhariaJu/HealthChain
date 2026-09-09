@@ -7,7 +7,8 @@ export { parseModelJson } from './modelJson';
 import { evaluateBiomarkerFunctionally } from './functionalBiomarkers';
 import { getDeterministicMedicineData } from './clinicalPharmacyData';
 
-const API_URL = import.meta.env.DEV ? 'http://localhost:3000/api/gemini' : '/api/gemini';
+const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || (import.meta.env.DEV ? 'http://localhost:3000' : '');
+const API_URL = `${BACKEND_BASE}/api/gemini`;
 
 async function sha256Hash(text: string): Promise<string> {
   try {

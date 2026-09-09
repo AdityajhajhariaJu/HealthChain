@@ -401,7 +401,7 @@ const MessageRenderer = ({
           kineticPathway={payload?.kineticPathway}
           suspectVectors={payload?.suspectVectors}
           onOpenKineticMap={() => {
-            window.location.hash = '/app/connection-detective';
+            window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'map' } }));
           }}
         />
         {after && <span>{after}</span>}

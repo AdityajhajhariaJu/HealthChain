@@ -297,8 +297,8 @@ export default function OnboardingFlow() {
       completeProfileOnboarding({
         demographics: {
           name: name.trim() || existingProfile?.demographics?.name || 'Patient',
-          age: age || 28,
-          gender: gender || 'Male',
+          age: age ? String(age).trim() : (existingProfile?.demographics?.age || ''),
+          gender: gender || existingProfile?.demographics?.gender || 'Not Specified',
           height: String(heightCm),
           weight: String(weightKg),
           bloodGroup: existingProfile?.demographics?.bloodGroup || 'Unknown',
