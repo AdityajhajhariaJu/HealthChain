@@ -6,7 +6,8 @@ import { useActionIslandStore } from '../../store/actionIslandStore';
 
 export const MedicalActionIsland = () => {
   const [expanded, setExpanded] = useState(false);
-  const { currentState, title, subtitle, actionText, onAction, dismissIsland } = useActionIslandStore();
+  const { currentState, title, subtitle, actionText, onAction, dismissIsland } =
+    useActionIslandStore();
 
   // Auto-collapse after some time
   useEffect(() => {
@@ -36,17 +37,19 @@ export const MedicalActionIsland = () => {
   if (currentState === 'idle') return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 'calc(var(--safe-area-top, 44px) + 8px)',
-      left: 0,
-      right: 0,
-      display: 'flex',
-      justifyContent: 'center',
-      zIndex: 9999,
-      pointerEvents: 'none',
-      marginTop: '12px'
-    }}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 'calc(var(--safe-area-top, 44px) + 8px)',
+        left: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        zIndex: 9999,
+        pointerEvents: 'none',
+        marginTop: '12px',
+      }}
+    >
       <motion.div
         layout
         role="button"
@@ -76,21 +79,32 @@ export const MedicalActionIsland = () => {
           pointerEvents: 'auto',
           cursor: 'pointer',
           minWidth: expanded ? '320px' : 'auto',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
-        transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
       >
-        <motion.div layout style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+        <motion.div
+          layout
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}
+        >
           {/* Icon */}
-          <motion.div layout style={{ 
-            width: '32px', height: '32px', borderRadius: '50%', 
-            background: currentState === 'medication' 
-              ? 'rgba(244, 63, 94, 0.2)' 
-              : currentState === 'calm'
-              ? 'rgba(56, 189, 248, 0.25)'
-              : 'rgba(16, 185, 129, 0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
+          <motion.div
+            layout
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background:
+                currentState === 'medication'
+                  ? 'rgba(244, 63, 94, 0.2)'
+                  : currentState === 'calm'
+                    ? 'rgba(56, 189, 248, 0.25)'
+                    : 'rgba(16, 185, 129, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             {currentState === 'medication' ? (
               <Pill size={16} color="#F43F5E" />
             ) : currentState === 'calm' ? (
@@ -110,10 +124,35 @@ export const MedicalActionIsland = () => {
                 transition={{ duration: 0.2 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <span style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: 600, letterSpacing: '-0.2px' }}>
-                    {title}
-                  </span>
-                  <button onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} style={{ background: 'transparent', border: 'none', color: '#94A3B8', padding: '4px', marginLeft: '2px', display: 'flex', cursor: 'pointer' }}><X size={14} /></button>
+                <span
+                  style={{
+                    color: '#F8FAFC',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    letterSpacing: '-0.2px',
+                  }}
+                >
+                  {title}
+                </span>
+                <button
+                  aria-label="Dismiss action island"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    dismissIsland();
+                    setExpanded(false);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94A3B8',
+                    padding: '4px',
+                    marginLeft: '2px',
+                    display: 'flex',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X size={14} />
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -127,12 +166,18 @@ export const MedicalActionIsland = () => {
                 exit={{ opacity: 0 }}
                 style={{ flex: 1 }}
               >
-                <div style={{ color: '#94A3B8', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div
+                  style={{
+                    color: '#94A3B8',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
                   {subtitle}
                 </div>
-                <div style={{ color: '#F8FAFC', fontSize: '16px', fontWeight: 700 }}>
-                  {title}
-                </div>
+                <div style={{ color: '#F8FAFC', fontSize: '16px', fontWeight: 700 }}>{title}</div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -147,28 +192,61 @@ export const MedicalActionIsland = () => {
               exit={{ opacity: 0, height: 0, marginTop: 0 }}
               style={{ width: '100%', display: 'flex', gap: '8px' }}
             >
-              <button 
+              <button
                 type="button"
                 aria-label="Dismiss action island"
-                onClick={(e) => { e.stopPropagation(); dismissIsland(); setExpanded(false); }} 
-                style={{ width: '44px', padding: '12px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', color: '#FFF', display: 'flex', justifyContent: 'center', alignItems: 'center', border: 'none', cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissIsland();
+                  setExpanded(false);
+                }}
+                style={{
+                  width: '44px',
+                  padding: '12px',
+                  borderRadius: '16px',
+                  background: 'rgba(255,255,255,0.1)',
+                  color: '#FFF',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
               >
                 <X size={16} />
               </button>
-                <button 
-                  onClick={handleAction}
-                  style={{ 
-                    flex: 1, padding: '12px', borderRadius: '16px', border: 'none',
-                  background: currentState === 'medication' 
-                    ? '#F43F5E' 
-                    : currentState === 'calm'
-                    ? 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)'
-                    : '#10B981',
-                  color: '#FFFFFF', fontSize: '14px', fontWeight: 700,
-                  display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px'
+              <button
+                onClick={handleAction}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  background:
+                    currentState === 'medication'
+                      ? '#F43F5E'
+                      : currentState === 'calm'
+                        ? 'linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)'
+                        : '#10B981',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
-                <>{actionText} {currentState === 'medication' ? <ShieldCheck size={16} /> : currentState === 'calm' ? <Wind size={16} /> : <ChevronRight size={16} />}</>
+                <>
+                  {actionText}{' '}
+                  {currentState === 'medication' ? (
+                    <ShieldCheck size={16} />
+                  ) : currentState === 'calm' ? (
+                    <Wind size={16} />
+                  ) : (
+                    <ChevronRight size={16} />
+                  )}
+                </>
               </button>
             </motion.div>
           )}
