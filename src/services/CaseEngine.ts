@@ -426,6 +426,17 @@ export function saveReviewSnapshot({
       ...(existing.events || []),
     ].slice(0, 100),
     actions: [...nextActions, ...priorActions].slice(0, 50),
+    differentials: (Array.isArray(report?.topDiagnoses) && report.topDiagnoses.length > 0)
+      ? report.topDiagnoses.map((d: any, idx: number) => ({
+          id: `diff-${idx}-${Date.now()}`,
+          condition: typeof d === 'string' ? d : d.condition || 'Clinical Finding',
+          probability: typeof d.confidence === 'number' ? d.confidence : parseInt(d.confidence) || 75,
+          trend: 'stable' as const,
+          supportingEvidence: d.rationale ? [d.rationale] : [],
+          refutingEvidence: [],
+          nextBestTests: (report?.doctorActionPlan?.confirmatoryTests || []).map((t: any) => typeof t === 'string' ? t : t.test || '')
+        }))
+      : existing.differentials,
   };
 
   save(cases.map((item) => (item.id === caseId ? updated : item)));

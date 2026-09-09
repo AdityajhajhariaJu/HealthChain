@@ -675,14 +675,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route
-            path="/app/jarvis"
-            element={
-              <SafeRoute>
-                <JarvisInvestigator />
-              </SafeRoute>
-            }
-          />
+          <Route path="/app/jarvis" element={<Navigate to="/app/consult" replace />} />
 
           <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
           <Route path="/app/admin/content" element={<SafeRoute><AdminContentDashboard /></SafeRoute>} />

@@ -121,8 +121,8 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                       borderRadius: 10,
                       display: 'grid',
                       placeItems: 'center',
-                      background: isParallel ? '#eef2ff' : '#ecfdf5',
-                      color: isParallel ? '#4f46e5' : '#059669',
+                      background: isJarvis ? '#FFF7ED' : isParallel ? '#eef2ff' : '#ecfdf5',
+                      color: isJarvis ? '#EA580C' : isParallel ? '#4f46e5' : '#059669',
                     }}
                   >
                     <Icon size={16} />
@@ -148,7 +148,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
                 <div>
                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <h2 style={{ margin: 0, fontSize: isMobile ? 20 : 24 }}>
-                        {activeReview.type === 'parallel' ? 'Parallel Review Report' : 'Deep Collab Consensus Report'}
+                        {activeReview.type === 'jarvis' ? 'Clinical Data Engine Analysis Report' : activeReview.type === 'parallel' ? 'Parallel Review Report' : 'Clinical Consensus Report'}
                       </h2>
                       {activeReview.id === reviews[reviews.length - 1].id && (
                          <span className="badge badge-teal">Latest</span>

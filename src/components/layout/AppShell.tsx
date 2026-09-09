@@ -35,9 +35,7 @@ function AnimatedOutlet() {
 
 const links: any[] = [
   { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
-  { to: '/app/consult', label: 'Consult', icon: Stethoscope },
-
-  { to: '/app/jarvis', label: 'Clinical Data Engine', icon: BrainCircuit },
+  { to: '/app/consult', label: 'Clinical Data Engine', icon: BrainCircuit },
   { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
   { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
   { to: '/app/my-cases', label: 'My Cases', icon: Archive },
@@ -49,7 +47,7 @@ const links: any[] = [
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
-  { to: '/app/consult', label: 'Consult', icon: Stethoscope },
+  { to: '/app/consult', label: 'Clinical Engine', icon: BrainCircuit },
   { to: '/app/ava', label: 'Ava', icon: Heart },
   { to: '/app/dietician', label: 'Diet', icon: Apple },
 ];
@@ -180,8 +178,8 @@ export default function AppShell() {
     if (metaThemeColor) {
       if (location.pathname.startsWith('/app/ava')) {
         metaThemeColor.setAttribute('content', '#FDE4D3'); // Soft sunset peach
-      } else if (location.pathname.startsWith('/app/jarvis')) {
-        metaThemeColor.setAttribute('content', '#F1F5F9'); // Slate
+      } else if (location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) {
+        metaThemeColor.setAttribute('content', '#FFF7ED'); // Warm amber clinical
       } else {
         metaThemeColor.setAttribute('content', '#F0FDFA'); // Light teal default
       }

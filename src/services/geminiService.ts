@@ -1942,29 +1942,67 @@ CRITICAL CLINICAL RULES:
    - Enteric DAO Intolerance: How histamine overload saturates brush border DAO, driving mesenteric vasodilation and orthostatic compensatory heart rate spikes.
 
 YOUR MISSION:
-1. Identify "Sub-clinical" biomarkers: Look for labs that are technically "in range" but indicate suboptimal functional health.
-2. Find Systemic Patterns: Connect relevant symptoms to underlying physiological mechanisms (e.g., GI inflammation, Dysautonomia, Gut-Brain axis, Craniosacral Dural tension, Autoimmune, Metabolic).
-3. Generate the "Missing Link": Explain what conventional single-organ evaluations often miss and what questions to explore next.
+1. Identify "Sub-clinical" biomarkers: Look for labs that are technically "in range" but indicate suboptimal functional health. If real lab files or numbers were provided, use them; if no labs were provided, state that clearly.
+2. Find Systemic Patterns: Connect presenting symptoms to underlying physiological mechanisms (e.g., GI inflammation, Dysautonomia, Gut-Brain axis, Craniosacral Dural tension, Autoimmune, Metabolic).
+3. Generate the 3-Step Domino Chain: Root Trigger -> Physiological Cascade -> Current Symptoms.
+4. Highlight Doctor Blindspots ("The Missing Link"): Explain what conventional single-organ evaluations miss.
+5. Create a Doctor-Ready Action Plan: Top 2-3 precise confirmatory lab tests to request, plus an SBAR brief (Situation, Background, Assessment, Recommendation) formatted for a physician.
+6. Provide a 24-Hour Immediate Relief Protocol: Practical dietary swaps, somatic/hydration pacing, and emergency red-flag safety warnings.
 
 Return ONLY a JSON object with this exact structure:
 {
-  "executiveSummary": "A deeply empathetic, brilliant summary of the patient's long-term suffering and the primary pattern you have identified.",
+  "primaryHypothesis": "Exact primary root-cause hypothesis (e.g., Subclinical Postural Tachycardia secondary to Cellular Iron Depletion and Enteric Histamine Spillover)",
+  "matchConfidence": 84,
+  "executiveSummary": "A direct, unvarnished clinical summary explaining the patient's pattern and root cause in plain, empathetic English.",
+  "dominoChain": {
+    "step1_trigger": "Root biological trigger (e.g., Gut dysbiosis & impaired DAO enzyme clearance)",
+    "step2_cascade": "Cross-system physiological cascade (e.g., Excess histamine triggers mesenteric vasodilation and venous pooling)",
+    "step3_symptoms": "Current symptom manifestation (e.g., Compensatory orthostatic tachycardia (+38 bpm) and cerebral hypoperfusion causing brain fog)"
+  },
   "functionalBiomarkers": [
-    { "biomarker": "Ferritin", "value": "15", "standardRange": "12-150", "optimalRange": "50-100", "insight": "While technically 'normal', levels under 30 cause severe fatigue and restless leg syndrome." }
+    {
+      "biomarker": "Serum Ferritin",
+      "value": "18 ng/mL",
+      "standardRange": "12-150 ng/mL",
+      "optimalRange": "50-100 ng/mL",
+      "clinicalRisk": "While technically 'normal', levels under 40 ng/mL cause cellular fatigue and restless legs."
+    }
   ],
   "systemicPatterns": [
-    { "pattern": "Post-Viral Dysautonomia", "evidence": "Started after a viral infection, includes dizziness, GI stasis, and fatigue." }
+    { "pattern": "Post-Viral Dysautonomia", "evidence": "Orthostatic heart rate spikes with cranial hypoperfusion." }
   ],
   "missingLinks": [
-    "Endocrinologists looked at TSH but missed Free T3 pooling.",
-    "GI doctor treated IBS, but missed the mast cell connection to the rashes."
+    "Doctors tested CBC hemoglobin but missed bone marrow ferritin depletion.",
+    "GI evaluated reflux in isolation, missing histamine-driven vasodilation."
   ],
   "topDiagnoses": [
-    { "condition": "Mast Cell Activation Syndrome", "rationale": "Explains the systemic, multi-organ inflammation and normal standard labs.", "confidence": 75 }
+    { "condition": "Postural Orthostatic Tachycardia Syndrome (POTS)", "rationale": "Matches orthostatic heart rate acceleration and autonomic instability.", "confidence": 84 }
   ],
+  "doctorActionPlan": {
+    "confirmatoryTests": [
+      { "test": "Total Iron Binding Capacity (TIBC) & Ferritin", "rationale": "Assess functional bone marrow iron reserves.", "priority": "High" },
+      { "test": "Plasma Histamine & 24-hr Urine Methylhistamine", "rationale": "Quantify mast cell degranulation during symptomatic flares.", "priority": "High" }
+    ],
+    "sbar": {
+      "situation": "Patient presenting with orthostatic tachycardia and cognitive slowing.",
+      "background": "Chronic multi-system symptoms with standard lab panels reported as unremarkable.",
+      "assessment": "High clinical suspicion for subclinical autonomic dysregulation and functional iron depletion.",
+      "recommendation": "Order targeted functional iron panel and orthostatic vital challenge."
+    }
+  },
+  "immediateRelief": {
+    "dietSwaps": [
+      "Eliminate aged cheeses, red wine, and fermented foods for 72 hours (low-histamine trial).",
+      "Increase unrefined sea salt and electrolyte intake to expand intravascular volume."
+    ],
+    "pacingProtocol": "Drink 500 mL water 15 minutes before standing; perform calf pumps before rising.",
+    "redFlags": [
+      "Chest pain radiating to the jaw/arm, true syncope (blacking out), or shortness of breath at rest require immediate emergency medical care."
+    ]
+  },
   "questionsForClinician": [
-    "Should we run a tryptase panel during a flare?",
-    "Could this be functional B12 deficiency despite normal serum levels?"
+    "Should we run a comprehensive iron panel including ferritin and transferrin saturation?",
+    "Could this be functional dysautonomia driven by mast cell or gut mediators?"
   ]
 }`;
 
