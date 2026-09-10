@@ -153,14 +153,16 @@ export default function CaseDetail() {
         </button>
       </div>
 
-      {/* Case Header Hero */}
+      {/* Case Header Hero — Polished Case Summary Cover with Translucent Blue Depth */}
       <div className="card" style={{ 
         padding: isMobile ? '20px 16px' : '28px 32px', 
         borderRadius: 24, 
         marginBottom: 24,
-        background: '#FFFFFF',
-        border: '1px solid #E2E8F0',
-        boxShadow: '0 4px 20px rgba(15,23,42,0.03)'
+        background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.75) 45%, #FFFFFF 100%)',
+        border: '1.5px solid rgba(186, 230, 253, 0.85)',
+        boxShadow: '0 10px 30px rgba(14, 165, 233, 0.08), inset 0 1px 2px #FFFFFF',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
       }}>
         <div style={{ 
           display: 'flex', 
@@ -171,15 +173,28 @@ export default function CaseDetail() {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+              {/* Restrained two-tone blue micro-capsule detail */}
               <span style={{ 
                 fontSize: 12, 
                 fontWeight: 700, 
                 padding: '4px 10px', 
                 borderRadius: 999, 
-                background: (caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? '#FFF7ED' : '#ECFDF5', 
-                color: (caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? '#EA580C' : '#047857',
-                border: `1px solid ${(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? '#FED7AA' : '#A7F3D0'}`
+                background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.85) 100%)',
+                color: '#0369A1',
+                border: '1px solid rgba(186, 230, 253, 0.85)',
+                boxShadow: '0 2px 6px rgba(14, 165, 233, 0.08)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
               }}>
+                <span style={{
+                  width: 10,
+                  height: 5,
+                  borderRadius: 2.5,
+                  background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.95) 50%)',
+                  border: '0.8px solid #0284C7',
+                  display: 'inline-block',
+                }} />
                 {(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? 'Clinical Data Engine' : 'Clinical Consultation'}
               </span>
               <span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>
