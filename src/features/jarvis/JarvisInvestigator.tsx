@@ -24,6 +24,9 @@ import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui
 import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
+import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
+import { normalizeClinicalReview } from '../../services/clinicalReview';
 import '../../components/ui/caseWorkspace.css';
 
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
@@ -284,6 +287,39 @@ AI-generated preparation material. Verify against original records; this is not 
     setTimeout(() => setCopiedSbar(false), 3000);
   };
 
+  const [isUpdatingReasoning, setIsUpdatingReasoning] = useState(false);
+
+  const handleClarificationFeedback = async (answer: string) => {
+    if (!report || isUpdatingReasoning) return;
+    setIsUpdatingReasoning(true);
+    try {
+      const updatedReport = normalizeClinicalReview(
+        report,
+        report.reasoningPipeline || null,
+        {
+          questionId: report.reasoningPipeline?.stage7_focusedQuestion?.id || 'clarification_1',
+          answerText: answer,
+        }
+      );
+      setReport(updatedReport);
+
+      if (createdCaseId) {
+        saveReviewSnapshot({
+          caseId: createdCaseId,
+          type: 'jarvis' as any,
+          report: updatedReport,
+          specialists: ['Clinical Data Engine'],
+        });
+      }
+      toast.success('Case Selectively Updated', 'Clarification recorded into verified facts. 10-stage diff recomputed.');
+    } catch (err) {
+      console.error('Failed to update reasoning pipeline:', err);
+      toast.error('Update Failed', 'Could not update the reasoning pipeline.');
+    } finally {
+      setIsUpdatingReasoning(false);
+    }
+  };
+
   const handleRunInvestigation = async () => {
     if (runningRef.current || readingRef.current) return;
     const requestScope = engineScope();
@@ -420,6 +456,15 @@ AI-generated preparation material. Verify against original records; this is not 
             <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
             <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy visit summary'}</button>
           </div>
+
+          {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH ENGINE & CYCLIC FEEDBACK LOOP */}
+          {report && (
+            <ClinicalReasoningPipelineView
+              payload={report.reasoningPipeline || runClinicalReasoningPipeline(report)}
+              onClarificationSubmit={handleClarificationFeedback}
+              isUpdating={isUpdatingReasoning}
+            />
+          )}
           {report.documentedFacts?.length > 0 && (
             <div className="case-workspace-next">
               <h3>What the input documents</h3>

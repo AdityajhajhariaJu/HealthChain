@@ -2,6 +2,10 @@ import {
   classifyClinicalInformation,
   partitionBeforeReasoning,
 } from './ClinicalInformationClassifier';
+import {
+  runClinicalReasoningPipeline,
+  ClinicalReasoningPayload,
+} from './ClinicalReasoningEngine';
 
 /** A source-led schema; examples must never become invented patient findings. */
 export function buildClinicalReviewPrompt(history: string, profile: any): string {
@@ -18,6 +22,18 @@ Categorise information strictly before reasoning about it into the canonical cat
 - open_question (unresolved task)
 - outcome (follow-up that updates the case)
 
+Follow the 10 Reasoning Stages with clinical depth:
+1. Establish facts: Extract what was actually reported or documented with exact sources.
+2. Align time: Distinguish event date, report date, and entry date; identify overlaps and gaps.
+3. Reconcile records: Identify duplicates, changed units, conflicting values, and differing accounts.
+4. Identify relevant perspectives: Choose 2-3 perspectives strictly because they address specific unanswered questions.
+5. Generate alternatives: Consider connected explanations, separate explanations, and insufficient evidence.
+6. Challenge each alternative: What supports it, contradicts it, and would change it (tri-prong).
+7. Choose useful clarification: Ask the single question most likely to improve the next decision.
+8. Synthesize: Explain the main finding, its basis, limitations, and practical implications.
+9. Carry forward: Save open questions and the user's chosen next action.
+10. Update selectively: Revisit conclusions affected by new information.
+
 Do not infer a diagnosis from prior AI output. Do not invent values, dates, reference ranges, citations, specialist reviews, or probabilities.
 Do not claim causal links from association or label a lab abnormal against an invented optimal range. Use the reference interval printed on the record and retain units and date.
 Do not prescribe medication, doses, restrictive diets, supplements, salt/fluid loading, or testing. Frame next steps as questions for the treating clinician. If evidence is insufficient, say so and name the missing information.
@@ -28,6 +44,23 @@ Return concise JSON with the following shape. Empty arrays are valid; never fill
   "documentedFacts": [{"fact":"Fact from provided input", "source":"Specific document name, date, or patient report", "category":"user_report | extracted_finding | recorded_measurement | documented_clinician_assessment | ai_consideration | external_evidence | open_question | outcome"}],
   "uncertainties": ["Information that cannot be determined from this input"],
   "dominoChain": null,
+  "perspectives": [
+    {
+      "specialty": "Relevant clinical board",
+      "doctorName": "Specialty Panel",
+      "unansweredQuestionAddressed": "Exact unanswered question this perspective addresses",
+      "justification": "Why this perspective addresses that question",
+      "uniqueContribution": "Systemic physiological consideration"
+    }
+  ],
+  "alternatives": [
+    {
+      "type": "connected_explanation | separate_explanations | insufficient_evidence",
+      "title": "Alternative explanation title",
+      "mechanismSummary": "Physiological rationale",
+      "likelihoodAssessment": "leading | competing | uncertain"
+    }
+  ],
   "functionalBiomarkers": [{"biomarker":"Only a marker actually provided", "value":"Exact value and units", "standardRange":"Printed range or Not provided", "optimalRange":"Not established", "clinicalRisk":"Contextual explanation without diagnosis"}],
   "systemicPatterns": [{"pattern":"A possible association, explicitly uncertain", "evidence":"Supporting input and limitations"}],
   "missingLinks": ["Relevant information missing from the record"],
@@ -41,7 +74,11 @@ PROFILE DATA:\n${JSON.stringify({ demographics: profile?.demographics || {}, con
 CASE DATA:\n${history}`;
 }
 
-export function normalizeClinicalReview(value: unknown): Record<string, any> {
+export function normalizeClinicalReview(
+  value: unknown,
+  previousPayload?: ClinicalReasoningPayload | null,
+  newFactAnswer?: { questionId: string; answerText: string }
+): Record<string, any> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid clinical review');
   const report = value as Record<string, any>;
   if (typeof report.executiveSummary !== 'string' || !report.executiveSummary.trim()) throw new Error('The review was incomplete. Please retry.');
@@ -67,6 +104,22 @@ export function normalizeClinicalReview(value: unknown): Record<string, any> {
 
   const partitioned = partitionBeforeReasoning(enrichedFacts);
 
+  // Execute the 10-stage Clinical Reasoning Depth Engine & Cyclic Graph Pipeline
+  const reasoningPipeline = runClinicalReasoningPipeline(
+    {
+      documentedFacts: enrichedFacts,
+      primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Multi-system evidence review',
+      executiveSummary: report.executiveSummary,
+      uncertainties: strings(report.uncertainties),
+      missingLinks: strings(report.missingLinks),
+      questionsForClinician: strings(report.questionsForClinician),
+      perspectives: objects(report.perspectives),
+      alternatives: objects(report.alternatives),
+    },
+    previousPayload,
+    newFactAnswer
+  );
+
   return {
     ...report,
     primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Your health record review',
@@ -85,6 +138,17 @@ export function normalizeClinicalReview(value: unknown): Record<string, any> {
       openQuestions: partitioned.openQuestions,
       outcomes: partitioned.outcomes,
     },
+    // The 10-Stage Reasoning Depth Pipeline artifacts
+    reasoningPipeline,
+    perspectives: reasoningPipeline.stage4_perspectives,
+    alternatives: reasoningPipeline.stage5_alternatives,
+    balancedAssessments: reasoningPipeline.stage6_balancedAssessments,
+    focusedQuestion: reasoningPipeline.stage7_focusedQuestion,
+    coherentTimeline: reasoningPipeline.stage2_timeline,
+    correctionQueue: reasoningPipeline.stage3_correctionQueue,
+    clinicalSynthesis: reasoningPipeline.stage8_synthesis,
+    continuityRecord: reasoningPipeline.stage9_continuity,
+    selectiveUpdate: reasoningPipeline.stage10_selectiveUpdate,
     uncertainties: strings(report.uncertainties),
     functionalBiomarkers: objects(report.functionalBiomarkers).map(item => ({ ...item, optimalRange: 'Not established' })),
     systemicPatterns: objects(report.systemicPatterns),

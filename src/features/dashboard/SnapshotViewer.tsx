@@ -12,7 +12,9 @@ import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import PathwaySimulator from './PathwaySimulator';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
+import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
 import { classifyClinicalInformation } from '../../services/ClinicalInformationClassifier';
+import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
 
 const formatDate = (value: string) => {
   try {
@@ -278,6 +280,13 @@ AI-generated preparation material. Verify against original records.`;
                         {activeReview.report?.executiveSummary || 'Multi-system physiological correlation.'}
                       </p>
                     </div>
+
+                    {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH ENGINE */}
+                    {activeReview.report && (
+                      <ClinicalReasoningPipelineView
+                        payload={activeReview.report.reasoningPipeline || runClinicalReasoningPipeline(activeReview.report)}
+                      />
+                    )}
 
                     {activeReview.report?.documentedFacts?.length > 0 && (
                       <section className="case-workspace">
