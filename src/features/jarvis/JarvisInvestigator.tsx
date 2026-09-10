@@ -26,6 +26,8 @@ import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
 import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
+import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
+import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
 import { normalizeClinicalReview } from '../../services/clinicalReview';
 import '../../components/ui/caseWorkspace.css';
@@ -636,6 +638,22 @@ AI-generated preparation material. Verify against original records; this is not 
         {/* Dynamic 6-Part Output Dossier */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
+          {/* STEP 7: 5-LAYER PROGRESSIVE-DISCLOSURE STRUCTURED CASE SYNTHESIS */}
+          <StructuredAnswerView
+            answer={report.structuredAnswer || buildStructuredClinicalAnswer({
+              primaryHypothesis: primaryCondition,
+              executiveSummary: report.executiveSummary,
+              documentedFacts: report.documentedFacts,
+              uncertainties: report.uncertainties,
+              missingLinks: report.missingLinks,
+              questionsForClinician: report.questionsForClinician,
+              alternatives: report.alternatives,
+              perspectives: report.meaningfulPerspectives || report.perspectives,
+              boundedComparison: report.boundedComparison,
+            })}
+            onOpenSourceModal={(src) => setSourceModalData(src)}
+          />
+
           {/* PART 1: THE BOTTOM LINE UP FRONT (BLUF) */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -654,12 +672,10 @@ AI-generated preparation material. Verify against original records; this is not 
                 LEADING DISCUSSION POSSIBILITY
               </div>
 
-              {confidencePct > 0 && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 800 }}>
-                  <ShieldCheck size={14} color="#059669" />
-                  <span>{confidencePct}% Match Confidence</span>
-                </div>
-              )}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 800 }}>
+                <ShieldCheck size={14} color="#059669" />
+                <span>Evidence-Grounded Review</span>
+              </div>
             </div>
 
             <h2 style={{ fontSize: isMobile ? '19px' : '23px', fontWeight: 900, color: '#0F172A', margin: '0 0 10px 0', lineHeight: 1.3 }}>

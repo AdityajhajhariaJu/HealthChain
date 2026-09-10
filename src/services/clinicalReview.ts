@@ -13,6 +13,10 @@ import {
   MeaningfulPerspective,
   BoundedComparisonSummary,
 } from './MultiPerspectiveReviewEngine';
+import {
+  buildStructuredClinicalAnswer,
+  StructuredClinicalAnswer,
+} from './StructuredAnswerEngine';
 
 /** A source-led schema; examples must never become invented patient findings. */
 export function buildClinicalReviewPrompt(history: string, profile: any): string {
@@ -155,9 +159,24 @@ export function normalizeClinicalReview(
     newFactAnswer
   );
 
+  // Step 7: Build the 5 Progressive-Disclosure Layers for Structured Case Synthesis
+  const structuredAnswer = buildStructuredClinicalAnswer({
+    primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Your health record review',
+    executiveSummary: report.executiveSummary,
+    documentedFacts: enrichedFacts,
+    uncertainties: strings(report.uncertainties),
+    missingLinks: strings(report.missingLinks),
+    questionsForClinician: strings(report.questionsForClinician),
+    alternatives: reasoningPipeline.stage5_alternatives || objects(report.alternatives),
+    perspectives: meaningfulPerspectives,
+    boundedComparison,
+    reasoningPipeline,
+  });
+
   return {
     ...report,
     primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Your health record review',
+    structuredAnswer,
     matchConfidence: null,
     dominoChain: null,
     topDiagnoses: objects(report.topDiagnoses).map(({ confidence: _confidence, ...item }) => item),

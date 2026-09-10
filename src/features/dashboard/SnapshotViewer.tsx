@@ -14,6 +14,8 @@ import PathwaySimulator from './PathwaySimulator';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
 import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
+import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
+import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
 import { classifyClinicalInformation } from '../../services/ClinicalInformationClassifier';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
 import { 
@@ -286,6 +288,23 @@ AI-generated preparation material. Verify against original records.`;
                         {activeReview.report?.executiveSummary || 'Multi-system physiological correlation.'}
                       </p>
                     </div>
+
+                    {/* STEP 7: 5-LAYER STRUCTURED CASE SYNTHESIS */}
+                    {activeReview.report && (
+                      <StructuredAnswerView
+                        answer={activeReview.report.structuredAnswer || buildStructuredClinicalAnswer({
+                          primaryHypothesis: activeReview.report?.primaryHypothesis || 'Clinical Finding',
+                          executiveSummary: activeReview.report?.executiveSummary,
+                          documentedFacts: activeReview.report?.documentedFacts,
+                          uncertainties: activeReview.report?.uncertainties,
+                          missingLinks: activeReview.report?.missingLinks,
+                          questionsForClinician: activeReview.report?.questionsForClinician,
+                          alternatives: activeReview.report?.alternatives,
+                          perspectives: activeReview.report?.meaningfulPerspectives || activeReview.report?.perspectives,
+                          boundedComparison: activeReview.report?.boundedComparison,
+                        })}
+                      />
+                    )}
 
                     {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH ENGINE */}
                     {activeReview.report && (
