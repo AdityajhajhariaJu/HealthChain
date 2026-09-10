@@ -42,10 +42,13 @@ import {
   SymptomClusterItem,
   SystemAxis,
   evaluateSymptomCluster,
+  deriveSemanticEvidenceGraphFromEngineReview,
 } from '../../services/ConnectionDetectiveEngine';
+import { getActiveCase } from '../../services/CaseEngine';
 import { generateDoctorSummary } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
 import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 import { PostMealReactionTimeline } from './PostMealReactionTimeline';
@@ -494,6 +497,11 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
+  const activeCase = getActiveCase();
+  const activeReview = activeCase?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || activeCase?.reviews?.[0];
+  const semanticGraph = useMemo(() => {
+    return deriveSemanticEvidenceGraphFromEngineReview(activeReview?.report, activeCase);
+  }, [activeReview, activeCase, report]);
   const [selectedPillar, setSelectedPillar] = useState<PillarId>('all');
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
@@ -1089,9 +1097,17 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 {/* STATION BODY */}
                 <div style={{ padding: isMobile ? '12px 14px 16px 14px' : '16px 18px 20px 18px' }}>
 
-                  {/* STATION 01: CONNECTED FOODS */}
+                  {/* STATION 01: CONNECTED EVIDENCE & FOODS */}
                   {station.id === 'map' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {/* STEP 8: THE 6 CANONICAL RELATIONSHIPS EVIDENCE GRAPH */}
+                      <SemanticEvidenceGraphView
+                        graph={semanticGraph}
+                        onOpenConsult={onOpenConsult}
+                        onOpenCasePrep={onOpenCasePrep}
+                        onOpenSourceModal={(d) => setSourcePassageModalData(d)}
+                      />
+
                       <div
                         style={{
                           background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.8) 100%)',
