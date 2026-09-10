@@ -154,55 +154,44 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {/* 1. Multi-Stream Data Convergence Top Banner */}
       <div
         style={{
-          position: 'relative',
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 55%, #CCFBF1 100%)',
-          borderRadius: '24px',
-          padding: isMobile ? '18px 16px' : '22px 24px',
-          color: '#0F172A',
-          border: '1.5px solid #99F6E4',
-          boxShadow: '0 12px 32px rgba(13, 148, 136, 0.08)',
-          overflow: 'hidden',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          padding: isMobile ? '16px' : '20px 22px',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }} />
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#E11D48',
-                letterSpacing: '0.8px',
-                textTransform: 'uppercase',
-                background: '#FFF1F2',
-                padding: '2px 8px',
-                borderRadius: '999px',
-                border: '1px solid #FECDD3',
-              }}
-            >
-              CROSS-SYSTEM CLINICAL CONVERGENCE
-            </span>
-          </div>
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#0F766E',
+              letterSpacing: '0.6px',
+              textTransform: 'uppercase',
+            }}
+          >
+            Clinical Convergence
+          </span>
 
           <span
             style={{
               fontSize: '11px',
-              fontWeight: 800,
-              padding: '3px 10px',
-              borderRadius: '999px',
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: '6px',
               background: report.matchConfidence > 0 ? '#ECFDF5' : '#F1F5F9',
               color: report.matchConfidence > 0 ? '#059669' : '#64748B',
-              border: report.matchConfidence > 0 ? '1px solid #A7F3D0' : '1px solid #CBD5E1',
             }}
           >
             {report.matchConfidence > 0 ? `${report.matchConfidence}% Panel Consensus` : 'Awaiting Clinical Data'}
           </span>
         </div>
 
-        <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '17px' : '20px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
+        <h3 style={{ margin: '0 0 6px 0', fontSize: isMobile ? '16px' : '19px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px', lineHeight: 1.3 }}>
           {report.primaryHypothesis}
         </h3>
-        <p style={{ margin: 0, fontSize: '12.5px', color: '#57534E', lineHeight: 1.4 }}>
+        <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: '#64748B', lineHeight: 1.45 }}>
           {report.mapData.narrative}
         </p>
 
@@ -212,69 +201,32 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             display: 'grid',
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
             gap: '8px',
-            marginTop: '16px',
           }}
         >
           {report.streams.map((stream) => (
             <div
               key={stream.id}
               style={{
-                background: '#FFFFFF',
-                borderRadius: '14px',
-                padding: '10px 12px',
-                border: '1px solid #E2E8F0',
+                background: '#F8FAFC',
+                borderRadius: '12px',
+                padding: '9px 12px',
+                border: '1px solid #F1F5F9',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
               }}
             >
-              <span style={{ fontSize: '18px' }}>{stream.icon}</span>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: '#1C1917' }}>{stream.title}</div>
-                <div style={{ fontSize: '10px', color: stream.color, fontWeight: 700 }}>{stream.status}</div>
+              <span style={{ fontSize: '15px' }}>{stream.icon}</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {stream.title}
+                </div>
+                <div style={{ fontSize: '10.5px', color: stream.color || '#64748B', fontWeight: 600 }}>
+                  {stream.status}
+                </div>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Animated SVG Convergence Conduits */}
-        <div style={{ width: '100%', height: '36px', marginTop: '10px', overflow: 'hidden' }}>
-          <svg viewBox="0 0 400 36" style={{ width: '100%', height: '100%' }} fill="none">
-            <motion.path
-              d="M 50 0 C 50 20, 190 20, 200 36"
-              stroke="#F43F5E"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              animate={{ strokeDashoffset: [20, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-            />
-            <motion.path
-              d="M 150 0 C 150 18, 195 24, 200 36"
-              stroke="#0284C7"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              animate={{ strokeDashoffset: [20, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-            />
-            <motion.path
-              d="M 250 0 C 250 18, 205 24, 200 36"
-              stroke="#10B981"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              animate={{ strokeDashoffset: [20, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-            />
-            <motion.path
-              d="M 350 0 C 350 20, 210 20, 200 36"
-              stroke="#0D9488"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              animate={{ strokeDashoffset: [20, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-            />
-            <circle cx="200" cy="34" r="3" fill="#10B981" />
-          </svg>
         </div>
       </div>
 
