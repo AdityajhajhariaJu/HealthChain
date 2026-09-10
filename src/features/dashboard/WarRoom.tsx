@@ -28,8 +28,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { getProfile } from '../../services/ProfileEngine';
-import { getActiveCase } from '../../services/CaseEngine';
+import { getProfile, getProfileKey } from '../../services/ProfileEngine';
+import { getActiveCase, addCaseEvent, getCase } from '../../services/CaseEngine';
 import { getFunctionalBiomarkers, FunctionalBiomarker } from '../../services/ConnectionDetectiveEngine';
 import { getSuspectFoodsLeaderboard, getActiveTrial, ActiveTrialState } from '../../services/TriggerEngine';
 import { recordHealthMemory } from '../../services/HealthMemory';
@@ -49,6 +49,7 @@ interface ObservationReply {
 
 interface CanvasObservation {
   id: string;
+  caseId?: string;
   author: 'user' | 'physician' | 'system';
   authorName: string;
   title: string;
@@ -134,7 +135,26 @@ export default function WarRoom() {
 
   // Filtering & Post Input
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'cardio' | 'gastro' | 'immuno' | 'metabolic'>('all');
-  const [observationInput, setObservationInput] = useState('');
+  const draftKey = `${getProfileKey()}_canvas_draft`;
+  const [observationInput, setObservationInput] = useState(() => {
+    try { return sessionStorage.getItem(draftKey) || ''; } catch { return ''; }
+  });
+  const previousDraftKey = useRef(draftKey);
+  useEffect(() => {
+    try {
+      if (previousDraftKey.current !== draftKey) {
+        previousDraftKey.current = draftKey;
+        setObservationInput(sessionStorage.getItem(draftKey) || '');
+        return;
+      }
+      if (observationInput) sessionStorage.setItem(draftKey, observationInput);
+      else sessionStorage.removeItem(draftKey);
+    } catch { /* Keep the current draft in memory if storage is unavailable. */ }
+  }, [observationInput, draftKey]);
+  const [updateType, setUpdateType] = useState('Observation');
+  const [savedCase, setSavedCase] = useState<{ id: string; title: string } | null>(null);
+  const [saveError, setSaveError] = useState('');
+  const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSuccessNotice, setUploadSuccessNotice] = useState<string | null>(null);
 
@@ -246,7 +266,13 @@ export default function WarRoom() {
   // Handle Post Observation
   const handleCreateObservation = async () => {
     const text = observationInput.trim();
-    if (!text || isSubmitting) return;
+    if (!text || isSubmitting || submittingRef.current) return;
+    setSaveError('');
+    const targetCase = getActiveCase();
+    if (!targetCase || !getCase(targetCase.id)) {
+      setSaveError('Choose a case before saving this update. Your text is still here.');
+      return;
+    }
 
     // 1. Run Emergency Triage Pre-Screen
     const triage = evaluateEmergencyTriage(text);
@@ -257,6 +283,8 @@ export default function WarRoom() {
     }
 
     setIsSubmitting(true);
+    submittingRef.current = true;
+    try {
     triggerHapticSelection();
 
     // 2. Classify Specialty deterministically
@@ -288,33 +316,17 @@ export default function WarRoom() {
 
     const newEntry: CanvasObservation = {
       id: newObsId,
+      caseId: targetCase.id,
       author: 'user',
       authorName: patientName,
-      title: text.length > 50 ? text.slice(0, 48) + '...' : text,
+      title: `${updateType}: ${text.length > 50 ? text.slice(0, 48) + '...' : text}`,
       content: text,
-      timestamp: 'Just now',
+      timestamp: new Date().toLocaleString(),
       specialty,
       isPinned: false,
-      replies: [
-        {
-          author: doctorName,
-          role: 'Clinical Specialist AI',
-          badgeColor: doctorBadgeColor,
-          avatarBg: doctorBadgeColor + '18',
-          content: specialistAnalysis,
-          timestamp: 'Just now'
-        },
-        {
-          author: 'Ava (Clinical AI Coordinator)',
-          role: 'Clinical AI Coordinator',
-          badgeColor: '#0D9488',
-          avatarBg: 'rgba(13, 148, 136, 0.12)',
-          content: `✓ Logged. Cross-referenced with your active case.`,
-          timestamp: 'Just now'
-        }
-      ],
-      actionPrompt: `I would like to discuss my recent observation: "${text}" and the feedback from ${doctorName} with Ava.`,
-      actionLabel: 'Discuss in Deep Consult with Ava',
+      replies: [],
+      actionPrompt: `Help me discuss this ${updateType.toLowerCase()} from my case: "${text}".`,
+      actionLabel: 'Discuss with Ava',
       actionRoute: '/app/ava'
     };
 
@@ -327,15 +339,22 @@ export default function WarRoom() {
       payload: {
         observation: text,
         specialty,
-        doctorFeedback: specialistAnalysis,
-        caseId: activeCase?.id
+        updateType,
+        caseId: targetCase.id
       }
     });
 
+    addCaseEvent(targetCase.id, text, `Health Canvas: ${updateType}`);
     setObservations(prev => [newEntry, ...prev]);
+    setSavedCase({ id: targetCase.id, title: targetCase.title });
     setObservationInput('');
-    setIsSubmitting(false);
     triggerHapticSuccess();
+    } catch {
+      setSaveError('This update could not be saved. Your text is still here; please try again.');
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   // Handle Document File Upload
@@ -660,15 +679,27 @@ export default function WarRoom() {
             </div>
             <div>
               <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#0F172A' }}>
-                Post Clinical Observation to Rounds
+                Add a case update
               </h2>
               <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
-                Instant zero-token emergency triage check · Synthesizes specialist commentary immediately
+                Health Canvas keeps observations, questions and appointment outcomes together. Use Ava when you want to talk them through.
               </p>
             </div>
           </div>
 
           {/* Quick Scenario Chips */}
+          <label style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+            What are you recording?{' '}
+            <select value={updateType} onChange={e => setUpdateType(e.target.value)}>
+              {['Observation', 'Measurement', 'Question', 'Appointment outcome'].map(type => <option key={type}>{type}</option>)}
+            </select>
+          </label>
+          {saveError && <p role="alert">{saveError} <button type="button" onClick={() => navigate('/app/my-cases')}>My Cases</button></p>}
+          {savedCase && <div role="status" style={{ marginBottom: 12, fontSize: 13 }}>
+            Saved to {savedCase.title}.{' '}
+            <button type="button" onClick={() => navigate(`/app/cases/${encodeURIComponent(savedCase.id)}`)}>View case timeline</button>{' '}
+            <button type="button" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(savedCase.id)}`)}>Prepare for your visit</button>
+          </div>}
           <div style={{ marginBottom: '12px' }}>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
               Quick Clinical Scenarios:
@@ -1116,6 +1147,7 @@ export default function WarRoom() {
                           navigate(obs.actionRoute, {
                             state: {
                               initialPrompt: obs.actionPrompt,
+                              caseId: obs.caseId || activeCase?.id,
                               tab: obs.actionTab
                             }
                           });
