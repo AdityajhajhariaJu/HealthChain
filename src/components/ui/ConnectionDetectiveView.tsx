@@ -45,6 +45,7 @@ import {
   deriveSemanticEvidenceGraphFromEngineReview,
 } from '../../services/ConnectionDetectiveEngine';
 import { getActiveCase } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { generateDoctorSummary } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -496,12 +497,17 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   onOpenCasePrep,
 }) => {
   const isMobile = useIsMobile();
-  const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const activeCase = getActiveCase();
+  const caseScope = getUnifiedCaseScope();
+  const activeCase = caseScope.caseItem;
   const activeReview = activeCase?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || activeCase?.reviews?.[0];
+  const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport(activeReview?.report, activeCase));
   const semanticGraph = useMemo(() => {
     return deriveSemanticEvidenceGraphFromEngineReview(activeReview?.report, activeCase);
   }, [activeReview, activeCase, report]);
+
+  useEffect(() => {
+    setReport(getConnectionDetectiveReport(activeReview?.report, activeCase));
+  }, [activeReview, activeCase]);
   const [selectedPillar, setSelectedPillar] = useState<PillarId>('all');
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
@@ -561,7 +567,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
   useEffect(() => {
     const handleUpdate = () => {
-      setReport(getConnectionDetectiveReport());
+      const scope = getUnifiedCaseScope();
+      const rev = scope.caseItem?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || scope.caseItem?.reviews?.[0];
+      setReport(getConnectionDetectiveReport(rev?.report, scope.caseItem));
     };
     window.addEventListener('hc_biomarkers_updated', handleUpdate);
     window.addEventListener('hc_profile_updated', handleUpdate);

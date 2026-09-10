@@ -649,6 +649,13 @@ export default function AvaHealthBuddy() {
       setInput(incomingPrompt);
     }
   }, [incomingPrompt]);
+  const incomingStudy = location.state?.sourceStudy || null;
+  const [activeSourceStudy, setActiveSourceStudy] = useState<any>(() => incomingStudy);
+  useEffect(() => {
+    if (incomingStudy) {
+      setActiveSourceStudy(incomingStudy);
+    }
+  }, [incomingStudy]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isProcessingAttachment, setIsProcessingAttachment] = useState(false);
   const attachmentBusyRef = useRef(false);
@@ -1021,13 +1028,24 @@ export default function AvaHealthBuddy() {
     sendingRef.current = true;
     const contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
     const baseCaseContext = contextCase ? buildCaseContext(contextCase) : '';
+
+    // Order 6: Inject explicit documented answers from case records so Ava NEVER asks the patient to repeat them
+    const documentedSnippet = documentedAnswers.length > 0
+      ? `\n\n[ALREADY DOCUMENTED IN CASE RECORDS — STRICT CLINICAL INSTRUCTION: DO NOT RE-ASK THE PATIENT ABOUT ANY OF THESE TOPICS. TREAT THEM AS KNOWN ESTABLISHED FACTS]:\n` +
+        documentedAnswers.map(a => `- ${a.topic}: "${a.value}" (Source: ${a.source})`).join('\n')
+      : '';
+
+    // Order 8: Research content handoff — inject full study abstract and criteria breakdown so Ava summarizes the retrieved source, not merely its title
+    const studySnippet = activeSourceStudy
+      ? `\n\n[RETRIEVED RESEARCH SOURCE STUDY TO SUMMARIZE]:\nTitle: "${activeSourceStudy.briefTitle}"\nNCT ID: ${activeSourceStudy.nctId}\nPhase: ${activeSourceStudy.phase || 'N/A'}\nTarget Conditions: ${(activeSourceStudy.conditions || []).join(', ')}\nMatch Evaluation: ${activeSourceStudy.matchStatus}\nEligibility & Criteria Breakdown:\n- Age Criteria: ${activeSourceStudy.criteriaBreakdown?.ageCriteria || 'Not specified'}\n- Gender Criteria: ${activeSourceStudy.criteriaBreakdown?.genderCriteria || 'Not specified'}\n- Condition Match: ${activeSourceStudy.criteriaBreakdown?.conditionMatch || 'Not specified'}\n- Clinical Note: ${activeSourceStudy.criteriaBreakdown?.overallNote || ''}\nAbstract / Objectives:\n${activeSourceStudy.abstract || 'No abstract provided'}\n\n[CRITICAL INSTRUCTION FOR AVA]: The patient is discussing this retrieved clinical research study. You must summarize the actual scientific objectives and findings of this study in compassionate, clear language. Highlight why it matches or differs from their profile, and prepare 2-3 specific questions for them to discuss with their clinician.`
+      : '';
     
     // Promise 5: Inject semantic memory context so user never repeats their story
     const memorySnippet = memoryContext.includedItems.length > 0
       ? `\n\n[RELEVANT PATIENT HISTORY & MEMORIES (Do not ask patient to repeat these)]:\n` +
         memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}`).join('\n')
       : '';
-    const finalContext = `${baseCaseContext}${memorySnippet}`.trim();
+    const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}`.trim();
 
     const request = { messages: newMessages, caseId: selectedCaseId, context: finalContext, scope: messageScope };
     lastRequestRef.current = request;
@@ -1694,6 +1712,49 @@ export default function AvaHealthBuddy() {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {activeSourceStudy && (
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '720px',
+                marginBottom: '8px',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+                border: '1px solid #BBF7D0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                fontSize: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                <span style={{ fontSize: '15px' }}>🔬</span>
+                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <strong style={{ color: '#14532D' }}>Referenced Study: {activeSourceStudy.briefTitle}</strong>
+                  <span style={{ color: '#166534', marginLeft: '6px' }}>({activeSourceStudy.nctId}) • Abstract Attached</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSourceStudy(null)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: '#15803D',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                title="Remove study attachment"
+              >
+                <X size={14} />
+              </button>
             </div>
           )}
 

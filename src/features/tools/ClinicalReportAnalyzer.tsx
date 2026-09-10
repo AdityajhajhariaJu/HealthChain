@@ -16,6 +16,7 @@ import {
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
 import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase, setActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -45,7 +46,7 @@ export default function ClinicalReportAnalyzer() {
     }
   }, [caseIdParam]);
 
-  const activeCase = getActiveCase();
+  const activeCase = getUnifiedCaseScope(caseIdParam).caseItem;
   const reportCacheKey = getRunScope('lab', 'draft', 'ui');
   const cached = cachedReportAnalyzerState[reportCacheKey];
   const [file, setFile] = useState(cached?.file || null);
@@ -162,7 +163,7 @@ export default function ClinicalReportAnalyzer() {
         });
 
         // Auto-trigger DDx analysis & save Snapshot
-        const activeCase = getActiveCase();
+        const activeCase = getUnifiedCaseScope(caseIdParam).caseItem;
         if (activeCase) {
           saveReviewSnapshot({
             caseId: activeCase.id,
@@ -265,7 +266,7 @@ export default function ClinicalReportAnalyzer() {
           type: 'clinical_report',
         });
 
-        const activeCase = getActiveCase();
+        const activeCase = getUnifiedCaseScope(caseIdParam).caseItem;
         if (activeCase) {
           saveReviewSnapshot({
             caseId: activeCase.id,

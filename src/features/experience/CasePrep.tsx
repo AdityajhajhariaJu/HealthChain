@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, getActiveCase, updateCaseQuestionOutcome, getCaseQuestions, addCaseQuestion, ClinicalQuestion, transitionCaseQuestionLifecycle, QuestionLifecycleStatus } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { generateDeterministicBrief, isBriefUpToDate } from '../../services/AppointmentBriefService';
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
@@ -98,7 +99,8 @@ export default function CasePrep() {
         return;
       }
     }
-    const active = getActiveCase();
+    const scope = getUnifiedCaseScope(caseIdParam);
+    const active = scope.caseItem;
     if (active && allCases.some(c => c.id === active.id)) {
       setSelectedCase(active);
       return;
@@ -487,7 +489,7 @@ export default function CasePrep() {
                               type="button"
                               onClick={() => {
                                 triggerHapticLight();
-                                const active = getActiveCase();
+                                const active = selectedCase || getUnifiedCaseScope().caseItem;
                                 if (active?.id) {
                                   transitionCaseQuestionLifecycle(
                                     active.id,

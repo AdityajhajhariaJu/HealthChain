@@ -2,8 +2,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getUnifiedCaseScope, getCaseDocumentedAnswers } from '../caseWorkspace';
 import { normalizeClinicalReview } from '../clinicalReview';
-import { createCaseDraft, getCase, transitionCaseQuestionLifecycle, addCaseQuestion } from '../CaseEngine';
+import { createCaseDraft, getCase, transitionCaseQuestionLifecycle, addCaseQuestion, updateCaseDifferentials } from '../CaseEngine';
 import { evaluateTrialCriteria } from '../../features/tools/ClinicalTrialsMatcher';
+import { runClinicalReasoningPipeline } from '../ClinicalReasoningEngine';
+import { getConnectionDetectiveReport } from '../ConnectionDetectiveEngine';
 
 describe('Clinical Architecture Gaps & Constitutional Verification Suite (Steps 9 & 10)', () => {
   beforeEach(() => {
@@ -272,6 +274,132 @@ describe('Clinical Architecture Gaps & Constitutional Verification Suite (Steps 
 
       const femalePatientResult = evaluateTrialCriteria(femaleTrial, ['thyroid'], [], { age: 35, gender: 'female' });
       expect(femalePatientResult.criteriaBreakdown.genderCriteria.status).toBe('eligible');
+    });
+  });
+
+  describe('Order 3 Remediation: Stage 3 Correction Queue Propagation', () => {
+    it('should propagate Stage 3 corrections into Stage 6 tri-prong challenges and Stage 8 synthesis', () => {
+      const conflictingFacts = [
+        {
+          id: 'fact_1',
+          text: 'Serum Ferritin measured at 11 ng/ml with severe depletion',
+          source: 'LabCorp 2026-01-10',
+          category: 'measurement'
+        },
+        {
+          id: 'fact_2',
+          text: 'Serum Ferritin measured at 24 µg/l in regional hospital panel',
+          source: 'Quest Diagnostics 2026-02-05',
+          category: 'measurement'
+        },
+        {
+          id: 'fact_3',
+          text: 'Patient reports severe palpitations and tachycardia upon standing',
+          source: 'Patient Reported',
+          category: 'user_report'
+        },
+        {
+          id: 'fact_4',
+          text: 'Clinician notes document denies palpitations and denies tachycardia during visit',
+          source: 'Clinic Notes',
+          category: 'documented_clinician_assessment'
+        }
+      ];
+
+      const payload = runClinicalReasoningPipeline({
+        documentedFacts: conflictingFacts,
+        primaryHypothesis: 'Iron Deficiency and Autonomic Dysregulation',
+        uncertainties: ['Is the ferritin drop acute or chronic?'],
+        missingLinks: ['Soluble transferrin receptor']
+      });
+
+      // Stage 3 must detect discrepancy
+      expect(payload.stage3_correctionQueue.length).toBeGreaterThan(0);
+
+      // Stage 6 tri-prong challenges must include the discrepancy in conflicting evidence
+      const challenges = payload.stage6_balancedAssessments;
+      expect(challenges.length).toBeGreaterThan(0);
+      const hasDiscrepancyInChallenges = challenges.some(c =>
+        c.conflictingEvidence.some(ce => ce.description.includes('Discrepancy detected in records'))
+      );
+      expect(hasDiscrepancyInChallenges).toBe(true);
+
+      // Stage 8 synthesis must reflect discrepancies in limitations and practicalImplication
+      const synthesis = payload.stage8_synthesis;
+      expect(synthesis.limitations.some(l => l.includes('Discrepancy noted for clinician review'))).toBe(true);
+      expect(synthesis.practicalImplication).toContain('record discrepanc');
+    });
+  });
+
+  describe('Order 5 Remediation: Detective Map & Report Single Source of Truth', () => {
+    it('should harmonize Detective report with active review findings without silent divergence', () => {
+      const customReview = {
+        primaryHypothesis: 'Mast Cell Activation with Postural Tachycardia',
+        differentials: [
+          { condition: 'Mast Cell Activation Syndrome', probability: 82, trend: 'increasing' },
+          { condition: 'Hyperadrenergic POTS', probability: 74, trend: 'stable' }
+        ],
+        stage4_perspectives: [
+          {
+            specialty: 'Immunology & Allergy',
+            doctorName: 'Mast Cell Board',
+            uniqueContribution: 'Episodic flushing triggered by dietary histamine liberators',
+            organ: 'Immune & Mast Cell Axis'
+          },
+          {
+            specialty: 'Autonomic Neurology',
+            doctorName: 'Dysautonomia Board',
+            uniqueContribution: 'Postural adrenergic surge secondary to peripheral mast cell degranulation',
+            organ: 'Cardiovascular & Autonomic Axis'
+          }
+        ],
+        stage3_correctionQueue: [
+          {
+            id: 'corr_1',
+            type: 'conflicting_values',
+            title: 'Tryptase elevation discrepancy',
+            discrepancyDescription: 'Baseline tryptase 4.2 vs flare tryptase 14.8',
+            clinicalSignificance: 'Confirms episodic degranulation vs systemic mastocytosis',
+            suggestedAction: 'Re-test within 2 hours of symptom flare'
+          }
+        ],
+        stage8_synthesis: {
+          mainFinding: 'Presentation is driven by mast cell mediator release triggering downstream autonomic instability.',
+          practicalImplication: 'Bring histamine reaction log and 24-hour urine methylhistamine to clinical immunology.'
+        }
+      };
+
+      const testCase = createCaseDraft({
+        title: 'Mast Cell & Autonomic Case',
+      });
+      updateCaseDifferentials(testCase.id, [
+        {
+          id: 'diff_mcas',
+          condition: 'Mast Cell Activation Syndrome',
+          probability: 82,
+          trend: 'up',
+          supportingEvidence: ['Flushing after meals', 'Tryptase elevation'],
+          refutingEvidence: [],
+          nextBestTests: ['24-hour urine methylhistamine']
+        }
+      ]);
+      const refreshedCase = getCase(testCase.id);
+
+      const report = getConnectionDetectiveReport(customReview, refreshedCase);
+
+      // Primary hypothesis must align with the active review
+      expect(report.primaryHypothesis).toBe('Mast Cell Activation with Postural Tachycardia');
+
+      // Specialist boards must be dynamically derived from the review perspectives
+      expect(report.consensusDialogue.some(d => d.specialty === 'Immunology & Allergy')).toBe(true);
+      expect(report.consensusDialogue.some(d => d.specialty === 'Autonomic Neurology')).toBe(true);
+
+      // Clinical misses must include the Stage 3 correction queue discrepancy
+      expect(report.clinicalMisses.some(m => m.whatWasMissed.includes('Tryptase elevation discrepancy') || m.whatWasMissed.includes('4.2 vs flare tryptase'))).toBe(true);
+
+      // Assessment in SBAR must reflect the synthesis
+      expect(report.doctorDossier.sbar.assessment).toContain('mast cell mediator release');
+      expect(report.doctorDossier.sbar.recommendation).toContain('clinical immunology');
     });
   });
 });

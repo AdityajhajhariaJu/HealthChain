@@ -61,6 +61,7 @@ import {
   getProfileKey,
 } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { generateProfileSynthesis } from '../../services/geminiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getRunScope } from '../../services/RunContext';
@@ -103,7 +104,7 @@ export default function MedicalProfile() {
   const [newCondition, setNewCondition] = useState('');
   const [newAllergy, setNewAllergy] = useState('');
   const [newFamilyHist, setNewFamilyHist] = useState('');
-  const [activeCase, setActiveCase] = useState(getActiveCase());
+  const [activeCase, setActiveCase] = useState(() => getUnifiedCaseScope().caseItem);
   const [chartMetric, setChartMetric] = useState<'eGFR' | 'weight' | 'bpSystolic'>('eGFR');
   const [synthesisData, setSynthesisData] = useState<any>(() => {
     try {
@@ -184,7 +185,7 @@ export default function MedicalProfile() {
     }, 600);
     
     window.addEventListener('hc_profile_updated', handleUpdate);
-    const refreshCase = () => setActiveCase(getActiveCase());
+    const refreshCase = () => setActiveCase(getUnifiedCaseScope().caseItem);
     window.addEventListener('hc_active_case_updated', refreshCase);
     window.addEventListener('hc_cases_updated', refreshCase);
     return () => {

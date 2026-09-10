@@ -42,6 +42,7 @@ import { addEvent, addActionItems, addCondition, getProfile } from '../../servic
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { trackConsultationStarted } from '../../services/analytics';
 import { getActiveCase, saveReviewSnapshot, setActiveCase as setGlobalActiveCase, getCases } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import {
   Step,
   StepDivider,
@@ -91,7 +92,7 @@ export default function MDTHub() {
 
   const [historyReport, setHistoryReport] = useState<any>(null);
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [activeCase, setActiveCase] = useState(getActiveCase());
+  const [activeCase, setActiveCase] = useState(() => getUnifiedCaseScope().caseItem);
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const isCompilingRef = React.useRef(false);
   const fileInputRef = React.useRef<any>(null);
@@ -159,7 +160,7 @@ useEffect(() => {
   
 
   useEffect(() => {
-    const refresh = () => setActiveCase(getActiveCase());
+    const refresh = () => setActiveCase(getUnifiedCaseScope().caseItem);
     window.addEventListener('hc_active_case_updated', refresh);
     window.addEventListener('hc_cases_updated', refresh);
     return () => {
@@ -336,19 +337,19 @@ useEffect(() => {
 
       // trigger refresh
       setGlobalActiveCase(caseItem.id);
-        setActiveCase(getActiveCase());
-        setDashboardTab('specialists');
-        setPhase('dashboard');
+      setActiveCase(getUnifiedCaseScope(caseItem.id).caseItem);
+      setDashboardTab('specialists');
+      setPhase('dashboard');
     } finally {
       setIsSelecting(false);
     }
   };
 
-    const handleReviewPastMDT = (caseItem: any) => {
+  const handleReviewPastMDT = (caseItem: any) => {
     clearRunStorage('mdt', caseItem?.id);
     setGlobalActiveCase(caseItem.id);
-      setActiveCase(getActiveCase());
-      setPhase('dashboard');
+    setActiveCase(getUnifiedCaseScope(caseItem.id).caseItem);
+    setPhase('dashboard');
   };
 
   const handleResumeActiveCase = () => {

@@ -430,7 +430,8 @@ export function justifyPerspectives(
 export function buildTriProngChallenges(
   alternatives: AlternativeInterpretation[],
   facts: SourceLinkedEvidence[],
-  missingLinks: string[]
+  missingLinks: string[],
+  correctionQueue?: CorrectionQueueItem[]
 ): BalancedAssessment[] {
   return alternatives.map(alt => {
     // 1. Supporting evidence
@@ -467,6 +468,28 @@ export function buildTriProngChallenges(
         description: f.fact,
         weight: 'normal_control_test' as const,
       }));
+
+    // Propagate Stage 3 correction queue into conflicting evidence
+    if (correctionQueue && correctionQueue.length > 0) {
+      const relevantCorrections = correctionQueue.filter(cq => {
+        const altText = alt.title.toLowerCase();
+        const desc = cq.discrepancyDescription.toLowerCase();
+        const title = cq.title.toLowerCase();
+        const involved = cq.itemsInvolved.map(i => i.toLowerCase());
+        return (
+          altText.split(' ').some(w => w.length > 3 && (desc.includes(w) || title.includes(w))) ||
+          involved.some(inv => supporting.some(s => s.description.toLowerCase().includes(inv)))
+        );
+      });
+
+      const targets = relevantCorrections.length > 0 ? relevantCorrections : correctionQueue.slice(0, 2);
+      targets.forEach(rc => {
+        conflicting.unshift({
+          description: `Discrepancy detected in records: ${rc.title} — ${rc.discrepancyDescription}`,
+          weight: rc.type === 'conflicting_values' ? 'direct_contradiction' : 'incongruent_timing',
+        });
+      });
+    }
 
     if (conflicting.length === 0) {
       conflicting.push({
@@ -528,7 +551,8 @@ export function synthesizeFindings(
   facts: SourceLinkedEvidence[],
   alternatives: AlternativeInterpretation[],
   assessments: BalancedAssessment[],
-  userUncertainties: string[]
+  userUncertainties: string[],
+  correctionQueue?: CorrectionQueueItem[]
 ): ClinicalSynthesis {
   const leadingAlt = alternatives.find(a => a.likelihoodAssessment === 'leading') || alternatives[0];
   const mainFinding = leadingAlt
@@ -541,9 +565,14 @@ export function synthesizeFindings(
     'This review is an AI-assisted organization of evidence, not a medical diagnosis or treatment plan.',
     'Interpretation is constrained strictly to the provided documents and patient statements; unprovided tests remain unexamined.',
     ...(userUncertainties.slice(0, 2)),
+    ...((correctionQueue || []).slice(0, 3).map(
+      c => `Discrepancy noted for clinician review: ${c.title} (${c.discrepancyDescription})`
+    )),
   ];
 
-  const practicalImplication = 'Bring the organized timeline and the specific questions below to your next clinician appointment to guide targeted evaluation rather than restarting exploratory work.';
+  const practicalImplication = correctionQueue && correctionQueue.length > 0
+    ? `Bring the organized timeline, the ${correctionQueue.length} record discrepanc${correctionQueue.length > 1 ? 'ies' : 'y'} flagged above, and the specific clinician questions to your next appointment for prioritized reconciliation.`
+    : 'Bring the organized timeline and the specific questions below to your next clinician appointment to guide targeted evaluation rather than restarting exploratory work.';
 
   return {
     mainFinding,
@@ -737,7 +766,8 @@ export function runClinicalReasoningPipeline(
   const stage6_balancedAssessments = buildTriProngChallenges(
     stage5_alternatives,
     stage1_facts,
-    rawInput.missingLinks || []
+    rawInput.missingLinks || [],
+    stage3_correctionQueue
   );
 
   // STAGE 7: Choose Useful Clarification
@@ -752,7 +782,8 @@ export function runClinicalReasoningPipeline(
     stage1_facts,
     stage5_alternatives,
     stage6_balancedAssessments,
-    rawInput.uncertainties || []
+    rawInput.uncertainties || [],
+    stage3_correctionQueue
   );
 
   // STAGE 9: Carry Forward

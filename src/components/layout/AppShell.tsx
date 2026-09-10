@@ -4,6 +4,7 @@ import { Brain, BrainCircuit, LineChart, Activity, Target, FolderHeart, MessageC
 import { NetworkHubIcon } from '../ui/NetworkHubIcon';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { getActiveCase, getCases } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -861,13 +862,13 @@ const enforceSafeArea = () => {
 }
 
 export function ActiveCaseBar({ navigate }: any) {
-  const [activeCase, setActiveCase] = useState(getActiveCase());
+  const [activeCase, setActiveCase] = useState(() => getUnifiedCaseScope().caseItem);
   const [profile, setProfile] = useState(getProfile());
 
 
   useEffect(() => {
     const refresh = () => {
-      setActiveCase(getActiveCase());
+      setActiveCase(getUnifiedCaseScope().caseItem);
       setProfile(getProfile());
     };
     window.addEventListener('hc_active_case_updated', refresh);

@@ -7,6 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { getTodayCheckin, recordDailyCheckin } from '../../services/ProfileEngine';
 import { getActiveCase } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import DailySymptomCheckinWidget from '../../features/dashboard/DailySymptomCheckinWidget';
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
@@ -70,7 +71,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const loadData = () => {
     try {
       setTodayCheckin(getTodayCheckin());
-      setActiveCase(getActiveCase());
+      setActiveCase(getUnifiedCaseScope().caseItem);
       const savedWater = parseInt(getItemSync('hc_water_' + todayStr) || '0', 10);
       setWaterGlasses(savedWater);
       setReminderEnabled(isDailyReminderEnabled());

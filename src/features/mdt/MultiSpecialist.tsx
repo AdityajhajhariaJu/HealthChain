@@ -50,6 +50,7 @@ import { MDTReportPanel } from './MDTComponents';
 import { MedicalRecordsBar } from '../../components/ui/MedicalRecordsBar';
 import { addEvent, addActionItems, addCondition, getProfile } from '../../services/ProfileEngine';
 import { createCaseDraft, getActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { ALL_SPECIALISTS } from '../../data/specialists';
 import { SpecialistPanel, SpecialistPill } from './MultiSpecialistComponents';
@@ -104,7 +105,7 @@ export default function MultiSpecialist() {
   const [savedCaseId, setSavedCaseId] = useState<string | null>(null);
   const [workingCaseId, setWorkingCaseId] = useState<string | null>(null);
   const [medicalRecords, setMedicalRecords] = useState<any[]>([]);
-  const [activeCase, setActiveCase] = useState(getActiveCase());
+  const [activeCase, setActiveCase] = useState(() => getUnifiedCaseScope().caseItem);
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<any>(cachedMultiSpecialistState?.aiSuggestion || null);
   const [isSuggesting, setIsSuggesting] = useState(false);
@@ -145,7 +146,7 @@ export default function MultiSpecialist() {
   }, [phase, selected.length]);
 
   useEffect(() => {
-    const refresh = () => setActiveCase(getActiveCase());
+    const refresh = () => setActiveCase(getUnifiedCaseScope().caseItem);
     window.addEventListener('hc_active_case_updated', refresh);
     window.addEventListener('hc_cases_updated', refresh);
     return () => {
@@ -241,7 +242,7 @@ export default function MultiSpecialist() {
       setSavedCaseId(null);
       setAiSuggestion(null);
       clearRunStorage('parallel');
-      setActiveCase(getActiveCase());
+      setActiveCase(getUnifiedCaseScope().caseItem);
     };
     window.addEventListener('hc_profile_updated', handleProfileChange);
     window.addEventListener('hc_logout', handleProfileChange);

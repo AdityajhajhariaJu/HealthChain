@@ -16,6 +16,7 @@ import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchMedicineData, checkDrugInteractions, analyzeMedicineImage } from '../../services/geminiService';
 import { addMedication, getProfile } from '../../services/ProfileEngine';
 import { getActiveCase, addCaseEvent } from '../../services/CaseEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { recordHealthMemory } from '../../services/HealthMemory';
 import { Sunrise, Sun, Moon, CheckCircle, Clock, Zap, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -167,7 +168,7 @@ export default function PharmacyHub() {
       const interactionCheck = await checkDrugInteractions(medicineName, profile?.medications || []);
       trackFeatureUsed('pharmacy_interaction_checked', { drug: medicineName, hasInteraction: Boolean(interactionCheck?.hasInteraction) });
       
-      const activeCase = getActiveCase();
+      const activeCase = getUnifiedCaseScope().caseItem;
       if (interactionCheck?.hasInteraction) {
         setActiveInteractions(prev => [...prev, interactionCheck]);
         if (activeCase) {

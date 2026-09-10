@@ -1,5 +1,6 @@
 import { getProfile } from './ProfileEngine';
 import { getActiveCase, getCases } from './CaseEngine';
+import { getUnifiedCaseScope } from './caseWorkspace';
 import { getSuspectFoodsLeaderboard, getActiveTrial } from './TriggerEngine';
 import { getItemSync, setItemSync } from './storage';
 
@@ -147,15 +148,27 @@ export interface ConnectionDetectiveReport {
 
 const CONNECTION_STORAGE_KEY = 'hc_connection_detective_latest';
 
-export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
+export function getConnectionDetectiveReport(
+  customReviewReport?: any,
+  customCaseItem?: any
+): ConnectionDetectiveReport {
   const profile = getProfile();
-  const activeCase = getActiveCase();
+  const unified = typeof getUnifiedCaseScope === 'function' ? getUnifiedCaseScope() : null;
+  const activeCase = customCaseItem !== undefined
+    ? customCaseItem
+    : (unified?.caseItem || (typeof getActiveCase === 'function' ? getActiveCase() : null));
   const suspectFoods = getSuspectFoodsLeaderboard();
   const activeTrial = getActiveTrial();
   const patientName = profile?.name || profile?.demographics?.name || 'Patient';
 
-  // Synthesize Doctor & Clinic Notes from live active case
-  const differentials = activeCase?.differentials || [];
+  const activeReview = customReviewReport !== undefined
+    ? (customReviewReport?.report || customReviewReport)
+    : (activeCase?.reviews?.find((r: any) => r.type === 'jarvis' || r.report)?.report || activeCase?.reviews?.[0]?.report || (activeCase?.reviews?.[0] as any));
+
+  // Synthesize Doctor & Clinic Notes from live active case and saved review
+  const differentials = (activeReview?.differentials && activeReview.differentials.length > 0)
+    ? activeReview.differentials
+    : (activeCase?.differentials || []);
   const reviews = activeCase?.reviews || [];
   const chiefComplaint = activeCase?.intakeData?.chiefComplaint || activeCase?.title || '';
   const caseSymptoms = Array.isArray(activeCase?.intakeData?.symptoms) && activeCase.intakeData.symptoms.length > 0
@@ -170,6 +183,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   const hasUserClinicalData = Boolean(
     (differentials && differentials.length > 0) ||
     (reviews && reviews.length > 0) ||
+    Boolean(activeReview) ||
     (chiefComplaint && chiefComplaint.length > 0) ||
     (caseSymptoms && caseSymptoms.length > 0) ||
     (latestLabKeys && latestLabKeys.length > 0) ||
@@ -352,7 +366,7 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
   ];
 
   // Objective Clinical Disciplines & Specialist Boards
-  const consensusDialogue: SpecialistDialogue[] = [
+  let consensusDialogue: SpecialistDialogue[] = [
     {
       role: 'Cardiology & Autonomic Evaluation',
       doctorName: 'Autonomic & Arrhythmia Board',
@@ -432,8 +446,55 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     },
   ];
 
+  const reviewPerspectives = Array.isArray(activeReview?.perspectives) && activeReview.perspectives.length > 0
+    ? activeReview.perspectives
+    : Array.isArray(activeReview?.stage4_perspectives) && activeReview.stage4_perspectives.length > 0
+    ? activeReview.stage4_perspectives
+    : null;
+
+  if (reviewPerspectives && reviewPerspectives.length > 0) {
+    const dynamicBoards: SpecialistDialogue[] = reviewPerspectives.map((p: any) => {
+      const specialty = p.specialty || p.role || 'Clinical Discipline';
+      const isCardio = /cardio|autonomic|pots|heart|vascular/i.test(specialty);
+      const isNeuro = /neuro|brain|headache/i.test(specialty);
+      const isGI = /gastro|gut|enteric|diet/i.test(specialty);
+      const isMetabolic = /metabolic|endo|thyroid|cellular|iron/i.test(specialty);
+      const isImmune = /immun|mast|allergy/i.test(specialty);
+
+      const icon = isCardio ? '🫀' : isNeuro ? '🧠' : isGI ? '🩺' : isMetabolic ? '🔬' : isImmune ? '🛡️' : '✨';
+      const color = isCardio ? '#EF4444' : isNeuro ? '#7C3AED' : isGI ? '#059669' : isMetabolic ? '#0284C7' : isImmune ? '#D97706' : '#0F766E';
+      const bg = isCardio ? '#FEF2F2' : isNeuro ? '#F5F3FF' : isGI ? '#ECFDF5' : isMetabolic ? '#F0F9FF' : isImmune ? '#FFFBEB' : '#F0FDFA';
+
+      return {
+        role: specialty,
+        doctorName: p.doctorName || `${specialty} Board`,
+        credentials: p.credentials || `${specialty} Discipline`,
+        specialty,
+        icon,
+        color,
+        bg,
+        finding: p.finding || p.justification || p.uniqueContribution || p.interpretation || (p.unansweredQuestionAddressed ? `Addressing: ${p.unansweredQuestionAddressed}` : 'Cross-correlated clinical evaluation.'),
+        organ: p.organ || (isCardio ? 'Cardiovascular & Autonomic Axis' : isNeuro ? 'Neurological & Vagal Axis' : isGI ? 'Gastrointestinal & Enteric Axis' : isMetabolic ? 'Endocrine & Cellular Energy Axis' : 'Clinical Specialization Axis'),
+      };
+    });
+
+    dynamicBoards.push({
+      role: 'Clinical Data Engine Synthesis',
+      doctorName: 'Cross-System Diagnostic Consensus',
+      credentials: 'Autonomous Multi-Stream Intelligence',
+      specialty: 'Complex Case Integration Board',
+      icon: '✨',
+      color: '#0F766E',
+      bg: '#F0FDFA',
+      finding: activeReview?.stage8_synthesis?.mainFinding || activeCase?.currentSummary?.synthesis || `Consensus synthesis: Cross-system review converges on ${differentials[0]?.condition || 'multi-system interaction'}.`,
+      organ: 'Systemic Root-Cause Convergence',
+    });
+
+    consensusDialogue = dynamicBoards;
+  }
+
   // What 15-Minute Visits Missed (In-Depth Comparative Analysis)
-  const clinicalMisses: ClinicalMissItem[] = [
+  let clinicalMisses: ClinicalMissItem[] = [
     {
       overlookedBy: 'Standard Primary Care (15-min Visit)',
       standardFinding: `Serum Iron ${ironStr} and Hemoglobin marked "Normal". Patient told "Everything looks fine".`,
@@ -470,6 +531,24 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
       hiddenConnection: 'Dysautonomia-induced cerebral perfusion drops provoke compensatory vascular spasms.',
     },
   ];
+
+  const reviewDiscrepancies = Array.isArray(activeReview?.stage3_correctionQueue) && activeReview.stage3_correctionQueue.length > 0
+    ? activeReview.stage3_correctionQueue
+    : Array.isArray(activeReview?.contradictions) && activeReview.contradictions.length > 0
+    ? activeReview.contradictions
+    : null;
+
+  if (reviewDiscrepancies && reviewDiscrepancies.length > 0) {
+    const dynamicMisses: ClinicalMissItem[] = reviewDiscrepancies.map((c: any) => ({
+      overlookedBy: 'Standard Brief Review (Omitted Correlation)',
+      standardFinding: c.itemA ? `${c.itemA.finding || c.itemA.value} (${c.itemA.source || 'Standard Test'})` : `Single test value: ${c.title}`,
+      whatWasMissed: c.itemB ? `Conflicting result: ${c.itemB.finding || c.itemB.value} (${c.itemB.source || 'Specialized Panel'})` : (c.discrepancyDescription || c.suggestedAction || 'Discrepant record omitted'),
+      clinicalImpact: c.clinicalSignificance || c.suggestedAction || 'Discrepancy leads to premature diagnostic closure if not reconciled.',
+      hiddenConnection: c.resolutionNeed || `Reconciling ${c.title || 'divergent records'} reveals the systemic mechanism.`,
+    }));
+
+    clinicalMisses = [...dynamicMisses, ...clinicalMisses.slice(0, Math.max(1, 5 - dynamicMisses.length))];
+  }
 
   // 6 Systemic Axes
   const systemAxes: SystemAxis[] = [
@@ -1355,7 +1434,13 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     generatedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     patientName: hasUserClinicalData ? patientName : '',
     primaryHypothesis: hasUserClinicalData
-      ? (activeCase?.title || `Autonomic Shift (${deltaSign} bpm), ${ferritinFound ? `Ferritin (${ferritinStr})` : 'Metabolic Reserves'} & ${suspect1?.name || 'Dietary-Vagal'} Axis`)
+      ? (activeReview?.primaryHypothesis ||
+         activeReview?.stage5_alternatives?.find((a: any) => a.likelihoodAssessment === 'leading')?.title ||
+         activeReview?.stage8_synthesis?.mainFinding ||
+         activeCase?.currentSummary?.topDiagnoses?.[0]?.condition ||
+         differentials?.[0]?.condition ||
+         activeCase?.title ||
+         `Autonomic Shift (${deltaSign} bpm), ${ferritinFound ? `Ferritin (${ferritinStr})` : 'Metabolic Reserves'} & ${suspect1?.name || 'Dietary-Vagal'} Axis`)
       : 'Awaiting Clinical Intake & Lab Convergence',
     matchConfidence: hasUserClinicalData ? 94 : 0,
     streams,
@@ -1369,24 +1454,30 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
     doctorDossier: {
       sbar: {
         situation: hasUserClinicalData
-          ? `${patientName} presents with ${chiefComplaint || 'symptoms under active investigation'}.`
+          ? `${patientName} presents with ${chiefComplaint || activeReview?.primaryHypothesis || 'symptoms under active investigation'}.`
           : 'No active clinical consultation or patient intake on file.',
         background: hasUserClinicalData
           ? 'Patient symptoms are being tracked across disciplines to establish physiological correlation patterns.'
           : 'Patient has not yet logged active symptoms or uploaded laboratory reports.',
         assessment: hasUserClinicalData
-          ? (activeCase?.currentSummary?.synthesis || `Multidisciplinary correlation reveals ${ferritinFound ? `Ferritin status (${ferritinStr})` : 'metabolic cellular reserves'} co-occurring with food-triggered ${suspect1?.primarySensitivity || 'reactivity'} (${suspect1?.name || 'dietary triggers'}) and a ${deltaSign} bpm postural orthostatic tachycardia jump.`)
+          ? (activeReview?.stage8_synthesis?.mainFinding || activeCase?.currentSummary?.synthesis || `Multidisciplinary correlation reveals ${ferritinFound ? `Ferritin status (${ferritinStr})` : 'metabolic cellular reserves'} co-occurring with food-triggered ${suspect1?.primarySensitivity || 'reactivity'} (${suspect1?.name || 'dietary triggers'}) and a ${deltaSign} bpm postural orthostatic tachycardia jump.`)
           : 'Awaiting clinical intake and data convergence.',
         recommendation: hasUserClinicalData
-          ? `Recommend formal standing orthostatic tilt assessment, evaluation of metabolic reserves, and a targeted ${activeTrial ? activeTrial.trialId.replace(/_/g, ' ') : 'elimination'} trial.`
+          ? (activeReview?.stage8_synthesis?.practicalImplication || `Recommend formal standing orthostatic tilt assessment, evaluation of metabolic reserves, and a targeted ${activeTrial ? activeTrial.trialId.replace(/_/g, ' ') : 'elimination'} trial.`)
           : 'Start a clinical intake consultation or attach lab reports to generate recommendations.',
       },
-      testsToOrder: hasUserClinicalData ? [
-        { test: 'Complete Iron Panel + Ferritin + Soluble Transferrin Receptor', rationale: 'Confirm bone marrow iron store depletion despite normal serum hemoglobin', priority: 'High' },
-        { test: '10-Minute NASA Lean Test / Autonomic Tilt Review', rationale: 'Quantify orthostatic heart rate delta to rule out hyperadrenergic POTS', priority: 'High' },
-        { test: 'Serum Diamine Oxidase (DAO) Activity', rationale: 'Evaluate enzymatic degradation capacity for dietary biogenic amines', priority: 'Routine' },
-        { test: 'Free T3, Free T4, Reverse T3', rationale: 'Rule out peripheral thyroid conversion blunting secondary to ferritin lag', priority: 'Routine' },
-      ] : [],
+      testsToOrder: (hasUserClinicalData && activeReview?.stage6_balancedAssessments && activeReview.stage6_balancedAssessments.length > 0)
+        ? activeReview.stage6_balancedAssessments.flatMap((b: any) => (b.missingEvidenceWhatWouldChangeIt || []).map((m: any) => ({
+            test: m.testOrObservation || 'Diagnostic evaluation',
+            rationale: m.potentialImpact || 'Differentiates competing clinical mechanisms',
+            priority: 'High' as const,
+          }))).slice(0, 4)
+        : (hasUserClinicalData ? [
+            { test: 'Complete Iron Panel + Ferritin + Soluble Transferrin Receptor', rationale: 'Confirm bone marrow iron store depletion despite normal serum hemoglobin', priority: 'High' },
+            { test: '10-Minute NASA Lean Test / Autonomic Tilt Review', rationale: 'Quantify orthostatic heart rate delta to rule out hyperadrenergic POTS', priority: 'High' },
+            { test: 'Serum Diamine Oxidase (DAO) Activity', rationale: 'Evaluate enzymatic degradation capacity for dietary biogenic amines', priority: 'Routine' },
+            { test: 'Free T3, Free T4, Reverse T3', rationale: 'Rule out peripheral thyroid conversion blunting secondary to ferritin lag', priority: 'Routine' },
+          ] : []),
       icdCodes: hasUserClinicalData ? [
         { code: 'G90.9', label: 'Disorder of the autonomic nervous system, unspecified' },
         { code: 'D50.9', label: 'Iron deficiency anemia, unspecified (subclinical)' },
