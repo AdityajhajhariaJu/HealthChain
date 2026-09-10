@@ -47,7 +47,7 @@ const links: any[] = [
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
-  { to: '/app/consult', label: 'Clinical Engine', icon: BrainCircuit },
+  { to: '/app/consult', label: 'Clinical', icon: BrainCircuit },
   { to: '/app/ava', label: 'Ava', icon: Heart },
   { to: '/app/dietician', label: 'Diet', icon: Apple },
 ];
