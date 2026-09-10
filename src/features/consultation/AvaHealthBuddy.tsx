@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Mic, MicOff, Plus, Pill, Zap, Camera } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -14,9 +14,11 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
 import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCard';
+import { ConnectionTriggerCard } from '../../components/ui/ConnectionTriggerCard';
 import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
 import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
@@ -63,13 +65,31 @@ const QUICK_ACTION_PILLS = [
     action: 'tab:detective',
   },
   {
+    id: 'suspect_foods',
+    label: 'Suspect triggers',
+    icon: '⚠️',
+    bg: '#FFF1F2',
+    color: '#BE123C',
+    border: '#FECDD3',
+    action: 'tab:suspects',
+  },
+  {
     id: 'zen_garden',
-    label: 'Zen Mode',
+    label: 'Zen Garden',
     icon: '🌸',
     bg: '#FDF4FF',
-    color: '#7C3AED',
+    color: '#C026D3',
     border: '#F5D0FE',
-    action: 'mindfulness',
+    action: 'tab:garden',
+  },
+  {
+    id: 'diet_trials',
+    label: 'Diet trials',
+    icon: '🔬',
+    bg: '#ECFDF5',
+    color: '#059669',
+    border: '#A7F3D0',
+    action: 'tab:trials',
   },
   {
     id: 'doctor_export',
@@ -81,6 +101,24 @@ const QUICK_ACTION_PILLS = [
     action: 'tab:doctor',
   },
   {
+    id: 'food_triggers',
+    label: 'Find food triggers',
+    icon: '🔬',
+    bg: '#FEF3C7',
+    color: '#B45309',
+    border: '#FDE68A',
+    prompt: "What's been triggering my bloating and food sensitivities lately?",
+  },
+  {
+    id: 'food_mood',
+    label: 'Food, sleep & mood',
+    icon: '💗',
+    bg: '#FFE4E6',
+    color: '#BE123C',
+    border: '#FECDD3',
+    prompt: 'Check in on my day: Track my food, sleep duration, and energy levels.',
+  },
+  {
     id: 'medication',
     label: 'Medication tracking',
     icon: '💊',
@@ -88,6 +126,15 @@ const QUICK_ACTION_PILLS = [
     color: '#6D28D9',
     border: '#DDD6FE',
     prompt: 'Could any of my active medications be reacting with foods I eat or causing gut symptoms?',
+  },
+  {
+    id: 'mindfulness',
+    label: 'Practice mindfulness',
+    icon: '🍃',
+    bg: '#DCFCE7',
+    color: '#15803D',
+    border: '#BBF7D0',
+    action: 'mindfulness',
   },
 ];
 
@@ -119,19 +166,19 @@ const DEFAULT_CALM_TRACK: FitnessContent = {
   category_id: 'mindfulness',
   is_active: true,
   type: 'breathwork',
-  title: 'Zen Mode: pre-visit pause',
-  subtitle: 'A five-minute guided breathing break',
-  description: 'A paced breathing exercise to help you pause before reviewing difficult information or preparing for an appointment. Stop if you feel light-headed or uncomfortable.',
+  title: 'Autonomic 4-7-8 Calm Reset',
+  subtitle: 'Parasympathetic Vagal Tone Activation',
+  description: 'Evidence-based rhythmic breathwork specifically engineered to reduce acute adrenergic stress and settle cognitive overactivation.',
   cover_image_url: '/images/nature_calm.webp',
   audio_url: 'https://cdn.freesound.org/previews/518/518888_11504996-lq.mp3',
   video_url: '',
   duration_minutes: 5,
-  calories_estimate: 0,
+  calories_estimate: 15,
   difficulty: 'Beginner',
   equipment: [],
   is_premium: false,
   is_featured: true,
-  music_genre: 'Ambient soundscape',
+  music_genre: 'Ambient Tibetan Singing Bowl & Drone',
 };
 
 const getAvaVaultKey = () => {
@@ -354,11 +401,21 @@ const MessageRenderer = ({
 
   // CONNECTION TRIGGER CARD WIDGET (Multi-System Kinetic & Clinical Connection)
   if (content.includes('[WIDGET:CONNECTION_TRIGGER_CARD')) {
-    const { before, after } = extractBalancedWidget(content, 'CONNECTION_TRIGGER_CARD');
+    const { payload, before, after } = extractBalancedWidget(content, 'CONNECTION_TRIGGER_CARD');
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
         {before && <span>{before}</span>}
-        <span>This older message included an unverified connection card. Open a saved case to review documented facts, uncertainties, and its connection map.</span>
+        <ConnectionTriggerCard
+          symptom={payload?.symptom}
+          reactionWindow={payload?.reactionWindow}
+          confidencePercent={payload?.confidencePercent}
+          upstreamRootCause={payload?.upstreamRootCause}
+          kineticPathway={payload?.kineticPathway}
+          suspectVectors={payload?.suspectVectors}
+          onOpenKineticMap={() => {
+            window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'map' } }));
+          }}
+        />
         {after && <span>{after}</span>}
       </div>
     );
@@ -579,12 +636,20 @@ export default function AvaHealthBuddy() {
   const [isWholeHealthOpen, setIsWholeHealthOpen] = useState(false);
   const [wholeHealthTab, setWholeHealthTab] = useState<WholeHealthTab>('picture');
   const [isRiverOpen, setIsRiverOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
-  const [showQuickTools, setShowQuickTools] = useState(false);
+  const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
+  const [detectiveTab, setDetectiveTab] = useState<string>('map');
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
-  const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleOpenDetective = (e?: any) => {
+      setDetectiveTab(e?.detail?.tab || 'map');
+      setIsDetectiveOpen(true);
+    };
+    window.addEventListener('hc_open_connection_detective_modal', handleOpenDetective);
+    return () => window.removeEventListener('hc_open_connection_detective_modal', handleOpenDetective);
+  }, []);
 
   useEffect(() => {
     const handleOpenRiver = () => setIsRiverOpen(true);
@@ -606,58 +671,6 @@ export default function AvaHealthBuddy() {
       window.removeEventListener('hc_open_whole_health_modal', handleOpenWholeHealth);
     };
   }, []);
-
-  const toggleListening = () => {
-    triggerHapticLight();
-    if (typeof window === 'undefined') return;
-    const win = window as unknown as { SpeechRecognition?: new () => any; webkitSpeechRecognition?: new () => any };
-    const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast.info('Voice Dictation', 'Voice dictation is not supported in this browser. Please type directly.');
-      return;
-    }
-
-    if (isListening) {
-      if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch(e){}
-      }
-      setIsListening(false);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((r: any) => r[0].transcript)
-          .join('');
-        setInput(transcript);
-      };
-
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch (e) {
-      console.warn('Speech recognition init error:', e);
-      setIsListening(false);
-    }
-  };
-
 
   const availableCases = useCaseWorkspace();
   const [selectedCaseId, setSelectedCaseId] = useState(() => new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId || '');
@@ -731,7 +744,6 @@ export default function AvaHealthBuddy() {
     isMounted.current = true;
     return () => {
       isMounted.current = false;
-      recognitionRef.current?.abort();
     };
   }, []);
 
@@ -786,7 +798,7 @@ export default function AvaHealthBuddy() {
             messageCount: newMessages.length + 1,
         }, false, null as any, sessionId as any);
         const todayDateStr = new Date().toISOString().split('T')[0];
-        awardPoints(5, 'Prepared with Ava', 'consult', `ava_consult_${todayDateStr}`);
+        awardPoints(5, 'Consulted Ava Clinical Chief of Staff', 'consult', `ava_consult_${todayDateStr}`);
         recordTrialUsage('ava');
       },
     onError: (_error, request) => {
@@ -1048,7 +1060,7 @@ export default function AvaHealthBuddy() {
                     margin: 0,
                   }}
                 >
-                  CASE PREPARATION ASSISTANT
+                  MEDICAL CHIEF OF STAFF
                 </p>
               </div>
             </div>
@@ -1295,15 +1307,15 @@ export default function AvaHealthBuddy() {
                                 </div>
                                 <div>
                                   <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                                    Contextual pause
+                                    Recommended Clinical Protocol
                                   </div>
                                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>
-                                    Zen Mode: pre-visit pause
+                                    Autonomic 4-7-8 Calm Reset
                                   </div>
                                 </div>
                               </div>
                               <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
-                                Take five quiet minutes before continuing. This is a comfort tool, not a treatment or measure of clinical progress.
+                                Vagal nerve stimulation to rapidly down-regulate sympathetic fight-or-flight arousal in 5 minutes.
                               </p>
                               <button
                                 onClick={() => {
@@ -1326,7 +1338,7 @@ export default function AvaHealthBuddy() {
                                   boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
                                 }}
                               >
-                                <Play size={15} fill="#FFF" /> Open Zen Mode
+                                <Play size={15} fill="#FFF" /> Begin Calm Session Now
                               </button>
                             </motion.div>
                           )}
@@ -1567,7 +1579,7 @@ export default function AvaHealthBuddy() {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: isMobile ? '12px 116px 12px 46px' : '15px 128px 15px 52px',
+                padding: isMobile ? '12px 80px 12px 46px' : '15px 92px 15px 52px',
                 borderRadius: '20px',
                 border: '1.5px solid #CCFBF1',
                 background: 'rgba(255, 255, 255, 0.95)',
@@ -1617,29 +1629,6 @@ export default function AvaHealthBuddy() {
                 <Camera size={isMobile ? 14 : 16} />
               </button>
 
-              {/* Mic Dictation Button */}
-              <button
-                type="button"
-                aria-label={isListening ? 'Stop listening' : 'Start voice dictation'}
-                onClick={toggleListening}
-                style={{
-                  width: isMobile ? '30px' : '34px',
-                  height: isMobile ? '30px' : '34px',
-                  borderRadius: '50%',
-                  background: isListening ? '#EF4444' : '#F8FAFC',
-                  color: isListening ? '#FFFFFF' : '#64748B',
-                  border: isListening ? 'none' : '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: isListening ? '0 0 12px rgba(239, 68, 68, 0.5)' : 'none',
-                }}
-              >
-                {isListening ? <MicOff size={isMobile ? 14 : 16} /> : <Mic size={isMobile ? 14 : 16} />}
-              </button>
-
               {/* Send Button */}
               <button
                 aria-label="Send message"
@@ -1673,7 +1662,7 @@ export default function AvaHealthBuddy() {
             <p style={{ margin: 0, lineHeight: 1.5 }}>Enter to send · Shift + Enter for a new line · AI responses can be mistaken.</p>
           </div>
 
-          {/* Explicit shortcuts; these open the same saved tools rather than duplicating them. */}
+          {/* Primary Dual-Action Capsule Dock (Reference media_1788642371467.png) */}
           <div
             style={{
               width: '100%',
@@ -1711,13 +1700,14 @@ export default function AvaHealthBuddy() {
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
               <span>⚡</span>
-              <span>Log a meal</span>
+              <span>Log your day</span>
             </button>
             <button
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                navigate(selectedCase ? `/app/cases/${selectedCase.id}` : '/app/my-cases');
+                setDetectiveTab('map');
+                setIsDetectiveOpen(true);
               }}
               style={{
                 flex: 1,
@@ -1740,13 +1730,12 @@ export default function AvaHealthBuddy() {
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
               <span>🌐</span>
-              <span>{selectedCase ? 'Open case workspace' : 'Choose a case'}</span>
+              <span>Connection Detective</span>
             </button>
           </div>
 
-          <button type="button" className="ava-more-tools" aria-expanded={showQuickTools} onClick={() => setShowQuickTools(value => !value)}>{showQuickTools ? 'Hide extra tools' : 'More ways Ava can help'}</button>
-          {/* Additional tools stay available without crowding the composer. */}
-          {showQuickTools && <div
+          {/* Ava's complete tool set stays visible and keeps each feature's original identity. */}
+          <div
             style={{
               width: '100%',
               maxWidth: '720px',
@@ -1801,7 +1790,7 @@ export default function AvaHealthBuddy() {
                 <span>{pill.label}</span>
               </button>
             ))}
-          </div>}
+          </div>
         </div>
       </div>{' '}
       {/* Close Outer White Card Container */}
@@ -1864,6 +1853,21 @@ export default function AvaHealthBuddy() {
         onClose={() => setIsQuickMealOpen(false)}
         onMealLogged={() => {
           triggerHapticLight();
+        }}
+      />
+
+      {/* Connection Detective Multi-System Intelligence Modal */}
+      <ConnectionDetectiveModal
+        isOpen={isDetectiveOpen}
+        initialTab={detectiveTab}
+        onClose={() => setIsDetectiveOpen(false)}
+        onOpenFoodDetective={() => {
+          setIsDetectiveOpen(false);
+          setWholeHealthTab('detective');
+          setIsWholeHealthOpen(true);
+        }}
+        onOpenConsult={() => {
+          setIsDetectiveOpen(false);
         }}
       />
 
