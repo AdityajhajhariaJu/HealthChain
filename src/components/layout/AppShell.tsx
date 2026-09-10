@@ -34,22 +34,22 @@ function AnimatedOutlet() {
 }
 
 const links: any[] = [
-  { to: '/app/today', label: 'Today', icon: LayoutDashboard, section: 'Your workspace' },
-  { to: '/app/my-cases', label: 'My Cases', icon: Archive, section: 'Your workspace' },
-  { to: '/app/consult', label: 'Review Records', icon: BrainCircuit, section: 'Your workspace' },
-  { to: '/app/ava', label: 'Ask Ava', icon: Heart, section: 'Your workspace' },
-  { to: '/app/case-prep', label: 'Appointment Brief', icon: ClipboardList, section: 'Prepare & research' },
-  { to: '/app/trials', label: 'Research Hub', icon: FlaskConical, section: 'Prepare & research' },
-  { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart, section: 'Health records' },
-  { to: '/app/medicine-lab', label: 'Medicines & Reports', icon: Pill, section: 'Health records' },
-  { to: '/app/dietician', label: 'Food & Symptoms', icon: Apple, section: 'Health records' },
+  { to: '/app/today', label: 'Health Today', icon: LayoutDashboard },
+  { to: '/app/consult', label: 'Clinical Data Engine', icon: BrainCircuit },
+  { to: '/app/case-prep', label: 'Case Prep', icon: ClipboardList },
+  { to: '/app/trials', label: 'Clinical Trials', icon: FlaskConical },
+  { to: '/app/my-cases', label: 'My Cases', icon: Archive },
+  { to: '/app/profile', label: 'Medical Profile', icon: FolderHeart },
+  { to: '/app/dietician', label: 'Diet Plan', icon: Apple },
+  { to: '/app/ava', label: 'Ava Health Buddy', icon: Heart },
+  { to: '/app/medicine-lab', label: 'Medicine & Lab Reports', icon: Pill },
 ];
 
 const mobileTabs = [
   { to: '/app/today', label: 'Today', icon: LayoutDashboard },
-  { to: '/app/my-cases', label: 'Cases', icon: Archive },
+  { to: '/app/consult', label: 'Clinical Engine', icon: BrainCircuit },
   { to: '/app/ava', label: 'Ava', icon: Heart },
-  { to: '/app/consult', label: 'Review', icon: BrainCircuit },
+  { to: '/app/dietician', label: 'Diet', icon: Apple },
 ];
 
 export default function AppShell() {
@@ -200,7 +200,7 @@ export default function AppShell() {
       } else if (location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) {
         metaThemeColor.setAttribute('content', '#FFF7ED'); // Warm amber clinical
       } else {
-        metaThemeColor.setAttribute('content', '#FFF7F2'); // Peach product foundation
+        metaThemeColor.setAttribute('content', '#F0FDFA'); // Light teal default
       }
     }
 
@@ -275,7 +275,7 @@ const enforceSafeArea = () => {
             <HCLogo size={36} />
             <div>
               <span className="sidebar__logo-text">HealthChain360.ai</span>
-              <span className="sidebar__logo-sub">Connected Records & Case Prep</span>
+              <span className="sidebar__logo-sub">Health Assessment & Case Prep</span>
             </div>
           </div>
 
@@ -298,14 +298,14 @@ const enforceSafeArea = () => {
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
-              title="View optional progress milestones"
+              title="View Vitality Points & Daily Rewards"
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Trophy size={15} color="#059669" />
                 <span className="tabular-nums" style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
                 <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Progress →</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
             </button>
             <button
               onClick={() => {
@@ -351,16 +351,11 @@ const enforceSafeArea = () => {
           </div>
 
           <nav className="sidebar__nav" aria-label="Main navigation">
-            {links.map((l, index) => {
+            {links.map((l) => {
               const isLocked = l.locked;
               return (
-              <React.Fragment key={l.to}>
-              {(index === 0 || links[index - 1].section !== l.section) && (
-                <div style={{ padding: index === 0 ? '4px 20px 6px' : '16px 20px 6px', color: '#94A3B8', fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  {l.section}
-                </div>
-              )}
               <NavLink
+                key={l.to}
                 to={isLocked ? '#' : l.to}
                 end={l.to === '/app'}
                 onClick={(e) => {
@@ -376,7 +371,6 @@ const enforceSafeArea = () => {
                 {l.label}
                 {isLocked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
               </NavLink>
-              </React.Fragment>
             )})}
             <NavLink
               to="/app/settings"
@@ -666,7 +660,7 @@ const enforceSafeArea = () => {
                         borderRadius: '20px',
                         border: 'none'
                       }}
-                      aria-label="View optional progress milestones"
+                      aria-label="View Vitality Points & Daily Rewards"
                     >
                       <Trophy size={14} color="#059669" />
                       <span className="tabular-nums" style={{ fontWeight: 900, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
@@ -964,7 +958,7 @@ function BrandPulseBanner() {
     },
     {
       quote: 'HealthChain360.ai isn\'t a one-off search engine.',
-      sub: 'It keeps your evidence, open questions, appointment preparation, and clinician outcomes connected as your case changes.',
+      sub: 'It is a persistent, AI-driven medical detective that stays on the case until the mystery is actually solved.',
     },
   ];
   const [active, setActive] = useState(0);

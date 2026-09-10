@@ -28,7 +28,9 @@ import {
   FolderHeart,
   Pill,
   Plus,
-  FileText
+  FileText,
+  GitMerge,
+  BrainCircuit
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,30 +53,35 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { VitalityNav } from '../../components/ui/FitnessNav';
+import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
 
 import { getProfile } from '../../services/ProfileEngine';
 import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
 
+import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-import { TodayCaseWorkspace } from '../../components/ui/TodayCaseWorkspace';
+import { VitalityStreakBanner } from './VitalityStreakBanner';
+import { ClinicalArticleSection } from './ClinicalArticleSection';
+import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
+import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
-    summary: 'Keep a simple record of drinks across the day.',
-    detail: 'Fluid needs vary with health conditions, medicines, climate, and activity. Use this as a personal log—not a prescribed target—and follow clinician guidance if you have fluid restrictions.',
-    biomarker: 'Daily record'
+    summary: 'Activates intravascular blood volume expansion.',
+    detail: 'Rapid hydration upon waking offsets overnight hemoconcentration, lowering resting sympathetic tone and supporting renal clearance of inflammatory markers.',
+    biomarker: 'Osmolality / Cortisol'
   },
   calm_reset: {
-    summary: 'Take a short, optional paced-breathing pause.',
-    detail: 'Use the exercise only if it feels comfortable. Stop if you feel dizzy, breathless, or unwell; it is a relaxation activity, not a treatment or a measurement of nervous-system health.',
-    biomarker: 'Mindful pause'
+    summary: 'Engages aortic arch baroreceptors for parasympathetic tone.',
+    detail: 'Controlled rhythmic respiration dampens adrenergic surges, boosting High-Frequency Heart Rate Variability (HF-HRV) and lowering acute autonomic stress.',
+    biomarker: 'RMSSD / Vagal Tone'
   },
   vitamins: {
-    summary: 'Keep your chosen medicine and supplement schedule visible.',
-    detail: 'Logging an item does not confirm that it is appropriate, effective, or safe for you. Do not start, stop, or change a medicine or supplement based on points or reminders.',
-    biomarker: 'Schedule record'
+    summary: 'Saturates essential mitochondrial coenzymes.',
+    detail: 'Consistent daily administration maintains steady micronutrient serum concentration, optimizing cellular Krebs cycle bioenergetics and antioxidant enzyme activity.',
+    biomarker: 'Bioavailability'
   }
 };
 
@@ -85,6 +92,7 @@ export default function CaseDashboard() {
   const [showFrictionModal, setShowFrictionModal] = useState(false);
   const [showARLens, setShowARLens] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
+  const [showDetectiveModal, setShowDetectiveModal] = useState(false);
   const [profile, setProfile] = useState(() => getProfile());
 
   const isProfileComplete = Boolean(
@@ -205,21 +213,81 @@ export default function CaseDashboard() {
   return (
     <div style={{
       width: '100%',
-      background: 'linear-gradient(180deg, #FFF7F2 0%, #FFFCFA 36%, #FFF1E8 100%)',
-      backgroundColor: '#FFF7F2',
+      background: 'linear-gradient(180deg, #F8FAFC 0%, #F0FDFA 35%, #F8FAFC 100%)',
+      backgroundColor: '#F8FAFC',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
       paddingBottom: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : '24px',
       overflowX: 'clip'
     }}>
-      <div style={{ paddingTop: isMobile ? "8px" : "16px" }} />
+      <div style={{ paddingTop: isMobile ? "8px" : "16px" }}><VitalityNav /></div>
         
         <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
-          <header style={{ marginBottom: 20 }}><h1 style={{ fontSize: 28, fontWeight: 800, margin: '0 0 6px', color: '#0F172A' }}>Today</h1><p style={{ margin: 0, fontSize: 14, color: '#475569' }}>Your next step, with your health story close by.</p></header>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  navigate('/app/ava', {
+                    state: {
+                      initialPrompt: 'Hi Ava, I would like to do a quick clinical health check-in. Can you review my day and recent biomarkers?'
+                    }
+                  });
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
+                  color: '#FFFFFF',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)'
+                }}
+              >
+                <Sparkles size={14} color="#38BDF8" /> Ask Ava
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  navigate('/app/consult');
+                }}
+                aria-label="Open Clinical Data Engine"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+                  color: '#FFFFFF',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
+                }}
+              >
+                <BrainCircuit size={14} color="#FFF" /> Clinical Engine
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                <LivingHeartIcon size={16} color="#F43F5E" />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
+              </div>
+            </div>
+          </div>
           
-          <VitalityNav />
-          <TodayCaseWorkspace />
+          {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
+          <VitalityStreakBanner completedHabits={completedHabits} />
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
             {/* The Glassmorphic Arch Canvas Tile */}
@@ -335,7 +403,153 @@ export default function CaseDashboard() {
                 </div>
                 <div>
                   <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Capture a meal or nutrition label</p>
+                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
+                </div>
+              </motion.div>
+
+              {/* Connection Detective Bento Tile */}
+              <motion.div 
+                role="button"
+                tabIndex={0}
+                aria-label="Connection Detective - Cross-system root-cause map"
+                whileHover={{ y: -3, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                onClick={() => { triggerHapticSelection(); setShowDetectiveModal(true); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticSelection();
+                    setShowDetectiveModal(true);
+                  }
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
+                  backdropFilter: 'blur(32px)', 
+                  WebkitBackdropFilter: 'blur(32px)', 
+                  border: '1px solid rgba(255, 255, 255, 0.85)', 
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)', 
+                  borderRadius: isMobile ? '24px' : '32px',
+                  padding: isMobile ? '14px 14px' : '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: isMobile ? '125px' : '140px',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ 
+                    width: isMobile ? '38px' : '44px', 
+                    height: isMobile ? '38px' : '44px', 
+                    minWidth: isMobile ? '38px' : '44px', 
+                    minHeight: isMobile ? '38px' : '44px', 
+                    flexShrink: 0,
+                    borderRadius: '50%', 
+                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.85) 100%)', 
+                    backdropFilter: 'blur(12px)', 
+                    WebkitBackdropFilter: 'blur(12px)', 
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
+                    border: '1px solid rgba(255,255,255,0.2)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
+                    <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
+                  </div>
+                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    ROOT CAUSE
+                  </div>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
+                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Cross-system root-cause map</p>
+                </div>
+              </motion.div>
+
+              {/* Point 3: Real Therapeutic Outcome & Symptom Delta Tracking */}
+              <TherapeuticOutcomeCard />
+
+              {/* Health Canvas War Room Matching Bento Tile */}
+              <motion.div 
+                role="button"
+                tabIndex={0}
+                aria-label="Health Canvas War Room - Multi-specialist clinical workspace"
+                whileHover={{ y: -3, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                onClick={() => { triggerHapticSelection(); navigate('/app/war-room'); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticSelection();
+                    navigate('/app/war-room');
+                  }
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
+                  backdropFilter: 'blur(32px)', 
+                  WebkitBackdropFilter: 'blur(32px)', 
+                  border: '1px solid rgba(255, 255, 255, 0.85)', 
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)', 
+                  borderRadius: isMobile ? '24px' : '32px',
+                  padding: isMobile ? '14px 14px' : '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: isMobile ? '125px' : '140px',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ 
+                    width: isMobile ? '38px' : '44px', 
+                    height: isMobile ? '38px' : '44px', 
+                    minWidth: isMobile ? '38px' : '44px', 
+                    minHeight: isMobile ? '38px' : '44px', 
+                    flexShrink: 0,
+                    borderRadius: '50%', 
+                    background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)', 
+                    backdropFilter: 'blur(12px)', 
+                    WebkitBackdropFilter: 'blur(12px)', 
+                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
+                    border: '1px solid rgba(255,255,255,0.2)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
+                    <Sparkles size={isMobile ? 18 : 20} color="#FFF" />
+                  </div>
+                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    WAR ROOM
+                  </div>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Health Canvas</h4>
+                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: '0 0 6px', fontWeight: 500, lineHeight: 1.3 }}>Multi-specialist clinical workspace</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'rgba(13, 148, 136, 0.1)',
+                        border: '1px solid rgba(13, 148, 136, 0.25)',
+                        borderRadius: '6px',
+                        padding: '2px 7px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        color: '#0F766E'
+                      }}
+                    >
+                      <span>Open Workspace</span>
+                      <ArrowRight size={10} />
+                    </span>
+                  </div>
                 </div>
               </motion.div>
 
@@ -382,13 +596,13 @@ export default function CaseDashboard() {
                     aria-label="Toggle hydration habit"
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleHabit('hydration', 'Hydration note');
+                      toggleHabit('hydration', 'Morning Hydration (500ml)');
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.stopPropagation();
                         e.preventDefault();
-                        toggleHabit('hydration', 'Hydration note');
+                        toggleHabit('hydration', 'Morning Hydration (500ml)');
                       }
                     }}
                     style={{ 
@@ -1272,6 +1486,7 @@ export default function CaseDashboard() {
       </div>
 
       {/* 10 Clinical Evidence Dossiers & Immersive Reading Section */}
+      <ClinicalArticleSection />
 
       <ClinicalFrictionModal isOpen={showFrictionModal} onComplete={() => setShowFrictionModal(false)} />
 
@@ -1316,7 +1531,13 @@ export default function CaseDashboard() {
         />
       )}
 
+      <ConnectionDetectiveModal
+        isOpen={showDetectiveModal}
+        onClose={() => setShowDetectiveModal(false)}
+        onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
+        onOpenConsult={() => navigate('/app/consult')}
+      />
+
     </div>
   );
 };
-
