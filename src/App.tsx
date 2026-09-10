@@ -1,4 +1,3 @@
-import WarRoom from './features/dashboard/WarRoom';
 import React, { Suspense, useEffect } from 'react';
 import { trackButtonClick, trackEvent } from './services/analytics';
 import { registerPushNotifications, setupPushListeners } from './services/PushService';
@@ -578,7 +577,7 @@ export default function App() {
           <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
           <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
-          <Route path="/app/war-room" element={<SafeRoute><WarRoom /></SafeRoute>} />
+          <Route path="/app/war-room" element={<Navigate to="/app/today" replace />} />
           <Route
             path="/app/today"
             element={

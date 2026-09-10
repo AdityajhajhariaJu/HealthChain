@@ -108,7 +108,7 @@ export function CaseConnectionMap({
           <button
             type="button"
             onClick={() => {
-              window.location.href = '/app/war-room';
+              window.location.href = '/app/case-prep';
             }}
             style={{
               display: 'inline-flex',

@@ -10,3 +10,5 @@ client_secret_*.json
 bundle-stats.html
 skills-lock.json
 .agents/
+test-results/
+playwright-report/

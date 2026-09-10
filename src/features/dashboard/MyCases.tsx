@@ -228,12 +228,7 @@ export default function MyCases() {
                    fontSize: '12.5px', fontWeight: 600, color: '#1E40AF', cursor: 'pointer' }}>
           Clinical Data Engine
         </button>
-        <button onClick={() => navigate('/app/war-room')}
-          style={{ flex: 1, padding: '10px', borderRadius: '12px',
-                   background: '#F0FDFA', border: '1px solid #CCFBF1',
-                   fontSize: '12.5px', fontWeight: 600, color: '#0F766E', cursor: 'pointer' }}>
-          🏥 Clinical Journal
-        </button>
+
         <button onClick={() => navigate('/app/case-prep')}
           style={{ flex: 1, padding: '10px', borderRadius: '12px',
                    background: '#FFF7ED', border: '1px solid #FED7AA',

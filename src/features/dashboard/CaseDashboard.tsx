@@ -233,21 +233,9 @@ export default function CaseDashboard() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
-            {/* The Glassmorphic Arch Canvas Tile */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
+            {/* The Glassmorphic Arch Canvas Tile - View Only */}
+              <div 
                 aria-label="Health Canvas War Room"
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => { triggerHapticLight(); navigate('/app/war-room'); }} 
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    triggerHapticLight();
-                    navigate('/app/war-room');
-                  }
-                }}
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
                   backdropFilter: 'blur(32px)', 
@@ -258,7 +246,7 @@ export default function CaseDashboard() {
                   borderRadius: isMobile ? '80px 80px 24px 24px' : '160px 160px 32px 32px', 
                   position: 'relative',
                   overflow: 'hidden',
-                  cursor: 'pointer',
+                  cursor: 'default',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -285,7 +273,7 @@ export default function CaseDashboard() {
                    <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
                    <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
                 </div>
-              </motion.div>
+              </div>
 
               
               {/* AR Lens Bento Tile */}
@@ -413,88 +401,7 @@ export default function CaseDashboard() {
               </motion.div>
 
               {/* Point 3: Real Therapeutic Outcome & Symptom Delta Tracking */}
-              <TherapeuticOutcomeCard />
-
-              {/* Health Canvas War Room Matching Bento Tile */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label="Health Canvas War Room - Multi-specialist clinical workspace"
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => { triggerHapticSelection(); navigate('/app/war-room'); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    triggerHapticSelection();
-                    navigate('/app/war-room');
-                  }
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.85)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.95) 0%, rgba(15, 118, 110, 0.85) 100%)', 
-                    backdropFilter: 'blur(12px)', 
-                    WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(13, 148, 136, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
-                    border: '1px solid rgba(255,255,255,0.2)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
-                    <Sparkles size={isMobile ? 18 : 20} color="#FFF" />
-                  </div>
-                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    WAR ROOM
-                  </div>
-                </div>
-                <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Health Canvas</h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: '0 0 6px', fontWeight: 500, lineHeight: 1.3 }}>Multi-specialist clinical workspace</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        background: 'rgba(13, 148, 136, 0.1)',
-                        border: '1px solid rgba(13, 148, 136, 0.25)',
-                        borderRadius: '6px',
-                        padding: '2px 7px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        color: '#0F766E'
-                      }}
-                    >
-                      <span>Open Workspace</span>
-                      <ArrowRight size={10} />
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+              <TherapeuticOutcomeCard span2={true} />
 
               {/* Point 3: Interactive Daily Habit Bento Stack */}
               <motion.div 

@@ -170,6 +170,18 @@ const id = () => {
 let cachedCases: CaseItem[] | null = null;
 
 export function getCases(): CaseItem[] {
+  if (cachedCases && cachedCases.length > 0) return cachedCases;
+  try {
+    const key = currentCasesKey || getCasesKey();
+    const raw = getItemSync(key) || getItemSync('hc_cases');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cachedCases = parsed;
+        return cachedCases;
+      }
+    }
+  } catch {}
   return cachedCases || [];
 }
 
