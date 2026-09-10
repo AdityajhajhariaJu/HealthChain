@@ -8,6 +8,8 @@ export interface CaseConnectionMapProps {
   selectedNodeId?: string | null;
   onSelectNode?: (nodeId: string) => void;
   filterSystem?: string;
+  onOpenConsult?: () => void;
+  onOpenCasePrep?: () => void;
 }
 
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
@@ -36,6 +38,8 @@ export function CaseConnectionMap({
   selectedNodeId = null,
   onSelectNode,
   filterSystem = 'all',
+  onOpenConsult,
+  onOpenCasePrep,
 }: CaseConnectionMapProps) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
@@ -85,7 +89,8 @@ export function CaseConnectionMap({
           <button
             type="button"
             onClick={() => {
-              window.location.href = '/app/consult';
+              if (onOpenConsult) onOpenConsult();
+              else window.location.href = '/app/consult';
             }}
             style={{
               display: 'inline-flex',
@@ -108,7 +113,8 @@ export function CaseConnectionMap({
           <button
             type="button"
             onClick={() => {
-              window.location.href = '/app/case-prep';
+              if (onOpenCasePrep) onOpenCasePrep();
+              else window.location.href = '/app/case-prep';
             }}
             style={{
               display: 'inline-flex',

@@ -1926,6 +1926,10 @@ export default function AvaHealthBuddy() {
         onOpenConsult={() => {
           setIsDetectiveOpen(false);
         }}
+        onOpenCasePrep={() => {
+          setIsDetectiveOpen(false);
+          navigate('/app/case-prep');
+        }}
       />
 
       <EmergencyTriageModal

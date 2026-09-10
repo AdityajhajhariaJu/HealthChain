@@ -12,6 +12,7 @@ interface ConnectionDetectiveModalProps {
   initialTab?: string;
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
+  onOpenCasePrep?: () => void;
 }
 
 export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> = ({
@@ -20,6 +21,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
   initialTab = 'map',
   onOpenFoodDetective,
   onOpenConsult,
+  onOpenCasePrep,
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -181,6 +183,10 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 onOpenConsult={() => {
                   onClose();
                   if (onOpenConsult) onOpenConsult();
+                }}
+                onOpenCasePrep={() => {
+                  onClose();
+                  if (onOpenCasePrep) onOpenCasePrep();
                 }}
               />
             </div>

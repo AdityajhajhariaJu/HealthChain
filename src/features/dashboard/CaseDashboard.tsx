@@ -1208,6 +1208,7 @@ export default function CaseDashboard() {
         onClose={() => setShowDetectiveModal(false)}
         onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
         onOpenConsult={() => navigate('/app/consult')}
+        onOpenCasePrep={() => navigate('/app/case-prep')}
       />
 
     </div>

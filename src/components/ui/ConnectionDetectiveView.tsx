@@ -53,12 +53,14 @@ interface ConnectionDetectiveViewProps {
   initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination' | 'insights';
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
+  onOpenCasePrep?: () => void;
 }
 
 export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = ({
   initialTab = 'map',
   onOpenFoodDetective,
   onOpenConsult,
+  onOpenCasePrep,
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
@@ -85,7 +87,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     };
   }, []);
 
-  const [activeSystemFilter, setActiveSystemFilter] = useState<string>('all');
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
@@ -278,54 +279,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
         </div>
       </div>
 
-      {/* 2. Systemic Axis Filter Ribbon */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          paddingBottom: '2px',
-        }}
-      >
-        {report.systemAxes.map((axis) => {
-          const isCurrent = activeSystemFilter === axis.id;
-          return (
-            <button
-              key={axis.id}
-              type="button"
-              onClick={() => {
-                triggerHapticSelection();
-                setActiveSystemFilter(axis.id);
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '6px 12px',
-                borderRadius: '999px',
-                fontSize: '11.5px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                border: isCurrent ? `1.5px solid ${axis.color}` : '1px solid #E2E8F0',
-                background: isCurrent ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)',
-                color: isCurrent ? axis.color : '#64748B',
-                boxShadow: isCurrent ? `0 2px 8px ${axis.color}25` : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span>{axis.icon}</span>
-              <span>{axis.label}</span>
-              <span style={{ fontSize: '10px', opacity: 0.75 }}>({axis.count})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 3. Sub-Tab Selector Navigation */}
+      {/* 2. Sub-Tab Selector Navigation */}
       <div
         style={{
           display: 'flex',
@@ -610,10 +564,6 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   Symptom-to-Organ Pathway Graph
                 </h4>
               </div>
-
-              <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
-                Filter: <strong style={{ color: '#0284C7' }}>{activeSystemFilter.toUpperCase()}</strong>
-              </span>
             </div>
 
             <CaseConnectionMap
@@ -624,7 +574,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 triggerHapticLight();
                 setSelectedNodeId((prev) => (prev === nodeId ? null : nodeId));
               }}
-              filterSystem={activeSystemFilter}
+              onOpenConsult={onOpenConsult}
+              onOpenCasePrep={onOpenCasePrep}
             />
           </div>
 
