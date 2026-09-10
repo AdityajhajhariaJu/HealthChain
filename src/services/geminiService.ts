@@ -6,6 +6,7 @@ import { parseModelJson } from './modelJson';
 export { parseModelJson } from './modelJson';
 import { evaluateBiomarkerFunctionally } from './functionalBiomarkers';
 import { getDeterministicMedicineData } from './clinicalPharmacyData';
+import { buildVersionedEvidenceSet, runSubstantiveDebateRound } from './MultiPerspectiveReviewEngine';
 
 const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || (import.meta.env.DEV ? 'http://localhost:3000' : '');
 const API_URL = `${BACKEND_BASE}/api/gemini`;
@@ -859,12 +860,14 @@ export async function runDebateRound(
   otherTranscripts: Record<string, any[]>,
   medicalRecords: any[] = []
 ): Promise<any> {
-  // Optimization: Debate logic moved to Orchestrator to save tokens and latency.
-  return {
-    critique: "Awaiting Orchestrator consensus.",
-    revisedHypothesis: "Deferred to Board Orchestrator.",
-    confidenceUpdate: 50
-  };
+  const versionedEvidence = buildVersionedEvidenceSet([], medicalRecords);
+  return runSubstantiveDebateRound(
+    specialistId,
+    specialistLabel,
+    ownTranscript,
+    otherTranscripts,
+    versionedEvidence
+  );
 }
 
 

@@ -25,6 +25,7 @@ import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
 import { normalizeClinicalReview } from '../../services/clinicalReview';
 import '../../components/ui/caseWorkspace.css';
@@ -739,113 +740,14 @@ AI-generated preparation material. Verify against original records; this is not 
             </div>
           </motion.div>}
 
-          {/* MULTI-PERSPECTIVE SPECIALIST REVIEW (PROMISE 1) */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 }}
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '20px',
-              border: '1.5px solid #BAE6FD',
-              padding: isMobile ? '20px 16px' : '24px 28px',
-              boxShadow: '0 4px 16px rgba(2, 132, 199, 0.06)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Stethoscope size={18} color="#0284C7" />
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                  Multi-Perspective Specialist Review
-                </h3>
-              </div>
-              <span style={{ fontSize: '11px', color: '#0369A1', background: '#F0F9FF', border: '1px solid #BAE6FD', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
-                Unique Contributions & Evidence Checked
-              </span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-              {(report.perspectives || [
-                {
-                  id: 'pers_cardio',
-                  specialty: 'Autonomic Cardiology & Arrhythmia Board',
-                  doctorName: 'Autonomic & Arrhythmia Panel',
-                  uniqueContribution: 'Evaluates orthostatic standing tachycardia as compensatory hyperadrenergic baroreflex to splanchnic venous pooling rather than primary sinus node disease.',
-                  supportingEvidenceIds: ['telemetry_ortho_delta'],
-                  remainingQuestions: ['Does active standing without compression reproduce cerebral perfusion latency?'],
-                  dissentingView: 'Advises caution on beta-blockers without prior volume restoration due to fatigue risk.',
-                },
-                {
-                  id: 'pers_metabolic',
-                  specialty: 'Endocrine & Cellular Metabolism Board',
-                  doctorName: 'Metabolic & Mitochondrial Panel',
-                  uniqueContribution: 'Isolates bone marrow ferritin reserve depletion starving mitochondrial electron transport cofactors, explaining unrelenting cognitive brain fog despite normal complete blood count.',
-                  supportingEvidenceIds: ['lab_ferritin'],
-                  remainingQuestions: ['What is the bone marrow erythropoietic demand via soluble transferrin receptor?'],
-                },
-                {
-                  id: 'pers_enteric',
-                  specialty: 'Gastroenterology & Enteric Neurobiology Board',
-                  doctorName: 'Gut-Brain & Enteric Panel',
-                  uniqueContribution: 'Correlates postprandial gut distension to mucosal diamine oxidase (DAO) saturation and upward gastrocardiac Roemheld hemidiaphragmatic vagal compression.',
-                  supportingEvidenceIds: ['diet_amine_stacked'],
-                  remainingQuestions: ['Does a strict low-histamine trial reduce both postprandial gut bloating and standing palpitations?'],
-                  dissentingView: 'Recommends against empiric PPI escalation which aggravates hypochlorhydria.',
-                },
-              ]).map((pers: any, idx: number) => (
-                <div
-                  key={pers.id || idx}
-                  style={{
-                    background: '#F8FAFC',
-                    borderRadius: '14px',
-                    border: '1px solid #E2E8F0',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
-                    <div>
-                      <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
-                        {pers.doctorName || pers.specialty}
-                      </strong>
-                      <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: 600 }}>
-                        {pers.specialty}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#047857', background: '#ECFDF5', padding: '2px 6px', borderRadius: '4px' }}>
-                      Aligned ✓
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5, background: '#FFFFFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                    <strong style={{ color: '#0369A1', display: 'block', marginBottom: '2px' }}>Unique Clinical Perspective:</strong>
-                    {pers.uniqueContribution}
-                  </div>
-
-                  {pers.dissentingView && (
-                    <div style={{ fontSize: '11.5px', color: '#991B1B', background: '#FEF2F2', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FECACA' }}>
-                      <strong>Nuance / Caution:</strong> {pers.dissentingView}
-                    </div>
-                  )}
-
-                  {pers.remainingQuestions?.length > 0 && (
-                    <div>
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                        Remaining Clinician Questions:
-                      </span>
-                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '11.5px', color: '#475569', lineHeight: 1.45 }}>
-                        {pers.remainingQuestions.map((q: string, qIdx: number) => (
-                          <li key={qIdx}>{q}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON */}
+          {(report.meaningfulPerspectives || report.perspectives) && (
+            <MeaningfulMultiPerspectiveView
+              perspectives={report.meaningfulPerspectives || report.perspectives}
+              boundedComparison={report.boundedComparison}
+              versionedEvidence={report.versionedEvidence}
+            />
+          )}
 
           {/* PART 3: SUB-CLINICAL BIOMARKER DISCREPANCY MATRIX */}
           {Array.isArray(report.functionalBiomarkers) && report.functionalBiomarkers.length > 0 && (

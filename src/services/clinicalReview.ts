@@ -6,6 +6,13 @@ import {
   runClinicalReasoningPipeline,
   ClinicalReasoningPayload,
 } from './ClinicalReasoningEngine';
+import {
+  buildVersionedEvidenceSet,
+  generateMeaningfulPerspectives,
+  executeBoundedComparison,
+  MeaningfulPerspective,
+  BoundedComparisonSummary,
+} from './MultiPerspectiveReviewEngine';
 
 /** A source-led schema; examples must never become invented patient findings. */
 export function buildClinicalReviewPrompt(history: string, profile: any): string {
@@ -22,11 +29,24 @@ Categorise information strictly before reasoning about it into the canonical cat
 - open_question (unresolved task)
 - outcome (follow-up that updates the case)
 
-Follow the 10 Reasoning Stages with clinical depth:
+Follow the 10 Reasoning Stages and Meaningful Multi-Perspective Mandates:
 1. Establish facts: Extract what was actually reported or documented with exact sources.
 2. Align time: Distinguish event date, report date, and entry date; identify overlaps and gaps.
 3. Reconcile records: Identify duplicates, changed units, conflicting values, and differing accounts.
-4. Identify relevant perspectives: Choose 2-3 perspectives strictly because they address specific unanswered questions.
+4. Meaningful Multi-Perspective Review:
+   - Each perspective investigates a DIFFERENT question (never repeat the same summary).
+   - Evaluate the exact same versioned evidence set.
+   - For agreement, recognize shared model assumptions.
+   - Keep disagreements VISIBLE with the evidence needed to resolve them.
+   - Valid outcomes: a unifying explanation, multiple unrelated issues, or insufficient evidence.
+   - Return 7 mandatory fields for each perspective:
+     * questionAddressed
+     * evidenceConsidered
+     * interpretation
+     * evidenceAgainst
+     * missingInformation
+     * questionForAnotherPerspective
+     * whatWouldChangeInterpretation
 5. Generate alternatives: Consider connected explanations, separate explanations, and insufficient evidence.
 6. Challenge each alternative: What supports it, contradicts it, and would change it (tri-prong).
 7. Choose useful clarification: Ask the single question most likely to improve the next decision.
@@ -48,9 +68,18 @@ Return concise JSON with the following shape. Empty arrays are valid; never fill
     {
       "specialty": "Relevant clinical board",
       "doctorName": "Specialty Panel",
-      "unansweredQuestionAddressed": "Exact unanswered question this perspective addresses",
-      "justification": "Why this perspective addresses that question",
-      "uniqueContribution": "Systemic physiological consideration"
+      "selectionReason": "Explicit reason why this perspective was chosen",
+      "questionAddressed": "Unique question addressed (different from other boards)",
+      "evidenceConsidered": ["Specific fact from record"],
+      "interpretation": "Unique pathophysiological contribution",
+      "evidenceAgainst": ["Normal test result or conflicting data"],
+      "missingInformation": ["Epistemic limit or unexamined test"],
+      "questionForAnotherPerspective": {
+        "targetSpecialty": "Other relevant board",
+        "question": "Specific cross-specialty inquiry",
+        "clinicalRationale": "Why this cross-question matters"
+      },
+      "whatWouldChangeInterpretation": "Concrete objective finding that would alter this view"
     }
   ],
   "alternatives": [
@@ -104,6 +133,12 @@ export function normalizeClinicalReview(
 
   const partitioned = partitionBeforeReasoning(enrichedFacts);
 
+  // Execute Step 5 Meaningful Multi-Perspective Review on Versioned Evidence Set
+  const versionedEvidence = buildVersionedEvidenceSet(enrichedFacts);
+  const unanswered = strings(report.uncertainties).concat(strings(report.missingLinks));
+  const meaningfulPerspectives = generateMeaningfulPerspectives(versionedEvidence, unanswered, objects(report.perspectives));
+  const boundedComparison = executeBoundedComparison(meaningfulPerspectives, versionedEvidence);
+
   // Execute the 10-stage Clinical Reasoning Depth Engine & Cyclic Graph Pipeline
   const reasoningPipeline = runClinicalReasoningPipeline(
     {
@@ -113,7 +148,7 @@ export function normalizeClinicalReview(
       uncertainties: strings(report.uncertainties),
       missingLinks: strings(report.missingLinks),
       questionsForClinician: strings(report.questionsForClinician),
-      perspectives: objects(report.perspectives),
+      perspectives: meaningfulPerspectives,
       alternatives: objects(report.alternatives),
     },
     previousPayload,
@@ -138,9 +173,13 @@ export function normalizeClinicalReview(
       openQuestions: partitioned.openQuestions,
       outcomes: partitioned.outcomes,
     },
-    // The 10-Stage Reasoning Depth Pipeline artifacts
+    // Meaningful Multi-Perspective & Bounded Comparison artifacts (Step 5)
+    versionedEvidence,
+    meaningfulPerspectives,
+    boundedComparison,
+    perspectives: meaningfulPerspectives,
+    // The 10-Stage Reasoning Depth Pipeline artifacts (Step 4)
     reasoningPipeline,
-    perspectives: reasoningPipeline.stage4_perspectives,
     alternatives: reasoningPipeline.stage5_alternatives,
     balancedAssessments: reasoningPipeline.stage6_balancedAssessments,
     focusedQuestion: reasoningPipeline.stage7_focusedQuestion,

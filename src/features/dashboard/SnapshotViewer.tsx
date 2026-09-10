@@ -13,8 +13,14 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import PathwaySimulator from './PathwaySimulator';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
+import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
 import { classifyClinicalInformation } from '../../services/ClinicalInformationClassifier';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
+import { 
+  buildVersionedEvidenceSet, 
+  generateMeaningfulPerspectives, 
+  executeBoundedComparison 
+} from '../../services/MultiPerspectiveReviewEngine';
 
 const formatDate = (value: string) => {
   try {
@@ -288,6 +294,26 @@ AI-generated preparation material. Verify against original records.`;
                       />
                     )}
 
+                    {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON */}
+                    {activeReview.report && (() => {
+                      const versionedEvidence = activeReview.report.versionedEvidence || buildVersionedEvidenceSet(
+                        (activeReview.report.documentedFacts || []).map((f: any) => typeof f === 'string' ? { fact: f, source: 'Clinical Record' } : f),
+                        item.medicalRecords || []
+                      );
+                      const meaningfulPerspectives = activeReview.report.meaningfulPerspectives || 
+                        generateMeaningfulPerspectives(versionedEvidence, activeReview.report.questionsForClinician || [], activeReview.report.perspectives);
+                      const boundedComparison = activeReview.report.boundedComparison || 
+                        executeBoundedComparison(meaningfulPerspectives, versionedEvidence);
+
+                      return (
+                        <MeaningfulMultiPerspectiveView
+                          perspectives={meaningfulPerspectives}
+                          boundedComparison={boundedComparison}
+                          versionedEvidence={versionedEvidence}
+                        />
+                      );
+                    })()}
+
                     {activeReview.report?.documentedFacts?.length > 0 && (
                       <section className="case-workspace">
                         <h3>What the input documents</h3>
@@ -520,6 +546,28 @@ AI-generated preparation material. Verify against original records.`;
                        </div>
                     </section>
                     
+                    {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON */}
+                    {activeReview.report && (() => {
+                      const versionedEvidence = activeReview.report.versionedEvidence || buildVersionedEvidenceSet(
+                        (activeReview.report.documentedFacts || []).map((f: any) => typeof f === 'string' ? { fact: f, source: 'Clinical Record' } : f),
+                        item.medicalRecords || []
+                      );
+                      const meaningfulPerspectives = activeReview.report.meaningfulPerspectives || 
+                        generateMeaningfulPerspectives(versionedEvidence, activeReview.report.questionsForClinician || [], activeReview.report.perspectives);
+                      const boundedComparison = activeReview.report.boundedComparison || 
+                        executeBoundedComparison(meaningfulPerspectives, versionedEvidence);
+
+                      return (
+                        <div style={{ marginTop: 12 }}>
+                          <MeaningfulMultiPerspectiveView
+                            perspectives={meaningfulPerspectives}
+                            boundedComparison={boundedComparison}
+                            versionedEvidence={versionedEvidence}
+                          />
+                        </div>
+                      );
+                    })()}
+
                     <section>
                        <h3 style={{ fontSize: 18, margin: '0 0 12px' }}>Participating Specialists</h3>
                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
