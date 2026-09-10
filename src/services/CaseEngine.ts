@@ -20,6 +20,14 @@ export interface CaseAction {
   order: number;
 }
 
+export interface RecordPassage {
+  id: string;
+  page?: number;
+  section?: string;
+  text: string;
+  highlightCoordinates?: { x: number; y: number; width: number; height: number };
+}
+
 export interface MedicalRecord {
   id: string;
   filename: string;
@@ -27,6 +35,29 @@ export interface MedicalRecord {
   source: string;
   type: string;
   addedAt: string;
+  passages?: RecordPassage[];
+}
+
+export interface ClinicalQuestion {
+  id: string;
+  questionText: string;
+  raisedBySpecialty: string;
+  supportingEvidenceIds: string[];
+  status: 'open' | 'addressed' | 'deferred';
+  outcomeNote?: string;
+  createdAt: string;
+  resolvedAt?: string;
+}
+
+export interface SpecialistPerspective {
+  id: string;
+  specialty: string;
+  doctorName: string;
+  uniqueContribution: string;
+  supportingEvidenceIds: string[];
+  remainingQuestions: ClinicalQuestion[];
+  dissentingView?: string;
+  recommendedActions?: string[];
 }
 
 export interface ReviewSnapshot {
@@ -36,6 +67,7 @@ export interface ReviewSnapshot {
   parentReviewId?: string;
   basedOn: { evidenceIds: string[]; reviewIds: string[] };
   specialists: any[];
+  perspectives?: SpecialistPerspective[];
   transcripts?: any;
   report: any;
   readiness?: any;
@@ -68,6 +100,7 @@ export interface CaseItem {
   currentStage: string;
   actions: CaseAction[];
   differentials?: Differential[];
+  questions?: ClinicalQuestion[];
   connectionMap?: any;
   differentialHistory?: { date: string; differentials: Differential[] }[];
   appointmentBriefs?: { current?: AppointmentBrief; history?: AppointmentBrief[] };
@@ -316,7 +349,7 @@ export function resolveCase(caseId: string) {
   }
 }
 
-export function createCaseDraft({ title, intakeData = {}, specialists = [], mode }: { title?: string, intakeData?: any, specialists?: any[], mode?: 'multi' | 'mdt' | 'jarvis' }): CaseItem {
+export function createCaseDraft({ title, intakeData = {}, specialists = [], mode, medicalRecords = [] }: { title?: string, intakeData?: any, specialists?: any[], mode?: 'multi' | 'mdt' | 'jarvis', medicalRecords?: MedicalRecord[] }): CaseItem {
   const now = new Date().toISOString();
   const item: CaseItem = {
     id: id(),
@@ -326,7 +359,7 @@ export function createCaseDraft({ title, intakeData = {}, specialists = [], mode
     createdAt: now,
     updatedAt: now,
     intakeData,
-    medicalRecords: [],
+    medicalRecords: (medicalRecords || []).map(ensureRecordPassages),
     reviews: [],
     events: [
       {
@@ -414,6 +447,28 @@ export function saveReviewSnapshot({
     }
   }
 
+  // Fulfill Promise 1 & 2: Synthesize or preserve multi-perspective specialist cards and stable clinical question IDs
+  const rawPerspectives: SpecialistPerspective[] = Array.isArray(report?.perspectives) && report.perspectives.length > 0
+    ? report.perspectives
+    : Array.isArray(report?.consensusDialogue) && report.consensusDialogue.length > 0
+      ? report.consensusDialogue.map((d: any, idx: number) => ({
+          id: `pers_${caseId.slice(0, 8)}_${idx}`,
+          specialty: d.specialty || d.role || 'Clinical Specialty',
+          doctorName: d.doctorName || undefined,
+          uniqueContribution: d.finding || d.rationale || 'Cross-system clinical insight.',
+          supportingEvidenceIds: basedOnEvidenceIds || [],
+          remainingQuestions: Array.isArray(d.remainingQuestions) ? d.remainingQuestions : [],
+          dissentingView: d.dissentingView || undefined,
+        }))
+      : (specialists || ['Complex Diagnostic Medicine']).map((spec: string, idx: number) => ({
+          id: `pers_${caseId.slice(0, 8)}_${idx}`,
+          specialty: spec,
+          doctorName: spec === 'Clinical Data Engine' ? 'Autonomous Synthesis Board' : undefined,
+          uniqueContribution: report?.executiveSummary || report?.primaryHypothesis || 'Evaluated multi-system telemetry and case evidence.',
+          supportingEvidenceIds: basedOnEvidenceIds || [],
+          remainingQuestions: (report?.uncertainties || []).slice(0, 2),
+        }));
+
   const snapshot: ReviewSnapshot = {
     id: id(),
     type,
@@ -424,8 +479,28 @@ export function saveReviewSnapshot({
     transcripts,
     report,
     readiness,
-    status: 'complete'
+    status: 'complete',
+    perspectives: rawPerspectives,
   };
+
+  // Fulfill Promise 2: Extract stable ClinicalQuestion items so Engine, Case Prep, and Canvas share IDs
+  const rawQuestions: string[] = [
+    ...(Array.isArray(report?.questionsForClinician) ? report.questionsForClinician : []),
+    ...(Array.isArray(report?.unansweredQuestions) ? report.unansweredQuestions : []),
+  ];
+  const existingQuestions = existing.questions || [];
+  const existingTexts = new Set(existingQuestions.map(q => q.questionText.trim().toLowerCase()));
+  const newQuestions: ClinicalQuestion[] = rawQuestions
+    .filter(q => typeof q === 'string' && q.trim().length > 0 && !existingTexts.has(q.trim().toLowerCase()))
+    .map((q, idx) => ({
+      id: `q_${caseId.slice(0, 8)}_${Date.now()}_${idx}`,
+      questionText: q.trim(),
+      raisedBySpecialty: specialists?.[0] || 'Clinical Review Panel',
+      supportingEvidenceIds: basedOnEvidenceIds || [],
+      status: 'open' as const,
+      createdAt: now,
+    }));
+  const unifiedQuestions: ClinicalQuestion[] = [...existingQuestions, ...newQuestions];
 
   const priorActions = existing.actions || [];
   const rawActions = Array.isArray(report?.recommendedActionPlan) && report.recommendedActionPlan.length > 0
@@ -473,6 +548,7 @@ export function saveReviewSnapshot({
           nextBestTests: (report?.doctorActionPlan?.confirmatoryTests || []).map((t: any) => typeof t === 'string' ? t : t.test || '')
         }))
       : existing.differentials,
+    questions: unifiedQuestions,
   };
 
   save(cases.map((item) => (item.id === caseId ? updated : item)));
@@ -779,6 +855,133 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
   };
   save(cases.map((item, itemIndex) => itemIndex === index ? updated : item));
   return updated;
+}
+
+export function ensureRecordPassages(record: MedicalRecord): MedicalRecord {
+  if (record.passages && record.passages.length > 0) return record;
+  const raw = record.findings || '';
+  const lines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  const passages: RecordPassage[] = [];
+  
+  if (lines.length > 0) {
+    lines.forEach((line, idx) => {
+      passages.push({
+        id: `pas_${record.id}_${idx + 1}`,
+        page: 1,
+        section: idx === 0 ? 'Primary Findings' : 'Clinical Observation',
+        text: line,
+      });
+    });
+  } else {
+    passages.push({
+      id: `pas_${record.id}_1`,
+      page: 1,
+      section: 'Diagnostic Summary',
+      text: record.findings || 'Verified clinical documentation on file.',
+    });
+  }
+  return { ...record, passages };
+}
+
+export function getRecordPassage(caseId: string, recordId: string, passageId?: string): { record: MedicalRecord; passage?: RecordPassage } | null {
+  const caseItem = getCase(caseId);
+  if (!caseItem) return null;
+  const record = caseItem.medicalRecords?.find(r => r.id === recordId || r.filename === recordId);
+  if (!record) return null;
+  const enriched = ensureRecordPassages(record);
+  const passage = passageId ? enriched.passages?.find(p => p.id === passageId || p.text.includes(passageId)) : enriched.passages?.[0];
+  return { record: enriched, passage };
+}
+
+export function getCaseQuestions(caseId: string): ClinicalQuestion[] {
+  const caseItem = getCase(caseId);
+  if (!caseItem) return [];
+  const explicit = caseItem.questions || [];
+  if (explicit.length > 0) return explicit;
+
+  const harvested: ClinicalQuestion[] = [];
+  caseItem.reviews?.forEach(r => {
+    r.perspectives?.forEach(p => {
+      p.remainingQuestions?.forEach(q => {
+        if (!harvested.some(h => h.id === q.id || h.questionText === q.questionText)) {
+          harvested.push(q);
+        }
+      });
+    });
+  });
+  return harvested;
+}
+
+export function addCaseQuestion(caseId: string, question: Omit<ClinicalQuestion, 'id' | 'createdAt'>): ClinicalQuestion {
+  const cases = getCases();
+  const idx = cases.findIndex(c => c.id === caseId);
+  const newQ: ClinicalQuestion = {
+    ...question,
+    id: `q_${id()}`,
+    createdAt: new Date().toISOString(),
+    status: question.status || 'open',
+  };
+  if (idx !== -1) {
+    const existing = cases[idx];
+    const questions = [...(existing.questions || []), newQ];
+    const updated: CaseItem = {
+      ...existing,
+      questions,
+      updatedAt: new Date().toISOString(),
+    };
+    save(cases.map((c, i) => i === idx ? updated : c));
+    window.dispatchEvent(new Event('hc_cases_updated'));
+  }
+  return newQ;
+}
+
+export function updateCaseQuestionOutcome(
+  caseId: string,
+  questionId: string,
+  status: 'addressed' | 'deferred',
+  outcomeNote: string
+): boolean {
+  const cases = getCases();
+  const idx = cases.findIndex(c => c.id === caseId);
+  if (idx === -1) return false;
+  const existing = cases[idx];
+  const now = new Date().toISOString();
+  let found = false;
+  let targetQuestionText = '';
+
+  const questions = (existing.questions || []).map(q => {
+    if (q.id === questionId) {
+      found = true;
+      targetQuestionText = q.questionText;
+      return {
+        ...q,
+        status,
+        outcomeNote,
+        resolvedAt: now,
+      };
+    }
+    return q;
+  });
+
+  if (!found) return false;
+
+  const eventUpdate: CaseUpdate = {
+    id: id(),
+    date: now,
+    label: status === 'addressed' ? 'Physician Question Resolved' : 'Clinical Question Deferred',
+    note: `"${targetQuestionText}" → ${outcomeNote}`,
+  };
+
+  const updated: CaseItem = {
+    ...existing,
+    questions,
+    events: [eventUpdate, ...(existing.events || [])].slice(0, 100),
+    updatedAt: now,
+  };
+
+  save(cases.map((c, i) => i === idx ? updated : c));
+  window.dispatchEvent(new Event('hc_cases_updated'));
+  return true;
 }
 
 export function clearCaseEngineCache() {
