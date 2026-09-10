@@ -38,7 +38,6 @@ import {
 } from '../../services/ConnectionDetectiveEngine';
 import { generateDoctorSummary } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
-import { CaseConnectionMap } from './CaseConnectionMap';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
 import { KineticBiomechanicsView } from './KineticBiomechanicsView';
@@ -291,7 +290,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
         }}
       >
         {[
-          { id: 'map', label: 'Connection Map', icon: '🌐' },
+          { id: 'map', label: 'Connected Foods', icon: '🔬' },
           { id: 'biomarkers', label: 'Functional Labs', icon: '🧪' },
           { id: 'kinetic', label: 'Kinetic Biomechanics', icon: '🦴' },
           { id: 'postmeal', label: 'Post-Meal Sensitivities', icon: '🍽️' },
@@ -546,92 +545,58 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {/* TAB 1: CONNECTION MAP */}
       {activeTab === 'map' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Direct Bridge CTA to Food Detective */}
           <div
             style={{
-              background: '#FFFFFF',
-              borderRadius: '22px',
-              padding: '18px 20px',
-              border: '1.5px solid #E2E8F0',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
+              background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+              borderRadius: '18px',
+              padding: '14px 18px',
+              border: '1.5px solid #99F6E4',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '24px' }}>🔬</span>
               <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284C7', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                  MULTI-ORGAN SYSTEMIC TOPOLOGY
+                <strong style={{ fontSize: '13.5px', color: '#1C1917', display: 'block' }}>
+                  Connected Food Sensitivities Detected
+                </strong>
+                <span style={{ fontSize: '12px', color: '#78716C' }}>
+                  Histamine & FODMAPs identified as upstream vascular triggers.
                 </span>
-                <h4 style={{ margin: '2px 0 0 0', fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                  Symptom-to-Organ Pathway Graph
-                </h4>
               </div>
             </div>
 
-            <CaseConnectionMap
-              data={report.mapData}
-              isMobile={isMobile}
-              selectedNodeId={selectedNodeId}
-              onSelectNode={(nodeId) => {
+            <button
+              type="button"
+              onClick={() => {
                 triggerHapticLight();
-                setSelectedNodeId((prev) => (prev === nodeId ? null : nodeId));
+                if (onOpenFoodDetective) onOpenFoodDetective();
+                else window.location.href = '/app/dietician';
               }}
-              onOpenConsult={onOpenConsult}
-              onOpenCasePrep={onOpenCasePrep}
-            />
-          </div>
-
-          {/* Direct Bridge CTA to Food Detective */}
-          {onOpenFoodDetective && (
-            <div
               style={{
-                background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-                borderRadius: '18px',
-                padding: '14px 18px',
-                border: '1.5px solid #99F6E4',
+                background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '8px 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                boxShadow: '0 3px 10px rgba(13, 148, 136, 0.28)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🔬</span>
-                <div>
-                  <strong style={{ fontSize: '13.5px', color: '#1C1917', display: 'block' }}>
-                    Connected Food Sensitivities Detected
-                  </strong>
-                  <span style={{ fontSize: '12px', color: '#78716C' }}>
-                    Histamine & FODMAPs identified as upstream vascular triggers.
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  onOpenFoodDetective();
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '8px 14px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  boxShadow: '0 3px 10px rgba(13, 148, 136, 0.28)',
-                }}
-              >
-                Inspect Foods <ArrowRight size={13} />
-              </button>
-            </div>
-          )}
+              Inspect Foods <ArrowRight size={13} />
+            </button>
+          </div>
         </div>
       )}
 
