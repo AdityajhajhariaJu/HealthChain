@@ -96,10 +96,26 @@ const QUICK_CLINICAL_CHIPS = [
 ];
 
 export default function WarRoom() {
+  const readScope = () => `${getProfileKey()}:${getActiveCase()?.id || 'unassigned'}`;
+  const [scope, setScope] = useState(readScope);
+  useEffect(() => {
+    const refresh = () => setScope(readScope());
+    window.addEventListener('hc_profile_updated', refresh);
+    window.addEventListener('hc_cases_updated', refresh);
+    return () => {
+      window.removeEventListener('hc_profile_updated', refresh);
+      window.removeEventListener('hc_cases_updated', refresh);
+    };
+  }, []);
+  return <CaseCanvas key={scope} scope={scope} />;
+}
+
+function CaseCanvas({ scope }: { scope: string }) {
+  const observationStorageKey = `${STORAGE_KEY_OBSERVATIONS}:${scope}`;
+  const documentStorageKey = `${STORAGE_KEY_DOCS}:${scope}`;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const shouldReduceMotion = useReducedMotion();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Live profile & clinical data
   const [profile, setProfile] = useState(() => getProfile());
@@ -135,7 +151,7 @@ export default function WarRoom() {
 
   // Filtering & Post Input
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'cardio' | 'gastro' | 'immuno' | 'metabolic'>('all');
-  const draftKey = `${getProfileKey()}_canvas_draft`;
+  const draftKey = `hc_canvas_draft:${scope}`;
   const [observationInput, setObservationInput] = useState(() => {
     try { return sessionStorage.getItem(draftKey) || ''; } catch { return ''; }
   });
@@ -157,11 +173,28 @@ export default function WarRoom() {
   const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSuccessNotice, setUploadSuccessNotice] = useState<string | null>(null);
+  const [legacyAvailable, setLegacyAvailable] = useState(() => Boolean(getItemSync(STORAGE_KEY_OBSERVATIONS)));
+  const importOlderEntries = () => {
+    if (!activeCase) return;
+    if (!window.confirm('Older Canvas entries on this device were not separated by profile. Import only if they belong to you and this case. The original copy will be kept.')) return;
+    try {
+      const entries = JSON.parse(getItemSync(STORAGE_KEY_OBSERVATIONS) || '[]');
+      if (!Array.isArray(entries)) throw new Error('Invalid entries');
+      const matching = entries.filter((entry: CanvasObservation) => entry && typeof entry.id === 'string' && typeof entry.content === 'string' && entry.author === 'user' && (!entry.caseId || entry.caseId === activeCase.id));
+      setObservations(current => {
+        const ids = new Set(current.map(entry => entry.id));
+        return [...matching.filter(entry => !ids.has(entry.id)).map(entry => ({ ...entry, caseId: activeCase.id, replies: Array.isArray(entry.replies) ? entry.replies : [] })), ...current];
+      });
+      setLegacyAvailable(false);
+    } catch {
+      setSaveError('Older entries could not be imported. The original copy is unchanged.');
+    }
+  };
 
   // Initialize Observations from real profile data or storage
   const [observations, setObservations] = useState<CanvasObservation[]>(() => {
     try {
-      const stored = getItemSync(STORAGE_KEY_OBSERVATIONS);
+      const stored = getItemSync(observationStorageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
         // Purge legacy hardcoded mock observations
@@ -172,8 +205,8 @@ export default function WarRoom() {
           p.authorName?.includes('Julian Rivera') ||
           p.authorName?.includes('Elena Rostova')
         )) {
-          removeItemSync(STORAGE_KEY_OBSERVATIONS);
-        } else if (Array.isArray(parsed) && parsed.length > 0) {
+          removeItemSync(observationStorageKey);
+        } else if (Array.isArray(parsed)) {
           return parsed;
         }
       }
@@ -218,13 +251,13 @@ export default function WarRoom() {
   // Initialize Documents from actual clinical records
   const [documents, setDocuments] = useState<CanvasDocument[]>(() => {
     try {
-      const stored = getItemSync(STORAGE_KEY_DOCS);
+      const stored = getItemSync(documentStorageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
         // Purge legacy mock PDF
         if (Array.isArray(parsed) && parsed.some((p: any) => p.id === 'doc_init_1' || p.name?.includes('Comprehensive_Metabolic_Panel.pdf'))) {
-          removeItemSync(STORAGE_KEY_DOCS);
-        } else if (Array.isArray(parsed) && parsed.length > 0) {
+          removeItemSync(documentStorageKey);
+        } else if (Array.isArray(parsed)) {
           return parsed;
         }
       }
@@ -232,15 +265,15 @@ export default function WarRoom() {
       // fallback
     }
 
-    const userRecords = (activeCase as any)?.medicalRecords || (profile as any)?.medicalRecords || [];
+    const userRecords = (activeCase as any)?.medicalRecords || [];
     if (Array.isArray(userRecords) && userRecords.length > 0) {
       return userRecords.map((r: any, idx: number) => ({
         id: r.id || `doc_rec_${idx}`,
         name: r.name || r.title || `Clinical_Record_${idx + 1}.pdf`,
-        size: r.size || '1.4 MB',
+        size: r.size || 'Size unavailable',
         uploadedAt: r.date || r.uploadedAt || 'Synced with Case',
-        status: 'analyzed' as const,
-        summary: r.summary || `Extracted clinical records synced with ${activeCase?.title || 'active case'}.`
+        status: r.summary ? 'reviewed' as const : 'pending' as const,
+        summary: r.summary || 'Attached to this case. Open the analyzer to review this record.'
       }));
     }
     return [];
@@ -249,19 +282,19 @@ export default function WarRoom() {
   // Save observations & documents to storage
   useEffect(() => {
     try {
-      setItemSync(STORAGE_KEY_OBSERVATIONS, JSON.stringify(observations));
+      setItemSync(observationStorageKey, JSON.stringify(observations));
     } catch {
       // ignore
     }
-  }, [observations]);
+  }, [observations, observationStorageKey]);
 
   useEffect(() => {
     try {
-      setItemSync(STORAGE_KEY_DOCS, JSON.stringify(documents));
+      setItemSync(documentStorageKey, JSON.stringify(documents));
     } catch {
       // ignore
     }
-  }, [documents]);
+  }, [documents, documentStorageKey]);
 
   // Handle Post Observation
   const handleCreateObservation = async () => {
@@ -357,47 +390,6 @@ export default function WarRoom() {
     }
   };
 
-  // Handle Document File Upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    triggerHapticSelection();
-    const sizeStr = file.size > 1048576 
-      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
-      : `${Math.max(1, Math.round(file.size / 1024))} KB`;
-
-    const newDoc: CanvasDocument = {
-      id: 'doc_' + Date.now(),
-      name: file.name,
-      size: sizeStr,
-      uploadedAt: 'Just now',
-      status: 'analyzed',
-      summary: 'Document ingested into Collaborative Health Memory. Ready for automated biomarker extraction in Clinical Report Analyzer.'
-    };
-
-    recordHealthMemory({
-      kind: 'lab_report',
-      source: 'WarRoom',
-      title: `Uploaded Lab Document: ${file.name}`,
-      occurredAt: new Date().toISOString(),
-      payload: {
-        fileName: file.name,
-        fileSize: sizeStr,
-        fileType: file.type
-      }
-    });
-
-    setDocuments(prev => [newDoc, ...prev]);
-    setUploadSuccessNotice(`"${file.name}" uploaded successfully! Tap to open in Analyzer.`);
-    triggerHapticSuccess();
-
-    if (fileInputRef.current) fileInputRef.current.value = '';
-
-    setTimeout(() => {
-      setUploadSuccessNotice(null);
-    }, 6000);
-  };
 
   // Delete Observation
   const handleDeleteObservation = (id: string) => {
@@ -427,14 +419,6 @@ export default function WarRoom() {
       boxSizing: 'border-box' 
     }}>
       
-      {/* Hidden File Input for Real Document Upload */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileUpload} 
-        accept=".pdf,.png,.jpg,.jpeg,.txt,.csv" 
-        style={{ display: 'none' }} 
-      />
 
       {/* Sticky Premium Header */}
       <header style={{
@@ -688,6 +672,10 @@ export default function WarRoom() {
           </div>
 
           {/* Quick Scenario Chips */}
+          {legacyAvailable && activeCase && <div style={{ marginBottom: 12, fontSize: 13 }}>
+            Older Canvas entries are still saved on this device.{' '}
+            <button type="button" onClick={importOlderEntries}>Import my older entries into this case</button>
+          </div>}
           <label style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
             What are you recording?{' '}
             <select value={updateType} onChange={e => setUpdateType(e.target.value)}>
@@ -765,7 +753,7 @@ export default function WarRoom() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => navigate('/app/medicine-lab#clinical-report-analyzer')}
                 style={{
                   background: '#F8FAFC',
                   border: '1px solid #CBD5E1',
