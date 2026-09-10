@@ -2360,7 +2360,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   color: '#134E4A',
                   lineHeight: 1.4
                 }}>
-                  🛡️ <strong style={{ color: '#0F766E' }}>Clinical Allergy Guard:</strong> Tag allergens with severity ratings (Mild, Moderate, Severe / Anaphylaxis ⚠️). Ava Health Buddy cross-checks this against all medical and pharmaceutical advice to prevent fatal contraindications!
+                  🛡️ <strong style={{ color: '#0F766E' }}>Allergy context:</strong> Record allergens and the reaction severity you know. HealthChain can carry this context into medication-information questions, but a pharmacist or clinician must verify safety.
                 </div>
 
                 {/* NKDA Toggle */}

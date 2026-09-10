@@ -3,7 +3,13 @@ import { getActiveCase } from './CaseEngine';
 
 
 export function compilePatientContext(options = {}) {
-  const { includeActiveCase = false, includeDailyCheckins = false } = options;
+  const {
+    includeActiveCase = false,
+    includeDailyCheckins = false,
+    includeProfile = true,
+    includeLabs = true,
+    includeImportedCase = true,
+  } = options;
   let contextParts = [];
   const profile = getProfile();
   const activeCase = includeActiveCase ? getActiveCase() : null;
@@ -39,13 +45,13 @@ export function compilePatientContext(options = {}) {
     }
   }
 
-  if (profileStr !== `PATIENT PROFILE:\n`) {
+  if (includeProfile && profileStr !== `PATIENT PROFILE:\n`) {
     contextParts.push(profileStr);
   }
 
   // 2. Vitals / Labs (compact - top 10 with functional status)
   const labEntries = Object.entries(profile?.vitals?.latestLabValues || {});
-  if (labEntries.length > 0) {
+  if (includeLabs && labEntries.length > 0) {
     let vitalsStr = `LABS:\n`;
     labEntries.slice(0, 10).forEach(([key, data]) => {
       if (data && typeof data === 'object') {
@@ -59,7 +65,7 @@ export function compilePatientContext(options = {}) {
   }
 
   // 3. Imported Case Brief (when user clicks "Recheck / Correlate with Ava")
-  if (typeof window !== 'undefined') {
+  if (includeImportedCase && typeof window !== 'undefined') {
     try {
       const importedCaseJson = sessionStorage.getItem('hc_imported_case_brief');
       if (importedCaseJson) {
@@ -97,7 +103,7 @@ export function compilePatientContext(options = {}) {
   }
 
   if (contextParts.length === 0) {
-    return `\n\n=== PATIENT CONTEXT ===\nNo pre-existing conditions logged. Evaluate presenting symptoms on their own merits.\n========================\n`;
+    return `\n\n=== SAVED CONTEXT ===\nNo additional saved context was included for this conversation.\n=====================\n`;
   }
 
   // Hard cap to prevent runaway context growth

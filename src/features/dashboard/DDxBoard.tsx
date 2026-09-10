@@ -79,7 +79,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
           Case Component Connections
         </h2>
         <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
-          AI-mapped relationships between your symptoms, conditions, and clinical pathways. This is not a diagnosis.
+          AI-organized overlaps between reported symptoms, records, and possibilities. Connections are questions to review, not conclusions.
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
             Mapping connections across your case...
           </p>
           <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: 13 }}>
-            Analyzing symptom clusters, causal pathways, and shared mechanisms
+            Organizing shared evidence, uncertainty, and missing information
           </p>
         </motion.div>
       )}
@@ -118,7 +118,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
             Component connections not yet mapped
           </h3>
           <p style={{ margin: '0 0 20px', color: '#64748B', fontSize: 14, maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
-            Synthesize relationships between your symptoms, biomarkers, conditions, and clinical pathways for doctor discussion.
+            Organize possible overlaps between your symptoms, recorded measurements, and discussion pathways.
           </p>
           <button
             type="button"
@@ -177,7 +177,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
                 triggerHapticLight();
                 navigate('/app/ava', {
                   state: {
-                    initialPrompt: `I am reviewing my Case Component Connection Map for "${item.title || 'my clinical case'}". Can you explain the physiological links between these mapped conditions, symptoms, and potential next steps?`
+                    initialPrompt: `I am reviewing the connection map for "${item.title || 'my case'}". Please separate documented overlaps from uncertain possibilities and help me prepare questions for my clinician. Do not assume any connection is causal.`
                   }
                 });
               }}

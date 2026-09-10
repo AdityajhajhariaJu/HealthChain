@@ -78,7 +78,7 @@ export function CaseConnectionMap({
             Awaiting Clinical Intake
           </h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-            No differential diagnoses or active symptoms detected. Start an AI consultation or attach lab reports to map cross-organ root causes.
+            No case topics or recorded symptoms are available yet. Add your observations or a record to map possible relationships without treating them as confirmed causes.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '6px' }}>
@@ -499,7 +499,6 @@ export function CaseConnectionMap({
 
             // Condition Node - Capsule Pill
             const categoryConfig = CATEGORY_COLORS[node.category] || CATEGORY_COLORS.metabolic;
-            const confidence = typeof node.confidence === 'number' ? node.confidence : 85;
             const hasPrecaution = (data.precautions || []).some((p: any) =>
               p?.relatedConditions?.includes(node.id)
             );
@@ -582,7 +581,7 @@ export function CaseConnectionMap({
                   fontWeight="700"
                   fill={categoryConfig.text}
                 >
-                  {confidence}% • {node.specialty?.split(' ')[0] || 'Clinical'}
+                  {node.specialty?.split(' ')[0] || 'AI perspective'}
                 </text>
               </g>
             );

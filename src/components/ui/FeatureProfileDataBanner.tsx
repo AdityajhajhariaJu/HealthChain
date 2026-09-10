@@ -89,7 +89,7 @@ export interface FeatureProfileDataBannerProps {
 
 export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> = ({
   featureName,
-  contextMessage = 'Actively factored into clinical calculations, differential diagnosis & contraindication checks.',
+  contextMessage = 'Available as saved context for summaries and questions; verify clinical decisions with a qualified professional.',
   accentColor = '#0D9488',
   className = '',
   style = {},

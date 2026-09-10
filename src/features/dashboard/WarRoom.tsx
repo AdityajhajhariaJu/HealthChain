@@ -625,7 +625,7 @@ export default function WarRoom() {
                   }}
                 >
                   <GitMerge size={12} color="#818CF8" />
-                  Root Cause Map
+                  Connection Map
                 </button>
               </div>
             </div>

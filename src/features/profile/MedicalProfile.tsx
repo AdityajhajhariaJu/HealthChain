@@ -8,7 +8,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useToast } from '../../components/ui/ToastProvider';
 import {
   FolderHeart,
@@ -644,7 +644,7 @@ export default function MedicalProfile() {
         </section>
       </div>
 
-      {/* GAMIFICATION: HEALTH SCORE */}
+      {/* Profile completeness reflects fields filled, not health status. */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -665,9 +665,9 @@ export default function MedicalProfile() {
               <ShieldCheck size={18} />
               <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Profile Completeness</span>
             </div>
-            <h3 style={{ fontSize: '20px', margin: '0 0 6px 0', fontWeight: 700 }}>Health Score: {healthScore.score}%</h3>
+            <h3 style={{ fontSize: '20px', margin: '0 0 6px 0', fontWeight: 700 }}>Profile completeness: {healthScore.score}%</h3>
             <p style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '480px' }}>
-              A complete profile helps HealthChain's AI provide more accurate insights and clinical correlations.
+              More context can make summaries more relevant. Add only what you are comfortable storing, and verify AI output before using it.
             </p>
 
             {healthScore.missing.length > 0 && (
@@ -685,7 +685,7 @@ export default function MedicalProfile() {
             )}
             {healthScore.score === 100 && (
                <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#34D399', background: 'rgba(52,211,153,0.15)', padding: '6px 12px', borderRadius: '6px', width: 'fit-content' }}>
-                  <Check size={14} /> Outstanding! Your profile is fully optimized.
+                  <Check size={14} /> All suggested profile sections are complete.
                </div>
             )}
           </div>
@@ -773,28 +773,16 @@ export default function MedicalProfile() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
-          <div style={{ fontSize: isMobile ? '36px' : '48px', fontWeight: 800, color: 'var(--teal)', lineHeight: 1 }}>{synthesisData ? synthesisData.overallScore : '--'}<span style={{ fontSize: '20px', color: 'var(--text-muted)' }}>/100</span></div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Overall Health</div>
-          
-          {synthesisData && (
-            <div style={{ width: '100%', height: '180px', marginTop: '16px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={synthesisData.radarData}>
-                  <PolarGrid stroke="#E2E8F0" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Patient" dataKey="A" stroke="var(--teal)" fill="var(--teal)" fillOpacity={0.2} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          <div style={{ width: 72, height: 72, borderRadius: 24, display: 'grid', placeItems: 'center', background: '#ECFDF5', color: 'var(--teal)', fontSize: 32 }}>📋</div>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', marginTop: '12px', letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center' }}>Profile review snapshot</div>
+          <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: 12, lineHeight: 1.5, textAlign: 'center' }}>A summary of saved information, not a health score.</p>
         </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
               <Sparkles size={20} />
-              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Clinical Synthesis</h3>
+              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Profile Summary</h3>
             </div>
             {!profile?.isPro && (
               <button 
@@ -2087,7 +2075,7 @@ export default function MedicalProfile() {
                                 )}
                                 {event.data?.topDiagnoses && event.data.topDiagnoses[0]?.condition && (
                                   <div style={{ marginTop: '4px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    <strong>Consensus:</strong> {event.data.topDiagnoses[0].condition} ({event.data.topDiagnoses[0].confidence || event.data.topDiagnoses[0].probability || 0}%)
+                                    <strong>AI consideration:</strong> {event.data.topDiagnoses[0].condition}
                                   </div>
                                 )}
                               </div>

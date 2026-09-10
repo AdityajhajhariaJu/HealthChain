@@ -221,7 +221,7 @@ AI-generated preparation material. Verify against original records.`;
                         triggerHapticLight();
                         navigate(`/app/ava?caseId=${encodeURIComponent(item.id)}`, {
                           state: { 
-                            initialPrompt: `I would like to discuss my case snapshot from ${formatDate(activeReview.createdAt)}. Primary hypothesis: "${activeReview.report?.primaryHypothesis || activeReview.report?.topDiagnoses?.[0]?.condition || 'Clinical Finding'}". What are the key takeaways?` 
+                            initialPrompt: `I would like to discuss my case snapshot from ${formatDate(activeReview.createdAt)}. One AI-generated possibility was "${activeReview.report?.primaryHypothesis || activeReview.report?.topDiagnoses?.[0]?.condition || 'No named possibility'}". Please separate recorded facts, uncertainty, and clinician questions.`
                           } 
                         });
                       }}
@@ -265,7 +265,7 @@ AI-generated preparation material. Verify against original records.`;
                     <div style={{ background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF7ED 100%)', border: '1.5px solid #FED7AA', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px', background: '#FFEDD5', padding: '2px 8px', borderRadius: 6 }}>
-                          Primary Hypothesis
+                          Leading discussion possibility
                         </span>
                         <span style={{ fontSize: 12, color: '#475569' }}>AI review · verify with your clinician</span>
                       </div>

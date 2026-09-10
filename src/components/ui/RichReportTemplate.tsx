@@ -150,9 +150,23 @@ export function RichReportTemplate({ report, isMobile }: { report: RichReportDat
         </div>
       )}
 
-      {/* 3-Tier Action Architecture Card */}
       {(report.tier1ImmediateTrial || report.tier2DoctorRequisition) && (
-        <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1.5px solid #0D9488', boxShadow: '0 4px 16px rgba(13, 148, 136, 0.08)' }}>
+        <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: isMobile ? '16px' : '20px', border: '1px solid #CBD5E1' }}>
+          <strong style={{ display: 'block', color: '#0F172A', marginBottom: '6px' }}>Review before acting</strong>
+          <p style={{ margin: '0 0 10px', color: '#475569', fontSize: '13.5px', lineHeight: 1.5 }}>
+            This older AI review may contain generated protocol or testing suggestions. HealthChain has hidden those instructions; discuss any next step with a qualified clinician.
+          </p>
+          {report.tier2DoctorRequisition?.highYieldQuestions?.length ? (
+            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+              {report.tier2DoctorRequisition.highYieldQuestions.map((question, index) => <li key={index}>{question}</li>)}
+            </ul>
+          ) : null}
+        </div>
+      )}
+
+      {/* Kept for historical report compatibility but hidden from users. */}
+      {(report.tier1ImmediateTrial || report.tier2DoctorRequisition) && (
+        <div aria-hidden="true" style={{ display: 'none', background: '#FFFFFF', borderRadius: '16px', padding: isMobile ? '16px' : '24px', border: '1.5px solid #0D9488', boxShadow: '0 4px 16px rgba(13, 148, 136, 0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <FlaskConical size={20} color="#0D9488" />
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>

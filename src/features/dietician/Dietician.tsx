@@ -536,7 +536,7 @@ export default function Dietician() {
       localStorage.setItem(getProfileKey(), JSON.stringify(unified));
     } catch (e) {}
     updateProfileFeatureData('dietProfile', fullProfile);
-    toast.success('Targets Updated', 'Clinical dietician profile refreshed.');
+    toast.success('Preferences updated', 'Your food-planning preferences were refreshed.');
   };
 
   if (!profile) {
@@ -729,7 +729,7 @@ export default function Dietician() {
     }
 
     if (!canUseTrial('dietician')) {
-      openTrialModal('Clinical Dietician (1 Free Trial Meal Plan)');
+      openTrialModal('Food Planner (1 Free Trial Meal Plan)');
       return;
     }
 
@@ -845,7 +845,7 @@ export default function Dietician() {
                     letterSpacing: '-0.8px',
                   }}
                 >
-                  AI Clinical Dietician
+                  AI Food Planner
                 </h1>
                 <span
                   style={{
@@ -1788,7 +1788,7 @@ export default function Dietician() {
                     Nutritional Guardrails & Bio-Compatibility Matrix
                   </h2>
                   <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                    Autonomous clinical safety screening configured specifically to your medical profile.
+                    AI-assisted food-plan checks using the profile details you supplied. Verify allergies, restrictions, and changes with a qualified clinician or dietitian.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>

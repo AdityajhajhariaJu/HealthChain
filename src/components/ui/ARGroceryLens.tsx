@@ -455,51 +455,15 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   </div>
 
                   <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#78716C' }}>
-                    Analyzed against your health profile{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}
+                    AI-estimated from the image{analysis?.servingSize ? ` • ${analysis.servingSize}` : ''}. Verify the package label and portion before saving.
                   </p>
 
-                  {/* Glycemic Spike Graph */}
+                  {/* Nutrition context — never infer a personal glucose response from an image. */}
                   {analysis?.sugar !== undefined && (
                     <div style={{ marginBottom: '16px', padding: '14px 16px', background: '#F8FAFC', borderRadius: '16px', border: '1.5px solid #E2E8F0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px' }}>GLYCEMIC RESPONSE</span>
-                        <span style={{
-                          fontSize: '12px',
-                          fontWeight: 800,
-                          color: analysis.sugar > 20 ? '#DC2626' : '#059669',
-                          background: analysis.sugar > 20 ? '#FEE2E2' : '#ECFDF5',
-                          padding: '2px 8px',
-                          borderRadius: '999px',
-                          border: `1px solid ${analysis.sugar > 20 ? '#FECDD3' : '#A7F3D0'}`
-                        }}>
-                          {analysis.sugar > 20 ? 'High Spike ⚠️' : 'Glycemic Stable ✓'}
-                        </span>
-                      </div>
-                      <div style={{ height: '54px', width: '100%', position: 'relative' }}>
-                        <svg viewBox="0 0 100 40" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
-                          <path 
-                            d={analysis.sugar > 20 ? "M0,35 Q30,35 45,5 T55,5 Q70,35 100,35" : "M0,35 Q50,30 100,35"} 
-                            fill="none" 
-                            stroke={analysis.sugar > 20 ? "url(#spikeGradient)" : "url(#stableGradient)"} 
-                            strokeWidth="3.5" 
-                            strokeLinecap="round" 
-                          />
-                          <defs>
-                            <linearGradient id="spikeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.2" />
-                              <stop offset="50%" stopColor="#EF4444" stopOpacity="1" />
-                              <stop offset="100%" stopColor="#EF4444" stopOpacity="0.2" />
-                            </linearGradient>
-                            <linearGradient id="stableGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#10B981" stopOpacity="0.2" />
-                              <stop offset="50%" stopColor="#10B981" stopOpacity="1" />
-                              <stop offset="100%" stopColor="#10B981" stopOpacity="0.2" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                      </div>
-                      <div style={{ fontSize: '11.5px', color: '#78716C', marginTop: '6px', textAlign: 'center' }}>
-                        Estimated Sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', marginBottom: 6 }}>ESTIMATED NUTRITION CONTEXT</div>
+                      <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                        Estimated sugar: <strong style={{ color: '#1C1917' }}>{analysis.sugar ?? 0}g</strong> per serving. This cannot predict your glucose or insulin response; preparation, portion, other foods, medicines, and individual physiology matter.
                       </div>
                     </div>
                   )}
@@ -524,36 +488,6 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     </div>
                   </div>
 
-                  {/* Functional Gut & Metabolic Integrity Chips */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
-                    {analysis?.sugar !== undefined && analysis.sugar > 15 ? (
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECDD3' }}>
-                        ⚡ High Insulin Surge (&gt;15g)
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>
-                        ✓ Glycemic Balance Stable
-                      </span>
-                    )}
-
-                    {analysis?.protein !== undefined && analysis.protein >= 15 && (
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#F0FDFA', color: '#0F766E', border: '1px solid #CCFBF1' }}>
-                        💪 High Protein Density ({analysis.protein}g)
-                      </span>
-                    )}
-
-                    {((analysis?.foodName || '').toLowerCase().includes('fried') || (analysis?.foodName || '').toLowerCase().includes('chip') || (analysis?.foodName || '').toLowerCase().includes('biscuit') || (analysis?.foodName || '').toLowerCase().includes('processed')) && (
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A' }}>
-                        ⚠️ Refined Seed Oil Alert
-                      </span>
-                    )}
-
-                    {((analysis?.foodName || '').toLowerCase().includes('sauce') || (analysis?.foodName || '').toLowerCase().includes('mayo') || (analysis?.foodName || '').toLowerCase().includes('bar') || (analysis?.foodName || '').toLowerCase().includes('ice cream')) && (
-                      <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', background: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE' }}>
-                        🛡️ Mucosal Emulsifier Scan
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 {/* Better Alternative Card */}
@@ -564,7 +498,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     display: 'flex', alignItems: 'center', gap: '16px', border: '1.5px solid #CCFBF1', boxShadow: '0 12px 24px rgba(13, 148, 136, 0.08)'
                   }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', marginBottom: '4px' }}>BETTER ALTERNATIVE</div>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px', marginBottom: '4px' }}>OPTION TO CONSIDER · AI SUGGESTION</div>
                       <div style={{ fontSize: '15px', fontWeight: 700, color: '#1C1917' }}>{analysis.betterAlternative.name}</div>
                       <div style={{ fontSize: '12px', color: '#78716C', marginTop: '2px' }}>{analysis.betterAlternative.reason}</div>
                     </div>
@@ -580,7 +514,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                   onClick={() => {
                     triggerHapticLight();
                     handleClose();
-                    const prompt = `Hi Ava, I just scanned "${analysis.foodName || 'this packaged food'}" in the grocery aisle: ${analysis.calories || 0} kcal, ${analysis.protein || 0}g protein, ${analysis.carbs || 0}g carbs (${analysis.sugar || 0}g sugar), and ${analysis.fats || 0}g fat. Does this food spike insulin or conflict with my active metabolic profile, glycemic goals, and condition history?`;
+                    const prompt = `I scanned "${analysis.foodName || 'this food'}" and received these AI-estimated values: ${analysis.calories || 0} kcal, ${analysis.protein || 0}g protein, ${analysis.carbs || 0}g carbs (${analysis.sugar || 0}g sugar), and ${analysis.fats || 0}g fat. Help me identify which values I should verify on the label and suggest neutral questions to consider. Do not predict my glucose response or infer a medical contraindication.`;
                     navigate('/app/ava', { state: { initialPrompt: prompt } });
                   }}
                   style={{
@@ -601,7 +535,7 @@ export const ARGroceryLens = ({ onClose, onLogFood }: { onClose: () => void, onL
                     marginBottom: '10px'
                   }}
                 >
-                  <Sparkles size={16} /> Consult Ava on this Item
+                  <Sparkles size={16} /> Review estimates with Ava
                 </button>
 
                 {/* Action Buttons: Scan Another & Log Food */}

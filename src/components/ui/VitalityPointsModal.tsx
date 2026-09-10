@@ -168,7 +168,7 @@ export default function VitalityPointsModal() {
                   handleClose();
                   navigate('/app/ava', {
                     state: {
-                      initialPrompt: `Hi Ava, I currently have ${state.points} Vitality Points at ${state.tier} (Level ${state.tierLevel}). I need ${state.pointsToNextTier} more points to reach the next tier (${TIERS[state.tierLevel]?.name || 'Next Tier'}). Could you review my clinical profile and build an achievable 7-day personalized habit roadmap to help me advance?`
+                      initialPrompt: `Help me create a gentle 7-day routine for keeping my health notes current. Include short check-ins, a rest day, and one appointment-preparation step. Do not infer medical goals from my Vitality Points.`
                     }
                   });
                 }}
@@ -191,17 +191,21 @@ export default function VitalityPointsModal() {
                 onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)'}
               >
                 <Sparkles size={14} color="#A7F3D0" />
-                <span>Strategize Health Tier with Ava</span>
+                <span>Plan a gentle routine with Ava</span>
                 <ChevronRight size={13} />
               </button>
             </div>
           </div>
 
+          <div style={{ padding: '10px 20px', background: '#F0FDFA', borderBottom: '1px solid #CCFBF1', color: '#0F766E', fontSize: '12px', lineHeight: 1.45 }}>
+            Vitality Points reflect actions recorded in HealthChain—not health, fitness, adherence, or medical progress. They never determine access to care features.
+          </div>
+
           {/* Navigation Tabs */}
           <div style={{ display: 'flex', borderBottom: '1px solid #F1F5F9', background: '#F8FAFC', padding: '4px 12px' }}>
             {[
-              { id: 'quests', label: 'Daily Missions' },
-              { id: 'tiers', label: 'Tiers & Perks' },
+              { id: 'quests', label: "Today's Actions" },
+              { id: 'tiers', label: 'Milestones' },
               { id: 'history', label: 'History' },
             ].map(tab => (
               <button
@@ -233,7 +237,7 @@ export default function VitalityPointsModal() {
             {activeTab === 'quests' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginBottom: '2px' }}>
-                  Complete daily health actions to level up your Vitality status:
+                  Optional actions that help keep your record useful. Rest days never remove points or lock features.
                 </div>
 
                 {/* Quest 1: Daily Checkin */}

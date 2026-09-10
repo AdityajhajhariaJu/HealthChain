@@ -766,7 +766,7 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
                     Today's Protocol Protocol Checklist
                   </h3>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
-                    Check off all 4 daily clinical actions to preserve your streak and earn +20 Vitality Points.
+                    Use the checklist only if these actions fit your clinician-approved plan. Missing a day never removes points or access.
                   </p>
                 </div>
                 <span

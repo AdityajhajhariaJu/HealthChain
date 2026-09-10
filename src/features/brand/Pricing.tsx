@@ -45,26 +45,26 @@ interface FeatureItem {
 }
 
 const BASIC_FEATURES: FeatureItem[] = [
-  { name: '1 Quick Consult Session (Trial)', desc: 'Instant single-specialist review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
-  { name: 'Ava Health Buddy (10 Replies)', desc: 'Concierge medical Q&A & triage', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
-  { name: 'Clinical Dietician (1 Plan Trial)', desc: 'Precision 7-day metabolic meal plan', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Clinical Trials Matcher (Unlimited)', desc: 'Global active study matches & eligibility', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
-  { name: 'Pharmacy Hub (Unlimited)', desc: 'Interactions & safe dosage checks', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { name: '1 Record Review (Trial)', desc: 'Source-separated case review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
+  { name: 'Ava Health Buddy (10 Replies)', desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
+  { name: 'Food & Symptom Tools (1 Plan Trial)', desc: 'Editable meal planning and observation logging', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
+  { name: 'Research Hub (Unlimited)', desc: 'Live registry and literature search by case topic', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
+  { name: 'Medicines & Reports (Unlimited)', desc: 'Medication information and interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Medical Profile & Vault', desc: 'Encrypted personal history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Vitality Points & Rewards System', desc: 'Daily arcade, streaks & tier medals', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
+  { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const PRO_30_FEATURES: FeatureItem[] = [
   { name: '3 Quick Consult Sessions', desc: 'Instant single-specialist reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
-  { name: '2 Deep Collab Specialist Boards', desc: 'Multi-specialist clinical consensus', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '1 Clinical Data Engine Session', desc: 'Full-body autonomous biomarker correlation', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
+  { name: '2 Multi-Perspective Reviews', desc: 'Cross-specialty AI perspectives with visible uncertainty', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
+  { name: '1 Clinical Data Engine Session', desc: 'Connected record and symptom review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
   { name: 'Ava Health Buddy (30 Replies)', desc: 'AI Chief of Staff assistance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Doctor dossiers & trial matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
-  { name: 'Clinical Dietician (Unlimited)', desc: 'Precision metabolic meal plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Pharmacy Hub & Drug Interactions', desc: 'Full profile contraindication screening', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Lab Report PDF Analyzer (Full)', desc: 'Sub-clinical biomarkers & graph trends', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
-  { name: 'Medical Profile & Encrypted Vault', desc: 'Permanent personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Vitality Points & Rewards System', desc: 'Full arcade access & tier progression', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
+  { name: 'Food & Symptom Tools (Unlimited)', desc: 'Editable meal plans and observation tracking', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
+  { name: 'Medication Information', desc: 'Educational interaction questions to verify with a pharmacist', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Lab Report PDF Analyzer (Full)', desc: 'Value extraction and multi-report trends', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const PRO_90_FEATURES: FeatureItem[] = [
@@ -73,11 +73,11 @@ const PRO_90_FEATURES: FeatureItem[] = [
   { name: '3 Clinical Data Engine Sessions', desc: 'Deep systemic pattern discovery', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
   { name: 'Ava Health Buddy (120 Replies)', desc: 'Extended longitudinal health guidance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable dossiers & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
-  { name: 'Clinical Dietician (Unlimited)', desc: 'Condition-specific Indian nutritional plans', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
+  { name: 'Food Planner (Unlimited)', desc: 'Culturally relevant example meals and grocery planning', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
   { name: 'Pharmacy Hub & Interactions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Lab Report PDF Analyzer (Full)', desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Vitality Points & Rewards System', desc: 'Full arcade access & tier progression', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
+  { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const TOPUP_PLANS = [
@@ -201,7 +201,7 @@ export default function Pricing() {
               if (isTopup) {
                 toast.success('Top-Up Activated!', 'Your feature credit has been added to your account.');
               } else {
-                toast.success('Welcome to Pro!', 'All 16 specialists & diagnostic tools are unlocked.');
+                toast.success('Welcome to Pro!', 'Your expanded AI perspectives and case-preparation tools are unlocked.');
               }
               setTimeout(() => {
                 navigate('/app');
@@ -254,10 +254,10 @@ export default function Pricing() {
       {/* Hero Header */}
       <div style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', color: '#059669', padding: '6px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px', border: '1px solid #A7F3D0' }}>
-          <Sparkles size={14} /> Clinical AI Diagnostic Power
+          <Sparkles size={14} /> Connected Clinical Preparation
         </div>
         <h1 style={{ fontSize: isMobile ? '28px' : '44px', fontWeight: 900, color: '#0F172A', marginBottom: '14px', letterSpacing: '-1px', lineHeight: 1.15 }}>
-          Invest in Clarity. Resolve Medical Ambiguity.
+          Keep Every Record, Question, and Next Step Connected.
         </h1>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#F8FAFC', borderRadius: '20px', fontSize: '13px', color: '#475569', border: '1px solid #E2E8F0' }}>
           <Info size={15} color="#059669" /> Any purchased top-ups expire when your base subscription expires.
@@ -626,7 +626,7 @@ export default function Pricing() {
           <div>
             <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Private Account Workspace</h4>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
-              Your private health data is strictly segregated and never shared or sold to third parties.
+              Account data is segregated by user and is not sold. When you request an AI feature, the information needed for that request is sent to the configured AI processor as disclosed in the product.
             </p>
           </div>
         </div>
@@ -648,9 +648,9 @@ export default function Pricing() {
             <Clock size={22} />
           </div>
           <div>
-            <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Permanent Health Memory</h4>
+            <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Continuing Health Memory</h4>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
-              All cases, clinical timelines, and PDF dossiers remain accessible even after plan expiration.
+              Saved cases and timelines remain available after plan expiration, subject to the service retention policy and your account controls.
             </p>
           </div>
         </div>

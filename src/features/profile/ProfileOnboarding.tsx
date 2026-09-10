@@ -92,11 +92,11 @@ const FAMILY_CONDITIONS = [
 ];
 
 const HEALTH_FOCUS_OPTIONS = [
-  { id: 'root_cause', title: 'Uncover Root Causes', desc: 'Connect multi-system kinetic, vascular & dietary triggers', icon: '🔍' },
+  { id: 'root_cause', title: 'Explore Possible Connections', desc: 'Organize timing across symptoms, measurements, and daily observations', icon: '🔍' },
   { id: 'metabolic', title: 'Metabolic Balance & Energy', desc: 'Optimize glucose, postprandial fatigue & daily vitality', icon: '⚡' },
   { id: 'kinetic', title: 'Postural & Kinetic Relief', desc: 'Craniosacral dural spine alignment and tension headaches', icon: '🦴' },
   { id: 'gut_brain', title: 'Gut-Brain Equilibrium', desc: 'Food sensitivities, DAO histamines & microbiome health', icon: '🌱' },
-  { id: 'pharmacy', title: 'Medication Safety & Chrono', desc: 'Guard against contraindications and circadian clashes', icon: '💊' },
+  { id: 'pharmacy', title: 'Medication Information', desc: 'Keep medicines together and prepare interaction questions for a pharmacist', icon: '💊' },
 ];
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
@@ -143,7 +143,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
   const [customFamily, setCustomFamily] = useState('');
 
   // Step 2: Health Focus
-  const [healthFocus, setHealthFocus] = useState('Uncover Root Causes');
+  const [healthFocus, setHealthFocus] = useState('Explore Possible Connections');
 
   // Live BMI & BMR calculations
   const bmi = useMemo(() => {
@@ -918,7 +918,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <label style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>🛡️ Allergy & Contraindication Guard</span>
+                        <span>🛡️ Allergy and medication context</span>
                       </label>
                       <button
                         type="button"

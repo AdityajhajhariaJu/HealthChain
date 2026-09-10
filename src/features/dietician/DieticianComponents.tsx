@@ -302,7 +302,7 @@ export function OnboardingWizard({
             )}
             <div>
               <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
-                Clinical Dietician Setup
+                Food Planner Setup
               </div>
               <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
                 Metabolic Target Engine · Step {step} of 8

@@ -36,14 +36,15 @@ export function normalizeClinicalReview(value: unknown): Record<string, any> {
     ...report,
     primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Your health record review',
     matchConfidence: null,
+    dominoChain: null,
     topDiagnoses: objects(report.topDiagnoses).map(({ confidence: _confidence, ...item }) => item),
     documentedFacts: objects(report.documentedFacts).filter(item => typeof item.fact === 'string' && typeof item.source === 'string'),
     uncertainties: strings(report.uncertainties),
-    functionalBiomarkers: objects(report.functionalBiomarkers),
+    functionalBiomarkers: objects(report.functionalBiomarkers).map(item => ({ ...item, optimalRange: 'Not established' })),
     systemicPatterns: objects(report.systemicPatterns),
     missingLinks: strings(report.missingLinks),
     questionsForClinician: strings(report.questionsForClinician),
-    doctorActionPlan: { ...report.doctorActionPlan, confirmatoryTests: objects(report.doctorActionPlan?.confirmatoryTests) },
+    doctorActionPlan: { ...report.doctorActionPlan, confirmatoryTests: [] },
     immediateRelief: { dietSwaps: [], pacingProtocol: '', redFlags: strings(report.immediateRelief?.redFlags) },
   };
 }

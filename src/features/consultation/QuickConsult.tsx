@@ -1045,7 +1045,7 @@ export default function QuickConsult() {
                     <Network size={18} color="#FFF" />
                   </div>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 800 }}>Explore in Autonomous Clinical Data Engine</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800 }}>Review in the Clinical Data Engine</div>
                     <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: 500 }}>Multi-system causal cascades, biomarker deltas &amp; doctor-ready dossier</div>
                   </div>
                 </div>

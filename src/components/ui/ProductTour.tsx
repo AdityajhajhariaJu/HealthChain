@@ -18,7 +18,7 @@ const TOUR_STEPS = [
   },
   {
     title: 'Clinical Data Engine',
-    content: 'Uncover subclinical root causes, 3-step biological cascades, and doctor blind spots across multi-stream clinical data.',
+    content: 'Bring records, symptoms, dates, and open questions together while keeping facts separate from AI-generated possibilities.',
   },
   {
     title: 'Physician Action Briefs',

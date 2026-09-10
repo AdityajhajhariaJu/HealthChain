@@ -797,7 +797,7 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 <p style={{ margin: '3px 0 0', fontSize: '11.5px', color: '#78716C' }}>
                   {allTaken 
                     ? 'All daily circadian doses completed! 🎉' 
-                    : 'Tap capsules below to optimize and customize'}
+                    : 'Choose items below to customize your schedule'}
                 </p>
               </div>
 

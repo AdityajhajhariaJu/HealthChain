@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FlaskConical, ExternalLink, Activity, Filter, Info, ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
+import { FlaskConical, ExternalLink, Activity, Filter, ShieldCheck, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
 import { getActiveCase } from '../../services/CaseEngine';
-import { getProfile } from '../../services/ProfileEngine';
 import { fetchLiveTrials } from '../../services/clinicalTrialsService';
 import { fetchRecentLiterature, cleanMedicalText } from '../../services/pubMedService';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -15,10 +14,10 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import { getItemSync, setItemSync } from '../../services/storage';
 
 const loadingSteps = [
-  "Analyzing biomarkers...",
-  "Checking inclusion criteria...",
-  "Calculating geographical proximity...",
-  "Finalizing matches..."
+  "Retrieving registry studies...",
+  "Retrieving recent literature...",
+  "Comparing titles and topics...",
+  "Preparing source links..."
 ];
 
 const MatchRing = ({ score }: { score: number }) => {
@@ -28,7 +27,7 @@ const MatchRing = ({ score }: { score: number }) => {
   const color = score >= 90 ? '#10B981' : score >= 80 ? '#F59E0B' : '#64748B';
   
   return (
-    <div style={{ position: 'relative', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div role="img" aria-label={`Topic relevance ${score} out of 100`} style={{ position: 'relative', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg width="44" height="44" style={{ transform: 'rotate(-90deg)' }}>
         <circle cx="22" cy="22" r={radius} fill="none" stroke="#E2E8F0" strokeWidth="3" />
         <motion.circle 
@@ -45,8 +44,8 @@ const MatchRing = ({ score }: { score: number }) => {
   );
 };
 
-function scoreClinicalTrial(trial: any, conditions: string[]): { matchScore: number; aiContext: string } {
-  let score = 55;
+function scoreClinicalTrial(trial: any, conditions: string[]): { matchScore: number; aiContext: string; matchedTerms: string[] } {
+  let score = 0;
   const condText = (trial.conditions || []).join(' ').toLowerCase();
   const titleText = (trial.title || '').toLowerCase();
   const summaryText = (trial.summary || '').toLowerCase();
@@ -54,52 +53,48 @@ function scoreClinicalTrial(trial: any, conditions: string[]): { matchScore: num
 
   const searchWords = conditions.flatMap(c => c.toLowerCase().split(/\s+/)).filter(w => w.length > 2);
   
-  for (const word of searchWords) {
-    if (condText.includes(word)) score += 15;
-    if (titleText.includes(word)) score += 10;
-    if (summaryText.includes(word)) score += 6;
-    if (interText.includes(word)) score += 8;
+  const matchedTerms = searchWords.filter(word => condText.includes(word) || titleText.includes(word) || summaryText.includes(word) || interText.includes(word));
+  for (const word of matchedTerms) {
+    if (condText.includes(word)) score += 20;
+    if (titleText.includes(word)) score += 14;
+    if (summaryText.includes(word)) score += 5;
+    if (interText.includes(word)) score += 7;
   }
 
-  const phase = (trial.phase || '').toLowerCase();
-  if (phase.includes('phase 3') || phase.includes('phase 4')) score += 10;
-  else if (phase.includes('phase 2')) score += 6;
-
-  if ((trial.status || '').toLowerCase().includes('recruiting')) score += 5;
-
-  const finalScore = Math.min(98, Math.max(50, score));
-  const primaryIntervention = trial.interventions?.[0] || 'clinical protocol';
-  const primaryCond = trial.conditions?.[0] || conditions[0] || 'target condition';
+  const finalScore = Math.min(100, score);
 
   return {
     matchScore: finalScore,
-    aiContext: `Actively recruiting study evaluating ${primaryIntervention} for ${primaryCond}. Investigates mechanisms directly linked to your clinical targets.`
+    matchedTerms: [...new Set(matchedTerms)].slice(0, 6),
+    aiContext: matchedTerms.length
+      ? `Shown because its registry text overlaps with: ${[...new Set(matchedTerms)].slice(0, 6).join(', ')}. This is topic relevance, not an eligibility assessment.`
+      : 'Shown from the registry search. Review the official eligibility criteria and locations on the source page.'
   };
 }
 
-function scoreLiteraturePaper(paper: any, conditions: string[]): { matchScore: number; aiContext: string } {
-  let score = 52;
+function scoreLiteraturePaper(paper: any, conditions: string[]): { matchScore: number; aiContext: string; matchedTerms: string[] } {
+  let score = 0;
   const titleText = (paper.title || '').toLowerCase();
   const abstractText = (paper.abstract || '').toLowerCase();
   const searchWords = conditions.flatMap(c => c.toLowerCase().split(/\s+/)).filter(w => w.length > 2);
 
-  for (const word of searchWords) {
-    if (titleText.includes(word)) score += 16;
-    if (abstractText.includes(word)) score += 8;
+  const matchedTerms = searchWords.filter(word => titleText.includes(word) || abstractText.includes(word));
+  for (const word of matchedTerms) {
+    if (titleText.includes(word)) score += 22;
+    if (abstractText.includes(word)) score += 7;
   }
 
-  const year = parseInt(paper.pubYear, 10);
-  if (!Number.isNaN(year) && year >= 2025) score += 10;
-  else if (!Number.isNaN(year) && year >= 2023) score += 6;
-
-  const finalScore = Math.min(96, Math.max(45, score));
+  const finalScore = Math.min(100, score);
   return {
     matchScore: finalScore,
-    aiContext: `Published in ${paper.journal} (${paper.pubYear}). High-yield clinical evidence examining pathophysiology and therapeutic pathways for ${conditions.slice(0, 2).join(' / ')}.`
+    matchedTerms: [...new Set(matchedTerms)].slice(0, 6),
+    aiContext: matchedTerms.length
+      ? `Shown because its title or abstract overlaps with: ${[...new Set(matchedTerms)].slice(0, 6).join(', ')}. Read the source to assess quality and applicability.`
+      : `Retrieved from the literature search for ${conditions[0] || 'the selected topic'}.`
   };
 }
 
-function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profile: any, diagnoses: any[], onClick: () => void }) {
+function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
@@ -158,24 +153,12 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
               
               <div style={{ background: 'linear-gradient(to right, rgba(16,185,129,0.1), transparent)', padding: '12px', borderRadius: '8px', borderLeft: '3px solid #10B981', marginBottom: '12px' }}>
                  <p style={{ margin: 0, fontSize: '13px', color: '#065F46', lineHeight: 1.4 }}>
-                    <strong>{isPaper ? 'Patient Takeaway' : 'AI Relevance'}:</strong> {item.aiContext}
+                    <strong>Why this is shown:</strong> {item.aiContext}
                  </p>
               </div>
               
-              <strong style={{ fontSize: '12px', color: '#0F172A', display: 'block', marginBottom: '8px' }}>Why this matches you:</strong>
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
-                  <CheckCircle2 size={14} color="#10B981" /> Age ({profile?.demographics?.age || '28'}) matches criteria
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
-                  <CheckCircle2 size={14} color="#10B981" /> Gender ({profile?.demographics?.gender || 'Not specified'}) matches criteria
-                </div>
-                {diagnoses.slice(0, 2).map((d: any, i: number) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155' }}>
-                    <CheckCircle2 size={14} color="#10B981" /> Condition: {d}
-                  </div>
-                ))}
-              </div>
+              <strong style={{ fontSize: '12px', color: '#0F172A', display: 'block', marginBottom: '8px' }}>Before acting on a trial:</strong>
+              <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>Open the official source and ask the study team or your clinician about eligibility, location, risks, costs, and standard-care alternatives. HealthChain does not determine eligibility.</p>
             </div>
           </motion.div>
         )}
@@ -200,7 +183,7 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
               triggerHapticLight();
               navigate('/app/ava', {
                 state: {
-                  initialPrompt: `I am interested in this clinical research: "${displayTitle}". How might this relate to my case, conditions, and treatment options?`
+                  initialPrompt: `I am reviewing this clinical research source: "${displayTitle}". Help me summarize what it actually says, what it does not establish, and which questions I should ask my clinician or the study team.`
                 }
               });
             }} 
@@ -217,7 +200,7 @@ function ResearchCard({ item, profile, diagnoses, onClick }: { item: any, profil
             aria-label={`View clinical trial details for ${displayTitle}`}
             style={{ padding: '4px 10px', fontSize: '12px', height: '28px' }}
           >
-             View <ExternalLink size={12} />
+             Details <ExternalLink size={12} />
           </button>
         </div>
       </div>
@@ -230,7 +213,6 @@ export default function ClinicalTrialsMatcher() {
   const navigate = useNavigate();
   const toast = useToast();
   const activeCase = getActiveCase();
-  const profile = getProfile();
   const [loading, setLoading] = useState(true);
   const [researchItems, setResearchItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -279,27 +261,14 @@ export default function ClinicalTrialsMatcher() {
     }
   }, [loading]);
 
-  const diagnoses = (activeCase?.reviews || [])
-    .flatMap((r: any) => 
-       (r?.report?.topDiagnoses || [])
-         .filter((d: any) => d && (typeof d.confidence === 'number' ? d.confidence > 25 : true))
-         .map((d: any) => (typeof d === 'string' ? d : d?.condition))
-         .filter(Boolean)
-    )
-    .filter((v: any, i: any, a: any) => a.indexOf(v) === i);
-    
-  if (diagnoses.length === 0 && activeCase?.differentials) {
-    const diffs = (activeCase.differentials || [])
-      .filter((d: any) => d && (typeof d.probability === 'number' ? d.probability > 25 : true))
-      .map((d: any) => (typeof d === 'string' ? d : d?.condition))
-      .filter(Boolean)
-      .slice(0, 2);
-    diagnoses.push(...diffs);
-  }
-
+  const caseTopics = [activeCase?.title, activeCase?.intakeData?.chiefComplaint]
+    .map(value => typeof value === 'string' ? value.trim().slice(0, 120) : '')
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .slice(0, 2);
   const effectiveTerms = customSearchTerms && customSearchTerms.length > 0
     ? customSearchTerms
-    : (diagnoses.length > 0 ? diagnoses : ['pain']);
+    : caseTopics;
 
   useEffect(() => {
     let isMounted = true;
@@ -309,7 +278,7 @@ export default function ClinicalTrialsMatcher() {
       setLoading(true);
       
       const searchTerms = effectiveTerms;
-      const cacheKey = `researchHub_v4_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
+      const cacheKey = `researchHub_v5_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
       
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
@@ -355,7 +324,7 @@ export default function ClinicalTrialsMatcher() {
         });
 
         const allItems = [...trialsWithScore, ...papersWithScore];
-        const filteredItems = allItems.filter((t: any) => (t.matchScore || 0) > 25);
+        const filteredItems = allItems.filter((t: any) => (t.matchScore || 0) > 0);
         const sortedItems = filteredItems.sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0));
         
         if (isMounted) {
@@ -413,7 +382,7 @@ export default function ClinicalTrialsMatcher() {
         <div>
           <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research Hub</h1>
           <p style={{ margin: 0, color: '#C7D2FE', fontSize: '15px' }}>
-            Discover live clinical trials and recent medical literature tailored to your exact medical profile and active hypotheses.
+            Search live registry studies and recent literature using a topic from your selected case or your own search. Results are ranked by text overlap, not medical eligibility.
           </p>
         </div>
       </motion.div>
@@ -489,30 +458,26 @@ export default function ClinicalTrialsMatcher() {
             
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Active Case Targets
+                Case topics used for search
               </label>
-              {diagnoses.length > 0 ? (
+              {caseTopics.length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {diagnoses.map((d: any, i) => (
+                  {caseTopics.map((d: any, i) => (
                     <span key={i} style={{ padding: '4px 8px', background: '#EEF2FF', color: '#4F46E5', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
                       {d}
                     </span>
                   ))}
                 </div>
               ) : (
-                <div style={{ fontSize: '13px', color: '#94A3B8' }}>No active discussion pathways found in the current case.</div>
+                <div style={{ fontSize: '13px', color: '#64748B' }}>No case topic selected. Enter a topic above to search.</div>
               )}
             </div>
 
             <div>
               <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Patient Profile Filters
+                Eligibility boundary
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {profile?.demographics?.age && <span className="badge badge-gray">{profile.demographics.age} y/o</span>}
-                {profile?.demographics?.gender && <span className="badge badge-gray">{profile.demographics.gender}</span>}
-                {(profile?.conditions || []).map((c: any, i: number) => <span key={i} className="badge badge-gray">{c}</span>)}
-              </div>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>Age, sex, location, medications, test results, and other criteria are not automatically verified here. Confirm them on the official study page.</p>
             </div>
           </div>
           
@@ -552,7 +517,7 @@ export default function ClinicalTrialsMatcher() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A', marginBottom: '4px' }}>
-                Found {researchItems.length} highly relevant research items
+                {researchItems.length} source{researchItems.length === 1 ? '' : 's'} ranked by topic relevance
               </div>
               
               {researchItems.length > 0 ? (
@@ -560,8 +525,6 @@ export default function ClinicalTrialsMatcher() {
                   <ResearchCard 
                     key={item.id} 
                     item={item} 
-                    profile={profile} 
-                    diagnoses={diagnoses} 
                     onClick={() => {
                       triggerHapticLight();
                       awardPoints(5, `Reviewed Evidence: ${(item.title || 'Trial').slice(0, 24)}...`, 'research', `trial_view_${item.id}`);
@@ -622,7 +585,7 @@ export default function ClinicalTrialsMatcher() {
                     <h2 style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <ShieldCheck color="#10B981" /> {selectedItem.journal ? 'Literature Detail' : 'Trial Detail'}
                     </h2>
-                    <span className="badge badge-teal">Match: {selectedItem.matchScore}</span>
+                    <span className="badge badge-teal">Topic relevance: {selectedItem.matchScore}/100</span>
                   </div>
                   <div style={{ padding: isMobile ? '16px' : '24px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
                     <h3 style={{ fontSize: isMobile ? '18px' : '20px', margin: '0 0 12px 0', lineHeight: 1.4 }}>{modalTitle}</h3>
@@ -665,7 +628,7 @@ export default function ClinicalTrialsMatcher() {
                         triggerHapticLight();
                         navigate('/app/ava', {
                           state: {
-                            initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}". Could you help me understand how this evidence matches my health conditions, biomarkers, and treatment options?`
+                            initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}". Summarize the source cautiously, separate what it reports from what remains unknown, and help me prepare questions for my clinician or the study team.`
                           }
                         });
                       }}

@@ -174,7 +174,7 @@ export default function CasePrep() {
         {cases.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', background: '#f8fafc', borderRadius: 16 }}>
             <p>You don't have any active cases yet.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/app/consult')} style={{ marginTop: 16 }}>Start a Quick Consult</button>
+            <button className="btn btn-primary" onClick={() => navigate('/app/my-cases?new=true')} style={{ marginTop: 16 }}>Start a case</button>
           </div>
         ) : (
           <div style={{ display: 'grid', gap: 12 }}>

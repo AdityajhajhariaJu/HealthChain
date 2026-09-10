@@ -10,7 +10,7 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 const faqs = [
   {
     question: "Is HealthChain a replacement for my doctor?",
-    answer: "No. HealthChain is an AI-assisted health assessment and appointment-preparation tool. It helps you organize your medical history, explore discussion pathways, and prepare for specialist visits. It does not provide definitive diagnoses or treatment instructions."
+    answer: "No. HealthChain is an AI-assisted record-organization and appointment-preparation tool. It helps you organize your medical history, explore discussion pathways, and prepare for specialist visits. It does not provide diagnoses or treatment instructions."
   },
   {
     question: "How is my medical data secured?",

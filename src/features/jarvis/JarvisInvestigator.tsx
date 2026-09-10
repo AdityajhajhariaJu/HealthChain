@@ -469,7 +469,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 )}
               </div>
               <h1 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 900, color: '#0F172A', margin: '4px 0 0 0', letterSpacing: '-0.4px' }}>
-                Root-Cause Diagnostic Synthesis
+                Source-Aware Case Review
               </h1>
             </div>
           </div>
@@ -534,7 +534,7 @@ AI-generated preparation material. Verify against original records; this is not 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#EA580C', color: '#FFF', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
                 <Sparkles size={13} />
-                PRIMARY HYPOTHESIS
+                LEADING DISCUSSION POSSIBILITY
               </div>
 
               {confidencePct > 0 && (
@@ -550,7 +550,7 @@ AI-generated preparation material. Verify against original records; this is not 
             </h2>
 
             <p style={{ margin: 0, color: '#334155', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}>
-              {report.executiveSummary || 'A distinct multi-system physiological pattern was identified connecting your symptoms across biochemical and autonomic pathways.'}
+              {report.executiveSummary || 'The available information was organized into possible discussion pathways and evidence gaps for clinician review.'}
             </p>
           </motion.div>
 
@@ -584,7 +584,7 @@ AI-generated preparation material. Verify against original records; this is not 
             >
               <div style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: '14px', padding: '16px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                  STEP 1 • ROOT TRIGGER
+                  OBSERVATION 1 • POSSIBLE STARTING POINT
                 </div>
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
                   {report.dominoChain?.step1_trigger || 'Not established'}
@@ -599,7 +599,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
               <div style={{ background: '#FFFDFB', border: '1.5px solid #FDBA74', borderRadius: '14px', padding: '16px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                  STEP 2 • PHYSIOLOGICAL CASCADE
+                  OBSERVATION 2 • POSSIBLE RELATIONSHIP
                 </div>
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
                   {report.dominoChain?.step2_cascade || 'Not established'}
@@ -614,7 +614,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
               <div style={{ background: '#FEF2F2', border: '1.5px solid #FECACA', borderRadius: '14px', padding: '16px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                  STEP 3 • CURRENT SYMPTOMS
+                  OBSERVATION 3 • REPORTED SYMPTOMS
                 </div>
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
                   {report.dominoChain?.step3_symptoms || 'Not established'}
@@ -673,9 +673,9 @@ AI-generated preparation material. Verify against original records; this is not 
                     </div>
                     
                     <div style={{ display: 'flex', gap: isMobile ? '10px' : '20px', fontSize: '12.5px', color: '#64748B', flexWrap: 'wrap' }}>
-                      <span>Standard Cutoff: <strong style={{ color: '#475569' }}>{bio.standardRange}</strong></span>
+                      <span>Printed reference range: <strong style={{ color: '#475569' }}>{bio.standardRange || 'Not provided'}</strong></span>
                       <span>•</span>
-                      <span>Optimal Functional: <strong style={{ color: '#059669' }}>{bio.optimalRange}</strong></span>
+                      <span>Alternative “optimal” range: <strong style={{ color: '#475569' }}>Not established here</strong></span>
                     </div>
 
                     {(bio.clinicalRisk || bio.insight) && (
@@ -705,7 +705,7 @@ AI-generated preparation material. Verify against original records; this is not 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                 <Search size={18} color="#D97706" />
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#92400E' }}>
-                  What Previous Doctors Overlooked (Diagnostic Blindspots)
+                  Information still missing
                 </h3>
               </div>
 
@@ -776,10 +776,8 @@ AI-generated preparation material. Verify against original records; this is not 
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {(report.doctorActionPlan?.confirmatoryTests?.length ? report.doctorActionPlan.confirmatoryTests : report.questionsForClinician || []).map((item: any, i: number) => {
-                const testName = typeof item === 'string' ? item : item.test || 'Confirmatory Test';
-                const rationale = typeof item === 'string' ? '' : item.rationale;
-                const priority = typeof item === 'string' ? 'Priority' : item.priority || 'High';
+              {(report.questionsForClinician || []).map((item: string, i: number) => {
+                const testName = item;
 
                 return (
                   <div 
@@ -796,15 +794,8 @@ AI-generated preparation material. Verify against original records; this is not 
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                       <strong style={{ fontSize: '14.5px', color: '#0F172A' }}>{testName}</strong>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '6px' }}>
-                        {priority}
-                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '6px' }}>DISCUSS</span>
                     </div>
-                    {rationale && (
-                      <div style={{ fontSize: '13px', color: '#475569', lineHeight: 1.4 }}>
-                        {rationale}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -833,7 +824,7 @@ AI-generated preparation material. Verify against original records; this is not 
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {Array.isArray(report.immediateRelief.dietSwaps) && report.immediateRelief.dietSwaps.length > 0 && (
+                {false && Array.isArray(report.immediateRelief.dietSwaps) && report.immediateRelief.dietSwaps.length > 0 && (
                   <div>
                     <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px' }}>
                       Dietary Swaps for Today:
@@ -846,7 +837,7 @@ AI-generated preparation material. Verify against original records; this is not 
                   </div>
                 )}
 
-                {report.immediateRelief.pacingProtocol && (
+                {false && report.immediateRelief.pacingProtocol && (
                   <div>
                     <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
                       Somatic & Hydration Pacing:
@@ -894,7 +885,7 @@ AI-generated preparation material. Verify against original records; this is not 
               <button 
                 onClick={() => {
                   triggerHapticLight();
-                  const initialPrompt = `I just ran a Clinical Data Engine investigation. Primary hypothesis: "${primaryCondition}". Let's review my action plan and next steps.`;
+                  const initialPrompt = `I just ran a Clinical Data Engine review. One AI-generated possibility was "${primaryCondition}". Help me separate documented facts, missing evidence, and questions to discuss with my clinician. Do not treat it as a diagnosis.`;
                   navigate('/app/ava', { state: { initialPrompt } });
                 }}
                 style={{ 

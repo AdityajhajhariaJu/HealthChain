@@ -56,14 +56,14 @@ const CONSENSUS_DIALOGUE = [
     icon: '🧠',
     color: '#A78BFA',
     bg: 'rgba(139, 92, 246, 0.15)',
-    finding: 'Possible autonomic / vagal nerve involvement.',
+    finding: 'Postural timing may be useful to document clearly.',
   },
   {
     role: 'Endocrinologist',
     icon: '🔬',
     color: '#60A5FA',
     bg: 'rgba(59, 130, 246, 0.15)',
-    finding: 'Check ferritin and cortisol before next doctor visit.',
+    finding: 'Bring the dated iron results and printed ranges to the visit.',
   },
 ];
 
@@ -73,7 +73,7 @@ const BENTO_COL_LEFT = [
     type: 'img',
     img: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
     tag: '📖 Patient Guide',
-    status: 'NEWS',
+    status: 'GUIDE',
     title: 'What is HealthChain and How Can It Improve Your Doctor Visits?',
     desc: 'Confused about managing your health records? HealthChain provides a clear, unified timeline so you never repeat your story.'
   },
@@ -82,9 +82,9 @@ const BENTO_COL_LEFT = [
     type: 'img',
     img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80',
     tag: '📊 Professional Report',
-    status: 'NEWS',
+    status: 'OVERVIEW',
     title: "HealthChain's Integrated Approach to Patient Data Management",
-    desc: 'Explore how HealthChain centralizes patient health stories, records, and identifies multi-organ correlations standard visits miss.'
+    desc: 'Explore how HealthChain centralizes a patient health story, records, observations, and cross-system questions for review.'
   },
   {
     id: 'bento_left_3',
@@ -92,8 +92,8 @@ const BENTO_COL_LEFT = [
     img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80',
     tag: '🧬 Biomarker Matrix',
     status: 'LAB',
-    title: 'When Standard Blood Work Shows "Normal", AI Examines the Gaps',
-    desc: 'Cross-checks subclinical ferritin, Free T3/T4 conversion ratios, and electrolyte variances against comprehensive clinical reference ranges.'
+    title: 'When a Report Is Hard to Interpret, Keep the Source Visible',
+    desc: 'Extracts printed values, units, dates, and laboratory ranges so you can review changes and questions without losing the original context.'
   }
 ];
 
@@ -103,26 +103,26 @@ const BENTO_COL_RIGHT = [
     type: 'img',
     img: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=800&q=80',
     tag: '📄 Trade Publication',
-    status: 'NEWS',
+    status: 'WORKFLOW',
     title: 'How HealthChain Helps Bridge Communication Gaps with Your...',
-    desc: 'Ever felt unheard by your doctor? HealthChain equips you with organized health summaries and differential discussion points.'
+    desc: 'Ever felt unheard at an appointment? HealthChain helps you bring an organized summary, evidence gaps, and discussion questions.'
   },
   {
     id: 'bento_right_2',
     type: 'privacy',
-    tag: '🛡️ Encrypted Vault',
-    status: '100% PRIVATE',
-    title: 'Reviewed & Encrypted Before It Goes Live',
-    desc: 'Every piece is checked and verified client-side so nothing leaves your device without explicit permission.'
+    tag: '🛡️ Private Workspace',
+    status: 'USER CONTROLLED',
+    title: 'You Choose What to Add and Share',
+    desc: 'Guest drafts remain on the device. Signed-in data is stored in your account workspace, and AI processing is disclosed before record review.'
   },
   {
     id: 'bento_right_3',
     type: 'img',
     img: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=800&q=80',
     tag: '🔬 Clinical Trials',
-    status: 'PEER-REVIEWED',
-    title: 'Direct Matching to Active Clinical Trials & NIH Studies',
-    desc: 'Instantly correlates unresolved symptom clusters with current recruiting trials and published landmark breakthroughs.'
+    status: 'SOURCE LINKS',
+    title: 'Search Active Trials and Recent Literature',
+    desc: 'Uses your chosen case topics to retrieve current registry studies and recent papers, with source links and transparent relevance cues.'
   }
 ];
 
@@ -148,7 +148,7 @@ const RANKED_CASES = [
     id: 'case-1',
     rank: '#1',
     category: 'endo',
-    title: 'Subclinical Ferritin Depletion & Post-Viral Autonomic Fatigue',
+    title: 'Fatigue, Iron Results & a Post-Viral Timeline',
     icon: '🔬',
     specialistTag: 'Endocrinology & Neurology',
     score: 'Example',
@@ -161,7 +161,7 @@ const RANKED_CASES = [
     id: 'case-2',
     rank: '#2',
     category: 'neuro',
-    title: 'Histamine-Mediated Neuro-Vascular Migraine with Morning Spikes',
+    title: 'Morning Headaches, Food Observations & Prior Care',
     icon: '🧠',
     specialistTag: 'Neurology & Gastroenterology',
     score: 'Example',
@@ -174,7 +174,7 @@ const RANKED_CASES = [
     id: 'case-3',
     rank: '#3',
     category: 'cardio',
-    title: 'Gastrocardiac (Roemheld) Post-Meal Palpitations & Vagal Irritation',
+    title: 'Post-Meal Palpitations, Timing & Measured Heart Rate',
     icon: '🫀',
     specialistTag: 'Cardiology & Gastroenterology',
     score: 'Example',
@@ -187,7 +187,7 @@ const RANKED_CASES = [
     id: 'case-4',
     rank: '#4',
     category: 'immuno',
-    title: 'Mast Cell Mediator Release & Postural Tachycardia Overlap',
+    title: 'Flushing, Postural Symptoms & Recurring Triggers',
     icon: '🛡️',
     specialistTag: 'Immunology & Cardiology',
     score: 'Example',
@@ -224,11 +224,11 @@ const LATEST_ACTIVITIES = [
 const landingFaqs = [
   {
     question: "Is HealthChain360.ai a replacement for my doctor?",
-    answer: "No. HealthChain360.ai is an AI-assisted health assessment and appointment-preparation tool. It helps you organize your history, spot questions and evidence gaps to discuss, and prepare for clinician visits. It does not diagnose, prescribe, or replace professional medical care."
+    answer: "No. HealthChain360.ai is an AI-assisted record-organization and appointment-preparation tool. It helps you organize your history, spot questions and evidence gaps to discuss, and prepare for clinician visits. It does not diagnose, prescribe, or replace professional medical care."
   },
   {
     question: "How is my medical data secured?",
-    answer: "You control your case information. Guest-mode information stays in your browser on that device; signed-in features sync securely to your encrypted cloud vault. We never sell your medical records."
+    answer: "You control your case information. Guest-mode information stays in your browser on that device; signed-in features use your private account workspace over encrypted connections. AI features explain when selected information is sent for processing. We never sell your medical records."
   },
   {
     question: "How do the Deep Collaborative Specialists work?",
@@ -236,7 +236,7 @@ const landingFaqs = [
   },
   {
     question: "Are the AI agents trained on real medical literature?",
-    answer: "Yes. HealthChain360.ai grounds its reasoning in peer-reviewed clinical guidelines (PubMed, NIH, OMIM, ClinicalTrials.gov). AI output is synthesized for patient clarity and must always be reviewed with your personal physician."
+    answer: "HealthChain can retrieve literature and registry records from sources such as Europe PMC and ClinicalTrials.gov. A source link supports only the statement it is attached to; AI summaries can still be incomplete or wrong and should be checked with the original source and a qualified clinician."
   }
 ];
 
@@ -531,7 +531,7 @@ export default function Landing() {
               variants={itemVariants} 
               role="button"
               tabIndex={0}
-              aria-label="Live AI Board Specialist Ticker - Start Investigation"
+              aria-label="AI perspective board - start a case"
               className={styles.darkTickerWindowCard}
               onClick={() => handleStartInvestigation('landing_ticker_window')}
               onKeyDown={(e) => {
@@ -543,13 +543,13 @@ export default function Landing() {
             >
               <div className={styles.darkTickerPrefix}>
                 <div className={styles.darkTickerLiveDot} />
-                <span className={styles.darkTickerPrefixLabel}>LIVE AI BOARD</span>
+                <span className={styles.darkTickerPrefixLabel}>AI PERSPECTIVE BOARD</span>
               </div>
               <div className={styles.darkTickerDivider} />
               <div className={styles.darkTickerViewport}>
                 <div className={styles.stockTickerTrack}>
                   {[...SPECIALIST_TICKER, ...SPECIALIST_TICKER].map((spec, i) => (
-                    <div key={i} className={styles.darkTickerItem}>
+                    <div key={i} className={styles.darkTickerItem} aria-hidden={i >= SPECIALIST_TICKER.length}>
                       <span className={styles.darkTickerIcon}>{spec.icon}</span>
                       <span className={styles.darkTickerName}>{spec.name}</span>
                       <span className={styles.darkTickerTag}>{spec.tag}</span>
@@ -625,7 +625,7 @@ export default function Landing() {
               <div className={styles.demoHeader}>
                 <div className={styles.demoBadge}>
                   <div className={styles.demoLiveDot} />
-                  <span>MULTI-DISCIPLINARY SPECIALIST CONSENSUS ACTIVE</span>
+                  <span>ILLUSTRATIVE MULTI-PERSPECTIVE REVIEW</span>
                 </div>
                 <div style={{ fontSize: '11.5px', color: '#71717A', fontWeight: 600 }}>
                   Case #4120 • 35-yo Female (Post-Viral Fatigue)
@@ -683,7 +683,7 @@ export default function Landing() {
             <span className={styles.convergenceItalicText}>One intelligent view.</span>
           </h2>
           <p className={styles.convergenceSubheadline}>
-            Blood tests, doctor notes, wearable vitals, and scans—connected to one AI clinical board.
+            Blood tests, doctor notes, wearable vitals, and scans—connected in one case workspace.
           </p>
 
           {/* 4 Data Source Pill Chips */}
@@ -789,7 +789,7 @@ export default function Landing() {
             <div className={styles.convergenceNoticeBanner}>
               <div className={styles.convergenceNoticeIcon}>📈</div>
               <span className={styles.convergenceNoticeText}>
-                <strong>Cross-System Insight Identified:</strong> Autonomic dysfunction and subclinical ferritin lag correlated across 14 lab flags.
+                <strong>Case pattern organized:</strong> symptom timing, measured values, record findings, and unanswered questions shown together.
               </span>
             </div>
 
@@ -800,12 +800,12 @@ export default function Landing() {
               <div className={styles.convergenceKpiCard}>
                 <div className={styles.kpiHeader}>
                   <span className={styles.kpiLabel}>LAB BIOMARKERS</span>
-                  <span className={styles.kpiBadge}>48 Synced</span>
+                  <span className={styles.kpiBadge}>Example case</span>
                 </div>
-                <div className={styles.kpiValue}>48 Markers</div>
+                <div className={styles.kpiValue}>Values extracted</div>
                 <div className={styles.kpiTrend}>
                   <span className={styles.kpiTrendIcon}>🟢</span>
-                  <span>14 Correlated</span>
+                  <span>Original ranges retained</span>
                 </div>
                 <div className={styles.kpiSparkline}>
                   <svg viewBox="0 0 100 20" width="100%" height="20">
@@ -838,10 +838,10 @@ export default function Landing() {
                   <span className={styles.kpiLabel}>APPOINTMENT READY</span>
                   <span className={styles.kpiBadge}>Doctor Brief</span>
                 </div>
-                <div className={styles.kpiValue}>&lt; 60s Brief</div>
+                <div className={styles.kpiValue}>One visit brief</div>
                 <div className={styles.kpiTrend}>
                   <span className={styles.kpiTrendIcon}>🟢</span>
-                  <span>ICD-10 &amp; NIH Cited</span>
+                  <span>Questions prioritized</span>
                 </div>
                 <div className={styles.kpiSparkline}>
                   <svg viewBox="0 0 100 20" width="100%" height="20">
@@ -860,10 +860,10 @@ export default function Landing() {
                     <Sparkles size={16} color="#FFFFFF" />
                   </div>
                   <div>
-                    <div className={styles.assistantName}>Ava Clinical AI Assistant</div>
+                    <div className={styles.assistantName}>Ava Case Preparation Assistant</div>
                     <div className={styles.assistantStatus}>
                       <span className={styles.assistantLivePulse}>●</span>
-                      <span>Connected to your encrypted health history</span>
+                      <span>Using the case you selected</span>
                     </div>
                   </div>
                 </div>
@@ -876,10 +876,10 @@ export default function Landing() {
               {/* AI Response Output Block */}
               <div className={styles.assistantResponseArea}>
                 <div className={styles.responseMainTitle}>
-                  Hyperadrenergic POTS &amp; Subclinical Iron Depletion
+                  Questions about orthostatic symptoms and iron status
                 </div>
                 <p className={styles.responseSubtext}>
-                  Cross-analyzed across 14 biomarker flags, sleep history, and postural heart-rate telemetry.
+                  Illustrative output separating reported symptoms, measured values, open questions, and possible discussion topics.
                 </p>
 
                 <div className={styles.responseBadgesRow}>
@@ -887,28 +887,28 @@ export default function Landing() {
                     <span className={styles.resBadgeIcon}>🩸</span>
                     <div>
                       <div className={styles.resBadgeLabel}>Ferritin: 14 ng/mL</div>
-                      <div className={styles.resBadgeSub}>Subclinical depletion</div>
+                      <div className={styles.resBadgeSub}>Example value · verify source</div>
                     </div>
                   </div>
                   <div className={styles.resBadge}>
                     <span className={styles.resBadgeIcon}>🫀</span>
                     <div>
                       <div className={styles.resBadgeLabel}>Orthostatic HR: +38 bpm</div>
-                      <div className={styles.resBadgeSub}>Autonomic shift</div>
+                      <div className={styles.resBadgeSub}>Example measurement</div>
                     </div>
                   </div>
                   <div className={`${styles.resBadge} ${styles.resBadgeAlert}`}>
                     <span className={styles.resBadgeIcon}>⚠️</span>
                     <div>
                       <div className={styles.resBadgeLabel}>Free T3/T4 Ratio</div>
-                      <div className={styles.resBadgeSub}>Conversion lag</div>
+                      <div className={styles.resBadgeSub}>Range not provided</div>
                     </div>
                   </div>
                 </div>
 
                 <div className={styles.assistantRecommendationPill}>
                   <span className={styles.recIcon}>🟢</span>
-                  <span><strong>Prioritized Action:</strong> Request morning serum ferritin panel &amp; orthostatic tilt-table review at your next GP visit.</span>
+                  <span><strong>Visit question:</strong> Which findings matter in my circumstances, and what additional history or examination would help interpret them?</span>
                 </div>
               </div>
             </div>
@@ -921,7 +921,7 @@ export default function Landing() {
               className={styles.convergenceCtaBtn}
               onClick={() => handleStartInvestigation('convergence_demo')}
             >
-              <span>Check Live Demo →</span>
+              <span>Try the interactive example →</span>
             </button>
             <div className={styles.convergenceMicrocopy}>
               Private account workspace • Review before sharing • No credit card required
@@ -939,7 +939,7 @@ export default function Landing() {
           </div>
           <h2 className={styles.sectionTitle}>See HealthChain360.ai in Action</h2>
           <p className={styles.sectionSubtitle}>
-            Watch how our AI clinical specialists cross-analyze contradictory symptoms, lab biomarkers, and medical history.
+            Watch how several AI perspectives organize symptoms, printed lab values, and medical history for clinician review.
           </p>
         </div>
 
@@ -955,17 +955,17 @@ export default function Landing() {
             <DemoVideoPlayer 
               src="/videos/healthchain-overview.mp4" 
               poster="/videos/healthchain-overview-poster.jpg"
-              alt="AI Medical Board Debate Demo"
+              alt="AI perspective review demonstration"
             />
             <div className={styles.videoMeta}>
               <div className={styles.videoBadge}>DEMO 1 • OVERVIEW</div>
-              <h3 className={styles.videoTitle}>AI Medical Board Debate</h3>
+              <h3 className={styles.videoTitle}>AI Perspective Review</h3>
               <p className={styles.videoDesc}>
-                Watch how cardiology, neurology, endocrinology, and immunology correlate multi-system symptoms to uncover missed root causes.
+                Watch how several specialty perspectives can organize the same evidence, expose disagreements, and identify questions that need clinician review.
               </p>
               <button 
                 className={styles.videoCta}
-                onClick={() => handleStartInvestigation('landing_video_1', 'AI Medical Board Consultation')}
+                onClick={() => handleStartInvestigation('landing_video_1', 'AI Perspective Review')}
               >
                 <span>Try this with your symptoms</span>
                 <ArrowRight size={14} />
@@ -990,7 +990,7 @@ export default function Landing() {
               <div className={styles.videoBadge}>DEMO 2 • WORKFLOW</div>
               <h3 className={styles.videoTitle}>From Symptoms to Doctor-Ready Dossier</h3>
               <p className={styles.videoDesc}>
-                See how blood panels and symptoms synthesize into ranked differentials and doctor-ready discussion points in minutes.
+                See how blood panels and symptoms become a structured possibility list and doctor-ready discussion points.
               </p>
               <button 
                 className={styles.videoCta}
@@ -1160,7 +1160,7 @@ export default function Landing() {
             </div>
             <h4 className={styles.statTitle}>Synthesized Dossier</h4>
             <p className={styles.statDesc}>
-              Transforms years of fragmented blood tests and symptoms into an actionable clinician brief in seconds.
+              Organizes fragmented blood tests and symptoms into a reusable clinician brief while keeping source details visible.
             </p>
             <button className={styles.statCtaLink} onClick={() => handleStartInvestigation('stats_card_3')}>
               Start Free Review →
@@ -1173,7 +1173,7 @@ export default function Landing() {
       <section className={styles.bentoShowcaseSection}>
         <div className={styles.bentoContainerCard}>
           <div className={styles.bentoTopBadgeRow}>
-            <span className={styles.bentoTopBadge}>AUTOMATED CLINICAL INTELLIGENCE</span>
+            <span className={styles.bentoTopBadge}>CONNECTED CASE WORKFLOW</span>
           </div>
 
           <div className={styles.bentoHeaderRow}>
@@ -1181,10 +1181,10 @@ export default function Landing() {
               <div className={styles.bentoHeaderIcon}>
                 <Eye size={20} color="#059669" />
               </div>
-              <h2 className={styles.bentoHeaderTitle}>Clinical Campaign &amp; Dossier Preview</h2>
+              <h2 className={styles.bentoHeaderTitle}>From scattered records to one case</h2>
             </div>
             <p className={styles.bentoHeaderSubtitle}>
-              <strong style={{ color: '#059669' }}>Real-World Intelligence.</strong> See how HealthChain360.ai structures your scattered medical records into doctor-ready, multi-specialist briefs that get taken seriously.
+              <strong style={{ color: '#059669' }}>One continuous workflow.</strong> See how HealthChain360.ai keeps records, personal notes, AI considerations, uncertainties, and appointment questions connected without presenting examples as your data.
             </p>
           </div>
 
@@ -1199,6 +1199,7 @@ export default function Landing() {
                     <div 
                       key={`left_${idx}`}
                       className={styles.bentoCard}
+                      aria-hidden={idx >= BENTO_COL_LEFT.length}
                     >
                       {card.type === 'img' && card.img && (
                         <div className={styles.bentoImgWrapper}>
@@ -1232,6 +1233,7 @@ export default function Landing() {
                     <div 
                       key={`right_${idx}`}
                       className={`${styles.bentoCard} ${card.type === 'privacy' ? styles.bentoCardPrivacy : ''}`}
+                      aria-hidden={idx >= BENTO_COL_RIGHT.length}
                     >
                       {card.type === 'img' && card.img && (
                         <div className={styles.bentoImgWrapper}>
@@ -1279,15 +1281,15 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. Real-Time Diagnostic Intelligence Board */}
+      {/* 4. Illustrative case workflows */}
       <section className={styles.casesSection}>
         <div className={styles.sectionHeader}>
           <div className={styles.categoryBadge}>
-            <Brain size={13} /> REAL-WORLD DIAGNOSTIC RESOLUTIONS
+            <Brain size={13} /> ILLUSTRATIVE CASE WORKFLOWS
           </div>
-          <h2 className={styles.sectionTitle}>When Tests Look Normal, Specialists Connect the Dots</h2>
+          <h2 className={styles.sectionTitle}>When the story is complex, organize the questions</h2>
           <p className={styles.sectionSubtitle}>
-            Explore real multi-system cases where standard 15-minute visits stalled, but our AI clinical specialists uncovered hidden root causes.
+            Explore clearly labeled examples of turning symptoms, dates, measurements, and records into a reviewable case for a clinician visit.
           </p>
         </div>
 
@@ -1340,7 +1342,7 @@ export default function Landing() {
           <div className={styles.latestConsensusBar}>
             <div className={styles.consensusBarTitle}>
               <span className={styles.liveActivityPulse}>●</span>
-              <span>LATEST CLINICAL CONSENSUS ACTIVITY</span>
+              <span>USEFUL STARTING TEMPLATES</span>
             </div>
             <div className={styles.consensusPills}>
               {LATEST_ACTIVITIES.map((act, aIdx) => (
@@ -1374,10 +1376,10 @@ export default function Landing() {
             Tired of hearing "All your tests are normal" while you still feel sick?
           </h2>
           <p className={styles.problemText}>
-            The average chronic patient spends years visiting 5+ disconnected specialists, repeating expensive blood tests, and receiving contradictory advice. Standard 15-minute doctor appointments simply don't have time to connect the dots across your gut, hormones, nervous system, and history.
+            Complex symptoms can span many appointments, records, and specialties. Repeating the story from memory makes it harder to preserve dates, exact findings, changes, and unanswered questions.
           </p>
           <p className={styles.problemText} style={{ marginTop: '10px', color: '#0F172A', fontWeight: 700 }}>
-            HealthChain360.ai replaces medical guesswork with autonomous multi-specialist intelligence. We correlate your symptoms, labs, and history into a unified clinical brief with ranked differentials and doctor-ready questions.
+            HealthChain360.ai keeps your own report, source documents, AI-generated considerations, uncertainties, and clinician questions in one evolving case—so every return visit starts with context instead of a blank page.
           </p>
         </motion.div>
       </section>
@@ -1387,32 +1389,32 @@ export default function Landing() {
         <div className={styles.sectionHeader}>
           <div className={styles.categoryBadge}>CLINICAL ARCHITECTURE</div>
           <h2 className={styles.sectionTitle}>Engineered for Complex Cases</h2>
-          <p className={styles.sectionSubtitle}>Why standard medical search engines fail chronic patients and how HealthChain360.ai fixes it.</p>
+          <p className={styles.sectionSubtitle}>A connected workflow for understanding records, preserving uncertainty, and preparing a focused appointment.</p>
         </div>
 
         <div className={styles.bentoGrid}>
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={`${styles.bentoCard} ${styles.bentoLarge}`}>
             <div className={styles.bentoIconBg} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#0284C7' }}><Brain size={24} /></div>
             <h3 className={styles.bentoTitle}>Multi-Specialist AI Perspectives</h3>
-            <p className={styles.bentoDesc}>Instead of a single AI giving a generic answer, clinical specialists evaluate your case independently, then debate and cross-examine evidence to uncover multi-system interactions.</p>
+            <p className={styles.bentoDesc}>AI perspective modules examine the same selected evidence through different specialty lenses, then organize overlaps, disagreements, and missing information for clinician review.</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={styles.bentoCard}>
             <div className={styles.bentoIconBg} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}><Microscope size={24} /></div>
             <h3 className={styles.bentoTitle}>Biomarker Synthesis</h3>
-            <p className={styles.bentoDesc}>Upload raw blood test results, PDFs, or photos. The engine spots suboptimal patterns standard "normal ranges" overlook.</p>
+            <p className={styles.bentoDesc}>Upload blood-test PDFs or photos. The engine extracts visible values, units, dates, and printed ranges, then flags items that need verification or context.</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={styles.bentoCard}>
             <div className={styles.bentoIconBg} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B' }}><Shield size={24} /></div>
             <h3 className={styles.bentoTitle}>Grounded Evidence</h3>
-            <p className={styles.bentoDesc}>Every differential and suggested inquiry cites peer-reviewed PubMed and clinical trial literature.</p>
+            <p className={styles.bentoDesc}>When literature or trial records are retrieved, source links stay attached. Unsupported statements are marked as AI considerations rather than established facts.</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={`${styles.bentoCard} ${styles.bentoLarge}`}>
             <div className={styles.bentoIconBg} style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8B5CF6' }}><FileText size={24} /></div>
             <h3 className={styles.bentoTitle}>Doctor-Ready Consultation Dossier</h3>
-            <p className={styles.bentoDesc}>Export an organized 1-page clinical summary formatted specifically for your doctor, complete with prioritized questions and recommended follow-up tests.</p>
+            <p className={styles.bentoDesc}>Export an organized visit summary with your main concern, timeline, documented facts, missing information, and prioritized questions.</p>
           </motion.div>
         </div>
       </section>
@@ -1456,7 +1458,7 @@ export default function Landing() {
               <HCLogo size={26} />
               <span>HealthChain360.ai</span>
             </div>
-            <p className={styles.footerBrandText}>AI-assisted health assessment and clinician-visit preparation, built for clinical clarity and privacy.</p>
+            <p className={styles.footerBrandText}>AI-assisted record organization and clinician-visit preparation, built for clarity and user control.</p>
           </div>
           <div className={styles.footerLinks}>
             <h4>Product</h4>

@@ -2163,8 +2163,7 @@ export function MDTReportPanel({
                     left: 0,
                     width: '4px',
                     height: '100%',
-                    background:
-                      d.confidence > 80 ? '#10B981' : d.confidence > 60 ? '#F59E0B' : '#EF4444',
+                    background: '#64748B',
                   }}
                 />
                 <div
@@ -2178,7 +2177,7 @@ export function MDTReportPanel({
                   <h4 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                     {d.condition}
                   </h4>
-                  <div
+                  {d.confidence > 0 && <div
                     style={{
                       background:
                         d.confidence > 80 ? '#ECFDF5' : d.confidence > 60 ? '#FEF3C7' : '#FEF2F2',
@@ -2191,7 +2190,7 @@ export function MDTReportPanel({
                     }}
                   >
                     {d.confidence}% evidence fit
-                  </div>
+                  </div>}
                 </div>
                 <p
                   style={{

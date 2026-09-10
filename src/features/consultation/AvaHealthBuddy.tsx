@@ -14,11 +14,9 @@ import { canUseTrial, recordTrialUsage, openTrialModal } from '../../services/Tr
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { DiaryTimelineCard } from '../../components/ui/DiaryTimelineCard';
 import { TriggerSensitivityCard } from '../../components/ui/TriggerSensitivityCard';
-import { ConnectionTriggerCard } from '../../components/ui/ConnectionTriggerCard';
 import { TriggerSensitivityModal, WholeHealthTab } from '../../components/ui/TriggerSensitivityModal';
 import { WholeHealthRiverModal } from '../../components/ui/WholeHealthRiverModal';
 import { QuickMealIntakeSheet } from '../../components/ui/QuickMealIntakeSheet';
-import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
@@ -401,21 +399,11 @@ const MessageRenderer = ({
 
   // CONNECTION TRIGGER CARD WIDGET (Multi-System Kinetic & Clinical Connection)
   if (content.includes('[WIDGET:CONNECTION_TRIGGER_CARD')) {
-    const { payload, before, after } = extractBalancedWidget(content, 'CONNECTION_TRIGGER_CARD');
+    const { before, after } = extractBalancedWidget(content, 'CONNECTION_TRIGGER_CARD');
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
         {before && <span>{before}</span>}
-        <ConnectionTriggerCard
-          symptom={payload?.symptom}
-          reactionWindow={payload?.reactionWindow}
-          confidencePercent={payload?.confidencePercent}
-          upstreamRootCause={payload?.upstreamRootCause}
-          kineticPathway={payload?.kineticPathway}
-          suspectVectors={payload?.suspectVectors}
-          onOpenKineticMap={() => {
-            window.dispatchEvent(new CustomEvent('hc_open_connection_detective_modal', { detail: { tab: 'map' } }));
-          }}
-        />
+        <span>This older message included an unverified connection card. Open a saved case to review documented facts, uncertainties, and its connection map.</span>
         {after && <span>{after}</span>}
       </div>
     );
@@ -638,21 +626,10 @@ export default function AvaHealthBuddy() {
   const [isRiverOpen, setIsRiverOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
-  const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
   const [showQuickTools, setShowQuickTools] = useState(false);
-  const [detectiveTab, setDetectiveTab] = useState<string>('map');
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handleOpenDetective = (e?: any) => {
-      setDetectiveTab(e?.detail?.tab || 'map');
-      setIsDetectiveOpen(true);
-    };
-    window.addEventListener('hc_open_connection_detective_modal', handleOpenDetective);
-    return () => window.removeEventListener('hc_open_connection_detective_modal', handleOpenDetective);
-  }, []);
 
   useEffect(() => {
     const handleOpenRiver = () => setIsRiverOpen(true);
@@ -854,7 +831,7 @@ export default function AvaHealthBuddy() {
             messageCount: newMessages.length + 1,
         }, false, null as any, sessionId as any);
         const todayDateStr = new Date().toISOString().split('T')[0];
-        awardPoints(5, 'Consulted Ava Clinical Chief of Staff', 'consult', `ava_consult_${todayDateStr}`);
+        awardPoints(5, 'Prepared with Ava', 'consult', `ava_consult_${todayDateStr}`);
         recordTrialUsage('ava');
       },
     onError: (_error, request) => {
@@ -1116,7 +1093,7 @@ export default function AvaHealthBuddy() {
                     margin: 0,
                   }}
                 >
-                  MEDICAL CHIEF OF STAFF
+                  CASE PREPARATION ASSISTANT
                 </p>
               </div>
             </div>
@@ -1741,7 +1718,7 @@ export default function AvaHealthBuddy() {
             <p style={{ margin: 0, lineHeight: 1.5 }}>Enter to send · Shift + Enter for a new line · AI responses can be mistaken.</p>
           </div>
 
-          {/* Primary Dual-Action Capsule Dock (Reference media_1788642371467.png) */}
+          {/* Explicit shortcuts; these open the same saved tools rather than duplicating them. */}
           <div
             style={{
               width: '100%',
@@ -1779,14 +1756,13 @@ export default function AvaHealthBuddy() {
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
               <span>⚡</span>
-              <span>Log your day</span>
+              <span>Log a meal</span>
             </button>
             <button
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                setDetectiveTab('map');
-                setIsDetectiveOpen(true);
+                navigate(selectedCase ? `/app/cases/${selectedCase.id}` : '/app/my-cases');
               }}
               style={{
                 flex: 1,
@@ -1809,7 +1785,7 @@ export default function AvaHealthBuddy() {
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
             >
               <span>🌐</span>
-              <span>Connection Detective</span>
+              <span>{selectedCase ? 'Open case workspace' : 'Choose a case'}</span>
             </button>
           </div>
 
@@ -1933,21 +1909,6 @@ export default function AvaHealthBuddy() {
         onClose={() => setIsQuickMealOpen(false)}
         onMealLogged={() => {
           triggerHapticLight();
-        }}
-      />
-
-      {/* Connection Detective Multi-System Intelligence Modal */}
-      <ConnectionDetectiveModal
-        isOpen={isDetectiveOpen}
-        initialTab={detectiveTab}
-        onClose={() => setIsDetectiveOpen(false)}
-        onOpenFoodDetective={() => {
-          setIsDetectiveOpen(false);
-          setWholeHealthTab('detective');
-          setIsWholeHealthOpen(true);
-        }}
-        onOpenConsult={() => {
-          setIsDetectiveOpen(false);
         }}
       />
 

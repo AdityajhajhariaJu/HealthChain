@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
@@ -342,7 +342,7 @@ export default function MyCases() {
                  tabIndex={0}
                  aria-label={`View clinical case: ${caseItem.title}`}
                  onKeyDown={(e) => {
-                    if ((e.target as HTMLElement).closest('button')) return;
+                    if ((e.target as HTMLElement).closest('button, a')) return;
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       navigate(`/app/cases/${caseItem.id}`);
@@ -393,17 +393,11 @@ export default function MyCases() {
                     </div>
                  </div>
                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', alignSelf: isMobile ? 'flex-end' : 'center' }}>
-                   <button
-                     type="button"
+                   <Link
+                     to={`/app/ava?caseId=${encodeURIComponent(caseItem.id)}`}
+                     state={{ initialPrompt: `Hi Ava, let's review my case: "${caseItem.title}". Please separate what I reported, what the records say, what remains unknown, and useful questions for my clinician.` }}
                      aria-label={`Discuss ${caseItem.title} with Ava`}
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       navigate(`/app/ava?caseId=${encodeURIComponent(caseItem.id)}`, {
-                         state: {
-                           initialPrompt: `Hi Ava, let's review my clinical case: "${caseItem.title}". Leading pathway: ${primary?.condition || 'Awaiting evidence synthesis'}. Can you summarize potential clinical blind spots or suggest questions for my doctor?`
-                         }
-                       });
-                     }}
+                     onClick={(e) => e.stopPropagation()}
                      style={{
                        background: '#EEF2FF',
                        border: '1px solid #C7D2FE',
@@ -420,7 +414,7 @@ export default function MyCases() {
                      }}
                    >
                      <Sparkles size={13} /> Ask Ava
-                   </button>
+                   </Link>
                    <button
                      aria-label="Delete case"
                      onClick={(e) => {

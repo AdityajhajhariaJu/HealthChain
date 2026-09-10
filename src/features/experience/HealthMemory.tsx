@@ -96,10 +96,10 @@ function PayloadFormatter({ payload }: { payload: any }) {
           displayValue = (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
               {value.map((d: any, i) => {
-                if (d.condition && d.confidence) {
+                if (d.condition) {
                   return (
                     <span key={i} style={{ background: '#e0e7ff', color: '#3730a3', padding: '5px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {d.condition} <span style={{ opacity: 0.7, fontSize: '11px' }}>{d.confidence}%</span>
+                      {d.condition}
                     </span>
                   );
                 }

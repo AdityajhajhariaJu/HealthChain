@@ -474,7 +474,7 @@ export const QuickMealIntakeSheet: React.FC<QuickMealIntakeSheetProps> = ({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    1-Tap Indian Diet Capsules
+                  Quick Indian foods
                   </span>
                   <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: 600 }}>Multi-select</span>
                 </div>

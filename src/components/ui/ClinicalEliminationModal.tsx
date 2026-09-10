@@ -988,7 +988,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                     <div style={{ background: '#FEF2F2', padding: '12px', borderRadius: '12px', border: '1px solid #FECACA' }}>
                       <div style={{ fontSize: '11px', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase' }}>
-                        🚨 High-Probability Culprit
+                        Repeated observation to review
                       </div>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B', marginTop: '2px' }}>
                         {topSuspectFood ? `${topSuspectFood.name} (${topSuspectFood.primarySensitivity})` : (activeProtocolDef.eliminatedFoods[0] || 'Primary Culprit')}

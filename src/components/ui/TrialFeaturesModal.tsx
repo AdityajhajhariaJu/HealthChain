@@ -353,7 +353,7 @@ export function TrialFeaturesModal({
                   Ava Health Buddy
                 </h3>
                 <p style={{ fontSize: '12.5px', color: '#64748B', lineHeight: 1.4, margin: '0 0 14px 0' }}>
-                  24/7 AI Medical Chief of Staff for daily questions, medication checks, and calm guidance.
+                  Case-aware AI support for organizing questions, records, and appointment preparation.
                 </p>
               </div>
 
@@ -383,7 +383,7 @@ export function TrialFeaturesModal({
               </button>
             </div>
 
-            {/* 3. Clinical Dietician */}
+            {/* 3. Food Planner */}
             <div
               style={{
                 background: '#FFFFFF',
@@ -428,7 +428,7 @@ export function TrialFeaturesModal({
                 </div>
 
                 <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  Clinical Dietician
+                  Food Planner
                 </h3>
                 <p style={{ fontSize: '12.5px', color: '#64748B', lineHeight: 1.4, margin: '0 0 14px 0' }}>
                   Condition-specific Indian & clinical nutrition plans tailored to your metabolic goals.
@@ -509,7 +509,7 @@ export function TrialFeaturesModal({
                   Pharmacy Hub
                 </h3>
                 <p style={{ fontSize: '12.5px', color: '#64748B', lineHeight: 1.4, margin: '0 0 14px 0' }}>
-                  Real-time multi-medication contraindication and safe dosage checks for patient safety.
+                  Educational medication summaries with prompts to verify the original label and consult a pharmacist.
                 </p>
               </div>
 
@@ -561,7 +561,7 @@ export function TrialFeaturesModal({
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0, lineHeight: 1.45 }}>
-                Cross-examine complex symptoms across 16 medical specialties, uncover hidden root causes with Clinical Data Engine, analyze full lab scans, and unlock all our highly useful clinical tools with Pro.
+                Review complex cases through multiple AI specialty perspectives, organize lab-report details, preserve uncertainty, and prepare focused questions with Pro.
               </p>
             </div>
 

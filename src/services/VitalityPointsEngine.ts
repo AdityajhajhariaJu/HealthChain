@@ -41,10 +41,10 @@ export interface VitalityState {
 }
 
 export const TIERS: VitalityTier[] = [
-  { level: 1, name: 'Health Explorer', min: 0, max: 25, badge: '🥉', color: '#059669', bg: '#ECFDF5', perk: 'Standard AI Consults & Longitudinal Symptom Tracking' },
-  { level: 2, name: 'Wellness Advocate', min: 26, max: 75, badge: '🥈', color: '#2563EB', bg: '#EFF6FF', perk: 'Advanced Biomarker Trends & Priority Processing' },
-  { level: 3, name: 'Longevity Pioneer', min: 76, max: 150, badge: '🥇', color: '#7C3AED', bg: '#F5F3FF', perk: 'Multi-Specialist Deep Consensus & Predictive Patterns' },
-  { level: 4, name: 'Health Master', min: 151, max: 9999, badge: '💎', color: '#D97706', bg: '#FFFBEB', perk: 'Executive Clinical Briefs & Master Tier Recognition' },
+  { level: 1, name: 'Record Starter', min: 0, max: 25, badge: '🥉', color: '#059669', bg: '#ECFDF5', perk: 'Celebrate beginning a useful, reusable health record' },
+  { level: 2, name: 'Routine Builder', min: 26, max: 75, badge: '🥈', color: '#2563EB', bg: '#EFF6FF', perk: 'Celebrate consistent check-ins and observation logging' },
+  { level: 3, name: 'Prepared Advocate', min: 76, max: 150, badge: '🥇', color: '#7C3AED', bg: '#F5F3FF', perk: 'Celebrate preparing records and questions for appointments' },
+  { level: 4, name: 'Connected Historian', min: 151, max: 9999, badge: '💎', color: '#D97706', bg: '#FFFBEB', perk: 'Celebrate maintaining a connected longitudinal history' },
 ];
 
 const generateId = () => {
@@ -116,8 +116,12 @@ export function awardPoints(amount: number, reason: string, category: PointsTran
     profile.pointsHistory = [];
   }
 
-  if (dedupeKey) {
-    const exists = profile.pointsHistory.some((h: any) => h.dedupeKey === dedupeKey);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const normalizedReason = reason.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 80);
+  const effectiveDedupeKey = dedupeKey || `daily_${category}_${normalizedReason}_${todayStr}`;
+
+  if (effectiveDedupeKey) {
+    const exists = profile.pointsHistory.some((h: any) => h.dedupeKey === effectiveDedupeKey);
     if (exists) return false;
   }
 
@@ -131,7 +135,7 @@ export function awardPoints(amount: number, reason: string, category: PointsTran
     reason,
     category,
     date: new Date().toISOString(),
-    dedupeKey,
+    dedupeKey: effectiveDedupeKey,
   };
 
   profile.pointsHistory.unshift(transaction);

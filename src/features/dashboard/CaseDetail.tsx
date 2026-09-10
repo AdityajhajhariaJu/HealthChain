@@ -10,7 +10,6 @@ import { getProfile } from '../../services/ProfileEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import InvestigationBoard from '../../components/ui/InvestigationBoard';
@@ -95,7 +94,6 @@ export default function CaseDetail() {
     triggerHapticSuccess();
     setActiveCase(caseItem.id);
     setActiveCaseIdState(caseItem.id);
-    awardPoints(5, `Active Workspace: ${caseItem.title.slice(0, 25)}`, 'lifestyle');
     toast.success('Workspace Set to Active', `"${caseItem.title}" is now your active clinical context across HealthChain.`);
   };
 

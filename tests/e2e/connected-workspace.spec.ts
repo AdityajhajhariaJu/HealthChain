@@ -14,7 +14,8 @@ test('a draft remains visible and connects My Cases, Ava, Today, and the engine'
   const caseId = new URL(page.url()).pathname.split('/').pop();
   await page.goto('/app/my-cases', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'My energy timeline' })).toBeVisible();
-  await page.getByRole('button', { name: 'Discuss My energy timeline with Ava' }).click();
+  await page.getByRole('link', { name: 'Discuss My energy timeline with Ava' }).click();
+  await expect(page).toHaveURL(/\/app\/ava\?caseId=/);
   await expect(page.getByLabel('Conversation context')).toHaveValue(caseId!);
   const input = page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' });
   await input.fill('A change I noticed today');
