@@ -55,6 +55,7 @@ import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
 import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModal';
+import { FeatureMissionHeader } from './FeatureMissionHeader';
 
 export type TabId =
   | 'map'
@@ -632,6 +633,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <FeatureMissionHeader featureId="connection-detective" activeCaseId={report.patientName} />
 
       {/* 1. EXECUTIVE DIAGNOSTIC STATION OVERVIEW (TIER 1 BLUF) */}
       <div

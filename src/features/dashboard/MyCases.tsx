@@ -10,6 +10,7 @@ import { InfiniteHealthCanvas } from '../../components/ui/InfiniteHealthCanvas';
 import { caseMatchesSearch } from '../../services/caseWorkspace';
 import '../../components/ui/caseWorkspace.css';
 import { NewCaseForm } from '../../components/ui/NewCaseForm';
+import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 
 const formatDate = (value: string) => {
   try {
@@ -207,6 +208,9 @@ export default function MyCases() {
           Manage your ongoing medical cases and multi-specialist discussions.
         </p>
       </header>
+
+      <FeatureMissionHeader featureId="cases" />
+
       <button type="button" className="btn btn-primary" style={{ marginBottom: 16 }} onClick={() => setShowNewCase(true)}>New case</button>
       {showNewCase && <NewCaseForm onCancel={() => setShowNewCase(false)} onCreated={id => navigate(`/app/cases/${id}`)} />}
 

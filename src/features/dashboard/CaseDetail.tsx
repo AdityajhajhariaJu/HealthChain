@@ -13,6 +13,7 @@ import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics
 import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import InvestigationBoard from '../../components/ui/InvestigationBoard';
+import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
@@ -152,6 +153,8 @@ export default function CaseDetail() {
           <ArrowLeft size={16} /> Back to My Cases
         </button>
       </div>
+
+      <FeatureMissionHeader featureId="canvas" activeCaseId={caseItem.id} />
 
       {/* Case Header Hero — Polished Case Summary Cover with Translucent Blue Depth */}
       <div className="card" style={{ 

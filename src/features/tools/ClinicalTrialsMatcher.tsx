@@ -12,6 +12,7 @@ import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { getItemSync, setItemSync } from '../../services/storage';
+import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 
 const loadingSteps = [
   "Retrieving registry studies...",
@@ -430,6 +431,8 @@ export default function ClinicalTrialsMatcher() {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '40px' }}>
+      <FeatureMissionHeader featureId="clinical-trials" activeCaseId={activeCase?.id} />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

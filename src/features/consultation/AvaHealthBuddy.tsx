@@ -25,6 +25,7 @@ import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import { getCase, addCaseEvent } from '../../services/CaseEngine';
 import { buildCaseContext } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import '../../components/ui/caseWorkspace.css';
 
 const QUICK_ACTION_PILLS = [
@@ -1206,6 +1207,8 @@ export default function AvaHealthBuddy() {
               gap: '16px',
             }}
           >
+            <FeatureMissionHeader featureId="ava" activeCaseId={selectedCaseId || importedCase?.caseId} />
+
             {importedCase && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.96 }}
