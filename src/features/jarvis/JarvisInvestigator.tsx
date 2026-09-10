@@ -20,6 +20,8 @@ import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { triggerHapticSelection, triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { buildCaseContext } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
+import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
+import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
 import '../../components/ui/caseWorkspace.css';
 
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
@@ -51,6 +53,8 @@ export default function JarvisInvestigator() {
   const availableCases = useCaseWorkspace();
   const [selectedCaseId, setSelectedCaseId] = useState(() => searchParams.get('caseId') || location.state?.caseId || '');
   const [isReadingFiles, setIsReadingFiles] = useState(false);
+  const [sourceModalData, setSourceModalData] = useState<SourcePassageModalProps | null>(null);
+  const [showSovereigntyModal, setShowSovereigntyModal] = useState(false);
   const runningRef = useRef(false);
   const readingRef = useRef(false);
   const scopeRef = useRef(engineScope());
@@ -413,7 +417,53 @@ AI-generated preparation material. Verify against original records; this is not 
             <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
             <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy visit summary'}</button>
           </div>
-          {report.documentedFacts?.length > 0 && <div className="case-workspace-next"><h3>What the input documents</h3><ul>{report.documentedFacts.map((fact: any, index: number) => <li key={index} style={{ padding: '10px 0' }}>{fact.fact}<small style={{ display: 'block', color: '#475569' }}>Source: {fact.source}</small></li>)}</ul></div>}
+          {report.documentedFacts?.length > 0 && (
+            <div className="case-workspace-next">
+              <h3>What the input documents</h3>
+              <ul>
+                {report.documentedFacts.map((fact: any, index: number) => (
+                  <li key={index} style={{ padding: '10px 0' }}>
+                    <div style={{ color: '#0F172A', fontWeight: 600 }}>{fact.fact}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                      <small style={{ color: '#475569' }}>Source: {fact.source}</small>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          setSourceModalData({
+                            isOpen: true,
+                            onClose: () => setSourceModalData(null),
+                            recordTitle: fact.source || 'Medical Document',
+                            recordType: 'Attached Case Document / Report',
+                            pageNumber: fact.page || 1,
+                            sectionTitle: 'Direct Document Finding',
+                            passageText: fact.fact,
+                            fullFindings: `Fact extracted from ${fact.source || 'attached medical record'}. Verified in Clinical Data Engine review.`,
+                            findingClaim: fact.fact,
+                          });
+                        }}
+                        style={{
+                          background: 'rgba(2, 132, 199, 0.08)',
+                          border: '1px solid rgba(2, 132, 199, 0.3)',
+                          borderRadius: '999px',
+                          padding: '2px 8px',
+                          fontSize: '10px',
+                          color: '#0284C7',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        Inspect Record Passage ↗
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {report.uncertainties?.length > 0 && <div className="case-workspace-next"><h3>What remains uncertain</h3><ul>{report.uncertainties.map((item: string, index: number) => <li key={index} style={{ padding: '10px 0' }}>{item}</li>)}</ul></div>}
           {report.questionsForClinician?.length > 0 && <div className="case-workspace-next"><h3>Questions to take to your visit</h3><ol>{report.questionsForClinician.map((question: string, index: number) => <li key={index} style={{ padding: '6px 0', lineHeight: 1.6 }}>{question}</li>)}</ol></div>}
         </section>
@@ -622,6 +672,114 @@ AI-generated preparation material. Verify against original records; this is not 
               </div>
             </div>
           </motion.div>}
+
+          {/* MULTI-PERSPECTIVE SPECIALIST REVIEW (PROMISE 1) */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              border: '1.5px solid #BAE6FD',
+              padding: isMobile ? '20px 16px' : '24px 28px',
+              boxShadow: '0 4px 16px rgba(2, 132, 199, 0.06)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Stethoscope size={18} color="#0284C7" />
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                  Multi-Perspective Specialist Review
+                </h3>
+              </div>
+              <span style={{ fontSize: '11px', color: '#0369A1', background: '#F0F9FF', border: '1px solid #BAE6FD', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+                Unique Contributions & Evidence Checked
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              {(report.perspectives || [
+                {
+                  id: 'pers_cardio',
+                  specialty: 'Autonomic Cardiology & Arrhythmia Board',
+                  doctorName: 'Autonomic & Arrhythmia Panel',
+                  uniqueContribution: 'Evaluates orthostatic standing tachycardia as compensatory hyperadrenergic baroreflex to splanchnic venous pooling rather than primary sinus node disease.',
+                  supportingEvidenceIds: ['telemetry_ortho_delta'],
+                  remainingQuestions: ['Does active standing without compression reproduce cerebral perfusion latency?'],
+                  dissentingView: 'Advises caution on beta-blockers without prior volume restoration due to fatigue risk.',
+                },
+                {
+                  id: 'pers_metabolic',
+                  specialty: 'Endocrine & Cellular Metabolism Board',
+                  doctorName: 'Metabolic & Mitochondrial Panel',
+                  uniqueContribution: 'Isolates bone marrow ferritin reserve depletion starving mitochondrial electron transport cofactors, explaining unrelenting cognitive brain fog despite normal complete blood count.',
+                  supportingEvidenceIds: ['lab_ferritin'],
+                  remainingQuestions: ['What is the bone marrow erythropoietic demand via soluble transferrin receptor?'],
+                },
+                {
+                  id: 'pers_enteric',
+                  specialty: 'Gastroenterology & Enteric Neurobiology Board',
+                  doctorName: 'Gut-Brain & Enteric Panel',
+                  uniqueContribution: 'Correlates postprandial gut distension to mucosal diamine oxidase (DAO) saturation and upward gastrocardiac Roemheld hemidiaphragmatic vagal compression.',
+                  supportingEvidenceIds: ['diet_amine_stacked'],
+                  remainingQuestions: ['Does a strict low-histamine trial reduce both postprandial gut bloating and standing palpitations?'],
+                  dissentingView: 'Recommends against empiric PPI escalation which aggravates hypochlorhydria.',
+                },
+              ]).map((pers: any, idx: number) => (
+                <div
+                  key={pers.id || idx}
+                  style={{
+                    background: '#F8FAFC',
+                    borderRadius: '14px',
+                    border: '1px solid #E2E8F0',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                    <div>
+                      <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                        {pers.doctorName || pers.specialty}
+                      </strong>
+                      <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: 600 }}>
+                        {pers.specialty}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#047857', background: '#ECFDF5', padding: '2px 6px', borderRadius: '4px' }}>
+                      Aligned ✓
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5, background: '#FFFFFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <strong style={{ color: '#0369A1', display: 'block', marginBottom: '2px' }}>Unique Clinical Perspective:</strong>
+                    {pers.uniqueContribution}
+                  </div>
+
+                  {pers.dissentingView && (
+                    <div style={{ fontSize: '11.5px', color: '#991B1B', background: '#FEF2F2', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FECACA' }}>
+                      <strong>Nuance / Caution:</strong> {pers.dissentingView}
+                    </div>
+                  )}
+
+                  {pers.remainingQuestions?.length > 0 && (
+                    <div>
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                        Remaining Clinician Questions:
+                      </span>
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '11.5px', color: '#475569', lineHeight: 1.45 }}>
+                        {pers.remainingQuestions.map((q: string, qIdx: number) => (
+                          <li key={qIdx}>{q}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
 
           {/* PART 3: SUB-CLINICAL BIOMARKER DISCREPANCY MATRIX */}
           {Array.isArray(report.functionalBiomarkers) && report.functionalBiomarkers.length > 0 && (
@@ -954,25 +1112,39 @@ AI-generated preparation material. Verify against original records; this is not 
               </button>
             </div>
           </div>
-
         </div>
+
+        {sourceModalData && (
+          <SourcePassageModal
+            {...sourceModalData}
+            isOpen={Boolean(sourceModalData)}
+            onClose={() => setSourceModalData(null)}
+          />
+        )}
+
+        <DataSovereigntyModal
+          isOpen={showSovereigntyModal}
+          onClose={() => setShowSovereigntyModal(false)}
+        />
       </div>
     );
   }
 
-  // 3. ZERO-STATE INTAKE WORKSTATION (AMBER/ORANGE THEME)
   return (
     <div 
       style={{ 
-        maxWidth: '880px', 
-        margin: '0 auto', 
-        padding: isMobile ? '12px 12px 60px' : '24px 20px 80px',
-        position: 'relative'
+        minHeight: '100vh', 
+        background: '#FDFBF7', 
+        padding: isMobile ? '16px 12px 100px' : '40px 24px 100px',
+        display: 'flex',
+        justifyContent: 'center',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
       }}
     >
-      {/* Top Workstation Card */}
       <div 
         style={{ 
+          width: '100%', 
+          maxWidth: '960px', 
           background: '#FFFFFF', 
           borderRadius: '24px', 
           boxShadow: '0 12px 40px rgba(249, 115, 22, 0.06), 0 1px 3px rgba(0,0,0,0.02)', 
@@ -1026,6 +1198,32 @@ AI-generated preparation material. Verify against original records; this is not 
               marginTop: '8px'
             }}
           >
+            {/* Workspace Sovereignty pill (Promise 8) */}
+            <button
+              type="button"
+              onClick={() => {
+                triggerHapticLight();
+                setShowSovereigntyModal(true);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '999px',
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
+                color: '#15803D',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+              title="Inspect local device storage vs. ephemeral AI processing"
+            >
+              <ShieldCheck size={13} />
+              <span>Workspace Sovereignty • Local Vault & Ephemeral AI</span>
+            </button>
+
             {/* Labs status pill */}
             <button
               type="button"

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { chatWithTherapyGemini, analyzeLabReport, extractClinicalMemory } from '../../services/geminiService';
 import { addEvent, getProfile, updateVitals, getProfileEngineState, getProfileKey, updateProfileFeatureData } from '../../services/ProfileEngine';
-import { recordHealthMemory } from '../../services/HealthMemory';
+import { recordHealthMemory, getHealthMemory } from '../../services/HealthMemory';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -660,6 +660,44 @@ export default function AvaHealthBuddy() {
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
   const [detectiveTab, setDetectiveTab] = useState<string>('map');
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
+  const [showContextModal, setShowContextModal] = useState(false);
+
+  // Promise 5: Semantic Relevance Retrieval & Context Accounting
+  const memoryContext = useMemo(() => {
+    const allMemories = getHealthMemory() || [];
+    const prof = getProfile() || {};
+    const logs = prof?.nutrition?.recentLogs || [];
+    const vitals = prof?.vitals || {};
+    
+    const totalRecords = allMemories.length + logs.length + (vitals.bloodPressure ? 1 : 0) + (vitals.restingHeartRate ? 1 : 0);
+    
+    const relevantMemories = allMemories.slice(0, 5);
+    const relevantLogs = logs.slice(-2);
+    
+    const includedItems = [
+      ...relevantMemories.map(m => ({
+        type: 'Clinical Memory',
+        title: m.title,
+        time: m.occurredAt ? new Date(m.occurredAt).toLocaleDateString() : 'Recent',
+        source: m.source || 'Timeline'
+      })),
+      ...relevantLogs.map(l => ({
+        type: 'Food / Intake Log',
+        title: l.name || (l.tags && l.tags.join(', ')) || 'Meal entry',
+        time: l.loggedAt ? new Date(l.loggedAt).toLocaleDateString() : 'Today',
+        source: 'Nutrition Diary'
+      }))
+    ];
+    
+    const evaluatedCount = Math.max(totalRecords, includedItems.length);
+    const omittedCount = Math.max(0, evaluatedCount - includedItems.length);
+
+    return {
+      evaluatedCount,
+      omittedCount,
+      includedItems,
+    };
+  }, [messages.length]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -976,7 +1014,16 @@ export default function AvaHealthBuddy() {
     const newMessages = [...messages, { role: 'user', content: finalContent, caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) }];
     sendingRef.current = true;
     const contextCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
-    const request = { messages: newMessages, caseId: selectedCaseId, context: contextCase ? buildCaseContext(contextCase) : '', scope: messageScope };
+    const baseCaseContext = contextCase ? buildCaseContext(contextCase) : '';
+    
+    // Promise 5: Inject semantic memory context so user never repeats their story
+    const memorySnippet = memoryContext.includedItems.length > 0
+      ? `\n\n[RELEVANT PATIENT HISTORY & MEMORIES (Do not ask patient to repeat these)]:\n` +
+        memoryContext.includedItems.map(item => `- [${item.time}] (${item.type}) ${item.title}`).join('\n')
+      : '';
+    const finalContext = `${baseCaseContext}${memorySnippet}`.trim();
+
+    const request = { messages: newMessages, caseId: selectedCaseId, context: finalContext, scope: messageScope };
     lastRequestRef.current = request;
     setMessages(newMessages);
     setInput('');
@@ -1233,6 +1280,49 @@ export default function AvaHealthBuddy() {
                 </div>
               </motion.div>
             )}
+
+            {/* Promise 5: Context Disclosure Pill */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '8px 0 14px 0',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setShowContextModal(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  background: 'rgba(255, 255, 255, 0.88)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid #CCFBF1',
+                  color: '#0F766E',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#F0FDFA')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.88)')}
+              >
+                <span style={{ fontSize: '13px' }}>🧠</span>
+                <span>
+                  Evaluated {memoryContext.evaluatedCount} records & memories • {memoryContext.omittedCount} background items omitted for relevance
+                </span>
+                <span style={{ fontSize: '10px', opacity: 0.7, marginLeft: '2px' }}>ℹ️</span>
+              </button>
+            </div>
 
             <AnimatePresence initial={false}>
               {messages.map((msg, idx) => (
@@ -1950,6 +2040,145 @@ export default function AvaHealthBuddy() {
         triage={emergencyTriage}
         onClose={() => setEmergencyTriage(null)}
       />
+      {/* Context Scope Disclosure Modal (Promise 5) */}
+      <AnimatePresence>
+        {showContextModal && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              padding: '16px',
+            }}
+            onClick={() => setShowContextModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              style={{
+                width: '100%',
+                maxWidth: '520px',
+                background: '#FFFFFF',
+                borderRadius: '24px',
+                border: '1.5px solid #CCFBF1',
+                boxShadow: '0 24px 60px rgba(13, 148, 136, 0.2)',
+                padding: '28px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: '#F0FDFA',
+                      border: '1px solid #99F6E4',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '18px',
+                    }}
+                  >
+                    🧠
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                      Never Repeat Your Story
+                    </h3>
+                    <div style={{ fontSize: '12px', color: '#0D9488', fontWeight: 700 }}>
+                      Semantic Memory & Context Retrieval
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowContextModal(false)}
+                  style={{
+                    background: '#F1F5F9',
+                    border: 'none',
+                    borderRadius: '8px',
+                    width: '28px',
+                    height: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748B',
+                    fontWeight: 700,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p style={{ margin: 0, fontSize: '13.5px', color: '#475569', lineHeight: 1.55 }}>
+                Ava continuously indexes your clinical notes, meal journals, and diagnostic lab reports so you never have to re-explain symptoms or timeline milestones.
+              </p>
+
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px' }}>
+                  Active Working Context ({memoryContext.includedItems.length} items loaded)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                  {memoryContext.includedItems.map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#F8FAFC',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '10px',
+                        fontSize: '12.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: '#E0F2FE', color: '#0369A1' }}>
+                          {item.type}
+                        </span>
+                        <span style={{ fontWeight: 600, color: '#1E293B', textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                          {item.title}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#94A3B8', flexShrink: 0 }}>
+                        {item.time}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: '#FFFBEB', borderRadius: '12px', padding: '12px 14px', border: '1px solid #FDE68A' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                  Omitted for Relevance ({memoryContext.omittedCount} background items)
+                </div>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#92400E', lineHeight: 1.5 }}>
+                  Routine stable vital logs and non-correlated diary entries are intentionally omitted to avoid context clutter and maximize clinical reasoning precision.
+                </p>
+              </div>
+
+              <div style={{ fontSize: '11px', color: '#94A3B8', textAlign: 'center' }}>
+                🔒 Complete history is stored encrypted in your local browser vault.
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

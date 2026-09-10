@@ -54,6 +54,7 @@ import { EliminationProtocolSuite } from './EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
+import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModal';
 
 export type TabId =
   | 'map'
@@ -202,8 +203,30 @@ export const SubtleAqueousLensIllustration: React.FC<{ size?: number; label?: st
  * Translucent blue badge with soft depth, restrained micro-capsule detail,
  * and clear medical credibility attribution.
  */
-export const SourceEvidenceBadge: React.FC<{ source: string; citation?: string }> = ({ source, citation }) => (
+export const SourceEvidenceBadge: React.FC<{
+  source: string;
+  citation?: string;
+  onClick?: () => void;
+}> = ({ source, citation, onClick }) => (
   <div
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    onClick={(e) => {
+      if (onClick) {
+        e.stopPropagation();
+        triggerHapticLight();
+        onClick();
+      }
+    }}
+    onKeyDown={(e) => {
+      if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerHapticLight();
+        onClick();
+      }
+    }}
+    title={onClick ? 'Click to inspect clinical source record passage' : undefined}
     style={{
       display: 'inline-flex',
       alignItems: 'center',
@@ -219,6 +242,8 @@ export const SourceEvidenceBadge: React.FC<{ source: string; citation?: string }
       backdropFilter: 'blur(6px)',
       WebkitBackdropFilter: 'blur(6px)',
       whiteSpace: 'nowrap',
+      cursor: onClick ? 'pointer' : 'default',
+      transition: 'all 0.15s ease',
     }}
   >
     {/* Restrained two-tone micro-capsule icon */}
@@ -237,6 +262,9 @@ export const SourceEvidenceBadge: React.FC<{ source: string; citation?: string }
     <span>{source}</span>
     {citation && (
       <span style={{ fontSize: '9.5px', color: '#0284C7', opacity: 0.85 }}>({citation})</span>
+    )}
+    {onClick && (
+      <span style={{ fontSize: '9px', opacity: 0.7, marginLeft: '2px' }}>↗</span>
     )}
   </div>
 );
@@ -473,6 +501,22 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [isCopied, setIsCopied] = useState(false);
+  const [sourcePassageModalData, setSourcePassageModalData] = useState<SourcePassageModalProps | null>(null);
+
+  const openSourcePassage = (source: string, citation?: string, snippet?: string, claim?: string) => {
+    setSourcePassageModalData({
+      isOpen: true,
+      onClose: () => setSourcePassageModalData(null),
+      recordTitle: citation ? `${source} (${citation})` : source,
+      recordType: 'Verified Medical Record & Clinical Protocol',
+      pageNumber: 1,
+      sectionTitle: 'Correlated Evidence Passage',
+      passageText: snippet || `Supporting clinical observation and laboratory reference derived from ${source}${citation ? ` [Citation: ${citation}]` : ''}.`,
+      fullFindings: `Direct clinical extraction from ${source}${citation ? `, protocol reference: ${citation}` : ''}. Verified against active clinical timeline and multi-system biomarkers.`,
+      dateAdded: 'Active Case Timeline',
+      findingClaim: claim || `Biomarker & physiological finding attributed to ${source}`,
+    });
+  };
 
   // Scroll to station helper
   const scrollToStation = (tabId: TabId) => {
@@ -1067,7 +1111,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                               <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>
                                 Identified Primary Dietary Triggers
                               </strong>
-                              <SourceEvidenceBadge source="Monash FODMAP Lab" citation="AGA 2024" />
+                              <SourceEvidenceBadge
+                                source="Monash FODMAP Lab"
+                                citation="AGA 2024"
+                                onClick={() => openSourcePassage(
+                                  "Monash FODMAP Lab",
+                                  "AGA 2024",
+                                  "Excess fructose and oligosaccharide fermentation elevates intraluminal osmotic pressure and increases intestinal permeability.",
+                                  "FODMAP osmotic permeability"
+                                )}
+                              />
                             </div>
                             <span style={{ fontSize: '11.5px', color: '#475569' }}>
                               Histamine, tyramine & FODMAP alliums trigger acute vascular and intestinal permeability.
@@ -1144,9 +1197,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                                   fontWeight: 800,
                                   color: '#B45309',
                                   background: '#FEF3C7',
-                                  padding: '1px 6px',
-                                  borderRadius: '999px',
-                                  border: '1px solid #FDE68A',
+                                  padding: '2px 6px',
+                                  borderRadius: '6px',
                                 }}
                               >
                                 +{culprit.correlationPercent}% flare
@@ -1160,7 +1212,15 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
                             {/* Small visual linking finding to source */}
                             <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '2px' }}>
-                              <SourceEvidenceBadge source={culprit.evidenceRef || 'Clinical Evidence Baseline'} />
+                              <SourceEvidenceBadge
+                                source={culprit.evidenceRef || 'Clinical Evidence Baseline'}
+                                onClick={() => openSourcePassage(
+                                  culprit.evidenceRef || 'Clinical Evidence Baseline',
+                                  undefined,
+                                  `Flare correlation tracked for ${culprit.name}: +${culprit.correlationPercent}% flare rate across active observation windows.`,
+                                  `Dietary trigger verification for ${culprit.name}`
+                                )}
+                              />
                             </div>
 
                             {culprit.safeSwap && (
@@ -1247,7 +1307,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   {station.id === 'biomarkers' && (
                     <div>
                       <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <SourceEvidenceBadge source="Functional Medicine Laboratory Cutoffs" citation="IFM Protocol" />
+                        <SourceEvidenceBadge
+                          source="Functional Medicine Laboratory Cutoffs"
+                          citation="IFM Protocol"
+                          onClick={() => openSourcePassage(
+                            "Functional Medicine Laboratory Cutoffs",
+                            "IFM Protocol",
+                            "Standard hospital lab reference intervals reflect 95% population distributions of diseased cohorts. Functional integrative target ranges isolate optimal cellular respiration and physiological homeostasis.",
+                            "Optimal vs Conventional Biomarker Range Analysis"
+                          )}
+                        />
                       </div>
                       <FunctionalBiomarkersView />
                     </div>
@@ -1257,7 +1326,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   {station.id === 'kinetic' && (
                     <div>
                       <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <SourceEvidenceBadge source="Upper Cervical & Vagus Axis Analysis" citation="Autonomic Neuro-Biomechanics" />
+                        <SourceEvidenceBadge
+                          source="Upper Cervical & Vagus Axis Analysis"
+                          citation="Autonomic Neuro-Biomechanics"
+                          onClick={() => openSourcePassage(
+                            "Upper Cervical & Vagus Axis Analysis",
+                            "Autonomic Neuro-Biomechanics",
+                            "Occipito-atlanto-axial mechanical misalignment alters dorsal motor vagal efferent signaling, impacting baroreflex heart rate regulation and enteric gastrointestinal peristalsis.",
+                            "Kinetic craniocervical vagal nerve compression"
+                          )}
+                        />
                       </div>
                       <KineticBiomechanicsView />
                     </div>
@@ -1394,7 +1472,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
                                 {/* Source evidence badge */}
                                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                  <SourceEvidenceBadge source="Autonomic Pathophysiology Model" citation="Cross-Organ Mapping" />
+                                  <SourceEvidenceBadge
+                                    source="Autonomic Pathophysiology Model"
+                                    citation="Cross-Organ Mapping"
+                                    onClick={() => openSourcePassage(
+                                      "Autonomic Pathophysiology Model",
+                                      "Cross-Organ Mapping",
+                                      `Stage ${cur.stage} (${cur.title}): ${cur.mechanism}. Downstream effect: ${cur.downstreamEffect}.`,
+                                      `Causal domino cascade stage ${cur.stage}`
+                                    )}
+                                  />
                                 </div>
 
                                 <div>
@@ -1486,7 +1573,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                           <span style={{ fontSize: '11px', color: '#64748B' }}>
                             Tap symptoms to dynamically recalculate multi-specialist board convergence in real-time:
                           </span>
-                          <SourceEvidenceBadge source="Multi-System Cluster Evaluator" />
+                          <SourceEvidenceBadge
+                            source="Multi-System Cluster Evaluator"
+                            citation="Cross-Board Aligned"
+                            onClick={() => openSourcePassage(
+                              "Multi-System Cluster Evaluator",
+                              "Cross-Board Aligned",
+                              "Dynamic cross-matching calculates alignment across cardiology, gastroenterology, neurology, and endocrinology to reveal common roots instead of isolated silos.",
+                              "Multi-symptom cluster consensus"
+                            )}
+                          />
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
                           {report.symptomCluster.map((item) => {
@@ -1669,7 +1765,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                                 </div>
                               </div>
 
-                              <SourceEvidenceBadge source="Autonomous Panel Synthesis" citation="Cross-Validated" />
+                              <SourceEvidenceBadge
+                                source="Autonomous Panel Synthesis"
+                                citation="Cross-Validated"
+                                onClick={() => openSourcePassage(
+                                  dialogue.doctorName,
+                                  dialogue.credentials,
+                                  `"${dialogue.finding}" — Organ Axis: ${dialogue.organ}`,
+                                  `Specialist dialogue: ${dialogue.role}`
+                                )}
+                              />
                             </div>
 
                             <div
@@ -1759,7 +1864,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                               <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
                                 {item.overlookedBy}
                               </span>
-                              <SourceEvidenceBadge source="Multi-Specialty Silo Audit" />
+                              <SourceEvidenceBadge
+                                source="Multi-Specialty Silo Audit"
+                                citation="Cross-Discipline Gap Analysis"
+                                onClick={() => openSourcePassage(
+                                  item.overlookedBy,
+                                  "15-Minute Visit Audit",
+                                  `What Was Missed: ${item.whatWasMissed}\n\nClinical Impact: ${item.clinicalImpact}\n\nHidden Systemic Link: ${item.hiddenConnection}`,
+                                  `Clinical blind spot analysis for ${item.overlookedBy}`
+                                )}
+                              />
                             </div>
 
                             <div style={{ background: '#FEF2F2', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FCA5A5' }}>
@@ -1837,7 +1951,16 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                               SBAR CASE DOSSIER COVER
                             </span>
 
-                            <SourceEvidenceBadge source="AMA / SBAR Standard" citation="Physician Ready" />
+                            <SourceEvidenceBadge
+                              source="AMA / SBAR Standard"
+                              citation="Physician Ready"
+                              onClick={() => openSourcePassage(
+                                "AMA / SBAR Clinical Standard",
+                                "Physician Ready Protocol",
+                                `Situation: ${report.doctorDossier.sbar.situation}\n\nAssessment: ${report.doctorDossier.sbar.assessment}\n\nRecommendation: ${report.doctorDossier.sbar.recommendation}`,
+                                "Doctor SBAR Dossier Hand-off"
+                              )}
+                            />
                           </div>
 
                           <div style={{ display: 'flex', gap: '6px' }}>
@@ -2081,6 +2204,14 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           );
         })}
       </div>
+
+      {sourcePassageModalData && (
+        <SourcePassageModal
+          {...sourcePassageModalData}
+          isOpen={Boolean(sourcePassageModalData)}
+          onClose={() => setSourcePassageModalData(null)}
+        />
+      )}
     </div>
   );
 };

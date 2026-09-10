@@ -146,19 +146,92 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
             exit={{ height: 0, opacity: 0 }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '12px 0', borderTop: '1px solid #F1F5F9', borderBottom: '1px solid #F1F5F9', margin: '4px 0 12px 0' }}>
-              <p style={{ fontSize: '13px', color: '#475569', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                {displayAbstract}
-              </p>
+            <div style={{ padding: '16px 0', borderTop: '1px solid #F1F5F9', borderBottom: '1px solid #F1F5F9', margin: '4px 0 12px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               
-              <div style={{ background: 'linear-gradient(to right, rgba(16,185,129,0.1), transparent)', padding: '12px', borderRadius: '8px', borderLeft: '3px solid #10B981', marginBottom: '12px' }}>
-                 <p style={{ margin: 0, fontSize: '13px', color: '#065F46', lineHeight: 1.4 }}>
-                    <strong>Why this is shown:</strong> {item.aiContext}
-                 </p>
+              {/* Summary / Abstract */}
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
+                  {isPaper ? 'Study Abstract' : 'Clinical Protocol Summary'}
+                </div>
+                <p style={{ fontSize: '13px', color: '#334155', margin: 0, lineHeight: 1.55 }}>
+                  {displayAbstract}
+                </p>
               </div>
-              
-              <strong style={{ fontSize: '12px', color: '#0F172A', display: 'block', marginBottom: '8px' }}>Before acting on a trial:</strong>
-              <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>Open the official source and ask the study team or your clinician about eligibility, location, risks, costs, and standard-care alternatives. HealthChain does not determine eligibility.</p>
+
+              {/* 1. WHY SHOWN & TOPIC RELEVANCE PROOF (Promise 7) */}
+              <div style={{ background: '#F0FDF4', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #BBF7D0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '12px' }}>🎯</span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                    Why This Was Retrieved • Topic Relevance Proof
+                  </span>
+                </div>
+                <p style={{ margin: '0 0 8px 0', fontSize: '12.5px', color: '#14532D', lineHeight: 1.45 }}>
+                  {item.aiContext}
+                </p>
+                {item.matchedTerms && item.matchedTerms.length > 0 && (
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>Correlated Terms:</span>
+                    {item.matchedTerms.map((term: string, i: number) => (
+                      <span key={i} style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC' }}>
+                        {term}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 2. STUDY CHARACTERISTICS (Promise 7) */}
+              <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px' }}>
+                  Study Characteristics & Parameters
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '8px', fontSize: '12px' }}>
+                  <div>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>CATEGORY</span>
+                    <strong style={{ color: '#0F172A' }}>{isPaper ? 'Peer-Reviewed Journal' : (item.phase || 'Clinical Trial')}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>STATUS / YEAR</span>
+                    <strong style={{ color: '#0F172A' }}>{isPaper ? (item.pubYear || 'Recent') : (item.status || 'Active')}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748B', display: 'block', fontSize: '10.5px' }}>LOCATION / SOURCE</span>
+                    <strong style={{ color: '#0F172A' }}>{displayJournal}</strong>
+                  </div>
+                </div>
+                {!isPaper && item.interventions && item.interventions.length > 0 && (
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #CBD5E1', fontSize: '12px' }}>
+                    <span style={{ color: '#64748B', fontSize: '10.5px', display: 'block' }}>INVESTIGATED INTERVENTIONS</span>
+                    <span style={{ color: '#0F172A', fontWeight: 600 }}>{item.interventions.join(' • ')}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. MISSING ELIGIBILITY CRITERIA SEPARATION (Promise 7) */}
+              {!isPaper && (
+                <div style={{ background: '#FFFBEB', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #FDE68A' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12px' }}>⚠️</span>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      Eligibility Not Evaluated • Missing Screening Criteria
+                    </span>
+                  </div>
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#92400E', lineHeight: 1.45 }}>
+                    HealthChain matches topic relevance only. A patient cannot be deemed eligible without verifying:
+                  </p>
+                  <ul style={{ margin: 0, paddingLeft: '18px', color: '#78350F', fontSize: '11.5px', lineHeight: 1.5 }}>
+                    <li>Histopathologic & sub-phenotype verification</li>
+                    <li>Baseline organ function & lab exclusionary limits (eGFR, LFTs, ANC)</li>
+                    <li>Prior therapeutic lines & required pharmaceutical washout intervals</li>
+                    <li>Site enrollment capacity and investigator in-person intake</li>
+                  </ul>
+                </div>
+              )}
+
+              <p style={{ margin: 0, fontSize: '11px', color: '#94A3B8', lineHeight: 1.4 }}>
+                Always discuss potential clinical trials or published protocols with your licensed physician before taking any action.
+              </p>
             </div>
           </motion.div>
         )}

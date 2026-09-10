@@ -43,6 +43,7 @@ export function CaseConnectionMap({
 }: CaseConnectionMapProps) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<string | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
 
   if (!data || !data.conditions || data.conditions.length === 0) {
     return (
@@ -250,6 +251,9 @@ export function CaseConnectionMap({
   };
 
   const activeNodes = useMemo(() => {
+    if (selectedEdge) {
+      return [selectedEdge.from, selectedEdge.to];
+    }
     const activeTarget = hoveredNode || selectedNodeId;
     if (!activeTarget && !hoveredEdge) {
       return nodes.filter(isNodeMatchingFilter).map((n) => n.id);
@@ -263,9 +267,10 @@ export function CaseConnectionMap({
       return edge ? [edge.from, edge.to] : [];
     }
     return [];
-  }, [hoveredNode, selectedNodeId, hoveredEdge, edges, nodes, filterSystem]);
+  }, [hoveredNode, selectedNodeId, hoveredEdge, selectedEdge, edges, nodes, filterSystem]);
 
   const activeEdges = useMemo(() => {
+    if (selectedEdge) return [selectedEdge.id];
     const activeTarget = hoveredNode || selectedNodeId;
     if (!activeTarget && !hoveredEdge) return edges.map((e) => e.id);
     if (activeTarget) {
@@ -273,7 +278,7 @@ export function CaseConnectionMap({
     }
     if (hoveredEdge) return [hoveredEdge];
     return [];
-  }, [hoveredNode, selectedNodeId, hoveredEdge, edges]);
+  }, [hoveredNode, selectedNodeId, hoveredEdge, selectedEdge, edges]);
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -360,29 +365,33 @@ export function CaseConnectionMap({
                 hoveredEdge !== null ||
                 filterSystem !== 'all');
 
+            const isSelected = selectedEdge?.id === edge.id;
             return (
               <g
                 key={edge.id}
+                onClick={() => setSelectedEdge(isSelected ? null : edge)}
                 onMouseEnter={() => setHoveredEdge(edge.id)}
                 onMouseLeave={() => setHoveredEdge(null)}
                 style={{ cursor: 'pointer', transition: 'all 0.3s' }}
-                opacity={isFaded ? 0.08 : 1}
+                opacity={isFaded && !isSelected ? 0.08 : 1}
               >
                 <path
                   d={getPath(edge.x1, edge.y1, edge.x2, edge.y2)}
                   fill="none"
                   stroke="transparent"
-                  strokeWidth="20"
+                  strokeWidth="24"
                 />
                 <motion.path
                   d={getPath(edge.x1, edge.y1, edge.x2, edge.y2)}
                   fill="none"
                   stroke={
-                    isActive && (hoveredNode || selectedNodeId || hoveredEdge)
+                    isSelected
+                      ? '#EA580C'
+                      : isActive && (hoveredNode || selectedNodeId || hoveredEdge)
                       ? 'url(#edge-flow-gradient)'
                       : '#E2E8F0'
                   }
-                  strokeWidth={isActive && (hoveredNode || selectedNodeId || hoveredEdge) ? 2.5 : 1.5}
+                  strokeWidth={isSelected ? 3.5 : isActive && (hoveredNode || selectedNodeId || hoveredEdge) ? 2.5 : 1.5}
                   strokeDasharray={edge.type === 'differential_overlap' ? '4 4' : 'none'}
                   markerEnd={
                     edge.type === 'causal_progression'
@@ -648,6 +657,138 @@ export function CaseConnectionMap({
           </div>
         </div>
       </div>
+
+      {/* Cross-System Edge Evidence Inspector (Promise 3) */}
+      <AnimatePresence>
+        {selectedEdge && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.99 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              padding: isMobile ? '16px 14px' : '20px 22px',
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              border: '1.5px solid #FED7AA',
+              boxShadow: '0 8px 30px rgba(249, 115, 22, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    letterSpacing: '0.6px',
+                    textTransform: 'uppercase',
+                    padding: '4px 10px',
+                    borderRadius: '999px',
+                    background: '#FFF7ED',
+                    color: '#C2410C',
+                    border: '1px solid #FED7AA',
+                  }}
+                >
+                  CROSS-SYSTEM CONNECTION
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B' }}>
+                  {selectedEdge.type?.replace(/_/g, ' ').toUpperCase()} • {selectedEdge.strength?.toUpperCase()} CONFIDENCE
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedEdge(null)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '8px',
+                  width: '28px',
+                  height: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748B',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                }}
+                title="Close edge inspector"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', lineHeight: 1.35 }}>
+              {selectedEdge.label}
+            </div>
+
+            {selectedEdge.whyItExists && (
+              <div
+                style={{
+                  background: '#F8FAFC',
+                  borderRadius: '14px',
+                  padding: '12px 16px',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                  Biochemical & Physiological Rationale
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#1E293B', lineHeight: 1.55 }}>
+                  {selectedEdge.whyItExists}
+                </p>
+              </div>
+            )}
+
+            {selectedEdge.supportingEvidenceIds && selectedEdge.supportingEvidenceIds.length > 0 && (
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+                  Supporting Evidence & Corroborating Signals
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {selectedEdge.supportingEvidenceIds.map((evId: string, idx: number) => (
+                    <span
+                      key={idx}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: '#ECFDF5',
+                        border: '1px solid #A7F3D0',
+                        color: '#065F46',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+                      }}
+                    >
+                      <span>✓</span>
+                      <span>{evId}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedEdge.weakeningFactors && selectedEdge.weakeningFactors.length > 0 && (
+              <div style={{ background: '#FFFBEB', borderRadius: '12px', padding: '12px 14px', border: '1px solid #FDE68A' }}>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                  Confounders & Counter-Evidence (Differential Challenges)
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', color: '#92400E', fontSize: '12.5px', lineHeight: 1.5 }}>
+                  {selectedEdge.weakeningFactors.map((wf: string, idx: number) => (
+                    <li key={idx}>{wf}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Precautions & Doctor Questions */}
       {((data.precautions || []).length > 0 || (data.missingEvidence || []).length > 0) && (

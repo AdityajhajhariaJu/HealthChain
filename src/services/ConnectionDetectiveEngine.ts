@@ -109,6 +109,9 @@ export interface ConnectionMapGraph {
     type: 'shared_symptom' | 'causal_progression' | 'differential_overlap' | 'common_mechanism';
     label: string;
     strength: 'strong' | 'moderate' | 'weak';
+    whyItExists?: string;
+    supportingEvidenceIds?: string[];
+    weakeningFactors?: string[];
   }[];
   precautions: { text: string; severity: 'red_flag' | 'watch' | 'info'; relatedConditions: string[] }[];
   missingEvidence: { test: string; wouldDifferentiate: string[]; urgency: string; recommendedSpecialists: string }[];
@@ -1198,6 +1201,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'causal_progression' as const,
           label: `${c.label} directly triggers ${targetSymp.label}`,
           strength: 'strong' as const,
+          whyItExists: `${c.label} is clinically hypothesized to produce ${targetSymp.label} via systemic physiological cascade. Cross-system review indicates shared biochemical pathways.`,
+          supportingEvidenceIds: [`case_differential_${c.id}`, `symptom_${targetSymp.id}`],
+          weakeningFactors: ['Requires formal clinical history and physical verification before attributing symptom etiology.'],
         }] : [];
       })
     : (hasUserClinicalData ? [
@@ -1207,6 +1213,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'causal_progression' as const,
           label: 'Depleted iron stores halt mitochondrial ATP synthesis',
           strength: 'strong' as const,
+          whyItExists: 'Serum ferritin is essential for the synthesis of iron-sulfur clusters in mitochondrial complex I and IV, directly gating aerobic cellular ATP production.',
+          supportingEvidenceIds: ferritinFound ? ['lab_ferritin_panel', ferritinStr] : ['ref_ferritin_baseline_14ng_ml'],
+          weakeningFactors: ['Normal hemoglobin or MCV values may mask functional cellular iron deficiency prior to microcytic anemia development.'],
         },
         {
           from: 'cond_pots',
@@ -1214,6 +1223,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'causal_progression' as const,
           label: 'Postural blood pooling triggers compensatory tachycardia',
           strength: 'strong' as const,
+          whyItExists: 'Venous pooling upon standing causes inadequate cerebral and baroreceptor perfusion, initiating an intense compensatory sympathetic tachycardia discharge.',
+          supportingEvidenceIds: [`orthostatic_delta_${deltaSign}_bpm`, 'standing_nasa_lean_log'],
+          weakeningFactors: ['Resting recumbent tachycardia without orthostatic posture delta weakens isolated POTS in favor of sinus tachycardia or hyperthyroid states.'],
         },
         {
           from: 'cond_histamine',
@@ -1221,6 +1233,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'shared_symptom' as const,
           label: 'Mast cell degranulation provokes mucosal edema & distension',
           strength: 'strong' as const,
+          whyItExists: 'Mast cell and mucosal basophil histamine release increases enteric endothelial permeability, provoking localized fluid transudation and smooth muscle spasm.',
+          supportingEvidenceIds: suspect1 ? [`trigger_${suspect1.name}`, 'postprandial_distension_timeline'] : ['dietary_biogenic_amines'],
+          weakeningFactors: ['Absence of cutaneous flushing, pruritus, or urticaria may point to fermentation-driven dysbiosis rather than histamine-mediated edema.'],
         },
         {
           from: 'cond_histamine',
@@ -1228,6 +1243,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'causal_progression' as const,
           label: 'Vasoactive histamine triggers cranial cerebral rebound',
           strength: 'strong' as const,
+          whyItExists: 'Circulating biogenic amines trigger meningeal neurovascular H1/H4 receptor activation, dilating cerebral arterioles and provoking throbbing cephalalgia.',
+          supportingEvidenceIds: ['meningeal_vascular_reactivity', 'postprandial_headache_correlation'],
+          weakeningFactors: ['Lack of clear temporal correlation with aged, fermented, or leftover high-amine meals.'],
         },
         {
           from: 'cond_dural_kinetic',
@@ -1235,6 +1253,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'causal_progression' as const,
           label: 'Reciprocal upward dural traction entraps Greater Occipital Nerve (C2)',
           strength: 'strong' as const,
+          whyItExists: 'Ascending biomechanical torsion from sacral/pelvic unleveling transmits mechanical tension through the continuous meningeal sheath to C1-C2 suboccipital roots.',
+          supportingEvidenceIds: ['pelvic_rotation_asymmetry', 'cervicogenic_suboccipital_traction'],
+          weakeningFactors: ['Absence of posture-dependent variation or improvement in recumbent supine position.'],
         },
         {
           from: 'cond_dural_kinetic',
@@ -1242,6 +1263,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'causal_progression' as const,
           label: 'Sacral unleveling and pelvic rotation initiate spinal dural tug',
           strength: 'strong' as const,
+          whyItExists: 'Sacral unleveling at S2 articulation forces compensatory lumbar rotation and paraspinal hypertonicity to preserve upright ocular horizontal gaze.',
+          supportingEvidenceIds: ['sacral_unleveling_s2', 'lumbar_paraspinal_strain'],
+          weakeningFactors: ['Absence of asymmetric leg length or mechanical pelvic tilt during standing weight-bearing examination.'],
         },
         {
           from: 'cond_roemheld',
@@ -1249,6 +1273,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'common_mechanism' as const,
           label: 'Splanchnic blood shift compounds orthostatic instability',
           strength: 'moderate' as const,
+          whyItExists: 'Excess gas in the stomach or splenic flexure elevates the left hemidiaphragm, mechanically compressing the cardiac apex and stimulating the left vagus nerve, mimicking autonomic tachycardia.',
+          supportingEvidenceIds: ['postprandial_tachycardia_spike', 'diaphragmatic_vagal_irritation'],
+          weakeningFactors: ['Persisting postural delta in fasting states before meals suggests primary dysautonomia rather than purely gas-mediated vagal displacement.'],
         },
         {
           from: 'cond_histamine',
@@ -1256,6 +1283,9 @@ export function getConnectionDetectiveReport(): ConnectionDetectiveReport {
           type: 'differential_overlap' as const,
           label: 'Shared biogenic amine receptor activation pathways',
           strength: 'strong' as const,
+          whyItExists: 'Shared biogenic amine receptor activation pathways and systemic mast cell degranulation cascades overlap across enteric, dermatologic, and neurovascular systems.',
+          supportingEvidenceIds: ['mast_cell_degranulation_cascade', 'multi_organ_mediator_turnover'],
+          weakeningFactors: ['Normal serum tryptase during active flares can lower probability of systemic mastocytosis, though normal tryptase does not rule out MCAS.'],
         },
       ] : []);
 

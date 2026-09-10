@@ -484,17 +484,19 @@ export function saveReviewSnapshot({
   };
 
   // Fulfill Promise 2: Extract stable ClinicalQuestion items so Engine, Case Prep, and Canvas share IDs
-  const rawQuestions: string[] = [
+  const rawQuestions: any[] = [
     ...(Array.isArray(report?.questionsForClinician) ? report.questionsForClinician : []),
     ...(Array.isArray(report?.unansweredQuestions) ? report.unansweredQuestions : []),
+    ...(Array.isArray(report?.questions) ? report.questions : []),
   ];
   const existingQuestions = existing.questions || [];
   const existingTexts = new Set(existingQuestions.map(q => q.questionText.trim().toLowerCase()));
   const newQuestions: ClinicalQuestion[] = rawQuestions
-    .filter(q => typeof q === 'string' && q.trim().length > 0 && !existingTexts.has(q.trim().toLowerCase()))
-    .map((q, idx) => ({
+    .map(q => typeof q === 'string' ? q.trim() : (q?.questionText || q?.question || '').trim())
+    .filter(text => text.length > 0 && !existingTexts.has(text.toLowerCase()))
+    .map((qText, idx) => ({
       id: `q_${caseId.slice(0, 8)}_${Date.now()}_${idx}`,
-      questionText: q.trim(),
+      questionText: qText,
       raisedBySpecialty: specialists?.[0] || 'Clinical Review Panel',
       supportingEvidenceIds: basedOnEvidenceIds || [],
       status: 'open' as const,

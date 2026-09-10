@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, getActiveCase } from '../../services/CaseEngine';
+import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, getActiveCase, updateCaseQuestionOutcome, getCaseQuestions, addCaseQuestion, ClinicalQuestion } from '../../services/CaseEngine';
 import { generateDeterministicBrief, isBriefUpToDate } from '../../services/AppointmentBriefService';
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
@@ -22,6 +22,60 @@ export default function CasePrep() {
   const [isRefining, setIsRefining] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [outcomeNotes, setOutcomeNotes] = useState<Record<string, string>>({});
+  const [outcomeStatuses, setOutcomeStatuses] = useState<Record<string, 'addressed' | 'deferred'>>({});
+  const [savingOutcomeId, setSavingOutcomeId] = useState<string | null>(null);
+
+  // Synchronize case questions
+  const caseQuestions: ClinicalQuestion[] = useMemo(() => {
+    if (!selectedCase) return [];
+    const directQuestions = getCaseQuestions(selectedCase.id);
+    if (directQuestions && directQuestions.length > 0) return directQuestions;
+    // Fallback to questions synthesized in the brief
+    if (brief?.questionsForClinician && brief.questionsForClinician.length > 0) {
+      return brief.questionsForClinician.map((q: any, i: number) => ({
+        id: `brief_q_${i}`,
+        questionText: typeof q === 'string' ? q : q?.question || 'Clinical question',
+        category: 'general' as const,
+        status: 'open' as const,
+        raisedBySpecialty: 'Primary Care',
+        supportingEvidenceIds: [],
+        createdAt: new Date().toISOString(),
+      }));
+    }
+    return [];
+  }, [selectedCase, brief]);
+
+  const handleSaveOutcome = async (questionId: string, qText: string) => {
+    if (!selectedCase) return;
+    setSavingOutcomeId(questionId);
+    const status = outcomeStatuses[questionId] || 'addressed';
+    const note = outcomeNotes[questionId] || 'Discussed and reviewed with clinician.';
+    
+    // Ensure question is recorded in case if it was synthetic
+    if (questionId.startsWith('brief_q_')) {
+      const added = addCaseQuestion(selectedCase.id, {
+        questionText: qText,
+        status: 'open',
+        raisedBySpecialty: 'Primary Care',
+        supportingEvidenceIds: [],
+      });
+      if (added) {
+        updateCaseQuestionOutcome(selectedCase.id, added.id, status, note);
+      }
+    } else {
+      updateCaseQuestionOutcome(selectedCase.id, questionId, status, note);
+    }
+    
+    awardPoints(15, 'Recorded Doctor Visit Outcome', 'consult', `visit_outcome_${questionId}`);
+    triggerHapticSuccess();
+    toast.success('Visit Outcome Recorded', 'Clinician guidance saved directly to your permanent case timeline.');
+    
+    // Refresh case
+    const updated = getCase(selectedCase.id);
+    if (updated) setSelectedCase(updated);
+    setSavingOutcomeId(null);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -106,7 +160,7 @@ export default function CasePrep() {
       `Case: ${selectedCase?.title || 'Patient Health Dossier'}`,
       `Date: ${brief.generatedAt ? new Date(brief.generatedAt).toLocaleDateString() : new Date().toLocaleDateString()}`,
       `----------------------------------------`,
-      `1. WHAT I NEED HELP WITH:`,
+      `1. WHY I'M HERE (CHIEF REASON):`,
       brief.mainConcern?.text || 'No concern specified.',
       ``,
       `2. TIMELINE & RECENT CHANGES:`,
@@ -120,7 +174,7 @@ export default function CasePrep() {
         (brief.missingInformation || []).map((m: any) => `• ${typeof m === 'string' ? m : m?.missingText || 'Missing information'}`).join('\n')
       ] : []),
       ``,
-      `4. QUESTIONS FOR CLINICIAN:`,
+      `4. WHAT I NEED HELP DECIDING (CLINICAL QUESTIONS):`,
       (brief.questionsForClinician || []).map((q: any, i: number) => `${i + 1}. ${typeof q === 'string' ? q : q?.question || q?.text}`).join('\n') || 'None recorded.',
       `----------------------------------------`,
       `Prepared with HealthChain Clinical Dossier`
@@ -280,7 +334,7 @@ export default function CasePrep() {
         </header>
 
         <section style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>1. What I need help with</h2>
+          <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>1. Why I'm here (Chief Concern)</h2>
           <p style={{ fontSize: 15, lineHeight: 1.6, color: '#0f172a', margin: 0 }}>{brief.mainConcern?.text || 'No specific concern specified.'}</p>
         </section>
 
@@ -304,7 +358,7 @@ export default function CasePrep() {
         </section>
 
         <section style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>4. Questions worth asking</h2>
+          <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>4. What I need help deciding (Questions to Align On)</h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
             {(brief.questionsForClinician || []).map((q: any, i: number) => <li key={i}>{typeof q === 'string' ? q : q?.question || 'Question'}</li>)}
             {(!brief.questionsForClinician || brief.questionsForClinician.length === 0) && <li>No questions recorded.</li>}
@@ -315,6 +369,179 @@ export default function CasePrep() {
           <AlertCircle size={20} color="#0D9488" style={{ flexShrink: 0 }} />
           <div>{brief.safetyNotice || 'This brief is prepared for educational and doctor-discussion purposes only.'}</div>
         </section>
+      </div>
+
+      {/* Post-Visit Outcome Recorder (Promise 6) */}
+      <div
+        className="print-hide"
+        style={{
+          marginTop: '32px',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1.5px solid #CBD5E1',
+          padding: '28px',
+          boxShadow: '0 8px 30px rgba(15, 23, 42, 0.04)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: '#ECFDF5',
+              border: '1px solid #A7F3D0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#047857',
+              fontSize: '16px',
+            }}
+          >
+            📋
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
+              Record Doctor Visit Outcomes
+            </h3>
+            <div style={{ fontSize: '12.5px', color: '#64748B' }}>
+              Close the loop on each discussion point after your consultation to update your ongoing care plan.
+            </div>
+          </div>
+        </div>
+
+        {caseQuestions.length === 0 ? (
+          <div style={{ padding: '20px', background: '#F8FAFC', borderRadius: '12px', fontSize: '13px', color: '#64748B', textAlign: 'center', marginTop: '16px' }}>
+            No specific clinical questions were extracted for this visit yet. You can discuss your main concern with Ava to generate tailored questions.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
+            {caseQuestions.map((q) => {
+              const currentStatus = outcomeStatuses[q.id] || (q.status === 'addressed' ? 'addressed' : 'addressed');
+              const isResolved = q.status === 'addressed' || q.status === 'deferred';
+              
+              return (
+                <div
+                  key={q.id}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '14px',
+                    border: isResolved ? '1.5px solid #A7F3D0' : '1.5px solid #E2E8F0',
+                    background: isResolved ? '#F0FDF4' : '#F8FAFC',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
+                      {q.questionText}
+                    </div>
+                    {isResolved && (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          background: q.status === 'addressed' ? '#DCFCE7' : '#FEF3C7',
+                          color: q.status === 'addressed' ? '#15803D' : '#92400E',
+                          flexShrink: 0,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        ✓ {q.status}
+                      </span>
+                    )}
+                  </div>
+
+                  {q.outcomeNote && (
+                    <div style={{ fontSize: '13px', color: '#166534', background: '#FFFFFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #BBF7D0' }}>
+                      <strong>Doctor Note:</strong> {q.outcomeNote}
+                    </div>
+                  )}
+
+                  {!isResolved && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => setOutcomeStatuses(prev => ({ ...prev, [q.id]: 'addressed' }))}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            border: currentStatus === 'addressed' ? '1.5px solid #059669' : '1px solid #CBD5E1',
+                            background: currentStatus === 'addressed' ? '#ECFDF5' : '#FFFFFF',
+                            color: currentStatus === 'addressed' ? '#047857' : '#64748B',
+                          }}
+                        >
+                          ✓ Addressed / Answered
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOutcomeStatuses(prev => ({ ...prev, [q.id]: 'deferred' }))}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            border: currentStatus === 'deferred' ? '1.5px solid #D97706' : '1px solid #CBD5E1',
+                            background: currentStatus === 'deferred' ? '#FEF3C7' : '#FFFFFF',
+                            color: currentStatus === 'deferred' ? '#B45309' : '#64748B',
+                          }}
+                        >
+                          ⏳ Deferred / Follow-up Needed
+                        </button>
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="What did your doctor say or recommend? (e.g. ordered ferritin & tilt test)"
+                        value={outcomeNotes[q.id] || ''}
+                        onChange={(e) => setOutcomeNotes(prev => ({ ...prev, [q.id]: e.target.value }))}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                          outline: 'none',
+                          width: '100%',
+                          background: '#FFFFFF',
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => handleSaveOutcome(q.id, q.questionText)}
+                        disabled={savingOutcomeId === q.id}
+                        style={{
+                          alignSelf: 'flex-start',
+                          padding: '8px 16px',
+                          borderRadius: '10px',
+                          background: '#0D9488',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontWeight: 700,
+                          fontSize: '12.5px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        {savingOutcomeId === q.id ? 'Saving...' : 'Save Clinician Outcome'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Drawer */}
