@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, getActiveCase, updateCaseQuestionOutcome, getCaseQuestions, addCaseQuestion, ClinicalQuestion } from '../../services/CaseEngine';
+import { getCases, CaseItem, getCase, saveAppointmentBrief, AppointmentBrief, getActiveCase, updateCaseQuestionOutcome, getCaseQuestions, addCaseQuestion, ClinicalQuestion, transitionCaseQuestionLifecycle, QuestionLifecycleStatus } from '../../services/CaseEngine';
 import { generateDeterministicBrief, isBriefUpToDate } from '../../services/AppointmentBriefService';
 import { refineAppointmentBrief } from '../../services/geminiService';
 import { getProfile } from '../../services/ProfileEngine';
@@ -469,39 +469,55 @@ export default function CasePrep() {
 
                   {!isResolved && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <button
-                          type="button"
-                          onClick={() => setOutcomeStatuses(prev => ({ ...prev, [q.id]: 'addressed' }))}
-                          style={{
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: currentStatus === 'addressed' ? '1.5px solid #059669' : '1px solid #CBD5E1',
-                            background: currentStatus === 'addressed' ? '#ECFDF5' : '#FFFFFF',
-                            color: currentStatus === 'addressed' ? '#047857' : '#64748B',
-                          }}
-                        >
-                          ✓ Addressed / Answered
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setOutcomeStatuses(prev => ({ ...prev, [q.id]: 'deferred' }))}
-                          style={{
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            border: currentStatus === 'deferred' ? '1.5px solid #D97706' : '1px solid #CBD5E1',
-                            background: currentStatus === 'deferred' ? '#FEF3C7' : '#FFFFFF',
-                            color: currentStatus === 'deferred' ? '#B45309' : '#64748B',
-                          }}
-                        >
-                          ⏳ Deferred / Follow-up Needed
-                        </button>
+                      {/* 4-STAGE QUESTION LIFECYCLE (Point 9 Item 6 & Order 7) */}
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginRight: '2px' }}>
+                          Status:
+                        </span>
+                        {[
+                          { key: 'open', label: '1. Open', color: '#64748B', bg: '#F1F5F9', border: '#CBD5E1' },
+                          { key: 'prepared', label: '2. In Brief', color: '#7C3AED', bg: '#F5F3FF', border: '#DDD6FE' },
+                          { key: 'discussed', label: '3. Discussed', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
+                          { key: 'resolved', label: '4. Resolved', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0' },
+                        ].map((stage) => {
+                          const isActive = (currentStatus || q.status) === stage.key || (stage.key === 'resolved' && (currentStatus || q.status) === 'addressed');
+                          return (
+                            <button
+                              key={stage.key}
+                              type="button"
+                              onClick={() => {
+                                triggerHapticLight();
+                                const active = getActiveCase();
+                                if (active?.id) {
+                                  transitionCaseQuestionLifecycle(
+                                    active.id,
+                                    q.id,
+                                    stage.key as QuestionLifecycleStatus,
+                                    outcomeNotes[q.id]
+                                  );
+                                  setOutcomeStatuses(prev => ({ ...prev, [q.id]: stage.key as any }));
+                                  const updated = getCase(active.id);
+                                  if (updated) setSelectedCase(updated);
+                                  toast.success(`Question updated to ${stage.label}`);
+                                }
+                              }}
+                              style={{
+                                padding: '5px 9px',
+                                borderRadius: '8px',
+                                fontSize: '11.5px',
+                                fontWeight: isActive ? 800 : 600,
+                                cursor: 'pointer',
+                                border: isActive ? `2px solid ${stage.color}` : `1px solid ${stage.border}`,
+                                background: isActive ? stage.bg : '#FFFFFF',
+                                color: isActive ? stage.color : '#475569',
+                                boxShadow: isActive ? `0 2px 6px ${stage.bg}` : 'none',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              {isActive ? '✓ ' : ''}{stage.label}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       <input

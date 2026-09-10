@@ -76,6 +76,14 @@ export interface StructuredClinicalAnswer {
     plausibleAlternatives: string[];
     balancedEvidence: BalancedAlternativeEvidence[];
     relationshipStatuses: StructuredRelationshipItem[];
+    contradictionQueue?: Array<{
+      id: string;
+      topic: string;
+      itemA: { finding: string; source: string; date?: string };
+      itemB: { finding: string; source: string; date?: string };
+      clinicalSignificance: string;
+      resolutionNeed: string;
+    }>;
   };
 
   // Layer 4: What we still need
@@ -110,6 +118,14 @@ export interface BuildStructuredAnswerInput {
   uncertainties?: string[];
   missingLinks?: string[];
   questionsForClinician?: string[];
+  contradictions?: Array<{
+    id?: string;
+    topic?: string;
+    itemA?: { finding?: string; source?: string; date?: string };
+    itemB?: { finding?: string; source?: string; date?: string };
+    clinicalSignificance?: string;
+    resolutionNeed?: string;
+  }>;
   alternatives?: Array<{
     title?: string;
     mechanismSummary?: string;
@@ -345,6 +361,24 @@ export function buildStructuredClinicalAnswer(input: BuildStructuredAnswerInput)
       plausibleAlternatives,
       balancedEvidence,
       relationshipStatuses,
+      contradictionQueue: Array.isArray(input.contradictions) && input.contradictions.length > 0
+        ? input.contradictions.map((c, idx) => ({
+            id: c.id || `contra_${idx + 1}`,
+            topic: c.topic || 'Discrepancy between findings',
+            itemA: {
+              finding: c.itemA?.finding || 'Documented observation A',
+              source: c.itemA?.source || 'Record A',
+              date: c.itemA?.date,
+            },
+            itemB: {
+              finding: c.itemB?.finding || 'Documented observation B',
+              source: c.itemB?.source || 'Record B',
+              date: c.itemB?.date,
+            },
+            clinicalSignificance: c.clinicalSignificance || 'Clinical discrepancy between tests or timeline reports.',
+            resolutionNeed: c.resolutionNeed || 'Review conflicting findings with treating clinician.',
+          }))
+        : undefined,
     },
     layer4_whatWeStillNeed: {
       criticalGaps,

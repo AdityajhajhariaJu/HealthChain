@@ -6,7 +6,7 @@ import JarvisInvestigator from './JarvisInvestigator';
 
 const mocks = vi.hoisted(() => ({ run: vi.fn(), create: vi.fn(), save: vi.fn(), error: vi.fn(), session: vi.fn(), cases: [{ id: 'existing', title: 'My ongoing concern', status: 'active', intakeData: { chiefComplaint: 'My actual symptom history' }, medicalRecords: [], reviews: [], events: [], currentSummary: {} }] }));
 vi.mock('../../services/geminiService', () => ({ runJarvisInvestigation: mocks.run }));
-vi.mock('../../services/CaseEngine', () => ({ getCase: (id: string) => mocks.cases.find(c => c.id === id), getCases: () => mocks.cases, getActiveCase: () => null, createCaseDraft: mocks.create, saveReviewSnapshot: mocks.save }));
+vi.mock('../../services/CaseEngine', () => ({ getCase: (id: string) => mocks.cases.find(c => c.id === id), getCases: () => mocks.cases, getActiveCase: () => null, getActiveCaseId: () => null, setActiveCase: vi.fn(), createCaseDraft: mocks.create, saveReviewSnapshot: mocks.save }));
 vi.mock('../../hooks/useCaseWorkspace', () => ({ useCaseWorkspace: () => mocks.cases }));
 vi.mock('../../hooks/useIsMobile', () => ({ useIsMobile: () => false }));
 vi.mock('../../services/ProfileEngine', () => ({ getProfile: () => ({ isPro: true }), getProfileKey: () => 'test-profile', getProfileEngineState: () => ({ activeId: 'profile_1' }) }));

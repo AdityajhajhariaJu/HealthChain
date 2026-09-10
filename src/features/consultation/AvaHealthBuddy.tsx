@@ -23,7 +23,7 @@ import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensit
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
 import { getCase, addCaseEvent } from '../../services/CaseEngine';
-import { buildCaseContext } from '../../services/caseWorkspace';
+import { buildCaseContext, getUnifiedCaseScope, getCaseDocumentedAnswers } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import '../../components/ui/caseWorkspace.css';
@@ -732,8 +732,13 @@ export default function AvaHealthBuddy() {
   }, []);
 
   const availableCases = useCaseWorkspace();
-  const [selectedCaseId, setSelectedCaseId] = useState(() => new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId || '');
+  const [selectedCaseId, setSelectedCaseId] = useState(() => {
+    const paramId = new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId;
+    const scope = getUnifiedCaseScope(paramId);
+    return scope.caseId || '';
+  });
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
+  const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
   const saveUpdateBusy = useRef(false);
   useEffect(() => { setSavedUpdate(null); }, [selectedCaseId]);
@@ -1410,6 +1415,39 @@ export default function AvaHealthBuddy() {
                             onOpenWholeHealth={() => setIsWholeHealthOpen(true)}
                           />
                           {msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}
+                          {msg.role === 'model' && documentedAnswers.length > 0 && (() => {
+                            const matched = documentedAnswers.filter(ans => {
+                              const topicWords = ans.topic.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                              const valWords = ans.value.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                              const lowerContent = msg.content.toLowerCase();
+                              return topicWords.some(tw => lowerContent.includes(tw)) || 
+                                     (valWords.length > 0 && valWords.some(vw => lowerContent.includes(vw)));
+                            });
+                            if (matched.length === 0) return null;
+                            const item = matched[0];
+                            return (
+                              <div 
+                                style={{
+                                  marginTop: '10px',
+                                  padding: '7px 11px',
+                                  borderRadius: '8px',
+                                  background: '#F0FDF4',
+                                  border: '1px solid #BBF7D0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  fontSize: '11.5px',
+                                  color: '#166534',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                <span>✅ Already documented in case records:</span>
+                                <span style={{ fontWeight: 700, color: '#14532D' }}>
+                                  {item.topic} ({item.value.slice(0, 45)}{item.value.length > 45 ? '...' : ''})
+                                </span>
+                              </div>
+                            );
+                          })()}
                           {msg.role === 'model' && /(mental peace|calm space|de-stress|relax|anxiety|breathe|breathing|4-7-8|meditat|insomnia)/i.test(msg.content) && (
                             <motion.div
                               initial={{ opacity: 0, y: 8 }}

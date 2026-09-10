@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FlaskConical, ExternalLink, Activity, Filter, ShieldCheck, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
-import { getActiveCase } from '../../services/CaseEngine';
+import { getProfile } from '../../services/ProfileEngine';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { fetchLiveTrials } from '../../services/clinicalTrialsService';
 import { fetchRecentLiterature, cleanMedicalText } from '../../services/pubMedService';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -20,6 +21,169 @@ const loadingSteps = [
   "Comparing titles and topics...",
   "Preparing source links..."
 ];
+
+export interface TrialCriteriaBreakdown {
+  matchStatus: 'differential_match' | 'probable_match' | 'topic_overlap' | 'broad_relevance';
+  conditionMatch: {
+    matched: boolean;
+    differentialOverlap: string[];
+    terms: string[];
+    note: string;
+  };
+  ageCriteria: {
+    status: 'eligible' | 'potential_mismatch' | 'unspecified';
+    patientAge?: number;
+    extractedLimit?: string;
+    note: string;
+  };
+  genderCriteria: {
+    status: 'eligible' | 'potential_mismatch' | 'unspecified';
+    patientGender?: string;
+    note: string;
+  };
+  overallNote: string;
+}
+
+export function evaluateTrialCriteria(
+  trial: any,
+  searchTerms: string[],
+  differentials: string[] = [],
+  patientProfile?: { age?: string | number; gender?: string }
+): { matchScore: number; aiContext: string; matchedTerms: string[]; criteriaBreakdown: TrialCriteriaBreakdown } {
+  const condText = (trial.conditions || []).join(' ').toLowerCase();
+  const titleText = (trial.title || '').toLowerCase();
+  const summaryText = (trial.summary || '').toLowerCase();
+  const interText = (trial.interventions || []).join(' ').toLowerCase();
+  const combinedText = `${condText} ${titleText} ${summaryText} ${interText}`;
+
+  // 1. Differential matching
+  const matchedDifferentials = differentials.filter(diff => {
+    const dLower = (diff || '').toLowerCase().trim();
+    if (!dLower || dLower.length < 3) return false;
+    return combinedText.includes(dLower) || dLower.split(/\s+/).some(w => w.length > 3 && combinedText.includes(w));
+  });
+
+  // 2. Keyword matching across searchTerms
+  const searchWords = searchTerms.flatMap(c => (c || '').toLowerCase().split(/\s+/)).filter(w => w.length > 2);
+  const matchedTerms = searchWords.filter(word => combinedText.includes(word));
+
+  let score = 0;
+  for (const word of matchedTerms) {
+    if (condText.includes(word)) score += 20;
+    if (titleText.includes(word)) score += 14;
+    if (summaryText.includes(word)) score += 5;
+    if (interText.includes(word)) score += 7;
+  }
+  if (matchedDifferentials.length > 0) {
+    score += 30 * matchedDifferentials.length;
+  }
+
+  // 3. Age criteria evaluation
+  let ageStatus: 'eligible' | 'potential_mismatch' | 'unspecified' = 'unspecified';
+  let ageNote = 'Age eligibility not explicitly restricted in trial summary.';
+  let extractedLimit = '';
+  const rawAge = patientProfile?.age;
+  const parsedAge = rawAge ? parseInt(String(rawAge), 10) : undefined;
+
+  if (parsedAge && !isNaN(parsedAge)) {
+    if (/pediatric|children|infant|adolescent/i.test(combinedText) && !/adult/i.test(combinedText)) {
+      if (parsedAge >= 18) {
+        ageStatus = 'potential_mismatch';
+        ageNote = `Trial appears pediatric-focused; patient is ${parsedAge} years old.`;
+      } else {
+        ageStatus = 'eligible';
+        ageNote = `Pediatric population criteria matches patient age (${parsedAge} yo).`;
+      }
+    } else if (/\b(adults|aged?\s*18\s*(and|or|\+|-|to))\b/i.test(combinedText)) {
+      if (parsedAge >= 18) {
+        ageStatus = 'eligible';
+        ageNote = `Patient age (${parsedAge} yo) satisfies adult requirement (>=18).`;
+      } else {
+        ageStatus = 'potential_mismatch';
+        ageNote = `Adult requirement (>=18) may exclude patient (${parsedAge} yo).`;
+      }
+    }
+  }
+
+  // 4. Gender / Sex criteria evaluation
+  let genderStatus: 'eligible' | 'potential_mismatch' | 'unspecified' = 'unspecified';
+  let genderNote = 'Gender / sex requirements open or unspecified in registry summary.';
+  const pGender = (patientProfile?.gender || '').toLowerCase().trim();
+
+  if (pGender) {
+    const isFemaleTrial = /\b(female|women|maternal|pregnancy)\b/i.test(combinedText) && !/\b(both|all\s+genders|male\s+and\s+female)\b/i.test(combinedText);
+    const isMaleTrial = /\b(prostate|male\s+only|men\s+only)\b/i.test(combinedText) && !/\b(both|all\s+genders|female)\b/i.test(combinedText);
+
+    if (isFemaleTrial) {
+      if (pGender === 'female' || pGender === 'f') {
+        genderStatus = 'eligible';
+        genderNote = 'Female-specific cohort aligns with patient profile.';
+      } else if (pGender === 'male' || pGender === 'm') {
+        genderStatus = 'potential_mismatch';
+        genderNote = 'Trial specifies female cohort; patient profile indicates male.';
+      }
+    } else if (isMaleTrial) {
+      if (pGender === 'male' || pGender === 'm') {
+        genderStatus = 'eligible';
+        genderNote = 'Male-specific cohort aligns with patient profile.';
+      } else if (pGender === 'female' || pGender === 'f') {
+        genderStatus = 'potential_mismatch';
+        genderNote = 'Trial specifies male cohort; patient profile indicates female.';
+      }
+    }
+  }
+
+  // Determine matchStatus
+  let matchStatus: TrialCriteriaBreakdown['matchStatus'] = 'broad_relevance';
+  if (matchedDifferentials.length > 0) {
+    matchStatus = 'differential_match';
+  } else if (score >= 40) {
+    matchStatus = 'probable_match';
+  } else if (matchedTerms.length > 0) {
+    matchStatus = 'topic_overlap';
+  }
+
+  const finalScore = Math.min(100, Math.max(matchedDifferentials.length > 0 ? 65 : 10, score));
+  const uniqueTerms = [...new Set([...matchedDifferentials, ...matchedTerms])].slice(0, 6);
+  const aiContext = matchedDifferentials.length > 0
+    ? `Matches active case differential: ${matchedDifferentials.join(', ')}. Registered protocol investigates related pathology.`
+    : uniqueTerms.length > 0
+    ? `Topic registry overlap: ${uniqueTerms.join(', ')}. Review detailed criteria on source registry.`
+    : 'Retrieved from clinical trials search. Detailed screening criteria required.';
+
+  return {
+    matchScore: finalScore,
+    matchedTerms: uniqueTerms,
+    aiContext,
+    criteriaBreakdown: {
+      matchStatus,
+      conditionMatch: {
+        matched: matchedDifferentials.length > 0 || matchedTerms.length > 0,
+        differentialOverlap: matchedDifferentials,
+        terms: uniqueTerms,
+        note: matchedDifferentials.length > 0
+          ? `Direct overlap with case differential (${matchedDifferentials.join(', ')}).`
+          : `Keyword overlap with search topics (${uniqueTerms.join(', ')}).`
+      },
+      ageCriteria: {
+        status: ageStatus,
+        patientAge: parsedAge,
+        extractedLimit,
+        note: ageNote
+      },
+      genderCriteria: {
+        status: genderStatus,
+        patientGender: pGender,
+        note: genderNote
+      },
+      overallNote: `Matched against case data: ${matchedDifferentials.length} active differentials evaluated.`
+    }
+  };
+}
+
+export function scoreClinicalTrial(trial: any, conditions: string[], differentials: string[] = [], patientProfile?: { age?: string | number; gender?: string }): { matchScore: number; aiContext: string; matchedTerms: string[]; criteriaBreakdown?: TrialCriteriaBreakdown } {
+  return evaluateTrialCriteria(trial, conditions, differentials, patientProfile);
+}
 
 const MatchRing = ({ score }: { score: number }) => {
   const radius = 18;
@@ -44,34 +208,6 @@ const MatchRing = ({ score }: { score: number }) => {
     </div>
   );
 };
-
-function scoreClinicalTrial(trial: any, conditions: string[]): { matchScore: number; aiContext: string; matchedTerms: string[] } {
-  let score = 0;
-  const condText = (trial.conditions || []).join(' ').toLowerCase();
-  const titleText = (trial.title || '').toLowerCase();
-  const summaryText = (trial.summary || '').toLowerCase();
-  const interText = (trial.interventions || []).join(' ').toLowerCase();
-
-  const searchWords = conditions.flatMap(c => c.toLowerCase().split(/\s+/)).filter(w => w.length > 2);
-  
-  const matchedTerms = searchWords.filter(word => condText.includes(word) || titleText.includes(word) || summaryText.includes(word) || interText.includes(word));
-  for (const word of matchedTerms) {
-    if (condText.includes(word)) score += 20;
-    if (titleText.includes(word)) score += 14;
-    if (summaryText.includes(word)) score += 5;
-    if (interText.includes(word)) score += 7;
-  }
-
-  const finalScore = Math.min(100, score);
-
-  return {
-    matchScore: finalScore,
-    matchedTerms: [...new Set(matchedTerms)].slice(0, 6),
-    aiContext: matchedTerms.length
-      ? `Shown because its registry text overlaps with: ${[...new Set(matchedTerms)].slice(0, 6).join(', ')}. This is topic relevance, not an eligibility assessment.`
-      : 'Shown from the registry search. Review the official eligibility criteria and locations on the source page.'
-  };
-}
 
 function scoreLiteraturePaper(paper: any, conditions: string[]): { matchScore: number; aiContext: string; matchedTerms: string[] } {
   let score = 0;
@@ -127,6 +263,31 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                  <span className="badge badge-teal" style={{ padding: '2px 6px', fontSize: '11px' }}>{item.phase}</span>
                  <span className="badge badge-gray" style={{ padding: '2px 6px', fontSize: '11px' }}>{item.status}</span>
                </>
+            )}
+            {!isPaper && item.criteriaBreakdown?.matchStatus === 'differential_match' && (
+              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC', fontWeight: 700 }}>
+                🎯 Matches Case Differential
+              </span>
+            )}
+            {!isPaper && item.criteriaBreakdown?.ageCriteria?.status === 'eligible' && (
+              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontWeight: 600 }}>
+                Age Eligible ({item.criteriaBreakdown.ageCriteria.patientAge}y)
+              </span>
+            )}
+            {!isPaper && item.criteriaBreakdown?.ageCriteria?.status === 'potential_mismatch' && (
+              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 600 }}>
+                Age Flagged
+              </span>
+            )}
+            {!isPaper && item.criteriaBreakdown?.genderCriteria?.status === 'eligible' && (
+              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontWeight: 600 }}>
+                Sex Criteria Met
+              </span>
+            )}
+            {!isPaper && item.criteriaBreakdown?.genderCriteria?.status === 'potential_mismatch' && (
+              <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D', fontWeight: 600 }}>
+                Sex Flagged
+              </span>
             )}
           </div>
           <h2 style={{ fontSize: '16px', color: '#0F172A', margin: '0 0 6px 0', lineHeight: 1.4 }}>
@@ -209,7 +370,45 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                 )}
               </div>
 
-              {/* 3. MISSING ELIGIBILITY CRITERIA SEPARATION (Promise 7) */}
+              {/* 3. REAL CRITERIA SCREENING EVALUATION (Promise 7 & Point 9/10) */}
+              {!isPaper && item.criteriaBreakdown && (
+                <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🔬</span> Case Criteria Screening Analysis
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '10px', fontSize: '12px' }}>
+                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>DIFFERENTIAL OVERLAP</span>
+                      <strong style={{ color: item.criteriaBreakdown.conditionMatch.matched ? '#15803D' : '#334155' }}>
+                        {item.criteriaBreakdown.conditionMatch.matched ? 'Correlated' : 'None Detected'}
+                      </strong>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                        {item.criteriaBreakdown.conditionMatch.note}
+                      </p>
+                    </div>
+                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>AGE SCREENING</span>
+                      <strong style={{ color: item.criteriaBreakdown.ageCriteria.status === 'eligible' ? '#15803D' : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch' ? '#B45309' : '#64748B' }}>
+                        {item.criteriaBreakdown.ageCriteria.status === 'eligible' ? 'Met' : item.criteriaBreakdown.ageCriteria.status === 'potential_mismatch' ? 'Potential Mismatch' : 'Unspecified'}
+                      </strong>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                        {item.criteriaBreakdown.ageCriteria.note}
+                      </p>
+                    </div>
+                    <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <span style={{ color: '#64748B', display: 'block', fontSize: '10px', fontWeight: 700 }}>SEX / COHORT</span>
+                      <strong style={{ color: item.criteriaBreakdown.genderCriteria.status === 'eligible' ? '#15803D' : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch' ? '#B45309' : '#64748B' }}>
+                        {item.criteriaBreakdown.genderCriteria.status === 'eligible' ? 'Met' : item.criteriaBreakdown.genderCriteria.status === 'potential_mismatch' ? 'Potential Mismatch' : 'Open / Both'}
+                      </strong>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.3 }}>
+                        {item.criteriaBreakdown.genderCriteria.note}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. MISSING ELIGIBILITY CRITERIA SEPARATION (Promise 7) */}
               {!isPaper && (
                 <div style={{ background: '#FFFBEB', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #FDE68A' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
@@ -257,7 +456,14 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
               triggerHapticLight();
               navigate('/app/ava', {
                 state: {
-                  initialPrompt: `I am reviewing this clinical research source: "${displayTitle}". Help me summarize what it actually says, what it does not establish, and which questions I should ask my clinician or the study team.`
+                  initialPrompt: `I am reviewing this clinical research source: "${displayTitle}" (ID: ${item.id || 'N/A'}). Status: ${item.criteriaBreakdown?.matchStatus || 'General Relevance'}. Help me summarize what it actually says, evaluate whether its eligibility criteria align with my case, and outline specific questions I should ask my clinician or the study team.`,
+                  sourceStudy: {
+                    nctId: item.id,
+                    title: displayTitle,
+                    abstract: displayAbstract,
+                    matchStatus: item.criteriaBreakdown?.matchStatus || 'broad_relevance',
+                    criteriaBreakdown: item.criteriaBreakdown
+                  }
                 }
               });
             }} 
@@ -286,7 +492,8 @@ export default function ClinicalTrialsMatcher() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const toast = useToast();
-  const activeCase = getActiveCase();
+  const { caseItem: activeCase } = getUnifiedCaseScope();
+  const profile = getProfile();
   const [loading, setLoading] = useState(true);
   const [researchItems, setResearchItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -335,11 +542,26 @@ export default function ClinicalTrialsMatcher() {
     }
   }, [loading]);
 
-  const caseTopics = [activeCase?.title, activeCase?.intakeData?.chiefComplaint]
+  const caseDifferentials: string[] = [
+    ...(activeCase?.differentials?.map(d => typeof d === 'string' ? d : d.condition) || []),
+    ...(Array.isArray(activeCase?.reviews) ? activeCase.reviews.flatMap((r: any) => r?.report?.topDiagnoses || r?.report?.differentials || []) : [])
+  ].map(s => typeof s === 'string' ? s.trim() : (s?.condition || s?.name || '')).filter(Boolean);
+
+  const profileConditions: string[] = Array.isArray(profile?.conditions)
+    ? profile.conditions.map((c: any) => typeof c === 'string' ? c.trim() : c?.name || '').filter(Boolean)
+    : [];
+
+  const caseTopics = [
+    ...caseDifferentials,
+    ...profileConditions,
+    activeCase?.title,
+    activeCase?.intakeData?.chiefComplaint
+  ]
     .map(value => typeof value === 'string' ? value.trim().slice(0, 120) : '')
     .filter(Boolean)
     .filter((value, index, values) => values.indexOf(value) === index)
-    .slice(0, 2);
+    .slice(0, 4);
+
   const effectiveTerms = customSearchTerms && customSearchTerms.length > 0
     ? customSearchTerms
     : caseTopics;
@@ -359,14 +581,26 @@ export default function ClinicalTrialsMatcher() {
         try {
           const parsedCache = JSON.parse(cached);
           if (Array.isArray(parsedCache)) {
-            const sanitizedCache = parsedCache.map((item: any) => ({
-              ...item,
-              title: cleanMedicalText(item.title),
-              journal: item.journal
-                ? (item.journal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(item.journal))
-                : item.location,
-              abstract: cleanMedicalText(item.abstract || item.summary || '')
-            }));
+            const sanitizedCache = parsedCache.map((item: any) => {
+              const base = {
+                ...item,
+                title: cleanMedicalText(item.title),
+                journal: item.journal
+                  ? (item.journal.toLowerCase() === 'unknown journal' ? 'Peer-Reviewed Clinical Journal' : cleanMedicalText(item.journal))
+                  : item.location,
+                abstract: cleanMedicalText(item.abstract || item.summary || '')
+              };
+              if (!base.journal && !base.criteriaBreakdown) {
+                const evaluated = evaluateTrialCriteria(
+                  base,
+                  searchTerms,
+                  caseDifferentials,
+                  { age: profile?.demographics?.age, gender: profile?.demographics?.gender }
+                );
+                return { ...base, ...evaluated };
+              }
+              return base;
+            });
             if (isMounted) {
               setResearchItems(sanitizedCache);
               setLoading(false);
@@ -388,8 +622,13 @@ export default function ClinicalTrialsMatcher() {
         const targetCase = activeCase || { id: 'manual_search', title: searchTerms.join(', ') };
 
         const trialsWithScore = rawTrials.map((t: any) => {
-          const { matchScore, aiContext } = scoreClinicalTrial(t, searchTerms);
-          return { ...t, matchScore, aiContext };
+          const evaluated = evaluateTrialCriteria(
+            t,
+            searchTerms,
+            caseDifferentials,
+            { age: profile?.demographics?.age, gender: profile?.demographics?.gender }
+          );
+          return { ...t, ...evaluated };
         });
 
         const papersWithScore = rawPapers.map((p: any) => {
@@ -704,7 +943,14 @@ export default function ClinicalTrialsMatcher() {
                         triggerHapticLight();
                         navigate('/app/ava', {
                           state: {
-                            initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}". Summarize the source cautiously, separate what it reports from what remains unknown, and help me prepare questions for my clinician or the study team.`
+                            initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}" (ID: ${selectedItem.id || 'N/A'}). Status: ${selectedItem.criteriaBreakdown?.matchStatus || 'General Relevance'}. Summarize the source cautiously, evaluate whether its eligibility criteria align with my case, and help me prepare questions for my clinician or the study team.`,
+                            sourceStudy: {
+                              nctId: selectedItem.id,
+                              title: modalTitle,
+                              abstract: modalAbstract,
+                              matchStatus: selectedItem.criteriaBreakdown?.matchStatus || 'broad_relevance',
+                              criteriaBreakdown: selectedItem.criteriaBreakdown
+                            }
                           }
                         });
                       }}

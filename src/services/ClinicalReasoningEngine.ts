@@ -669,7 +669,7 @@ export function runClinicalReasoningPipeline(
 
   // If a feedback answer is supplied, append it directly into Stage 1 facts (The feedback loop!)
   let newlyInjectedFact: SourceLinkedEvidence | undefined;
-  if (newFactAnswer && newFactAnswer.answerText.trim()) {
+  if (newFactAnswer && typeof newFactAnswer.answerText === 'string' && newFactAnswer.answerText.trim()) {
     newlyInjectedFact = {
       id: `feedback_fact_${Date.now()}`,
       fact: `User clarified: "${newFactAnswer.answerText.trim()}"`,

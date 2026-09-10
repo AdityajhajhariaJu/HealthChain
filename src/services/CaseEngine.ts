@@ -38,12 +38,14 @@ export interface MedicalRecord {
   passages?: RecordPassage[];
 }
 
+export type QuestionLifecycleStatus = 'open' | 'prepared' | 'discussed' | 'resolved' | 'addressed' | 'deferred';
+
 export interface ClinicalQuestion {
   id: string;
   questionText: string;
   raisedBySpecialty: string;
   supportingEvidenceIds: string[];
-  status: 'open' | 'addressed' | 'deferred';
+  status: QuestionLifecycleStatus;
   outcomeNote?: string;
   createdAt: string;
   resolvedAt?: string;
@@ -914,7 +916,7 @@ export function getCaseQuestions(caseId: string): ClinicalQuestion[] {
   return harvested;
 }
 
-export function addCaseQuestion(caseId: string, question: Omit<ClinicalQuestion, 'id' | 'createdAt'>): ClinicalQuestion {
+export function addCaseQuestion(caseId: string, question: Omit<ClinicalQuestion, 'id' | 'createdAt' | 'status'> & { status?: QuestionLifecycleStatus }): ClinicalQuestion {
   const cases = getCases();
   const idx = cases.findIndex(c => c.id === caseId);
   const newQ: ClinicalQuestion = {
@@ -937,11 +939,11 @@ export function addCaseQuestion(caseId: string, question: Omit<ClinicalQuestion,
   return newQ;
 }
 
-export function updateCaseQuestionOutcome(
+export function transitionCaseQuestionLifecycle(
   caseId: string,
   questionId: string,
-  status: 'addressed' | 'deferred',
-  outcomeNote: string
+  nextStatus: QuestionLifecycleStatus,
+  note?: string
 ): boolean {
   const cases = getCases();
   const idx = cases.findIndex(c => c.id === caseId);
@@ -957,9 +959,9 @@ export function updateCaseQuestionOutcome(
       targetQuestionText = q.questionText;
       return {
         ...q,
-        status,
-        outcomeNote,
-        resolvedAt: now,
+        status: nextStatus,
+        outcomeNote: note || q.outcomeNote,
+        resolvedAt: nextStatus === 'resolved' || nextStatus === 'addressed' ? now : q.resolvedAt,
       };
     }
     return q;
@@ -967,11 +969,15 @@ export function updateCaseQuestionOutcome(
 
   if (!found) return false;
 
+  const eventLabel = (nextStatus === 'resolved' || nextStatus === 'addressed')
+    ? 'Physician Question Resolved'
+    : `Question: ${nextStatus.toUpperCase()}`;
+
   const eventUpdate: CaseUpdate = {
     id: id(),
     date: now,
-    label: status === 'addressed' ? 'Physician Question Resolved' : 'Clinical Question Deferred',
-    note: `"${targetQuestionText}" → ${outcomeNote}`,
+    label: eventLabel,
+    note: note ? `"${targetQuestionText}": ${note}` : `"${targetQuestionText}" → ${nextStatus}`,
   };
 
   const updated: CaseItem = {
@@ -984,6 +990,15 @@ export function updateCaseQuestionOutcome(
   save(cases.map((c, i) => i === idx ? updated : c));
   window.dispatchEvent(new Event('hc_cases_updated'));
   return true;
+}
+
+export function updateCaseQuestionOutcome(
+  caseId: string,
+  questionId: string,
+  status: 'addressed' | 'deferred',
+  outcomeNote: string
+): boolean {
+  return transitionCaseQuestionLifecycle(caseId, questionId, status, outcomeNote);
 }
 
 export function clearCaseEngineCache() {

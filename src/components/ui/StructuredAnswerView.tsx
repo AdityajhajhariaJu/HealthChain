@@ -443,6 +443,55 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               </div>
             ))}
 
+            {/* CONTRADICTION QUEUE (Step 9 Item 4 & Point 10 Gap 2) */}
+            {layer3_otherExplanations.contradictionQueue && layer3_otherExplanations.contradictionQueue.length > 0 && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ fontWeight: 800, fontSize: '11px', color: '#B91C1C', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                  <span>⚠️ Contradiction Queue: Record Discrepancies</span>
+                  <span style={{ background: '#FEE2E2', color: '#991B1B', padding: '1px 6px', borderRadius: '4px', fontSize: '10px' }}>
+                    {layer3_otherExplanations.contradictionQueue.length} Flagged
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {layer3_otherExplanations.contradictionQueue.map((contra) => (
+                    <div 
+                      key={contra.id}
+                      style={{
+                        background: '#FFF5F5',
+                        border: '1.5px solid #FECACA',
+                        borderRadius: '12px',
+                        padding: '12px 14px',
+                      }}
+                    >
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#991B1B', marginBottom: '6px' }}>
+                        {contra.topic}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                        <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FCA5A5' }}>
+                          <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#7F1D1D', textTransform: 'uppercase', marginBottom: '2px' }}>
+                            Finding A • {contra.itemA.source} {contra.itemA.date ? `(${contra.itemA.date})` : ''}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#1E293B', fontWeight: 600 }}>{contra.itemA.finding}</div>
+                        </div>
+                        <div style={{ background: '#FFFFFF', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FCA5A5' }}>
+                          <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#7F1D1D', textTransform: 'uppercase', marginBottom: '2px' }}>
+                            Finding B • {contra.itemB.source} {contra.itemB.date ? `(${contra.itemB.date})` : ''}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#1E293B', fontWeight: 600 }}>{contra.itemB.finding}</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#7F1D1D', marginBottom: '4px', lineHeight: 1.4 }}>
+                        <strong>Clinical significance:</strong> {contra.clinicalSignificance}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#0369A1', background: '#F0F9FF', padding: '6px 8px', borderRadius: '6px', border: '1px solid #BAE6FD' }}>
+                        <strong>What to ask clinician:</strong> {contra.resolutionNeed}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Epistemic relationship status replacements */}
             <div style={{ fontWeight: 800, fontSize: '11px', color: '#9A3412', textTransform: 'uppercase', marginTop: '4px' }}>
               Connection Statuses (Replacing "Everything Is Connected")

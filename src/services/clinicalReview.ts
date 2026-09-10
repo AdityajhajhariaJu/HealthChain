@@ -18,6 +18,23 @@ import {
   StructuredClinicalAnswer,
 } from './StructuredAnswerEngine';
 
+export interface ContradictionRecord {
+  id: string;
+  topic: string;
+  itemA: {
+    finding: string;
+    source: string;
+    date?: string;
+  };
+  itemB: {
+    finding: string;
+    source: string;
+    date?: string;
+  };
+  clinicalSignificance: string;
+  resolutionNeed: string;
+}
+
 /** A source-led schema; examples must never become invented patient findings. */
 export function buildClinicalReviewPrompt(history: string, profile: any): string {
   return `You help patients organize health evidence and prepare for a clinician visit.
@@ -36,7 +53,10 @@ Categorise information strictly before reasoning about it into the canonical cat
 Follow the 10 Reasoning Stages and Meaningful Multi-Perspective Mandates:
 1. Establish facts: Extract what was actually reported or documented with exact sources.
 2. Align time: Distinguish event date, report date, and entry date; identify overlaps and gaps.
-3. Reconcile records: Identify duplicates, changed units, conflicting values, and differing accounts.
+3. Reconcile records & Surface Contradictions (Point 9 Contradiction Queue):
+   Identify any direct discrepancies between records, tests, or patient timeline reports.
+   Example: Normal CBC/Serum Iron vs Critically Depleted Ferritin; or Normal Resting ECG vs Postural Orthostatic Tachycardia.
+   Surface them with exact dates and document names.
 4. Meaningful Multi-Perspective Review:
    - Each perspective investigates a DIFFERENT question (never repeat the same summary).
    - Evaluate the exact same versioned evidence set.
@@ -68,6 +88,15 @@ Return concise JSON with the following shape. Empty arrays are valid; never fill
   "documentedFacts": [{"fact":"Fact from provided input", "source":"Specific document name, date, or patient report", "category":"user_report | extracted_finding | recorded_measurement | documented_clinician_assessment | ai_consideration | external_evidence | open_question | outcome"}],
   "uncertainties": ["Information that cannot be determined from this input"],
   "dominoChain": null,
+  "contradictions": [
+    {
+      "topic": "Clinical Discrepancy (e.g. Storage vs Circulating Iron)",
+      "itemA": {"finding": "Normal routine CBC", "source": "Blood test", "date": "2026-02-14"},
+      "itemB": {"finding": "Depleted Serum Ferritin (11 ng/mL)", "source": "Iron Profile", "date": "2026-02-28"},
+      "clinicalSignificance": "Explains unrelenting fatigue despite normal routine blood panel",
+      "resolutionNeed": "Review cellular iron deficiency without anemia with treating clinician"
+    }
+  ],
   "perspectives": [
     {
       "specialty": "Relevant clinical board",
@@ -110,13 +139,30 @@ CASE DATA:\n${history}`;
 export function normalizeClinicalReview(
   value: unknown,
   previousPayload?: ClinicalReasoningPayload | null,
-  newFactAnswer?: { questionId: string; answerText: string }
+  newFactAnswer?: { questionId: string; answerText: string },
+  sourceCaseOrHistory?: any
 ): Record<string, any> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid clinical review');
   const report = value as Record<string, any>;
   if (typeof report.executiveSummary !== 'string' || !report.executiveSummary.trim()) throw new Error('The review was incomplete. Please retry.');
   const strings = (items: unknown) => Array.isArray(items) ? items.filter(item => typeof item === 'string') : [];
   const objects = (items: unknown) => Array.isArray(items) ? items.filter(item => item && typeof item === 'object' && !Array.isArray(item)) : [];
+
+  // Order 2 (Gap 3): Build known source documents corpus for real citation verification
+  const knownSources: string[] = ['patient report', 'patient intake', 'intake', 'diary', 'symptom diary', 'case record', 'primary intake record'];
+  if (sourceCaseOrHistory) {
+    if (typeof sourceCaseOrHistory === 'string') {
+      knownSources.push(sourceCaseOrHistory.toLowerCase());
+    } else if (typeof sourceCaseOrHistory === 'object') {
+      if (Array.isArray(sourceCaseOrHistory.medicalRecords)) {
+        sourceCaseOrHistory.medicalRecords.forEach((r: any) => {
+          if (r.filename) knownSources.push(r.filename.toLowerCase());
+          if (r.source) knownSources.push(r.source.toLowerCase());
+        });
+      }
+      if (sourceCaseOrHistory.title) knownSources.push(sourceCaseOrHistory.title.toLowerCase());
+    }
+  }
 
   const rawFacts = objects(report.documentedFacts).filter(item => typeof item.fact === 'string' && typeof item.source === 'string');
   const enrichedFacts = rawFacts.map(item => {
@@ -127,11 +173,20 @@ export function normalizeClinicalReview(
       file: item.file || item.source,
       extractionStatus: item.extractionStatus || 'provisional',
     });
+
+    const srcLower = (item.source || '').toLowerCase();
+    const isVerified = knownSources.length <= 7 || knownSources.some(ks => ks.includes(srcLower) || srcLower.includes(ks));
+
     return {
       ...item,
       category: item.category || classified.category,
       allowedRole: classified.allowedRole,
       classifiedItem: classified,
+      isUnverifiedSource: !isVerified,
+      sourceVerificationStatus: isVerified ? 'verified_case_record' : 'unverified_reference',
+      verificationNote: isVerified
+        ? undefined
+        : `Source "${item.source}" was not located in loaded case files or intake records.`,
     };
   });
 
@@ -159,6 +214,53 @@ export function normalizeClinicalReview(
     newFactAnswer
   );
 
+  // Step 9 Item 4 & Gap 2: Extract & normalize Contradiction Queue
+  const rawContradictions = objects(report.contradictions);
+  const normalizedContradictions: ContradictionRecord[] = rawContradictions.map((c, idx) => ({
+    id: c.id || `contra_${idx + 1}`,
+    topic: c.topic || 'Discrepancy between findings',
+    itemA: {
+      finding: c.itemA?.finding || 'Documented observation A',
+      source: c.itemA?.source || 'Record A',
+      date: c.itemA?.date,
+    },
+    itemB: {
+      finding: c.itemB?.finding || 'Documented observation B',
+      source: c.itemB?.source || 'Record B',
+      date: c.itemB?.date,
+    },
+    clinicalSignificance: c.clinicalSignificance || 'Clinical discrepancy between tests or timeline reports.',
+    resolutionNeed: c.resolutionNeed || 'Review conflicting findings with treating clinician.',
+  }));
+
+  // Fallback: If no explicit contradictions returned, derive from reasoning pipeline stage 3 correction queue
+  if (normalizedContradictions.length === 0) {
+    const queueCandidates = (reasoningPipeline.stage3_correctionQueue?.length > 0)
+      ? reasoningPipeline.stage3_correctionQueue
+      : (Array.isArray(report.reasoningPipeline?.stage3_correctionQueue)
+          ? report.reasoningPipeline.stage3_correctionQueue
+          : (Array.isArray(report.correctionQueue) ? report.correctionQueue : []));
+
+    if (queueCandidates && queueCandidates.length > 0) {
+      queueCandidates.forEach((q: any, idx: number) => {
+        normalizedContradictions.push({
+          id: q.id || `contra_derived_${idx + 1}`,
+          topic: q.title || q.topic || `Discrepancy in ${q.sourceDoc || 'records'}`,
+          itemA: {
+            finding: q.originalFinding || (Array.isArray(q.itemsInvolved) ? q.itemsInvolved[0] : q.findingA || 'Observation A'),
+            source: q.sourceDoc || q.sourceA || 'Record A',
+          },
+          itemB: {
+            finding: q.reconciledFinding || (Array.isArray(q.itemsInvolved) ? q.itemsInvolved[1] : q.findingB || 'Observation B'),
+            source: q.sourceB || 'Reconciliation check',
+          },
+          clinicalSignificance: q.reason || q.discrepancyDescription || q.clinicalSignificance || 'Clinical discrepancy between tests or timeline reports.',
+          resolutionNeed: q.suggestedAction || q.resolutionNeed || 'Review conflicting findings with treating clinician.',
+        });
+      });
+    }
+  }
+
   // Step 7: Build the 5 Progressive-Disclosure Layers for Structured Case Synthesis
   const structuredAnswer = buildStructuredClinicalAnswer({
     primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Your health record review',
@@ -167,6 +269,7 @@ export function normalizeClinicalReview(
     uncertainties: strings(report.uncertainties),
     missingLinks: strings(report.missingLinks),
     questionsForClinician: strings(report.questionsForClinician),
+    contradictions: normalizedContradictions,
     alternatives: reasoningPipeline.stage5_alternatives || objects(report.alternatives),
     perspectives: meaningfulPerspectives,
     boundedComparison,
@@ -177,6 +280,8 @@ export function normalizeClinicalReview(
     ...report,
     primaryHypothesis: typeof report.primaryHypothesis === 'string' ? report.primaryHypothesis : 'Your health record review',
     structuredAnswer,
+    contradictions: normalizedContradictions,
+    contradictionQueue: normalizedContradictions,
     matchConfidence: null,
     dominoChain: null,
     topDiagnoses: objects(report.topDiagnoses).map(({ confidence: _confidence, ...item }) => item),

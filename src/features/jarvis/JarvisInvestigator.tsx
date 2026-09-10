@@ -18,7 +18,7 @@ import { recordHealthMemory } from '../../services/HealthMemory';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { CompilingAnimation } from '../../components/ui/CompilingAnimation';
 import { triggerHapticSelection, triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
-import { buildCaseContext } from '../../services/caseWorkspace';
+import { buildCaseContext, getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
 import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
@@ -59,7 +59,11 @@ export default function JarvisInvestigator() {
   const [copiedSbar, setCopiedSbar] = useState(false);
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
   const availableCases = useCaseWorkspace();
-  const [selectedCaseId, setSelectedCaseId] = useState(() => searchParams.get('caseId') || location.state?.caseId || '');
+  const [selectedCaseId, setSelectedCaseId] = useState(() => {
+    const preferred = searchParams.get('caseId') || location.state?.caseId || '';
+    const scope = getUnifiedCaseScope(preferred);
+    return scope.caseId || '';
+  });
   const [isReadingFiles, setIsReadingFiles] = useState(false);
   const [sourceModalData, setSourceModalData] = useState<SourcePassageModalProps | null>(null);
   const [showSovereigntyModal, setShowSovereigntyModal] = useState(false);
@@ -647,12 +651,32 @@ AI-generated preparation material. Verify against original records; this is not 
               uncertainties: report.uncertainties,
               missingLinks: report.missingLinks,
               questionsForClinician: report.questionsForClinician,
+              contradictions: report.contradictions || report.contradictionQueue,
               alternatives: report.alternatives,
               perspectives: report.meaningfulPerspectives || report.perspectives,
               boundedComparison: report.boundedComparison,
             })}
             onOpenSourceModal={(src) => setSourceModalData(src)}
           />
+
+          {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON (Point 10 Gap 1) */}
+          {(report.meaningfulPerspectives || report.perspectives)?.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '4px' }}>
+              <MeaningfulMultiPerspectiveView
+                perspectives={report.meaningfulPerspectives || report.perspectives}
+                boundedComparison={report.boundedComparison}
+              />
+            </motion.div>
+          )}
+
+          {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH PIPELINE */}
+          {report.reasoningPipeline && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '4px' }}>
+              <ClinicalReasoningPipelineView
+                payload={report.reasoningPipeline}
+              />
+            </motion.div>
+          )}
 
           {/* PART 1: THE BOTTOM LINE UP FRONT (BLUF) */}
           <motion.div 

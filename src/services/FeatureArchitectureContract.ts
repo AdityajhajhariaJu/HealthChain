@@ -573,3 +573,24 @@ export function isPermissiblePipelineHandoff(fromId: FeatureId, toId: FeatureId)
   if (!contract) return false;
   return contract.downstreamHandoffs.some((handoff) => handoff.targetFeatureId === toId);
 }
+
+/**
+ * Canonical Feature Registry prompt for Ava and AI reasoning engines.
+ * Permanently resolves Point 10 Gap #8: References all 12 features by their actual names and boundaries.
+ */
+export function getCanonicalFeatureRegistryPrompt(): string {
+  const contracts = getAllFeatureContracts();
+  const lines = [
+    'CANONICAL 12-FEATURE ARCHITECTURE CONTRACT (Strictly respect each feature’s sole responsibility):'
+  ];
+  contracts.forEach((c, idx) => {
+    lines.push(
+      `${idx + 1}. ${c.name} (${c.shortLabel}) [Stage: ${c.pipelineStage}]`
+      + `\n   - Question it answers: "${c.uniqueQuestion}"`
+      + `\n   - Owns: ${c.owns}`
+      + `\n   - Produces: ${c.produces}`
+      + `\n   - Must NEVER duplicate: ${c.mustNotDuplicate}`
+    );
+  });
+  return lines.join('\n');
+}
