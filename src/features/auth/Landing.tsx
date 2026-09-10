@@ -22,7 +22,9 @@ import {
   FileText,
   Eye,
   ShieldCheck,
-  Play
+  Play,
+  Layers,
+  ShieldAlert
 } from 'lucide-react';
 import { motion, useInView, animate, AnimatePresence } from 'framer-motion';
 import { setActiveCase } from '../../services/CaseEngine';
@@ -33,6 +35,12 @@ import { getActiveSession } from '../../services/authSession';
 import { supabase } from '../../services/supabaseClient';
 import { trackPageView, trackButtonClick } from '../../services/analytics';
 import { triggerHapticLight } from '../../services/haptics';
+import { 
+  getLandingWorkflowScenarios, 
+  instantiateWorkflowCase, 
+  LandingWorkflowScenario 
+} from '../../services/LandingCaseWorkflowEngine';
+import { LandingWorkflowReasoningModal } from '../../components/ui/LandingWorkflowReasoningModal';
 
 const SYMPTOM_PRESETS = [
   { label: '⚡ Chronic Fatigue', symptom: 'Unexplained chronic fatigue, unrefreshing sleep, and low afternoon energy', specialist: 'endo' },
@@ -388,6 +396,25 @@ export default function Landing() {
     }, 900);
   };
 
+  const [inspectingScenario, setInspectingScenario] = useState<LandingWorkflowScenario | null>(null);
+
+  const handleLaunchWorkflowScenario = (scenarioId: string) => {
+    triggerHapticLight();
+    trackButtonClick('Launch Workflow Case', scenarioId);
+    setIsNavigating(true);
+    
+    if (!hasSession && !guestMode) {
+      try { localStorage.setItem('hc_guest_mode', 'true'); } catch(e) {}
+    }
+
+    const newCase = instantiateWorkflowCase(scenarioId);
+    
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    navTimerRef.current = setTimeout(() => {
+      navigate(`/app/cases/${encodeURIComponent(newCase.id)}`);
+    }, 600);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -409,9 +436,10 @@ export default function Landing() {
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
   };
 
+  const workflowScenarios = getLandingWorkflowScenarios();
   const filteredCaseCards = selectedCaseFilter === 'all'
-    ? RANKED_CASES
-    : RANKED_CASES.filter((c) => c.category === selectedCaseFilter);
+    ? workflowScenarios
+    : workflowScenarios.filter((c) => c.category === selectedCaseFilter);
 
   return (
     <div className={styles.container}>
@@ -1281,16 +1309,19 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 4. Illustrative case workflows */}
+      {/* 4. Illustrative case workflows - Step 6 Useful Reasoning */}
       <section className={styles.casesSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.categoryBadge}>
-            <Brain size={13} /> ILLUSTRATIVE CASE WORKFLOWS
+        <div className={styles.workflowSectionHeader}>
+          <div className={styles.workflowBadgeBanner}>
+            <Brain size={14} /> USEFUL REASONING • WORKFLOW DESIGNS
           </div>
           <h2 className={styles.sectionTitle}>When the story is complex, organize the questions</h2>
-          <p className={styles.sectionSubtitle}>
+          <p className={styles.sectionSubtitle} style={{ marginBottom: 6 }}>
             Explore clearly labeled examples of turning symptoms, dates, measurements, and records into a reviewable case for a clinician visit.
           </p>
+          <div className={styles.workflowMandatoryDisclaimer}>
+            "These are workflow designs using the illustrated scenarios, not conclusions about a patient."
+          </div>
         </div>
 
         {/* Case Cards Grid / Feed */}
@@ -1298,18 +1329,8 @@ export default function Landing() {
           {filteredCaseCards.map((item, idx) => (
             <motion.div
               key={item.id}
-              role="button"
-              tabIndex={0}
-              aria-label={`Explore case: ${item.title}. ${item.desc}`}
               className={`${styles.caseCard} ${idx === 0 ? styles.caseCardTop1 : idx === 1 ? styles.caseCardTop2 : idx === 2 ? styles.caseCardTop3 : ''}`}
               whileHover={{ y: -2 }}
-              onClick={() => handleStartInvestigation(`case_${item.id}`, item.symptom, item.specId)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleStartInvestigation(`case_${item.id}`, item.symptom, item.specId);
-                }
-              }}
             >
               <div className={`${styles.caseRankBadge} ${idx === 0 ? styles.caseRank1 : idx === 1 ? styles.caseRank2 : idx === 2 ? styles.caseRank3 : ''}`}>
                 {item.rank}
@@ -1320,19 +1341,76 @@ export default function Landing() {
                     <span className={styles.caseIcon}>{item.icon}</span>
                     <h3 className={styles.caseTitle}>{item.title}</h3>
                   </div>
-                  <span className={styles.caseMatchScore}>{item.score}</span>
+                  <span className={styles.caseMatchScore}>Workflow Design</span>
                 </div>
-                <p className={styles.caseDesc}>{item.desc}</p>
+
+                <div className={styles.workflowCardColumns}>
+                  {/* Pillar 1: What to Connect */}
+                  <div className={styles.workflowConnectSection}>
+                    <div className={styles.workflowConnectTitle}>
+                      <Layers size={13} color="#059669" />
+                      <span>What to connect (Multi-Modal Inputs)</span>
+                    </div>
+                    <div className={styles.workflowConnectPills}>
+                      {item.whatToConnect.map((conn, cIdx) => (
+                        <span key={cIdx} className={styles.workflowConnectPill}>
+                          <span>{conn.icon}</span>
+                          <span>{conn.tag}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pillar 2: What to Keep Separate */}
+                  <div className={styles.workflowBoundaryBox}>
+                    <div className={styles.workflowBoundaryTitle}>
+                      <ShieldAlert size={14} color="#D97706" />
+                      <span>What to keep separate (Epistemic Boundary)</span>
+                    </div>
+                    <div className={styles.workflowBoundaryContent}>
+                      <strong>{item.epistemicBoundary.boundaryTitle}:</strong> {item.epistemicBoundary.whatToKeepSeparate}
+                    </div>
+                  </div>
+
+                  {/* Pillar 3: Valuable Final Output */}
+                  <div className={styles.workflowOutputBox}>
+                    <div className={styles.workflowOutputTitle}>
+                      <Sparkles size={13} color="#166534" />
+                      <span>Valuable final output (Doctor-Ready Preparation)</span>
+                    </div>
+                    <div className={styles.workflowOutputQuote}>
+                      "{item.valuableOutput.clinicianQuote}"
+                    </div>
+                  </div>
+                </div>
+
                 <div className={styles.caseCardFooter}>
                   <div className={styles.caseSpecialistMeta}>
                     <span className={styles.caseSpecialistLabel}>🔬 {item.specialistTag}</span>
                     <span>•</span>
-                    <span>{item.meta}</span>
+                    <span>Workflow design · not conclusions about a patient</span>
                   </div>
-                  <span className={styles.caseActionLink}>
-                    <span>Test with your symptoms</span>
-                    <ArrowRight size={13} />
-                  </span>
+                  <div className={styles.workflowCardButtons}>
+                    <button
+                      type="button"
+                      className={styles.workflowInspectBtn}
+                      onClick={() => {
+                        triggerHapticLight();
+                        setInspectingScenario(item);
+                      }}
+                    >
+                      <Eye size={13} />
+                      <span>Inspect Reasoning Design</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.workflowLaunchBtn}
+                      onClick={() => handleLaunchWorkflowScenario(item.id)}
+                    >
+                      <span>Try with this scenario</span>
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -1477,6 +1555,13 @@ export default function Landing() {
           <p>© {new Date().getFullYear()} HealthChain360.ai. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Step 6: Workflow Reasoning Design Modal */}
+      <LandingWorkflowReasoningModal
+        scenario={inspectingScenario}
+        onClose={() => setInspectingScenario(null)}
+        onLaunchCase={handleLaunchWorkflowScenario}
+      />
     </div>
   );
 }
