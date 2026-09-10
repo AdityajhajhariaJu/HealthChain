@@ -8,6 +8,8 @@ if (!import.meta.env.VITE_SUPABASE_URL && !import.meta.env.DEV) {
   console.error('CRITICAL: VITE_SUPABASE_URL environment variable is not configured. Supabase cloud features will fail.');
 }
 
+class MockWebSocket {}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -17,4 +19,5 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: typeof window !== 'undefined' ? safariSafeAuthStorage : undefined,
     flowType: 'implicit',
   },
+  ...(typeof WebSocket === 'undefined' ? { realtime: { transport: MockWebSocket as any } } : {})
 });
