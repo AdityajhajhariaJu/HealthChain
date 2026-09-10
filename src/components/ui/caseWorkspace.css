@@ -32,7 +32,6 @@
 .connected-experience button:not(.ava-composer button) { min-height:44px; }
 .connected-experience textarea:not(.ava-composer textarea) { resize:vertical; line-height:1.6; }
 .case-context-select { display:block; width:100%; min-height:44px; border:1px solid #cbd5e1; border-radius:10px; background:white; padding:10px; color:#0f172a; margin:8px 0; font:inherit; }
-.ava-more-tools { background:transparent; border:0; color:#115e59; text-decoration:underline; font-size:12px; margin-top:4px; }
 @media (max-width:900px) { .case-workspace-continuity { grid-template-columns:1fr; } .case-workspace-continuity ol { justify-content:space-between; } }
 @media (max-width:640px) { .case-workspace { padding:18px 14px; } .case-workspace-grid { grid-template-columns:1fr; } .case-workspace-tile { gap:6px; padding:14px; } .case-workspace-continuity li { min-width:54px; } }
 @media (prefers-reduced-motion:reduce) { .connected-experience *, .case-workspace * { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
