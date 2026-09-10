@@ -47,8 +47,8 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
     refreshData();
   }, [completedHabits]);
 
-  const totalHabits = 3;
-  const doneHabitsCount = ['hydration', 'calm_reset', 'vitamins'].filter(k => completedHabits[k]).length;
+  const totalHabits = 2;
+  const doneHabitsCount = ['hydration', 'vitamins'].filter(k => completedHabits[k]).length;
   const habitPercent = Math.round((doneHabitsCount / totalHabits) * 100);
 
   const handleClaimMystery = (e: React.MouseEvent) => {

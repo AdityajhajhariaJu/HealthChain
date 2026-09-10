@@ -29,8 +29,7 @@ import {
   Pill,
   Plus,
   FileText,
-  GitMerge,
-  BrainCircuit
+  GitMerge
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -72,11 +71,6 @@ const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomar
     summary: 'Activates intravascular blood volume expansion.',
     detail: 'Rapid hydration upon waking offsets overnight hemoconcentration, lowering resting sympathetic tone and supporting renal clearance of inflammatory markers.',
     biomarker: 'Osmolality / Cortisol'
-  },
-  calm_reset: {
-    summary: 'Engages aortic arch baroreceptors for parasympathetic tone.',
-    detail: 'Controlled rhythmic respiration dampens adrenergic surges, boosting High-Frequency Heart Rate Variability (HF-HRV) and lowering acute autonomic stress.',
-    biomarker: 'RMSSD / Vagal Tone'
   },
   vitamins: {
     summary: 'Saturates essential mitochondrial coenzymes.',
@@ -227,57 +221,6 @@ export default function CaseDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
             <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  navigate('/app/ava', {
-                    state: {
-                      initialPrompt: 'Hi Ava, I would like to do a quick clinical health check-in. Can you review my day and recent biomarkers?'
-                    }
-                  });
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
-                  color: '#FFFFFF',
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)'
-                }}
-              >
-                <Sparkles size={14} color="#38BDF8" /> Ask Ava
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  navigate('/app/consult');
-                }}
-                aria-label="Open Clinical Data Engine"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                  color: '#FFFFFF',
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
-                }}
-              >
-                <BrainCircuit size={14} color="#FFF" /> Clinical Engine
-              </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                 <LivingHeartIcon size={16} color="#F43F5E" />
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
@@ -808,184 +751,7 @@ export default function CaseDashboard() {
                 </AnimatePresence>
               </motion.div>
 
-              {/* Habit 2: Calm Reset */}
-              <motion.div 
-                role="button"
-                tabIndex={0}
-                aria-label={`Calm Space Reset - ${completedHabits['calm_reset'] ? 'Completed' : 'Tap to start reset'}`}
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                onClick={() => {
-                  triggerHapticLight();
-                  toggleHabit('calm_reset', 'Calm Space Reset');
-                  if (!completedHabits['calm_reset']) {
-                    setActiveMeditation({
-                      id: 'm1',
-                      category_id: 'meditation',
-                      is_active: true,
-                      type: 'meditation',
-                      title: 'Full Meditation',
-                      subtitle: 'Immersive audio journey',
-                      description: 'Our most complete meditation experience.',
-                      cover_image_url: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80',
-                      audio_url: '',
-                      video_url: '',
-                      duration_minutes: 30,
-                      calories_estimate: 0,
-                      difficulty: 'Beginner',
-                      equipment: [],
-                      is_premium: false,
-                      is_featured: true
-                    });
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    triggerHapticLight();
-                    toggleHabit('calm_reset', 'Calm Space Reset');
-                  }
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
-                  backdropFilter: 'blur(32px)', 
-                  WebkitBackdropFilter: 'blur(32px)', 
-                  border: completedHabits['calm_reset'] ? '1.5px solid #10B981' : '1px solid rgba(255, 255, 255, 0.85)', 
-                  boxShadow: completedHabits['calm_reset'] 
-                    ? '0 20px 40px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.95)' 
-                    : '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
-                  cursor: 'pointer',
-                  transition: 'border 0.3s ease, box-shadow 0.3s ease'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ 
-                    width: isMobile ? '38px' : '44px', 
-                    height: isMobile ? '38px' : '44px', 
-                    minWidth: isMobile ? '38px' : '44px', 
-                    minHeight: isMobile ? '38px' : '44px', 
-                    flexShrink: 0,
-                    borderRadius: '50%', 
-                    background: completedHabits['calm_reset'] 
-                    ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' 
-                    : 'linear-gradient(135deg, rgba(45, 212, 191, 0.2) 0%, rgba(20, 184, 166, 0.1) 100%)', 
-                    boxShadow: completedHabits['calm_reset'] ? '0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255,255,255,0.4)' : 'inset 0 1px 0 rgba(255,255,255,0.6)',
-                    border: completedHabits['calm_reset'] ? 'none' : '1px solid rgba(45, 212, 191, 0.3)',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    transition: 'all 0.3s ease'
-                  }}>
-                    {completedHabits['calm_reset'] ? (
-                      <Check size={isMobile ? 18 : 20} color="#FFF" />
-                    ) : (
-                      <Wind size={isMobile ? 18 : 20} color="#0D9488" />
-                    )}
-                  </div>
-                  <div 
-                    className="tabular-nums micro-badge"
-                    style={{ 
-                      background: completedHabits['calm_reset'] ? '#DCFCE7' : 'rgba(45, 212, 191, 0.15)', 
-                      color: completedHabits['calm_reset'] ? '#15803D' : '#0F766E', 
-                      padding: '3px 8px', 
-                      borderRadius: '999px',
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      letterSpacing: '0.4px',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0
-                    }}
-                  >
-                    {completedHabits['calm_reset'] ? '✓ +2 PTS' : 'MINDFUL'}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                    {completedHabits['calm_reset'] ? 'Mind Reset 🧘' : 'Calm Space'}
-                  </h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['calm_reset'] ? '#10B981' : '#64748B', margin: '0 0 6px', fontWeight: 500, lineHeight: 1.3 }}>
-                    {completedHabits['calm_reset'] ? 'HRV baroreflex tuned' : '5-min nervous reset'}
-                  </p>
-
-                  <button
-                    type="button"
-                    data-compact="true"
-                    onClick={(e) => toggleRationale('calm_reset', e)}
-                    aria-label="Toggle clinical rationale for calm reset"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: expandedRationale === 'calm_reset' ? 'rgba(13, 148, 136, 0.18)' : 'rgba(13, 148, 136, 0.08)',
-                      border: '1px solid rgba(13, 148, 136, 0.25)',
-                      borderRadius: '6px',
-                      padding: '2px 7px',
-                      fontSize: '10px',
-                      fontWeight: 600,
-                      color: '#0D9488',
-                      cursor: 'pointer',
-                      minWidth: 'unset',
-                      minHeight: 'unset',
-                      height: 'auto',
-                      width: 'fit-content',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <Info size={10} />
-                    <span>Science</span>
-                    <ChevronDown 
-                      size={10} 
-                      style={{ 
-                        transform: expandedRationale === 'calm_reset' ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease'
-                      }} 
-                    />
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {expandedRationale === 'calm_reset' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      transition={{ type: 'spring', damping: 26, stiffness: 280 }}
-                      style={{
-                        overflow: 'hidden',
-                        background: 'rgba(255, 255, 255, 0.94)',
-                        backdropFilter: 'blur(16px)',
-                        borderRadius: '14px',
-                        padding: '8px 10px',
-                        border: '1px solid rgba(45, 212, 191, 0.3)',
-                        boxShadow: '0 4px 12px rgba(13, 148, 136, 0.08), inset 0 1px 0 rgba(255,255,255,0.95)'
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
-                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                          Mechanism
-                        </span>
-                        <span className="tabular-nums" style={{ fontSize: '9px', fontWeight: 700, color: '#64748B' }}>
-                          {HABIT_RATIONALES.calm_reset.biomarker}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '10.5px', color: '#334155', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                        {HABIT_RATIONALES.calm_reset.detail}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* Habit 3: Daily Vitamins / Micronutrients */}
+              {/* Habit 2: Daily Vitamins / Micronutrients */}
               <motion.div 
                 role="button"
                 tabIndex={0}
@@ -1017,7 +783,6 @@ export default function CaseDashboard() {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   minHeight: isMobile ? '125px' : '140px',
-                  gridColumn: 'span 2',
                   cursor: 'pointer',
                   transition: 'border 0.3s ease, box-shadow 0.3s ease'
                 }}
