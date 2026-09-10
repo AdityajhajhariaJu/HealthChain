@@ -14,6 +14,7 @@ import SnapshotViewer from './SnapshotViewer';
 import DDxBoard from './DDxBoard';
 import InvestigationBoard from '../../components/ui/InvestigationBoard';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
+import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
@@ -486,7 +487,12 @@ export default function CaseDetail() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, alignSelf: isMobile ? 'flex-end' : 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, alignSelf: isMobile ? 'flex-end' : 'center', flexWrap: 'wrap' }}>
+                      <InformationCategoryBadge
+                        category="extracted_finding"
+                        item={{ extractionStatus: 'checked', originalFile: record.filename, page: 1 }}
+                        size="sm"
+                      />
                       <span className="badge" style={{ background: '#E2E8F0', color: '#334155', textTransform: 'capitalize' }}>
                         {record.type || 'Report'}
                       </span>

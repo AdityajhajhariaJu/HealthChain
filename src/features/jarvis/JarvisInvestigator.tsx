@@ -23,6 +23,7 @@ import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
 import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
+import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import '../../components/ui/caseWorkspace.css';
 
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
@@ -422,11 +423,29 @@ AI-generated preparation material. Verify against original records; this is not 
           {report.documentedFacts?.length > 0 && (
             <div className="case-workspace-next">
               <h3>What the input documents</h3>
+              {report.categorizedSummary && (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '8px 0 12px 0' }}>
+                  {Object.entries(report.categorizedSummary).map(([cat, count]: [any, any]) => {
+                    if (!count || count <= 0) return null;
+                    return (
+                      <span key={cat} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <InformationCategoryBadge category={cat} size="sm" />
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>({count})</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               <ul>
                 {report.documentedFacts.map((fact: any, index: number) => (
                   <li key={index} style={{ padding: '10px 0' }}>
                     <div style={{ color: '#0F172A', fontWeight: 600 }}>{fact.fact}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                      <InformationCategoryBadge
+                        category={fact.category || 'extracted_finding'}
+                        item={fact.classifiedItem}
+                        size="sm"
+                      />
                       <small style={{ color: '#475569' }}>Source: {fact.source}</small>
                       <button
                         type="button"

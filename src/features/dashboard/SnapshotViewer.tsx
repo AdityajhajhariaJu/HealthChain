@@ -11,6 +11,8 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import PathwaySimulator from './PathwaySimulator';
+import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
+import { classifyClinicalInformation } from '../../services/ClinicalInformationClassifier';
 
 const formatDate = (value: string) => {
   try {
@@ -277,7 +279,25 @@ AI-generated preparation material. Verify against original records.`;
                       </p>
                     </div>
 
-                    {activeReview.report?.documentedFacts?.length > 0 && <section className="case-workspace"><h3>What the input documents</h3><ul>{activeReview.report.documentedFacts.map((fact: any, index: number) => <li key={index} style={{ marginBottom: 10 }}>{fact.fact}<small style={{ display: 'block', color: '#475569' }}>Source: {fact.source}</small></li>)}</ul></section>}
+                    {activeReview.report?.documentedFacts?.length > 0 && (
+                      <section className="case-workspace">
+                        <h3>What the input documents</h3>
+                        <ul>
+                          {activeReview.report.documentedFacts.map((fact: any, index: number) => {
+                            const cat = fact.category || classifyClinicalInformation({ text: fact.fact, source: fact.source }).category;
+                            return (
+                              <li key={index} style={{ marginBottom: 12 }}>
+                                <div style={{ color: '#0F172A', fontWeight: 600 }}>{fact.fact}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                                  <InformationCategoryBadge category={cat} size="sm" />
+                                  <small style={{ color: '#475569' }}>Source: {fact.source}</small>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    )}
                     {activeReview.report?.uncertainties?.length > 0 && <section className="case-workspace"><h3>What remains uncertain</h3><ul>{activeReview.report.uncertainties.map((entry: string, index: number) => <li key={index}>{entry}</li>)}</ul></section>}
                     {activeReview.report?.questionsForClinician?.length > 0 && <section className="case-workspace"><h3>Questions for your clinician</h3><ol>{activeReview.report.questionsForClinician.map((entry: string, index: number) => <li key={index} style={{ marginBottom: 10 }}>{entry}</li>)}</ol></section>}
                     {activeReview.report?.dominoChain && (
