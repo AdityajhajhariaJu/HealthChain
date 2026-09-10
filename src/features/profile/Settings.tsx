@@ -454,7 +454,7 @@ export default function Settings() {
                   </span>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Automated everyday notification to log symptoms, energy & protect your streak.
+                  An optional reminder to record symptoms and energy. Missing a day never removes progress.
                 </div>
               </div>
               <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>

@@ -7,9 +7,9 @@ export function VitalityNav() {
   const location = useLocation();
 
   const tabs = [
-    { id: 'today', label: 'For You', path: '/app/today' },
-    { id: 'progress', label: 'Progress', path: '/app/progress' },
-    { id: 'trophies', label: 'Trophies', path: '/app/trophies' }
+    { id: 'today', label: 'Today', path: '/app/today' },
+    { id: 'progress', label: 'Recorded activity', path: '/app/progress' },
+    { id: 'trophies', label: 'Milestones', path: '/app/trophies' }
   ];
 
   return (

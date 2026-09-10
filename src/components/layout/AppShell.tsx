@@ -200,7 +200,7 @@ export default function AppShell() {
       } else if (location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult')) {
         metaThemeColor.setAttribute('content', '#FFF7ED'); // Warm amber clinical
       } else {
-        metaThemeColor.setAttribute('content', '#F0FDFA'); // Light teal default
+        metaThemeColor.setAttribute('content', '#FFF7F2'); // Peach product foundation
       }
     }
 
@@ -964,7 +964,7 @@ function BrandPulseBanner() {
     },
     {
       quote: 'HealthChain360.ai isn\'t a one-off search engine.',
-      sub: 'It is a persistent, AI-driven medical detective that stays on the case until the mystery is actually solved.',
+      sub: 'It keeps your evidence, open questions, appointment preparation, and clinician outcomes connected as your case changes.',
     },
   ];
   const [active, setActive] = useState(0);

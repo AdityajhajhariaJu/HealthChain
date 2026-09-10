@@ -703,7 +703,7 @@ export default function Dietician() {
       if (data && data.guardrails) {
         if (isMounted.current) setGuardrails(data.guardrails);
         updateProfileFeatureData('dietician', { guardrails: data.guardrails });
-        awardPoints(10, 'Calibrated Clinical Nutritional Guardrails', 'lifestyle', `guardrails_${Date.now()}`);
+        awardPoints(10, 'Created Food-Planning Guardrails', 'lifestyle', `guardrails_${Date.now()}`);
         triggerHapticSuccess();
       } else {
         toast.error('Generation Failed', 'Could not synthesize medical guardrails. Please try again.');
@@ -739,7 +739,7 @@ export default function Dietician() {
       if (plan) {
         if (isMounted.current) {
           setMealPlan(plan);
-          awardPoints(15, 'Generated 7-Day Precision Clinical Nutrition Plan', 'lifestyle', `diet_plan_${Date.now()}`);
+          awardPoints(15, 'Created Editable 7-Day Meal Example', 'lifestyle', `diet_plan_${Date.now()}`);
           triggerHapticSuccess();
           recordTrialUsage('dietician');
         }
@@ -864,7 +864,7 @@ export default function Dietician() {
                 </span>
               </div>
               <p style={{ fontSize: '14.5px', color: '#64748B', margin: '2px 0 0 0', fontWeight: 500 }}>
-                Precision metabolic nutrition adapted to your conditions & biomarkers.
+                Editable meal examples, food logs, and condition-aware questions in one place.
               </p>
             </div>
           </div>
@@ -1287,10 +1287,10 @@ export default function Dietician() {
             >
               <div>
                 <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  7-Day Precision Meal Plan
+                  Editable 7-Day Meal Example
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Tailored for {profile.cuisine} cuisine, {profile.targetCalories} kcal target &amp; your medical guardrails.
+                  An AI-generated starting point for {profile.cuisine} preferences and an estimated {profile.targetCalories} kcal target.
                 </p>
               </div>
 
@@ -1346,7 +1346,7 @@ export default function Dietician() {
                       triggerHapticLight();
                       navigate('/app/ava', {
                         state: {
-                          initialPrompt: `I generated a 7-day personalized clinical nutrition plan. Can you review it with respect to my medical conditions, daily target of ${profile?.targetCalories || 2000} kcal, and dietary preferences?`
+                          initialPrompt: `I generated an editable 7-day meal example with an estimated daily target of ${profile?.targetCalories || 2000} kcal. Please review it as a planning aid, identify assumptions and missing information, and list questions for a clinician or registered dietitian. Do not describe it as a prescription.`
                         }
                       });
                     }}
@@ -1391,11 +1391,18 @@ export default function Dietician() {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={16} /> {mealPlan ? 'Regenerate Plan' : 'Generate 7-Day Plan'}
+                      <Sparkles size={16} /> {mealPlan ? 'Regenerate Example' : 'Create 7-Day Example'}
                     </>
                   )}
                 </button>
               </div>
+            </div>
+
+            <div role="note" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', margin: '-4px 0 20px', padding: '13px 15px', borderRadius: '14px', background: '#FFF7F2', border: '1px solid #F8D8C6', color: '#7C2D12' }}>
+              <Info size={18} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+              <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.55 }}>
+                <strong>Editable planning aid.</strong> Portions, calories, and nutrients are estimates. Verify packaged-food labels and review condition-specific restrictions, allergies, pregnancy needs, kidney disease, diabetes treatment, or eating-disorder concerns with a qualified clinician or registered dietitian.
+              </p>
             </div>
 
             {!mealPlan ? (
@@ -1813,7 +1820,7 @@ export default function Dietician() {
                     {isGeneratingGuardrails ? (
                       <><Loader2 size={15} className="spin" /> Synthesizing...</>
                     ) : (
-                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Recalibrate Guardrails' : 'Initialize Matrix'}</>
+                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Update Guardrails' : 'Create Guardrails'}</>
                     )}
                   </button>
                 </div>
@@ -1826,7 +1833,7 @@ export default function Dietician() {
                   </div>
                   <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>Matrix Offline</h3>
                   <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                    Generate your personalized safety guardrails to ensure your meal plan strictly adheres to your clinical needs and conditions.
+                    Create editable planning guardrails from the information you entered. These are AI suggestions, not confirmation that a meal is safe or clinically appropriate.
                   </p>
                   <button onClick={handleGenerateGuardrails} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 800, fontSize: '15px', cursor: 'pointer' }}>
                     Initialize Matrix
@@ -1985,7 +1992,7 @@ export default function Dietician() {
                         Log Meal / Nutrition
                       </h3>
                       <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
-                        Powered by Gemini AI Precision Nutrition
+                        AI-assisted estimates • verify labels and portions
                       </span>
                     </div>
                   </div>
@@ -2205,7 +2212,7 @@ export default function Dietician() {
                   >
                     {isAnalyzingFood ? (
                       <>
-                        <Loader2 size={18} className="spin" /> Analyzing Precision Nutrition...
+                        <Loader2 size={18} className="spin" /> Estimating meal details…
                       </>
                     ) : (
                       'Analyze & Log Meal (+2 PTS)'

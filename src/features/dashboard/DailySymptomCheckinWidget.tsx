@@ -182,9 +182,9 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
     trackFeatureUsed('daily_checkin', { symptom: selectedSymptom, severity: option.label, score: option.score });
 
     if (streakDays + 1 === 3) {
-      awardPoints(5, '🔥 3-Day Rhythm Streak Milestone', 'streak', `streak_3_${todayStr}`);
+      awardPoints(5, 'Three Check-ins Recorded', 'streak', `streak_3_${todayStr}`);
     } else if (streakDays + 1 === 7) {
-      awardPoints(15, '🌟 7-Day Horizon Master Milestone', 'milestone', `streak_7_${todayStr}`);
+      awardPoints(15, 'Seven Check-ins Recorded', 'milestone', `streak_7_${todayStr}`);
     }
 
     if (onCheckinComplete) onCheckinComplete(entry);
@@ -264,9 +264,9 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
           </div>
         </div>
 
-        {/* Right Action Area: Streak & Everyday Reminder Pill */}
+        {/* Right Action Area: recent logging rhythm and reminder */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          {/* Aligned Streak Pill */}
+          {/* Logging rhythm is descriptive and never punishes a missed day. */}
           <div
             style={{
               display: 'inline-flex',
@@ -284,7 +284,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
             }}
           >
             <Flame size={12} color={streakDays > 0 ? '#D97706' : '#94A3B8'} />
-            <span style={{ whiteSpace: 'nowrap' }}>{streakDays > 0 ? `${streakDays}d Streak` : 'Daily Log'}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>{streakDays > 0 ? `${streakDays} recent days` : 'Daily log'}</span>
           </div>
 
           {/* Everyday Reminder Pill Button */}

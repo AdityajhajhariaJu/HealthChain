@@ -283,7 +283,7 @@ export function CaseConnectionMap({
           boxShadow: '0 8px 24px rgba(13, 148, 136, 0.05)',
         }}
       >
-        {/* Node Tap Prompt Pill */}
+          {/* Capsule interaction prompt */}
         <div
           style={{
             position: 'absolute',
@@ -305,7 +305,7 @@ export function CaseConnectionMap({
           }}
         >
           <span>👆</span>
-          <span>Tap any pill for clinical deep-dive</span>
+          <span>Open a capsule to review its source and uncertainty</span>
         </div>
 
         <svg
@@ -446,11 +446,20 @@ export function CaseConnectionMap({
               return (
                 <g
                   key={node.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Recorded symptom: ${node.label || 'symptom'}`}
                   transform={`translate(${node.x}, ${node.y})`}
                   onMouseEnter={() => setHoveredNode(node.id)}
                   onMouseLeave={() => setHoveredNode(null)}
                   onClick={() => {
                     if (onSelectNode) onSelectNode(node.id);
+                  }}
+                  onKeyDown={(event) => {
+                    if ((event.key === 'Enter' || event.key === ' ') && onSelectNode) {
+                      event.preventDefault();
+                      onSelectNode(node.id);
+                    }
                   }}
                   style={{ cursor: 'pointer', transition: 'opacity 0.3s' }}
                   opacity={isFaded ? 0.15 : 1}
@@ -507,11 +516,20 @@ export function CaseConnectionMap({
             return (
               <g
                 key={node.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`AI-generated possibility: ${nodeLabel}. Open to review supporting and missing evidence.`}
                 transform={`translate(${node.x}, ${node.y})`}
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
                 onClick={() => {
                   if (onSelectNode) onSelectNode(node.id);
+                }}
+                onKeyDown={(event) => {
+                  if ((event.key === 'Enter' || event.key === ' ') && onSelectNode) {
+                    event.preventDefault();
+                    onSelectNode(node.id);
+                  }
                 }}
                 style={{ cursor: 'pointer', transition: 'all 0.3s' }}
                 opacity={isFaded ? 0.15 : 1}

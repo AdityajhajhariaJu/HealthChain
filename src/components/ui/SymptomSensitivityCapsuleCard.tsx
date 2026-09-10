@@ -46,6 +46,8 @@ export const SymptomSensitivityCapsuleCard: React.FC<SymptomSensitivityCapsuleCa
 }) => {
   return (
     <motion.div
+      role="article"
+      aria-label={`AI pattern review for ${symptomName}`}
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.25 }}
@@ -96,9 +98,13 @@ export const SymptomSensitivityCapsuleCard: React.FC<SymptomSensitivityCapsuleCa
       </div>
 
       <div style={{ padding: '14px 18px' }}>
+        <div style={{ display: 'flex', gap: '7px', alignItems: 'flex-start', padding: '9px 10px', marginBottom: '13px', borderRadius: '11px', background: '#FFF7F2', border: '1px solid #F8D8C6', color: '#9A3412' }}>
+          <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+          <span style={{ fontSize: '11px', lineHeight: 1.45 }}><strong>AI pattern review.</strong> Percentages describe overlap in available logs, not probability, sensitivity testing, or cause. Confirm important concerns with a clinician.</span>
+        </div>
         {/* Section: Sensitivities */}
         <div style={{ fontSize: '10px', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '8px' }}>
-          BIOCHEMICAL SENSITIVITIES
+          POSSIBLE PATTERN GROUPS
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
           {sensitivities.map((s) => (
@@ -111,11 +117,11 @@ export const SymptomSensitivityCapsuleCard: React.FC<SymptomSensitivityCapsuleCa
                 <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, background: '#F1F5F9', padding: '2px 6px', borderRadius: '6px' }}>
                   {s.daysTracked}d
                 </span>
-                <div style={{ width: '60px', height: '6px', borderRadius: '999px', background: '#E2E8F0', overflow: 'hidden' }}>
+                <div role="progressbar" aria-label={`${s.name} overlap in available logs`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={s.percentage} style={{ width: '60px', height: '6px', borderRadius: '999px', background: '#E2E8F0', overflow: 'hidden' }}>
                   <div style={{ width: `${s.percentage}%`, height: '100%', background: '#0D9488', borderRadius: '999px' }} />
                 </div>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F766E', minWidth: '38px', textAlign: 'right' }}>
-                  +{s.percentage}%
+                  {s.percentage}%
                 </span>
               </div>
             </div>
@@ -124,7 +130,7 @@ export const SymptomSensitivityCapsuleCard: React.FC<SymptomSensitivityCapsuleCa
 
         {/* Section: Ingredients */}
         <div style={{ fontSize: '10px', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '8px' }}>
-          CORRELATED INGREDIENTS
+          INGREDIENTS OBSERVED ALONGSIDE
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
           {ingredients.map((ing) => (
@@ -137,11 +143,11 @@ export const SymptomSensitivityCapsuleCard: React.FC<SymptomSensitivityCapsuleCa
                 <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, background: '#F1F5F9', padding: '2px 6px', borderRadius: '6px' }}>
                   {ing.daysTracked}d
                 </span>
-                <div style={{ width: '60px', height: '6px', borderRadius: '999px', background: '#E2E8F0', overflow: 'hidden' }}>
+                <div role="progressbar" aria-label={`${ing.name} overlap in available logs`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={ing.percentage} style={{ width: '60px', height: '6px', borderRadius: '999px', background: '#E2E8F0', overflow: 'hidden' }}>
                   <div style={{ width: `${ing.percentage}%`, height: '100%', background: '#D97706', borderRadius: '999px' }} />
                 </div>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#B45309', minWidth: '38px', textAlign: 'right' }}>
-                  +{ing.percentage}%
+                  {ing.percentage}%
                 </span>
               </div>
             </div>

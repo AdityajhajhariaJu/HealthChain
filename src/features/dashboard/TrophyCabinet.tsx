@@ -2,25 +2,24 @@ import { VitalityNav } from '../../components/ui/VitalityNav';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Share, X, Award, Star, Zap, Activity, MessageSquare } from 'lucide-react';
+import { Trophy, Share, X, Star, MessageSquare } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight } from '../../services/haptics';
 import { getVitalityState } from '../../services/VitalityPointsEngine';
 import { useToast } from '../../components/ui/ToastProvider';
-import VitalityPlayground from '../../components/ui/VitalityPlayground';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [
-  { slug: 'first_checkin', title: 'First Health Check-in', desc: 'Completed your first comprehensive health assessment.', icon: '🥉', color: '#F59E0B', rarity: 'Common' },
-  { slug: '3_day_streak', title: 'Consistency Streak', desc: 'Maintained a 3-day active health tracking streak.', icon: '🔥', color: '#EF4444', rarity: 'Uncommon' },
-  { slug: 'clinical_scholar', title: 'Clinical Scholar', desc: 'Explored clinical trials and research literature.', icon: '🧬', color: '#10B981', rarity: 'Rare' },
-  { slug: 'mindful_master', title: 'Autonomic Calm', desc: 'Logged 5 mindfulness minutes.', icon: '🧘', color: '#8B5CF6', rarity: 'Rare' },
-  { slug: 'early_bird', title: 'Morning Vitals', desc: 'Logged morning vitals before 9 AM.', icon: '🌅', color: '#3B82F6', rarity: 'Epic' },
-  { slug: 'night_owl', title: 'Evening Reflection', desc: 'Recorded health log and reflections after 8 PM.', icon: '🦉', color: '#6366F1', rarity: 'Epic' },
-  { slug: 'iron_lungs', title: 'Respiratory Calm', desc: 'Finished evidence-based vagal tone breathwork reset.', icon: '💨', color: '#06B6D4', rarity: 'Legendary' },
-  { slug: 'profile_complete', title: 'Master Health Dossier', desc: 'Achieved a fully comprehensive health and biomarker profile.', icon: '🛡️', color: '#F43F5E', rarity: 'Legendary' }
+  { slug: 'first_checkin', title: 'First Health Check-in', desc: 'Recorded your first health check-in.', icon: '📝', color: '#D97706', category: 'Check-in' },
+  { slug: '3_day_streak', title: 'Three Check-ins Recorded', desc: 'Recorded check-ins on three consecutive days. Missing a day never erases your history.', icon: '📅', color: '#DF7045', category: 'Continuity' },
+  { slug: 'clinical_scholar', title: 'Research Reviewed', desc: 'Opened clinical research and explored its relevance.', icon: '🧬', color: '#059669', category: 'Research' },
+  { slug: 'mindful_master', title: 'Calm Session Recorded', desc: 'Completed five minutes of a calming exercise.', icon: '🧘', color: '#7C3AED', category: 'Zen Mode' },
+  { slug: 'early_bird', title: 'Morning Vitals Recorded', desc: 'Added a morning vital reading before 9 AM.', icon: '🌅', color: '#2563EB', category: 'Record' },
+  { slug: 'night_owl', title: 'Evening Reflection Recorded', desc: 'Added a health note after 8 PM.', icon: '🌙', color: '#6366F1', category: 'Reflection' },
+  { slug: 'iron_lungs', title: 'Breathing Session Recorded', desc: 'Completed a guided breathing reset.', icon: '💨', color: '#0891B2', category: 'Zen Mode' },
+  { slug: 'profile_complete', title: 'Health Profile Organized', desc: 'Completed the core health profile fields used for case context.', icon: '🛡️', color: '#BE123C', category: 'Profile' }
 ];
 
 export const TrophyCabinet: React.FC = () => {
@@ -66,7 +65,7 @@ export const TrophyCabinet: React.FC = () => {
   };
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#8B5CF6' }}>Loading Trophies...</div>;
+    return <div role="status" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#7C3AED' }}>Loading milestones…</div>;
   }
 
   const earnedCount = earnedSlugs.size;
@@ -87,9 +86,9 @@ export const TrophyCabinet: React.FC = () => {
       {/* Header */}
       <div style={{ padding: isMobile ? '32px 24px 16px' : '48px 40px 24px' }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? '32px' : '42px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '-0.5px' }}>
-          Trophy Cabinet <Trophy size={32} color="#F59E0B" />
+          Milestones <Trophy size={32} color="#DF7045" />
         </h1>
-        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>Your lifetime achievements and milestones.</p>
+        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>A calm record of useful actions—not a measure of your health or worth.</p>
       </div>
 
       <div style={{ padding: isMobile ? '0 24px 24px' : '0 40px 40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -98,21 +97,22 @@ export const TrophyCabinet: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', backgroundColor: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A' }}>{earnedCount}/{totalCount}</div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Unlocked</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Recorded</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', borderLeft: '1px solid rgba(0,0,0,0.05)', borderRight: '1px solid rgba(0,0,0,0.05)', padding: '0 4px' }}>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#8B5CF6', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{vitalityState.tier}</div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Tier</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Activity level</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#10B981' }}>{vitalityState.points}</div>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Vitality Pts</div>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Activity points</div>
           </div>
         </div>
 
         {/* Badges Grid */}
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '24px' }}>All Badges</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Your recorded milestones</h2>
+          <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 24px' }}>They mark completed actions only. There are no random rewards, penalties, or lost progress.</p>
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
@@ -126,7 +126,7 @@ export const TrophyCabinet: React.FC = () => {
                   key={badge.slug}
                   role={isEarned ? "button" : undefined}
                   tabIndex={isEarned ? 0 : undefined}
-                  aria-label={`${badge.title} - ${isEarned ? 'Unlocked' : 'Locked'}`}
+                  aria-label={`${badge.title} - ${isEarned ? 'recorded' : 'not yet recorded'}`}
                   onKeyDown={(e) => {
                     if ((e.key === 'Enter' || e.key === ' ') && isEarned) {
                       e.preventDefault();
@@ -172,19 +172,14 @@ export const TrophyCabinet: React.FC = () => {
                   </div>
                   <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>{badge.title}</h3>
                   {isEarned ? (
-                    <span style={{ fontSize: '11px', color: badge.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{badge.rarity}</span>
+                    <span style={{ fontSize: '11px', color: badge.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{badge.category}</span>
                   ) : (
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>LOCKED</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Not yet recorded</span>
                   )}
                 </motion.div>
               );
             })}
           </div>
-        </div>
-
-        {/* Clinical Rewards Arcade & Daily Mystery Drops */}
-        <div style={{ marginTop: '32px' }}>
-          <VitalityPlayground />
         </div>
 
       </div>
@@ -254,7 +249,7 @@ export const TrophyCabinet: React.FC = () => {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `${selectedBadge.color}20`, padding: '6px 12px', borderRadius: '12px', marginBottom: '16px', border: `1px solid ${selectedBadge.color}40` }}>
                   <Star size={14} color={selectedBadge.color} fill={selectedBadge.color} />
                   <span style={{ color: selectedBadge.color, fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {selectedBadge.rarity} Achievement
+                    {selectedBadge.category} milestone
                   </span>
                 </div>
 
@@ -273,7 +268,7 @@ export const TrophyCabinet: React.FC = () => {
                     setSelectedBadge(null);
                     navigate('/app/ava', {
                       state: {
-                        initialPrompt: `I just unlocked the "${b.title}" milestone on HealthChain (${b.desc})! How does this achievement impact my clinical biomarkers and long-term health trajectory? What should my next health milestone be?`
+                        initialPrompt: `I recorded the "${b.title}" milestone on HealthChain (${b.desc}). Please summarize the underlying activity without inferring that it changed my health, and suggest one useful next step for my active case.`
                       }
                     });
                   }}
@@ -302,8 +297,8 @@ export const TrophyCabinet: React.FC = () => {
                   onClick={async () => {
                       triggerHapticLight();
                       const shareData = {
-                        title: `I unlocked the ${selectedBadge.title} badge!`,
-                        text: `I just earned the ${selectedBadge.title} achievement on HealthChain360!`,
+                        title: `My ${selectedBadge.title} milestone`,
+                        text: `I recorded the ${selectedBadge.title} milestone on HealthChain360.`,
                         url: window.location.href,
                       };
                       if (navigator.share) {
@@ -342,7 +337,7 @@ export const TrophyCabinet: React.FC = () => {
                     textShadow: '0 1px 2px rgba(0,0,0,0.2)'
                   }}
                 >
-                  <Share size={20} /> Share Achievement
+                  <Share size={20} /> Share milestone
                 </button>
               </div>
             </motion.div>

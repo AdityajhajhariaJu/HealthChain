@@ -63,31 +63,13 @@ const QUICK_ACTION_PILLS = [
     action: 'tab:detective',
   },
   {
-    id: 'suspect_foods',
-    label: 'Suspect triggers',
-    icon: '⚠️',
-    bg: '#FFF1F2',
-    color: '#BE123C',
-    border: '#FECDD3',
-    action: 'tab:suspects',
-  },
-  {
     id: 'zen_garden',
-    label: 'Zen Garden',
+    label: 'Zen Mode',
     icon: '🌸',
     bg: '#FDF4FF',
-    color: '#C026D3',
+    color: '#7C3AED',
     border: '#F5D0FE',
-    action: 'tab:garden',
-  },
-  {
-    id: 'diet_trials',
-    label: 'Diet trials',
-    icon: '🔬',
-    bg: '#ECFDF5',
-    color: '#059669',
-    border: '#A7F3D0',
-    action: 'tab:trials',
+    action: 'mindfulness',
   },
   {
     id: 'doctor_export',
@@ -99,24 +81,6 @@ const QUICK_ACTION_PILLS = [
     action: 'tab:doctor',
   },
   {
-    id: 'food_triggers',
-    label: 'Find food triggers',
-    icon: '🔬',
-    bg: '#FEF3C7',
-    color: '#B45309',
-    border: '#FDE68A',
-    prompt: "What's been triggering my bloating and food sensitivities lately?",
-  },
-  {
-    id: 'food_mood',
-    label: 'Food, sleep & mood',
-    icon: '💗',
-    bg: '#FFE4E6',
-    color: '#BE123C',
-    border: '#FECDD3',
-    prompt: 'Check in on my day: Track my food, sleep duration, and energy levels.',
-  },
-  {
     id: 'medication',
     label: 'Medication tracking',
     icon: '💊',
@@ -124,15 +88,6 @@ const QUICK_ACTION_PILLS = [
     color: '#6D28D9',
     border: '#DDD6FE',
     prompt: 'Could any of my active medications be reacting with foods I eat or causing gut symptoms?',
-  },
-  {
-    id: 'mindfulness',
-    label: 'Practice mindfulness',
-    icon: '🍃',
-    bg: '#DCFCE7',
-    color: '#15803D',
-    border: '#BBF7D0',
-    action: 'mindfulness',
   },
 ];
 
@@ -164,19 +119,19 @@ const DEFAULT_CALM_TRACK: FitnessContent = {
   category_id: 'mindfulness',
   is_active: true,
   type: 'breathwork',
-  title: 'Autonomic 4-7-8 Calm Reset',
-  subtitle: 'Parasympathetic Vagal Tone Activation',
-  description: 'Evidence-based rhythmic breathwork specifically engineered to reduce acute adrenergic stress and settle cognitive overactivation.',
+  title: 'Zen Mode: pre-visit pause',
+  subtitle: 'A five-minute guided breathing break',
+  description: 'A paced breathing exercise to help you pause before reviewing difficult information or preparing for an appointment. Stop if you feel light-headed or uncomfortable.',
   cover_image_url: '/images/nature_calm.webp',
   audio_url: 'https://cdn.freesound.org/previews/518/518888_11504996-lq.mp3',
   video_url: '',
   duration_minutes: 5,
-  calories_estimate: 15,
+  calories_estimate: 0,
   difficulty: 'Beginner',
   equipment: [],
   is_premium: false,
   is_featured: true,
-  music_genre: 'Ambient Tibetan Singing Bowl & Drone',
+  music_genre: 'Ambient soundscape',
 };
 
 const getAvaVaultKey = () => {
@@ -1340,15 +1295,15 @@ export default function AvaHealthBuddy() {
                                 </div>
                                 <div>
                                   <div style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                                    Recommended Clinical Protocol
+                                    Contextual pause
                                   </div>
                                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>
-                                    Autonomic 4-7-8 Calm Reset
+                                    Zen Mode: pre-visit pause
                                   </div>
                                 </div>
                               </div>
                               <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
-                                Vagal nerve stimulation to rapidly down-regulate sympathetic fight-or-flight arousal in 5 minutes.
+                                Take five quiet minutes before continuing. This is a comfort tool, not a treatment or measure of clinical progress.
                               </p>
                               <button
                                 onClick={() => {
@@ -1371,7 +1326,7 @@ export default function AvaHealthBuddy() {
                                   boxShadow: '0 4px 12px rgba(13, 148, 136, 0.25)',
                                 }}
                               >
-                                <Play size={15} fill="#FFF" /> Begin Calm Session Now
+                                <Play size={15} fill="#FFF" /> Open Zen Mode
                               </button>
                             </motion.div>
                           )}

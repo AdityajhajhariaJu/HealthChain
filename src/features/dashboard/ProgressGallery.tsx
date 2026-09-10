@@ -8,8 +8,8 @@ import { supabase } from '../../services/supabaseClient';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useToast } from '../../components/ui/ToastProvider';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Legend, Cell } from 'recharts';
-import { Activity, Flame, Clock, Award, Target, Brain, Zap, Camera, MessageSquare } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Flame, Clock, Camera, MessageSquare, ListChecks } from 'lucide-react';
 import { SpatialGalleryCanvas } from '../../components/ui/SpatialGalleryCanvas';
 import { getProfile } from '../../services/ProfileEngine';
 import { getCases } from '../../services/CaseEngine';
@@ -36,7 +36,7 @@ export const ProgressGallery: React.FC = () => {
         setItemSync('hc_progress_photo', dataUrl);
         triggerHapticSuccess();
         awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
-        toast.success('Photo Captured!', 'New transformation benchmark recorded (+10 Vitality points).');
+        toast.success('Private photo saved', 'Your visual note was added (+10 activity points). HealthChain does not interpret appearance as a clinical result.');
       }
     };
     reader.readAsDataURL(file);
@@ -82,15 +82,14 @@ export const ProgressGallery: React.FC = () => {
     };
   });
 
-  // 2. Process data for Clinical Vitality Balance Radar
-  const getBalanceData = () => {
+  // 2. Exact activity counts. These are not health scores or clinical interpretations.
+  const getRecordedActivity = () => {
     const profile = getProfile();
     const cases = getCases();
 
     // Nutrition Quality (from diet food logs)
     const foodLogs = profile?.dietFoodLogs || {};
     const daysLogged = Object.keys(foodLogs).length;
-    const nutritionScore = Math.min(100, Math.max(30, daysLogged * 15 + (profile?.targetCalories ? 25 : 10)));
 
     // Mindfulness & Autonomic Calm (from logged sessions)
     let mindfulnessMinutes = 0;
@@ -100,11 +99,9 @@ export const ProgressGallery: React.FC = () => {
         mindfulnessMinutes += Math.round((h.duration_seconds || 300) / 60);
       }
     });
-    const mindfulnessScore = Math.min(100, Math.max(35, mindfulnessMinutes * 3 + 30));
 
     // Circadian Sleep & Rest (from daily checkins and sleep records)
     const checkins = profile?.dailyCheckins || [];
-    const sleepScore = Math.min(100, Math.max(40, checkins.length * 10 + 35));
 
     // Hydration & Habits
     const habitKeys = (() => {
@@ -114,23 +111,20 @@ export const ProgressGallery: React.FC = () => {
         return [];
       }
     })();
-    const habitScore = Math.min(100, Math.max(30, habitKeys.length * 12 + 25));
 
     // Biomarkers & Lab Records
     const recordsCount = cases.reduce((acc, c) => acc + (c.medicalRecords?.length || 0), 0);
-    const vitalsCount = profile?.vitals ? Object.keys(profile.vitals).length : 0;
-    const biomarkerScore = Math.min(100, Math.max(40, (recordsCount * 15) + (vitalsCount * 10) + 30));
 
     return [
-      { subject: 'Nutrition Quality', A: nutritionScore, fullMark: 100 },
-      { subject: 'Mindfulness & Calm', A: mindfulnessScore, fullMark: 100 },
-      { subject: 'Circadian Sleep', A: sleepScore, fullMark: 100 },
-      { subject: 'Hydration & Habits', A: habitScore, fullMark: 100 },
-      { subject: 'Biomarkers & Labs', A: biomarkerScore, fullMark: 100 },
+      { subject: 'Food log days', value: daysLogged },
+      { subject: 'Calm minutes', value: mindfulnessMinutes },
+      { subject: 'Check-ins', value: checkins.length },
+      { subject: 'Habit days', value: habitKeys.length },
+      { subject: 'Saved records', value: recordsCount },
     ];
   };
 
-  const radarData = getBalanceData();
+  const activityData = getRecordedActivity();
 
   if (loading) {
     return (
@@ -173,10 +167,10 @@ export const ProgressGallery: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
           <div>
             <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 8px 0' }}>
-              My Analytics
+              Recorded activity
             </h1>
             <p style={{ color: '#64748B', fontSize: '15px', margin: 0 }}>
-              Track your trends, lifestyle balance, and transformation.
+              See what you actually logged. Counts are activity history, not health scores.
             </p>
           </div>
           <button
@@ -187,7 +181,7 @@ export const ProgressGallery: React.FC = () => {
               const totalRest = trendsData.reduce((s, d) => s + d.minutes, 0);
               navigate('/app/ava', {
                 state: {
-                  initialPrompt: `Can you review my recent analytics trends and clinical vitality balance? In the last 7 days I logged ${totalEnergy} kcal energy expenditure and ${totalRest} minutes of calming restorative practice. How can I optimize my metabolic health and autonomic recovery?`
+                  initialPrompt: `Can you summarize what I actually logged in the last 7 days? I recorded ${totalEnergy} kcal of activity estimates and ${totalRest} calming minutes. Please separate the recorded facts from assumptions, identify gaps, and suggest what may be useful to discuss with my clinician.`
                 }
               });
             }}
@@ -207,17 +201,17 @@ export const ProgressGallery: React.FC = () => {
               transition: 'transform 0.15s ease'
             }}
           >
-            <MessageSquare size={16} color="#38BDF8" /> Discuss Analytics with Ava
+            <MessageSquare size={16} color="#C4B5FD" /> Review logs with Ava
           </button>
         </div>
 
         {/* Custom Tab Switcher */}
-        <div role="tablist" aria-label="Analytics Sections" style={{ display: 'flex', background: '#E2E8F0', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
+        <div role="tablist" aria-label="Recorded activity sections" style={{ display: 'flex', background: '#F4E5DC', padding: '4px', borderRadius: '12px', marginBottom: '24px', overflowX: 'auto', gap: 4 }}>
           {[
             { id: 'trends', label: 'Trends' },
-            { id: 'balance', label: 'Balance' },
-            { id: 'photos', label: 'Photos' },
-            { id: 'vault', label: '3D Vault 🌌' }
+            { id: 'balance', label: 'Log coverage' },
+            { id: 'photos', label: 'Private photos' },
+            { id: 'vault', label: 'Record timeline' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -306,37 +300,37 @@ export const ProgressGallery: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Tab 2: Balance Radar */}
+        {/* Tab 2: Exact log coverage */}
         {activeTab === 'balance' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div style={{ background: '#FFFFFF', padding: '24px', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: '#10B981', filter: 'blur(80px)', opacity: 0.2, borderRadius: '50%' }} />
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
-                <div style={{ background: '#ECFDF5', padding: '8px', borderRadius: '10px', color: '#059669' }}><Target size={20} /></div>
+                <div style={{ background: '#FFF1E8', padding: '8px', borderRadius: '10px', color: '#C2410C' }}><ListChecks size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Clinical Vitality Balance</h3>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>What you have recorded</h3>
                 </div>
               </div>
               <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
-                Multi-dimensional mapping of your physiological and lifestyle health pillars. Tracks balance across nutrition, autonomic calm, sleep, habits, and biomarkers.
+                Exact counts from your HealthChain activity. A lower count means less information was logged—not worse health.
               </p>
 
               <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius={isMobile ? "70%" : "80%"} data={radarData}>
-                    <PolarGrid stroke="rgba(0,0,0,0.06)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 700 }} />
-                    <Radar name="My Health Balance" dataKey="A" stroke="#10B981" strokeWidth={3} fill="#10B981" fillOpacity={0.35} />
-                  </RadarChart>
+                  <BarChart data={activityData} layout="vertical" margin={{ top: 4, right: 20, left: isMobile ? 18 : 54, bottom: 4 }}>
+                    <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 11 }} />
+                    <YAxis type="category" dataKey="subject" width={isMobile ? 96 : 120} axisLine={false} tickLine={false} tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }} />
+                    <Tooltip cursor={{ fill: '#FFF1E8' }} contentStyle={{ borderRadius: 12, border: '1px solid #F8D8C6' }} />
+                    <Bar dataKey="value" name="Recorded" fill="#DF7045" radius={[0, 8, 8, 0]} barSize={22} />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
               
-              {/* Clinical Insight */}
-              <div style={{ background: '#F8FAFC', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid #E2E8F0' }}>
-                <Brain color="#10B981" size={24} style={{ flexShrink: 0 }} />
+              <div style={{ background: '#FFF9F5', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid #F8D8C6' }}>
+                <ListChecks color="#C2410C" size={24} style={{ flexShrink: 0 }} />
                 <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#0F172A' }}>Clinical Balance Insight:</strong> {history.length > 0 ? 'Your biomarker monitoring and autonomic calm are well supported. Maintain consistent protein pacing and evening circadian wind-downs to keep metabolic recovery optimal.' : 'Complete your daily check-in, nutrition log, and mindfulness sessions to calibrate your personalized 5-pillar health balance radar.'}
+                  <strong style={{ color: '#0F172A' }}>How to read this:</strong> These bars only show coverage. Use them to spot missing context before an appointment; they do not measure wellbeing, adherence, recovery, or clinical progress.
                 </p>
               </div>
             </div>
@@ -349,8 +343,8 @@ export const ProgressGallery: React.FC = () => {
              <div style={{ background: '#FFF', padding: '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Clinical Vitality Benchmarks</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Longitudinal visual milestones & baseline tracking</p>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Private visual notes</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Date-stamped photos for your own reference; no clinical inference</p>
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                 <button 
@@ -382,10 +376,10 @@ export const ProgressGallery: React.FC = () => {
                     <Camera size={26} />
                   </div>
                   <h4 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700, color: '#1E293B' }}>
-                    No Transformation Photos Yet
+                    No private photos yet
                   </h4>
                   <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#64748B', maxWidth: '340px', lineHeight: 1.5 }}>
-                    Snap or upload your first photo to track longitudinal posture, skin vitality, and transformation milestones privately.
+                    Add a date-stamped photo if it helps you remember a visible change. HealthChain does not diagnose or score appearance.
                   </p>
                   <button
                     type="button"
@@ -404,7 +398,7 @@ export const ProgressGallery: React.FC = () => {
                       cursor: 'pointer',
                     }}
                   >
-                    <Camera size={16} /> Snap Baseline Photo
+                    <Camera size={16} /> Add private photo
                   </button>
                 </div>
               )}
@@ -421,7 +415,7 @@ export const ProgressGallery: React.FC = () => {
                   Spatial Memory Vault
                 </h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
-                  Interactive 3D timeline of historical laboratory records, imaging, and diagnostic benchmarks.
+                  Explore your saved laboratory records, imaging, and case snapshots by date. Items shown here remain source records, not diagnoses.
                 </p>
               </div>
               <SpatialGalleryCanvas />

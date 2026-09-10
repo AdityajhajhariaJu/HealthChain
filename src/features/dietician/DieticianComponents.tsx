@@ -305,7 +305,7 @@ export function OnboardingWizard({
                 Food Planner Setup
               </div>
               <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
-                Metabolic Target Engine · Step {step} of 8
+                Editable Food Planner · Step {step} of 8
               </div>
             </div>
           </div>
@@ -322,7 +322,7 @@ export function OnboardingWizard({
                 border: '1px solid rgba(5, 150, 105, 0.2)',
               }}
             >
-              {Math.round((step / 8) * 100)}% Ready
+              Step {step} of 8
             </div>
             {onCancel && (
               <button
@@ -362,10 +362,10 @@ export function OnboardingWizard({
                 letterSpacing: '-0.5px',
               }}
             >
-              Let's establish your metabolic baseline.
+              Add optional planning details.
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '20px', lineHeight: 1.45 }}>
-              We use the gold-standard <strong style={{ color: '#0F172A' }}>Mifflin-St Jeor equation</strong> to compute your basal expenditure and macro partitioning.
+              Age, height, weight, and the equation option below can produce a general Mifflin-St Jeor energy estimate. It is not a measured metabolic rate or prescription.
             </p>
 
             {/* Gender Toggle */}
@@ -398,7 +398,7 @@ export function OnboardingWizard({
                     }}
                   >
                     <User size={15} />
-                    {g === 'male' ? 'Male (BMR +5)' : 'Female (BMR -161)'}
+                    {g === 'male' ? 'Male equation' : 'Female equation'}
                   </button>
                 ))}
               </div>
@@ -446,7 +446,7 @@ export function OnboardingWizard({
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                  <Target size={13} color="#059669" /> Target Weight ({data.weightUnit})
+                  <Target size={13} color="#059669" /> Optional planning weight ({data.weightUnit})
                 </label>
                 <input
                   type="number"
@@ -578,7 +578,7 @@ export function OnboardingWizard({
             {/* Timeframe */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                <Clock size={13} color="#059669" /> Target Duration (Days)
+                <Clock size={13} color="#059669" /> Optional planning horizon (days)
               </label>
               <input
                 type="number"
@@ -692,10 +692,10 @@ export function OnboardingWizard({
         {step === 2 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-              What is your primary clinical goal?
+              What would you like the example to support?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Your caloric deficit/surplus and macronutrient ratios will calibrate automatically.
+              Your choice changes the editable estimates. Review weight-change goals with a qualified professional, especially if you have a medical condition or history of disordered eating.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
@@ -915,10 +915,10 @@ export function OnboardingWizard({
         {step === 5 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-              Clinical guardrails & biomarkers?
+              Conditions or restrictions to keep visible?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Our AI dietician implements clinical nutritional therapy protocols (e.g. low GI for Diabetes, anti-inflammatory for PCOS).
+              HealthChain can keep the conditions you select visible while drafting examples. It does not provide medical nutrition therapy or confirm that a meal is safe for a condition.
             </p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
@@ -1106,10 +1106,10 @@ export function OnboardingWizard({
             </div>
 
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.8px' }}>
-              Metabolic Blueprint Ready!
+              Your editable planning estimates are ready
             </h2>
             <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', lineHeight: 1.5 }}>
-              Your clinical targets have been computed and synchronized across your HealthChain ecosystem.
+              These estimates and preferences can now prefill food-planning examples across HealthChain. Review and edit them whenever your needs change.
             </p>
 
             {/* Calculated Blueprint Card */}
@@ -1151,7 +1151,7 @@ export function OnboardingWizard({
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', fontSize: '12px', color: '#475569' }}>
                 <ShieldCheck size={15} color="#059669" />
-                <span>Calibrated for: <strong>{data.goal}</strong> · {data.cuisine} cuisine · {data.mealSchedule}</span>
+                <span>Planning context: <strong>{data.goal}</strong> · {data.cuisine} cuisine · {data.mealSchedule}</span>
               </div>
             </div>
 

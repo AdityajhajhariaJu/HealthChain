@@ -372,8 +372,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                   </h4>
                   <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: 1.45 }}>
                     {isCheckinPending
-                      ? "Log your symptoms, energy & baseline to keep Ava tuned and protect your vitality streak."
-                      : `Status: ${todayCheckin?.symptom || 'General Wellbeing'} (${todayCheckin?.severity || 'Normal'}). Daily streak protected.`}
+                      ? "Log symptoms and energy when useful so Ava has current context. Missing a day never removes your history."
+                      : `Recorded: ${todayCheckin?.symptom || 'General wellbeing'} (${todayCheckin?.severity || 'Normal'}). Your case context is up to date.`}
                   </p>
                 </div>
               </div>

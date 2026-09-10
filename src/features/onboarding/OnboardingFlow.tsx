@@ -45,10 +45,10 @@ type AllergySeverity = 'mild' | 'moderate' | 'severe';
 const GOAL_OPTIONS: GoalOption[] = [
   { 
     title: 'Chronic Management', 
-    desc: 'Connect symptoms, labs & multi-specialist causal synthesis', 
+    desc: 'Connect symptoms, records, AI perspectives, and open questions',
     icon: <HeartPulse size={26} color="#F43F5E" />,
     route: '/app/consult',
-    badge: 'Clinical Causal Engine',
+    badge: 'Connected Case Workspace',
     dataPills: [
       { label: 'Conditions', icon: '🩺' },
       { label: 'Chrono-Meds', icon: '💊' },
@@ -58,23 +58,23 @@ const GOAL_OPTIONS: GoalOption[] = [
   },
   { 
     title: 'Track Calories', 
-    desc: 'Calibrate metabolic rate, macros & nutrition targets', 
+    desc: 'Estimate energy needs and build editable food-planning examples',
     icon: <Flame size={26} color="#F59E0B" />,
     route: '/app/dietician',
-    badge: 'Metabolic & BMR',
+    badge: 'Food Planning',
     dataPills: [
       { label: 'Weight & Height', icon: '⚖️' },
-      { label: 'Live BMR', icon: '🔥' },
+      { label: 'Estimated BMR', icon: '🔥' },
       { label: 'Food Allergies', icon: '🥛' },
       { label: 'Metabolic', icon: '🩸' }
     ]
   },
   { 
     title: 'Mental Clarity', 
-    desc: 'Optimize sleep architecture, circadian rhythm & vitality', 
+    desc: 'Record sleep, energy, and use contextual calming tools',
     icon: <Moon size={26} color="#8B5CF6" />,
     route: '/app/today',
-    badge: 'Circadian Vitality',
+    badge: 'Daily Reflection',
     dataPills: [
       { label: 'Circadian Timing', icon: '🌅' },
       { label: 'Sleep & Vitals', icon: '🌙' },
@@ -193,10 +193,10 @@ export default function OnboardingFlow() {
   }, [heightCm, weightKg]);
 
   const bmiCategory = useMemo(() => {
-    if (bmi < 18.5) return { label: 'Lean Baseline 💧', color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' };
-    if (bmi < 25) return { label: 'Optimal Health Zone 🎯', color: '#059669', bg: '#ECFDF5', border: '#A7F3D0' };
-    if (bmi < 30) return { label: 'Elevated Biomass ⚡', color: '#D97706', bg: '#FEF3C7', border: '#FDE68A' };
-    return { label: 'High Metabolic Load 🔥', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' };
+    if (bmi < 18.5) return { label: 'Below adult reference range', color: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE' };
+    if (bmi < 25) return { label: 'Within adult reference range', color: '#047857', bg: '#ECFDF5', border: '#A7F3D0' };
+    if (bmi < 30) return { label: 'Above adult reference range', color: '#B45309', bg: '#FEF3C7', border: '#FDE68A' };
+    return { label: 'Higher adult reference category', color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA' };
   }, [bmi]);
 
   const bmr = useMemo(() => {
@@ -544,7 +544,7 @@ export default function OnboardingFlow() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
                   <Sparkles size={13} color="#059669" />
                   <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
-                    💎 +50 VITALITY PTS
+                    OPTIONAL PROFILE SETUP
                   </span>
                 </div>
               </div>
@@ -557,8 +557,8 @@ export default function OnboardingFlow() {
                   <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0', transition: 'all 0.3s ease' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
-                  <span>Stage 1 of 3: Biometrics &amp; Metabolic 🧬</span>
-                  <span style={{ color: '#059669', fontWeight: 800 }}>33% Calibrated</span>
+                  <span>Stage 1 of 3: Basic context</span>
+                  <span style={{ color: '#059669', fontWeight: 800 }}>33% complete</span>
                 </div>
               </div>
 
@@ -566,15 +566,15 @@ export default function OnboardingFlow() {
               <div>
                 <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
                   {selectedGoal.title === 'Track Calories'
-                    ? 'Calibrate Metabolic Baseline'
+                    ? 'Add Food-Planning Context'
                     : selectedGoal.title === 'Chronic Management'
-                    ? 'Calibrate Clinical Baseline'
-                    : 'Calibrate Vitality Baseline'}
+                    ? 'Add Case Context'
+                    : 'Add Daily Context'}
                 </h2>
                 <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
                   {selectedGoal.title === 'Track Calories'
-                    ? 'Add height, weight & age so Ava calibrates your personalized BMR & macro targets.'
-                    : 'Provide your biometrics so our clinical intelligence calibrates against optimal physiological ranges.'}
+                    ? 'Add age, height, and weight to calculate a general energy estimate. You can edit the result later.'
+                    : 'Add optional basic information to give your case appropriate context. These details do not establish an optimal range or diagnosis.'}
                 </p>
               </div>
 
@@ -802,7 +802,7 @@ export default function OnboardingFlow() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div>
                       <div style={{ fontSize: '10.5px', fontWeight: 900, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Activity size={12} /> METABOLIC EQUILIBRIUM
+                        <Activity size={12} /> GENERAL ESTIMATES
                       </div>
                       <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginTop: 2, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                         <span>BMI: {bmi}</span>
@@ -822,7 +822,7 @@ export default function OnboardingFlow() {
 
                     <div style={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.85)', padding: '5px 10px', borderRadius: '10px', border: '1px solid #99F6E4' }}>
                       <div style={{ fontSize: '10px', color: '#047857', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}>
-                        <Flame size={12} color="#EA580C" /> BMR
+                        <Flame size={12} color="#EA580C" /> EST. BMR
                       </div>
                       <div style={{ fontSize: '15px', fontWeight: 900, color: '#0F766E' }}>{bmr} <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B' }}>kcal</span></div>
                     </div>
@@ -849,8 +849,8 @@ export default function OnboardingFlow() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#047857', fontWeight: 700 }}>
-                    <span>WHO Optimal: <strong>{idealWeightRange}</strong></span>
-                    <span style={{ fontStyle: 'italic', opacity: 0.85 }}>✨ Real-Time Calibration</span>
+                    <span>BMI reference-weight range: <strong>{idealWeightRange}</strong></span>
+                    <span style={{ fontStyle: 'italic', opacity: 0.85 }}>Screening context only</span>
                   </div>
                 </div>
               </div>
@@ -954,7 +954,7 @@ export default function OnboardingFlow() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
                   <Sparkles size={13} color="#059669" />
                   <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
-                    💎 +50 VITALITY PTS
+                    OPTIONAL PROFILE SETUP
                   </span>
                 </div>
               </div>
@@ -968,7 +968,7 @@ export default function OnboardingFlow() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
                   <span>Stage 2 of 3: Clinical Conditions 🩺 ({conditions.length} Active)</span>
-                  <span style={{ color: '#059669', fontWeight: 800 }}>66% Calibrated</span>
+                  <span style={{ color: '#059669', fontWeight: 800 }}>66% complete</span>
                 </div>
               </div>
 
@@ -1199,7 +1199,7 @@ export default function OnboardingFlow() {
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', border: '1.5px solid #6EE7B7', padding: '5px 12px', borderRadius: '999px', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.12)' }}>
                   <Sparkles size={13} color="#059669" />
                   <span style={{ fontSize: '11px', fontWeight: 900, color: '#047857', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
-                    💎 +50 VITALITY PTS
+                    OPTIONAL PROFILE SETUP
                   </span>
                 </div>
               </div>
@@ -1614,14 +1614,14 @@ export default function OnboardingFlow() {
                   boxShadow: '0 2px 10px rgba(5, 150, 105, 0.15)'
                 }}
               >
-                💎 +50 VITALITY PTS REWARD UNLOCKED • 70 TOTAL PTS
+                PROFILE SETUP COMPLETE • ACTIVITY RECORDED
               </div>
 
               <h2 style={{ fontSize: isMobile ? '28px' : '34px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
-                Health Profile Calibrated! 🌟
+                Your starting profile is ready
               </h2>
               <p style={{ color: '#475569', fontSize: '15px', margin: '0 0 24px 0', maxWidth: '360px', lineHeight: 1.4 }}>
-                Personalizing your {selectedGoal.title} experience with your verified clinical baseline...
+                Connecting your saved information to your {selectedGoal.title} experience. You can review or change it at any time.
               </p>
 
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#0D9488', fontSize: '14px', fontWeight: 800, background: '#F0FDFA', padding: '10px 20px', borderRadius: '999px', border: '1.5px solid #99F6E4', boxShadow: '0 2px 8px rgba(13, 148, 136, 0.1)' }}>

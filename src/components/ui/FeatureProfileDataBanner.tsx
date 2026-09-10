@@ -259,7 +259,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                  Calibrated Health Profile • {featureName}
+                  Saved Health Profile • {featureName}
                 </span>
                 <span style={{ fontSize: '10px', fontWeight: 700, padding: '1px 6px', borderRadius: '999px', background: '#DCFCE7', color: '#15803D' }}>
                   Active
@@ -525,7 +525,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           {!hasData && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic' }}>
-                No baseline calibrated yet. Tap "Edit Baseline" to pre-fill your biometrics and conditions.
+                No saved profile context yet. Choose “Edit profile” to add optional biometrics and conditions.
               </span>
             </div>
           )}
@@ -567,7 +567,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Edit Calibrated Health Baseline"
+            aria-label="Edit saved health profile"
             style={{
               position: 'fixed',
               inset: 0,
@@ -612,7 +612,7 @@ export const FeatureProfileDataBanner: React.FC<FeatureProfileDataBannerProps> =
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <ShieldCheck size={20} color="#0D9488" />
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>
-                    Edit Calibrated Baseline
+                    Edit Saved Health Profile
                   </h3>
                 </div>
                 <button
