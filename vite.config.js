@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
 import { createClient } from '@supabase/supabase-js'
 
@@ -71,7 +72,8 @@ export default defineConfig({
       png: { quality: 80 },
       jpeg: { quality: 80 },
       jpg: { quality: 80 },
-    })
+    }),
+    visualizer({ open: false, filename: 'bundle-stats.html' })
   ],
   build: {
     target: ['es2015', 'safari11', 'chrome87'],
