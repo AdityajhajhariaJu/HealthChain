@@ -80,7 +80,8 @@ export default function AppShell() {
   const [profile, setProfile] = useState(getProfile());
   const [isScrolling, setIsScrolling] = useState(false);
   const lastScrollY = useRef(0);
-  const scrollTimeout = useRef<any>(null);
+  const mainScrollTimeout = useRef<any>(null);
+  const customScrollTimeout = useRef<any>(null);
 
   useEffect(() => {
     const checkCheckin = () => {
@@ -125,34 +126,24 @@ export default function AppShell() {
     };
   }, [navigate]);
 
+  // ⚡ Bolt Optimization: Throttle scroll events to animation frames
+  // Impact: Reduces main thread blocking by ensuring state updates only fire once per frame (~16ms).
+  // Expect fewer layout thrashing occurrences during rapid scrolling.
   const handleMainScroll = (e: React.UIEvent<HTMLElement>) => {
     const currentScrollY = e.currentTarget.scrollTop;
     
-    // Always show if at the very top
-    if (currentScrollY < 50) {
-      setIsScrolling(false);
-      lastScrollY.current = currentScrollY;
-      return;
+    if (mainScrollTimeout.current) {
+      cancelAnimationFrame(mainScrollTimeout.current);
     }
 
-    // Hide on scroll down, show on scroll up
-    if (currentScrollY > lastScrollY.current + 12) {
-      setIsScrolling(true);
-      lastScrollY.current = currentScrollY;
-    } else if (currentScrollY < lastScrollY.current - 12) {
-      setIsScrolling(false);
-      lastScrollY.current = currentScrollY;
-    }
-  };
-
-  useEffect(() => {
-    const onCustomScroll = (e: any) => {
-      const currentScrollY = e.detail.scrollTop;
+    mainScrollTimeout.current = requestAnimationFrame(() => {
+      mainScrollTimeout.current = null;
       if (currentScrollY < 50) {
         setIsScrolling(false);
         lastScrollY.current = currentScrollY;
         return;
       }
+
       if (currentScrollY > lastScrollY.current + 12) {
         setIsScrolling(true);
         lastScrollY.current = currentScrollY;
@@ -160,9 +151,43 @@ export default function AppShell() {
         setIsScrolling(false);
         lastScrollY.current = currentScrollY;
       }
+    });
+  };
+
+  useEffect(() => {
+    // ⚡ Bolt Optimization: Throttle custom scroll events to animation frames
+    // Impact: Prevents rapid successive custom event fires from overwhelming React's state queue.
+    const onCustomScroll = (e: any) => {
+      const currentScrollY = e.detail.scrollTop;
+
+      if (customScrollTimeout.current) {
+        cancelAnimationFrame(customScrollTimeout.current);
+      }
+
+      customScrollTimeout.current = requestAnimationFrame(() => {
+        customScrollTimeout.current = null;
+        if (currentScrollY < 50) {
+          setIsScrolling(false);
+          lastScrollY.current = currentScrollY;
+          return;
+        }
+
+        if (currentScrollY > lastScrollY.current + 12) {
+          setIsScrolling(true);
+          lastScrollY.current = currentScrollY;
+        } else if (currentScrollY < lastScrollY.current - 12) {
+          setIsScrolling(false);
+          lastScrollY.current = currentScrollY;
+        }
+      });
     };
     window.addEventListener('hc_scroll_intent', onCustomScroll);
-    return () => window.removeEventListener('hc_scroll_intent', onCustomScroll);
+    return () => {
+      window.removeEventListener('hc_scroll_intent', onCustomScroll);
+      if (customScrollTimeout.current) {
+        cancelAnimationFrame(customScrollTimeout.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
