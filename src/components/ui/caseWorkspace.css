@@ -29,14 +29,9 @@
 .case-workspace-next a { display:flex; gap:12px; align-items:center; justify-content:space-between; min-height:48px; padding:10px 0; text-decoration:none; color:#0f172a; }
 .case-workspace-next small { display:block; color:#475569; margin-top:4px; }
 .case-workspace :focus-visible, .connected-experience :focus-visible { outline:3px solid #0f766e !important; outline-offset:3px; }
-.connected-experience button { min-height:44px; }
-.connected-experience textarea { resize:vertical; line-height:1.6; }
+.connected-experience button:not(.ava-composer button) { min-height:44px; }
+.connected-experience textarea:not(.ava-composer textarea) { resize:vertical; line-height:1.6; }
 .case-context-select { display:block; width:100%; min-height:44px; border:1px solid #cbd5e1; border-radius:10px; background:white; padding:10px; color:#0f172a; margin:8px 0; font:inherit; }
-.ava-composer { display:grid !important; grid-template-columns:44px minmax(0,1fr); gap:8px; padding:10px; border:1px solid #b7dcd5; border-radius:18px; background:#fff; }
-.ava-composer textarea { grid-column:1 / -1; grid-row:1; min-height:76px; padding:10px !important; border:0 !important; border-radius:10px !important; box-shadow:none !important; resize:vertical; }
-.ava-composer > button { position:static !important; grid-row:2; }
-.ava-composer > div { position:static !important; grid-row:2; justify-self:end; }
-.ava-composer button { width:44px !important; height:44px !important; }
 .ava-more-tools { background:transparent; border:0; color:#115e59; text-decoration:underline; font-size:12px; margin-top:4px; }
 @media (max-width:900px) { .case-workspace-continuity { grid-template-columns:1fr; } .case-workspace-continuity ol { justify-content:space-between; } }
 @media (max-width:640px) { .case-workspace { padding:18px 14px; } .case-workspace-grid { grid-template-columns:1fr; } .case-workspace-tile { gap:6px; padding:14px; } .case-workspace-continuity li { min-width:54px; } }

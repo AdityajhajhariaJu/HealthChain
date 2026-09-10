@@ -723,6 +723,20 @@ export default function AvaHealthBuddy() {
     setSelectedCaseId(params.get('caseId') || params.get('importCase') || location.state?.caseId || '');
   }, [location.search, location.state?.caseId]);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      if (!input) {
+        textareaRef.current.style.height = isMobile ? '44px' : '48px';
+      } else {
+        textareaRef.current.style.height = 'auto';
+        const nextHeight = Math.min(Math.max(textareaRef.current.scrollHeight, isMobile ? 44 : 48), 120);
+        textareaRef.current.style.height = `${nextHeight}px`;
+      }
+    }
+  }, [input, isMobile]);
+
   const currentProfileId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -1009,15 +1023,6 @@ export default function AvaHealthBuddy() {
           boxShadow: '0 20px 48px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.8), inset 0 0 30px rgba(255, 255, 255, 0.35)',
         }}
       >
-        <div style={{ padding: '12px 18px', background: '#F0FDFA', flexShrink: 0 }}>
-          <p style={{ margin: '0 0 8px', fontSize: 12, color: '#115E59' }}>Ava helps you talk things through, record changes and decide what to do next.</p>
-          <label htmlFor="ava-case-context" style={{ fontSize: 12, fontWeight: 700, color: '#115E59' }}>Conversation context</label>
-          <select id="ava-case-context" className="case-context-select" value={selectedCaseId} disabled={isTyping || isStreaming} onChange={e => { setSelectedCaseId(e.target.value); setSendError(false); lastRequestRef.current = null; }}>
-            <option value="">General health check-in</option>
-            {availableCases.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
-          </select>
-          {selectedCaseId && !selectedCase && <p role="status">This case is not available in the current profile. Select another case or a general check-in.</p>}
-        </div>
         {/* Header - Desktop Only (Mobile uses AppShell's clean top bar) */}
         {!isMobile && (
           <div
@@ -1590,9 +1595,11 @@ export default function AvaHealthBuddy() {
               onClick={() => fileInputRef.current?.click()}
               style={{
                 position: 'absolute',
-                left: isMobile ? '8px' : '10px',
+                left: isMobile ? '7px' : '9px',
+                bottom: isMobile ? '6px' : '8px',
                 width: isMobile ? '32px' : '34px',
                 height: isMobile ? '32px' : '34px',
+                minHeight: 'unset',
                 borderRadius: '50%',
                 background: 'rgba(255, 255, 255, 0.9)',
                 color: '#64748B',
@@ -1608,7 +1615,8 @@ export default function AvaHealthBuddy() {
               <Plus size={isMobile ? 16 : 18} />
             </button>
             <textarea
-              rows={2}
+              ref={textareaRef}
+              rows={1}
               maxLength={8000}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); handleSend(input); } }}
               value={input}
@@ -1618,15 +1626,20 @@ export default function AvaHealthBuddy() {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                padding: isMobile ? '12px 80px 12px 46px' : '15px 92px 15px 52px',
-                borderRadius: '20px',
+                padding: isMobile ? '11px 74px 11px 44px' : '13px 88px 13px 48px',
+                borderRadius: '24px',
                 border: '1.5px solid #CCFBF1',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
                 fontSize: isMobile ? '14px' : '15px',
+                lineHeight: '20px',
+                height: isMobile ? '44px' : '48px',
+                minHeight: isMobile ? '44px' : '48px',
+                maxHeight: '120px',
+                resize: 'none',
                 outline: 'none',
-                boxShadow: '0 8px 28px rgba(15, 23, 42, 0.05)',
+                boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
                 color: '#1C1917',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
@@ -1636,12 +1649,12 @@ export default function AvaHealthBuddy() {
                 e.target.style.boxShadow = '0 8px 28px rgba(13, 148, 136, 0.2)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = '#E2E8F0';
-                e.target.style.boxShadow = '0 8px 28px rgba(15, 23, 42, 0.05)';
+                e.target.style.borderColor = '#CCFBF1';
+                e.target.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.05)';
               }}
             />
 
-            <div style={{ position: 'absolute', right: isMobile ? '6px' : '8px', display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '6px', zIndex: 2 }}>
+            <div style={{ position: 'absolute', right: isMobile ? '6px' : '8px', bottom: isMobile ? '5px' : '7px', display: 'flex', alignItems: 'center', gap: isMobile ? '4px' : '6px', zIndex: 2 }}>
               {/* Photo Meal Snap Button */}
               <button
                 type="button"
@@ -1654,6 +1667,7 @@ export default function AvaHealthBuddy() {
                 style={{
                   width: isMobile ? '30px' : '34px',
                   height: isMobile ? '30px' : '34px',
+                  minHeight: 'unset',
                   borderRadius: '50%',
                   background: '#F8FAFC',
                   color: '#64748B',
@@ -1676,6 +1690,7 @@ export default function AvaHealthBuddy() {
                 style={{
                   width: isMobile ? '34px' : '36px',
                   height: isMobile ? '34px' : '36px',
+                  minHeight: 'unset',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                   color: '#FFFFFF',
@@ -1693,18 +1708,18 @@ export default function AvaHealthBuddy() {
               </button>
             </div>
           </form>
-          <div style={{ width: '100%', maxWidth: 720, marginTop: 8, fontSize: 12, color: '#475569' }}>
-            {isProcessingAttachment && <p role="status">Reading your document… You can keep writing while it is processed.</p>}
-            <p style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Attachments are sent to our AI service to extract text. Check extracted details against the original.</p>
-            {sendError && <div role="alert">Ava couldn’t respond. Your message is still here. <button type="button" className="btn btn-outline" onClick={() => { if (lastRequestRef.current && !sendingRef.current) { sendingRef.current = true; chatMutation.mutate(lastRequestRef.current); } }}>Retry message</button></div>}
-            {selectedCase && input.trim() && <button type="button" className="btn btn-outline" onClick={saveDraftToCase}>Save draft as a case update</button>}
-            {savedUpdate && <div role="status" style={{ margin: '8px 0', lineHeight: 1.5 }}>
-              Saved to {savedUpdate.title}.{' '}
-              <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/cases/${encodeURIComponent(savedUpdate.caseId)}`)}>View saved update</button>{' '}
-              <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(savedUpdate.caseId)}`)}>Prepare for your visit</button>
-            </div>}
-            <p style={{ margin: 0, lineHeight: 1.5 }}>Enter to send · Shift + Enter for a new line · AI responses can be mistaken.</p>
-          </div>
+          {(isProcessingAttachment || sendError || (selectedCase && input.trim()) || savedUpdate) && (
+            <div style={{ width: '100%', maxWidth: 720, marginTop: 8, fontSize: 12, color: '#475569' }}>
+              {isProcessingAttachment && <p role="status">Reading your document… You can keep writing while it is processed.</p>}
+              {sendError && <div role="alert">Ava couldn’t respond. Your message is still here. <button type="button" className="btn btn-outline" onClick={() => { if (lastRequestRef.current && !sendingRef.current) { sendingRef.current = true; chatMutation.mutate(lastRequestRef.current); } }}>Retry message</button></div>}
+              {selectedCase && input.trim() && <button type="button" className="btn btn-outline" onClick={saveDraftToCase}>Save draft as a case update</button>}
+              {savedUpdate && <div role="status" style={{ margin: '8px 0', lineHeight: 1.5 }}>
+                Saved to {savedUpdate.title}.{' '}
+                <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/cases/${encodeURIComponent(savedUpdate.caseId)}`)}>View saved update</button>{' '}
+                <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(savedUpdate.caseId)}`)}>Prepare for your visit</button>
+              </div>}
+            </div>
+          )}
 
           {/* Primary Dual-Action Capsule Dock (Reference media_1788642371467.png) */}
           <div
@@ -1726,7 +1741,7 @@ export default function AvaHealthBuddy() {
                 } else {
                   setInput('Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.');
                 }
-                document.querySelector<HTMLTextAreaElement>('.ava-composer textarea')?.focus();
+                textareaRef.current?.focus();
               }}
               style={{
                 flex: 1,
