@@ -638,6 +638,7 @@ export default function AvaHealthBuddy() {
   const [isRiverOpen, setIsRiverOpen] = useState(false);
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
+  const [showQuickTools, setShowQuickTools] = useState(false);
   const [detectiveTab, setDetectiveTab] = useState<string>('map');
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1734,8 +1735,9 @@ export default function AvaHealthBuddy() {
             </button>
           </div>
 
-          {/* Ava's complete tool set stays visible and keeps each feature's original identity. */}
-          <div
+          <button type="button" className="ava-more-tools" aria-expanded={showQuickTools} onClick={() => setShowQuickTools(value => !value)}>{showQuickTools ? 'Hide extra tools' : 'More ways Ava can help'}</button>
+          {/* Every original Ava tool remains available in the backup layout. */}
+          {showQuickTools && <div
             style={{
               width: '100%',
               maxWidth: '720px',
@@ -1790,7 +1792,7 @@ export default function AvaHealthBuddy() {
                 <span>{pill.label}</span>
               </button>
             ))}
-          </div>
+          </div>}
         </div>
       </div>{' '}
       {/* Close Outer White Card Container */}
