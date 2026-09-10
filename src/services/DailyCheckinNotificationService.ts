@@ -17,11 +17,11 @@ export const CHANNEL_ID = NOTIFICATION_CHANNEL_ID;
 
 /**
  * Checks whether the daily check-in reminder notification is enabled.
- * Defaults to true for health engagement.
+ * Requires explicit opt-in.
  */
 export function isDailyReminderEnabled(): boolean {
   const stored = getItemSync(STORAGE_KEY_ENABLED);
-  return stored !== null ? stored === 'true' : true;
+  return stored === 'true';
 }
 
 /**
@@ -29,7 +29,16 @@ export function isDailyReminderEnabled(): boolean {
  * Defaults to 09:00 AM.
  */
 export function getDailyReminderTime(): string {
-  return getItemSync(STORAGE_KEY_TIME) || '09:00';
+  const time = getItemSync(STORAGE_KEY_TIME);
+  return time && isValidReminderTime(time) ? time : '09:00';
+}
+
+function isValidReminderTime(time: string): boolean {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+}
+
+export function supportsDailyReminders(): boolean {
+  return Capacitor.isNativePlatform();
 }
 
 /**
@@ -82,15 +91,18 @@ async function ensureNotificationChannel(): Promise<void> {
 /**
  * Schedules or re-schedules the everyday recurring check-in notification.
  */
-export async function scheduleDailyReminder(time?: string): Promise<boolean> {
+export async function scheduleDailyReminder(time?: string, requestPermission = true): Promise<boolean> {
   const targetTime = time || getDailyReminderTime();
+  if (!isValidReminderTime(targetTime) || !supportsDailyReminders()) return false;
   const [hourStr, minuteStr] = targetTime.split(':');
   const hour = parseInt(hourStr || '9', 10);
   const minute = parseInt(minuteStr || '0', 10);
 
   try {
     if (Capacitor.isNativePlatform()) {
-      const hasPermission = await requestNotificationPermission();
+      const hasPermission = requestPermission
+        ? await requestNotificationPermission()
+        : (await LocalNotifications.checkPermissions()).display === 'granted';
       if (!hasPermission) {
         console.warn('[DailyReminder] Cannot schedule: permission not granted.');
         return false;
@@ -109,7 +121,7 @@ export async function scheduleDailyReminder(time?: string): Promise<boolean> {
           {
             id: NOTIFICATION_ID,
             title: 'Daily Health Check-in 🌿',
-            body: 'How are you feeling today? Tap to record your symptoms and claim +2 Vitality Points.',
+            body: 'Your requested HealthChain reminder is ready. Open the app to continue.',
             channelId: NOTIFICATION_CHANNEL_ID,
             schedule: {
               on: {
@@ -131,12 +143,7 @@ export async function scheduleDailyReminder(time?: string): Promise<boolean> {
       console.info(`[DailyReminder] Native reminder successfully scheduled for ${targetTime} daily.`);
       return true;
     } else {
-      // Web browser environment
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        await requestNotificationPermission();
-      }
-      console.info(`[DailyReminder] Web reminder set for ${targetTime} daily.`);
-      return true;
+      return false;
     }
   } catch (err) {
     console.warn('[DailyReminder] Error scheduling daily notification:', err);
@@ -147,14 +154,16 @@ export async function scheduleDailyReminder(time?: string): Promise<boolean> {
 /**
  * Cancels the daily check-in reminder notification.
  */
-export async function cancelDailyReminder(): Promise<void> {
+export async function cancelDailyReminder(): Promise<boolean> {
   try {
     if (Capacitor.isNativePlatform()) {
       await LocalNotifications.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
     }
     console.info('[DailyReminder] Daily reminder cancelled.');
+    return true;
   } catch (e) {
     console.warn('[DailyReminder] Error cancelling reminder:', e);
+    return false;
   }
 }
 
@@ -162,13 +171,14 @@ export async function cancelDailyReminder(): Promise<void> {
  * Updates the enabled state of the daily reminder and schedules/cancels accordingly.
  */
 export async function setDailyReminderEnabled(enabled: boolean): Promise<boolean> {
-  setItemSync(STORAGE_KEY_ENABLED, enabled ? 'true' : 'false');
   if (enabled) {
     const success = await scheduleDailyReminder();
-    window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: true, time: getDailyReminderTime() } }));
+    setItemSync(STORAGE_KEY_ENABLED, success ? 'true' : 'false');
+    window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: success, time: getDailyReminderTime() } }));
     return success;
   } else {
-    await cancelDailyReminder();
+    if (!await cancelDailyReminder()) return false;
+    setItemSync(STORAGE_KEY_ENABLED, 'false');
     window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: false, time: getDailyReminderTime() } }));
     return true;
   }
@@ -178,12 +188,18 @@ export async function setDailyReminderEnabled(enabled: boolean): Promise<boolean
  * Updates the preferred reminder time and re-schedules if currently enabled.
  */
 export async function setDailyReminderTime(time: string): Promise<boolean> {
-  setItemSync(STORAGE_KEY_TIME, time);
+  if (!isValidReminderTime(time)) return false;
   if (isDailyReminderEnabled()) {
     const success = await scheduleDailyReminder(time);
+    if (!success) {
+      await setDailyReminderEnabled(false);
+      return false;
+    }
+    setItemSync(STORAGE_KEY_TIME, time);
     window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: true, time } }));
     return success;
   }
+  setItemSync(STORAGE_KEY_TIME, time);
   window.dispatchEvent(new CustomEvent('hc_reminder_updated', { detail: { enabled: false, time } }));
   return true;
 }
@@ -263,6 +279,7 @@ export async function initDailyReminderService(onNotificationClick?: (route: str
 
   // If enabled, ensure the schedule is active
   if (isDailyReminderEnabled()) {
-    await scheduleDailyReminder();
+    const scheduled = await scheduleDailyReminder(undefined, false);
+    if (!scheduled) await setDailyReminderEnabled(false);
   }
 }

@@ -17,7 +17,8 @@ import {
   getDailyReminderTime, 
   setDailyReminderEnabled, 
   setDailyReminderTime, 
-  sendTestNotification 
+  sendTestNotification,
+  supportsDailyReminders
 } from '../../services/DailyCheckinNotificationService';
 
 const REMINDER_PRESETS = [
@@ -61,6 +62,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const [reminderTime, setReminderTime] = useState<string>(getDailyReminderTime());
   const [testAlertStatus, setTestAlertStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [isSavingReminder, setIsSavingReminder] = useState<boolean>(false);
+  const [reminderError, setReminderError] = useState('');
   const [showDetailedWidget, setShowDetailedWidget] = useState<boolean>(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -151,9 +153,15 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const handleToggleReminder = async (enabled: boolean) => {
     triggerHapticMedium();
     setIsSavingReminder(true);
-    setReminderEnabled(enabled);
+    setReminderError('');
     try {
-      await setDailyReminderEnabled(enabled);
+      const ok = await setDailyReminderEnabled(enabled);
+      setReminderEnabled(isDailyReminderEnabled());
+      if (!ok) setReminderError(!enabled
+        ? 'The reminder could not be cancelled. Please try again or manage HealthChain notifications in device settings.'
+        : supportsDailyReminders()
+        ? 'The reminder could not be enabled. Check notification permissions and try again.'
+        : 'Scheduled reminders are available in the mobile app. This browser cannot deliver a daily reminder when HealthChain is closed.');
     } catch (e) {
       console.error(e);
     } finally {
@@ -164,9 +172,12 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
   const handleSelectReminderTime = async (time: string) => {
     triggerHapticLight();
     setIsSavingReminder(true);
-    setReminderTime(time);
+    setReminderError('');
     try {
-      await setDailyReminderTime(time);
+      const ok = await setDailyReminderTime(time);
+      setReminderTime(getDailyReminderTime());
+      setReminderEnabled(isDailyReminderEnabled());
+      if (!ok) setReminderError('The new time could not be scheduled. Check the time and notification permissions, then enable the reminder again.');
     } catch (e) {
       console.error(e);
     } finally {
@@ -553,6 +564,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                   HealthChain sends an everyday push notification to this device so you never miss your check-in.
                 </p>
 
+                {reminderError && <p role="alert" style={{ fontSize: '12px', color: '#9F1239', lineHeight: 1.5 }}>{reminderError}</p>}
                 {reminderEnabled && (
                   <div>
                     {/* Presets and Custom Time Selector */}
