@@ -29,6 +29,10 @@ import '../../components/ui/caseWorkspace.css';
 
 const QUICK_ACTION_PILLS = [
   {
+    id: 'meal_log', label: 'Log a meal', icon: '🥣', bg: '#ECFDF5',
+    color: '#047857', border: '#A7F3D0', action: 'meal',
+  },
+  {
     id: 'kinetic_chains',
     label: 'Back & Headache',
     icon: '🦴',
@@ -145,6 +149,22 @@ const SUGGESTIONS = [
   "I have a headache, is it related to my condition?",
   "Can we review my health plan?",
 ];
+
+const TOOL_PURPOSES: Record<string, string> = {
+  meal_log: 'Save a meal in your food diary',
+  kinetic_chains: 'Describe discomfort and prepare questions',
+  health_river: 'See your daily observations in time order',
+  log_day: 'Capture sleep, meals, energy and symptoms',
+  food_detective: 'Explore patterns in your food observations',
+  suspect_foods: 'Review foods you want to investigate',
+  zen_garden: 'Return to your garden and wellness activities',
+  diet_trials: 'Follow and record a selected dietary plan',
+  doctor_export: 'Prepare a summary to share at your visit',
+  food_triggers: 'Talk through a food reaction with Ava',
+  food_mood: 'Discuss how your day felt',
+  medication: 'Discuss questions about your medicines',
+  mindfulness: 'Start a guided relaxation session',
+};
 
 const CASE_RECHECK_SUGGESTIONS = [
   "Cross-correlate my symptoms: What connects my labs, notes, and vitals?",
@@ -676,6 +696,23 @@ export default function AvaHealthBuddy() {
   const availableCases = useCaseWorkspace();
   const [selectedCaseId, setSelectedCaseId] = useState(() => new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId || '');
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
+  const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
+  const saveUpdateBusy = useRef(false);
+  useEffect(() => { setSavedUpdate(null); }, [selectedCaseId]);
+  const saveDraftToCase = () => {
+    if (!selectedCase || !input.trim() || saveUpdateBusy.current) return;
+    saveUpdateBusy.current = true;
+    try {
+      if (!getCase(selectedCase.id)) throw new Error('Case unavailable');
+      addCaseEvent(selectedCase.id, input.trim(), 'Personal update from Ava');
+      setSavedUpdate({ caseId: selectedCase.id, title: selectedCase.title });
+      setInput('');
+    } catch {
+      toast.error('Update not saved', 'Your draft is still here. Please try again.');
+    } finally {
+      saveUpdateBusy.current = false;
+    }
+  };
   const importedCase = selectedCase ? { caseId: selectedCase.id, title: selectedCase.title, type: 'Saved case', topConditions: '' } : null;
   const setImportedCase = () => setSelectedCaseId('');
   const [sendError, setSendError] = useState(false);
@@ -973,6 +1010,7 @@ export default function AvaHealthBuddy() {
         }}
       >
         <div style={{ padding: '12px 18px', background: '#F0FDFA', flexShrink: 0 }}>
+          <p style={{ margin: '0 0 8px', fontSize: 12, color: '#115E59' }}>Ava helps you talk things through, record changes and decide what to do next.</p>
           <label htmlFor="ava-case-context" style={{ fontSize: 12, fontWeight: 700, color: '#115E59' }}>Conversation context</label>
           <select id="ava-case-context" className="case-context-select" value={selectedCaseId} disabled={isTyping || isStreaming} onChange={e => { setSelectedCaseId(e.target.value); setSendError(false); lastRequestRef.current = null; }}>
             <option value="">General health check-in</option>
@@ -1659,7 +1697,12 @@ export default function AvaHealthBuddy() {
             {isProcessingAttachment && <p role="status">Reading your document… You can keep writing while it is processed.</p>}
             <p style={{ margin: '0 0 6px', lineHeight: 1.5 }}>Attachments are sent to our AI service to extract text. Check extracted details against the original.</p>
             {sendError && <div role="alert">Ava couldn’t respond. Your message is still here. <button type="button" className="btn btn-outline" onClick={() => { if (lastRequestRef.current && !sendingRef.current) { sendingRef.current = true; chatMutation.mutate(lastRequestRef.current); } }}>Retry message</button></div>}
-            {selectedCase && input.trim() && <button type="button" className="btn btn-outline" onClick={() => { addCaseEvent(selectedCase.id, input.trim(), 'Personal update from Ava'); toast.success('Update saved', 'Your words have been added to this case timeline.'); setInput(''); }}>Save draft as a case update</button>}
+            {selectedCase && input.trim() && <button type="button" className="btn btn-outline" onClick={saveDraftToCase}>Save draft as a case update</button>}
+            {savedUpdate && <div role="status" style={{ margin: '8px 0', lineHeight: 1.5 }}>
+              Saved to {savedUpdate.title}.{' '}
+              <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/cases/${encodeURIComponent(savedUpdate.caseId)}`)}>View saved update</button>{' '}
+              <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(savedUpdate.caseId)}`)}>Prepare for your visit</button>
+            </div>}
             <p style={{ margin: 0, lineHeight: 1.5 }}>Enter to send · Shift + Enter for a new line · AI responses can be mistaken.</p>
           </div>
 
@@ -1678,7 +1721,12 @@ export default function AvaHealthBuddy() {
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                setIsQuickMealOpen(true);
+                if (input.trim()) {
+                  toast.info('Your draft is ready', 'Send or save your current draft before starting a daily check-in.');
+                } else {
+                  setInput('Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.');
+                }
+                document.querySelector<HTMLTextAreaElement>('.ava-composer textarea')?.focus();
               }}
               style={{
                 flex: 1,
@@ -1754,9 +1802,13 @@ export default function AvaHealthBuddy() {
               <button
                 key={pill.id}
                 type="button"
+                title={TOOL_PURPOSES[pill.id]}
+                aria-label={`${pill.label}: ${TOOL_PURPOSES[pill.id]}`}
                 onClick={() => {
                   triggerHapticLight();
-                  if (pill.action === 'mindfulness') {
+                  if (pill.action === 'meal') {
+                    setIsQuickMealOpen(true);
+                  } else if (pill.action === 'mindfulness') {
                     setActiveMeditation(DEFAULT_CALM_TRACK);
                   } else if (pill.action === 'river') {
                     setIsRiverOpen(true);
@@ -1789,7 +1841,10 @@ export default function AvaHealthBuddy() {
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
               >
                 <span>{pill.icon}</span>
-                <span>{pill.label}</span>
+                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
+                  <span>{pill.label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 400 }}>{TOOL_PURPOSES[pill.id]}</span>
+                </span>
               </button>
             ))}
           </div>}
