@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GitMerge,
@@ -25,6 +25,11 @@ import {
   Scale,
   Pill,
   LayoutGrid,
+  Maximize2,
+  Minimize2,
+  Compass,
+  Layers,
+  ChevronDown,
 } from 'lucide-react';
 import {
   getConnectionDetectiveReport,
@@ -51,41 +56,214 @@ import { trackButtonClick } from '../../services/analytics';
 
 export type TabId =
   | 'map'
+  | 'postmeal'
+  | 'calendar'
+  | 'elimination'
+  | 'insights'
+  | 'biomarkers'
+  | 'kinetic'
   | 'cascade'
   | 'matcher'
   | 'consensus'
   | 'misses'
-  | 'dossier'
-  | 'biomarkers'
-  | 'kinetic'
-  | 'postmeal'
-  | 'calendar'
-  | 'elimination'
-  | 'insights';
+  | 'dossier';
 
-export type PillarId = 'gut' | 'body' | 'cause' | 'dossier';
+export type PillarId = 'all' | 'gut' | 'body' | 'cause' | 'dossier';
 
-export interface CapsuleTab {
+export interface StationConfig {
   id: TabId;
-  label: string;
-  shortLabel: string;
+  stationNumber: string;
+  pillarId: 'gut' | 'body' | 'cause' | 'dossier';
+  pillarLabel: string;
+  pillarColor: string;
+  pillarBg: string;
+  pillarBorder: string;
+  title: string;
+  shortTitle: string;
   icon: string;
-  description: string;
-  badge?: string;
-}
-
-export interface PillarConfig {
-  id: PillarId;
-  label: string;
-  shortLabel: string;
-  icon: string;
-  count: number;
   subtitle: string;
-  defaultTab: TabId;
-  tabs: CapsuleTab[];
+  statusBadge: string;
 }
 
-export const TAB_TO_PILLAR: Record<TabId, PillarId> = {
+export const ALL_12_STATIONS: StationConfig[] = [
+  // Pillar 1: Gut & Food (01 - 05)
+  {
+    id: 'map',
+    stationNumber: '01',
+    pillarId: 'gut',
+    pillarLabel: 'Gut & Food',
+    pillarColor: '#0D9488',
+    pillarBg: '#F0FDFA',
+    pillarBorder: '#CCFBF1',
+    title: 'Connected Foods & Sensitivities',
+    shortTitle: 'Foods',
+    icon: '🔬',
+    subtitle: 'Primary dietary triggers, histamine & FODMAP permeability compounds',
+    statusBadge: '4 Triggers Found',
+  },
+  {
+    id: 'postmeal',
+    stationNumber: '02',
+    pillarId: 'gut',
+    pillarLabel: 'Gut & Food',
+    pillarColor: '#0D9488',
+    pillarBg: '#F0FDFA',
+    pillarBorder: '#CCFBF1',
+    title: 'Post-Meal Sensitivities Timeline',
+    shortTitle: 'Post-Meal',
+    icon: '🍽️',
+    subtitle: 'Hour-by-hour physiological flare tracking after meals to isolate rapid vs delayed reactions',
+    statusBadge: '2h & 6h Windows',
+  },
+  {
+    id: 'calendar',
+    stationNumber: '03',
+    pillarId: 'gut',
+    pillarLabel: 'Gut & Food',
+    pillarColor: '#0D9488',
+    pillarBg: '#F0FDFA',
+    pillarBorder: '#CCFBF1',
+    title: 'Digestion & Bloating Calendar Heatmap',
+    shortTitle: 'Heatmap',
+    icon: '📅',
+    subtitle: '30-day empirical calendar view cross-referencing meal logs with digestive flare days',
+    statusBadge: '30-Day Matrix',
+  },
+  {
+    id: 'elimination',
+    stationNumber: '04',
+    pillarId: 'gut',
+    pillarLabel: 'Gut & Food',
+    pillarColor: '#0D9488',
+    pillarBg: '#F0FDFA',
+    pillarBorder: '#CCFBF1',
+    title: 'Symptom Hunt Elimination Protocol',
+    shortTitle: 'Symptom Hunt',
+    icon: '🎯',
+    subtitle: 'Structured 4-week clinical elimination, tracking, and phased re-introduction pipeline',
+    statusBadge: '4-Week Protocol',
+  },
+  {
+    id: 'insights',
+    stationNumber: '05',
+    pillarId: 'gut',
+    pillarLabel: 'Gut & Food',
+    pillarColor: '#0D9488',
+    pillarBg: '#F0FDFA',
+    pillarBorder: '#CCFBF1',
+    title: 'Smart Cross-Correlation Insights',
+    shortTitle: 'Insights',
+    icon: '💡',
+    subtitle: 'Multi-factor statistical correlations between specific ingredients, timing, and flare intensity',
+    statusBadge: 'AI Cross-Analysis',
+  },
+
+  // Pillar 2: Labs & Biomechanics (06 - 07)
+  {
+    id: 'biomarkers',
+    stationNumber: '06',
+    pillarId: 'body',
+    pillarLabel: 'Labs & Body',
+    pillarColor: '#0284C7',
+    pillarBg: '#F0F9FF',
+    pillarBorder: '#BAE6FD',
+    title: 'Functional Labs & Optimal Biomarkers',
+    shortTitle: 'Labs',
+    icon: '🧪',
+    subtitle: 'Comparing standard conventional hospital lab cutoffs against tighter integrative functional wellness targets',
+    statusBadge: 'Optimal Ranges',
+  },
+  {
+    id: 'kinetic',
+    stationNumber: '07',
+    pillarId: 'body',
+    pillarLabel: 'Labs & Body',
+    pillarColor: '#0284C7',
+    pillarBg: '#F0F9FF',
+    pillarBorder: '#BAE6FD',
+    title: 'Kinetic Biomechanics & Vagus Axis',
+    shortTitle: 'Biomechanics',
+    icon: '🦴',
+    subtitle: 'Assessing posture chains, cervical spine compression, and parasympathetic vagal signaling',
+    statusBadge: 'Vagus Axis',
+  },
+
+  // Pillar 3: Root Cause Engine (08 - 11)
+  {
+    id: 'cascade',
+    stationNumber: '08',
+    pillarId: 'cause',
+    pillarLabel: 'Root Cause',
+    pillarColor: '#6366F1',
+    pillarBg: '#EEF2FF',
+    pillarBorder: '#C7D2FE',
+    title: '5-Stage Causal Domino Cascade',
+    shortTitle: 'Causal Flow',
+    icon: '⚡',
+    subtitle: 'Scrub through the 5 chronological stages showing how cellular nutrient deficits trigger autonomic symptoms',
+    statusBadge: '5-Stage Domino',
+  },
+  {
+    id: 'matcher',
+    stationNumber: '09',
+    pillarId: 'cause',
+    pillarLabel: 'Root Cause',
+    pillarColor: '#6366F1',
+    pillarBg: '#EEF2FF',
+    pillarBorder: '#C7D2FE',
+    title: 'Multi-Symptom Cluster Cross-Matcher',
+    shortTitle: 'Cross-Matcher',
+    icon: '🔍',
+    subtitle: 'Tap active symptoms to dynamically calculate multi-specialty board convergence and aligned disciplines',
+    statusBadge: 'Recalibration Active',
+  },
+  {
+    id: 'consensus',
+    stationNumber: '10',
+    pillarId: 'cause',
+    pillarLabel: 'Root Cause',
+    pillarColor: '#6366F1',
+    pillarBg: '#EEF2FF',
+    pillarBorder: '#C7D2FE',
+    title: 'Clinical Board Consensus Panels',
+    shortTitle: 'Consensus',
+    icon: '🏛️',
+    subtitle: 'Autonomous specialist panels (Gastroenterology, Neuro-Immunology, Functional Med, Biomechanics) cross-validating findings',
+    statusBadge: '6 Panels Aligned',
+  },
+  {
+    id: 'misses',
+    stationNumber: '11',
+    pillarId: 'cause',
+    pillarLabel: 'Root Cause',
+    pillarColor: '#6366F1',
+    pillarBg: '#EEF2FF',
+    pillarBorder: '#C7D2FE',
+    title: 'What 15-Minute Doctor Visits Missed',
+    shortTitle: 'Doctor Misses',
+    icon: '⚠️',
+    subtitle: 'Revealing the atypical presentations and cross-organ linkages that single-organ consultations overlook',
+    statusBadge: 'Blind Spots Found',
+  },
+
+  // Pillar 4: Doctor Dossier (12)
+  {
+    id: 'dossier',
+    stationNumber: '12',
+    pillarId: 'dossier',
+    pillarLabel: 'Doctor Dossier',
+    pillarColor: '#059669',
+    pillarBg: '#ECFDF5',
+    pillarBorder: '#A7F3D0',
+    title: 'Doctor Dossier (<60s SBAR Brief)',
+    shortTitle: 'SBAR Dossier',
+    icon: '📋',
+    subtitle: 'Physician-ready SBAR handoff, prioritized laboratory test orders, ICD-10 diagnostic codes, and one-tap copy/print',
+    statusBadge: 'Physician Ready',
+  },
+];
+
+export const TAB_TO_PILLAR: Record<TabId, 'gut' | 'body' | 'cause' | 'dossier'> = {
   map: 'gut',
   postmeal: 'gut',
   calendar: 'gut',
@@ -100,63 +278,20 @@ export const TAB_TO_PILLAR: Record<TabId, PillarId> = {
   dossier: 'dossier',
 };
 
-export const PILLARS: PillarConfig[] = [
-  {
-    id: 'gut',
-    label: 'Gut & Nutrition',
-    shortLabel: 'Gut & Food',
-    icon: '🥗',
-    count: 5,
-    subtitle: 'Food triggers, post-meal inflammatory cascades & elimination patterns',
-    defaultTab: 'map',
-    tabs: [
-      { id: 'map', label: 'Connected Foods', shortLabel: 'Foods', icon: '🔬', description: 'Trigger compounds & sensitivities' },
-      { id: 'postmeal', label: 'Post-Meal Sensitivities', shortLabel: 'Post-Meal', icon: '🍽️', description: 'Hour-by-hour reaction timeline' },
-      { id: 'calendar', label: 'Digestion Heatmap', shortLabel: 'Heatmap', icon: '📅', description: '30-day symptom-meal calendar' },
-      { id: 'elimination', label: 'Symptom Hunt', shortLabel: 'Symptom Hunt', icon: '🎯', description: '4-week structured elimination suite' },
-      { id: 'insights', label: 'Smart Insights', shortLabel: 'Insights', icon: '💡', description: 'AI cross-correlations & food swaps' },
-    ],
-  },
-  {
-    id: 'body',
-    label: 'Labs & Biomechanics',
-    shortLabel: 'Labs & Body',
-    icon: '🧪',
-    count: 2,
-    subtitle: 'Functional bloodwork cutoffs and musculoskeletal kinetic chains',
-    defaultTab: 'biomarkers',
-    tabs: [
-      { id: 'biomarkers', label: 'Functional Labs', shortLabel: 'Labs', icon: '🧪', description: 'Optimal functional ranges vs conventional cutoffs' },
-      { id: 'kinetic', label: 'Kinetic Biomechanics', shortLabel: 'Biomechanics', icon: '🦴', description: 'Posture chains, cervical spine & vagus nerve' },
-    ],
-  },
-  {
-    id: 'cause',
-    label: 'Root Cause Engine',
-    shortLabel: 'Root Cause',
-    icon: '⚡',
-    count: 4,
-    subtitle: 'Multi-system domino cascade, symptom matching & physician blind spots',
-    defaultTab: 'cascade',
-    tabs: [
-      { id: 'cascade', label: 'Causal Flow', shortLabel: 'Causal Flow', icon: '⚡', description: '5-Stage multi-system domino chain' },
-      { id: 'matcher', label: 'Cross-Matcher', shortLabel: 'Cross-Matcher', icon: '🔍', description: 'Multi-symptom cluster probability matrix' },
-      { id: 'consensus', label: 'Clinical Panels', shortLabel: 'Panels', icon: '🏛️', description: 'Multi-specialty board consensus dialogue' },
-      { id: 'misses', label: 'What Doctors Missed', shortLabel: 'Doctor Misses', icon: '⚠️', description: 'Overlooked atypical presentations & blind spots' },
-    ],
-  },
-  {
-    id: 'dossier',
-    label: 'Doctor Dossier',
-    shortLabel: 'Dossier',
-    icon: '📋',
-    count: 1,
-    subtitle: 'Executive <60-second SBAR brief with ICD-10 codes for physician handoff',
-    defaultTab: 'dossier',
-    tabs: [
-      { id: 'dossier', label: 'Doctor Dossier (<60s)', shortLabel: 'SBAR Brief', icon: '📋', description: 'Physician handoff, ICD-10 codes, lab orders', badge: 'Ready' },
-    ],
-  },
+export interface PillarFilterOption {
+  id: PillarId;
+  label: string;
+  shortLabel: string;
+  icon: string;
+  count: number;
+}
+
+export const PILLAR_FILTERS: PillarFilterOption[] = [
+  { id: 'all', label: 'All 12 Stations', shortLabel: 'All (12)', icon: '✨', count: 12 },
+  { id: 'gut', label: 'Gut & Food', shortLabel: '🥗 Gut (5)', icon: '🥗', count: 5 },
+  { id: 'body', label: 'Labs & Body', shortLabel: '🧪 Labs (2)', icon: '🧪', count: 2 },
+  { id: 'cause', label: 'Root Cause', shortLabel: '⚡ Cause (4)', icon: '⚡', count: 4 },
+  { id: 'dossier', label: 'Doctor Dossier', shortLabel: '📋 Dossier (1)', icon: '📋', count: 1 },
 ];
 
 interface ConnectionDetectiveViewProps {
@@ -167,47 +302,54 @@ interface ConnectionDetectiveViewProps {
 }
 
 export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = ({
-  initialTab = 'map',
+  initialTab,
   onOpenFoodDetective,
   onOpenConsult,
   onOpenCasePrep,
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
-  const [activePillar, setActivePillar] = useState<PillarId>(() => TAB_TO_PILLAR[initialTab] || 'gut');
-  const [isHubView, setIsHubView] = useState(false);
+  const [selectedPillar, setSelectedPillar] = useState<PillarId>('all');
+  const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
+  const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
+
+  // States for interactive subcomponents inside stations
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // Scroll to station helper
+  const scrollToStation = (tabId: TabId) => {
+    triggerHapticSelection();
+    const targetStation = ALL_12_STATIONS.find((s) => s.id === tabId);
+    if (selectedPillar !== 'all' && targetStation && targetStation.pillarId !== selectedPillar) {
+      setSelectedPillar('all');
+    }
+    setFocusedStationId(null);
+    setHighlightedStationId(tabId);
+    trackButtonClick('clinical_station_jump', tabId);
+
+    setTimeout(() => {
+      const element = document.getElementById(`cd-station-${tabId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+
+    setTimeout(() => {
+      setHighlightedStationId(null);
+    }, 2400);
+  };
 
   useEffect(() => {
     if (initialTab) {
-      setActiveTab(initialTab);
-      setActivePillar(TAB_TO_PILLAR[initialTab] || 'gut');
-    }
-  }, [initialTab]);
-
-  const handleSelectTab = (tabId: TabId) => {
-    triggerHapticLight();
-    setActiveTab(tabId);
-    setActivePillar(TAB_TO_PILLAR[tabId]);
-    setIsHubView(false);
-    trackButtonClick('clinical_engine_tab_switched', tabId);
-  };
-
-  const handleSelectPillar = (pillarId: PillarId) => {
-    triggerHapticSelection();
-    setActivePillar(pillarId);
-    setIsHubView(false);
-    const targetPillar = PILLARS.find((p) => p.id === pillarId);
-    if (targetPillar) {
-      const isCurrentTabInPillar = targetPillar.tabs.some((t) => t.id === activeTab);
-      if (!isCurrentTabInPillar) {
-        setActiveTab(targetPillar.defaultTab);
-        trackButtonClick('clinical_engine_tab_switched', targetPillar.defaultTab);
+      const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
+      if (target) {
+        scrollToStation(initialTab);
       }
     }
-  };
-
-  const currentPillar = useMemo(() => PILLARS.find((p) => p.id === activePillar) || PILLARS[0], [activePillar]);
+  }, [initialTab]);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -226,17 +368,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     };
   }, []);
 
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-  const [isCopied, setIsCopied] = useState(false);
-
-  // Active selected node detail
-  const activeNodeDetail = selectedNodeId ? report.nodeDetails[selectedNodeId] : null;
-
   const dietSummary = useMemo(() => generateDoctorSummary(), [report]);
 
-  // Real-time evaluation of symptom cluster
   const clusterEvaluation = useMemo(() => {
     return evaluateSymptomCluster(selectedSymptoms);
   }, [selectedSymptoms]);
@@ -288,1743 +421,1320 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
     window.print();
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+  const visibleStations = useMemo(() => {
+    if (focusedStationId) {
+      return ALL_12_STATIONS.filter((s) => s.id === focusedStationId);
+    }
+    if (selectedPillar === 'all') {
+      return ALL_12_STATIONS;
+    }
+    return ALL_12_STATIONS.filter((s) => s.pillarId === selectedPillar);
+  }, [selectedPillar, focusedStationId]);
 
-      {/* 1. Master Clinical Architecture Navigation */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {/* Tier 1: Pillar Segmented Controller + Hub Switcher */}
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+      {/* 1. EXECUTIVE DIAGNOSTIC STATION OVERVIEW (TIER 1 BLUF) */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          borderRadius: '22px',
+          padding: isMobile ? '16px' : '20px',
+          color: '#FFFFFF',
+          boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: '-30px',
+            right: '-30px',
+            width: '140px',
+            height: '140px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(13, 148, 136, 0.25) 0%, rgba(13, 148, 136, 0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  letterSpacing: '0.8px',
+                  textTransform: 'uppercase',
+                  background: 'rgba(204, 251, 241, 0.15)',
+                  color: '#2DD4BF',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(45, 212, 191, 0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Sparkles size={11} /> 12 Active Clinical Intelligence Stations
+              </span>
+            </div>
+            <h3 style={{ margin: 0, fontSize: isMobile ? '16px' : '18px', fontWeight: 900, letterSpacing: '-0.3px', color: '#F8FAFC' }}>
+              Multi-System Root Cause Architecture
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#94A3B8', lineHeight: 1.4 }}>
+              Structured diagnostic continuum bridging gut barrier biochemistry, functional lab cutoffs, vagal kinetic chains, and physician handoff.
+            </p>
+          </div>
+
+          <div
+            style={{
+              padding: '6px 12px',
+              borderRadius: '12px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              textAlign: 'right',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#38BDF8' }}>
+              {report.matchConfidence}%
+            </div>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>
+              Board Consensus
+            </div>
+          </div>
+        </div>
+
+        {/* 4 Clinical Pillars Micro-Summary */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+            gap: '6px',
+            background: 'rgba(0, 0, 0, 0.25)',
+            borderRadius: '14px',
+            padding: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+          }}
+        >
+          {[
+            { label: '🥗 Gut & Food', count: '5 Stations', desc: 'Foods, timeline, hunt' },
+            { label: '🧪 Labs & Body', count: '2 Stations', desc: 'Ranges & biomechanics' },
+            { label: '⚡ Root Cause', count: '4 Stations', desc: 'Cascade & consensus' },
+            { label: '📋 Doctor Dossier', count: '1 Station', desc: 'Physician SBAR brief' },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                padding: '6px 8px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1px',
+              }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#F1F5F9' }}>{item.label}</span>
+              <span style={{ fontSize: '9.5px', color: '#38BDF8', fontWeight: 700 }}>{item.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 2. PILLAR SEGMENTED CONTROLLER & ANCHOR NAVIGATION BAR */}
+      <div
+        style={{
+          position: 'sticky',
+          top: '0',
+          zIndex: 40,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          padding: '8px 0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          borderBottom: '1px solid #E2E8F0',
+        }}
+      >
+        {/* Tier 1: Pillar Filter Buttons */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
             background: '#F1F5F9',
-            borderRadius: '16px',
-            padding: '4px',
+            borderRadius: '14px',
+            padding: '3px',
             border: '1px solid #E2E8F0',
             overflowX: 'auto',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
           }}
         >
-          {PILLARS.map((p) => {
-            const isPillarActive = !isHubView && activePillar === p.id;
+          {PILLAR_FILTERS.map((filter) => {
+            const isActive = !focusedStationId && selectedPillar === filter.id;
             return (
               <button
-                key={p.id}
+                key={filter.id}
                 type="button"
-                onClick={() => handleSelectPillar(p.id)}
+                onClick={() => {
+                  triggerHapticSelection();
+                  setSelectedPillar(filter.id);
+                  setFocusedStationId(null);
+                  trackButtonClick('clinical_pillar_filter', filter.id);
+                }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: isMobile ? '8px 10px' : '9px 14px',
-                  borderRadius: '12px',
-                  fontSize: isMobile ? '11.5px' : '12.5px',
-                  fontWeight: isPillarActive ? 800 : 600,
+                  gap: '5px',
+                  padding: isMobile ? '7px 9px' : '8px 12px',
+                  borderRadius: '10px',
+                  fontSize: isMobile ? '11px' : '12px',
+                  fontWeight: isActive ? 800 : 600,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   flex: isMobile ? 'none' : 1,
                   justifyContent: 'center',
-                  border: isPillarActive ? '1px solid #CCFBF1' : '1px solid transparent',
-                  background: isPillarActive ? '#FFFFFF' : 'transparent',
-                  color: isPillarActive ? '#0F766E' : '#64748B',
-                  boxShadow: isPillarActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-                  transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
-                  minHeight: '40px',
+                  border: isActive ? '1px solid #CCFBF1' : '1px solid transparent',
+                  background: isActive ? '#FFFFFF' : 'transparent',
+                  color: isActive ? '#0F766E' : '#64748B',
+                  boxShadow: isActive ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.15s ease',
+                  minHeight: '36px',
                 }}
               >
-                <span style={{ fontSize: '14px' }}>{p.icon}</span>
-                <span>{isMobile ? p.shortLabel : p.label}</span>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 800,
-                    padding: '1px 6px',
-                    borderRadius: '999px',
-                    background: isPillarActive ? '#F0FDFA' : '#E2E8F0',
-                    color: isPillarActive ? '#0F766E' : '#64748B',
-                    border: isPillarActive ? '1px solid #CCFBF1' : 'none',
-                  }}
-                >
-                  {p.id === 'dossier' ? 'Ready' : p.count}
-                </span>
+                <span>{filter.icon}</span>
+                <span>{isMobile ? filter.shortLabel : filter.label}</span>
               </button>
             );
           })}
 
-          {/* Hub / All Modules Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              triggerHapticLight();
-              setIsHubView((prev) => !prev);
-            }}
-            title="All 12 Modules Hub Overview"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: isMobile ? '8px 10px' : '9px 12px',
-              borderRadius: '12px',
-              fontSize: '11.5px',
-              fontWeight: isHubView ? 800 : 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              border: isHubView ? '1px solid #CBD5E1' : '1px solid transparent',
-              background: isHubView ? '#FFFFFF' : 'transparent',
-              color: isHubView ? '#1E293B' : '#64748B',
-              boxShadow: isHubView ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-              transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
-              minHeight: '40px',
-            }}
-          >
-            <LayoutGrid size={13} />
-            <span>{isMobile ? 'Hub' : 'All Hub'}</span>
-          </button>
-        </div>
-
-        {/* Tier 2: Curated Sub-Capsules (When Hub view is off) */}
-        {!isHubView && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                gap: '6px',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                padding: '2px 0',
-                alignItems: 'center',
-              }}
-            >
-              {currentPillar.tabs.map((t) => {
-                const isActive = activeTab === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => handleSelectTab(t.id)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 14px',
-                      borderRadius: '999px',
-                      fontSize: '12px',
-                      fontWeight: isActive ? 800 : 600,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0,
-                      border: isActive ? '1.5px solid #0F766E' : '1.5px solid #E2E8F0',
-                      background: isActive
-                        ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
-                        : '#FFFFFF',
-                      color: isActive ? '#FFFFFF' : '#475569',
-                      boxShadow: isActive
-                        ? '0 4px 14px rgba(13, 148, 136, 0.28)'
-                        : '0 1px 3px rgba(0,0,0,0.02)',
-                      transition: 'all 0.15s ease',
-                      minHeight: '38px',
-                    }}
-                  >
-                    <span style={{ fontSize: '13px' }}>{t.icon}</span>
-                    <span>{t.label}</span>
-                    {t.badge && (
-                      <span
-                        style={{
-                          fontSize: '9px',
-                          fontWeight: 800,
-                          padding: '1px 5px',
-                          borderRadius: '999px',
-                          background: isActive ? 'rgba(255,255,255,0.25)' : '#DCFCE7',
-                          color: isActive ? '#FFFFFF' : '#15803D',
-                        }}
-                      >
-                        {t.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Subtle Clinical Context Bar */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#F8FAFC',
-                borderRadius: '10px',
-                padding: '6px 12px',
-                border: '1px solid #F1F5F9',
-                fontSize: '11px',
-                color: '#64748B',
-                gap: '8px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: '12px' }}>{currentPillar.icon}</span>
-                <span style={{ fontWeight: 600, color: '#334155' }}>{currentPillar.subtitle}</span>
-              </div>
-              <span style={{ flexShrink: 0, fontWeight: 700, color: '#0F766E' }}>
-                {currentPillar.tabs.findIndex((t) => t.id === activeTab) + 1} of {currentPillar.tabs.length}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Hub Matrix View (Rendered when Hub is active) */}
-      {isHubView && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: '12px',
-            margin: '4px 0 10px 0',
-          }}
-        >
-          {PILLARS.map((pillar) => (
-            <div
-              key={pillar.id}
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '16px',
-                padding: '14px 16px',
-                border: activePillar === pillar.id ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
-                boxShadow: activePillar === pillar.id ? '0 4px 14px rgba(13, 148, 136, 0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>{pillar.icon}</span>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '13.5px', fontWeight: 800, color: '#1E293B' }}>
-                      {pillar.label}
-                    </h3>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#64748B' }}>
-                      {pillar.subtitle}
-                    </p>
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 800,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    background: '#F0FDFA',
-                    color: '#0F766E',
-                    border: '1px solid #CCFBF1',
-                  }}
-                >
-                  {pillar.count} {pillar.count === 1 ? 'Module' : 'Modules'}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {pillar.tabs.map((tab) => {
-                  const isCurrent = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => handleSelectTab(tab.id)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '999px',
-                        fontSize: '11.5px',
-                        fontWeight: isCurrent ? 800 : 600,
-                        cursor: 'pointer',
-                        border: isCurrent ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
-                        background: isCurrent
-                          ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
-                          : '#F8FAFC',
-                        color: isCurrent ? '#FFFFFF' : '#334155',
-                        boxShadow: isCurrent ? '0 2px 8px rgba(13, 148, 136, 0.22)' : 'none',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span>{tab.icon}</span>
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 4. Interactive Node Deep-Dive Drawer (When Node is Tapped) */}
-      <AnimatePresence>
-        {activeNodeDetail && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            style={{
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
-              borderRadius: '20px',
-              padding: '18px 20px',
-              border: '1.5px solid #38BDF8',
-              boxShadow: '0 12px 32px rgba(2, 132, 199, 0.15)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '22px' }}>{activeNodeDetail.systemIcon}</span>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                    {activeNodeDetail.title}
-                  </h4>
-                  <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: 700 }}>
-                    {activeNodeDetail.systemName} • {activeNodeDetail.confidence}% Match
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  setSelectedNodeId(null);
-                }}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  border: '1px solid #E2E8F0',
-                  background: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#64748B',
-                }}
-                aria-label="Close node detail"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            {/* Biochemical Mechanism */}
-            <div style={{ background: '#F0F9FF', borderRadius: '12px', padding: '10px 12px', border: '1px solid #BAE6FD', fontSize: '12.5px', color: '#0369A1', lineHeight: 1.4 }}>
-              <strong>Biochemical Chain:</strong> {activeNodeDetail.biochemicalMechanism}
-            </div>
-
-            {/* Biomarker High-Yield Comparison Table */}
-            {activeNodeDetail.biomarkers.length > 0 && (
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>
-                  Laboratory Biomarkers Involved:
-                </span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {activeNodeDetail.biomarkers.map((bio, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '8px 10px',
-                        background: '#FFFFFF',
-                        borderRadius: '10px',
-                        border: '1px solid #E2E8F0',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '12px',
-                      }}
-                    >
-                      <div>
-                        <strong style={{ color: '#0F172A' }}>{bio.name}</strong>
-                        <div style={{ fontSize: '11px', color: '#64748B' }}>
-                          Standard: {bio.standardRange} • Optimal: <strong style={{ color: '#059669' }}>{bio.optimalRange}</strong>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: '999px',
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            background: bio.status === 'depleted' || bio.status === 'elevated' ? '#FEF2F2' : '#F0FDF4',
-                            color: bio.status === 'depleted' || bio.status === 'elevated' ? '#DC2626' : '#16A34A',
-                            border: `1px solid ${bio.status === 'depleted' || bio.status === 'elevated' ? '#FECACA' : '#BBF7D0'}`,
-                          }}
-                        >
-                          {bio.userValue}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Connected Dietary Triggers */}
-            {activeNodeDetail.dietaryTriggers.length > 0 && (
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>
-                  Connected Dietary Triggers:
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {activeNodeDetail.dietaryTriggers.map((trig, idx) => (
-                    <span
-                      key={idx}
-                      style={{
-                        padding: '5px 10px',
-                        background: '#F0FDFA',
-                        borderRadius: '8px',
-                        border: '1px solid #CCFBF1',
-                        fontSize: '11.5px',
-                        color: '#0F766E',
-                        fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                      }}
-                    >
-                      <span>{trig.icon}</span>
-                      <span>{trig.name} ({trig.category})</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Specialist Quote */}
-            <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '12px', color: '#475569', fontStyle: 'italic' }}>
-              "{activeNodeDetail.specialistQuote.quote}" — <strong>{activeNodeDetail.specialistQuote.doctor}</strong> ({activeNodeDetail.specialistQuote.role})
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-              {onOpenFoodDetective && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    onOpenFoodDetective();
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    boxShadow: '0 3px 10px rgba(13, 148, 136, 0.25)',
-                  }}
-                >
-                  <Sparkles size={14} /> Inspect in Food Detective
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => handleSelectTab('dossier')}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '10px',
-                  background: '#F1F5F9',
-                  color: '#334155',
-                  border: '1px solid #CBD5E1',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <FileText size={14} /> Add to Doctor Dossier
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 5. Sub-Tab Contents */}
-
-      {/* TAB 1: CONNECTED FOODS & DIETARY TRIGGER HUB */}
-      {activeTab === 'map' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* 1. Primary Clinical Sensitivity Verdict */}
-          <div
-            style={{
-              background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-              borderRadius: '18px',
-              padding: '16px 18px',
-              border: '1.5px solid #99F6E4',
-              display: 'flex',
-              alignItems: isMobile ? 'flex-start' : 'center',
-              flexDirection: isMobile ? 'column' : 'row',
-              justifyContent: 'space-between',
-              gap: '12px',
-              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  background: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '22px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                  flexShrink: 0,
-                }}
-              >
-                🔬
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                  <strong style={{ fontSize: '14px', color: '#0F172A' }}>
-                    Connected Food Sensitivities Detected
-                  </strong>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      background: '#CCFBF1',
-                      color: '#0F766E',
-                      padding: '1px 6px',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    High Correlation
-                  </span>
-                </div>
-                <span style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-                  Histamine & FODMAPs identified as upstream vascular and gut barrier triggers.
-                </span>
-              </div>
-            </div>
-
+          {focusedStationId && (
             <button
               type="button"
               onClick={() => {
                 triggerHapticLight();
-                if (onOpenFoodDetective) onOpenFoodDetective();
-                else window.location.href = '/app/dietician';
+                setFocusedStationId(null);
               }}
               style={{
-                background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 10px',
+                borderRadius: '10px',
+                background: '#0D9488',
                 color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '12px',
-                padding: '10px 16px',
-                fontSize: '12.5px',
+                fontSize: '11px',
                 fontWeight: 700,
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
                 whiteSpace: 'nowrap',
-                flexShrink: 0,
-                boxShadow: '0 3px 10px rgba(13, 148, 136, 0.28)',
-                width: isMobile ? '100%' : 'auto',
-                justifyContent: 'center',
               }}
             >
-              Inspect in Food Detective <ArrowRight size={14} />
+              <Minimize2 size={12} /> Show All 12
             </button>
-          </div>
+          )}
+        </div>
 
-          {/* 2. Top Culprit Foods Breakdown */}
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '18px',
-              padding: '16px 18px',
-              border: '1.5px solid #E2E8F0',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Suspected Dietary Triggers & Sensitivities
-                </h4>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748B' }}>
-                  Cross-referenced against symptom check-ins and meal flare correlations
-                </p>
-              </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', padding: '3px 8px', borderRadius: '8px', border: '1px solid #CCFBF1' }}>
-                {dietSummary.topCulpritFoods.length > 0 ? `${dietSummary.topCulpritFoods.length} Identified` : 'Clinical Baseline'}
-              </span>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                gap: '8px',
-              }}
-            >
-              {(dietSummary.topCulpritFoods.length > 0 ? dietSummary.topCulpritFoods.slice(0, 4) : [
-                { id: 'histamine_dairy', name: 'Aged Cheese & Dairy', emoji: '🧀', category: 'Dairy', primarySensitivity: 'Histamine Rebound', correlationPercent: 88, safeSwap: 'Fresh paneer or goat cheese', reactionWindow: '2-4 hours' },
-                { id: 'fodmap_allium', name: 'Garlic & Onion (Alliums)', emoji: '🧄', category: 'FODMAPs', primarySensitivity: 'Fructan Fermentation', correlationPercent: 82, safeSwap: 'Garlic-infused olive oil / Hing', reactionWindow: '3-6 hours' },
-                { id: 'solanaceae', name: 'Tomatoes & Peppers', emoji: '🍅', category: 'Nightshades', primarySensitivity: 'Solanine Permeability', correlationPercent: 74, safeSwap: 'Beetroot & roasted carrot purée', reactionWindow: '4-8 hours' },
-                { id: 'fermented_soy', name: 'Fermented Soy / Tamari', emoji: '🥢', category: 'Histamine', primarySensitivity: 'Biogenic Amines', correlationPercent: 68, safeSwap: 'Coconut aminos', reactionWindow: '1-3 hours' },
-              ]).map((culprit) => (
-                <div
-                  key={culprit.id}
+        {/* Tier 2: Numbered Quick-Jump Capsules Strip (01 to 12) */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            padding: '2px 0',
+            alignItems: 'center',
+          }}
+        >
+          {ALL_12_STATIONS.map((station) => {
+            const isHighlighted = highlightedStationId === station.id;
+            const isFocused = focusedStationId === station.id;
+            return (
+              <button
+                key={station.id}
+                type="button"
+                onClick={() => scrollToStation(station.id)}
+                title={station.title}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '5px 10px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: isFocused || isHighlighted ? 800 : 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  border: isHighlighted
+                    ? '1.5px solid #0D9488'
+                    : isFocused
+                    ? '1.5px solid #0F766E'
+                    : '1px solid #E2E8F0',
+                  background: isHighlighted
+                    ? '#CCFBF1'
+                    : isFocused
+                    ? '#F0FDFA'
+                    : '#FFFFFF',
+                  color: isHighlighted || isFocused ? '#0F766E' : '#475569',
+                  boxShadow: isHighlighted ? '0 0 0 2px rgba(13, 148, 136, 0.35)' : 'none',
+                  transition: 'all 0.18s ease',
+                  minHeight: '32px',
+                }}
+              >
+                <span
                   style={{
-                    background: '#F8FAFC',
-                    borderRadius: '12px',
-                    padding: '10px 12px',
-                    border: '1px solid #E2E8F0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
+                    fontSize: '9.5px',
+                    fontWeight: 900,
+                    padding: '1px 5px',
+                    borderRadius: '6px',
+                    background: station.pillarBg,
+                    color: station.pillarColor,
+                    border: `1px solid ${station.pillarBorder}`,
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '18px' }}>{culprit.emoji}</span>
-                      <strong style={{ fontSize: '12.5px', color: '#0F172A' }}>{culprit.name}</strong>
-                    </div>
-                    <span
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: 800,
-                        color: '#B45309',
-                        background: '#FEF3C7',
-                        padding: '2px 7px',
-                        borderRadius: '999px',
-                        border: '1px solid #FDE68A',
-                      }}
-                    >
-                      +{culprit.correlationPercent}% flare
-                    </span>
-                  </div>
+                  {station.stationNumber}
+                </span>
+                <span>{station.icon}</span>
+                <span>{station.shortTitle}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748B' }}>
-                    <span style={{ color: '#0F766E', fontWeight: 600 }}>{culprit.primarySensitivity}</span>
-                    <span>Window: {culprit.reactionWindow}</span>
-                  </div>
+      {/* 3. THE 12 DEDICATED CLINICAL STATIONS */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {visibleStations.map((station) => {
+          const isHighlighted = highlightedStationId === station.id;
+          const isSingleFocus = focusedStationId === station.id;
 
-                  {culprit.safeSwap && (
-                    <div style={{ fontSize: '11px', color: '#334155', background: '#FFFFFF', padding: '4px 8px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
-                      🌱 <span style={{ fontWeight: 600 }}>Swap:</span> {culprit.safeSwap}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 3. Connected Gut Diagnostic Navigation Suite */}
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '18px',
-              padding: '16px 18px',
-              border: '1.5px solid #E2E8F0',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Connected Gut Diagnostic Tools
-                </h4>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748B' }}>
-                  Jump directly into any specific dietary tracking and correlation module
-                </p>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                gap: '8px',
-              }}
-            >
-              {[
-                {
-                  id: 'postmeal' as TabId,
-                  icon: '🍽️',
-                  title: 'Post-Meal Timeline',
-                  desc: 'Track 2hr & 6hr delayed inflammatory cascades',
-                  color: '#0F766E',
-                },
-                {
-                  id: 'calendar' as TabId,
-                  icon: '📅',
-                  title: 'Digestion Heatmap',
-                  desc: 'Review 30-day symptom vs meal correlation calendar',
-                  color: '#2563EB',
-                },
-                {
-                  id: 'elimination' as TabId,
-                  icon: '🎯',
-                  title: 'Symptom Hunt Suite',
-                  desc: 'Structured 4-week clinical elimination & reintroduction',
-                  color: '#7C3AED',
-                },
-                {
-                  id: 'insights' as TabId,
-                  icon: '💡',
-                  title: 'Smart Insights',
-                  desc: 'AI cross-correlations & clinically validated food swaps',
-                  color: '#D97706',
-                },
-              ].map((tool) => (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => handleSelectTab(tool.id)}
+          return (
+            <React.Fragment key={station.id}>
+              <section
+                id={`cd-station-${station.id}`}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: '22px',
+                  border: isHighlighted
+                    ? '2px solid #0D9488'
+                    : '1.5px solid #E2E8F0',
+                  boxShadow: isHighlighted
+                    ? '0 0 0 4px rgba(13, 148, 136, 0.2), 0 8px 24px rgba(0,0,0,0.06)'
+                    : '0 4px 16px rgba(0, 0, 0, 0.03)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                {/* STATION HEADER BAR */}
+                <header
                   style={{
-                    background: '#F8FAFC',
-                    borderRadius: '12px',
-                    padding: '12px 14px',
-                    border: '1.5px solid #E2E8F0',
+                    background: `linear-gradient(180deg, ${station.pillarBg} 0%, #FFFFFF 100%)`,
+                    borderBottom: '1px solid #F1F5F9',
+                    padding: isMobile ? '12px 14px' : '14px 18px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '10px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '20px' }}>{tool.icon}</span>
-                    <div>
-                      <strong style={{ fontSize: '12.5px', color: '#1E293B', display: 'block' }}>
-                        {tool.title}
-                      </strong>
-                      <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>
-                        {tool.desc}
-                      </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '10px',
+                        background: station.pillarColor,
+                        color: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 900,
+                        fontSize: '13px',
+                        flexShrink: 0,
+                        boxShadow: `0 2px 8px ${station.pillarColor}40`,
+                      }}
+                    >
+                      {station.stationNumber}
                     </div>
-                  </div>
-                  <ChevronRight size={16} color="#94A3B8" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* TAB 2: CAUSAL FLOW CASCADE */}
-      {activeTab === 'cascade' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {report.cascadeStages.length === 0 ? (
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                padding: isMobile ? '28px 20px' : '40px 32px',
-                border: '1.5px dashed #CBD5E1',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-              }}
-            >
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '26px',
-                  border: '1px solid #99F6E4',
-                }}
-              >
-                ⚡
-              </div>
-              <div style={{ maxWidth: '420px' }}>
-                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
-                  Awaiting Clinical Intake
-                </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  Multi-stage physiological causal cascades map upstream triggers to downstream symptoms once your profile or consultation is active.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    if (onOpenConsult) onOpenConsult();
-                    else window.location.href = '/app/consult';
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '10px 18px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 10px rgba(13, 148, 136, 0.25)',
-                  }}
-                >
-                  + Start Consultation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '22px',
-                padding: '18px 20px',
-                border: '1.5px solid #E2E8F0',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
-              }}
-            >
-              <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                THE ROOT-CAUSE DOMINO EFFECT
-              </span>
-              <h4 style={{ margin: '2px 0 0 0', fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
-                5-Stage Sequential Pathophysiology
-              </h4>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>
-                Scrub through the chronological chain reaction showing how cellular nutrient deficits trigger autonomic symptoms.
-              </p>
-            </div>
-
-            {/* Stage Selector Stepper Rail */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(5, 1fr)',
-                gap: '6px',
-                background: '#F8FAFC',
-                padding: '6px',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-                marginBottom: '16px',
-              }}
-            >
-              {report.cascadeStages.map((stage) => {
-                const isSelected = activeCascadeStage === stage.stage;
-                return (
-                  <button
-                    key={stage.stage}
-                    type="button"
-                    onClick={() => {
-                      triggerHapticSelection();
-                      setActiveCascadeStage(stage.stage);
-                    }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '2px',
-                      padding: '8px 4px',
-                      borderRadius: '12px',
-                      border: isSelected ? '1.5px solid #0D9488' : '1px solid transparent',
-                      background: isSelected ? '#FFFFFF' : 'transparent',
-                      color: isSelected ? '#0F766E' : '#64748B',
-                      cursor: 'pointer',
-                      boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
-                    }}
-                  >
-                    <span style={{ fontSize: '16px' }}>{stage.organIcon}</span>
-                    <span style={{ fontSize: '10.5px', fontWeight: 800 }}>Stage {stage.stage}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Active Stage Card */}
-            {(() => {
-              const cur = report.cascadeStages.find((s) => s.stage === activeCascadeStage) || report.cascadeStages[0];
-              return (
-                <motion.div
-                  key={cur.stage}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  style={{
-                    background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%)',
-                    borderRadius: '18px',
-                    padding: '16px 18px',
-                    border: '1.5px solid #CCFBF1',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                       <span style={{ fontSize: '24px' }}>{cur.organIcon}</span>
-                      <div>
-                        <strong style={{ fontSize: '15px', color: '#1C1917', display: 'block' }}>
-                          Stage {cur.stage}: {cur.title}
-                        </strong>
-                        <span style={{ fontSize: '11.5px', color: '#0F766E', fontWeight: 700 }}>
-                          Organ Axis: {cur.organSystem}
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                        <span
+                          style={{
+                            fontSize: '9.5px',
+                            fontWeight: 800,
+                            letterSpacing: '0.6px',
+                            textTransform: 'uppercase',
+                            color: station.pillarColor,
+                          }}
+                        >
+                          STATION {station.stationNumber} • {station.pillarLabel}
                         </span>
                       </div>
-                    </div>
-                    <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '999px', background: '#CCFBF1', color: '#0F766E', fontWeight: 800 }}>
-                      Step {cur.stage} of 5
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5, background: 'rgba(255,255,255,0.85)', padding: '10px 12px', borderRadius: '12px', border: '1px solid #99F6E4' }}>
-                    <strong>Mechanism:</strong> {cur.mechanism}
-                  </div>
-
-                  {/* Clinical Signs */}
-                  <div>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#78716C', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                      Identified Clinical Manifestations:
-                    </span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {cur.clinicalSigns.map((sign, i) => (
-                        <span key={i} style={{ fontSize: '11.5px', fontWeight: 700, padding: '4px 10px', borderRadius: '999px', background: '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}>
-                          • {sign}
-                        </span>
-                      ))}
+                      <h4
+                        style={{
+                          margin: 0,
+                          fontSize: isMobile ? '14.5px' : '16px',
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span>{station.icon}</span>
+                        <span>{station.title}</span>
+                      </h4>
                     </div>
                   </div>
 
-                  {/* Upstream / Downstream Linkage */}
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', fontSize: '11.5px' }}>
-                    <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                      <strong style={{ color: '#0284C7', display: 'block' }}>← Upstream Trigger:</strong>
-                      <span style={{ color: '#475569' }}>{cur.upstreamCause}</span>
-                    </div>
-                    <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                      <strong style={{ color: '#059669', display: 'block' }}>→ Downstream Consequence:</strong>
-                      <span style={{ color: '#475569' }}>{cur.downstreamEffect}</span>
-                    </div>
-                  </div>
-
-                  {/* Stepper Buttons */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                    <button
-                      type="button"
-                      disabled={activeCascadeStage === 1}
-                      onClick={() => {
-                        triggerHapticLight();
-                        setActiveCascadeStage((prev) => Math.max(1, prev - 1));
-                      }}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '10px',
-                        border: '1px solid #E2E8F0',
-                        background: '#FFFFFF',
-                        color: activeCascadeStage === 1 ? '#CBD5E1' : '#334155',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: activeCascadeStage === 1 ? 'default' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      <ArrowLeft size={13} /> Previous Stage
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={activeCascadeStage === 5}
-                      onClick={() => {
-                        triggerHapticLight();
-                        setActiveCascadeStage((prev) => Math.min(5, prev + 1));
-                      }}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '10px',
-                        border: 'none',
-                        background: activeCascadeStage === 5 ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                        color: activeCascadeStage === 5 ? '#94A3B8' : '#FFFFFF',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: activeCascadeStage === 5 ? 'default' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        boxShadow: activeCascadeStage === 5 ? 'none' : '0 3px 10px rgba(13, 148, 136, 0.28)',
-                      }}
-                    >
-                      Next Stage <ArrowRight size={13} />
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })()}
-          </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: SYMPTOM CROSS-MATCHER */}
-      {activeTab === 'matcher' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '22px',
-              padding: '18px 20px',
-              border: '1.5px solid #E2E8F0',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
-            }}
-          >
-            <div style={{ marginBottom: '14px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284C7', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                MULTI-SPECIALIST CROSS-ANALYSIS
-              </span>
-              <h4 style={{ margin: '2px 0 0 0', fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
-                Select Active Symptoms to Recalibrate
-              </h4>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>
-                Tap symptoms below. Watch HealthChain cross-reference multiple medical chairs in real time.
-              </p>
-            </div>
-
-            {/* Symptom Chips Selector */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-              {report.symptomCluster.map((item) => {
-                const isSelected = selectedSymptoms.includes(item.id);
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => toggleSymptom(item.id)}
-                    style={{
-                      padding: '9px 14px',
-                      borderRadius: '999px',
-                      border: isSelected ? '1.5px solid #0284C7' : '1.5px solid #E2E8F0',
-                      background: isSelected ? 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)' : '#FFFFFF',
-                      color: isSelected ? '#FFFFFF' : '#334155',
-                      fontSize: '12.5px',
-                      fontWeight: isSelected ? 800 : 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: isSelected ? '0 3px 10px rgba(2, 132, 199, 0.25)' : 'none',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.name}</span>
-                    {isSelected && <Check size={13} strokeWidth={3} />}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Real-time Convergence Synthesis Card */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)',
-                borderRadius: '16px',
-                padding: '16px 18px',
-                border: '1.5px solid #BAE6FD',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
-                    BOARD CONVERGENCE INDEX
-                  </span>
-                  <div style={{ fontSize: '22px', fontWeight: 900, color: '#0C4A6E' }}>
-                    {clusterEvaluation.matchConfidence}% Cross-System Correlation
-                  </div>
-                </div>
-
-                <span style={{ fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '999px', background: '#0284C7', color: '#FFFFFF' }}>
-                  {clusterEvaluation.summonedBoards.length} Boards Summoned
-                </span>
-              </div>
-
-              <div style={{ fontSize: '12.5px', color: '#0369A1', lineHeight: 1.4 }}>
-                {clusterEvaluation.summaryNote}
-              </div>
-
-              {/* Summoned Specialist Badges */}
-              <div>
-                <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                  Aligned Medical Disciplines:
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {clusterEvaluation.summonedBoards.map((b, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        background: '#FFFFFF',
-                        color: '#0284C7',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        border: '1px solid #BAE6FD',
-                      }}
-                    >
-                      ✓ {b} Board
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleSelectTab('map')}
-                style={{
-                  marginTop: '4px',
-                  padding: '10px',
-                  borderRadius: '12px',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
-                  fontWeight: 700,
-                  fontSize: '12.5px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                }}
-              >
-                Trace Connected Nodes on Map <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: SPECIALIST BOARD CONSENSUS */}
-      {activeTab === 'consensus' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {report.consensusDialogue.length === 0 ? (
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                padding: isMobile ? '28px 20px' : '40px 32px',
-                border: '1.5px dashed #CBD5E1',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-              }}
-            >
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '26px',
-                  border: '1px solid #BFDBFE',
-                }}
-              >
-                🏛️
-              </div>
-              <div style={{ maxWidth: '420px' }}>
-                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
-                  Awaiting Multi-Disciplinary Intake
-                </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  Autonomous specialist boards (Cardiology, Gastroenterology, Endocrinology, Neurology, Biomechanics) assemble and synthesize diagnostic findings once clinical records or symptoms are provided.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    if (onOpenConsult) onOpenConsult();
-                    else window.location.href = '/app/consult';
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '10px 18px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 10px rgba(2, 132, 199, 0.25)',
-                  }}
-                >
-                  + Start Consultation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                  6-DISCIPLINE CLINICAL CONSENSUS PANELS
-                </span>
-                <span style={{ fontSize: '11px', color: '#059669', fontWeight: 800 }}>
-                  ● All 6 Medical Panels Aligned
-                </span>
-              </div>
-
-          {report.consensusDialogue.map((dialogue, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '20px',
-                padding: '16px 18px',
-                border: '1.5px solid #E2E8F0',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '12px',
-                      background: dialogue.bg,
-                      color: dialogue.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '20px',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {dialogue.icon}
-                  </div>
-                  <div>
-                    <strong style={{ fontSize: '15px', color: '#0F172A', display: 'block' }}>
-                      {dialogue.doctorName}
-                    </strong>
-                    <span style={{ fontSize: '11.5px', color: '#64748B' }}>
-                      {dialogue.credentials}
-                    </span>
-                  </div>
-                </div>
-
-                <span
-                  style={{
-                    fontSize: '10.5px',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    background: '#ECFDF5',
-                    color: '#059669',
-                    border: '1px solid #A7F3D0',
-                  }}
-                >
-                  Consensus Panel
-                </span>
-              </div>
-
-              <div
-                style={{
-                  background: '#F8FAFC',
-                  borderRadius: '12px',
-                  padding: '12px 14px',
-                  fontSize: '13px',
-                  color: '#334155',
-                  lineHeight: 1.5,
-                  border: '1px solid #E2E8F0',
-                }}
-              >
-                "{dialogue.finding}"
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
-                <span>Organ Axis: <strong style={{ color: dialogue.color }}>{dialogue.organ}</strong></span>
-                <span style={{ color: '#0284C7', fontWeight: 600 }}>Cross-Validated ✓</span>
-              </div>
-            </motion.div>
-          ))}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* TAB 5: WHAT 15-MINUTE DOCTOR VISITS MISSED */}
-      {activeTab === 'misses' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {report.clinicalMisses.length === 0 ? (
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                padding: isMobile ? '28px 20px' : '40px 32px',
-                border: '1.5px dashed #CBD5E1',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-              }}
-            >
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '26px',
-                  border: '1px solid #FECDD3',
-                }}
-              >
-                ⚠️
-              </div>
-              <div style={{ maxWidth: '420px' }}>
-                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
-                  Awaiting Clinical Records
-                </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  Discrepancy and blind-spot detection compares standard 15-minute visits against multi-disciplinary functional targets once your clinical history is logged.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    if (onOpenConsult) onOpenConsult();
-                    else window.location.href = '/app/consult';
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '10px 18px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 10px rgba(225, 29, 72, 0.25)',
-                  }}
-                >
-                  + Start Consultation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div
-                style={{
-                  background: '#FFF1F2',
-                  borderRadius: '16px',
-                  padding: '14px 16px',
-                  border: '1px solid #FECDD3',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <AlertTriangle size={20} color="#E11D48" style={{ flexShrink: 0 }} />
-                <div>
-                  <strong style={{ fontSize: '13.5px', color: '#BE123C', display: 'block' }}>
-                    The Single-Specialist Silo Problem
-                  </strong>
-                  <span style={{ fontSize: '12px', color: '#9F1239' }}>
-                    Standard 15-minute consultations review single organs in isolation. Here are the specific clinical blind spots HealthChain resolved.
-                  </span>
-                </div>
-              </div>
-
-              {report.clinicalMisses.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: '#FFFFFF',
-                    borderRadius: '18px',
-                    padding: '16px 18px',
-                    border: '1.5px solid #F1F5F9',
-                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px',
-                  }}
-                >
-                  <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                    {item.overlookedBy}
-                  </div>
-
-                  <div style={{ background: '#FEF2F2', padding: '10px 12px', borderRadius: '10px', border: '1px solid #FCA5A5' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                      Routine 15-Min Conclusion:
-                    </span>
-                    <span style={{ fontSize: '12.5px', color: '#991B1B' }}>{item.standardFinding}</span>
-                  </div>
-
-                  <div style={{ background: '#F0FDF4', padding: '10px 12px', borderRadius: '10px', border: '1px solid #86EFAC' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                      What Was Missed (HealthChain Connection):
-                    </span>
-                    <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 600 }}>{item.whatWasMissed}</span>
-                  </div>
-
-                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-                    <strong>Clinical Consequence:</strong> {item.clinicalImpact}
-                  </div>
-
-                  <div style={{ fontSize: '11.5px', color: '#0284C7', background: '#F0F9FF', padding: '6px 10px', borderRadius: '8px', border: '1px solid #BAE6FD' }}>
-                    🔗 <strong>Hidden Systemic Mechanism:</strong> {item.hiddenConnection}
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* TAB 6: DOCTOR DOSSIER (<60s SBAR BRIEF) */}
-      {activeTab === 'dossier' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {report.doctorDossier.testsToOrder.length === 0 ? (
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                padding: isMobile ? '28px 20px' : '40px 32px',
-                border: '1.5px dashed #CBD5E1',
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-              }}
-            >
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '26px',
-                  border: '1px solid #E2E8F0',
-                }}
-              >
-                📋
-              </div>
-              <div style={{ maxWidth: '420px' }}>
-                <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: 800, color: '#1E293B' }}>
-                  Clinical Dossier Pending Intake
-                </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  A physician-ready SBAR brief and prioritized diagnostic workup orders will generate once an intake consultation is complete or lab panels are analyzed.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    if (onOpenConsult) onOpenConsult();
-                    else window.location.href = '/app/consult';
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '10px 18px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 10px rgba(2, 132, 199, 0.25)',
-                  }}
-                >
-                  + Start Consultation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Action Bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-                  PHYSICIAN-READY APPOINTMENT BRIEF
-                </span>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={handleCopySbar}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  background: isCopied ? '#ECFDF5' : '#FFFFFF',
-                  color: isCopied ? '#059669' : '#1E293B',
-                  border: isCopied ? '1.5px solid #10B981' : '1px solid #CBD5E1',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                {isCopied ? <Check size={13} color="#10B981" /> : <Copy size={13} />}
-                <span>{isCopied ? 'Copied' : 'Copy SBAR'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handlePrint}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  background: '#0284C7',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                <Printer size={13} />
-                <span>Print / PDF</span>
-              </button>
-            </div>
-          </div>
-
-          {/* SBAR Container */}
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '20px',
-              padding: '20px',
-              border: '1.5px solid #E2E8F0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '10px' }}>
-              <div style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>
-                Consultation Discussion Brief
-              </div>
-              <h4 style={{ margin: '2px 0 0 0', fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
-                {report.primaryHypothesis}
-              </h4>
-            </div>
-
-            {/* SBAR Boxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                <strong style={{ fontSize: '11px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                  [S] Situation
-                </strong>
-                <span style={{ fontSize: '12.5px', color: '#334155' }}>{report.doctorDossier.sbar.situation}</span>
-              </div>
-
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                <strong style={{ fontSize: '11px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                  [B] Background
-                </strong>
-                <span style={{ fontSize: '12.5px', color: '#334155' }}>{report.doctorDossier.sbar.background}</span>
-              </div>
-
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                <strong style={{ fontSize: '11px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                  [A] Assessment
-                </strong>
-                <span style={{ fontSize: '12.5px', color: '#334155' }}>{report.doctorDossier.sbar.assessment}</span>
-              </div>
-
-              <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-                <strong style={{ fontSize: '11px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                  [R] Recommendation
-                </strong>
-                <span style={{ fontSize: '12.5px', color: '#334155' }}>{report.doctorDossier.sbar.recommendation}</span>
-              </div>
-            </div>
-
-            {/* Prioritized Tests to Order */}
-            <div style={{ marginTop: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                Recommended Tests to Request:
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                {report.doctorDossier.testsToOrder.map((t, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      background: '#F0FDF4',
-                      border: '1px solid #BBF7D0',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <div>
-                      <strong style={{ color: '#166534', display: 'block' }}>{t.test}</strong>
-                      <span style={{ color: '#15803D', fontSize: '11px' }}>{t.rationale}</span>
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                     <span
                       style={{
                         fontSize: '10px',
                         fontWeight: 800,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        background: t.priority === 'High' ? '#DC2626' : '#0284C7',
-                        color: '#FFFFFF',
+                        padding: '3px 8px',
+                        borderRadius: '999px',
+                        background: station.pillarBg,
+                        color: station.pillarColor,
+                        border: `1px solid ${station.pillarBorder}`,
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {t.priority}
+                      {station.statusBadge}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setFocusedStationId(isSingleFocus ? null : station.id);
+                      }}
+                      title={isSingleFocus ? 'Exit Focus (Show All)' : 'Focus On This Station'}
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '8px',
+                        border: '1px solid #E2E8F0',
+                        background: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: isSingleFocus ? '#0D9488' : '#64748B',
+                      }}
+                      aria-label={isSingleFocus ? 'Show all stations' : `Focus on station ${station.stationNumber}`}
+                    >
+                      {isSingleFocus ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                    </button>
+                  </div>
+                </header>
+
+                {/* STATION BODY */}
+                <div style={{ padding: isMobile ? '12px 14px 16px 14px' : '16px 18px 20px 18px' }}>
+
+                  {/* STATION 01: CONNECTED FOODS */}
+                  {station.id === 'map' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div
+                        style={{
+                          background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+                          borderRadius: '16px',
+                          padding: '14px 16px',
+                          border: '1.5px solid #99F6E4',
+                          display: 'flex',
+                          alignItems: isMobile ? 'flex-start' : 'center',
+                          flexDirection: isMobile ? 'column' : 'row',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '24px' }}>🔬</span>
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                              Identified Primary Dietary Triggers
+                            </strong>
+                            <span style={{ fontSize: '11.5px', color: '#475569' }}>
+                              Histamine, tyramine & FODMAP alliums trigger acute vascular and intestinal permeability.
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            if (onOpenFoodDetective) onOpenFoodDetective();
+                            else window.dispatchEvent(new CustomEvent('hc_open_whole_health_modal', { detail: { tab: 'detective' } }));
+                          }}
+                          style={{
+                            background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            borderRadius: '10px',
+                            padding: '8px 14px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            whiteSpace: 'nowrap',
+                            width: isMobile ? '100%' : 'auto',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)',
+                          }}
+                        >
+                          Inspect in Food Detective <ArrowRight size={13} />
+                        </button>
+                      </div>
+
+                      {/* Top Culprit Foods Breakdown Grid */}
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                          gap: '8px',
+                        }}
+                      >
+                        {(dietSummary.topCulpritFoods.length > 0
+                          ? dietSummary.topCulpritFoods.slice(0, 4)
+                          : [
+                              { id: 'histamine_dairy', name: 'Aged Cheese & Dairy', emoji: '🧀', category: 'Dairy', primarySensitivity: 'Histamine Rebound', correlationPercent: 88, safeSwap: 'Fresh paneer or goat cheese', reactionWindow: '2-4 hours' },
+                              { id: 'fodmap_allium', name: 'Garlic & Onion (Alliums)', emoji: '🧄', category: 'FODMAPs', primarySensitivity: 'Fructan Fermentation', correlationPercent: 82, safeSwap: 'Garlic-infused olive oil / Hing', reactionWindow: '3-6 hours' },
+                              { id: 'solanaceae', name: 'Tomatoes & Peppers', emoji: '🍅', category: 'Nightshades', primarySensitivity: 'Solanine Permeability', correlationPercent: 74, safeSwap: 'Beetroot & carrot purée', reactionWindow: '4-8 hours' },
+                              { id: 'fermented_soy', name: 'Fermented Soy / Tamari', emoji: '🥢', category: 'Histamine', primarySensitivity: 'Biogenic Amines', correlationPercent: 68, safeSwap: 'Coconut aminos', reactionWindow: '1-3 hours' },
+                            ]
+                        ).map((culprit) => (
+                          <div
+                            key={culprit.id}
+                            style={{
+                              background: '#F8FAFC',
+                              borderRadius: '12px',
+                              padding: '10px 12px',
+                              border: '1px solid #E2E8F0',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '18px' }}>{culprit.emoji}</span>
+                                <strong style={{ fontSize: '12.5px', color: '#0F172A' }}>{culprit.name}</strong>
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  color: '#B45309',
+                                  background: '#FEF3C7',
+                                  padding: '1px 6px',
+                                  borderRadius: '999px',
+                                  border: '1px solid #FDE68A',
+                                }}
+                              >
+                                +{culprit.correlationPercent}% flare
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
+                              <span style={{ color: '#0F766E', fontWeight: 600 }}>{culprit.primarySensitivity}</span>
+                              <span>Window: {culprit.reactionWindow}</span>
+                            </div>
+
+                            {culprit.safeSwap && (
+                              <div style={{ fontSize: '11px', color: '#334155', background: '#FFFFFF', padding: '4px 8px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
+                                🌱 <span style={{ fontWeight: 600 }}>Swap:</span> {culprit.safeSwap}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => scrollToStation('postmeal')}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          View Reaction Timeline ↓
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => scrollToStation('calendar')}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          View 30-Day Heatmap ↓
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STATION 02: POST-MEAL TIMELINE */}
+                  {station.id === 'postmeal' && (
+                    <PostMealReactionTimeline onOpenQuickMeal={onOpenFoodDetective} />
+                  )}
+
+                  {/* STATION 03: DIGESTION HEATMAP */}
+                  {station.id === 'calendar' && (
+                    <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />
+                  )}
+
+                  {/* STATION 04: ELIMINATION PROTOCOL */}
+                  {station.id === 'elimination' && (
+                    <EliminationProtocolSuite
+                      onOpenQuickMeal={onOpenFoodDetective}
+                      onOpenCalendarHeatmap={() => scrollToStation('calendar')}
+                      onOpenPostMealTimeline={() => scrollToStation('postmeal')}
+                    />
+                  )}
+
+                  {/* STATION 05: SMART CORRELATION INSIGHTS */}
+                  {station.id === 'insights' && (
+                    <SmartCorrelationInsightsView
+                      onOpenElimination={() => scrollToStation('elimination')}
+                      onOpenTimeline={() => scrollToStation('postmeal')}
+                      onOpenHeatmap={() => scrollToStation('calendar')}
+                    />
+                  )}
+
+                  {/* STATION 06: FUNCTIONAL LABS */}
+                  {station.id === 'biomarkers' && (
+                    <FunctionalBiomarkersView />
+                  )}
+
+                  {/* STATION 07: KINETIC BIOMECHANICS */}
+                  {station.id === 'kinetic' && (
+                    <KineticBiomechanicsView />
+                  )}
+
+                  {/* STATION 08: CAUSAL FLOW CASCADE */}
+                  {station.id === 'cascade' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {report.cascadeStages.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '24px 16px', background: '#F8FAFC', borderRadius: '16px', border: '1.5px dashed #CBD5E1' }}>
+                          <span style={{ fontSize: '28px', display: 'block', marginBottom: '8px' }}>⚡</span>
+                          <strong style={{ fontSize: '14px', color: '#1E293B', display: 'block' }}>Awaiting Intake Data</strong>
+                          <p style={{ margin: '4px 0 12px 0', fontSize: '12px', color: '#64748B' }}>
+                            Start a consultation to generate your personal 5-stage domino cascade.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onOpenConsult) onOpenConsult();
+                              else window.location.href = '/app/consult';
+                            }}
+                            style={{
+                              background: '#0D9488',
+                              color: '#FFF',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '8px 14px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Start Intake
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Stage Selector Stepper Rail */}
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(5, 1fr)',
+                              gap: '6px',
+                              background: '#F8FAFC',
+                              padding: '6px',
+                              borderRadius: '14px',
+                              border: '1px solid #E2E8F0',
+                            }}
+                          >
+                            {report.cascadeStages.map((stage) => {
+                              const isSelected = activeCascadeStage === stage.stage;
+                              return (
+                                <button
+                                  key={stage.stage}
+                                  type="button"
+                                  onClick={() => {
+                                    triggerHapticSelection();
+                                    setActiveCascadeStage(stage.stage);
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    padding: '6px 2px',
+                                    borderRadius: '10px',
+                                    border: isSelected ? '1.5px solid #6366F1' : '1px solid transparent',
+                                    background: isSelected ? '#FFFFFF' : 'transparent',
+                                    color: isSelected ? '#4338CA' : '#64748B',
+                                    cursor: 'pointer',
+                                    boxShadow: isSelected ? '0 2px 6px rgba(99, 102, 241, 0.15)' : 'none',
+                                  }}
+                                >
+                                  <span style={{ fontSize: '15px' }}>{stage.organIcon}</span>
+                                  <span style={{ fontSize: '10px', fontWeight: 800 }}>Stage {stage.stage}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Active Stage Card */}
+                          {(() => {
+                            const cur = report.cascadeStages.find((s) => s.stage === activeCascadeStage) || report.cascadeStages[0];
+                            return (
+                              <div
+                                style={{
+                                  background: 'linear-gradient(135deg, #FFFFFF 0%, #EEF2FF 100%)',
+                                  borderRadius: '16px',
+                                  padding: '14px 16px',
+                                  border: '1.5px solid #C7D2FE',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '10px',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '22px' }}>{cur.organIcon}</span>
+                                    <div>
+                                      <strong style={{ fontSize: '14px', color: '#1E1B4B', display: 'block' }}>
+                                        Stage {cur.stage}: {cur.title}
+                                      </strong>
+                                      <span style={{ fontSize: '11px', color: '#4F46E5', fontWeight: 700 }}>
+                                        Organ Axis: {cur.organSystem}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: '#E0E7FF', color: '#4338CA', fontWeight: 800 }}>
+                                    Step {cur.stage} of 5
+                                  </span>
+                                </div>
+
+                                <div style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.45, background: 'rgba(255,255,255,0.9)', padding: '10px 12px', borderRadius: '10px', border: '1px solid #C7D2FE' }}>
+                                  <strong>Mechanism:</strong> {cur.mechanism}
+                                </div>
+
+                                <div>
+                                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>
+                                    Clinical Manifestations:
+                                  </span>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                    {cur.clinicalSigns.map((sign, i) => (
+                                      <span key={i} style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '999px', background: '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}>
+                                        • {sign}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '6px', fontSize: '11px' }}>
+                                  <div style={{ background: '#F8FAFC', padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                                    <strong style={{ color: '#0284C7', display: 'block' }}>← Upstream Trigger:</strong>
+                                    <span style={{ color: '#475569' }}>{cur.upstreamCause}</span>
+                                  </div>
+                                  <div style={{ background: '#F8FAFC', padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                                    <strong style={{ color: '#059669', display: 'block' }}>→ Downstream Consequence:</strong>
+                                    <span style={{ color: '#475569' }}>{cur.downstreamEffect}</span>
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                                  <button
+                                    type="button"
+                                    disabled={activeCascadeStage === 1}
+                                    onClick={() => {
+                                      triggerHapticLight();
+                                      setActiveCascadeStage((prev) => Math.max(1, prev - 1));
+                                    }}
+                                    style={{
+                                      padding: '6px 12px',
+                                      borderRadius: '8px',
+                                      border: '1px solid #E2E8F0',
+                                      background: '#FFFFFF',
+                                      color: activeCascadeStage === 1 ? '#CBD5E1' : '#334155',
+                                      fontSize: '11.5px',
+                                      fontWeight: 700,
+                                      cursor: activeCascadeStage === 1 ? 'default' : 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    <ArrowLeft size={12} /> Previous Stage
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={activeCascadeStage === 5}
+                                    onClick={() => {
+                                      triggerHapticLight();
+                                      setActiveCascadeStage((prev) => Math.min(5, prev + 1));
+                                    }}
+                                    style={{
+                                      padding: '6px 12px',
+                                      borderRadius: '8px',
+                                      border: 'none',
+                                      background: activeCascadeStage === 5 ? '#E2E8F0' : '#4F46E5',
+                                      color: activeCascadeStage === 5 ? '#94A3B8' : '#FFFFFF',
+                                      fontSize: '11.5px',
+                                      fontWeight: 700,
+                                      cursor: activeCascadeStage === 5 ? 'default' : 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    Next Stage <ArrowRight size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* STATION 09: SYMPTOM CLUSTER CROSS-MATCHER */}
+                  {station.id === 'matcher' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#64748B', display: 'block', marginBottom: '8px' }}>
+                          Tap symptoms to dynamically recalculate multi-specialist board convergence in real-time:
+                        </span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                          {report.symptomCluster.map((item) => {
+                            const isSelected = selectedSymptoms.includes(item.id);
+                            return (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => toggleSymptom(item.id)}
+                                style={{
+                                  padding: '7px 12px',
+                                  borderRadius: '999px',
+                                  border: isSelected ? '1.5px solid #0284C7' : '1.5px solid #E2E8F0',
+                                  background: isSelected ? 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)' : '#FFFFFF',
+                                  color: isSelected ? '#FFFFFF' : '#334155',
+                                  fontSize: '12px',
+                                  fontWeight: isSelected ? 800 : 600,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  boxShadow: isSelected ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <span>{item.icon}</span>
+                                <span>{item.name}</span>
+                                {isSelected && <Check size={12} strokeWidth={3} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Convergence Synthesis Card */}
+                      <div
+                        style={{
+                          background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)',
+                          borderRadius: '14px',
+                          padding: '14px 16px',
+                          border: '1.5px solid #BAE6FD',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
+                              BOARD CONVERGENCE INDEX
+                            </span>
+                            <div style={{ fontSize: '18px', fontWeight: 900, color: '#0C4A6E' }}>
+                              {clusterEvaluation.matchConfidence}% Cross-System Correlation
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', background: '#0284C7', color: '#FFFFFF' }}>
+                            {clusterEvaluation.summonedBoards.length} Boards Summoned
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '12px', color: '#0369A1', lineHeight: 1.4 }}>
+                          {clusterEvaluation.summaryNote}
+                        </div>
+
+                        <div>
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>
+                            Aligned Medical Disciplines:
+                          </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                            {clusterEvaluation.summonedBoards.map((b, i) => (
+                              <span
+                                key={i}
+                                style={{
+                                  padding: '2px 7px',
+                                  borderRadius: '6px',
+                                  background: '#FFFFFF',
+                                  color: '#0284C7',
+                                  fontSize: '10.5px',
+                                  fontWeight: 700,
+                                  border: '1px solid #BAE6FD',
+                                }}
+                              >
+                                ✓ {b} Board
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STATION 10: SPECIALIST CONSENSUS PANELS */}
+                  {station.id === 'consensus' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {report.consensusDialogue.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px', background: '#F8FAFC', borderRadius: '14px', border: '1px dashed #CBD5E1' }}>
+                          <span style={{ fontSize: '24px' }}>🏛️</span>
+                          <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748B' }}>
+                            Panels convene once intake consultation data is provided.
+                          </p>
+                        </div>
+                      ) : (
+                        report.consensusDialogue.map((dialogue, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              background: '#F8FAFC',
+                              borderRadius: '14px',
+                              padding: '12px 14px',
+                              border: '1px solid #E2E8F0',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div
+                                  style={{
+                                    width: '34px',
+                                    height: '34px',
+                                    borderRadius: '10px',
+                                    background: dialogue.bg,
+                                    color: dialogue.color,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '18px',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {dialogue.icon}
+                                </div>
+                                <div>
+                                  <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                                    {dialogue.doctorName}
+                                  </strong>
+                                  <span style={{ fontSize: '11px', color: '#64748B' }}>
+                                    {dialogue.credentials}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  padding: '2px 7px',
+                                  borderRadius: '999px',
+                                  background: '#ECFDF5',
+                                  color: '#059669',
+                                  border: '1px solid #A7F3D0',
+                                }}
+                              >
+                                Cross-Validated ✓
+                              </span>
+                            </div>
+
+                            <div
+                              style={{
+                                background: '#FFFFFF',
+                                borderRadius: '10px',
+                                padding: '10px 12px',
+                                fontSize: '12px',
+                                color: '#334155',
+                                lineHeight: 1.45,
+                                border: '1px solid #E2E8F0',
+                                fontStyle: 'italic',
+                              }}
+                            >
+                              "{dialogue.finding}"
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B' }}>
+                              <span>Organ Axis: <strong style={{ color: dialogue.color }}>{dialogue.organ}</strong></span>
+                              <span style={{ color: '#0284C7', fontWeight: 600 }}>Validated</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* STATION 11: WHAT 15-MINUTE VISITS MISSED */}
+                  {station.id === 'misses' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div
+                        style={{
+                          background: '#FFF1F2',
+                          borderRadius: '12px',
+                          padding: '10px 12px',
+                          border: '1px solid #FECDD3',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <AlertTriangle size={18} color="#E11D48" style={{ flexShrink: 0 }} />
+                        <div>
+                          <strong style={{ fontSize: '12.5px', color: '#BE123C', display: 'block' }}>
+                            The Single-Specialist Silo Trap
+                          </strong>
+                          <span style={{ fontSize: '11px', color: '#9F1239' }}>
+                            Standard 15-minute consultations review organs in isolation. HealthChain resolves these specific blind spots.
+                          </span>
+                        </div>
+                      </div>
+
+                      {report.clinicalMisses.map((item, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            background: '#F8FAFC',
+                            borderRadius: '14px',
+                            padding: '12px 14px',
+                            border: '1px solid #E2E8F0',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                          }}
+                        >
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                            {item.overlookedBy}
+                          </div>
+
+                          <div style={{ background: '#FEF2F2', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FCA5A5' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase', display: 'block' }}>
+                              Routine 15-Min Conclusion:
+                            </span>
+                            <span style={{ fontSize: '11.5px', color: '#991B1B' }}>{item.standardFinding}</span>
+                          </div>
+
+                          <div style={{ background: '#F0FDF4', padding: '8px 10px', borderRadius: '8px', border: '1px solid #86EFAC' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', display: 'block' }}>
+                              What Was Missed (HealthChain Connection):
+                            </span>
+                            <span style={{ fontSize: '11.5px', color: '#166534', fontWeight: 600 }}>{item.whatWasMissed}</span>
+                          </div>
+
+                          <div style={{ fontSize: '11.5px', color: '#475569', lineHeight: 1.4 }}>
+                            <strong>Clinical Impact:</strong> {item.clinicalImpact}
+                          </div>
+
+                          <div style={{ fontSize: '11px', color: '#0284C7', background: '#F0F9FF', padding: '5px 8px', borderRadius: '6px', border: '1px solid #BAE6FD' }}>
+                            🔗 <strong>Hidden Systemic Link:</strong> {item.hiddenConnection}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* STATION 12: DOCTOR DOSSIER SBAR BRIEF */}
+                  {station.id === 'dossier' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
+                          PHYSICIAN APPOINTMENT SUMMARY
+                        </span>
+
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={handleCopySbar}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '6px 10px',
+                              borderRadius: '8px',
+                              background: isCopied ? '#ECFDF5' : '#FFFFFF',
+                              color: isCopied ? '#059669' : '#1E293B',
+                              border: isCopied ? '1.5px solid #10B981' : '1px solid #CBD5E1',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {isCopied ? <Check size={12} color="#10B981" /> : <Copy size={12} />}
+                            <span>{isCopied ? 'Copied' : 'Copy SBAR'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handlePrint}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '6px 10px',
+                              borderRadius: '8px',
+                              background: '#059669',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <Printer size={12} />
+                            <span>Print / PDF</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* SBAR Boxes */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                          <strong style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', display: 'block' }}>
+                            [S] Situation
+                          </strong>
+                          <span style={{ fontSize: '12px', color: '#334155' }}>{report.doctorDossier.sbar.situation}</span>
+                        </div>
+
+                        <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                          <strong style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', display: 'block' }}>
+                            [B] Background
+                          </strong>
+                          <span style={{ fontSize: '12px', color: '#334155' }}>{report.doctorDossier.sbar.background}</span>
+                        </div>
+
+                        <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                          <strong style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', display: 'block' }}>
+                            [A] Assessment
+                          </strong>
+                          <span style={{ fontSize: '12px', color: '#334155' }}>{report.doctorDossier.sbar.assessment}</span>
+                        </div>
+
+                        <div style={{ background: '#F8FAFC', padding: '8px 10px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                          <strong style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', display: 'block' }}>
+                            [R] Recommendation
+                          </strong>
+                          <span style={{ fontSize: '12px', color: '#334155' }}>{report.doctorDossier.sbar.recommendation}</span>
+                        </div>
+                      </div>
+
+                      {/* Prioritized Tests to Order */}
+                      <div style={{ marginTop: '4px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                          Recommended Tests to Request:
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          {report.doctorDossier.testsToOrder.map((t, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                background: '#F0FDF4',
+                                border: '1px solid #BBF7D0',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                fontSize: '11.5px',
+                              }}
+                            >
+                              <div>
+                                <strong style={{ color: '#166534', display: 'block' }}>{t.test}</strong>
+                                <span style={{ color: '#15803D', fontSize: '10.5px' }}>{t.rationale}</span>
+                              </div>
+                              <span
+                                style={{
+                                  fontSize: '9.5px',
+                                  fontWeight: 800,
+                                  padding: '1px 5px',
+                                  borderRadius: '4px',
+                                  background: t.priority === 'High' ? '#DC2626' : '#0284C7',
+                                  color: '#FFFFFF',
+                                }}
+                              >
+                                {t.priority}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Associated ICD-10 Diagnostic Codes */}
+                      <div style={{ marginTop: '4px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                          Associated ICD-10 Codes:
+                        </span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {report.doctorDossier.icdCodes.map((c) => (
+                            <span
+                              key={c.code}
+                              style={{
+                                fontSize: '10.5px',
+                                padding: '2px 7px',
+                                borderRadius: '6px',
+                                background: '#F1F5F9',
+                                color: '#475569',
+                                border: '1px solid #E2E8F0',
+                              }}
+                            >
+                              <strong>{c.code}</strong> — {c.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </section>
+
+              {/* CONNECTIVE BRIDGES BETWEEN CLINICAL PILLARS (Only in 'all' view) */}
+              {selectedPillar === 'all' && !focusedStationId && station.id === 'insights' && (
+                <div
+                  style={{
+                    background: 'linear-gradient(90deg, #F0FDFA 0%, #F0F9FF 100%)',
+                    borderRadius: '16px',
+                    padding: '10px 14px',
+                    border: '1.5px dashed #99F6E4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '11.5px',
+                    color: '#0F766E',
+                  }}
+                >
+                  <span style={{ fontSize: '18px' }}>🔗</span>
+                  <div>
+                    <strong style={{ display: 'block', color: '#0F766E' }}>
+                      Diagnostic Bridge: Gut Barrier → Systemic Lab Biomarkers
+                    </strong>
+                    <span style={{ color: '#475569' }}>
+                      Mucosal permeability allows undigested metabolites into systemic circulation, altering functional bloodwork before conventional alarms trip.
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
-            {/* Dietary Trigger Summary (From TriggerEngine) */}
-            <div style={{ marginTop: '8px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#D97706', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                Dietary & Biochemical Triggers:
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-                <div style={{ background: '#FFFBEB', padding: '10px', borderRadius: '8px', border: '1px solid #FEF3C7', fontSize: '12px' }}>
-                  <strong style={{ color: '#B45309' }}>Primary Culprits: </strong>
-                  <span style={{ color: '#92400E' }}>
-                    {dietSummary.topCulpritFoods.slice(0, 3).map(c => `${c.name} (+${c.correlationPercent}%)`).join(', ')}
-                  </span>
                 </div>
-                
-                <div style={{ background: '#F8FAFC', padding: '10px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '12px' }}>
-                  <strong style={{ color: '#475569' }}>Active Elimination Phase: </strong>
-                  <span style={{ color: '#334155' }}>{dietSummary.activeTrials}</span>
+              )}
+
+              {selectedPillar === 'all' && !focusedStationId && station.id === 'kinetic' && (
+                <div
+                  style={{
+                    background: 'linear-gradient(90deg, #F0F9FF 0%, #EEF2FF 100%)',
+                    borderRadius: '16px',
+                    padding: '10px 14px',
+                    border: '1.5px dashed #BAE6FD',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '11.5px',
+                    color: '#0369A1',
+                  }}
+                >
+                  <span style={{ fontSize: '18px' }}>⚡</span>
+                  <div>
+                    <strong style={{ display: 'block', color: '#0369A1' }}>
+                      Diagnostic Bridge: Biomechanics & Labs → Root Cause Domino Engine
+                    </strong>
+                    <span style={{ color: '#475569' }}>
+                      Upper cervical vagal impingement combined with depleted cellular cofactors directly launches multi-organ autonomic cascades.
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* ICD-10 & Citations */}
-            <div style={{ marginTop: '4px', paddingTop: '10px', borderTop: '1px solid #F1F5F9' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
-                Associated ICD-10 Diagnostic Codes:
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {report.doctorDossier.icdCodes.map((c) => (
-                  <span
-                    key={c.code}
-                    style={{
-                      fontSize: '11px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      background: '#F1F5F9',
-                      color: '#475569',
-                      border: '1px solid #E2E8F0',
-                    }}
-                  >
-                    <strong>{c.code}</strong> — {c.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* 5. FUNCTIONAL LAB BIOMARKERS SUBTAB */}
-      {activeTab === 'biomarkers' && <FunctionalBiomarkersView />}
-
-      {/* 6. KINETIC CHAIN BIOMECHANICS SUBTAB */}
-      {activeTab === 'kinetic' && <KineticBiomechanicsView />}
-
-      {/* 7. POST-MEAL SENSITIVITIES TIMELINE SUBTAB */}
-      {activeTab === 'postmeal' && <PostMealReactionTimeline onOpenQuickMeal={onOpenFoodDetective} />}
-
-      {/* 8. DIGESTION & BLOATING CALENDAR HEATMAP SUBTAB */}
-      {activeTab === 'calendar' && <DigestionCalendarHeatmap onOpenQuickMeal={onOpenFoodDetective} />}
-
-      {/* 9. 4-WEEK CLINICAL ELIMINATION PROTOCOL SUITE SUBTAB */}
-      {activeTab === 'elimination' && (
-        <EliminationProtocolSuite
-          onOpenQuickMeal={onOpenFoodDetective}
-          onOpenCalendarHeatmap={() => handleSelectTab('calendar')}
-          onOpenPostMealTimeline={() => handleSelectTab('postmeal')}
-        />
-      )}
-
-      {/* 10. SMART CORRELATION INSIGHTS SUBTAB */}
-      {activeTab === 'insights' && (
-        <SmartCorrelationInsightsView
-          onOpenElimination={() => handleSelectTab('elimination')}
-          onOpenTimeline={() => handleSelectTab('postmeal')}
-          onOpenHeatmap={() => handleSelectTab('calendar')}
-        />
-      )}
+              {selectedPillar === 'all' && !focusedStationId && station.id === 'misses' && (
+                <div
+                  style={{
+                    background: 'linear-gradient(90deg, #EEF2FF 0%, #ECFDF5 100%)',
+                    borderRadius: '16px',
+                    padding: '10px 14px',
+                    border: '1.5px dashed #A7F3D0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '11.5px',
+                    color: '#059669',
+                  }}
+                >
+                  <span style={{ fontSize: '18px' }}>📋</span>
+                  <div>
+                    <strong style={{ display: 'block', color: '#059669' }}>
+                      Diagnostic Bridge: Multi-Disciplinary Synthesis → Physician Handoff
+                    </strong>
+                    <span style={{ color: '#475569' }}>
+                      Consolidating all 11 prior clinical stations into a 60-second actionable SBAR dossier with prioritized orders for your doctor.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 };
-
-
