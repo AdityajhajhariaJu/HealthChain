@@ -39,6 +39,7 @@
     "@react-three/fiber": "^9.7.0",
     "@supabase/supabase-js": "^2.111.0",
     "@tanstack/react-query": "^5.101.4",
+    "@xmldom/xmldom": "^0.9.12",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.42.2",
     "html2pdf.js": "^0.14.0",
