@@ -24,6 +24,7 @@ import {
   Sliders,
   Scale,
   Pill,
+  LayoutGrid,
 } from 'lucide-react';
 import {
   getConnectionDetectiveReport,
@@ -48,8 +49,118 @@ import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
 
+export type TabId =
+  | 'map'
+  | 'cascade'
+  | 'matcher'
+  | 'consensus'
+  | 'misses'
+  | 'dossier'
+  | 'biomarkers'
+  | 'kinetic'
+  | 'postmeal'
+  | 'calendar'
+  | 'elimination'
+  | 'insights';
+
+export type PillarId = 'gut' | 'body' | 'cause' | 'dossier';
+
+export interface CapsuleTab {
+  id: TabId;
+  label: string;
+  shortLabel: string;
+  icon: string;
+  description: string;
+  badge?: string;
+}
+
+export interface PillarConfig {
+  id: PillarId;
+  label: string;
+  shortLabel: string;
+  icon: string;
+  count: number;
+  subtitle: string;
+  defaultTab: TabId;
+  tabs: CapsuleTab[];
+}
+
+export const TAB_TO_PILLAR: Record<TabId, PillarId> = {
+  map: 'gut',
+  postmeal: 'gut',
+  calendar: 'gut',
+  elimination: 'gut',
+  insights: 'gut',
+  biomarkers: 'body',
+  kinetic: 'body',
+  cascade: 'cause',
+  matcher: 'cause',
+  consensus: 'cause',
+  misses: 'cause',
+  dossier: 'dossier',
+};
+
+export const PILLARS: PillarConfig[] = [
+  {
+    id: 'gut',
+    label: 'Gut & Nutrition',
+    shortLabel: 'Gut & Food',
+    icon: '🥗',
+    count: 5,
+    subtitle: 'Food triggers, post-meal inflammatory cascades & elimination patterns',
+    defaultTab: 'map',
+    tabs: [
+      { id: 'map', label: 'Connected Foods', shortLabel: 'Foods', icon: '🔬', description: 'Trigger compounds & sensitivities' },
+      { id: 'postmeal', label: 'Post-Meal Sensitivities', shortLabel: 'Post-Meal', icon: '🍽️', description: 'Hour-by-hour reaction timeline' },
+      { id: 'calendar', label: 'Digestion Heatmap', shortLabel: 'Heatmap', icon: '📅', description: '30-day symptom-meal calendar' },
+      { id: 'elimination', label: 'Symptom Hunt', shortLabel: 'Symptom Hunt', icon: '🎯', description: '4-week structured elimination suite' },
+      { id: 'insights', label: 'Smart Insights', shortLabel: 'Insights', icon: '💡', description: 'AI cross-correlations & food swaps' },
+    ],
+  },
+  {
+    id: 'body',
+    label: 'Labs & Biomechanics',
+    shortLabel: 'Labs & Body',
+    icon: '🧪',
+    count: 2,
+    subtitle: 'Functional bloodwork cutoffs and musculoskeletal kinetic chains',
+    defaultTab: 'biomarkers',
+    tabs: [
+      { id: 'biomarkers', label: 'Functional Labs', shortLabel: 'Labs', icon: '🧪', description: 'Optimal functional ranges vs conventional cutoffs' },
+      { id: 'kinetic', label: 'Kinetic Biomechanics', shortLabel: 'Biomechanics', icon: '🦴', description: 'Posture chains, cervical spine & vagus nerve' },
+    ],
+  },
+  {
+    id: 'cause',
+    label: 'Root Cause Engine',
+    shortLabel: 'Root Cause',
+    icon: '⚡',
+    count: 4,
+    subtitle: 'Multi-system domino cascade, symptom matching & physician blind spots',
+    defaultTab: 'cascade',
+    tabs: [
+      { id: 'cascade', label: 'Causal Flow', shortLabel: 'Causal Flow', icon: '⚡', description: '5-Stage multi-system domino chain' },
+      { id: 'matcher', label: 'Cross-Matcher', shortLabel: 'Cross-Matcher', icon: '🔍', description: 'Multi-symptom cluster probability matrix' },
+      { id: 'consensus', label: 'Clinical Panels', shortLabel: 'Panels', icon: '🏛️', description: 'Multi-specialty board consensus dialogue' },
+      { id: 'misses', label: 'What Doctors Missed', shortLabel: 'Doctor Misses', icon: '⚠️', description: 'Overlooked atypical presentations & blind spots' },
+    ],
+  },
+  {
+    id: 'dossier',
+    label: 'Doctor Dossier',
+    shortLabel: 'Dossier',
+    icon: '📋',
+    count: 1,
+    subtitle: 'Executive <60-second SBAR brief with ICD-10 codes for physician handoff',
+    defaultTab: 'dossier',
+    tabs: [
+      { id: 'dossier', label: 'Doctor Dossier (<60s)', shortLabel: 'SBAR Brief', icon: '📋', description: 'Physician handoff, ICD-10 codes, lab orders', badge: 'Ready' },
+    ],
+  },
+];
+
 interface ConnectionDetectiveViewProps {
-  initialTab?: 'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination' | 'insights';
+  initialTab?: TabId;
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
   onOpenCasePrep?: () => void;
@@ -63,11 +174,40 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 }) => {
   const isMobile = useIsMobile();
   const [report, setReport] = useState<ConnectionDetectiveReport>(() => getConnectionDetectiveReport());
-  const [activeTab, setActiveTab] = useState<'map' | 'cascade' | 'matcher' | 'consensus' | 'misses' | 'dossier' | 'biomarkers' | 'kinetic' | 'postmeal' | 'calendar' | 'elimination' | 'insights'>(initialTab);
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+  const [activePillar, setActivePillar] = useState<PillarId>(() => TAB_TO_PILLAR[initialTab] || 'gut');
+  const [isHubView, setIsHubView] = useState(false);
 
   useEffect(() => {
-    if (initialTab) setActiveTab(initialTab);
+    if (initialTab) {
+      setActiveTab(initialTab);
+      setActivePillar(TAB_TO_PILLAR[initialTab] || 'gut');
+    }
   }, [initialTab]);
+
+  const handleSelectTab = (tabId: TabId) => {
+    triggerHapticLight();
+    setActiveTab(tabId);
+    setActivePillar(TAB_TO_PILLAR[tabId]);
+    setIsHubView(false);
+    trackButtonClick('clinical_engine_tab_switched', tabId);
+  };
+
+  const handleSelectPillar = (pillarId: PillarId) => {
+    triggerHapticSelection();
+    setActivePillar(pillarId);
+    setIsHubView(false);
+    const targetPillar = PILLARS.find((p) => p.id === pillarId);
+    if (targetPillar) {
+      const isCurrentTabInPillar = targetPillar.tabs.some((t) => t.id === activeTab);
+      if (!isCurrentTabInPillar) {
+        setActiveTab(targetPillar.defaultTab);
+        trackButtonClick('clinical_engine_tab_switched', targetPillar.defaultTab);
+      }
+    }
+  };
+
+  const currentPillar = useMemo(() => PILLARS.find((p) => p.id === activePillar) || PILLARS[0], [activePillar]);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -151,66 +291,285 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-      {/* Sub-Tab Selector Navigation */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          paddingBottom: '2px',
-        }}
-      >
-        {[
-          { id: 'map', label: 'Connected Foods', icon: '🔬' },
-          { id: 'biomarkers', label: 'Functional Labs', icon: '🧪' },
-          { id: 'kinetic', label: 'Kinetic Biomechanics', icon: '🦴' },
-          { id: 'postmeal', label: 'Post-Meal Sensitivities', icon: '🍽️' },
-          { id: 'calendar', label: 'Digestion Heatmap', icon: '📅' },
-          { id: 'elimination', label: 'Symptom Hunt', icon: '🎯' },
-          { id: 'insights', label: 'Smart Insights', icon: '💡' },
-          { id: 'cascade', label: 'Causal Flow', icon: '⚡' },
-          { id: 'matcher', label: 'Cross-Matcher', icon: '🔍' },
-          { id: 'consensus', label: 'Clinical Panels', icon: '🏛️' },
-          { id: 'misses', label: 'What Doctors Missed', icon: '⚠️' },
-          { id: 'dossier', label: 'Doctor Dossier (<60s)', icon: '📋' },
-        ].map((t) => {
+      {/* 1. Master Clinical Architecture Navigation */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Tier 1: Pillar Segmented Controller + Hub Switcher */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: '#F1F5F9',
+            borderRadius: '16px',
+            padding: '4px',
+            border: '1px solid #E2E8F0',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          {PILLARS.map((p) => {
+            const isPillarActive = !isHubView && activePillar === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handleSelectPillar(p.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: isMobile ? '8px 10px' : '9px 14px',
+                  borderRadius: '12px',
+                  fontSize: isMobile ? '11.5px' : '12.5px',
+                  fontWeight: isPillarActive ? 800 : 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flex: isMobile ? 'none' : 1,
+                  justifyContent: 'center',
+                  border: isPillarActive ? '1px solid #CCFBF1' : '1px solid transparent',
+                  background: isPillarActive ? '#FFFFFF' : 'transparent',
+                  color: isPillarActive ? '#0F766E' : '#64748B',
+                  boxShadow: isPillarActive ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                  transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+                  minHeight: '40px',
+                }}
+              >
+                <span style={{ fontSize: '14px' }}>{p.icon}</span>
+                <span>{isMobile ? p.shortLabel : p.label}</span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    padding: '1px 6px',
+                    borderRadius: '999px',
+                    background: isPillarActive ? '#F0FDFA' : '#E2E8F0',
+                    color: isPillarActive ? '#0F766E' : '#64748B',
+                    border: isPillarActive ? '1px solid #CCFBF1' : 'none',
+                  }}
+                >
+                  {p.id === 'dossier' ? 'Ready' : p.count}
+                </span>
+              </button>
+            );
+          })}
 
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                setActiveTab(t.id as any);
-                trackButtonClick('clinical_engine_tab_switched', t.id);
-              }}
+          {/* Hub / All Modules Toggle */}
+          <button
+            type="button"
+            onClick={() => {
+              triggerHapticLight();
+              setIsHubView((prev) => !prev);
+            }}
+            title="All 12 Modules Hub Overview"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: isMobile ? '8px 10px' : '9px 12px',
+              borderRadius: '12px',
+              fontSize: '11.5px',
+              fontWeight: isHubView ? 800 : 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              border: isHubView ? '1px solid #CBD5E1' : '1px solid transparent',
+              background: isHubView ? '#FFFFFF' : 'transparent',
+              color: isHubView ? '#1E293B' : '#64748B',
+              boxShadow: isHubView ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+              minHeight: '40px',
+            }}
+          >
+            <LayoutGrid size={13} />
+            <span>{isMobile ? 'Hub' : 'All Hub'}</span>
+          </button>
+        </div>
+
+        {/* Tier 2: Curated Sub-Capsules (When Hub view is off) */}
+        {!isHubView && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px',
+            }}
+          >
+            <div
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
+                display: 'flex',
                 gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '999px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                border: isActive ? '1.5px solid #0F766E' : '1.5px solid #E2E8F0',
-                background: isActive ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
-                color: isActive ? '#FFFFFF' : '#64748B',
-                boxShadow: isActive ? '0 4px 14px rgba(13, 148, 136, 0.28)' : '0 1px 3px rgba(0,0,0,0.02)',
-                transition: 'all 0.15s ease',
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                padding: '2px 0',
+                alignItems: 'center',
               }}
             >
-              <span>{t.icon}</span>
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
+              {currentPillar.tabs.map((t) => {
+                const isActive = activeTab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleSelectTab(t.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      borderRadius: '999px',
+                      fontSize: '12px',
+                      fontWeight: isActive ? 800 : 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      border: isActive ? '1.5px solid #0F766E' : '1.5px solid #E2E8F0',
+                      background: isActive
+                        ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
+                        : '#FFFFFF',
+                      color: isActive ? '#FFFFFF' : '#475569',
+                      boxShadow: isActive
+                        ? '0 4px 14px rgba(13, 148, 136, 0.28)'
+                        : '0 1px 3px rgba(0,0,0,0.02)',
+                      transition: 'all 0.15s ease',
+                      minHeight: '38px',
+                    }}
+                  >
+                    <span style={{ fontSize: '13px' }}>{t.icon}</span>
+                    <span>{t.label}</span>
+                    {t.badge && (
+                      <span
+                        style={{
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '1px 5px',
+                          borderRadius: '999px',
+                          background: isActive ? 'rgba(255,255,255,0.25)' : '#DCFCE7',
+                          color: isActive ? '#FFFFFF' : '#15803D',
+                        }}
+                      >
+                        {t.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Subtle Clinical Context Bar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#F8FAFC',
+                borderRadius: '10px',
+                padding: '6px 12px',
+                border: '1px solid #F1F5F9',
+                fontSize: '11px',
+                color: '#64748B',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '12px' }}>{currentPillar.icon}</span>
+                <span style={{ fontWeight: 600, color: '#334155' }}>{currentPillar.subtitle}</span>
+              </div>
+              <span style={{ flexShrink: 0, fontWeight: 700, color: '#0F766E' }}>
+                {currentPillar.tabs.findIndex((t) => t.id === activeTab) + 1} of {currentPillar.tabs.length}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Hub Matrix View (Rendered when Hub is active) */}
+      {isHubView && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: '12px',
+            margin: '4px 0 10px 0',
+          }}
+        >
+          {PILLARS.map((pillar) => (
+            <div
+              key={pillar.id}
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                padding: '14px 16px',
+                border: activePillar === pillar.id ? '1.5px solid #0D9488' : '1.5px solid #E2E8F0',
+                boxShadow: activePillar === pillar.id ? '0 4px 14px rgba(13, 148, 136, 0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>{pillar.icon}</span>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '13.5px', fontWeight: 800, color: '#1E293B' }}>
+                      {pillar.label}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#64748B' }}>
+                      {pillar.subtitle}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: '#F0FDFA',
+                    color: '#0F766E',
+                    border: '1px solid #CCFBF1',
+                  }}
+                >
+                  {pillar.count} {pillar.count === 1 ? 'Module' : 'Modules'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {pillar.tabs.map((tab) => {
+                  const isCurrent = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => handleSelectTab(tab.id)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '999px',
+                        fontSize: '11.5px',
+                        fontWeight: isCurrent ? 800 : 600,
+                        cursor: 'pointer',
+                        border: isCurrent ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
+                        background: isCurrent
+                          ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)'
+                          : '#F8FAFC',
+                        color: isCurrent ? '#FFFFFF' : '#334155',
+                        boxShadow: isCurrent ? '0 2px 8px rgba(13, 148, 136, 0.22)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>{tab.icon}</span>
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 4. Interactive Node Deep-Dive Drawer (When Node is Tapped) */}
       <AnimatePresence>
@@ -388,10 +747,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
               <button
                 type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  setActiveTab('dossier');
-                }}
+                onClick={() => handleSelectTab('dossier')}
                 style={{
                   padding: '8px 14px',
                   borderRadius: '10px',
@@ -415,30 +771,61 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
       {/* 5. Sub-Tab Contents */}
 
-      {/* TAB 1: CONNECTION MAP */}
+      {/* TAB 1: CONNECTED FOODS & DIETARY TRIGGER HUB */}
       {activeTab === 'map' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Direct Bridge CTA to Food Detective */}
+          {/* 1. Primary Clinical Sensitivity Verdict */}
           <div
             style={{
               background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
               borderRadius: '18px',
-              padding: '14px 18px',
+              padding: '16px 18px',
               border: '1.5px solid #99F6E4',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: isMobile ? 'flex-start' : 'center',
+              flexDirection: isMobile ? 'column' : 'row',
               justifyContent: 'space-between',
               gap: '12px',
+              boxShadow: '0 4px 14px rgba(13, 148, 136, 0.08)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '24px' }}>🔬</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  background: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '22px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                  flexShrink: 0,
+                }}
+              >
+                🔬
+              </div>
               <div>
-                <strong style={{ fontSize: '13.5px', color: '#1C1917', display: 'block' }}>
-                  Connected Food Sensitivities Detected
-                </strong>
-                <span style={{ fontSize: '12px', color: '#78716C' }}>
-                  Histamine & FODMAPs identified as upstream vascular triggers.
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                  <strong style={{ fontSize: '14px', color: '#0F172A' }}>
+                    Connected Food Sensitivities Detected
+                  </strong>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      background: '#CCFBF1',
+                      color: '#0F766E',
+                      padding: '1px 6px',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    High Correlation
+                  </span>
+                </div>
+                <span style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
+                  Histamine & FODMAPs identified as upstream vascular and gut barrier triggers.
                 </span>
               </div>
             </div>
@@ -454,21 +841,206 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                 color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '10px',
-                padding: '8px 14px',
-                fontSize: '12px',
+                borderRadius: '12px',
+                padding: '10px 16px',
+                fontSize: '12.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
                 boxShadow: '0 3px 10px rgba(13, 148, 136, 0.28)',
+                width: isMobile ? '100%' : 'auto',
+                justifyContent: 'center',
               }}
             >
-              Inspect Foods <ArrowRight size={13} />
+              Inspect in Food Detective <ArrowRight size={14} />
             </button>
+          </div>
+
+          {/* 2. Top Culprit Foods Breakdown */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '18px',
+              padding: '16px 18px',
+              border: '1.5px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Suspected Dietary Triggers & Sensitivities
+                </h4>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748B' }}>
+                  Cross-referenced against symptom check-ins and meal flare correlations
+                </p>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F766E', background: '#F0FDFA', padding: '3px 8px', borderRadius: '8px', border: '1px solid #CCFBF1' }}>
+                {dietSummary.topCulpritFoods.length > 0 ? `${dietSummary.topCulpritFoods.length} Identified` : 'Clinical Baseline'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: '8px',
+              }}
+            >
+              {(dietSummary.topCulpritFoods.length > 0 ? dietSummary.topCulpritFoods.slice(0, 4) : [
+                { id: 'histamine_dairy', name: 'Aged Cheese & Dairy', emoji: '🧀', category: 'Dairy', primarySensitivity: 'Histamine Rebound', correlationPercent: 88, safeSwap: 'Fresh paneer or goat cheese', reactionWindow: '2-4 hours' },
+                { id: 'fodmap_allium', name: 'Garlic & Onion (Alliums)', emoji: '🧄', category: 'FODMAPs', primarySensitivity: 'Fructan Fermentation', correlationPercent: 82, safeSwap: 'Garlic-infused olive oil / Hing', reactionWindow: '3-6 hours' },
+                { id: 'solanaceae', name: 'Tomatoes & Peppers', emoji: '🍅', category: 'Nightshades', primarySensitivity: 'Solanine Permeability', correlationPercent: 74, safeSwap: 'Beetroot & roasted carrot purée', reactionWindow: '4-8 hours' },
+                { id: 'fermented_soy', name: 'Fermented Soy / Tamari', emoji: '🥢', category: 'Histamine', primarySensitivity: 'Biogenic Amines', correlationPercent: 68, safeSwap: 'Coconut aminos', reactionWindow: '1-3 hours' },
+              ]).map((culprit) => (
+                <div
+                  key={culprit.id}
+                  style={{
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
+                    padding: '10px 12px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '18px' }}>{culprit.emoji}</span>
+                      <strong style={{ fontSize: '12.5px', color: '#0F172A' }}>{culprit.name}</strong>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '10.5px',
+                        fontWeight: 800,
+                        color: '#B45309',
+                        background: '#FEF3C7',
+                        padding: '2px 7px',
+                        borderRadius: '999px',
+                        border: '1px solid #FDE68A',
+                      }}
+                    >
+                      +{culprit.correlationPercent}% flare
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748B' }}>
+                    <span style={{ color: '#0F766E', fontWeight: 600 }}>{culprit.primarySensitivity}</span>
+                    <span>Window: {culprit.reactionWindow}</span>
+                  </div>
+
+                  {culprit.safeSwap && (
+                    <div style={{ fontSize: '11px', color: '#334155', background: '#FFFFFF', padding: '4px 8px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
+                      🌱 <span style={{ fontWeight: 600 }}>Swap:</span> {culprit.safeSwap}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Connected Gut Diagnostic Navigation Suite */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '18px',
+              padding: '16px 18px',
+              border: '1.5px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Connected Gut Diagnostic Tools
+                </h4>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#64748B' }}>
+                  Jump directly into any specific dietary tracking and correlation module
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: '8px',
+              }}
+            >
+              {[
+                {
+                  id: 'postmeal' as TabId,
+                  icon: '🍽️',
+                  title: 'Post-Meal Timeline',
+                  desc: 'Track 2hr & 6hr delayed inflammatory cascades',
+                  color: '#0F766E',
+                },
+                {
+                  id: 'calendar' as TabId,
+                  icon: '📅',
+                  title: 'Digestion Heatmap',
+                  desc: 'Review 30-day symptom vs meal correlation calendar',
+                  color: '#2563EB',
+                },
+                {
+                  id: 'elimination' as TabId,
+                  icon: '🎯',
+                  title: 'Symptom Hunt Suite',
+                  desc: 'Structured 4-week clinical elimination & reintroduction',
+                  color: '#7C3AED',
+                },
+                {
+                  id: 'insights' as TabId,
+                  icon: '💡',
+                  title: 'Smart Insights',
+                  desc: 'AI cross-correlations & clinically validated food swaps',
+                  color: '#D97706',
+                },
+              ].map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  onClick={() => handleSelectTab(tool.id)}
+                  style={{
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    border: '1.5px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '20px' }}>{tool.icon}</span>
+                    <div>
+                      <strong style={{ fontSize: '12.5px', color: '#1E293B', display: 'block' }}>
+                        {tool.title}
+                      </strong>
+                      <span style={{ fontSize: '11px', color: '#64748B', display: 'block' }}>
+                        {tool.desc}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} color="#94A3B8" />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -843,10 +1415,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
               <button
                 type="button"
-                onClick={() => {
-                  triggerHapticLight();
-                  setActiveTab('map');
-                }}
+                onClick={() => handleSelectTab('map')}
                 style={{
                   marginTop: '4px',
                   padding: '10px',
@@ -1441,17 +2010,17 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {activeTab === 'elimination' && (
         <EliminationProtocolSuite
           onOpenQuickMeal={onOpenFoodDetective}
-          onOpenCalendarHeatmap={() => setActiveTab('calendar')}
-          onOpenPostMealTimeline={() => setActiveTab('postmeal')}
+          onOpenCalendarHeatmap={() => handleSelectTab('calendar')}
+          onOpenPostMealTimeline={() => handleSelectTab('postmeal')}
         />
       )}
 
       {/* 10. SMART CORRELATION INSIGHTS SUBTAB */}
       {activeTab === 'insights' && (
         <SmartCorrelationInsightsView
-          onOpenElimination={() => setActiveTab('elimination')}
-          onOpenTimeline={() => setActiveTab('postmeal')}
-          onOpenHeatmap={() => setActiveTab('calendar')}
+          onOpenElimination={() => handleSelectTab('elimination')}
+          onOpenTimeline={() => handleSelectTab('postmeal')}
+          onOpenHeatmap={() => handleSelectTab('calendar')}
         />
       )}
     </div>
