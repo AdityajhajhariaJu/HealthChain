@@ -484,7 +484,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
   const [newDosage, setNewDosage] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
   const [newTime, setNewTime] = useState('08:30');
-  const [showCustomForm, setShowCustomForm] = useState(false);
   const [hasNotificationPermission, setHasNotificationPermission] = useState(true);
 
   const interactionAlerts = React.useMemo(() => detectDrugNutrientInteractions(vitamins), [vitamins]);
@@ -593,7 +592,6 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
     setNewName('');
     setNewDosage('');
     setNewBenefit('');
-    setShowCustomForm(false);
   };
 
   const handleSaveAndClose = async () => {
@@ -930,24 +928,22 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#44403C', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Clinical Formulations & Supplements
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setShowCustomForm(!showCustomForm)}
+                <span
                   style={{
-                    background: 'transparent',
-                    border: 'none',
+                    background: '#F0FDFA',
+                    border: '1px solid #CCFBF1',
+                    borderRadius: '999px',
+                    padding: '3px 9px',
                     color: '#0D9488',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 700,
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    padding: 0
                   }}
                 >
-                  <Plus size={13} /> {showCustomForm ? 'Close' : 'Write Tablet'}
-                </button>
+                  <Plus size={12} /> Write Tablet
+                </span>
               </div>
 
               {/* Category Filter Pills (Guaranteed flexShrink: 0 — ZERO Text Overlap!) */}
@@ -992,94 +988,96 @@ export const VitaminSchedulerModal: React.FC<VitaminSchedulerModalProps> = ({ is
                 })}
               </div>
 
-              {/* Custom Write-In Form (Expandable) */}
-              <AnimatePresence>
-                {showCustomForm && (
-                  <motion.form
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-                    onSubmit={handleAddCustom}
+              {/* Custom Write-In Form (Always Open) */}
+              <form
+                onSubmit={handleAddCustom}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '20px',
+                  padding: '14px',
+                  border: '1.5px solid #CCFBF1',
+                  boxShadow: '0 6px 20px rgba(13, 148, 136, 0.08)',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '14px' }}>💊</span>
+                    <strong style={{ fontSize: '12.5px', color: '#134E4A' }}>Write Custom Tablet / Prescription</strong>
+                  </div>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#0F766E', background: '#CCFBF1', padding: '1px 6px', borderRadius: '6px' }}>
+                    Quick Add
+                  </span>
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Medication or supplement name (e.g. Lisinopril, B12, Creatine)..."
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid #E2D9D2',
+                    background: '#FFFDFB',
+                    fontSize: '13.5px',
+                    color: '#1C1917',
+                    outline: 'none'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
+                    value={newDosage}
+                    onChange={(e) => setNewDosage(e.target.value)}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      borderRadius: '20px',
-                      padding: '14px',
-                      border: '1.5px solid #CCFBF1',
-                      boxShadow: '0 6px 20px rgba(13, 148, 136, 0.08)',
-                      marginBottom: '12px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px'
+                      flex: 1,
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      border: '1px solid #E2D9D2',
+                      background: '#FFFDFB',
+                      fontSize: '13.5px',
+                      color: '#1C1917',
+                      outline: 'none'
                     }}
-                  >
-                    <input
-                      type="text"
-                      placeholder="Medication or supplement name (e.g. Lisinopril, B12, Creatine)..."
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      style={{
-                        padding: '10px 14px',
-                        borderRadius: '12px',
-                        border: '1px solid #E2D9D2',
-                        background: '#FFFDFB',
-                        fontSize: '13.5px',
-                        color: '#1C1917',
-                        outline: 'none'
-                      }}
-                    />
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input
-                        type="text"
-                        placeholder="Dosage or benefit (e.g. 500mg with breakfast)..."
-                        value={newDosage}
-                        onChange={(e) => setNewDosage(e.target.value)}
-                        style={{
-                          flex: 1,
-                          padding: '10px 14px',
-                          borderRadius: '12px',
-                          border: '1px solid #E2D9D2',
-                          background: '#FFFDFB',
-                          fontSize: '13.5px',
-                          color: '#1C1917',
-                          outline: 'none'
-                        }}
-                      />
-                      <input
-                        type="time"
-                        value={newTime}
-                        onChange={(e) => setNewTime(e.target.value)}
-                        style={{
-                          padding: '10px 12px',
-                          borderRadius: '12px',
-                          border: '1px solid #E2D9D2',
-                          background: '#FFFDFB',
-                          fontSize: '13px',
-                          fontWeight: 700,
-                          color: '#1C1917'
-                        }}
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={!newName.trim()}
-                      style={{
-                        padding: '11px',
-                        borderRadius: '12px',
-                        background: newName.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#E2E8F0',
-                        color: newName.trim() ? '#FFF' : '#94A3B8',
-                        border: 'none',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        cursor: newName.trim() ? 'pointer' : 'default',
-                        boxShadow: newName.trim() ? '0 4px 12px rgba(13, 148, 136, 0.25)' : 'none'
-                      }}
-                    >
-                      + Add to Daily Regimen
-                    </button>
-                  </motion.form>
-                )}
-              </AnimatePresence>
+                  />
+                  <input
+                    type="time"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '12px',
+                      border: '1px solid #E2D9D2',
+                      background: '#FFFDFB',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#1C1917'
+                    }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={!newName.trim()}
+                  style={{
+                    padding: '11px',
+                    borderRadius: '12px',
+                    background: newName.trim() ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#E2E8F0',
+                    color: newName.trim() ? '#FFF' : '#94A3B8',
+                    border: 'none',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: newName.trim() ? 'pointer' : 'default',
+                    boxShadow: newName.trim() ? '0 4px 12px rgba(13, 148, 136, 0.25)' : 'none'
+                  }}
+                >
+                  + Add to Daily Regimen
+                </button>
+              </form>
 
               {/* Informative, Cinematic Capsule Chips Grid */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
