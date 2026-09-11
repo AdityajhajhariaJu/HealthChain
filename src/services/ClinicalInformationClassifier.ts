@@ -44,6 +44,7 @@ export interface GroundedClaimRecord {
   interpretationStatus: InterpretationStatus;
   isGeneralGuidance: boolean;
   unsupportedReason?: string;
+  claimText?: string;
 }
 
 export interface BaseInformationItem {

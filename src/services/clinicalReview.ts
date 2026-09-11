@@ -120,23 +120,90 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export interface StructuredBiomarkerValue {
+  operator: string;
+  numericStr: string;
+  numericValue: number;
+  unit: string;
+  rawText: string;
+}
+
+export function parseBiomarkerValue(val: string): StructuredBiomarkerValue | null {
+  if (!val || typeof val !== 'string') return null;
+  const trimmed = val.trim();
+  const match = trimmed.match(/^([<>≤≥=~]|<=|>=)?\s*(\d+(?:\.\d+)?)\s*([a-zA-Z%µ/]+[a-zA-Z0-9%µ/^\-\s]*.*)?$/);
+  if (!match) return null;
+
+  let operator = (match[1] || '').trim();
+  if (operator === '<=') operator = '≤';
+  if (operator === '>=') operator = '≥';
+
+  const numericStr = match[2];
+  const numericValue = parseFloat(numericStr);
+  if (isNaN(numericValue)) return null;
+
+  const unit = (match[3] || '').trim();
+
+  return {
+    operator,
+    numericStr,
+    numericValue,
+    unit,
+    rawText: trimmed,
+  };
+}
+
 export function matchesBiomarkerValue(sourceText: string, targetValue: string): boolean {
   if (!sourceText || typeof sourceText !== 'string' || !targetValue || typeof targetValue !== 'string') return false;
   const val = targetValue.trim();
   if (!val) return false;
-  // If targetValue is numeric (with optional comparison operator and decimals, e.g. 12, 12.5, <0.05, >100)
-  const numMatch = val.match(/^([<>≤≥=~]?\s*)(\d+(?:\.\d+)?)(.*)$/);
-  if (numMatch) {
-    const prefix = escapeRegex(numMatch[1].trim());
-    const num = escapeRegex(numMatch[2]);
-    // Enforce digit/decimal boundary so 12 cannot match 112, 120, or 1.12
-    const pattern = prefix
-      ? `(?:${prefix}\\s*)?(?<![\\d.])${num}(?![\\d.])`
-      : `(?<![\\d.])${num}(?![\\d.])`;
-    return new RegExp(pattern, 'i').test(sourceText);
+
+  const parsedTarget = parseBiomarkerValue(val);
+  if (!parsedTarget) {
+    return new RegExp(`\\b${escapeRegex(val)}\\b`, 'i').test(sourceText);
   }
-  // For non-numeric or complex values, enforce word-boundary matching
-  return new RegExp(`\\b${escapeRegex(val)}\\b`, 'i').test(sourceText);
+
+  // Look for occurrences of exact numericStr with strict digit/decimal boundaries in sourceText
+  const numStr = escapeRegex(parsedTarget.numericStr);
+  // Captures optional preceding operator, the number, and optional following unit
+  const regex = new RegExp(`([<>≤≥=~]|<=|>=)?\\s*(?<![\\d.])(${numStr})(?![\\d.])\\s*([a-zA-Z%µ/][a-zA-Z0-9%µ/^\-]*)?`, 'gi');
+
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(sourceText)) !== null) {
+    let sourceOp = (match[1] || '').trim();
+    if (sourceOp === '<=') sourceOp = '≤';
+    if (sourceOp === '>=') sourceOp = '≥';
+
+    const sourceUnit = (match[3] || '').trim();
+
+    // 1. Comparison operator check
+    if (parsedTarget.operator) {
+      if (sourceOp !== parsedTarget.operator) {
+        continue;
+      }
+    } else {
+      if (sourceOp) {
+        continue;
+      }
+    }
+
+    // 2. Unit check
+    if (parsedTarget.unit) {
+      const targetUnitNorm = parsedTarget.unit.toLowerCase().replace(/\s+/g, '');
+      const sourceUnitNorm = sourceUnit.toLowerCase().replace(/\s+/g, '');
+
+      if (!sourceUnitNorm) {
+        const hasUnitInSource = new RegExp(`\\b${escapeRegex(parsedTarget.unit)}\\b`, 'i').test(sourceText);
+        if (!hasUnitInSource) continue;
+      } else if (targetUnitNorm !== sourceUnitNorm) {
+        continue;
+      }
+    }
+
+    return true;
+  }
+
+  return false;
 }
 
 export function matchesBiomarkerName(sourceText: string, markerName: string): boolean {
@@ -196,6 +263,66 @@ export function preserveAmbiguousUnit(rawUnit?: string): AmbiguousUnitResult {
     return { rawUnit: trimmed, isAmbiguous: false, unit: trimmed };
   }
   return { rawUnit: trimmed, isAmbiguous: true, unit: trimmed };
+}
+
+export interface NarrativeGroundingCheck {
+  isSupported: boolean;
+  unsupportedClaims: string[];
+  reason?: string;
+}
+
+export function validateNarrativeGrounding(
+  text: string,
+  verifiedFacts: any[]
+): NarrativeGroundingCheck {
+  if (!text || typeof text !== 'string') return { isSupported: true, unsupportedClaims: [] };
+
+  const sourceCorpus = (verifiedFacts || [])
+    .map(f => `${f.fact || ''} ${f.finding || ''} ${f.text || ''}`)
+    .join(' ')
+    .toLowerCase();
+
+  const sentences = text.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+  const unsupportedClaims: string[] = [];
+
+  const definitivePatterns = [
+    /\b(confirmed|diagnosed|proven|definitive|positive for)\s+([a-z0-9\s\-]{3,50})/i,
+    /\b(suffering from|afflicted with|has)\s+([a-z0-9\s\-]{3,50}\b(?:disease|syndrome|disorder|carcinoma|cancer|infection))/i,
+    /\b(rare disease|autoimmune disease|malignancy|carcinoma)\b/i,
+  ];
+
+  for (const sentence of sentences) {
+    for (const pat of definitivePatterns) {
+      const match = sentence.match(pat);
+      if (match) {
+        const rawEntity = (match[2] || match[0]).trim().toLowerCase();
+        const benignObservational = /^(mild|intermittent|severe|knee|morning|joint|muscle)?\s*(discomfort|pain|fatigue|symptom|strain|evaluation|review)$/i;
+        if (benignObservational.test(rawEntity)) {
+          continue;
+        }
+
+        const entityWords = rawEntity
+          .replace(/[^a-z0-9\s]/g, ' ')
+          .split(/\s+/)
+          .filter(w => w.length > 3 && !['from', 'this', 'that', 'with', 'have', 'been', 'case', 'symptom'].includes(w));
+
+        const isMentionedInSources = entityWords.length > 0 && entityWords.every(w => sourceCorpus.includes(w));
+
+        if (!isMentionedInSources) {
+          unsupportedClaims.push(sentence);
+          break;
+        }
+      }
+    }
+  }
+
+  return {
+    isSupported: unsupportedClaims.length === 0,
+    unsupportedClaims,
+    reason: unsupportedClaims.length > 0
+      ? `Narrative asserts definitive conclusions or clinical entities not found in verified evidence: "${unsupportedClaims[0]}"`
+      : undefined,
+  };
 }
 
 export function buildReviewEvidence(history:string, sourceCase?:any):any[] {
@@ -391,6 +518,69 @@ export function normalizeClinicalReview(value:unknown, previousPayload?:Clinical
     }
   }
 
+  // Validate narrative executive summary, primary hypothesis, and SBAR assessment
+  const summaryGrounding = validateNarrativeGrounding(report.executiveSummary, enriched);
+  if (!summaryGrounding.isSupported) {
+    for (const unsupported of summaryGrounding.unsupportedClaims) {
+      quarantinedClaims.push({
+        id: 'claim_summary_' + quarantinedClaims.length,
+        text: unsupported,
+        claimText: unsupported,
+        category: 'ai_consideration',
+        evidenceIds: [],
+        limitations: [],
+        reviewVersion: 1,
+        claimKind: 'ai_interpretation',
+        interpretationStatus: 'quarantined',
+        isGeneralGuidance: false,
+        unsupportedReason: summaryGrounding.reason || 'Executive summary asserts ungrounded clinical conclusions not found in source evidence',
+      });
+    }
+  }
+
+  const hypothesisGrounding = validateNarrativeGrounding(report.primaryHypothesis, enriched);
+  if (!hypothesisGrounding.isSupported) {
+    for (const unsupported of hypothesisGrounding.unsupportedClaims) {
+      quarantinedClaims.push({
+        id: 'claim_hypo_' + quarantinedClaims.length,
+        text: unsupported,
+        claimText: unsupported,
+        category: 'ai_consideration',
+        evidenceIds: [],
+        limitations: [],
+        reviewVersion: 1,
+        claimKind: 'ai_interpretation',
+        interpretationStatus: 'quarantined',
+        isGeneralGuidance: false,
+        unsupportedReason: hypothesisGrounding.reason || 'Primary hypothesis asserts ungrounded clinical conclusion',
+      });
+    }
+  }
+
+  const sbarAssessmentRaw = report.doctorActionPlan?.sbar?.assessment;
+  let sbarAssessmentValid = true;
+  if (typeof sbarAssessmentRaw === 'string') {
+    const sbarGrounding = validateNarrativeGrounding(sbarAssessmentRaw, enriched);
+    if (!sbarGrounding.isSupported) {
+      sbarAssessmentValid = false;
+      for (const unsupported of sbarGrounding.unsupportedClaims) {
+        quarantinedClaims.push({
+          id: 'claim_sbar_' + quarantinedClaims.length,
+          text: unsupported,
+          claimText: unsupported,
+          category: 'ai_consideration',
+          evidenceIds: [],
+          limitations: [],
+          reviewVersion: 1,
+          claimKind: 'ai_interpretation',
+          interpretationStatus: 'quarantined',
+          isGeneralGuidance: false,
+          unsupportedReason: sbarGrounding.reason || 'SBAR assessment asserts ungrounded clinical conclusion',
+        });
+      }
+    }
+  }
+
   const reviewTrusted = quarantinedFacts.length === 0 && quarantinedClaims.length === 0 && enriched.length > 0;
   const perspectives=generateMeaningfulPerspectives(versionedEvidence,strings(report.uncertainties),validPerspectives);
   const boundedComparison=executeBoundedComparison(perspectives,versionedEvidence,reviewTrusted ? report.boundedComparison : undefined);
@@ -430,7 +620,7 @@ export function normalizeClinicalReview(value:unknown, previousPayload?:Clinical
 
   const sbarSituation = summary.slice(0, 500);
   const sbarBackground = enriched.length ? `Documented sources: ${[...new Set(enriched.map((f: any) => f.source))].join(', ')}` : 'No background records supplied.';
-  const sbarAssessment = reviewTrusted && report.doctorActionPlan?.sbar?.assessment && typeof report.doctorActionPlan.sbar.assessment === 'string'
+  const sbarAssessment = reviewTrusted && sbarAssessmentValid && report.doctorActionPlan?.sbar?.assessment && typeof report.doctorActionPlan.sbar.assessment === 'string'
     ? String(report.doctorActionPlan.sbar.assessment).slice(0, 300)
     : primaryHypothesisText;
   const sbarRecommendation = strings(report.questionsForClinician).length
