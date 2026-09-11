@@ -9,6 +9,12 @@ import { ConflictRecord } from './SyncTypes';
 import { mergeCaseItems } from './CaseMergeEngine';
 import { recordTombstone, fetchRemoteTombstones } from './TombstoneManager';
 
+function safeDispatchEvent(event: Event) {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(event);
+  }
+}
+
 export interface CaseUpdate {
   id: string;
   date: string;
@@ -49,7 +55,12 @@ export interface MedicalRecord {
   auditTrail?: InformationAuditEntry[];
 }
 
-export type QuestionLifecycleStatus = 'open' | 'prepared' | 'discussed' | 'resolved' | 'addressed' | 'deferred';
+export type QuestionLifecycleStatus = 'open' | 'prepared' | 'discussed' | 'deferred' | 'resolved' | 'addressed';
+
+export type OutcomeProvenance =
+  | 'user_reported_clinician_statement'
+  | 'clinical_record_corroborated'
+  | 'clinician_portal_import';
 
 export interface ClinicalQuestion {
   id: string;
@@ -58,8 +69,14 @@ export interface ClinicalQuestion {
   supportingEvidenceIds: string[];
   status: QuestionLifecycleStatus;
   outcomeNote?: string;
-  createdAt: string;
+  outcomeDate?: string;
+  outcomeProvenance?: OutcomeProvenance;
+  doctorAction?: string;
+  discussedAt?: string;
+  deferredAt?: string;
   resolvedAt?: string;
+  briefVersionIncluded?: number;
+  createdAt: string;
 }
 
 export interface SpecialistPerspective {
@@ -138,9 +155,35 @@ import { getProfileKey } from './ProfileEngine';
 export interface BriefTimelineItem { date: string; event: string; sourceIds: string[]; }
 export interface BriefFact { text: string; sourceIds: string[]; }
 export interface BriefGap { missingText: string; reason: string; }
-export interface BriefQuestion { question: string; sourceIds: string[]; isAI: boolean; }
+export interface BriefQuestion {
+  id?: string;
+  question: string;
+  sourceIds: string[];
+  isAI: boolean;
+  status?: QuestionLifecycleStatus;
+  outcomeNote?: string;
+}
 export interface BriefPerspective { title: string; summary: string; sourceId: string; }
+
+export interface BriefChangeItem {
+  type: 'record_added' | 'differential_shift' | 'outcome_recorded' | 'symptom_update';
+  description: string;
+  date: string;
+}
+
+export interface BriefPreviousOutcome {
+  questionId: string;
+  questionText: string;
+  status: QuestionLifecycleStatus;
+  note?: string;
+  outcomeDate?: string;
+  provenance?: OutcomeProvenance;
+}
+
 export interface AppointmentBrief {
+  briefId?: string;
+  version?: number;
+  parentBriefId?: string;
   schemaVersion: number;
   caseId: string;
   sourceFingerprint: string;
@@ -152,6 +195,10 @@ export interface AppointmentBrief {
   missingInformation: BriefGap[];
   questionsForClinician: BriefQuestion[];
   priorPerspectives: BriefPerspective[];
+  previousOutcomesReviewed?: BriefPreviousOutcome[];
+  changesSinceLastVisit?: BriefChangeItem[];
+  questionIdsIncluded?: string[];
+  recordIdsIncluded?: string[];
   safetyNotice: string;
   isRefinedByAI: boolean;
 }
@@ -269,7 +316,7 @@ async function save(cases: CaseItem[]) {
   setItemSync(storageKey, JSON.stringify(safeCases));
   if (typeof indexedDB !== 'undefined') {
     idbSet(storageKey, JSON.stringify(safeCases)).catch(error => {
-      window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+      safeDispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
     });
   }
   
@@ -280,7 +327,7 @@ async function save(cases: CaseItem[]) {
   });
   
   cachedCases = safeCases;
-  window.dispatchEvent(new Event('hc_cases_updated'));
+  safeDispatchEvent(new Event('hc_cases_updated'));
 
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -305,7 +352,7 @@ async function save(cases: CaseItem[]) {
       await flushSyncOutbox(session.user.id);
     }
   } catch (error) {
-    window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
+    safeDispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
   }
 }
 
@@ -330,7 +377,7 @@ export function setActiveCase(caseId: string | null) {
   if (caseId && (!getCase(caseId) || getCase(caseId)?.intakeData?.scenarioId)) return;
   if (caseId) setItemSync(getActiveCaseKey(), caseId);
   else removeItemSync(getActiveCaseKey());
-  window.dispatchEvent(new Event('hc_active_case_updated'));
+  safeDispatchEvent(new Event('hc_active_case_updated'));
 }
 
 export function deleteCase(caseId: string) {
@@ -360,7 +407,7 @@ export function deleteCase(caseId: string) {
       updated_at: deletedCase?.updatedAt || now,
     });
     await flushSyncOutbox(session.user.id);
-  }).catch((error) => window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
+  }).catch((error) => safeDispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
   if (getActiveCaseId() === caseId) {
     setActiveCase(null);
   }
@@ -802,7 +849,7 @@ export function addEvidenceToActiveCase({
         }
   );
   save(cases);
-  window.dispatchEvent(new Event('hc_active_case_updated'));
+  safeDispatchEvent(new Event('hc_active_case_updated'));
   return evidence;
 }
 
@@ -843,7 +890,7 @@ export function updateCaseDifferentials(caseId: string, differentials: Different
   });
   save(cases);
   if (getActiveCaseId() === caseId) {
-    window.dispatchEvent(new Event('hc_active_case_updated'));
+    safeDispatchEvent(new Event('hc_active_case_updated'));
   }
 }
 
@@ -938,7 +985,7 @@ export async function initCaseEngine() {
     if (getItemSync(key) !== initialMirror) {
       // A local edit occurred during the request. Its queued write will sync;
       // never replace it with a snapshot fetched before that edit completed.
-      window.dispatchEvent(new Event('hc_cases_updated'));
+      safeDispatchEvent(new Event('hc_cases_updated'));
       return;
     }
     if (!error && data && await getPendingSyncCount(session.user.id) === 0) {
@@ -997,7 +1044,7 @@ export async function initCaseEngine() {
     }
   }
   
-  window.dispatchEvent(new Event('hc_cases_updated'));
+  safeDispatchEvent(new Event('hc_cases_updated'));
 }
 
 export async function fetchCaseFromCloud(caseId: string): Promise<CaseItem | null> {
@@ -1018,33 +1065,69 @@ export function updateCaseConnectionMap(caseId: string, connectionMap: any) {
       updatedAt: new Date().toISOString(),
     };
     save(cases.map((item, index) => index === idx ? updated : item));
-    window.dispatchEvent(new Event('hc_cases_updated'));
+    safeDispatchEvent(new Event('hc_cases_updated'));
   }
 }
 
-export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
+export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief): CaseItem | null {
   const cases = getCases();
   const index = cases.findIndex(item => item.id === caseId);
-  if (index === -1) return;
+  if (index === -1) return null;
 
   const existing = cases[index];
   const now = new Date().toISOString();
   const priorHistory = existing.appointmentBriefs?.history || [];
-  const history = existing.appointmentBriefs?.current
-    ? [existing.appointmentBriefs.current, ...priorHistory].slice(0, 20)
-    : priorHistory.slice(0, 20);
+  
+  // Calculate next monotonic version
+  const currentBrief = existing.appointmentBriefs?.current;
+  const currentVersion = currentBrief?.version || (priorHistory.length > 0 ? Math.max(...priorHistory.map(h => h.version || 1)) : 0);
+  const nextVersion = brief.version && brief.version > currentVersion ? brief.version : currentVersion + 1;
+
+  const finalizedBrief: AppointmentBrief = {
+    ...brief,
+    briefId: brief.briefId || `brief_${id()}`,
+    version: nextVersion,
+    parentBriefId: currentBrief?.briefId,
+    generatedAt: brief.generatedAt || now,
+    questionIdsIncluded: brief.questionIdsIncluded || (brief.questionsForClinician || []).map(q => q.id).filter(Boolean) as string[],
+    recordIdsIncluded: brief.recordIdsIncluded || (existing.medicalRecords || []).map(r => r.id),
+  };
+
+  // Push previous current into history as an immutable clone (never mutate past briefs in place)
+  const updatedHistory = currentBrief
+    ? [JSON.parse(JSON.stringify(currentBrief)), ...priorHistory].slice(0, 30)
+    : priorHistory.slice(0, 30);
+
+  // Update questions included in this brief to 'prepared' if currently 'open'
+  const updatedQuestions = (existing.questions || []).map(q => {
+    if (finalizedBrief.questionIdsIncluded?.includes(q.id)) {
+      return {
+        ...q,
+        status: q.status === 'open' ? ('prepared' as const) : q.status,
+        briefVersionIncluded: nextVersion,
+      };
+    }
+    return q;
+  });
+
   const updated: CaseItem = {
     ...existing,
-    appointmentBriefs: { current: brief, history },
+    questions: updatedQuestions,
+    appointmentBriefs: {
+      current: finalizedBrief,
+      history: updatedHistory,
+    },
     events: [{
       id: id(),
       date: now,
-      label: 'Appointment brief prepared',
-      note: 'Patient generated a structured appointment brief.'
+      label: `Appointment brief v${nextVersion} prepared`,
+      note: `Patient prepared structured appointment brief v${nextVersion} with ${finalizedBrief.questionsForClinician?.length || 0} questions.`
     }, ...(existing.events || [])].slice(0, 100),
     updatedAt: now,
   };
+
   save(cases.map((item, itemIndex) => itemIndex === index ? updated : item));
+  safeDispatchEvent(new Event('hc_cases_updated'));
   return updated;
 }
 
@@ -1093,25 +1176,56 @@ export function getCaseQuestions(caseId: string): ClinicalQuestion[] {
   return harvested;
 }
 
-export function addCaseQuestion(caseId: string, question: Omit<ClinicalQuestion, 'id' | 'createdAt' | 'status'> & { status?: QuestionLifecycleStatus }): ClinicalQuestion {
+export function generateStableQuestionId(caseId: string, text: string): string {
+  const normalized = text.trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 32);
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) - hash) + text.charCodeAt(i);
+    hash |= 0;
+  }
+  const hex = Math.abs(hash).toString(16);
+  return `q_${caseId ? caseId.slice(-6) : 'case'}_${normalized.slice(0, 12)}_${hex}`;
+}
+
+export function addCaseQuestion(
+  caseId: string,
+  question: Omit<ClinicalQuestion, 'id' | 'createdAt' | 'status'> & { id?: string; status?: QuestionLifecycleStatus }
+): ClinicalQuestion {
   const cases = getCases();
   const idx = cases.findIndex(c => c.id === caseId);
+  const now = new Date().toISOString();
+  const normText = question.questionText.trim().toLowerCase();
+
+  if (idx !== -1) {
+    const existingCase = cases[idx];
+    const existingQuestions = existingCase.questions || [];
+    const duplicate = existingQuestions.find(
+      q => (question.id && q.id === question.id) || q.questionText.trim().toLowerCase() === normText
+    );
+    if (duplicate) {
+      // Re-use existing question with its stable ID to prevent repeat navigation duplicate explosion
+      return duplicate;
+    }
+  }
+
+  const newId = question.id || generateStableQuestionId(caseId, question.questionText);
   const newQ: ClinicalQuestion = {
     ...question,
-    id: `q_${id()}`,
-    createdAt: new Date().toISOString(),
+    id: newId,
+    createdAt: now,
     status: question.status || 'open',
   };
+
   if (idx !== -1) {
     const existing = cases[idx];
     const questions = [...(existing.questions || []), newQ];
     const updated: CaseItem = {
       ...existing,
       questions,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     };
     save(cases.map((c, i) => i === idx ? updated : c));
-    window.dispatchEvent(new Event('hc_cases_updated'));
+    safeDispatchEvent(new Event('hc_cases_updated'));
   }
   return newQ;
 }
@@ -1120,7 +1234,12 @@ export function transitionCaseQuestionLifecycle(
   caseId: string,
   questionId: string,
   nextStatus: QuestionLifecycleStatus,
-  note?: string
+  options?: string | {
+    note?: string;
+    doctorAction?: string;
+    provenance?: OutcomeProvenance;
+    outcomeDate?: string;
+  }
 ): boolean {
   const cases = getCases();
   const idx = cases.findIndex(c => c.id === caseId);
@@ -1130,15 +1249,30 @@ export function transitionCaseQuestionLifecycle(
   let found = false;
   let targetQuestionText = '';
 
+  const opts = typeof options === 'string' ? { note: options } : (options || {});
+  const outcomeProvenance: OutcomeProvenance = opts.provenance || 'user_reported_clinician_statement';
+  const outcomeDate = opts.outcomeDate || now;
+
   const questions = (existing.questions || []).map(q => {
     if (q.id === questionId) {
       found = true;
       targetQuestionText = q.questionText;
+
+      const isDiscussed = nextStatus === 'discussed';
+      const isDeferred = nextStatus === 'deferred';
+      const isResolved = nextStatus === 'resolved' || nextStatus === 'addressed';
+
       return {
         ...q,
         status: nextStatus,
-        outcomeNote: note || q.outcomeNote,
-        resolvedAt: nextStatus === 'resolved' || nextStatus === 'addressed' ? now : q.resolvedAt,
+        outcomeNote: opts.note !== undefined ? opts.note : q.outcomeNote,
+        outcomeDate: (opts.note || isDiscussed || isDeferred || isResolved) ? outcomeDate : q.outcomeDate,
+        outcomeProvenance: outcomeProvenance,
+        doctorAction: opts.doctorAction || q.doctorAction,
+        discussedAt: isDiscussed ? (q.discussedAt || now) : q.discussedAt,
+        deferredAt: isDeferred ? (q.deferredAt || now) : q.deferredAt,
+        // Invariant: "discussed" does NOT set resolvedAt; only resolved sets resolvedAt!
+        resolvedAt: isResolved ? (q.resolvedAt || now) : (nextStatus === 'open' ? undefined : q.resolvedAt),
       };
     }
     return q;
@@ -1148,13 +1282,23 @@ export function transitionCaseQuestionLifecycle(
 
   const eventLabel = (nextStatus === 'resolved' || nextStatus === 'addressed')
     ? 'Physician Question Resolved'
+    : nextStatus === 'discussed'
+    ? 'Physician Question Discussed'
+    : nextStatus === 'deferred'
+    ? 'Physician Question Deferred'
     : `Question: ${nextStatus.toUpperCase()}`;
+
+  const provenanceSuffix = outcomeProvenance === 'user_reported_clinician_statement'
+    ? ' (Patient-reported clinician statement)'
+    : '';
 
   const eventUpdate: CaseUpdate = {
     id: id(),
     date: now,
     label: eventLabel,
-    note: note ? `"${targetQuestionText}": ${note}` : `"${targetQuestionText}" → ${nextStatus}`,
+    note: opts.note
+      ? `"${targetQuestionText}": ${opts.note}${provenanceSuffix}`
+      : `"${targetQuestionText}" → ${nextStatus}${provenanceSuffix}`,
   };
 
   const updated: CaseItem = {
@@ -1165,17 +1309,62 @@ export function transitionCaseQuestionLifecycle(
   };
 
   save(cases.map((c, i) => i === idx ? updated : c));
-  window.dispatchEvent(new Event('hc_cases_updated'));
+  safeDispatchEvent(new Event('hc_cases_updated'));
   return true;
+}
+
+export function recordCaseQuestionOutcome(
+  caseId: string,
+  questionId: string,
+  status: 'discussed' | 'deferred' | 'resolved' | 'addressed',
+  outcomeNote: string,
+  options?: {
+    doctorAction?: string;
+    provenance?: OutcomeProvenance;
+    outcomeDate?: string;
+  }
+): boolean {
+  return transitionCaseQuestionLifecycle(caseId, questionId, status, {
+    note: outcomeNote,
+    doctorAction: options?.doctorAction,
+    provenance: options?.provenance || 'user_reported_clinician_statement',
+    outcomeDate: options?.outcomeDate,
+  });
 }
 
 export function updateCaseQuestionOutcome(
   caseId: string,
   questionId: string,
-  status: 'addressed' | 'deferred',
-  outcomeNote: string
+  status: 'addressed' | 'deferred' | 'discussed' | 'resolved',
+  outcomeNote: string,
+  provenance: OutcomeProvenance = 'user_reported_clinician_statement'
 ): boolean {
-  return transitionCaseQuestionLifecycle(caseId, questionId, status, outcomeNote);
+  return recordCaseQuestionOutcome(caseId, questionId, status, outcomeNote, { provenance });
+}
+
+export function setQuestionsForAppointment(caseId: string, questionIds: string[]): boolean {
+  const cases = getCases();
+  const idx = cases.findIndex(c => c.id === caseId);
+  if (idx === -1) return false;
+  const existing = cases[idx];
+  const now = new Date().toISOString();
+
+  const questions = (existing.questions || []).map(q => {
+    if (questionIds.includes(q.id) && q.status === 'open') {
+      return { ...q, status: 'prepared' as const };
+    }
+    return q;
+  });
+
+  const updated: CaseItem = {
+    ...existing,
+    questions,
+    updatedAt: now,
+  };
+
+  save(cases.map((c, i) => i === idx ? updated : c));
+  safeDispatchEvent(new Event('hc_cases_updated'));
+  return true;
 }
 
 export function clearCaseEngineCache() {
@@ -1204,7 +1393,7 @@ if (typeof window !== 'undefined') {
       idbSet(key, JSON.stringify(current)).catch(() => {});
       setItemSync(key, JSON.stringify(current));
       cachedCases = current;
-      window.dispatchEvent(new Event('hc_cases_updated'));
+      safeDispatchEvent(new Event('hc_cases_updated'));
     }
   }) as EventListener);
 }
