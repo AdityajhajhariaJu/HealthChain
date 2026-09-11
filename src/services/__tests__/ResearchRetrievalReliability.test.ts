@@ -217,13 +217,13 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
       const literaturePromise = Promise.reject(new Error('Europe PMC unavailable'));
 
       const results = await Promise.allSettled([trialsPromise, literaturePromise]);
-      const trialsOk = results[0].status === 'fulfilled';
-      const papersOk = results[1].status === 'fulfilled';
+      const trialsRes = results[0];
+      const papersRes = results[1];
 
-      expect(trialsOk).toBe(true);
-      expect(papersOk).toBe(false);
+      expect(trialsRes.status).toBe('fulfilled');
+      expect(papersRes.status).toBe('rejected');
 
-      const recoveredTrials = trialsOk ? results[0].value : [];
+      const recoveredTrials = trialsRes.status === 'fulfilled' ? (trialsRes as PromiseFulfilledResult<typeof mockTrials>).value : [];
       expect(recoveredTrials).toHaveLength(1);
       expect(recoveredTrials[0].id).toBe('NCT100');
     });

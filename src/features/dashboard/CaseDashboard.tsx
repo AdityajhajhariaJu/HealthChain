@@ -65,6 +65,7 @@ import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { TodayCaseWorkspace } from '../../components/ui/TodayCaseWorkspace';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -227,7 +228,9 @@ export default function CaseDashboard() {
               </div>
             </div>
           </div>
-          
+          {/* Connected Case Workspace Continuity */}
+          <TodayCaseWorkspace />
+
           {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
           <VitalityStreakBanner completedHabits={completedHabits} />
 
