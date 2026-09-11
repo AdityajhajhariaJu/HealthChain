@@ -660,6 +660,10 @@ export default function ClinicalReportAnalyzer() {
                                   biomarker: displayData.testName || 'Lab Finding',
                                   value: typeof displayData.keyFindings === 'string' ? displayData.keyFindings.slice(0, 100) : '',
                                   reportDate: displayData.date,
+                                },
+                                onCorrectionSaved: (updatedText: string) => {
+                                  setResult((prev: any) => prev ? { ...prev, keyFindings: updatedText } : prev);
+                                  toast.success('Extraction Corrected', 'Updated extracted values saved non-destructively to case.');
                                 }
                               });
                             }
