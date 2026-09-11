@@ -137,10 +137,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid Payment Signature.' });
     }
 
-    // 2b. Fast-path Idempotent check: return success if payment was already verified and credited by webhook
+    // 2b. Fast-path Idempotent check: return success if payment was already verified and fulfilled
     const { data: existingPayment } = await supabase
       .from('payments')
-      .select('id, status, entitlement_expires_at, user_id')
+      .select('id, status, fulfillment_status, entitlement_expires_at, user_id')
       .eq('razorpay_payment_id', razorpay_payment_id)
       .maybeSingle();
 
@@ -148,7 +148,8 @@ export default async function handler(req, res) {
       if (existingPayment.user_id !== effectiveUserId) {
         return res.status(403).json({ error: 'Payment identity mismatch. This payment belongs to another account.' });
       }
-      if (existingPayment.status === 'paid' && existingPayment.entitlement_expires_at) {
+      const isFulfilled = existingPayment.fulfillment_status === 'fulfilled' || (existingPayment.status === 'paid' && existingPayment.entitlement_expires_at);
+      if (existingPayment.status === 'paid' && isFulfilled) {
         return res.status(200).json({
           success: true,
           already_processed: true,
@@ -156,6 +157,7 @@ export default async function handler(req, res) {
           expires_at: existingPayment.entitlement_expires_at
         });
       }
+      // If payment exists with pending/failed fulfillment, proceed to fulfill missing entitlements
     }
 
     // 3. Server-Side Amount Verification
@@ -214,51 +216,87 @@ export default async function handler(req, res) {
       const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
       baseDate.setDate(baseDate.getDate() + targetPlan.days);
       finalExpiry = baseDate.toISOString();
-      
-      const { error } = await supabase.rpc('activate_payment_entitlement', {
+
+      // Unified atomic subscription activation and quota allocation
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('activate_and_provision_subscription', {
         p_user_id: effectiveUserId,
         p_order_id: razorpay_order_id,
         p_payment_id: razorpay_payment_id,
         p_amount: verifiedAmount,
+        p_plan_id: resolvedPlanId,
         p_expires_at: finalExpiry,
       });
-      entitlementError = error;
 
-      if (!error) {
-        const { data: updatedProf } = await supabase
-          .from('profiles')
-          .select('pro_expires_at')
-          .eq('id', effectiveUserId)
-          .single();
-        if (updatedProf?.pro_expires_at) {
-          finalExpiry = updatedProf.pro_expires_at;
+      if (rpcError) {
+        // Fallback for legacy database environments
+        if (rpcError.code === '42883' || rpcError.message?.includes('does not exist')) {
+          const { error: legacyError } = await supabase.rpc('activate_payment_entitlement', {
+            p_user_id: effectiveUserId,
+            p_order_id: razorpay_order_id,
+            p_payment_id: razorpay_payment_id,
+            p_amount: verifiedAmount,
+            p_expires_at: finalExpiry,
+          });
+          if (legacyError) {
+            entitlementError = legacyError;
+          } else {
+            await supabase.rpc('provision_base_quota', {
+              p_user_id: effectiveUserId,
+              p_plan_id: resolvedPlanId,
+              p_expires_at: finalExpiry
+            });
+          }
+        } else {
+          entitlementError = rpcError;
+          try {
+            await supabase.from('payments').update({
+              fulfillment_status: 'failed',
+              fulfillment_error: rpcError.message || 'Subscription activation failed',
+            }).eq('razorpay_payment_id', razorpay_payment_id);
+          } catch {}
         }
-
-        await supabase.rpc('provision_base_quota', {
-          p_user_id: effectiveUserId,
-          p_plan_id: resolvedPlanId,
-          p_expires_at: finalExpiry
-        });
+      } else if (rpcResult?.expires_at) {
+        finalExpiry = rpcResult.expires_at;
       }
     } else if (targetPlan.type === 'topup') {
-      // Record payment safely (idempotent)
-      const { error: insertError } = await supabase.from('payments').insert({
-        user_id: effectiveUserId,
-        razorpay_order_id: razorpay_order_id,
-        razorpay_payment_id: razorpay_payment_id,
-        amount: verifiedAmount,
-        status: 'paid'
+      // Unified atomic top-up activation and quota allocation
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('activate_and_provision_topup', {
+        p_user_id: effectiveUserId,
+        p_order_id: razorpay_order_id,
+        p_payment_id: razorpay_payment_id,
+        p_amount: verifiedAmount,
+        p_feature: targetPlan.feature,
+        p_quantity: targetPlan.quantity,
       });
-      // 23505 is duplicate key, which means already processed
-      if (insertError && insertError.code !== '23505') {
-        entitlementError = insertError;
-      } else if (!insertError) {
-        // Only provision if we successfully inserted (prevent double spend)
-        await supabase.rpc('provision_topup', {
-          p_user_id: effectiveUserId,
-          p_feature_name: targetPlan.feature,
-          p_amount: targetPlan.quantity
-        });
+
+      if (rpcError) {
+        if (rpcError.code === '42883' || rpcError.message?.includes('does not exist')) {
+          // Fallback for environments where atomic topup RPC is not deployed yet
+          const { error: insertError } = await supabase.from('payments').insert({
+            user_id: effectiveUserId,
+            razorpay_order_id: razorpay_order_id,
+            razorpay_payment_id: razorpay_payment_id,
+            amount: verifiedAmount,
+            status: 'paid'
+          });
+          if (insertError && insertError.code !== '23505') {
+            entitlementError = insertError;
+          } else if (!insertError) {
+            await supabase.rpc('provision_topup', {
+              p_user_id: effectiveUserId,
+              p_feature_name: targetPlan.feature,
+              p_amount: targetPlan.quantity
+            });
+          }
+        } else {
+          entitlementError = rpcError;
+          try {
+            await supabase.from('payments').update({
+              fulfillment_status: 'failed',
+              fulfillment_error: rpcError.message || 'Top-up provisioning failed',
+            }).eq('razorpay_payment_id', razorpay_payment_id);
+          } catch {}
+        }
       }
     }
 

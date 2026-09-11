@@ -16,9 +16,6 @@ async function getRawBody(req) {
   });
 }
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -29,6 +26,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
     if (!webhookSecret) {
       console.error('RAZORPAY_WEBHOOK_SECRET is missing');
@@ -92,14 +92,15 @@ export default async function handler(req, res) {
       
       const targetPlan = ALLOWED_PLANS[resolvedPlanId] || ALLOWED_PLANS.pro_30_days;
 
-      // Fast-path Idempotent check: return ok if payment was already processed
+      // Fast-path Idempotent check: return ok if payment was already processed and fulfilled
       const { data: existingPayment } = await supabase
         .from('payments')
-        .select('id, status, entitlement_expires_at')
+        .select('id, status, fulfillment_status, entitlement_expires_at')
         .eq('razorpay_payment_id', paymentId)
         .maybeSingle();
 
-      if (existingPayment?.status === 'paid' && existingPayment?.entitlement_expires_at) {
+      const isFulfilled = existingPayment?.fulfillment_status === 'fulfilled' || (existingPayment?.status === 'paid' && existingPayment?.entitlement_expires_at);
+      if (existingPayment?.status === 'paid' && isFulfilled) {
         return res.status(200).json({ status: 'ok', message: 'Already processed' });
       }
 
@@ -110,47 +111,96 @@ export default async function handler(req, res) {
         baseDate.setDate(baseDate.getDate() + targetPlan.days);
         const finalExpiry = baseDate.toISOString();
 
-        const { error } = await supabase.rpc('activate_payment_entitlement', {
+        // Unified atomic subscription activation and quota allocation
+        const { data: rpcResult, error } = await supabase.rpc('activate_and_provision_subscription', {
           p_user_id: userId,
           p_order_id: orderId,
           p_payment_id: paymentId,
           p_amount: amount,
+          p_plan_id: resolvedPlanId,
           p_expires_at: finalExpiry,
         });
 
         if (!error) {
-          await supabase.rpc('provision_base_quota', {
+          return res.status(200).json({ status: 'ok', message: rpcResult?.already_processed ? 'Already processed' : 'Activated' });
+        } else if (error.code === '42883' || error.message?.includes('does not exist')) {
+          // Fallback for legacy database environments
+          const { error: legacyError } = await supabase.rpc('activate_payment_entitlement', {
             p_user_id: userId,
-            p_plan_id: resolvedPlanId,
-            p_expires_at: finalExpiry
+            p_order_id: orderId,
+            p_payment_id: paymentId,
+            p_amount: amount,
+            p_expires_at: finalExpiry,
           });
+          if (!legacyError) {
+            await supabase.rpc('provision_base_quota', {
+              p_user_id: userId,
+              p_plan_id: resolvedPlanId,
+              p_expires_at: finalExpiry
+            });
+            return res.status(200).json({ status: 'ok', message: 'Activated' });
+          } else if (legacyError.code === '23505') {
+            return res.status(200).json({ status: 'ok', message: 'Already processed' });
+          } else {
+            console.error('Webhook entitlement error:', legacyError);
+            return res.status(500).json({ error: 'Failed to activate entitlement' });
+          }
         } else if (error.code === '23505') {
-          // Idempotent: already processed
           return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
           console.error('Webhook entitlement error:', error);
+          try {
+            await supabase.from('payments').update({
+              fulfillment_status: 'failed',
+              fulfillment_error: error.message || 'Webhook subscription activation failed',
+            }).eq('razorpay_payment_id', paymentId);
+          } catch {}
           return res.status(500).json({ error: 'Failed to activate entitlement' });
         }
       } else if (targetPlan.type === 'topup') {
-        const { error: insertError } = await supabase.from('payments').insert({
-          user_id: userId,
-          razorpay_order_id: orderId,
-          razorpay_payment_id: paymentId,
-          amount: amount,
-          status: 'paid'
+        // Unified atomic top-up activation and quota allocation
+        const { data: rpcResult, error: topupError } = await supabase.rpc('activate_and_provision_topup', {
+          p_user_id: userId,
+          p_order_id: orderId,
+          p_payment_id: paymentId,
+          p_amount: amount,
+          p_feature: targetPlan.feature,
+          p_quantity: targetPlan.quantity,
         });
-        
-        if (!insertError) {
-          await supabase.rpc('provision_topup', {
-            p_user_id: userId,
-            p_feature_name: targetPlan.feature,
-            p_amount: targetPlan.quantity
+
+        if (!topupError) {
+          return res.status(200).json({ status: 'ok', message: rpcResult?.already_processed ? 'Already processed' : 'Topup processed' });
+        } else if (topupError.code === '42883' || topupError.message?.includes('does not exist')) {
+          const { error: insertError } = await supabase.from('payments').insert({
+            user_id: userId,
+            razorpay_order_id: orderId,
+            razorpay_payment_id: paymentId,
+            amount: amount,
+            status: 'paid'
           });
-        } else if (insertError.code === '23505') {
-          // Idempotent: already processed
+          if (!insertError) {
+            await supabase.rpc('provision_topup', {
+              p_user_id: userId,
+              p_feature_name: targetPlan.feature,
+              p_amount: targetPlan.quantity
+            });
+            return res.status(200).json({ status: 'ok', message: 'Topup processed' });
+          } else if (insertError.code === '23505') {
+            return res.status(200).json({ status: 'ok', message: 'Already processed' });
+          } else {
+            console.error('Webhook topup error:', insertError);
+            return res.status(500).json({ error: 'Failed to record topup' });
+          }
+        } else if (topupError.code === '23505') {
           return res.status(200).json({ status: 'ok', message: 'Already processed' });
         } else {
-          console.error('Webhook topup error:', insertError);
+          console.error('Webhook topup error:', topupError);
+          try {
+            await supabase.from('payments').update({
+              fulfillment_status: 'failed',
+              fulfillment_error: topupError.message || 'Webhook top-up activation failed',
+            }).eq('razorpay_payment_id', paymentId);
+          } catch {}
           return res.status(500).json({ error: 'Failed to record topup' });
         }
       }
