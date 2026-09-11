@@ -666,15 +666,15 @@ export default function ClinicalTrialsMatcher() {
           fetchLiveTrials(searchTerms),
           fetchRecentLiterature(searchTerms)
         ]);
-        const trialsOk = results[0].status === 'fulfilled';
-        const papersOk = results[1].status === 'fulfilled';
-        newTrials = trialsOk ? results[0].value : [];
-        newPapers = papersOk ? results[1].value : [];
+        const trialsRes = results[0];
+        const papersRes = results[1];
+        newTrials = trialsRes.status === 'fulfilled' ? trialsRes.value : [];
+        newPapers = papersRes.status === 'fulfilled' ? papersRes.value : [];
         setSourceHealth({
-          trials: trialsOk ? 'success' : 'failed',
-          literature: papersOk ? 'success' : 'failed',
+          trials: trialsRes.status === 'fulfilled' ? 'success' : 'failed',
+          literature: papersRes.status === 'fulfilled' ? 'success' : 'failed',
         });
-        if (!trialsOk || !papersOk) {
+        if (trialsRes.status !== 'fulfilled' || papersRes.status !== 'fulfilled') {
           setRetrievalError('One or more research sources could not be reached. These results may be incomplete.');
         }
       } else if (sourceToReload === 'trials') {
@@ -759,10 +759,10 @@ export default function ClinicalTrialsMatcher() {
             type="button"
             className="btn btn-outline btn-sm"
             onClick={() => loadResearch('trials')}
-            disabled={sourceHealth.trials === 'loading'}
+            disabled={loading}
             style={{ borderColor: '#F59E0B', color: '#B45309', whiteSpace: 'nowrap' }}
           >
-            {sourceHealth.trials === 'loading' ? 'Retrying...' : 'Retry ClinicalTrials.gov'}
+            {loading ? 'Retrying...' : 'Retry ClinicalTrials.gov'}
           </button>
         </div>
       )}
@@ -776,10 +776,10 @@ export default function ClinicalTrialsMatcher() {
             type="button"
             className="btn btn-outline btn-sm"
             onClick={() => loadResearch('literature')}
-            disabled={sourceHealth.literature === 'loading'}
+            disabled={loading}
             style={{ borderColor: '#F59E0B', color: '#B45309', whiteSpace: 'nowrap' }}
           >
-            {sourceHealth.literature === 'loading' ? 'Retrying...' : 'Retry Europe PMC'}
+            {loading ? 'Retrying...' : 'Retry Europe PMC'}
           </button>
         </div>
       )}
@@ -793,9 +793,10 @@ export default function ClinicalTrialsMatcher() {
             type="button"
             className="btn btn-outline btn-sm"
             onClick={() => loadResearch('all')}
+            disabled={loading}
             style={{ borderColor: '#EF4444', color: '#B91C1C', whiteSpace: 'nowrap' }}
           >
-            Retry Both Sources
+            {loading ? 'Retrying...' : 'Retry Both Sources'}
           </button>
         </div>
       )}
