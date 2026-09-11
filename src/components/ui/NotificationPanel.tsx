@@ -194,19 +194,23 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       loadData();
     };
     const handleWaterUpdated = () => {
-      setWaterGlasses(getWaterGlassesForDate(todayStr));
+      setWaterGlasses(getWaterGlassesForDate(todayStr, getActiveProfileId()));
     };
 
     window.addEventListener('hc_reminder_updated', handleReminderUpdated);
     window.addEventListener('hc_daily_checkin_completed', handleCheckinCompleted);
     window.addEventListener('hc_notifications_updated', handleNotificationsUpdated);
     window.addEventListener('hc_water_updated', handleWaterUpdated);
+    window.addEventListener('hc_profile_updated', loadData);
+    window.addEventListener('hc_cases_updated', loadData);
 
     return () => {
       window.removeEventListener('hc_reminder_updated', handleReminderUpdated);
       window.removeEventListener('hc_daily_checkin_completed', handleCheckinCompleted);
       window.removeEventListener('hc_notifications_updated', handleNotificationsUpdated);
       window.removeEventListener('hc_water_updated', handleWaterUpdated);
+      window.removeEventListener('hc_profile_updated', loadData);
+      window.removeEventListener('hc_cases_updated', loadData);
     };
   }, [todayStr]);
 
