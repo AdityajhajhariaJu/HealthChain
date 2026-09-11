@@ -143,9 +143,109 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
       if (tombstoned) {
         return { error: null };
       }
+
+      // Also check remote case_tombstones
+      try {
+        const { data: remoteTombstone } = await supabase
+          .from('case_tombstones')
+          .select('id')
+          .eq('user_id', entry.userId)
+          .eq('id', caseId)
+          .maybeSingle();
+
+        if (remoteTombstone) {
+          await recordTombstone({
+            id: caseId,
+            entityType: 'case',
+            deletedAt: new Date().toISOString(),
+            userId: entry.userId,
+            profileId,
+          });
+          return { error: null };
+        }
+      } catch {}
     }
 
-    // 2. Concurrency-safe read & merge before write
+    if (expectedScope && getCurrentScope() !== expectedScope) {
+      return { error: new Error('Scope switched during case sync operation') };
+    }
+
+    // 2. Try atomic revision-conditional sync via RPC if available
+    const expectedRevision = entry.payload?.expected_revision !== undefined
+      ? entry.payload.expected_revision
+      : (entry.payload?.data?.revision !== undefined ? entry.payload.data.revision - 1 : (entry.payload?.revision !== undefined ? entry.payload.revision - 1 : 0));
+
+    if (supabase.rpc && caseId) {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('sync_case_with_revision_check', {
+        p_user_id: entry.userId,
+        p_case_id: caseId,
+        p_expected_revision: expectedRevision,
+        p_payload: entry.payload,
+      });
+
+      if (!rpcError && rpcData) {
+        if (rpcData.success) {
+          if (entry.payload?.data) {
+            entry.payload.data.revision = rpcData.new_revision;
+          }
+          entry.payload.revision = rpcData.new_revision;
+          return { error: null };
+        }
+
+        if (rpcData.conflict) {
+          if (rpcData.deleted) {
+            await recordTombstone({
+              id: caseId,
+              entityType: 'case',
+              deletedAt: rpcData.deleted_at || new Date().toISOString(),
+              userId: entry.userId,
+              profileId,
+            });
+            return { error: null };
+          }
+
+          // Revision conflict: 3-way merge
+          const remoteCase = (rpcData.current_data?.data || rpcData.current_data) as CaseItem;
+          const localCase = (entry.payload?.data || entry.payload) as CaseItem;
+
+          if (remoteCase && localCase) {
+            const mergeResult = mergeCaseItems(localCase, remoteCase);
+            const nextRevision = Math.max(localCase.revision || 1, rpcData.current_revision || 1) + 1;
+            const mergedCase: CaseItem = {
+              ...mergeResult.merged,
+              revision: nextRevision,
+              updatedAt: new Date().toISOString(),
+            };
+
+            entry.payload.data = mergedCase;
+            entry.payload.title = mergedCase.title;
+            entry.payload.revision = nextRevision;
+            entry.payload.expected_revision = rpcData.current_revision;
+            entry.payload.updated_at = mergedCase.updatedAt;
+
+            if (mergeResult.conflicts.length > 0 && typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('hc_sync_conflict', {
+                detail: { caseId, conflicts: mergeResult.conflicts }
+              }));
+            }
+
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('hc_case_merged', {
+                detail: { case: mergedCase }
+              }));
+            }
+
+            return { error: new Error(`Revision conflict on case ${caseId}: server is at revision ${rpcData.current_revision}; 3-way merged and scheduled retry`) };
+          }
+        }
+      }
+
+      if (rpcError && rpcError.code !== '42883' && !rpcError.message?.includes('does not exist') && !rpcError.message?.includes('Unknown RPC')) {
+        return { error: rpcError };
+      }
+    }
+
+    // 3. Fallback when RPC is unavailable: Concurrency-safe read & merge before write
     if (caseId) {
       const { data: remoteRow, error: readError } = await supabase
         .from('cases')
@@ -236,17 +336,39 @@ async function send(entry: OutboxEntry, expectedScope?: string) {
       profileId,
     });
 
-    // 2. Push durable tombstone to Supabase case_tombstones
-    try {
-      await supabase.from('case_tombstones').upsert({
-        id: caseId,
-        user_id: entry.userId,
-        profile_id: profileId,
-        deleted_at: deletedAt,
+    // 2. Try atomic server-side delete with tombstone via RPC if available
+    if (supabase.rpc) {
+      const { data: rpcSuccess, error: rpcError } = await supabase.rpc('delete_case_with_tombstone', {
+        p_user_id: entry.userId,
+        p_case_id: caseId,
+        p_profile_id: profileId,
+        p_deleted_at: deletedAt,
       });
-    } catch {}
 
-    // 3. Delete from cases
+      if (!rpcError && rpcSuccess) {
+        return { error: null };
+      }
+
+      if (rpcError && rpcError.code !== '42883' && !rpcError.message?.includes('does not exist') && !rpcError.message?.includes('Unknown RPC')) {
+        return { error: rpcError };
+      }
+    }
+
+    // 3. Fallback: Push durable tombstone to Supabase case_tombstones first
+    const { error: tombError } = await supabase.from('case_tombstones').upsert({
+      id: caseId,
+      user_id: entry.userId,
+      profile_id: profileId,
+      deleted_at: deletedAt,
+    });
+
+    if (tombError) {
+      // CRITICAL: NEVER delete from cases if durable tombstone failed!
+      // Abort deletion immediately to avoid resurrection races.
+      return { error: tombError };
+    }
+
+    // 4. Delete from cases only after durable tombstone is successfully written
     return supabase.from('cases').delete().eq('id', caseId).eq('user_id', entry.userId);
   }
 

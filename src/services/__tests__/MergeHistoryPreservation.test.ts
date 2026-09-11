@@ -1,23 +1,20 @@
-import { describe, it, expect } from 'vitest';
 import { mergeCaseItems } from '../CaseMergeEngine';
-import type { CaseItem } from '../CaseEngine';
-import type { MedicalRecord } from '../MedicalRecordEngine';
-import type { ReviewSnapshot } from '../ClinicalReasoningEngine';
-import type { ClinicalQuestion, TimelineEvent, CaseAction, AppointmentBrief } from '../CaseEngine';
+import type { CaseItem, MedicalRecord, ReviewSnapshot, ClinicalQuestion, CaseAction, AppointmentBrief, CaseUpdate } from '../CaseEngine';
 
 describe('P1 Finding 3: Canonical Merge Non-Destructive History Preservation', () => {
   const baseCase: CaseItem = {
     id: 'case_history_test_1',
     title: 'Comprehensive Chronic History Case',
+    status: 'active',
+    currentStage: 'review',
+    intakeData: {},
+    currentSummary: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-09-11T10:00:00Z',
     revision: 10,
-    chiefComplaint: 'Multi-year complex presentation',
-    symptoms: [],
-    timeline: [],
     events: [],
     questions: [],
-    records: [],
+    medicalRecords: [],
     reviews: [],
     actions: [],
   };
@@ -59,6 +56,7 @@ describe('P1 Finding 3: Canonical Merge Non-Destructive History Preservation', (
       questionText: `Question ${i + 1} from endocrinology?`,
       raisedBySpecialty: 'Endocrinology',
       status: 'open',
+      createdAt: '2026-01-01T00:00:00Z',
       supportingEvidenceIds: [],
     }));
 
@@ -67,6 +65,7 @@ describe('P1 Finding 3: Canonical Merge Non-Destructive History Preservation', (
       questionText: `Question ${i + 1} from rheumatology?`,
       raisedBySpecialty: 'Rheumatology',
       status: 'open',
+      createdAt: '2026-01-01T00:00:00Z',
       supportingEvidenceIds: [],
     }));
 
@@ -80,14 +79,14 @@ describe('P1 Finding 3: Canonical Merge Non-Destructive History Preservation', (
   });
 
   it('preserves all 105 unique timeline events without silent 100-item truncation', () => {
-    const localEvents: TimelineEvent[] = Array.from({ length: 60 }, (_, i) => ({
+    const localEvents: CaseUpdate[] = Array.from({ length: 60 }, (_, i) => ({
       id: `ev_local_${i + 1}`,
       label: `Event ${i + 1}`,
       date: `2026-01-${String((i % 28) + 1).padStart(2, '0')}T10:00:00Z`,
       note: `Local event note ${i + 1}`,
     }));
 
-    const remoteEvents: TimelineEvent[] = Array.from({ length: 45 }, (_, i) => ({
+    const remoteEvents: CaseUpdate[] = Array.from({ length: 45 }, (_, i) => ({
       id: `ev_remote_${i + 1}`,
       label: `Remote Event ${i + 1}`,
       date: `2026-02-${String((i % 28) + 1).padStart(2, '0')}T10:00:00Z`,
@@ -133,15 +132,15 @@ describe('P1 Finding 3: Canonical Merge Non-Destructive History Preservation', (
     const localActions: CaseAction[] = Array.from({ length: 30 }, (_, i) => ({
       id: `act_local_${i + 1}`,
       label: `Action ${i + 1}`,
-      completed: false,
-      priority: 'routine' as const,
+      status: 'pending' as const,
+      order: i,
     }));
 
     const remoteActions: CaseAction[] = Array.from({ length: 25 }, (_, i) => ({
       id: `act_remote_${i + 1}`,
       label: `Remote Action ${i + 1}`,
-      completed: true,
-      priority: 'high' as const,
+      status: 'completed' as const,
+      order: i,
     }));
 
     const localCase: CaseItem = { ...baseCase, actions: localActions };
