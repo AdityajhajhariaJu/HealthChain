@@ -244,10 +244,16 @@ export const MonthlyHealthHeatmap: React.FC = () => {
               textColor = '#991B1B';
             }
 
+            const statusDescription = d.status === 'none'
+              ? 'No symptoms logged'
+              : `${d.status} symptoms: ${d.symptom}`;
+
             return (
               <button
                 key={d.dateStr}
                 type="button"
+                aria-label={`${d.dateStr}, Day ${d.dayNumber}: ${statusDescription}${isSelected ? ' (Selected)' : ''}`}
+                aria-pressed={isSelected}
                 onClick={() => {
                   triggerHapticSelection();
                   setSelectedDate(isSelected ? null : d.dateStr);
@@ -279,10 +285,34 @@ export const MonthlyHealthHeatmap: React.FC = () => {
                     background: dotColor,
                     marginTop: '2px',
                   }}
+                  aria-hidden="true"
                 />
               </button>
             );
           })}
+        </div>
+
+        {/* Screen Reader Table Alternative */}
+        <div className="sr-only">
+          <h4>{monthNames[currentMonth]} {currentYear} Health Status Alternative</h4>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Status</th>
+                <th scope="col">Symptom</th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthDays.map((d) => (
+                <tr key={d.dateStr}>
+                  <td>{d.dateStr}</td>
+                  <td>{d.status}</td>
+                  <td>{d.symptom}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {/* Legend Ribbon */}

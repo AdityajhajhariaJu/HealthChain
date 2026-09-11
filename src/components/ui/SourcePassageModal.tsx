@@ -17,6 +17,7 @@ import {
 import { getCase, updateExtractedFindingCorrection } from '../../services/CaseEngine';
 import { loadOriginalCaseFile, reattachOriginalCaseFile, FileStorageError } from '../../services/caseRecordFiles';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
+import FocusTrap from './FocusTrap';
 
 export interface SourcePassageModalProps {
   isOpen: boolean;
@@ -257,7 +258,8 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
             overflow: 'hidden',
           }}
         >
-          {/* Refractive Translucent Header */}
+          <FocusTrap isActive={isOpen} onEscape={onClose} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            {/* Refractive Translucent Header */}
           <header
             style={{
               background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.98) 0%, rgba(224, 242, 254, 0.85) 100%)',
@@ -776,6 +778,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
               </span>
             </div>
           </div>
+          </FocusTrap>
         </motion.div>
       </div>
     </AnimatePresence>,

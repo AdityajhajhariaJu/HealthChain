@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { announceToScreenReader } from '../../services/a11y';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -37,6 +38,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const addToast = useCallback((title: string, message?: string, type: ToastType = 'info', actionLabel?: string, onAction?: () => void, duration = 4000) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev.slice(-3), { id, title, message, type, actionLabel, onAction }]);
+
+    // Screen reader announcement for saving and failures
+    const priority = type === 'error' ? 'assertive' : 'polite';
+    const textToAnnounce = message ? `${title}: ${message}` : title;
+    announceToScreenReader(textToAnnounce, priority);
 
     setTimeout(() => {
       removeToast(id);
@@ -85,6 +91,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toasts.map((t) => (
             <motion.div
               key={t.id}
+              role={t.type === 'error' ? 'alert' : 'status'}
+              aria-live={t.type === 'error' ? 'assertive' : 'polite'}
+              aria-atomic="true"
               initial={{ opacity: 0, x: 50, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}

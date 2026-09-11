@@ -14,6 +14,7 @@ import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '.
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../ui/ToastProvider';
+import FocusTrap from './FocusTrap';
 import { 
   isDailyReminderEnabled, 
   getDailyReminderTime, 
@@ -398,7 +399,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          <FocusTrap isActive={isOpen} onEscape={onClose} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            {/* Header */}
           <div
             style={{
               padding: '18px 22px 14px',
@@ -1413,6 +1415,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
               Close
             </button>
           </div>
+          </FocusTrap>
         </motion.div>
       </div>
     </AnimatePresence>

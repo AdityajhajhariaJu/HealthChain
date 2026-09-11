@@ -988,9 +988,18 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
             return (
               <motion.div
                 key={`day-${dayNum}`}
+                role="button"
+                tabIndex={0}
+                aria-label={`Day ${dayNum}, ${monthName} ${year}: ${entry.status || 'recorded'} digestion, ${entry.loggedMeals?.length || 0} meals logged${isToday ? ' (Today)' : ''}`}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleSelectDay(dayNum)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelectDay(dayNum);
+                  }
+                }}
                 style={{
                   height: isMobile ? '76px' : '100px',
                   borderRadius: '14px',
@@ -1170,6 +1179,38 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Screen Reader Table Alternative */}
+        <div className="sr-only">
+          <h4>{monthName} {year} Digestion & Bloating Calendar Alternative</h4>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Day</th>
+                <th scope="col">Status</th>
+                <th scope="col">Stomach Comfort</th>
+                <th scope="col">Bloating Score</th>
+                <th scope="col">Meals Logged</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const dayNum = i + 1;
+                const entry = monthEntries[dayNum];
+                if (!entry) return null;
+                return (
+                  <tr key={`sr-day-${dayNum}`}>
+                    <td>Day {dayNum}</td>
+                    <td>{entry.status}</td>
+                    <td>{entry.stomachComfort}</td>
+                    <td>{entry.bloatingScore}/10</td>
+                    <td>{entry.loggedMeals?.length || 0}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* Legend bar */}

@@ -135,7 +135,14 @@ export default function ActionPlan({ analysis }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
-          <div style={{ width: '80px', height: '80px', position: 'relative' }}>
+          <div
+            role="img"
+            aria-label={`Checklist progress chart: ${completedCount} of ${tasks.length} tasks completed (${progress}%)`}
+            style={{ width: '80px', height: '80px', position: 'relative' }}
+          >
+            <div className="sr-only">
+              Discussion checklist progress: {completedCount} of {tasks.length} items completed ({progress}%).
+            </div>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
