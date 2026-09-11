@@ -55,10 +55,14 @@ export function mergeCaseItems(local: CaseItem, remote: CaseItem): MergeResult {
   const mergedQuestions = mergeQuestions(local.questions || [], remote.questions || [], local, remote, conflicts, now);
 
   // 3. Medical Records & Passages Merge
-  const mergedRecords = mergeMedicalRecords(local.medicalRecords || [], remote.medicalRecords || []);
+  const localRecords = local.medicalRecords || (local as any).records || [];
+  const remoteRecords = remote.medicalRecords || (remote as any).records || [];
+  const mergedRecords = mergeMedicalRecords(localRecords, remoteRecords);
 
   // 4. Appointment Briefs Merge
-  const mergedAppointmentBriefs = mergeAppointmentBriefs(local.appointmentBriefs, remote.appointmentBriefs);
+  const localBriefs = local.appointmentBriefs || (local as any).briefs;
+  const remoteBriefs = remote.appointmentBriefs || (remote as any).briefs;
+  const mergedAppointmentBriefs = mergeAppointmentBriefs(localBriefs, remoteBriefs);
 
   // 5. Reviews Merge
   const mergedReviews = mergeReviews(local.reviews || [], remote.reviews || []);
@@ -174,8 +178,7 @@ function mergeEvents(
 
   // Sort descending by date
   return Array.from(map.values())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 100);
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 function mergeQuestions(
@@ -237,7 +240,7 @@ function mergeQuestions(
     }
   }
 
-  return Array.from(map.values()).slice(0, 100);
+  return Array.from(map.values());
 }
 
 function mergeMedicalRecords(local: MedicalRecord[], remote: MedicalRecord[]): MedicalRecord[] {
@@ -284,7 +287,7 @@ function mergeMedicalRecords(local: MedicalRecord[], remote: MedicalRecord[]): M
     }
   }
 
-  return Array.from(map.values()).slice(0, 50);
+  return Array.from(map.values());
 }
 
 function mergeAppointmentBriefs(
@@ -315,7 +318,7 @@ function mergeAppointmentBriefs(
   );
 
   const current = sortedHistory[0] || local.current || remote.current;
-  const history = sortedHistory.slice(1, 20);
+  const history = sortedHistory.slice(1);
 
   return { current, history };
 }
@@ -326,8 +329,7 @@ function mergeReviews(local: ReviewSnapshot[], remote: ReviewSnapshot[]): Review
   for (const rev of remote) if (rev?.id && !map.has(rev.id)) map.set(rev.id, rev);
 
   return Array.from(map.values())
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 50);
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 function mergeActions(local: CaseAction[], remote: CaseAction[]): CaseAction[] {
@@ -335,5 +337,5 @@ function mergeActions(local: CaseAction[], remote: CaseAction[]): CaseAction[] {
   for (const a of local) if (a?.id) map.set(a.id, a);
   for (const a of remote) if (a?.id && !map.has(a.id)) map.set(a.id, a);
 
-  return Array.from(map.values()).slice(0, 50);
+  return Array.from(map.values());
 }
