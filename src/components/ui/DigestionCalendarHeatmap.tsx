@@ -1281,6 +1281,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
 
                 <button
                   type="button"
+                  aria-label="Close details"
                   onClick={() => setIsDetailModalOpen(false)}
                   style={{
                     width: '32px',
