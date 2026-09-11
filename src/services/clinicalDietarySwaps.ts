@@ -181,3 +181,14 @@ export function getClinicalDietarySwap(foodName: string): DietarySwap | null {
 
   return null;
 }
+
+export function getAllClinicalDietarySwaps(): DietarySwap[] {
+  return Object.values(DIETARY_SWAPS_DATABASE);
+}
+
+/**
+ * Retrieves swaps filtered by category.
+ */
+export function getClinicalDietarySwapsByCategory(category: DietarySwap['category']): DietarySwap[] {
+  return Object.values(DIETARY_SWAPS_DATABASE).filter((s) => s.category === category);
+}

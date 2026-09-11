@@ -166,7 +166,7 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
   }
 
   if (Array.isArray(item.events)) {
-    item.events.filter(ev => /^(User clarification|User observation|Evidence update|Observation|Measurement|Question|Appointment outcome|Ava update|Case update)$/i.test(ev.label || '')).slice(0, 5).forEach(ev => {
+    item.events.filter(ev => /^(User clarification|User observation|Patient observation|Evidence update|Observation|Measurement|Question|Appointment outcome|Ava update|Case update|Personal update)/i.test(ev.label || '')).slice(0, 5).forEach(ev => {
       if (ev.note) {
         answers.push({
           topic: ev.label || 'Case Update',

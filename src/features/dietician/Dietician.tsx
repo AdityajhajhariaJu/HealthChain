@@ -60,6 +60,13 @@ import {
   Activity,
   Brain,
   MessageCircle,
+  Edit2,
+  Pause,
+  Play,
+  StopCircle,
+  Archive,
+  AlertCircle,
+  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -85,6 +92,30 @@ import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarH
 import { EliminationProtocolSuite } from '../../components/ui/EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
+import {
+  FullMealPlan,
+  MealPlanItem,
+  PlanLifecycleStatus,
+  PlanStopReason,
+  PLAN_STOP_REASON_LABELS,
+  PORTION_ESTIMATE_DISCLAIMER,
+  NON_CAUSAL_TIMING_DISCLAIMER,
+  CLINICAL_SAFETY_GUARDRAIL,
+  normalizeFullMealPlan,
+  updateMealServing,
+  editMealContent,
+  applyMealClinicalSwap,
+  transitionPlanStatus,
+  archiveCurrentPlan,
+  generateDietObservationsSummary,
+  exportDietObservationsToCase,
+} from '../../services/dietPlanLifecycle';
+import {
+  getAllClinicalDietarySwaps,
+  getClinicalDietarySwap,
+  DietarySwap,
+} from '../../services/clinicalDietarySwaps';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 
 // --- Constants & Helpers ---
 export const GOALS = ['Lose weight', 'Maintain', 'Lean mass preservation'];
@@ -256,10 +287,39 @@ export default function Dietician() {
       setActiveTabState(resolved);
     }
   }, [searchParams, location.state]);
+  const caseIdParam = searchParams.get('caseId') || (location.state as any)?.caseId;
+  const activeCaseScope = useMemo(() => getUnifiedCaseScope(caseIdParam), [caseIdParam]);
+
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});
-  const [mealPlan, setMealPlan] = useState<any>(null);
+  const [mealPlan, setMealPlan] = useState<FullMealPlan | null>(null);
+  const [archivedPlans, setArchivedPlans] = useState<FullMealPlan[]>([]);
+  const [editingMeal, setEditingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(null);
+  const [editMealForm, setEditMealForm] = useState<{
+    name: string;
+    portion: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    description: string;
+  }>({
+    name: '',
+    portion: '1 serving',
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    description: '',
+  });
+  const [swappingMeal, setSwappingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(null);
+  const [customSwapName, setCustomSwapName] = useState<string>('');
+  const [customSwapRationale, setCustomSwapRationale] = useState<string>('');
+  const [showStopPlanModal, setShowStopPlanModal] = useState<boolean>(false);
+  const [selectedStopReason, setSelectedStopReason] = useState<PlanStopReason>('digestive_discomfort');
+  const [stopReasonDetails, setStopReasonDetails] = useState<string>('');
+  const [showArchivedPlansModal, setShowArchivedPlansModal] = useState<boolean>(false);
   const [guardrails, setGuardrails] = useState<any[]>([]);
   const [isGeneratingGuardrails, setIsGeneratingGuardrails] = useState(false);
 
@@ -329,7 +389,10 @@ export default function Dietician() {
           if (p) setProfile({ ...p, ...calculateTargets(p) });
           if (fl) setFoodLogs(fl);
           if (h) setHydration(h);
-          if (mp) setMealPlan(mp);
+          if (mp) setMealPlan(normalizeFullMealPlan(mp, { caseId: activeCaseScope.caseId || undefined }));
+          if (coreProfile?.dietArchivedPlans && Array.isArray(coreProfile.dietArchivedPlans)) {
+            setArchivedPlans(coreProfile.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p)));
+          }
           if (a) setAdvice(a);
           if (gl) setGroceryList(gl);
           return;
@@ -386,7 +449,10 @@ export default function Dietician() {
           try { setHydration(JSON.parse(savedHydration)); } catch (e) {}
         }
         if (savedPlan) {
-          try { setMealPlan(JSON.parse(savedPlan)); } catch (e) {}
+          try { setMealPlan(normalizeFullMealPlan(JSON.parse(savedPlan), { caseId: activeCaseScope.caseId || undefined })); } catch (e) {}
+        }
+        if (unified?.dietArchivedPlans && Array.isArray(unified.dietArchivedPlans)) {
+          setArchivedPlans(unified.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p)));
         }
         if (savedAdvice) setAdvice(savedAdvice);
         if (savedGrocery) {
@@ -400,7 +466,10 @@ export default function Dietician() {
         if (snapshot.profile) setProfile({ ...snapshot.profile, ...calculateTargets(snapshot.profile) });
         if (snapshot.foodLogs) setFoodLogs(snapshot.foodLogs);
         if (snapshot.hydration) setHydration(snapshot.hydration);
-        if (snapshot.mealPlan) setMealPlan(snapshot.mealPlan);
+        if (snapshot.mealPlan) setMealPlan(normalizeFullMealPlan(snapshot.mealPlan, { caseId: activeCaseScope.caseId || undefined }));
+        if (snapshot.archivedPlans && Array.isArray(snapshot.archivedPlans)) {
+          setArchivedPlans(snapshot.archivedPlans.map((p: any) => normalizeFullMealPlan(p)));
+        }
         if (snapshot.advice) setAdvice(snapshot.advice);
         if (snapshot.groceryList) setGroceryList(snapshot.groceryList);
       } catch (e) {
@@ -413,23 +482,24 @@ export default function Dietician() {
       cancelled = true; 
       window.removeEventListener('hc_profile_updated', load);
     };
-  }, []);
+  }, [activeCaseScope.caseId]);
 
   // Save state to local storage when it changes
   useEffect(() => {
     if (!isHydrated) return;
     try {
-      const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList };
+      const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans };
       updateProfileFeatureData('dietician', data);
       
       if (profile) updateProfileFeatureData('dietProfile', profile);
-        updateProfileFeatureData('dietFoodLogs', foodLogs);
-        updateProfileFeatureData('dietHydration', hydration);
-        if (mealPlan) updateProfileFeatureData('dietMealPlan', mealPlan);
-        if (advice) updateProfileFeatureData('dietAdvice', advice);
-        if (groceryList) updateProfileFeatureData('dietGrocery', groceryList);
+      updateProfileFeatureData('dietFoodLogs', foodLogs);
+      updateProfileFeatureData('dietHydration', hydration);
+      if (mealPlan) updateProfileFeatureData('dietMealPlan', mealPlan);
+      if (archivedPlans.length > 0) updateProfileFeatureData('dietArchivedPlans', archivedPlans);
+      if (advice) updateProfileFeatureData('dietAdvice', advice);
+      if (groceryList) updateProfileFeatureData('dietGrocery', groceryList);
     } catch(e) {}
-  }, [profile, foodLogs, hydration, mealPlan, advice, groceryList]);
+  }, [profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans]);
 
   // Record Health Memory snapshots
   useEffect(() => {
@@ -532,12 +602,12 @@ export default function Dietician() {
           seen.add(meal.name);
           meals.push({
             name: meal.name,
-            portion: meal.portion || '1 serving',
+            portion: (meal as any).portion || '1 serving',
             calories: meal.calories || 0,
             protein: meal.protein || 0,
             carbs: meal.carbs || 0,
             fat: meal.fat || 0,
-            emoji: meal.emoji || (meal.type?.toLowerCase().includes('break') ? '🥣' : meal.type?.toLowerCase().includes('lunch') ? '🥗' : meal.type?.toLowerCase().includes('din') ? '🍲' : meal.type?.toLowerCase().includes('snack') ? '🥑' : '🍽️'),
+            emoji: (meal as any).emoji || (meal.type?.toLowerCase().includes('break') ? '🥣' : meal.type?.toLowerCase().includes('lunch') ? '🥗' : meal.type?.toLowerCase().includes('din') ? '🍲' : meal.type?.toLowerCase().includes('snack') ? '🥑' : '🍽️'),
             type: meal.type || 'Meal'
           });
         }
@@ -758,15 +828,26 @@ export default function Dietician() {
 
     setIsGeneratingPlan(true);
     try {
-      const plan = await generateMealPlan(profile, 7);
-      if (plan) {
+      const rawPlan = await generateMealPlan(profile, 7);
+      if (rawPlan) {
         if (isMounted.current) {
-          setMealPlan(plan);
-          awardPoints(15, 'Created Editable 7-Day Meal Example', 'lifestyle', `diet_plan_${Date.now()}`);
+          const normalized = normalizeFullMealPlan(rawPlan, {
+            caseId: activeCaseScope.caseId || undefined,
+            profileKey: getProfileKey(),
+          });
+          if (mealPlan && ((mealPlan.days && mealPlan.days.length > 0) || (mealPlan.plan && mealPlan.plan.length > 0))) {
+            const updatedArchived = archiveCurrentPlan(mealPlan, archivedPlans);
+            setArchivedPlans(updatedArchived);
+            updateProfileFeatureData('dietArchivedPlans', updatedArchived);
+          }
+          setMealPlan(normalized);
+          updateProfileFeatureData('dietMealPlan', normalized);
+          awardPoints(15, 'Created Editable 7-Day Meal Blueprint', 'lifestyle', `diet_plan_${Date.now()}`);
           triggerHapticSuccess();
           recordTrialUsage('dietician');
+          toast.success('Blueprint Created', '7-Day meal plan generated. You can edit meals, adjust portions, and swap ingredients.');
         }
-        addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan });
+        addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan });
       } else {
         toast.error('Generation Failed', 'Failed to parse the meal plan from AI. Please try again.');
       }
@@ -776,6 +857,166 @@ export default function Dietician() {
     } finally {
       if (isMounted.current) setIsGeneratingPlan(false);
     }
+  };
+
+  // --- Package 7 Plan Lifecycle Handlers ---
+  const handleSelectPlan = () => {
+    if (!mealPlan) return;
+    triggerHapticSuccess();
+    const updated = transitionPlanStatus(mealPlan, 'selected');
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    toast.success('Plan Selected', 'Plan selected as your active blueprint.');
+  };
+
+  const handleActivatePlan = () => {
+    if (!mealPlan) return;
+    triggerHapticSuccess();
+    const updated = transitionPlanStatus(mealPlan, 'active');
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    toast.success('Plan Active', 'You are now actively following this meal blueprint!');
+  };
+
+  const handlePausePlan = () => {
+    if (!mealPlan) return;
+    triggerHapticLight();
+    const updated = transitionPlanStatus(mealPlan, 'paused');
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    toast.info('Plan Paused', 'Meal plan paused. Your daily logs and reactions remain completely safe.');
+  };
+
+  const handleResumePlan = () => {
+    if (!mealPlan) return;
+    triggerHapticSuccess();
+    const updated = transitionPlanStatus(mealPlan, 'active');
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    toast.success('Plan Resumed', 'Welcome back! Plan adherence resumed.');
+  };
+
+  const handleCompletePlan = () => {
+    if (!mealPlan) return;
+    triggerHapticSuccess();
+    const updated = transitionPlanStatus(mealPlan, 'completed', {
+      completionNotes: 'Completed 7-Day structured nutritional blueprint.',
+    });
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    awardPoints(25, 'Completed Clinical Meal Blueprint', 'lifestyle', `diet_complete_${Date.now()}`);
+    toast.success('Cycle Completed!', 'Congratulations on completing this plan! Full history preserved in your calendar.');
+  };
+
+  const handleConfirmStopPlan = () => {
+    if (!mealPlan) return;
+    triggerHapticLight();
+    const updated = transitionPlanStatus(mealPlan, 'stopped', {
+      stopReason: selectedStopReason,
+      stopReasonDetails: stopReasonDetails.trim() || undefined,
+    });
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    setShowStopPlanModal(false);
+    toast.info('Plan Stopped', 'Your plan has been marked stopped. All logged days and past reactions remain permanently intact.');
+  };
+
+  const handleServingMultiplierChange = (dayNum: number, mealId: string, multiplier: number) => {
+    if (!mealPlan) return;
+    triggerHapticLight();
+    const updated = updateMealServing(mealPlan, dayNum, mealId, multiplier);
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    toast.success('Portion Adjusted', `Serving updated to ${multiplier}x. Daily totals recalculated.`);
+  };
+
+  const handleExportToCasePrep = () => {
+    triggerHapticSuccess();
+    const summary = generateDietObservationsSummary(mealPlan, foodLogs, activeCaseScope.caseItem);
+    if (activeCaseScope.caseId) {
+      exportDietObservationsToCase(activeCaseScope.caseId, summary);
+    }
+    toast.success('Exported to Case Prep', 'Factual dietary observations added to your appointment visit brief.');
+    const targetUrl = activeCaseScope.caseId
+      ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`
+      : '/app/case-prep';
+    navigate(targetUrl, { state: { initialBriefNote: summary.summary } });
+  };
+
+  const handleStartEditMeal = (day: number, meal: MealPlanItem) => {
+    setEditingMeal({ day, meal });
+    setEditMealForm({
+      name: meal.name,
+      portion: meal.portion || '1 serving',
+      calories: meal.calories,
+      protein: meal.protein,
+      carbs: meal.carbs,
+      fat: meal.fat,
+      description: meal.description || '',
+    });
+  };
+
+  const handleSaveEditMeal = () => {
+    if (!mealPlan || !editingMeal) return;
+    triggerHapticSuccess();
+    const updated = editMealContent(mealPlan, editingMeal.day, editingMeal.meal.id, {
+      name: editMealForm.name.trim() || editingMeal.meal.name,
+      portion: editMealForm.portion.trim() || editingMeal.meal.portion,
+      calories: Number(editMealForm.calories) || editingMeal.meal.calories,
+      protein: Number(editMealForm.protein) || editingMeal.meal.protein,
+      carbs: Number(editMealForm.carbs) || editingMeal.meal.carbs,
+      fat: Number(editMealForm.fat) || editingMeal.meal.fat,
+      description: editMealForm.description,
+    });
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    setEditingMeal(null);
+    toast.success('Meal Updated', 'Nutritional estimates and day totals recalculated.');
+  };
+
+  const handleApplySwap = (swap: DietarySwap) => {
+    if (!mealPlan || !swappingMeal) return;
+    triggerHapticSuccess();
+    const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, swap);
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    setSwappingMeal(null);
+    toast.success('Swap Applied', `Replaced with ${swap.smartReplacement}. Day totals updated.`);
+  };
+
+  const handleApplyCustomSwap = () => {
+    if (!mealPlan || !swappingMeal || !customSwapName.trim()) return;
+    triggerHapticSuccess();
+    const customSwap: DietarySwap = {
+      triggerName: swappingMeal.meal.name,
+      category: 'ADDITIVE',
+      offendingCompound: 'User personalized preference',
+      biologicalMechanism: customSwapRationale.trim() || 'User-selected ingredient tolerance swap',
+      smartReplacement: customSwapName.trim(),
+      replacementDetails: 'Custom personalized tolerance swap',
+      expectedReliefTimeline: 'Within 24 hours',
+    };
+    const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, customSwap);
+    setMealPlan(updated);
+    updateProfileFeatureData('dietMealPlan', updated);
+    setSwappingMeal(null);
+    setCustomSwapName('');
+    setCustomSwapRationale('');
+    toast.success('Custom Swap Applied', `Replaced with ${customSwap.smartReplacement}.`);
+  };
+
+  const handleRestoreArchivedPlan = (archived: FullMealPlan) => {
+    triggerHapticSuccess();
+    if (mealPlan) {
+      const updatedArchived = archiveCurrentPlan(mealPlan, archivedPlans);
+      setArchivedPlans(updatedArchived);
+      updateProfileFeatureData('dietArchivedPlans', updatedArchived);
+    }
+    const reactivated = transitionPlanStatus(archived, 'active');
+    setMealPlan(reactivated);
+    updateProfileFeatureData('dietMealPlan', reactivated);
+    setShowArchivedPlansModal(false);
+    toast.success('Blueprint Restored', 'Past blueprint restored as active plan. Historical logs remained intact.');
   };
 
   const toggleGroceryItem = (catIndex: number, itemId: string) => {
@@ -1489,6 +1730,380 @@ export default function Dietician() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Plan Lifecycle & Governance Card */}
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '20px',
+                    padding: isMobile ? '16px' : '20px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                        Blueprint Status:
+                      </span>
+                      {(() => {
+                        const status = mealPlan.lifecycle?.status || 'draft';
+                        const config = {
+                          draft: { bg: '#F1F5F9', color: '#475569', border: '#CBD5E1', label: 'Draft Blueprint' },
+                          selected: { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE', label: 'Selected Blueprint' },
+                          active: { bg: '#ECFDF5', color: '#047857', border: '#A7F3D0', label: 'Active (Following)' },
+                          paused: { bg: '#FFFBEB', color: '#B45309', border: '#FDE68A', label: 'Paused' },
+                          completed: { bg: '#FAF5FF', color: '#7E22CE', border: '#E9D5FF', label: 'Completed Cycle' },
+                          stopped: { bg: '#FFF1F2', color: '#BE123C', border: '#FECDD3', label: 'Stopped' },
+                        }[status];
+                        return (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '5px 12px',
+                              borderRadius: '999px',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              background: config.bg,
+                              color: config.color,
+                              border: `1px solid ${config.border}`,
+                            }}
+                          >
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: config.color }} />
+                            {config.label}
+                          </span>
+                        );
+                      })()}
+                      {activeCaseScope.caseItem && (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            fontSize: '11.5px',
+                            color: '#475569',
+                            fontWeight: 600,
+                          }}
+                        >
+                          <BookOpen size={12} color="#059669" /> Case: {activeCaseScope.caseItem.title}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Action Controls */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {(!mealPlan.lifecycle || mealPlan.lifecycle.status === 'draft') && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleSelectPlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#F8FAFC',
+                              border: '1px solid #CBD5E1',
+                              color: '#334155',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Select Plan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleActivatePlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#059669',
+                              border: 'none',
+                              color: '#FFFFFF',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <Play size={13} /> Start Following
+                          </button>
+                        </>
+                      )}
+
+                      {mealPlan.lifecycle?.status === 'selected' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleActivatePlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#059669',
+                              border: 'none',
+                              color: '#FFFFFF',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <Play size={13} /> Start Following
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowStopPlanModal(true)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#FFF1F2',
+                              border: '1px solid #FECDD3',
+                              color: '#BE123C',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Stop / Archive...
+                          </button>
+                        </>
+                      )}
+
+                      {mealPlan.lifecycle?.status === 'active' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handlePausePlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#FFFBEB',
+                              border: '1px solid #FDE68A',
+                              color: '#B45309',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <Pause size={13} /> Pause Plan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCompletePlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              color: '#065F46',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <CheckCircle2 size={13} /> Mark Completed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowStopPlanModal(true)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#FFF1F2',
+                              border: '1px solid #FECDD3',
+                              color: '#BE123C',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Stop Plan...
+                          </button>
+                        </>
+                      )}
+
+                      {mealPlan.lifecycle?.status === 'paused' && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleResumePlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#059669',
+                              border: 'none',
+                              color: '#FFFFFF',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            <Play size={13} /> Resume Plan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCompletePlan}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#ECFDF5',
+                              border: '1px solid #A7F3D0',
+                              color: '#065F46',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Mark Completed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowStopPlanModal(true)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              background: '#FFF1F2',
+                              border: '1px solid #FECDD3',
+                              color: '#BE123C',
+                              fontSize: '12.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Stop Plan...
+                          </button>
+                        </>
+                      )}
+
+                      {(mealPlan.lifecycle?.status === 'completed' || mealPlan.lifecycle?.status === 'stopped') && (
+                        <button
+                          type="button"
+                          onClick={handleActivatePlan}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '10px',
+                            background: '#059669',
+                            border: 'none',
+                            color: '#FFFFFF',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <RefreshCw size={13} /> Reactivate Plan
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleExportToCasePrep}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '10px',
+                          background: '#F0FDF4',
+                          border: '1px solid #BBF7D0',
+                          color: '#166534',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                        }}
+                      >
+                        <FileText size={13} /> Export to Case Prep
+                      </button>
+
+                      {archivedPlans.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowArchivedPlansModal(true)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '10px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            color: '#475569',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Archive size={13} /> Past Plans ({archivedPlans.length})
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {mealPlan.lifecycle?.status === 'stopped' && mealPlan.lifecycle.stopReason && (
+                    <div
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        background: '#FFF1F2',
+                        border: '1px solid #FECDD3',
+                        fontSize: '12.5px',
+                        color: '#9F1239',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <AlertCircle size={15} color="#BE123C" />
+                      <span>
+                        <strong>Stopped Reason:</strong> {PLAN_STOP_REASON_LABELS[mealPlan.lifecycle.stopReason] || mealPlan.lifecycle.stopReason}
+                        {mealPlan.lifecycle.stopReasonDetails ? ` — "${mealPlan.lifecycle.stopReasonDetails}"` : ''}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Non-destructive History Retention Guarantee */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '11.5px',
+                      color: '#64748B',
+                      background: '#F8FAFC',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #F1F5F9',
+                    }}
+                  >
+                    <ShieldCheck size={14} color="#059669" />
+                    <span>
+                      <strong>Non-destructive history retention:</strong> Changing, pausing, or stopping a plan never alters past daily food logs or recorded reactions. Past logs remain permanently intact in your calendar.
+                    </span>
+                  </div>
+                </div>
+
                 {/* Day selector tabs */}
                 <div 
                   role="tablist" 
@@ -1555,7 +2170,7 @@ export default function Dietician() {
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.total_calories || currentSelectedDayObj.totalCalories || profile.targetCalories} kcal
+                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.total_calories || (currentSelectedDayObj as any).totalCalories || profile.targetCalories} kcal
                         </span>
                         
                         <button
@@ -1568,12 +2183,12 @@ export default function Dietician() {
                             mealsToLog.forEach((m: any) => {
                               updatedLogs[currentDate].push({
                                 name: m.name,
-                                portion: '1 serving',
+                                portion: m.portion || '1 serving',
                                 calories: m.calories || 300,
                                 protein: m.protein || 15,
                                 carbs: m.carbs || 40,
                                 fat: m.fat || 10,
-                                emoji: '🍽️',
+                                emoji: m.emoji || '🍽️',
                                 type: m.type || 'Meal',
                                 id: Date.now() + Math.random(),
                               });
@@ -1601,53 +2216,202 @@ export default function Dietician() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-                      {(currentSelectedDayObj.meals || []).map((meal: any, mIdx: number) => (
-                        <div
-                          key={mIdx}
-                          style={{
-                            background: '#F8FAFC',
-                            borderRadius: '16px',
-                            padding: '18px',
-                            border: '1px solid #E2E8F0',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div>
-                            <div
-                              style={{
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                color: '#059669',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.8px',
-                                marginBottom: '6px',
-                              }}
-                            >
-                              {meal.type}
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+                      {(currentSelectedDayObj.meals || []).map((meal: MealPlanItem, mIdx: number) => {
+                        const dayNum = currentSelectedDayObj.day || selectedPlanDay;
+                        const multiplier = meal.servingMultiplier || 1.0;
+                        return (
+                          <div
+                            key={meal.id || mIdx}
+                            style={{
+                              background: '#F8FAFC',
+                              borderRadius: '16px',
+                              padding: '18px',
+                              border: '1px solid #E2E8F0',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              gap: '12px',
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: '6px',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    color: '#059669',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.8px',
+                                  }}
+                                >
+                                  {meal.type}
+                                </span>
+                                
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartEditMeal(dayNum, meal)}
+                                    title="Edit meal content or portions"
+                                    style={{
+                                      background: '#FFFFFF',
+                                      border: '1px solid #CBD5E1',
+                                      borderRadius: '6px',
+                                      padding: '3px 8px',
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      color: '#475569',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                    }}
+                                  >
+                                    <Edit2 size={11} /> Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSwappingMeal({ day: dayNum, meal })}
+                                    title="Clinically swap this meal"
+                                    style={{
+                                      background: '#ECFDF5',
+                                      border: '1px solid #A7F3D0',
+                                      borderRadius: '6px',
+                                      padding: '3px 8px',
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      color: '#065F46',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                    }}
+                                  >
+                                    <RefreshCw size={11} /> Swap
+                                  </button>
+                                </div>
+                              </div>
+
+                              <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0', lineHeight: 1.4 }}>
+                                {meal.name}
+                              </h4>
+
+                              {meal.isSwapped && meal.originalName && (
+                                <div
+                                  style={{
+                                    fontSize: '11px',
+                                    background: '#EFF6FF',
+                                    color: '#1D4ED8',
+                                    border: '1px solid #BFDBFE',
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    marginBottom: '8px',
+                                    lineHeight: 1.4,
+                                  }}
+                                >
+                                  <strong>Swapped from:</strong> {meal.originalName}
+                                  {meal.swapRationale ? ` · ${meal.swapRationale}` : ''}
+                                </div>
+                              )}
+
+                              {meal.description && (
+                                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 10px 0', lineHeight: 1.5 }}>
+                                  {meal.description}
+                                </p>
+                              )}
                             </div>
-                            <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px 0', lineHeight: 1.4 }}>
-                              {meal.name}
-                            </h4>
-                            {meal.description && (
-                              <p style={{ fontSize: '12.5px', color: '#64748B', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                                {meal.description}
-                              </p>
-                            )}
+
+                            {/* Serving Multiplier Selector */}
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                                  Serving: {meal.portion || '1 serving'}
+                                </span>
+                                <div style={{ display: 'flex', gap: '3px' }}>
+                                  {[0.5, 1.0, 1.5, 2.0].map((mult) => (
+                                    <button
+                                      key={mult}
+                                      type="button"
+                                      onClick={() => handleServingMultiplierChange(dayNum, meal.id, mult)}
+                                      style={{
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        fontSize: '10.5px',
+                                        fontWeight: 700,
+                                        border: multiplier === mult ? '1px solid #059669' : '1px solid #E2E8F0',
+                                        background: multiplier === mult ? '#ECFDF5' : '#FFFFFF',
+                                        color: multiplier === mult ? '#065F46' : '#64748B',
+                                        cursor: 'pointer',
+                                      }}
+                                    >
+                                      {mult}x
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 600 }}>
+                                <span style={{ color: '#059669', fontWeight: 700 }}>
+                                  {meal.calories} kcal
+                                </span>
+                                <span style={{ color: '#94A3B8', fontSize: '11.5px' }}>
+                                  P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 600 }}>
-                            <span style={{ color: '#059669', fontWeight: 700 }}>
-                              {meal.calories} kcal
-                            </span>
-                            <span style={{ color: '#94A3B8' }}>
-                              P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
+                    </div>
+
+                    {/* Portion and Nutrient Disclaimer & Clinical Guardrail */}
+                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '10px',
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '12px',
+                          color: '#475569',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <Info size={16} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>
+                          <strong>Portion & Nutrient Estimates:</strong> {PORTION_ESTIMATE_DISCLAIMER}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '10px',
+                          background: '#FEF2F2',
+                          border: '1px solid #FEE2E2',
+                          borderRadius: '12px',
+                          padding: '12px 16px',
+                          fontSize: '12px',
+                          color: '#991B1B',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <ShieldCheck size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>
+                          <strong>Clinical Safety Guardrail:</strong> {CLINICAL_SAFETY_GUARDRAIL}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2487,6 +3251,669 @@ export default function Dietician() {
                   ))}
                 </div>
               </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Package 7: Stop Plan Modal with Structured Reasons */}
+        <AnimatePresence>
+          {showStopPlanModal && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+              }}
+            >
+              <FocusTrap isActive={showStopPlanModal}>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.5)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  onClick={() => setShowStopPlanModal(false)}
+                />
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Stop Meal Blueprint"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    padding: isMobile ? '20px' : '28px',
+                    width: '100%',
+                    maxWidth: '520px',
+                    position: 'relative',
+                    zIndex: 1001,
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFF1F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BE123C' }}>
+                        <StopCircle size={20} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                          Stop Meal Blueprint
+                        </h3>
+                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                          Record why this blueprint was discontinued for your clinical records.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowStopPlanModal(false)}
+                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
+                      Reason for Stopping:
+                    </label>
+                    <select
+                      value={selectedStopReason}
+                      onChange={(e) => setSelectedStopReason(e.target.value as PlanStopReason)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                        color: '#0F172A',
+                        background: '#FFFFFF',
+                        outline: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {Object.entries(PLAN_STOP_REASON_LABELS).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
+                      Additional Notes (Optional):
+                    </label>
+                    <textarea
+                      value={stopReasonDetails}
+                      onChange={(e) => setStopReasonDetails(e.target.value)}
+                      placeholder="e.g. Caused bloating after day 3 dinners, or clinician advised higher sodium..."
+                      rows={3}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                        color: '#0F172A',
+                        resize: 'vertical',
+                        outline: 'none',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+
+                  {/* History Safety Assurance */}
+                  <div
+                    style={{
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '12px',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      fontSize: '12px',
+                      color: '#475569',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span>
+                      <strong>Non-Destructive Guarantee:</strong> Stopping this blueprint archives it safely. All past daily food logs, symptom reactions, and calendar records remain 100% intact.
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowStopPlanModal(false)}
+                      style={{
+                        padding: '9px 16px',
+                        borderRadius: '10px',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        color: '#475569',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Keep Active
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmStopPlan}
+                      style={{
+                        padding: '9px 18px',
+                        borderRadius: '10px',
+                        background: '#BE123C',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <StopCircle size={14} /> Stop Blueprint
+                    </button>
+                  </div>
+                </motion.div>
+              </FocusTrap>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Package 7: Edit Meal Modal */}
+        <AnimatePresence>
+          {editingMeal && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+              }}
+            >
+              <FocusTrap isActive={!!editingMeal}>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.5)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  onClick={() => setEditingMeal(null)}
+                />
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Edit Meal"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    padding: isMobile ? '20px' : '28px',
+                    width: '100%',
+                    maxWidth: '520px',
+                    position: 'relative',
+                    zIndex: 1001,
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                        <Edit2 size={18} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                          Edit Day {editingMeal.day} Meal
+                        </h3>
+                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                          Adjust meal contents, portion assumptions, and estimated macros.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingMeal(null)}
+                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Meal Name</label>
+                    <input
+                      type="text"
+                      value={editMealForm.name}
+                      onChange={(e) => setEditMealForm(prev => ({ ...prev, name: e.target.value }))}
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Portion Assumption</label>
+                    <input
+                      type="text"
+                      value={editMealForm.portion}
+                      onChange={(e) => setEditMealForm(prev => ({ ...prev, portion: e.target.value }))}
+                      placeholder="e.g. 1 bowl (300g) or 2 medium slices"
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Calories (kcal)</label>
+                      <input
+                        type="number"
+                        value={editMealForm.calories}
+                        onChange={(e) => setEditMealForm(prev => ({ ...prev, calories: Number(e.target.value) || 0 }))}
+                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Protein (g)</label>
+                      <input
+                        type="number"
+                        value={editMealForm.protein}
+                        onChange={(e) => setEditMealForm(prev => ({ ...prev, protein: Number(e.target.value) || 0 }))}
+                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Carbs (g)</label>
+                      <input
+                        type="number"
+                        value={editMealForm.carbs}
+                        onChange={(e) => setEditMealForm(prev => ({ ...prev, carbs: Number(e.target.value) || 0 }))}
+                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Fat (g)</label>
+                      <input
+                        type="number"
+                        value={editMealForm.fat}
+                        onChange={(e) => setEditMealForm(prev => ({ ...prev, fat: Number(e.target.value) || 0 }))}
+                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Description / Recipe Notes</label>
+                    <textarea
+                      value={editMealForm.description}
+                      onChange={(e) => setEditMealForm(prev => ({ ...prev, description: e.target.value }))}
+                      rows={2}
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingMeal(null)}
+                      style={{ padding: '8px 16px', borderRadius: '10px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#475569', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveEditMeal}
+                      style={{ padding: '8px 18px', borderRadius: '10px', background: '#059669', border: 'none', color: '#FFFFFF', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </motion.div>
+              </FocusTrap>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Package 7: Clinical Dietary Swaps Modal */}
+        <AnimatePresence>
+          {swappingMeal && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+              }}
+            >
+              <FocusTrap isActive={!!swappingMeal}>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.5)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  onClick={() => setSwappingMeal(null)}
+                />
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Clinical Dietary Swap"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    padding: isMobile ? '20px' : '28px',
+                    width: '100%',
+                    maxWidth: '560px',
+                    position: 'relative',
+                    zIndex: 1001,
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    maxHeight: 'calc(100vh - 120px)',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                        <RefreshCw size={18} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                          Clinical Dietary Swap
+                        </h3>
+                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                          Replace <strong>{swappingMeal.meal.name}</strong> with a tolerance-tested clinical alternative.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSwappingMeal(null)}
+                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
+                    Select a Clinically Rationalized Swap:
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {getAllClinicalDietarySwaps().map((swap, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '12px',
+                          border: '1px solid #E2E8F0',
+                          background: '#F8FAFC',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '12px',
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginBottom: '2px' }}>
+                            {swap.smartReplacement}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600, marginBottom: '4px' }}>
+                            Category: {swap.category.replace('_', ' ')} · Triggers: {swap.triggerName}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
+                            {swap.biologicalMechanism}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleApplySwap(swap)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            background: '#059669',
+                            border: 'none',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          Apply Swap
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Custom Swap */}
+                  <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
+                      Or Enter a Custom Replacement:
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Replacement food / dish name..."
+                      value={customSwapName}
+                      onChange={(e) => setCustomSwapName(e.target.value)}
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Reason / rationale (optional)..."
+                      value={customSwapRationale}
+                      onChange={(e) => setCustomSwapRationale(e.target.value)}
+                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                    />
+                    <button
+                      type="button"
+                      disabled={!customSwapName.trim()}
+                      onClick={handleApplyCustomSwap}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        background: customSwapName.trim() ? '#0F172A' : '#E2E8F0',
+                        color: customSwapName.trim() ? '#FFFFFF' : '#94A3B8',
+                        border: 'none',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: customSwapName.trim() ? 'pointer' : 'not-allowed',
+                        alignSelf: 'flex-end',
+                      }}
+                    >
+                      Apply Custom Swap
+                    </button>
+                  </div>
+                </motion.div>
+              </FocusTrap>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Package 7: Archived Past Plans Modal */}
+        <AnimatePresence>
+          {showArchivedPlansModal && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+              }}
+            >
+              <FocusTrap isActive={showArchivedPlansModal}>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.5)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                  onClick={() => setShowArchivedPlansModal(false)}
+                />
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Past Nutritional Blueprints"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  style={{
+                    background: '#FFFFFF',
+                    borderRadius: '24px',
+                    padding: isMobile ? '20px' : '28px',
+                    width: '100%',
+                    maxWidth: '560px',
+                    position: 'relative',
+                    zIndex: 1001,
+                    boxShadow: '0 24px 48px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    maxHeight: 'calc(100vh - 120px)',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                        <Archive size={18} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                          Past Nutritional Blueprints
+                        </h3>
+                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                          Safely archived blueprints with full non-destructive history.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowArchivedPlansModal(false)}
+                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {archivedPlans.map((archived, idx) => (
+                      <div
+                        key={archived.id || idx}
+                        style={{
+                          padding: '14px',
+                          borderRadius: '14px',
+                          border: '1px solid #E2E8F0',
+                          background: '#F8FAFC',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '12px',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                            {archived.title || `Blueprint (${archived.days?.length || 7} Days)`}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
+                            Archived: {new Date(archived.lifecycle?.updatedAt || archived.createdAt || Date.now()).toLocaleDateString()} · Status: {archived.lifecycle?.status || 'archived'}
+                          </div>
+                          {archived.lifecycle?.stopReason && (
+                            <div style={{ fontSize: '11.5px', color: '#BE123C', marginTop: '4px' }}>
+                              Stop reason: {PLAN_STOP_REASON_LABELS[archived.lifecycle.stopReason] || archived.lifecycle.stopReason}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRestoreArchivedPlan(archived)}
+                          style={{
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            background: '#059669',
+                            border: 'none',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          Restore
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </FocusTrap>
             </div>
           )}
         </AnimatePresence>

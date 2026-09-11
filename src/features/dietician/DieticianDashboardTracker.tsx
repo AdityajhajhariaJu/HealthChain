@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, ArrowRight } from 'lucide-react';
+import { Camera, Plus, Minus, BookOpen, Clock, Activity, Sparkles, Droplet, Trash2, ArrowRight, Info } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight } from '../../services/haptics';
 
@@ -567,7 +567,27 @@ export function DieticianDashboardTracker({
         })}
       </div>
 
-
+      {/* Portion assumptions & clinical safety footer note (Package 7 Step 5) */}
+      <div
+        style={{
+          marginTop: '12px',
+          padding: '12px 16px',
+          background: 'rgba(248, 250, 252, 0.95)',
+          borderRadius: '14px',
+          border: '1px solid #E2E8F0',
+          fontSize: '12px',
+          color: '#64748B',
+          lineHeight: 1.5,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px',
+        }}
+      >
+        <Info size={16} color="#94A3B8" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <div>
+          <strong style={{ color: '#0F172A' }}>Nutritional Estimates Basis:</strong> Calculated from standard household measures and Indian Food Composition Tables (IFCT/NIN). Cooking methods, ingredient variations, and digestive absorption vary. Not intended as laboratory calorimetry.
+        </div>
+      </div>
     </div>
   );
 }

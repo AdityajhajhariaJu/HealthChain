@@ -1104,6 +1104,35 @@ R (Recommendation):
                     <Printer size={15} />
                     <span>Print</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSuccess();
+                      onClose();
+                      navigate('/app/case-prep', {
+                        state: {
+                          initialBriefNote: `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${trial.currentDay}/${trial.totalDays}\nReduction: -${trial.reductionPercent}%\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`
+                        }
+                      });
+                    }}
+                    style={{
+                      background: '#F0FDFA',
+                      color: '#0F766E',
+                      border: '1px solid #99F6E4',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <FileText size={15} />
+                    <span>Bring to Case Prep</span>
+                  </button>
                 </div>
               </div>
             )}

@@ -219,6 +219,9 @@ export const NutritionInterceptor: React.FC = () => {
                 <span className="text-white text-2xl font-black">{recentLog.total?.calories || 0}</span>
               </div>
             </div>
+            <div className="text-white/40 text-xs mt-3 text-center">
+              Nutrient values are estimated based on standard portions. Cooking fats, brand differences, and preparation vary.
+            </div>
 
             <div style={{ marginTop: '20px', display: 'flex', gap: '12px' }}>
               <button

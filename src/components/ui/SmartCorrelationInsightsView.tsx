@@ -410,6 +410,27 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         </span>
       </div>
 
+      {/* Step 7 Guardrail: Chronological Association vs. Biological Causality */}
+      <div
+        style={{
+          background: 'rgba(248, 250, 252, 0.95)',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          padding: '10px 14px',
+          fontSize: '12px',
+          color: '#475569',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '8px',
+          lineHeight: 1.45,
+        }}
+      >
+        <Info size={16} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <div>
+          <strong style={{ color: '#0F172A' }}>Observational Timeline Associations:</strong> Timing patterns show foods eaten before symptoms occurred. They indicate possible triggers to explore with your clinician, not definitive proof of causality. Stress, sleep, hydration, and medications also influence digestive comfort.
+        </div>
+      </div>
+
       {/* 2. Search Bar (Matching media_1788703634311.png) */}
       <div
         style={{
