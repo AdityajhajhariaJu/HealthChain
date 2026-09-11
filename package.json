@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "verify:migrations": "node scripts/verify-supabase-migrations.mjs",
     "smoke:supabase": "node scripts/smoke-supabase.mjs",
+    "eval:model": "tsx scripts/eval-live-model.ts",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md}\"",
     "starthealthchain10": "npm run dev"
   },
