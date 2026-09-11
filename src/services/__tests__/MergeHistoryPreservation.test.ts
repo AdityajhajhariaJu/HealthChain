@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { mergeCaseItems } from '../CaseMergeEngine';
 import type { CaseItem, MedicalRecord, ReviewSnapshot, ClinicalQuestion, CaseAction, AppointmentBrief, CaseUpdate } from '../CaseEngine';
 
