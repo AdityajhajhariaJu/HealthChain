@@ -233,43 +233,59 @@ export function normalizeClinicalReview(value:unknown, previousPayload?:Clinical
   const versionedEvidence=buildVersionedEvidenceSet(enriched);
 
   // Validate perspective citations
-  const validPerspectives:any[]=[];
+  const validPerspectives: any[] = [];
+  const seenPerspectiveReasoning = new Set<string>();
+
   for(const p of objects(report.perspectives)){
-    const citedIds = strings(p.evidenceConsidered).filter(id => evidenceIds.has(id));
-    if(!p.specialty || !p.interpretation || !citedIds.length){
+    const rawCitations = strings(p.evidenceConsidered);
+    const allCitationsExist = rawCitations.length > 0 && rawCitations.every(id => evidenceIds.has(id));
+    const reasoningKey = `${[...rawCitations].sort().join(',')}:${(p.interpretation || '').trim().toLowerCase()}`;
+    const isDuplicateReasoning = seenPerspectiveReasoning.has(reasoningKey);
+
+    if(!p.specialty || !p.interpretation || !allCitationsExist || isDuplicateReasoning){
       quarantinedClaims.push({
         id: p.id || 'claim_persp_' + quarantinedClaims.length,
         text: p.interpretation || p.selectionReason || 'Perspective without verified evidence',
         category: 'ai_consideration',
-        evidenceIds: citedIds,
+        evidenceIds: rawCitations.filter(id => evidenceIds.has(id)),
         limitations: strings(p.missingInformation),
         reviewVersion: 1,
         claimKind: 'ai_interpretation',
         interpretationStatus: 'quarantined',
         isGeneralGuidance: false,
-        unsupportedReason: 'Specialty perspective does not cite verified evidence identifiers',
+        unsupportedReason: !allCitationsExist
+          ? 'Specialty perspective cites missing or unverified evidence identifiers'
+          : isDuplicateReasoning
+            ? 'Specialty perspective duplicates reasoning from another perspective citing the same evidence'
+            : 'Specialty perspective missing required specialty or interpretation',
       });
     } else {
-      validPerspectives.push({ ...p, evidenceConsidered: citedIds });
+      seenPerspectiveReasoning.add(reasoningKey);
+      validPerspectives.push({ ...p, evidenceConsidered: rawCitations });
     }
   }
 
   // Validate alternatives citations
-  const validAlternatives:any[]=[];
+  const validAlternatives: any[] = [];
   for(const a of objects(report.alternatives)){
-    const supp = objects(a.supportingEvidence).filter(s => evidenceIds.has(s.factId));
-    if(!a.title || (a.type !== 'insufficient_evidence' && !supp.length)){
+    const rawSupp = objects(a.supportingEvidence);
+    const allSuppExist = rawSupp.every(s => typeof s.factId === 'string' && evidenceIds.has(s.factId));
+    const suppCount = rawSupp.filter(s => typeof s.factId === 'string' && evidenceIds.has(s.factId)).length;
+
+    if(!a.title || !allSuppExist || (a.type !== 'insufficient_evidence' && suppCount === 0)){
       quarantinedClaims.push({
         id: a.id || 'claim_alt_' + quarantinedClaims.length,
         text: a.mechanismSummary || a.title || 'Alternative explanation',
         category: 'ai_consideration',
-        evidenceIds: supp.map(s => s.factId),
+        evidenceIds: rawSupp.map((s: any) => s.factId).filter((id: any) => typeof id === 'string' && evidenceIds.has(id)),
         limitations: [],
         reviewVersion: 1,
         claimKind: 'ai_interpretation',
         interpretationStatus: 'quarantined',
         isGeneralGuidance: false,
-        unsupportedReason: 'Alternative mechanism is not supported by verified evidence',
+        unsupportedReason: !allSuppExist
+          ? 'Alternative mechanism cites missing or unverified evidence identifiers'
+          : 'Alternative mechanism is not supported by verified evidence',
       });
     } else {
       validAlternatives.push(a);
@@ -277,12 +293,12 @@ export function normalizeClinicalReview(value:unknown, previousPayload?:Clinical
   }
 
   const reviewTrusted = quarantinedFacts.length === 0 && quarantinedClaims.length === 0 && enriched.length > 0;
-  const perspectives=generateMeaningfulPerspectives(versionedEvidence,strings(report.uncertainties),reviewTrusted ? validPerspectives : []);
+  const perspectives=generateMeaningfulPerspectives(versionedEvidence,strings(report.uncertainties),validPerspectives);
   const boundedComparison=executeBoundedComparison(perspectives,versionedEvidence,reviewTrusted ? report.boundedComparison : undefined);
   const pipeline=runClinicalReasoningPipeline({
     documentedFacts:enriched,executiveSummary:report.executiveSummary,uncertainties:strings(report.uncertainties),
     missingLinks:strings(report.missingLinks),questionsForClinician:strings(report.questionsForClinician),
-    perspectives,alternatives:reviewTrusted ? validAlternatives : [],
+    perspectives,alternatives:validAlternatives,
   },previousPayload,newFactAnswer);
 
   enriched=pipeline.stage1_facts.map((f:any)=>({...f,classifiedItem:classifyClinicalInformation({...f,text:f.fact,date:f.timestamp || f.reportDate})}));

@@ -22,7 +22,7 @@ export type ClinicalInformationCategory =
 
 export type ExtractionStatus = 'provisional' | 'source_matched' | 'user_corrected' | 'rejected' | 'checked';
 export type InterpretationStatus = 'grounded' | 'unsupported_speculation' | 'quarantined';
-export type ClaimKind = 'quotation' | 'observation' | 'ai_interpretation';
+export type ClaimKind = 'direct_evidence' | 'ai_interpretation' | 'clinical_guidance' | 'patient_report' | 'quotation' | 'observation';
 
 export interface InformationAuditEntry {
   originalText: string;
