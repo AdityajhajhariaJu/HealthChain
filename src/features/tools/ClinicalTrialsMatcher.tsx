@@ -78,60 +78,37 @@ export function evaluateTrialCriteria(
     score += 30 * matchedDifferentials.length;
   }
 
-  // 3. Age criteria evaluation
+
+  // Use registry eligibility fields only. Narrative keywords are not criteria.
+  const eligibility = trial.eligibility || trial.protocolSection?.eligibilityModule || {};
   let ageStatus: 'eligible' | 'potential_mismatch' | 'unspecified' = 'unspecified';
-  let ageNote = 'Age eligibility not explicitly restricted in trial summary.';
-  let extractedLimit = '';
+  let ageNote = 'Age limits were not evaluated: registry bounds or patient age are missing.';
   const rawAge = patientProfile?.age;
-  const parsedAge = rawAge ? parseInt(String(rawAge), 10) : undefined;
-
-  if (parsedAge && !isNaN(parsedAge)) {
-    if (/pediatric|children|infant|adolescent/i.test(combinedText) && !/adult/i.test(combinedText)) {
-      if (parsedAge >= 18) {
-        ageStatus = 'potential_mismatch';
-        ageNote = `Trial appears pediatric-focused; patient is ${parsedAge} years old.`;
-      } else {
-        ageStatus = 'eligible';
-        ageNote = `Pediatric population criteria matches patient age (${parsedAge} yo).`;
-      }
-    } else if (/\b(adults|aged?\s*18\s*(and|or|\+|-|to))\b/i.test(combinedText)) {
-      if (parsedAge >= 18) {
-        ageStatus = 'eligible';
-        ageNote = `Patient age (${parsedAge} yo) satisfies adult requirement (>=18).`;
-      } else {
-        ageStatus = 'potential_mismatch';
-        ageNote = `Adult requirement (>=18) may exclude patient (${parsedAge} yo).`;
-      }
+  const parsedAge = rawAge !== undefined && rawAge !== '' ? Number(rawAge) : undefined;
+  const years = (value: unknown): number | undefined => {
+    if(typeof value !== 'string') return undefined;
+    const match = value.match(/^(\d+(?:\.\d+)?)\s+(Years|Months|Weeks|Days)$/i);
+    if(!match) return undefined;
+    const divisor = ({years:1,months:12,weeks:52.1775,days:365.25} as any)[match[2].toLowerCase()];
+    return Number(match[1])/divisor;
+  };
+  const minAge = years(eligibility.minimumAge), maxAge = years(eligibility.maximumAge);
+  const openMax = eligibility.maximumAge === 'N/A';
+  const extractedLimit = [eligibility.minimumAge, eligibility.maximumAge].filter(Boolean).join(' – ');
+  if(parsedAge !== undefined && Number.isFinite(parsedAge) && parsedAge >= 0) {
+    if((minAge !== undefined && parsedAge < minAge) || (maxAge !== undefined && parsedAge > maxAge)) {
+      ageStatus='potential_mismatch';ageNote='The recorded age is outside at least one stated registry bound: '+extractedLimit;
+    } else if(minAge !== undefined && (maxAge !== undefined || openMax)) {
+      ageStatus='eligible';ageNote='Recorded age is within the stated age bounds only. Other eligibility criteria remain unevaluated.';
     }
   }
-
-  // 4. Gender / Sex criteria evaluation
   let genderStatus: 'eligible' | 'potential_mismatch' | 'unspecified' = 'unspecified';
-  let genderNote = 'Gender / sex requirements open or unspecified in registry summary.';
   const pGender = (patientProfile?.gender || '').toLowerCase().trim();
-
-  if (pGender) {
-    const isFemaleTrial = /\b(female|women|maternal|pregnancy)\b/i.test(combinedText) && !/\b(both|all\s+genders|male\s+and\s+female)\b/i.test(combinedText);
-    const isMaleTrial = /\b(prostate|male\s+only|men\s+only)\b/i.test(combinedText) && !/\b(both|all\s+genders|female)\b/i.test(combinedText);
-
-    if (isFemaleTrial) {
-      if (pGender === 'female' || pGender === 'f') {
-        genderStatus = 'eligible';
-        genderNote = 'Female-specific cohort aligns with patient profile.';
-      } else if (pGender === 'male' || pGender === 'm') {
-        genderStatus = 'potential_mismatch';
-        genderNote = 'Trial specifies female cohort; patient profile indicates male.';
-      }
-    } else if (isMaleTrial) {
-      if (pGender === 'male' || pGender === 'm') {
-        genderStatus = 'eligible';
-        genderNote = 'Male-specific cohort aligns with patient profile.';
-      } else if (pGender === 'female' || pGender === 'f') {
-        genderStatus = 'potential_mismatch';
-        genderNote = 'Trial specifies male cohort; patient profile indicates female.';
-      }
-    }
-  }
+  // A profile gender is not assumed to be the sex field requested by a study.
+  let genderNote = 'Confirm the registry sex criterion with the study team; profile gender is not used as a substitute.';
+  if(eligibility.sex === 'ALL') {
+    genderStatus='eligible';genderNote='Registry lists all sexes. Other cohort and eligibility criteria still apply.';
+  } else if(eligibility.sex) genderNote='Registry sex criterion: '+eligibility.sex+'. Not automatically evaluated against profile gender.';
 
   // Determine matchStatus
   let matchStatus: TrialCriteriaBreakdown['matchStatus'] = 'broad_relevance';
@@ -143,7 +120,7 @@ export function evaluateTrialCriteria(
     matchStatus = 'topic_overlap';
   }
 
-  const finalScore = Math.min(100, Math.max(matchedDifferentials.length > 0 ? 65 : 10, score));
+  const finalScore = Math.min(100, Math.max(0, score));
   const uniqueTerms = [...new Set([...matchedDifferentials, ...matchedTerms])].slice(0, 6);
   const aiContext = matchedDifferentials.length > 0
     ? `Matches active case differential: ${matchedDifferentials.join(', ')}. Registered protocol investigates related pathology.`
@@ -271,7 +248,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
             )}
             {!isPaper && item.criteriaBreakdown?.ageCriteria?.status === 'eligible' && (
               <span className="badge" style={{ padding: '2px 8px', fontSize: '11px', background: '#EFF6FF', color: '#1D4ED8', border: '1px solid #BFDBFE', fontWeight: 600 }}>
-                Age Eligible ({item.criteriaBreakdown.ageCriteria.patientAge}y)
+                Within age bounds ({item.criteriaBreakdown.ageCriteria.patientAge}y)
               </span>
             )}
             {!isPaper && item.criteriaBreakdown?.ageCriteria?.status === 'potential_mismatch' && (
@@ -454,13 +431,15 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
             onClick={(e) => {
               e.stopPropagation();
               triggerHapticLight();
-              navigate('/app/ava', {
+              navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || ''), {
                 state: {
                   initialPrompt: `I am reviewing this clinical research source: "${displayTitle}" (ID: ${item.id || 'N/A'}). Status: ${item.criteriaBreakdown?.matchStatus || 'General Relevance'}. Help me summarize what it actually says, evaluate whether its eligibility criteria align with my case, and outline specific questions I should ask my clinician or the study team.`,
                   sourceStudy: {
+                    caseId: getUnifiedCaseScope().caseId,
                     nctId: item.id,
                     title: displayTitle,
                     abstract: displayAbstract,
+                    url: item.url || (item.id ? 'https://clinicaltrials.gov/study/' + item.id : ''),
                     matchStatus: item.criteriaBreakdown?.matchStatus || 'broad_relevance',
                     criteriaBreakdown: item.criteriaBreakdown
                   }
@@ -489,6 +468,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
 }
 
 export default function ClinicalTrialsMatcher() {
+  const [retrievalError, setRetrievalError] = useState('');
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const toast = useToast();
@@ -574,7 +554,7 @@ export default function ClinicalTrialsMatcher() {
       setLoading(true);
       
       const searchTerms = effectiveTerms;
-      const cacheKey = `researchHub_v5_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
+      const cacheKey = `researchHub_v6_${activeCase?.id || 'manual'}_${searchTerms.join(',')}`;
       
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
@@ -612,10 +592,12 @@ export default function ClinicalTrialsMatcher() {
         }
       }
       try {
-        const [rawTrials, rawPapers] = await Promise.all([
-          fetchLiveTrials(searchTerms).catch(() => []),
-          fetchRecentLiterature(searchTerms).catch(() => [])
-        ]);
+        setRetrievalError('');
+        const results = await Promise.allSettled([fetchLiveTrials(searchTerms), fetchRecentLiterature(searchTerms)]);
+        const rawTrials = results[0].status === 'fulfilled' ? results[0].value : [];
+        const rawPapers = results[1].status === 'fulfilled' ? results[1].value : [];
+        if (isMounted && results.some(r => r.status === 'rejected')) setRetrievalError('One or more research sources could not be reached. These results may be incomplete; please retry.');
+
         
         if (!isMounted) return;
 
@@ -650,7 +632,7 @@ export default function ClinicalTrialsMatcher() {
           }
           try {
             sessionStorage.setItem(cacheKey, JSON.stringify(sortedItems));
-            localStorage.setItem(`hc_res_cache_${searchTerms.join('_')}`, JSON.stringify({ ts: Date.now(), data: sortedItems }));
+
           } catch {}
         }
       } catch (err) {
@@ -670,6 +652,7 @@ export default function ClinicalTrialsMatcher() {
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '40px' }}>
+      {retrievalError && <p role="alert">{retrievalError}</p>}
       <FeatureMissionHeader featureId="clinical-trials" activeCaseId={activeCase?.id} />
 
       <motion.div
@@ -941,13 +924,15 @@ export default function ClinicalTrialsMatcher() {
                       className="btn btn-outline"
                       onClick={() => {
                         triggerHapticLight();
-                        navigate('/app/ava', {
+                        navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || ''), {
                           state: {
                             initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}" (ID: ${selectedItem.id || 'N/A'}). Status: ${selectedItem.criteriaBreakdown?.matchStatus || 'General Relevance'}. Summarize the source cautiously, evaluate whether its eligibility criteria align with my case, and help me prepare questions for my clinician or the study team.`,
                             sourceStudy: {
+                    caseId: getUnifiedCaseScope().caseId,
                               nctId: selectedItem.id,
                               title: modalTitle,
                               abstract: modalAbstract,
+                              url: selectedItem.url || '',
                               matchStatus: selectedItem.criteriaBreakdown?.matchStatus || 'broad_relevance',
                               criteriaBreakdown: selectedItem.criteriaBreakdown
                             }

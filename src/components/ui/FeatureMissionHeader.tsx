@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { setActiveCase } from '../../services/CaseEngine';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -44,21 +45,19 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
 
   const handleHandoffClick = (handoff: HandoffRoute) => {
     triggerHapticSuccess();
+    if (activeCaseId) setActiveCase(activeCaseId);
     if (handoff.targetTab && onNavigateTab) {
       onNavigateTab(handoff.targetTab);
       return;
     }
 
-    let targetUrl = handoff.route;
-    if (activeCaseId && (handoff.route.includes('/app/cases') || handoff.route.includes('/app/case-prep') || handoff.route.includes('/app/ava'))) {
-      if (handoff.route === '/app/cases') {
-        targetUrl = `/app/cases/${encodeURIComponent(activeCaseId)}`;
-      } else if (handoff.route === '/app/case-prep') {
-        targetUrl = `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}`;
-      } else if (handoff.route === '/app/ava') {
-        targetUrl = `/app/ava?caseId=${encodeURIComponent(activeCaseId)}`;
-      }
-    }
+    const target = handoff.targetFeatureId === 'connection-detective' ? '/app/ava' : handoff.route;
+    const query = new URLSearchParams();
+    if (activeCaseId) query.set('caseId', activeCaseId);
+    if (handoff.targetFeatureId === 'connection-detective') query.set('tool', 'connection-detective');
+    const targetUrl = target === '/app/cases' && activeCaseId
+      ? '/app/cases/' + encodeURIComponent(activeCaseId)
+      : target + (query.size ? '?' + query.toString() : '');
     navigate(targetUrl);
   };
 

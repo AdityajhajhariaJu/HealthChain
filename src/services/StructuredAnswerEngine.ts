@@ -141,255 +141,49 @@ export interface BuildStructuredAnswerInput {
   userPriority?: string;
 }
 
-/** Sanitizes text to remove fabricated percentage probabilities (Avoid Rule 4) */
-export function sanitizeArbitraryPercentages(text: string): string {
-  if (!text) return '';
-  return text
-    .replace(/\b\d{1,3}%\s*(match|probability|likelihood|certainty|confidence)\b/gi, 'supported by documented evidence')
-    .replace(/\bwith\s*\d{1,3}%\s*confidence\b/gi, 'based on documented observations')
-    .trim();
+
+/** Remove unsupported confidence claims without replacing them with evidence claims. */
+export function sanitizeArbitraryPercentages(text:string):string {
+  return (text || '').replace(/\b(?:with\s*)?\d{1,3}%\s*(?:match|probability|likelihood|certainty|confidence)\b/gi,'uncertain').trim();
 }
-
-/** Extracts 2-3 concise sentences answering the patient's concern (Layer 1) */
-function extractConciseAnswer(summary: string, hypothesis: string): string {
-  if (!summary || !summary.trim()) {
-    return `Based on your recorded history, the primary clinical consideration is ${hypothesis || 'your reported symptoms'}. Documented findings should be evaluated with your clinician alongside objective laboratory values.`;
-  }
-  const sanitized = sanitizeArbitraryPercentages(summary);
-  const sentences = sanitized
-    .split(/(?<=[.?!])\s+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 0);
-
-  if (sentences.length <= 3) {
-    return sentences.join(' ');
-  }
-  return sentences.slice(0, 3).join(' ');
-}
-
-/** Formulates the Doctor Visit Brief replacing generic "Ask your doctor" cop-outs (Avoid Rule 1) */
-function buildDoctorVisitBrief(
-  questions: string[],
-  facts: Array<{ fact?: string; source?: string }>,
-  primaryConcern: string
-): DoctorVisitBrief {
-  const specificQuestion = questions.length > 0
-    ? questions[0]
-    : `Could my documented ${primaryConcern.toLowerCase()} relate to the timing of recent medication or dietary adjustments?`;
-
-  const whyItMatters = `Clarifying this distinction determines whether further targeted evaluation is indicated or if these symptoms reflect a temporary reactive pattern.`;
-
-  const relevantRecords = facts.slice(0, 3).map(f => {
-    const src = f.source ? ` (${f.source})` : '';
-    return `${f.fact || 'Documented record'}${src}`;
-  });
-
-  if (relevantRecords.length === 0) {
-    relevantRecords.push('Recent symptom diary entries and any prior metabolic panels.');
-  }
-
+export function buildStructuredClinicalAnswer(input:BuildStructuredAnswerInput):StructuredClinicalAnswer {
+  const facts=(input.documentedFacts || []).filter(f=>f?.fact);
+  const summary=facts.length?sanitizeArbitraryPercentages(input.executiveSummary || ''):'Add your observations or records to begin a case review.';
+  const assessments=input.reasoningPipeline?.stage6_balancedAssessments || [];
+  const alternatives=input.alternatives || [];
+  const gaps=[...new Set([...(input.uncertainties || []),...(input.missingLinks || [])])];
+  const questions=input.questionsForClinician || [];
+  const records=facts.map(f=>f.source).filter((s):s is string=>!!s);
   return {
-    specificQuestion,
-    whyItMatters,
-    relevantRecords,
-  };
-}
-
-/** Builds the complete 5-layer structured answer with progressive disclosure and rule compliance */
-export function buildStructuredClinicalAnswer(input: BuildStructuredAnswerInput): StructuredClinicalAnswer {
-  const hypothesis = input.primaryHypothesis || 'Clinical evidence synthesis';
-  const rawSummary = input.executiveSummary || '';
-  const facts = Array.isArray(input.documentedFacts) ? input.documentedFacts : [];
-  const uncertainties = Array.isArray(input.uncertainties) ? input.uncertainties : [];
-  const missing = Array.isArray(input.missingLinks) ? input.missingLinks : [];
-  const clinicianQuestions = Array.isArray(input.questionsForClinician) ? input.questionsForClinician : [];
-  const alternatives = Array.isArray(input.alternatives) ? input.alternatives : [];
-
-  // ==========================================
-  // LAYER 1: MAIN ANSWER (Concise -> Synthesis)
-  // ==========================================
-  const conciseAnswer = extractConciseAnswer(rawSummary, hypothesis);
-  let fullSynthesis = sanitizeArbitraryPercentages(rawSummary);
-  if (input.boundedComparison?.agreementSynthesis) {
-    fullSynthesis += `\n\nCross-Perspective Assessment: ${input.boundedComparison.agreementSynthesis}`;
-  }
-  if (input.boundedComparison?.residualUncertainty) {
-    fullSynthesis += `\n\nClinical Boundary: ${input.boundedComparison.residualUncertainty}`;
-  }
-
-  // =========================================================================
-  // LAYER 2: WHY THIS MATTERS IN MY CASE (Strongest Observations -> Sources)
-  // =========================================================================
-  // Extract up to 3 strongest observations tied directly to actual case records
-  const strongestObservations: string[] = [];
-  const sourcePassages: EvidenceOriginSource[] = [];
-
-  for (const f of facts) {
-    if (!f.fact) continue;
-    if (strongestObservations.length < 3) {
-      strongestObservations.push(f.fact);
-    }
-    sourcePassages.push({
-      passage: f.fact,
-      source: f.source || 'Medical Record',
-      date: f.date || 'Dated record',
-      category: (f.category as ClinicalInformationCategory) || 'extracted_finding',
-      confidenceBasis: f.allowedRole || 'documented_finding',
-    });
-  }
-
-  if (strongestObservations.length === 0) {
-    strongestObservations.push('No documented laboratory or clinical findings currently recorded.');
-  }
-
-  // =============================================================================
-  // LAYER 3: OTHER EXPLANATIONS (Alternatives -> Balanced Evidence -> Relations)
-  // =============================================================================
-  const plausibleAlternatives: string[] = [];
-  const balancedEvidence: BalancedAlternativeEvidence[] = [];
-  const relationshipStatuses: StructuredRelationshipItem[] = [];
-
-  if (alternatives.length > 0) {
-    for (const alt of alternatives) {
-      const title = alt.title || 'Alternative Consideration';
-      if (plausibleAlternatives.length < 3) {
-        plausibleAlternatives.push(title);
-      }
-      balancedEvidence.push({
-        title,
-        mechanism: sanitizeArbitraryPercentages(alt.mechanismSummary || 'Physiological variation under observation'),
-        supportingEvidence: alt.supportingFacts && alt.supportingFacts.length > 0
-          ? alt.supportingFacts
-          : ['Temporal correlation with recorded symptom reports'],
-        conflictingEvidence: alt.contradictoryFacts && alt.contradictoryFacts.length > 0
-          ? alt.contradictoryFacts
-          : ['Absence of elevated inflammatory markers or confirmatory diagnostic criteria'],
-        whatWouldChangeThis: alt.whatWouldChangeThis || 'Subsequent repeat panel or diagnostic challenge test',
-        likelihoodAssessment: (alt.likelihoodAssessment as any) || 'competing',
-      });
-    }
-  } else {
-    plausibleAlternatives.push('Temporary reactive physiological response', 'Separate independent events without a shared cause');
-    balancedEvidence.push(
-      {
-        title: 'Temporary reactive physiological response',
-        mechanism: 'Transient adjustment to dietary, stress, or circadian disruption.',
-        supportingEvidence: ['Self-limiting duration of intermittent episodes'],
-        conflictingEvidence: ['Persistence of baseline fatigue across multiple weeks'],
-        whatWouldChangeThis: 'Structured 7-day symptom-food journal showing resolution.',
-        likelihoodAssessment: 'competing',
-      },
-      {
-        title: 'Separate independent events without a shared cause',
-        mechanism: 'Unrelated gastrointestinal and musculoskeletal symptoms presenting concurrently by coincidence.',
-        supportingEvidence: ['Distinct timing intervals without documented direct overlap'],
-        conflictingEvidence: ['Co-occurrence during acute flare periods'],
-        whatWouldChangeThis: 'Symptom logging confirming discordant triggers.',
-        likelihoodAssessment: 'competing',
-      }
-    );
-  }
-
-  // Strict epistemic relationship tagging (Mandate: Replace "Everything is connected" with supported/proposed/contradicted/unknown)
-  relationshipStatuses.push({
-    connection: `${hypothesis} & Reported Symptoms`,
-    status: facts.length >= 2 ? 'supported' : 'proposed',
-    rationale: facts.length >= 2
-      ? 'Corroborated by dated clinical notes and patient diary entries'
-      : 'Hypothesized based on typical symptom patterns; awaiting formal verification',
-    evidenceBasis: facts.slice(0, 2).map(f => f.fact || 'Record note'),
-  });
-
-  if (input.boundedComparison?.disagreements && input.boundedComparison.disagreements.length > 0) {
-    for (const dis of input.boundedComparison.disagreements) {
-      relationshipStatuses.push({
-        connection: `${dis.perspectiveA} vs ${dis.perspectiveB}`,
-        status: 'contradicted',
-        rationale: dis.issue || 'Divergent clinical interpretations on existing records',
-        evidenceBasis: [dis.resolutionNeed || 'Further diagnostic clarification required'],
-      });
-    }
-  } else {
-    relationshipStatuses.push({
-      connection: 'Systemic vs Isolated Etiology',
-      status: 'unknown',
-      rationale: 'Insufficient objective biomarker data to confirm systemic autoimmune or metabolic involvement',
-      evidenceBasis: ['No comprehensive rheumatology or endocrine panels on file'],
-    });
-  }
-
-  // =========================================================================
-  // LAYER 4: WHAT WE STILL NEED (1-2 Critical Gaps -> Complete Checklist)
-  // =========================================================================
-  const allGaps = [...uncertainties, ...missing].filter((g, i, self) => self.indexOf(g) === i);
-  const criticalGaps = allGaps.slice(0, 2);
-  if (criticalGaps.length === 0) {
-    criticalGaps.push('Objective laboratory measurements correlating with symptom spikes');
-  }
-  const completeMissingList = allGaps.length > 0 ? allGaps : [
-    'Recent complete blood count with differential and comprehensive metabolic panel',
-    'Documented timeline of symptom onset relative to dietary changes or medications',
-    'Specialist assessment validating physical examination findings',
-  ];
-
-  // =========================================================================
-  // LAYER 5: NEXT STEP (1 Action -> Other Actions -> Doctor Visit Brief)
-  // =========================================================================
-  const doctorVisitBrief = buildDoctorVisitBrief(clinicianQuestions, facts, hypothesis);
-  
-  const chosenAction = input.userPriority
-    ? `Prioritize clarifying: "${input.userPriority}" at your upcoming clinician consultation.`
-    : `Prepare your Doctor Visit Brief to review with your clinician.`;
-
-  const otherActions: string[] = [];
-  if (clinicianQuestions.length > 1) {
-    otherActions.push(`Ask secondary question: "${clinicianQuestions[1]}"`);
-  }
-  otherActions.push('Track symptom occurrence alongside meals and sleep for 7 consecutive days in your diary.');
-  otherActions.push('Obtain copies of prior lab requisitions to verify referenced reference intervals.');
-
-  return {
-    layer1_mainAnswer: {
-      conciseAnswer,
-      fullSynthesis,
+    layer1_mainAnswer:{conciseAnswer:summary.split(/(?<=[.?!])\s+/).slice(0,3).join(' '),fullSynthesis:summary},
+    layer2_whyThisMatters:{
+      strongestObservations:facts.slice(0,3).map(f=>f.fact!),
+      sourcePassages:facts.map(f=>({passage:f.fact!,source:f.source || 'Source not provided',date:f.date,category:(f.category as ClinicalInformationCategory) || 'user_report',confidenceBasis:f.allowedRole || 'Not verified'})),
     },
-    layer2_whyThisMatters: {
-      strongestObservations,
-      sourcePassages,
+    layer3_otherExplanations:{
+      plausibleAlternatives:alternatives.map(a=>a.title || '').filter(Boolean),
+      balancedEvidence:alternatives.map((a:any)=>{
+        const review=assessments.find((r:any)=>r.alternativeId===a.id);
+        return {title:a.title || '',mechanism:sanitizeArbitraryPercentages(a.mechanismSummary || ''),
+          supportingEvidence:(review?.supportingEvidence || []).map((x:any)=>x.description),
+          conflictingEvidence:(review?.conflictingEvidence || []).map((x:any)=>x.description),
+          whatWouldChangeThis:(review?.missingEvidenceWhatWouldChangeIt || []).map((x:any)=>x.testOrObservation+': '+x.potentialImpact).join('\n'),
+          likelihoodAssessment:a.likelihoodAssessment || 'uncertain'};
+      }),
+      relationshipStatuses:alternatives.map(a=>({connection:a.title || '',status:'proposed' as const,rationale:'AI consideration; inspect supporting and conflicting evidence. Not an established causal relationship.',evidenceBasis:[]})),
+      contradictionQueue:(input.contradictions || []).map((c,i)=>({
+        id:c.id || 'contradiction_'+i,topic:c.topic || 'Review source entries',
+        itemA:{finding:c.itemA?.finding || '',source:c.itemA?.source || '',date:c.itemA?.date},
+        itemB:{finding:c.itemB?.finding || '',source:c.itemB?.source || '',date:c.itemB?.date},
+        clinicalSignificance:c.clinicalSignificance || '',resolutionNeed:c.resolutionNeed || '',
+      })),
     },
-    layer3_otherExplanations: {
-      plausibleAlternatives,
-      balancedEvidence,
-      relationshipStatuses,
-      contradictionQueue: Array.isArray(input.contradictions) && input.contradictions.length > 0
-        ? input.contradictions.map((c, idx) => ({
-            id: c.id || `contra_${idx + 1}`,
-            topic: c.topic || 'Discrepancy between findings',
-            itemA: {
-              finding: c.itemA?.finding || 'Documented observation A',
-              source: c.itemA?.source || 'Record A',
-              date: c.itemA?.date,
-            },
-            itemB: {
-              finding: c.itemB?.finding || 'Documented observation B',
-              source: c.itemB?.source || 'Record B',
-              date: c.itemB?.date,
-            },
-            clinicalSignificance: c.clinicalSignificance || 'Clinical discrepancy between tests or timeline reports.',
-            resolutionNeed: c.resolutionNeed || 'Review conflicting findings with treating clinician.',
-          }))
-        : undefined,
+    layer4_whatWeStillNeed:{criticalGaps:gaps.slice(0,2),completeMissingList:gaps},
+    layer5_nextStep:{
+      chosenAction:input.userPriority || (questions[0]?'Review this question: '+questions[0]:facts.length?'Review the saved observations and choose what to discuss next.':'Add a record or describe your concern.'),
+      otherActions:questions.slice(1),
+      doctorVisitBrief:{specificQuestion:questions[0] || '',whyItMatters:'An open question from your case review.',relevantRecords:[...new Set(records)]},
     },
-    layer4_whatWeStillNeed: {
-      criticalGaps,
-      completeMissingList,
-    },
-    layer5_nextStep: {
-      chosenAction,
-      otherActions,
-      doctorVisitBrief,
-    },
-    avoidDisclaimersEnforced: true,
-    generatedAt: new Date().toISOString(),
+    avoidDisclaimersEnforced:false,generatedAt:new Date().toISOString(),
   };
 }

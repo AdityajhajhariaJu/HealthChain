@@ -47,7 +47,7 @@ export interface RecordedMeasurementItem extends BaseInformationItem {
 export interface ExtractedFindingItem extends BaseInformationItem {
   category: 'extracted_finding';
   originalFile: string;
-  page: number;
+  page?: number;
   units?: string;
   extractionStatus: 'provisional' | 'checked' | 'rejected';
   confidence?: number;
@@ -245,323 +245,59 @@ export const INFORMATION_CATEGORY_REGISTRY: Record<ClinicalInformationCategory, 
   },
 };
 
-/**
- * Validates whether an information item contains all required fields for its category.
- */
-export function validateCategorizedItem(item: CategorizedInformationItem): {
-  isValid: boolean;
-  missingFields: string[];
-} {
-  const spec = INFORMATION_CATEGORY_REGISTRY[item.category];
-  if (!spec) {
-    return { isValid: false, missingFields: ['category'] };
-  }
 
-  const missingFields: string[] = [];
-  for (const field of spec.requiredFields) {
-    const val = (item as any)[field];
-    if (val === undefined || val === null || (typeof val === 'string' && !val.trim())) {
-      missingFields.push(field);
-    } else if (Array.isArray(val) && val.length === 0 && (field === 'supportingEvidenceIds' || field === 'limitations')) {
-      missingFields.push(field);
-    }
-  }
-
-  return {
-    isValid: missingFields.length === 0,
-    missingFields,
-  };
+export function validateCategorizedItem(item: CategorizedInformationItem): {isValid:boolean;missingFields:string[]} {
+  const spec=item && INFORMATION_CATEGORY_REGISTRY[item.category];
+  if(!spec) return {isValid:false,missingFields:['category']};
+  const missingFields=['id','text',...spec.requiredFields].filter(field=>{
+    const v=(item as any)[field];
+    return v===undefined || v===null || (typeof v==='string' && !v.trim()) || (Array.isArray(v) && !v.length);
+  });
+  if(item.category==='extracted_finding' && item.page!==undefined && (!Number.isInteger(item.page)||item.page<1)) missingFields.push('page');
+  return {isValid:!missingFields.length,missingFields};
 }
-
-/**
- * Heuristic classifier that inspects a raw clinical fact or text entry
- * and converts it into a typed CategorizedInformationItem.
- */
 export function classifyClinicalInformation(raw: {
-  id?: string;
-  text: string;
-  source?: string;
-  date?: string;
-  author?: string;
-  file?: string;
-  page?: number;
-  value?: number | string;
-  unit?: string;
-  method?: string;
-  extractionStatus?: 'provisional' | 'checked' | 'rejected';
-  attribution?: string;
-  supportingEvidenceIds?: string[];
-  limitations?: string[];
-  modelVersion?: string;
-  identifier?: string;
-  studyType?: string;
-  relevantPassage?: string;
-  reasonForAsking?: string;
-  missingInformation?: string;
-  decisionText?: string;
-}): CategorizedInformationItem {
-  const id = raw.id || `item_${Math.random().toString(36).substring(2, 9)}`;
-  const text = raw.text.trim();
-  const sourceLower = (raw.source || '').toLowerCase();
-  const textLower = text.toLowerCase();
-  const nowStr = new Date().toISOString();
-
-  // 1. Check for Outcome
-  if (
-    textLower.startsWith('outcome:') ||
-    textLower.includes('at the visit, we agreed') ||
-    textLower.includes('doctor decided') ||
-    raw.decisionText
-  ) {
-    return {
-      id,
-      category: 'outcome',
-      text,
-      createdAt: nowStr,
-      sourceDocumentOrUserReport: raw.source || raw.author || 'Clinical Appointment Brief',
-      date: raw.date || nowStr.slice(0, 10),
-      decisionText: raw.decisionText || text,
-      allowedRole: 'Follow-up that can update the case',
-    };
-  }
-
-  // 2. Check for Open Question
-  if (
-    text.endsWith('?') ||
-    textLower.startsWith('question:') ||
-    textLower.includes('did these events overlap') ||
-    raw.reasonForAsking
-  ) {
-    return {
-      id,
-      category: 'open_question',
-      text,
-      createdAt: nowStr,
-      questionText: text,
-      reasonForAsking: raw.reasonForAsking || 'Unresolved correlation or timeline overlap in case evidence',
-      missingInformation: raw.missingInformation || 'Symptom timing or missing lab confirmation',
-      allowedRole: 'An unresolved task',
-    };
-  }
-
-  // 3. Check for External Evidence
-  if (
-    raw.identifier ||
-    sourceLower.includes('pubmed') ||
-    sourceLower.includes('trial') ||
-    sourceLower.includes('nct') ||
-    sourceLower.includes('doi') ||
-    textLower.includes('clinical trial')
-  ) {
-    return {
-      id,
-      category: 'external_evidence',
-      text,
-      createdAt: nowStr,
-      identifier: raw.identifier || raw.source || 'External Clinical Literature',
-      date: raw.date || nowStr.slice(0, 10),
-      studyType: raw.studyType || 'Peer-reviewed clinical publication / registry trial',
-      relevantPassage: raw.relevantPassage || text,
-      allowedRole: 'General evidence with applicability limits',
-    };
-  }
-
-  // 4. Check for Documented Clinician Assessment
-  if (
-    sourceLower.includes('clinic note') ||
-    sourceLower.includes('dr.') ||
-    sourceLower.includes('doctor') ||
-    sourceLower.includes('physician') ||
-    sourceLower.includes('discharge') ||
-    raw.attribution
-  ) {
-    return {
-      id,
-      category: 'documented_clinician_assessment',
-      text,
-      createdAt: nowStr,
-      source: raw.source || 'Clinical Encounter Note',
-      date: raw.date || nowStr.slice(0, 10),
-      attribution: raw.attribution || raw.source || 'Treating Clinician',
-      allowedRole: 'A dated clinician assessment—not automatically permanent truth',
-    };
-  }
-
-  // 5. Check for Extracted Finding (from an attached PDF / file / lab report)
-  if (
-    raw.file ||
-    raw.page !== undefined ||
-    sourceLower.includes('.pdf') ||
-    sourceLower.includes('lab report') ||
-    sourceLower.includes('panel') ||
-    sourceLower.includes('blood test') ||
-    sourceLower.includes('scan')
-  ) {
-    return {
-      id,
-      category: 'extracted_finding',
-      text,
-      createdAt: nowStr,
-      originalFile: raw.file || raw.source || 'Attached Laboratory Document',
-      page: raw.page || 1,
-      units: raw.unit,
-      extractionStatus: raw.extractionStatus || 'provisional',
-      allowedRole: 'Provisional record content until checked',
-    };
-  }
-
-  // 6. Check for Recorded Measurement (e.g. vital sign or wearable reading)
-  const measurementMatch = text.match(/(\d+(?:\.\d+)?)\s*(bpm|mg\/dl|mmhg|mmol\/l|g\/dl|pg\/ml|ng\/ml|%|kg|lbs|mcg\/l)/i);
-  if (measurementMatch || (raw.value !== undefined && raw.unit)) {
-    return {
-      id,
-      category: 'recorded_measurement',
-      text,
-      createdAt: nowStr,
-      value: raw.value ?? measurementMatch?.[1] ?? 'Recorded value',
-      unit: raw.unit ?? measurementMatch?.[2] ?? 'units',
-      time: raw.date || nowStr,
-      method: raw.method || raw.source || 'Recorded measurement instrument',
-      allowedRole: 'Evidence of that measurement',
-    };
-  }
-
-  // 7. Check for AI Consideration
-  if (
-    textLower.includes('may be related') ||
-    textLower.includes('consider') ||
-    textLower.includes('ai proposal') ||
-    textLower.includes('differential') ||
-    sourceLower.includes('ai') ||
-    sourceLower.includes('jarvis') ||
-    sourceLower.includes('engine')
-  ) {
-    return {
-      id,
-      category: 'ai_consideration',
-      text,
-      createdAt: nowStr,
-      supportingEvidenceIds: raw.supportingEvidenceIds || ['input_context_01'],
-      limitations: raw.limitations || [
-        'Model-generated working hypothesis; requires clinical confirmation',
-        'Not calibrated diagnostic probability',
-      ],
-      modelVersion: raw.modelVersion || 'Clinical Data Engine v2.4',
-      allowedRole: 'A proposal to examine',
-    };
-  }
-
-  // 8. Default: User Report (Patient's subjective experience)
-  return {
-    id,
-    category: 'user_report',
-    text,
-    createdAt: nowStr,
-    author: raw.author || 'Patient',
-    entryTime: raw.date || nowStr,
-    allowedRole: 'Evidence of the reported experience',
-  };
+  id?:string;text:string;category?:ClinicalInformationCategory;source?:string;date?:string;author?:string;file?:string;page?:number;
+  value?:number|string;unit?:string;method?:string;extractionStatus?:'provisional'|'checked'|'rejected';attribution?:string;
+  supportingEvidenceIds?:string[];limitations?:string[];modelVersion?:string;identifier?:string;studyType?:string;relevantPassage?:string;
+  reasonForAsking?:string;missingInformation?:string;decisionText?:string;
+}):CategorizedInformationItem {
+  let hash=2166136261;for(const c of JSON.stringify([raw.text,raw.source,raw.date])) hash=Math.imul(hash^c.charCodeAt(0),16777619);
+  const base={id:raw.id || 'item_'+(hash>>>0).toString(16),text:(raw.text || '').trim(),createdAt:raw.date || ''};
+  // Provenance overrides words in the content. A number or "doctor" in prose
+  // does not establish measurement or clinician provenance.
+  const source=(raw.source || '').toLowerCase();
+  const category:ClinicalInformationCategory=raw.category && INFORMATION_CATEGORY_REGISTRY[raw.category]?raw.category:
+    /\b(ai|engine|jarvis)\b/.test(source)?'ai_consideration':
+    raw.file?'extracted_finding':raw.attribution?'documented_clinician_assessment':
+    raw.identifier?'external_evidence':raw.value!==undefined && raw.unit && raw.method?'recorded_measurement':
+    raw.decisionText?'outcome':raw.reasonForAsking?'open_question':'user_report';
+  const allowedRole=INFORMATION_CATEGORY_REGISTRY[category].allowedRole;
+  return ({
+    ...base,category,allowedRole,
+    ...(category==='user_report'?{author:raw.author || 'User',entryTime:raw.date || ''}:{}),
+    ...(category==='recorded_measurement'?{value:raw.value,unit:raw.unit || '',time:raw.date || '',method:raw.method || ''}:{}),
+    ...(category==='extracted_finding'?{originalFile:raw.file || '',page:raw.page,units:raw.unit,extractionStatus:raw.extractionStatus || 'provisional'}:{}),
+    ...(category==='documented_clinician_assessment'?{source:raw.source || '',date:raw.date || '',attribution:raw.attribution || ''}:{}),
+    ...(category==='ai_consideration'?{supportingEvidenceIds:raw.supportingEvidenceIds || [],limitations:raw.limitations || [],modelVersion:raw.modelVersion || ''}:{}),
+    ...(category==='external_evidence'?{identifier:raw.identifier || '',date:raw.date || '',studyType:raw.studyType || '',relevantPassage:raw.relevantPassage || ''}:{}),
+    ...(category==='open_question'?{questionText:base.text,reasonForAsking:raw.reasonForAsking || '',missingInformation:raw.missingInformation || ''}:{}),
+    ...(category==='outcome'?{sourceDocumentOrUserReport:raw.source || '',date:raw.date || '',decisionText:raw.decisionText || ''}:{}),
+  }) as CategorizedInformationItem;
 }
-
-/**
- * Pre-Reasoning Gateway:
- * Strictly sorts, validates, and partitions raw information items
- * before any synthesis, differential weighting, or clinical reasoning is permitted.
- */
-export function partitionBeforeReasoning(rawItems: any[]): {
-  userReports: UserReportItem[];
-  measurements: RecordedMeasurementItem[];
-  extractedFindings: ExtractedFindingItem[];
-  clinicianAssessments: DocumentedClinicianAssessmentItem[];
-  aiConsiderations: AIConsiderationItem[];
-  externalEvidence: ExternalEvidenceItem[];
-  openQuestions: OpenQuestionItem[];
-  outcomes: OutcomeItem[];
-  allValid: boolean;
-  summary: Record<ClinicalInformationCategory, number>;
-} {
-  const userReports: UserReportItem[] = [];
-  const measurements: RecordedMeasurementItem[] = [];
-  const extractedFindings: ExtractedFindingItem[] = [];
-  const clinicianAssessments: DocumentedClinicianAssessmentItem[] = [];
-  const aiConsiderations: AIConsiderationItem[] = [];
-  const externalEvidence: ExternalEvidenceItem[] = [];
-  const openQuestions: OpenQuestionItem[] = [];
-  const outcomes: OutcomeItem[] = [];
-
-  let allValid = true;
-
-  for (const raw of rawItems) {
-    let item: CategorizedInformationItem;
-    if (raw && typeof raw === 'object' && raw.category && INFORMATION_CATEGORY_REGISTRY[raw.category as ClinicalInformationCategory]) {
-      item = raw as CategorizedInformationItem;
-    } else {
-      item = classifyClinicalInformation(
-        typeof raw === 'string'
-          ? { text: raw }
-          : {
-              text: raw.fact || raw.text || raw.claim || JSON.stringify(raw),
-              source: raw.source,
-              date: raw.date,
-              page: raw.page,
-              file: raw.file,
-              attribution: raw.attribution,
-            }
-      );
-    }
-
-    const { isValid } = validateCategorizedItem(item);
-    if (!isValid) allValid = false;
-
-    switch (item.category) {
-      case 'user_report':
-        userReports.push(item);
-        break;
-      case 'recorded_measurement':
-        measurements.push(item);
-        break;
-      case 'extracted_finding':
-        extractedFindings.push(item);
-        break;
-      case 'documented_clinician_assessment':
-        clinicianAssessments.push(item);
-        break;
-      case 'ai_consideration':
-        aiConsiderations.push(item);
-        break;
-      case 'external_evidence':
-        externalEvidence.push(item);
-        break;
-      case 'open_question':
-        openQuestions.push(item);
-        break;
-      case 'outcome':
-        outcomes.push(item);
-        break;
-    }
+export function partitionBeforeReasoning(rawItems:any[]) {
+  const result={userReports:[] as UserReportItem[],measurements:[] as RecordedMeasurementItem[],extractedFindings:[] as ExtractedFindingItem[],
+    clinicianAssessments:[] as DocumentedClinicianAssessmentItem[],aiConsiderations:[] as AIConsiderationItem[],
+    externalEvidence:[] as ExternalEvidenceItem[],openQuestions:[] as OpenQuestionItem[],outcomes:[] as OutcomeItem[],
+    invalidItems:[] as CategorizedInformationItem[],allValid:true,
+    summary:Object.fromEntries(Object.keys(INFORMATION_CATEGORY_REGISTRY).map(k=>[k,0])) as Record<ClinicalInformationCategory,number>};
+  const buckets={user_report:'userReports',recorded_measurement:'measurements',extracted_finding:'extractedFindings',documented_clinician_assessment:'clinicianAssessments',
+    ai_consideration:'aiConsiderations',external_evidence:'externalEvidence',open_question:'openQuestions',outcome:'outcomes'};
+  for(const raw of rawItems || []){
+    if(raw==null) {result.allValid=false;continue;}
+    const item=raw.classifiedItem || (raw.category && raw.allowedRole && raw.text?raw:classifyClinicalInformation(typeof raw==='string'?{text:raw}:{...raw,text:raw.fact || raw.text || ''}));
+    if(!validateCategorizedItem(item).isValid){result.allValid=false;result.invalidItems.push(item);continue;}
+    (result as any)[buckets[item.category]].push(item);result.summary[item.category as ClinicalInformationCategory]++;
   }
-
-  const summary: Record<ClinicalInformationCategory, number> = {
-    user_report: userReports.length,
-    recorded_measurement: measurements.length,
-    extracted_finding: extractedFindings.length,
-    documented_clinician_assessment: clinicianAssessments.length,
-    ai_consideration: aiConsiderations.length,
-    external_evidence: externalEvidence.length,
-    open_question: openQuestions.length,
-    outcome: outcomes.length,
-  };
-
-  return {
-    userReports,
-    measurements,
-    extractedFindings,
-    clinicianAssessments,
-    aiConsiderations,
-    externalEvidence,
-    openQuestions,
-    outcomes,
-    allValid,
-    summary,
-  };
+  return result;
 }

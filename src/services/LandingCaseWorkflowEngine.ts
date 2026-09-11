@@ -481,12 +481,13 @@ export function instantiateWorkflowCase(scenarioId: string): CaseItem {
 
   // Create active case draft in CaseEngine
   const caseDraft = createCaseDraft({
-    title: scenario.title,
+    title: '[Example] ' + scenario.title,
     intakeData: {
       chiefComplaint: scenario.sampleIntake.chiefComplaint,
       timeline: scenario.sampleIntake.timeline,
       triggerContext: scenario.sampleIntake.triggerContext,
       scenarioId: scenario.id,
+      isExample: true,
       workflowDesignStandard: 'Point 6: Useful reasoning, not generic advice',
       epistemicBoundary: scenario.epistemicBoundary,
     },

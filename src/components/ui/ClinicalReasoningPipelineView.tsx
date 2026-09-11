@@ -20,21 +20,26 @@ import { InformationCategoryBadge } from './InformationCategoryBadge';
 
 interface ClinicalReasoningPipelineViewProps {
   payload: ClinicalReasoningPayload;
-  onClarificationSubmit?: (answer: string) => void;
+  onClarificationSubmit?: (answer: string) => void | boolean | Promise<void | boolean>;
+  onChooseNextAction?: (action: string) => void;
+  onCorrectionAcknowledge?: (id: string) => void;
   isUpdating?: boolean;
 }
 
 export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineViewProps> = ({
   payload,
   onClarificationSubmit,
+  onCorrectionAcknowledge,
+  onChooseNextAction,
   isUpdating = false,
 }) => {
+  const [nextAction, setNextAction] = useState(payload.stage9_continuity.chosenNextAction);
   const [activeStage, setActiveStage] = useState<number>(7); // Default to focused question / synthesis
   const [userClarificationText, setUserClarificationText] = useState('');
   const [acknowledgedCorrections, setAcknowledgedCorrections] = useState<Set<string>>(new Set());
 
   const stages = [
-    { num: 1, label: 'Verified Facts', icon: CheckCircle2, desc: 'Source-linked evidence' },
+    { num: 1, label: 'Case Evidence', icon: CheckCircle2, desc: 'Source-linked evidence' },
     { num: 2, label: 'Timeline', icon: Clock, desc: 'Event vs report vs entry' },
     { num: 3, label: 'Correction Queue', icon: AlertTriangle, desc: 'Reconcile discrepancies' },
     { num: 4, label: 'Perspectives', icon: Stethoscope, desc: 'Justified specialty set' },
@@ -47,14 +52,20 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
   ];
 
   const handleAcknowledgeCorrection = (id: string) => {
+    if (!onCorrectionAcknowledge) return;
+    onCorrectionAcknowledge(id);
     setAcknowledgedCorrections(prev => new Set([...prev, id]));
   };
 
-  const handleClarificationSend = (e: React.FormEvent) => {
+  const handleClarificationSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userClarificationText.trim() || !onClarificationSubmit) return;
-    onClarificationSubmit(userClarificationText.trim());
-    setUserClarificationText('');
+    if (!userClarificationText.trim() || !onClarificationSubmit || isUpdating) return;
+    try {
+      const saved = await onClarificationSubmit(userClarificationText.trim());
+      if (saved !== false) setUserClarificationText('');
+    } catch {
+      // Keep the draft when persistence fails so the user can retry.
+    }
   };
 
   return (
@@ -78,10 +89,10 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38BDF8', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px' }}>
               <Scale size={13} />
-              Reasoning Depth Engine • Step 4 Specification
+              Evidence, questions and updates
             </div>
             <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.3px' }}>
-              10-Stage Clinical Reasoning & Feedback Loop
+              Clinical reasoning and follow-up
             </h3>
             <p style={{ margin: '6px 0 0 0', fontSize: '13.5px', color: '#94A3B8', lineHeight: 1.5, maxWidth: '780px' }}>
               From source-verified facts to temporal alignment, record reconciliation, justified perspectives, tri-prong challenges, and continuous selective updates.
@@ -139,7 +150,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               }}
             >
               <CheckCircle2 size={13} color={activeStage === 1 ? '#FFFFFF' : '#38BDF8'} />
-              <span>Verified facts</span>
+              <span>Case evidence</span>
             </button>
 
             <ArrowRight size={14} color="#64748B" />
@@ -377,7 +388,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
                 </p>
               </div>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#0369A1', background: '#F0F9FF', padding: '4px 12px', borderRadius: '999px', border: '1px solid #BAE6FD' }}>
-                {payload.stage1_facts.length} Verified Evidence Points
+                {payload.stage1_facts.length} Recorded Evidence Points
               </span>
             </div>
 
@@ -517,7 +528,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
             ) : (
               <div style={{ display: 'grid', gap: '12px' }}>
                 {payload.stage3_correctionQueue.map((item) => {
-                  const isAcknowledged = acknowledgedCorrections.has(item.id);
+                  const isAcknowledged = item.status === 'acknowledged' || acknowledgedCorrections.has(item.id);
                   return (
                     <div
                       key={item.id}
@@ -548,6 +559,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
                         </div>
 
                         <button
+                          disabled={!onCorrectionAcknowledge}
                           onClick={() => handleAcknowledgeCorrection(item.id)}
                           style={{
                             background: isAcknowledged ? '#E2E8F0' : '#0F172A',
@@ -814,7 +826,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               </div>
 
               {/* Interactive Answer Input (Completes Feedback Loop into Stage 1 Facts) */}
-              {onClarificationSubmit && (
+              {onClarificationSubmit && payload.stage7_focusedQuestion.question && (
                 <form onSubmit={handleClarificationSend} style={{ background: '#FFFFFF', borderRadius: '14px', padding: '16px', border: '1.5px solid #F97316' }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#9A3412', marginBottom: '6px', textTransform: 'uppercase' }}>
                     Answer this question to close the loop & update the case selectively:
@@ -857,7 +869,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
                       }}
                     >
                       <Send size={14} />
-                      <span>{isUpdating ? 'Updating Pipeline...' : 'Add to Verified Facts & Selectively Update'}</span>
+                      <span>{isUpdating ? 'Saving...' : 'Save clarification'}</span>
                     </button>
                   </div>
                 </form>
@@ -949,7 +961,11 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '10px', padding: '12px 16px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Chosen Next Action:</div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', marginTop: '2px' }}>
-                  {payload.stage9_continuity.chosenNextAction}
+                  {payload.stage9_continuity.chosenNextAction || 'No next action chosen yet.'}
+                  {onChooseNextAction && <form onSubmit={e => { e.preventDefault(); if (nextAction.trim()) onChooseNextAction(nextAction.trim()); }}>
+                    <label>My next action<input aria-label="My next action" value={nextAction} onChange={e => setNextAction(e.target.value)} /></label>
+                    <button type="submit" disabled={!nextAction.trim()}>Save next action</button>
+                  </form>}
                 </div>
               </div>
             </div>

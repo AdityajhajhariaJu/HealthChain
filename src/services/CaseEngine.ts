@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient';
 import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
-import { get as idbGet, set as idbSet, del as idbDel } from 'idb-keyval';
+import { get as idbGet, set as idbSet } from 'idb-keyval';
 
 export interface CaseUpdate {
   id: string;
@@ -205,10 +205,14 @@ const id = () => {
 let cachedCases: CaseItem[] | null = null;
 
 export function getCases(): CaseItem[] {
+  const key = getCasesKey();
+  if (currentCasesKey !== key) {
+    cachedCases = null;
+    currentCasesKey = key;
+  }
   if (cachedCases && cachedCases.length > 0) return cachedCases;
   try {
-    const key = currentCasesKey || getCasesKey();
-    const raw = getItemSync(key) || getItemSync('hc_cases');
+    const raw = getItemSync(key);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -277,19 +281,8 @@ async function save(cases: CaseItem[]) {
        });
     }
     await flushSyncOutbox(session.user.id);
-      // Fix: Keep IndexedDB updated immediately as a read-only safety net for offline recovery!
-      const fallbackCases = safeCases.filter((c: any) => (c.__profileId || 'profile_1') === currentProfileId);
-      if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
-        idbSet(currentCasesKey || getCasesKey(), JSON.stringify(fallbackCases)).catch(console.warn);
-      }
-    // Keep IndexedDB as a read-only safety net for offline/poor-network scenarios.
-    // It will be refreshed on next successful initCaseEngine read from Supabase.
-  } else {
-    // Keep all saved guest drafts; silently truncating loses case history.
-    const capped = safeCases;
-    if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
-      idbSet(getCasesKey(), JSON.stringify(capped)).catch(console.warn);
-    }
+    // Already persisted in the captured scope before authentication. Do not
+    // rewrite that snapshot here: a newer save may have completed meanwhile.
   }
   } catch (error) {
     // The durable local copy remains available for a later sync attempt.
@@ -299,7 +292,7 @@ async function save(cases: CaseItem[]) {
 
 export function getActiveCaseId(): string | null {
   const explicitId = getItemSync(getActiveCaseKey());
-  const cases = getCases();
+  const cases = getCases().filter(c => !c.intakeData?.scenarioId);
   if (explicitId && cases.some(c => c.id === explicitId)) {
     return explicitId;
   }
@@ -315,6 +308,7 @@ export function getActiveCase(): CaseItem | null {
 }
 
 export function setActiveCase(caseId: string | null) {
+  if (caseId && (!getCase(caseId) || getCase(caseId)?.intakeData?.scenarioId)) return;
   if (caseId) setItemSync(getActiveCaseKey(), caseId);
   else removeItemSync(getActiveCaseKey());
   window.dispatchEvent(new Event('hc_active_case_updated'));
@@ -450,26 +444,13 @@ export function saveReviewSnapshot({
   }
 
   // Fulfill Promise 1 & 2: Synthesize or preserve multi-perspective specialist cards and stable clinical question IDs
-  const rawPerspectives: SpecialistPerspective[] = Array.isArray(report?.perspectives) && report.perspectives.length > 0
-    ? report.perspectives
-    : Array.isArray(report?.consensusDialogue) && report.consensusDialogue.length > 0
-      ? report.consensusDialogue.map((d: any, idx: number) => ({
-          id: `pers_${caseId.slice(0, 8)}_${idx}`,
-          specialty: d.specialty || d.role || 'Clinical Specialty',
-          doctorName: d.doctorName || undefined,
-          uniqueContribution: d.finding || d.rationale || 'Cross-system clinical insight.',
-          supportingEvidenceIds: basedOnEvidenceIds || [],
-          remainingQuestions: Array.isArray(d.remainingQuestions) ? d.remainingQuestions : [],
-          dissentingView: d.dissentingView || undefined,
-        }))
-      : (specialists || ['Complex Diagnostic Medicine']).map((spec: string, idx: number) => ({
-          id: `pers_${caseId.slice(0, 8)}_${idx}`,
-          specialty: spec,
-          doctorName: spec === 'Clinical Data Engine' ? 'Autonomous Synthesis Board' : undefined,
-          uniqueContribution: report?.executiveSummary || report?.primaryHypothesis || 'Evaluated multi-system telemetry and case evidence.',
-          supportingEvidenceIds: basedOnEvidenceIds || [],
-          remainingQuestions: (report?.uncertainties || []).slice(0, 2),
-        }));
+  const rawPerspectives: SpecialistPerspective[] = report?.groundingVersion === 1 && Array.isArray(report.perspectives)
+    ? report.perspectives.map((p: any) => ({
+      id: p.id, specialty: p.specialty, doctorName: p.doctorName,
+      uniqueContribution: p.interpretation || p.uniqueContribution || '',
+      supportingEvidenceIds: p.evidenceConsidered || p.supportingEvidenceIds || [],
+      remainingQuestions: p.missingInformation || [],
+    })) : [];
 
   const snapshot: ReviewSnapshot = {
     id: id(),
@@ -493,17 +474,17 @@ export function saveReviewSnapshot({
   ];
   const existingQuestions = existing.questions || [];
   const existingTexts = new Set(existingQuestions.map(q => q.questionText.trim().toLowerCase()));
-  const newQuestions: ClinicalQuestion[] = rawQuestions
-    .map(q => typeof q === 'string' ? q.trim() : (q?.questionText || q?.question || '').trim())
-    .filter(text => text.length > 0 && !existingTexts.has(text.toLowerCase()))
-    .map((qText, idx) => ({
-      id: `q_${caseId.slice(0, 8)}_${Date.now()}_${idx}`,
-      questionText: qText,
-      raisedBySpecialty: specialists?.[0] || 'Clinical Review Panel',
-      supportingEvidenceIds: basedOnEvidenceIds || [],
-      status: 'open' as const,
-      createdAt: now,
-    }));
+  const newQuestions: ClinicalQuestion[] = [];
+  for (const raw of rawQuestions) {
+    const questionText = (typeof raw === 'string' ? raw : raw?.questionText || raw?.question || '').trim();
+    const key = questionText.toLowerCase();
+    if (!questionText || existingTexts.has(key)) continue;
+    existingTexts.add(key);
+    newQuestions.push({
+      id: typeof raw === 'object' && raw?.id ? raw.id : id(), questionText, raisedBySpecialty: raw?.raisedBySpecialty || specialists?.[0] || 'AI review',
+      supportingEvidenceIds: raw?.supportingEvidenceIds || basedOnEvidenceIds || [], status: 'open', createdAt: now,
+    });
+  }
   const unifiedQuestions: ClinicalQuestion[] = [...existingQuestions, ...newQuestions];
 
   const priorActions = existing.actions || [];
@@ -712,7 +693,9 @@ export function updateCaseDifferentials(caseId: string, differentials: Different
 }
 
 export async function initCaseEngine() {
+  const requestedKey = getCasesKey();
   const { data: { session } } = await supabase.auth.getSession();
+  if (getCasesKey() !== requestedKey) return;
   const key = getCasesKey();
   const currentProfileId = getActiveProfileId();
   if (currentCasesKey !== key) {
@@ -724,15 +707,19 @@ export async function initCaseEngine() {
     // Deliver queued writes before reading the remote snapshot so a device
     // switch does not briefly load an older case file over newer offline work.
     await flushSyncOutbox(session.user.id);
+    if (getCasesKey() !== key) return;
 
     // Migration: upload existing local cases
-    let localRaw = await idbGet(key) as string;
-    if (!localRaw) localRaw = getItemSync(key) as string;
+    const indexedSnapshot = await idbGet(key) as string;
+    if (getCasesKey() !== key) return;
+    let localRaw = getItemSync(key) || indexedSnapshot;
+    const initialMirror = getItemSync(key);
     if (localRaw) {
       try {
         const localCases = JSON.parse(localRaw);
         if (Array.isArray(localCases) && localCases.length > 0) {
           for (const c of localCases) {
+            if (getCasesKey() !== key) return;
             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
             if (!isUUID) continue;
             await enqueueSync('case_upsert', session.user.id, {
@@ -752,10 +739,7 @@ export async function initCaseEngine() {
       }
       // Keep the local copy until every migrated record has left the outbox.
       // This makes a failed migration recoverable on the next launch.
-      if (await getPendingSyncCount(session.user.id) === 0) {
-        idbDel(key).catch(() => {});
-        removeItemSync(key);
-      }
+      // Retain the recoverable local copy, including writes made during sync.
     }
     
     // Fetch in bounded pages. Case data contains structured review history and
@@ -766,6 +750,7 @@ export async function initCaseEngine() {
     let error: any = null;
     let page = 0;
     while (true) {
+      if (getCasesKey() !== key) return;
       const result = await supabase
         .from('cases')
         .select('data')
@@ -781,12 +766,20 @@ export async function initCaseEngine() {
       page += 1;
     }
        
-    if (!error && data) {
+    if (getCasesKey() !== key) return;
+    if (getItemSync(key) !== initialMirror) {
+      // A local edit occurred during the request. Its queued write will sync;
+      // never replace it with a snapshot fetched before that edit completed.
+      window.dispatchEvent(new Event('hc_cases_updated'));
+      return;
+    }
+    if (!error && data && await getPendingSyncCount(session.user.id) === 0) {
+       if (getCasesKey() !== key || getItemSync(key) !== initialMirror) return;
        // Filter by profile
        cachedCases = data.map(row => row.data).filter(d => (d.__profileId || 'profile_1') === currentProfileId);
          // Fix: Always persist the remote snapshot locally so offline-mode has a durable fallback!
          idbSet(key, JSON.stringify(cachedCases)).catch(() => {});
-         try { removeItemSync(key); } catch {}
+         setItemSync(key, JSON.stringify(cachedCases));
     } else if (localRaw) {
        // A transient remote read failure must never erase the last known case
        // list from the current device.
@@ -801,8 +794,11 @@ export async function initCaseEngine() {
     }
   } else {
     // Guest
-    let localRaw = await idbGet(key) as string;
-    if (!localRaw) localRaw = getItemSync(key) as string;
+    const indexedSnapshot = await idbGet(key) as string;
+    if (getCasesKey() !== key) return;
+    // A review may have been saved while IndexedDB was loading. The synchronous
+    // mirror contains that latest write; do not replace it with an older read.
+    const localRaw = getItemSync(key) || indexedSnapshot;
     try {
       cachedCases = JSON.parse(localRaw || '[]');
     } catch {
@@ -862,29 +858,11 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
 }
 
 export function ensureRecordPassages(record: MedicalRecord): MedicalRecord {
-  if (record.passages && record.passages.length > 0) return record;
-  const raw = record.findings || '';
-  const lines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean);
-  const passages: RecordPassage[] = [];
-  
-  if (lines.length > 0) {
-    lines.forEach((line, idx) => {
-      passages.push({
-        id: `pas_${record.id}_${idx + 1}`,
-        page: 1,
-        section: idx === 0 ? 'Primary Findings' : 'Clinical Observation',
-        text: line,
-      });
-    });
-  } else {
-    passages.push({
-      id: `pas_${record.id}_1`,
-      page: 1,
-      section: 'Diagnostic Summary',
-      text: record.findings || 'Verified clinical documentation on file.',
-    });
-  }
-  return { ...record, passages };
+  if (record.passages?.length) return record;
+  // Legacy findings are a stored summary, not an original page transcription.
+  return { ...record, passages: record.findings?.trim() ? [{
+    id: 'summary_' + record.id, section: 'Stored summary (original page not available)', text: record.findings,
+  }] : [] };
 }
 
 export function getRecordPassage(caseId: string, recordId: string, passageId?: string): { record: MedicalRecord; passage?: RecordPassage } | null {
@@ -893,7 +871,7 @@ export function getRecordPassage(caseId: string, recordId: string, passageId?: s
   const record = caseItem.medicalRecords?.find(r => r.id === recordId || r.filename === recordId);
   if (!record) return null;
   const enriched = ensureRecordPassages(record);
-  const passage = passageId ? enriched.passages?.find(p => p.id === passageId || p.text.includes(passageId)) : enriched.passages?.[0];
+  const passage = passageId ? enriched.passages?.find(p => p.id === passageId || false) : enriched.passages?.[0];
   return { record: enriched, passage };
 }
 
@@ -1003,4 +981,14 @@ export function updateCaseQuestionOutcome(
 
 export function clearCaseEngineCache() {
   cachedCases = null;
+}
+
+
+/** Attach records to an explicit case, never whichever case became active later. */
+export function appendCaseRecords(caseId:string, records:MedicalRecord[]):void {
+  const cases=getCases(),target=cases.find(c=>c.id===caseId);
+  if(!target || target.intakeData?.scenarioId) throw new Error('Case unavailable.');
+  const existing=new Set((target.medicalRecords || []).map(r=>r.id));
+  const additions=records.filter(r=>!existing.has(r.id)).map(ensureRecordPassages);
+  save(cases.map(c=>c.id===caseId?{...c,medicalRecords:[...additions,...c.medicalRecords],updatedAt:new Date().toISOString()}:c));
 }

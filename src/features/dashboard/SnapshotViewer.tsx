@@ -290,7 +290,7 @@ AI-generated preparation material. Verify against original records.`;
                     </div>
 
                     {/* STEP 7: 5-LAYER STRUCTURED CASE SYNTHESIS */}
-                    {activeReview.report && (
+                    {activeReview.report?.groundingVersion === 1 && (
                       <StructuredAnswerView
                         answer={activeReview.report.structuredAnswer || buildStructuredClinicalAnswer({
                           primaryHypothesis: activeReview.report?.primaryHypothesis || 'Clinical Finding',
@@ -307,14 +307,14 @@ AI-generated preparation material. Verify against original records.`;
                     )}
 
                     {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH ENGINE */}
-                    {activeReview.report && (
+                    {activeReview.report?.groundingVersion === 1 && (
                       <ClinicalReasoningPipelineView
                         payload={activeReview.report.reasoningPipeline || runClinicalReasoningPipeline(activeReview.report)}
                       />
                     )}
 
                     {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON */}
-                    {activeReview.report && (() => {
+                    {activeReview.report?.groundingVersion === 1 && (() => {
                       const versionedEvidence = activeReview.report.versionedEvidence || buildVersionedEvidenceSet(
                         (activeReview.report.documentedFacts || []).map((f: any) => typeof f === 'string' ? { fact: f, source: 'Clinical Record' } : f),
                         item.medicalRecords || []
@@ -566,7 +566,7 @@ AI-generated preparation material. Verify against original records.`;
                     </section>
                     
                     {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON */}
-                    {activeReview.report && (() => {
+                    {activeReview.report?.groundingVersion === 1 && (() => {
                       const versionedEvidence = activeReview.report.versionedEvidence || buildVersionedEvidenceSet(
                         (activeReview.report.documentedFacts || []).map((f: any) => typeof f === 'string' ? { fact: f, source: 'Clinical Record' } : f),
                         item.medicalRecords || []

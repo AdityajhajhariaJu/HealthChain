@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
-import { createCaseDraft, saveReviewSnapshot, getActiveCase, getCase } from '../../services/CaseEngine';
+import { createCaseDraft, saveReviewSnapshot, appendCaseRecords, MedicalRecord, addCaseEvent, getActiveCase, getCase } from '../../services/CaseEngine';
 import { getActiveSession } from '../../services/authSession';
 import { getProfile, getProfileKey, getProfileEngineState } from '../../services/ProfileEngine';
 import { openTrialModal } from '../../services/TrialEngine';
@@ -31,6 +31,7 @@ import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEn
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
 import { normalizeClinicalReview } from '../../services/clinicalReview';
 import '../../components/ui/caseWorkspace.css';
+import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
 
 const engineScope = () => `${getProfileKey()}_${getProfileEngineState()?.activeId || 'profile_1'}`;
 const engineDraftKey = (caseId: string) => `hc_engine_draft_${engineScope()}_${caseId || 'new'}`;
@@ -59,12 +60,15 @@ export default function JarvisInvestigator() {
   const [copiedSbar, setCopiedSbar] = useState(false);
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
   const availableCases = useCaseWorkspace();
+  const reviewHydrationKey = availableCases.map(item => `${item.id}:${item.reviews?.[0]?.id || ''}`).join('|');
   const [selectedCaseId, setSelectedCaseId] = useState(() => {
     const preferred = searchParams.get('caseId') || location.state?.caseId || '';
     const scope = getUnifiedCaseScope(preferred);
-    return scope.caseId || '';
+    return preferred || scope.caseId || '';
   });
   const [isReadingFiles, setIsReadingFiles] = useState(false);
+  const selectedCaseRef = useRef(selectedCaseId);
+  selectedCaseRef.current = selectedCaseId;
   const [sourceModalData, setSourceModalData] = useState<SourcePassageModalProps | null>(null);
   const [showSovereigntyModal, setShowSovereigntyModal] = useState(false);
   const runningRef = useRef(false);
@@ -98,7 +102,7 @@ export default function JarvisInvestigator() {
         setSelectedCaseId(existing.id);
         setHistory(previous => previous || existing.intakeData?.chiefComplaint || existing.intakeData?.concern || '');
         const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
-        if (jarvisReview?.report && searchParams.get('review') !== 'new') {
+        if (jarvisReview?.report?.groundingVersion === 1 && searchParams.get('review') !== 'new') {
           setReport(jarvisReview.report);
           setCreatedCaseId(existing.id);
           setHistory(existing.intakeData?.chiefComplaint || '');
@@ -106,7 +110,7 @@ export default function JarvisInvestigator() {
         }
       }
     }
-  }, [searchParams, location.state, availableCases.length]);
+  }, [searchParams, location.state, reviewHydrationKey]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -297,7 +301,7 @@ AI-generated preparation material. Verify against original records; this is not 
   const [isUpdatingReasoning, setIsUpdatingReasoning] = useState(false);
 
   const handleClarificationFeedback = async (answer: string) => {
-    if (!report || isUpdatingReasoning) return;
+    if (!report || isUpdatingReasoning) return false;
     setIsUpdatingReasoning(true);
     try {
       const updatedReport = normalizeClinicalReview(
@@ -308,20 +312,24 @@ AI-generated preparation material. Verify against original records; this is not 
           answerText: answer,
         }
       );
-      setReport(updatedReport);
-
-      if (createdCaseId) {
+      const targetCaseId = createdCaseId || selectedCaseId;
+      if (!targetCaseId || !getCase(targetCaseId)) throw new Error('Select an available case before saving.');
+      addCaseEvent(targetCaseId, answer.trim(), 'User clarification');
+      if (targetCaseId) {
         saveReviewSnapshot({
-          caseId: createdCaseId,
+          caseId: targetCaseId,
           type: 'jarvis' as any,
           report: updatedReport,
           specialists: ['Clinical Data Engine'],
         });
       }
-      toast.success('Case Selectively Updated', 'Clarification recorded into verified facts. 10-stage diff recomputed.');
+      setReport(updatedReport);
+      toast.success('Clarification saved', 'Saved as your reported observation. Run a new review to assess how it changes the interpretation.');
+      return true;
     } catch (err) {
       console.error('Failed to update reasoning pipeline:', err);
       toast.error('Update Failed', 'Could not update the reasoning pipeline.');
+      return false;
     } finally {
       setIsUpdatingReasoning(false);
     }
@@ -330,8 +338,9 @@ AI-generated preparation material. Verify against original records; this is not 
   const handleRunInvestigation = async () => {
     if (runningRef.current || readingRef.current) return;
     const requestScope = engineScope();
+    const requestCaseId = selectedCaseId;
     const linkedCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
-    if (selectedCaseId && !linkedCase) {
+    if (selectedCaseId && (!linkedCase || linkedCase.intakeData?.scenarioId)) {
       toast.error('Case unavailable', 'Select an available case or start a new case.');
       return;
     }
@@ -342,7 +351,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
     runningRef.current = true;
     const session = await getActiveSession();
-    if (!isMounted.current || requestScope !== engineScope()) { runningRef.current = false; return; }
+    if (!isMounted.current || (requestScope !== engineScope() || selectedCaseRef.current !== requestCaseId)) { runningRef.current = false; return; }
     if (!session) {
       runningRef.current = false;
       window.dispatchEvent(new CustomEvent('hc_require_auth', {
@@ -366,15 +375,16 @@ AI-generated preparation material. Verify against original records; this is not 
     
     const mappedFiles = files.map(f => ({
       mimeType: f.file.type || 'application/pdf',
-      data: f.base64
+      data: f.base64,
+      name: f.file.name
     }));
 
     try {
       const contextProfile = isIsolated ? null : profile;
       const caseHistory = linkedCase ? `${history}\n\nSelected case evidence (prior AI interpretations are unverified):\n${buildCaseContext(linkedCase)}` : history;
-      const result = await runJarvisInvestigation(caseHistory, mappedFiles, contextProfile);
+      const result = await runJarvisInvestigation(history, mappedFiles, contextProfile, linkedCase);
       
-      if (!isMounted.current || requestScope !== engineScope()) return;
+      if (!isMounted.current || (requestScope !== engineScope() || selectedCaseRef.current !== requestCaseId)) return;
       
       if (result) {
         setReport(result);
@@ -389,6 +399,21 @@ AI-generated preparation material. Verify against original records; this is not 
             analyzedAt: new Date().toISOString()
           }
         });
+        const records: MedicalRecord[] = [];
+        for (const attachment of files) {
+          const recordId = crypto.randomUUID();
+          const passages = (result.documentedFacts || []).filter((fact: any) => fact.source === attachment.file.name);
+          await saveOriginalCaseFile(newCase.id, recordId, attachment.file);
+          if (!isMounted.current || (requestScope !== engineScope() || selectedCaseRef.current !== requestCaseId)) return;
+          records.push({
+            id: recordId, filename: attachment.file.name, source: 'uploaded_document',
+            type: attachment.file.type, addedAt: new Date().toISOString(),
+            findings: passages.map((p: any) => p.fact).join('\n'),
+            passages: passages.map((p: any) => ({ id: p.id, text: p.fact, page: p.page, section: 'Provisional extraction; check original' })),
+          });
+          passages.forEach((p: any) => { p.recordId = recordId; p.passageId = p.id; });
+        }
+        if (records.length) appendCaseRecords(newCase.id, records);
         setCreatedCaseId(newCase.id);
         
         saveReviewSnapshot({
@@ -461,6 +486,7 @@ AI-generated preparation material. Verify against original records; this is not 
           <div className="case-workspace-grid">
             <button className="btn btn-outline" onClick={() => navigate(`/app/cases/${createdCaseId}`)}>Open case timeline</button>
             <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
+            <button className="btn btn-outline" onClick={() => { setPhase('input'); setReport(null); }}>Review updated evidence</button>
             <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy visit summary'}</button>
           </div>
 
@@ -469,6 +495,20 @@ AI-generated preparation material. Verify against original records; this is not 
             <ClinicalReasoningPipelineView
               payload={report.reasoningPipeline || runClinicalReasoningPipeline(report)}
               onClarificationSubmit={handleClarificationFeedback}
+              onChooseNextAction={(action) => {
+                const caseId = createdCaseId || selectedCaseId;
+                if (!caseId) return;
+                const updated = { ...report, reasoningPipeline: { ...report.reasoningPipeline, stage9_continuity: { ...report.reasoningPipeline.stage9_continuity, chosenNextAction: action } } };
+                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Data Engine'] });
+                setReport(updated);
+              }}
+              onCorrectionAcknowledge={(id) => {
+                const updated = { ...report, reasoningPipeline: { ...report.reasoningPipeline, stage3_correctionQueue: report.reasoningPipeline.stage3_correctionQueue.map((c: any) => c.id === id ? { ...c, status: 'acknowledged' } : c) } };
+                const caseId = createdCaseId || selectedCaseId;
+                if (!caseId) return;
+                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Data Engine'] });
+                setReport(updated);
+              }}
               isUpdating={isUpdatingReasoning}
             />
           )}
@@ -508,10 +548,10 @@ AI-generated preparation material. Verify against original records; this is not 
                             onClose: () => setSourceModalData(null),
                             recordTitle: fact.source || 'Medical Document',
                             recordType: 'Attached Case Document / Report',
-                            pageNumber: fact.page || 1,
+                            pageNumber: fact.page,
                             sectionTitle: 'Direct Document Finding',
                             passageText: fact.fact,
-                            fullFindings: `Fact extracted from ${fact.source || 'attached medical record'}. Verified in Clinical Data Engine review.`,
+                            fullFindings: `Fact extracted from ${fact.source || 'attached medical record'}. Extraction may require checking against the original record.`,
                             findingClaim: fact.fact,
                           });
                         }}
@@ -658,25 +698,6 @@ AI-generated preparation material. Verify against original records; this is not 
             })}
             onOpenSourceModal={(src) => setSourceModalData(src)}
           />
-
-          {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON (Point 10 Gap 1) */}
-          {(report.meaningfulPerspectives || report.perspectives)?.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '4px' }}>
-              <MeaningfulMultiPerspectiveView
-                perspectives={report.meaningfulPerspectives || report.perspectives}
-                boundedComparison={report.boundedComparison}
-              />
-            </motion.div>
-          )}
-
-          {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH PIPELINE */}
-          {report.reasoningPipeline && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '4px' }}>
-              <ClinicalReasoningPipelineView
-                payload={report.reasoningPipeline}
-              />
-            </motion.div>
-          )}
 
           {/* PART 1: THE BOTTOM LINE UP FRONT (BLUF) */}
           <motion.div 
@@ -1124,6 +1145,7 @@ AI-generated preparation material. Verify against original records; this is not 
 
         {sourceModalData && (
           <SourcePassageModal
+            caseId={createdCaseId || selectedCaseId}
             {...sourceModalData}
             isOpen={Boolean(sourceModalData)}
             onClose={() => setSourceModalData(null)}

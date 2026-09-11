@@ -2,10 +2,13 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText, Check, Copy, ExternalLink, ShieldCheck, Search } from 'lucide-react';
+import { getCase } from '../../services/CaseEngine';
+import { loadOriginalCaseFile } from '../../services/caseRecordFiles';
 import { triggerHapticLight } from '../../services/haptics';
 
 export interface SourcePassageModalProps {
   isOpen: boolean;
+  caseId?: string | null;
   onClose: () => void;
   recordTitle: string;
   recordType?: string;
@@ -19,10 +22,11 @@ export interface SourcePassageModalProps {
 
 export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
   isOpen,
+  caseId,
   onClose,
   recordTitle,
   recordType = 'Clinical Lab / Encounter Record',
-  pageNumber = 1,
+  pageNumber,
   sectionTitle = 'Document Passage',
   passageText,
   fullFindings,
@@ -30,6 +34,18 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
   findingClaim,
 }) => {
   const [copied, setCopied] = React.useState(false);
+  const [originalUrl, setOriginalUrl] = React.useState<string | null>(null);
+  useEffect(() => {
+    let active = true, objectUrl: string | undefined;
+    setOriginalUrl(null);
+    const record = caseId ? getCase(caseId)?.medicalRecords?.find(r => r.filename === recordTitle) : null;
+    if (record && caseId && isOpen) {
+      loadOriginalCaseFile(caseId, record.id).then(file => {
+        if (active && file) { objectUrl = URL.createObjectURL(file); setOriginalUrl(objectUrl); }
+      }).catch(() => {});
+    }
+    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [caseId, recordTitle, isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,7 +61,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
 
   const handleCopy = () => {
     triggerHapticLight();
-    navigator.clipboard.writeText(`"${passageText}"\n— Source: ${recordTitle} (Page ${pageNumber})`);
+    navigator.clipboard.writeText(`"${passageText}"\n— Source: ${recordTitle} (Page ${pageNumber ?? 'unknown'})`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -210,7 +226,7 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#64748B' }}>
                 <FileText size={14} color="#0284C7" />
                 <span>Type: <strong>{recordType}</strong></span>
-                <span>• Page {pageNumber}</span>
+                <span>• Page {pageNumber ?? 'unknown'}</span>
                 {dateAdded && <span>• Date: {dateAdded}</span>}
               </div>
 
@@ -302,7 +318,8 @@ export const SourcePassageModal: React.FC<SourcePassageModalProps> = ({
             >
               <ShieldCheck size={16} color="#16A34A" style={{ flexShrink: 0 }} />
               <span>
-                <strong>Verified Citation:</strong> This evidence passage was extracted directly from your uploaded clinical records and cross-verified against diagnostic claims.
+                {originalUrl && <a href={originalUrl} target="_blank" rel="noopener noreferrer">Open original file (this device)</a>}
+                <strong>Source context:</strong> Check this text against the original record. A stored summary or AI extraction is not independent clinical verification.
               </span>
             </div>
           </div>

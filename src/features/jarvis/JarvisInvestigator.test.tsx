@@ -28,7 +28,8 @@ describe('Clinical Data Engine case continuity', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Review and save to My Cases' }));
     await waitFor(() => expect(mocks.save).toHaveBeenCalledWith(expect.objectContaining({ caseId: 'existing', type: 'jarvis' })));
     expect(mocks.create).not.toHaveBeenCalled();
-    expect(mocks.run.mock.calls[0][0]).toContain('Selected case evidence');
+    expect(mocks.run.mock.calls[0][0]).toBe('My actual symptom history');
+    expect(mocks.run.mock.calls[0][3]).toBe(mocks.cases[0]);
     expect(screen.getByRole('heading', { name: 'Your record review is ready' })).toBeTruthy();
   });
   it('keeps the input and case selection after a failed review', async () => {

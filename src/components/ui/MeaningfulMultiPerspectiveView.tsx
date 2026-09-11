@@ -53,7 +53,7 @@ export const MeaningfulMultiPerspectiveView: React.FC<MeaningfulMultiPerspective
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.15)', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px' }}>
               <Stethoscope size={13} />
-              Step 5 Specification • Meaningful Multi-Perspective Review
+              AI perspectives on your case
             </div>
             <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.3px' }}>
               Multi-Disciplinary Board: One Evidence Set, Distinct Clinical Questions

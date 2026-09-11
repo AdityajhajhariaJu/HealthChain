@@ -122,7 +122,7 @@ export interface ClinicalSynthesis {
   empiricalBasis: string[];
   limitations: string[];
   practicalImplication: string;
-  urgencyLevel: 'routine' | 'prompt_clinical_review' | 'urgent_emergency_care';
+  urgencyLevel: 'routine' | 'prompt_clinical_review' | 'urgent_emergency_care' | 'not_assessed';
 }
 
 /** Stage 9: Carry Forward — Continuity */
@@ -167,654 +167,135 @@ export interface ClinicalReasoningPayload {
 // PURE REASONING ALGORITHMS & HELPERS
 // ==========================================
 
-/** Extracts dates in YYYY-MM-DD, DD/MM/YYYY, or Month YYYY format */
+
+export function stableEvidenceId(text: string): string {
+  let hash = 2166136261;
+  for (const c of text) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
+  return (hash >>> 0).toString(16);
+}
 export function extractDateString(text: string): string | null {
-  if (!text) return null;
-  const isoMatch = text.match(/\b(19\d\d|20\d\d)[-/](0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])\b/);
-  if (isoMatch) return isoMatch[0];
-  const dmyMatch = text.match(/\b(0[1-9]|[12]\d|3[01])[-/](0[1-9]|1[0-2])[-/](19\d\d|20\d\d)\b/);
-  if (dmyMatch) return dmyMatch[0];
-  const writtenMatch = text.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2},?\s+)?(19\d\d|20\d\d)\b/i);
-  if (writtenMatch) return writtenMatch[0];
-  return null;
+  const iso = text?.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  const dmy = text?.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+  const date = iso ? iso[0] : dmy ? dmy[3]+'-'+dmy[2]+'-'+dmy[1] : null;
+  if (!date) return null;
+  const parsed = new Date(date);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0,10) === date ? date : null;
 }
-
-/**
- * Stage 2: Align time
- * Distinguishes event date, report date, and entry date; computes overlaps and temporal gaps.
- */
 export function alignChronology(facts: SourceLinkedEvidence[], entryDateOverride?: string): CoherentTimeline {
-  const currentEntryDate = entryDateOverride || new Date().toISOString().split('T')[0];
-
-  const entries: TemporalTimelineEntry[] = facts.map((fact, index) => {
-    const textDate = extractDateString(fact.fact) || extractDateString(fact.source) || fact.timestamp?.split('T')[0];
-    const isDocAssessment = fact.category === 'documented_clinician_assessment' || fact.category === 'extracted_finding';
-    
-    return {
-      id: `time_entry_${index + 1}`,
-      description: fact.fact,
-      eventDate: fact.category === 'user_report' ? (textDate || undefined) : undefined,
-      reportDate: isDocAssessment ? (textDate || undefined) : undefined,
-      entryDate: fact.timestamp ? fact.timestamp.split('T')[0] : currentEntryDate,
-      temporalConfidence: textDate ? 'exact' : 'relative',
-      relatedFactIds: [fact.id],
-    };
+  const entries: TemporalTimelineEntry[] = facts.map((f: any) => {
+    const eventDate = extractDateString(f.eventDate || '') || undefined;
+    const reportDate = extractDateString(f.reportDate || '') || undefined;
+    return {id:'time_'+f.id, description:f.fact, eventDate, reportDate,
+      entryDate:f.timestamp || entryDateOverride || '', temporalConfidence:eventDate || reportDate ? 'exact' : 'undated', relatedFactIds:[f.id]};
   });
-
-  // Sort chronologically if dates exist
-  entries.sort((a, b) => {
-    const dateA = a.eventDate || a.reportDate || a.entryDate;
-    const dateB = b.eventDate || b.reportDate || b.entryDate;
-    return dateA.localeCompare(dateB);
-  });
-
-  // Detect temporal overlaps
+  entries.sort((a,b)=>(a.eventDate || a.reportDate || '9999').localeCompare(b.eventDate || b.reportDate || '9999'));
   const overlaps: TemporalOverlap[] = [];
-  const dateMap: { [date: string]: TemporalTimelineEntry[] } = {};
-  entries.forEach(e => {
-    const key = e.eventDate || e.reportDate;
-    if (key) {
-      if (!dateMap[key]) dateMap[key] = [];
-      dateMap[key].push(e);
-    }
-  });
-
-  Object.entries(dateMap).forEach(([date, items]) => {
-    if (items.length > 1) {
-      overlaps.push({
-        phenomena: items.map(i => i.description),
-        timeframe: date,
-        implication: `Concurrent presentation observed on ${date}. Co-occurrence may indicate a shared upstream driver or compensatory response.`,
-      });
-    }
-  });
-
-  // Detect temporal gaps
-  const gaps: TemporalGap[] = [];
-  const datedEntries = entries.filter(e => e.eventDate || e.reportDate);
-  for (let i = 0; i < datedEntries.length - 1; i++) {
-    const current = datedEntries[i].eventDate || datedEntries[i].reportDate;
-    const next = datedEntries[i + 1].eventDate || datedEntries[i + 1].reportDate;
-    if (current && next) {
-      const msDiff = Math.abs(new Date(next).getTime() - new Date(current).getTime());
-      const dayDiff = Math.round(msDiff / (1000 * 60 * 60 * 24));
-      if (dayDiff > 90) {
-        gaps.push({
-          period: `${current} to ${next}`,
-          durationDescription: `${dayDiff} days without documented observations`,
-          clinicalSignificance: 'Intervening period lacks baseline tracking. Symptom fluctuations during this interval remain unrecorded.',
-        });
-      }
-    }
+  for (const date of new Set(entries.map(e=>e.eventDate).filter(Boolean))) {
+    const same = entries.filter(e=>e.eventDate===date);
+    if(same.length>1) overlaps.push({phenomena:same.map(e=>e.description),timeframe:date!,
+      implication:'These events share a recorded date. This does not establish simultaneous occurrence or a shared cause.'});
   }
-
-  const summaryChronology = entries.length > 0 
-    ? `Constructed timeline encompassing ${entries.length} discrete data points across ${datedEntries.length} dated landmarks.`
-    : 'No dated landmarks identified in current input; timeline arranged by entry sequence.';
-
-  return { entries, overlaps, gaps, summaryChronology };
+  return {entries,overlaps,gaps:[],summaryChronology:entries.length+' observations. Only explicit event and report dates determine chronology.'};
 }
-
-/**
- * Stage 3: Reconcile records
- * Detects duplicates, changed units, conflicting values, and differing accounts.
- */
 export function detectCorrectionQueue(facts: SourceLinkedEvidence[]): CorrectionQueueItem[] {
-  const queue: CorrectionQueueItem[] = [];
-  let itemCounter = 1;
-
-  // 1. Detect duplicates
-  const seenTexts: { [norm: string]: SourceLinkedEvidence[] } = {};
-  facts.forEach(f => {
-    const norm = f.fact.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim();
-    if (norm.length > 10) {
-      if (!seenTexts[norm]) seenTexts[norm] = [];
-      seenTexts[norm].push(f);
-    }
-  });
-
-  Object.entries(seenTexts).forEach(([norm, duplicates]) => {
-    if (duplicates.length > 1) {
-      queue.push({
-        id: `rec_${itemCounter++}`,
-        type: 'duplicate',
-        title: 'Potential Duplicate Entry',
-        itemsInvolved: duplicates.map(d => `${d.fact} (${d.source})`),
-        discrepancyDescription: `Identical observation reported across multiple records: "${duplicates[0].fact.slice(0, 40)}..."`,
-        suggestedAction: 'Consolidate into a single canonical entry with linked multi-record provenance.',
-        status: 'pending',
-      });
-    }
-  });
-
-  // 2. Detect changed units
-  const unitPatterns = [
-    { name: 'Blood Glucose', units: ['mg/dl', 'mmol/l'] },
-    { name: 'Thyroid (TSH)', units: ['miu/l', 'µiu/ml', 'uiu/ml', 'pmol/l'] },
-    { name: 'Vitamin D', units: ['ng/ml', 'nmol/l'] },
-    { name: 'Iron / Ferritin', units: ['ng/ml', 'µg/l', 'pmol/l'] },
-    { name: 'Electrolytes', units: ['meq/l', 'mmol/l'] },
-  ];
-
-  unitPatterns.forEach(pattern => {
-    const matchingFacts = facts.filter(f => {
-      const lower = f.fact.toLowerCase();
-      return pattern.units.some(u => lower.includes(u));
-    });
-
-    const uniqueUnitsFound = new Set<string>();
-    matchingFacts.forEach(f => {
-      const lower = f.fact.toLowerCase();
-      pattern.units.forEach(u => {
-        if (lower.includes(u)) uniqueUnitsFound.add(u);
-      });
-    });
-
-    if (uniqueUnitsFound.size > 1) {
-      queue.push({
-        id: `rec_${itemCounter++}`,
-        type: 'unit_change',
-        title: `Unit Conversion Discrepancy: ${pattern.name}`,
-        itemsInvolved: matchingFacts.map(f => f.fact),
-        discrepancyDescription: `Different measurement units detected across records: ${Array.from(uniqueUnitsFound).join(' vs ')}. Values cannot be compared directly without conversion.`,
-        suggestedAction: `Convert all entries to standard clinical reference units before assessing temporal trends.`,
-        status: 'pending',
-      });
-    }
-  });
-
-  // 3. Detect conflicting values or differing accounts (e.g. self-report vs clinic notes)
-  const patientReports = facts.filter(f => f.category === 'user_report');
-  const clinicalNotes = facts.filter(f => f.category === 'documented_clinician_assessment');
-
-  const symptomFamilies = [
-    { name: 'Palpitations / Tachycardia', tokens: ['palpitations', 'tachycardia', 'heart racing', 'pounding'] },
-    { name: 'Lightheadedness / Dizziness / Syncope', tokens: ['dizziness', 'lightheadedness', 'syncope', 'presyncope'] },
-    { name: 'Pain', tokens: ['pain', 'ache', 'burning'] },
-    { name: 'Fatigue', tokens: ['fatigue', 'exhaustion', 'malaise'] },
-    { name: 'Dyspnea', tokens: ['dyspnea', 'shortness of breath', 'breathlessness'] },
-    { name: 'Gastrointestinal', tokens: ['nausea', 'vomiting', 'bloating', 'diarrhea'] },
-    { name: 'Fever', tokens: ['fever', 'chills'] },
-  ];
-
-  patientReports.forEach(pr => {
-    const prLower = pr.fact.toLowerCase();
-    clinicalNotes.forEach(cn => {
-      const cnLower = cn.fact.toLowerCase();
-      symptomFamilies.forEach(family => {
-        const prMatchedToken = family.tokens.find(t => prLower.includes(t));
-        const cnNegatedToken = family.tokens.find(t => 
-          cnLower.includes(`no ${t}`) || cnLower.includes(`denies ${t}`) || cnLower.includes(`without ${t}`)
-        );
-        if (prMatchedToken && cnNegatedToken) {
-          queue.push({
-            id: `rec_${itemCounter++}`,
-            type: 'differing_accounts',
-            title: `Differing Accounts on ${family.name.toUpperCase()}`,
-            itemsInvolved: [pr.fact, cn.fact],
-            discrepancyDescription: `Patient reports experiencing "${prMatchedToken}", while clinician note documents negative/denied: "${cn.fact}".`,
-            suggestedAction: 'Clarify whether the clinician visit occurred during an asymptomatic interval or if symptoms developed subsequently.',
-            status: 'pending',
-          });
-        }
-      });
-    });
-  });
-
+  const queue: CorrectionQueueItem[] = [], seen = new Map<string, SourceLinkedEvidence>();
+  for(const f of facts as any[]) {
+    const key=JSON.stringify([f.fact.trim().toLowerCase(), f.eventDate || null]);
+    const prior=seen.get(key);
+    if(prior && prior.id!==f.id) queue.push({id:'duplicate_'+prior.id+'_'+f.id,type:'duplicate',title:'Possible repeated entry',
+      itemsInvolved:[prior.id,f.id],discrepancyDescription:'The same text appears more than once. Check dates and sources before consolidating.',
+      suggestedAction:'Review both original entries.',status:'pending'});
+    else seen.set(key,f);
+  }
+  // Same analyte and date required; shared units alone do not identify a measurement.
+  const groups=new Map<string,any[]>();
+  for(const f of facts as any[]) {
+    if(!f.analyte || !f.eventDate || f.value===undefined || !f.unit) continue;
+    const key=JSON.stringify([String(f.analyte).toLowerCase(),f.eventDate]);
+    groups.set(key,[...(groups.get(key)||[]),f]);
+  }
+  for(const group of groups.values()) for(let i=1;i<group.length;i++) {
+    const a=group[0],b=group[i];
+    if(a.unit===b.unit && String(a.value)===String(b.value)) continue;
+    queue.push({id:'measurement_'+a.id+'_'+b.id,type:a.unit===b.unit?'conflicting_values':'unit_change',
+      title:'Review '+a.analyte+' entries',itemsInvolved:[a.id,b.id],
+      discrepancyDescription:a.value+' '+a.unit+' and '+b.value+' '+b.unit+' are recorded for the same date. Sampling times and methods may differ.',
+      suggestedAction:'Check original values, sampling times and units; do not automatically overwrite.',status:'pending'});
+  }
   return queue;
 }
-
-/**
- * Stage 4: Identify relevant perspectives
- * Selects perspectives strictly justified by explicit unanswered questions.
- */
-export function justifyPerspectives(
-  unansweredQuestions: string[],
-  rawPerspectives?: Partial<JustifiedPerspective>[]
-): JustifiedPerspective[] {
-  if (Array.isArray(rawPerspectives) && rawPerspectives.length > 0) {
-    return rawPerspectives.map((p, idx) => {
-      const assignedQuestion = p.unansweredQuestionAddressed || 
-        (unansweredQuestions[idx % unansweredQuestions.length] || 'What is the primary physiological driver of the reported symptoms?');
-      return {
-        id: p.id || `persp_${idx + 1}`,
-        specialty: p.specialty || 'General Internal Medicine Panel',
-        doctorName: p.doctorName || `${p.specialty || 'Clinical'} Advisory Board`,
-        unansweredQuestionAddressed: assignedQuestion,
-        justification: p.justification || `Selected to resolve: "${assignedQuestion}". Examines multi-system physiological interactions without premature closure.`,
-        uniqueContribution: p.uniqueContribution || 'Evaluates systemic interactions across the provided evidence.',
-        supportingEvidenceIds: Array.isArray(p.supportingEvidenceIds) ? p.supportingEvidenceIds : [],
-      };
-    });
-  }
-
-  // Deterministic justified fallbacks based on available questions
-  const defaultSpecialties = [
-    {
-      specialty: 'Autonomic Neurology & Cardiology Board',
-      doctorName: 'Autonomic & Cardiovascular Panel',
-      question: unansweredQuestions[0] || 'How do orthostatic stressors, posture, or physical exertion alter hemodynamics?',
-      justification: 'Addresses positional changes, palpitations, lightheadedness, and exercise intolerance by analyzing baroreceptor and autonomic tone.',
-      contribution: 'Evaluates orthostatic compensations vs primary cardiac structural rhythm anomalies.',
-    },
-    {
-      specialty: 'Endocrine & Cellular Metabolism Board',
-      doctorName: 'Metabolic & Mitochondrial Panel',
-      question: unansweredQuestions[1] || 'Are micronutrient reserves, cellular energy cycles, or endocrine axes compromised?',
-      justification: 'Addresses persistent fatigue and cognitive latency by evaluating metabolic cofactors, thyroid/adrenal labs, and storage reserves.',
-      contribution: 'Distinguishes laboratory reference intervals from functional physiological depletion.',
-    },
-    {
-      specialty: 'Enteric Neurobiology & Gastroenterology Board',
-      doctorName: 'Gut-Brain & Enteric Panel',
-      question: unansweredQuestions[2] || 'What is the temporal relationship between meals, gastrointestinal motility, and systemic flares?',
-      justification: 'Investigates postprandial distress, mucosal permeability, and vagal reflex triggers connecting the gut to systemic symptoms.',
-      contribution: 'Correlates dietary intake to mucosal saturation and upward vagal/diaphragmatic reactions.',
-    },
-  ];
-
-  return defaultSpecialties.map((item, idx) => ({
-    id: `persp_${idx + 1}`,
-    specialty: item.specialty,
-    doctorName: item.doctorName,
-    unansweredQuestionAddressed: item.question,
-    justification: `Selected to resolve: "${item.question}". ${item.justification}`,
-    uniqueContribution: item.contribution,
-    supportingEvidenceIds: [],
+export function justifyPerspectives(questions:string[],raw:Partial<JustifiedPerspective>[]=[]):JustifiedPerspective[] {
+  return raw.filter(p=>p.specialty && (p.unansweredQuestionAddressed || (p as any).questionAddressed)).map((p,i)=>({
+    id:p.id || 'perspective_'+i,specialty:p.specialty!,doctorName:p.doctorName || 'AI perspective',
+    unansweredQuestionAddressed:p.unansweredQuestionAddressed || (p as any).questionAddressed,
+    justification:p.justification || (p as any).selectionReason || '',
+    uniqueContribution:p.uniqueContribution || (p as any).interpretation || '',
+    supportingEvidenceIds:p.supportingEvidenceIds || (p as any).evidenceConsidered || [],
   }));
 }
-
-/**
- * Stage 5 & 6: Generate Alternatives & Challenge Each (Tri-Prong: Supporting, Conflicting, Missing)
- */
-export function buildTriProngChallenges(
-  alternatives: AlternativeInterpretation[],
-  facts: SourceLinkedEvidence[],
-  missingLinks: string[],
-  correctionQueue?: CorrectionQueueItem[]
-): BalancedAssessment[] {
-  return alternatives.map(alt => {
-    // 1. Supporting evidence
-    const supporting: BalancedAssessment['supportingEvidence'] = facts
-      .filter(f => {
-        const text = f.fact.toLowerCase();
-        const altTokens = alt.title.toLowerCase().split(' ').filter(w => w.length > 3);
-        return altTokens.some(t => text.includes(t));
-      })
-      .slice(0, 3)
-      .map(f => ({
-        factId: f.id,
-        description: f.fact,
-        weight: 'strong' as const,
-      }));
-
-    if (supporting.length === 0 && facts.length > 0) {
-      supporting.push({
-        factId: facts[0].id,
-        description: facts[0].fact,
-        weight: 'moderate',
-      });
-    }
-
-    // 2. Conflicting evidence (normal findings or contradictory signals)
-    const conflicting: BalancedAssessment['conflictingEvidence'] = facts
-      .filter(f => {
-        const text = f.fact.toLowerCase();
-        return text.includes('normal') || text.includes('negative') || text.includes('denies') || text.includes('within reference');
-      })
-      .slice(0, 2)
-      .map(f => ({
-        factId: f.id,
-        description: f.fact,
-        weight: 'normal_control_test' as const,
-      }));
-
-    // Propagate Stage 3 correction queue into conflicting evidence
-    if (correctionQueue && correctionQueue.length > 0) {
-      const relevantCorrections = correctionQueue.filter(cq => {
-        const altText = alt.title.toLowerCase();
-        const desc = cq.discrepancyDescription.toLowerCase();
-        const title = cq.title.toLowerCase();
-        const involved = cq.itemsInvolved.map(i => i.toLowerCase());
-        return (
-          altText.split(' ').some(w => w.length > 3 && (desc.includes(w) || title.includes(w))) ||
-          involved.some(inv => supporting.some(s => s.description.toLowerCase().includes(inv)))
-        );
-      });
-
-      const targets = relevantCorrections.length > 0 ? relevantCorrections : correctionQueue.slice(0, 2);
-      targets.forEach(rc => {
-        conflicting.unshift({
-          description: `Discrepancy detected in records: ${rc.title} — ${rc.discrepancyDescription}`,
-          weight: rc.type === 'conflicting_values' ? 'direct_contradiction' : 'incongruent_timing',
-        });
-      });
-    }
-
-    if (conflicting.length === 0) {
-      conflicting.push({
-        description: 'Absence of objective inflammatory or structural markers on standard initial testing.',
-        weight: 'normal_control_test',
-      });
-    }
-
-    // 3. Missing evidence / What would change it
-    const missing = missingLinks.slice(0, 2).map(link => ({
-      testOrObservation: link,
-      potentialImpact: `If positive or resolved, would strongly elevate or demote this hypothesis over competing explanations.`,
-    }));
-
-    if (missing.length === 0) {
-      missing.push({
-        testOrObservation: 'Targeted physiological challenge test or serial symptom diary.',
-        potentialImpact: 'Provides objective correlation between reported flares and measurable biometric changes.',
-      });
-    }
-
-    return {
-      alternativeId: alt.id,
-      alternativeTitle: alt.title,
-      supportingEvidence: supporting,
-      conflictingEvidence: conflicting,
-      missingEvidenceWhatWouldChangeIt: missing,
-    };
-  });
+export function buildTriProngChallenges(alternatives:AlternativeInterpretation[],facts:SourceLinkedEvidence[],missing:string[],corrections?:CorrectionQueueItem[]):BalancedAssessment[] {
+  const ids=new Set(facts.filter(f=>!(f as any).isUnverifiedSource).map(f=>f.id));
+  const valid=(items:any):any[]=>Array.isArray(items)?items.filter(x=>ids.has(x.factId) && typeof x.description==='string' && x.description.trim()):[];
+  return alternatives.map((a:any)=>({
+    alternativeId:a.id,alternativeTitle:a.title,
+    supportingEvidence:valid(a.supportingEvidence).map(x=>({...x,weight:'circumstantial' as const})),
+    conflictingEvidence:valid(a.conflictingEvidence).map(x=>({...x,weight:'direct_contradiction' as const})),
+    missingEvidenceWhatWouldChangeIt:Array.isArray(a.missingEvidenceWhatWouldChangeIt)?a.missingEvidenceWhatWouldChangeIt.filter((x:any)=>typeof x.testOrObservation==='string' && typeof x.potentialImpact==='string'):[],
+  }));
 }
-
-/**
- * Stage 7: Choose useful clarification
- * Selects the single question most likely to improve the next clinical decision.
- */
-export function selectFocusedClarification(
-  questions: string[],
-  missingLinks: string[],
-  alternatives: AlternativeInterpretation[]
-): FocusedUserQuestion {
-  const chosenQuestion = questions[0] || missingLinks[0] || 'Did your symptoms begin abruptly after a specific infection, event, or medication change?';
-  const targetAltNames = alternatives.map(a => a.title).join(' and ');
-
-  return {
-    id: `clarification_${Date.now()}`,
-    question: chosenQuestion,
-    whyThisQuestion: 'This single clarification has the highest discriminatory value for distinguishing between competing mechanisms.',
-    decisionImpact: `Answering this will help determine whether the presentation fits ${targetAltNames || 'competing physiological possibilities'}, shaping which questions to prioritize with your clinician.`,
-    targetAlternativeIds: alternatives.map(a => a.id),
-    status: 'pending',
-  };
+export function selectFocusedClarification(questions:string[],missing:string[],alternatives:AlternativeInterpretation[]):FocusedUserQuestion {
+  const question=questions.find(q=>q.trim()) || '';
+  return {id:question?'question_'+stableEvidenceId(question):'no_open_question',question,
+    whyThisQuestion:question?'An open question from this review. You can choose another priority.':'No additional question was identified.',
+    decisionImpact:'Your answer will be saved as a reported observation for the next review.',targetAlternativeIds:[],status:'pending'};
 }
-
-/**
- * Stage 8: Synthesize
- * Explains main finding, basis, limitations, and practical implications.
- */
-export function synthesizeFindings(
-  facts: SourceLinkedEvidence[],
-  alternatives: AlternativeInterpretation[],
-  assessments: BalancedAssessment[],
-  userUncertainties: string[],
-  correctionQueue?: CorrectionQueueItem[]
-): ClinicalSynthesis {
-  const leadingAlt = alternatives.find(a => a.likelihoodAssessment === 'leading') || alternatives[0];
-  const mainFinding = leadingAlt
-    ? `The clinical picture aligns with ${leadingAlt.title}, characterized by multi-system interactions rather than an isolated single-organ finding.`
-    : 'The provided records indicate a multi-system symptom cluster with open questions regarding underlying drivers.';
-
-  const empiricalBasis = facts.slice(0, 4).map(f => `${f.fact} (${f.source})`);
-
-  const limitations = [
-    'This review is an AI-assisted organization of evidence, not a medical diagnosis or treatment plan.',
-    'Interpretation is constrained strictly to the provided documents and patient statements; unprovided tests remain unexamined.',
-    ...(userUncertainties.slice(0, 2)),
-    ...((correctionQueue || []).slice(0, 3).map(
-      c => `Discrepancy noted for clinician review: ${c.title} (${c.discrepancyDescription})`
-    )),
-  ];
-
-  const practicalImplication = correctionQueue && correctionQueue.length > 0
-    ? `Bring the organized timeline, the ${correctionQueue.length} record discrepanc${correctionQueue.length > 1 ? 'ies' : 'y'} flagged above, and the specific clinician questions to your next appointment for prioritized reconciliation.`
-    : 'Bring the organized timeline and the specific questions below to your next clinician appointment to guide targeted evaluation rather than restarting exploratory work.';
-
-  return {
-    mainFinding,
-    empiricalBasis,
-    limitations,
-    practicalImplication,
-    urgencyLevel: 'prompt_clinical_review',
-  };
+export function synthesizeFindings(facts:SourceLinkedEvidence[],alternatives:AlternativeInterpretation[],assessments:BalancedAssessment[],uncertainties:string[],corrections?:CorrectionQueueItem[]):ClinicalSynthesis {
+  return {mainFinding:facts.length?'Review the documented observations and proposed interpretations below.':'There is not enough case evidence to form an interpretation.',
+    empiricalBasis:facts.slice(0,4).map(f=>f.fact+' ('+f.source+')'),limitations:[...uncertainties,...(corrections||[]).map(c=>c.discrepancyDescription)],
+    practicalImplication:corrections?.length?'Check flagged source entries before relying on an interpretation.':'Choose a question or record to review next.',urgencyLevel:'not_assessed'};
 }
-
-/**
- * Stage 10: Update selectively
- * Revisit conclusions affected by new information; produces "What changed and why" diff.
- */
-export function computeSelectiveUpdateDiff(
-  previousPayload?: ClinicalReasoningPayload | null,
-  newPayload?: ClinicalReasoningPayload | null,
-  newFact?: SourceLinkedEvidence
-): SelectiveUpdateDiff {
-  const currentDate = new Date().toISOString().split('T')[0];
-
-  if (!previousPayload) {
-    return {
-      currentRunDate: currentDate,
-      triggerEvent: 'Initial clinical data engine baseline synthesis',
-      whatChangedAndWhy: 'Baseline reasoning established from provided documents and symptom narrative. No prior version to compare.',
-      affectedConclusions: (newPayload?.stage5_alternatives || []).map(alt => ({
-        hypothesis: alt.title,
-        shift: 'new' as const,
-        rationale: 'Established as part of initial balanced differential.',
-      })),
-      resolvedQuestions: [],
-      newQuestions: (newPayload?.stage9_continuity?.openQuestions || []).slice(0, 3),
-    };
-  }
-
-  // When updating an existing payload
-  const prevAlts = previousPayload.stage5_alternatives || [];
-  const currAlts = newPayload?.stage5_alternatives || prevAlts;
-  const triggerText = newFact ? `New verified fact received: "${newFact.fact}"` : 'Updated clinical review executed';
-
-  const affectedConclusions = currAlts.map(curr => {
-    const prev = prevAlts.find(p => p.id === curr.id || p.title === curr.title);
-    if (!prev) {
-      return {
-        hypothesis: curr.title,
-        shift: 'new' as const,
-        rationale: 'Added in response to newly introduced findings.',
-      };
-    }
-    if (newFact && newFact.fact.toLowerCase().includes(curr.title.toLowerCase())) {
-      return {
-        hypothesis: curr.title,
-        shift: 'strengthened' as const,
-        rationale: `Directly supported by new fact: "${newFact.fact.slice(0, 50)}..."`,
-      };
-    }
-    return {
-      hypothesis: curr.title,
-      shift: 'unaffected' as const,
-      rationale: 'Evidence balance remains consistent with prior review.',
-    };
-  });
-
-  const resolvedQuestions: string[] = [];
-  if (newFact) {
-    resolvedQuestions.push(previousPayload.stage7_focusedQuestion?.question || 'Prior clarification question');
-  }
-
-  return {
-    previousRunDate: previousPayload.stage9_continuity?.savedAt?.split('T')[0] || 'Prior Review',
-    currentRunDate: currentDate,
-    triggerEvent: triggerText,
-    whatChangedAndWhy: newFact
-      ? `Incorporation of "${newFact.fact.slice(0, 45)}..." resolved open clarification "${resolvedQuestions[0]}", selectively updating evidentiary weights without requiring re-intake.`
-      : 'Review recomputed with refreshed case context; hypotheses updated selectively.',
-    affectedConclusions,
-    resolvedQuestions,
-    newQuestions: (newPayload?.stage9_continuity?.openQuestions || []).filter(q => !resolvedQuestions.includes(q)),
-  };
+export function computeSelectiveUpdateDiff(previous?:ClinicalReasoningPayload|null,current?:ClinicalReasoningPayload|null,newFact?:SourceLinkedEvidence):SelectiveUpdateDiff {
+  const before=previous?.stage5_alternatives || [],after=current?.stage5_alternatives || [];
+  return {previousRunDate:previous?.stage9_continuity.savedAt,currentRunDate:new Date().toISOString(),
+    triggerEvent:newFact?'New user-reported clarification saved':previous?'Review compared with previous version':'Initial evidence review',
+    whatChangedAndWhy:newFact?'An observation was added. Interpretations have not been re-evaluated; run a new review to assess its impact.':'Only explicit differences between saved versions are shown.',
+    affectedConclusions:[...after.map(a=>({hypothesis:a.title,shift:(before.some(b=>b.id===a.id)?'unaffected':'new') as 'unaffected'|'new',
+      rationale:newFact?'Awaiting a new evidence review; no clinical weight inferred.':'Present in this saved version.'})),
+      ...before.filter(b=>!after.some(a=>a.id===b.id)).map(b=>({hypothesis:b.title,shift:'retired' as const,rationale:'Not present in this review; this is not a clinical exclusion.'}))],
+    resolvedQuestions:[],newQuestions:(current?.stage9_continuity.openQuestions || []).filter(q=>!previous?.stage9_continuity.openQuestions.includes(q))};
 }
-
-/**
- * Main Pipeline Coordinator: Executes all 10 stages adhering strictly to Image 2 topology.
- */
-export function runClinicalReasoningPipeline(
-  rawInput: {
-    documentedFacts?: any[];
-    primaryHypothesis?: string;
-    executiveSummary?: string;
-    uncertainties?: string[];
-    missingLinks?: string[];
-    questionsForClinician?: string[];
-    perspectives?: any[];
-    alternatives?: any[];
-  },
-  previousPayload?: ClinicalReasoningPayload | null,
-  newFactAnswer?: { questionId: string; answerText: string }
-): ClinicalReasoningPayload {
-  // STAGE 1: Establish Facts
-  const rawFacts = Array.isArray(rawInput.documentedFacts) ? rawInput.documentedFacts : [];
-  const stage1_facts: SourceLinkedEvidence[] = rawFacts.map((rf, idx) => {
-    const classified = classifyClinicalInformation({
-      text: rf.fact || rf.text || '',
-      source: rf.source || 'Patient intake',
-      page: rf.page,
-      file: rf.file || rf.source,
-      extractionStatus: rf.extractionStatus || 'provisional',
-    });
-
-    return {
-      id: rf.id || `fact_${idx + 1}`,
-      fact: rf.fact || rf.text || '',
-      source: rf.source || 'Patient intake',
-      page: rf.page,
-      file: rf.file || rf.source,
-      category: rf.category || classified.category,
-      allowedRole: rf.allowedRole || classified.allowedRole,
-      confidence: rf.category === 'user_report' ? 'self_reported' : rf.page ? 'provisional' : 'verified',
-      timestamp: rf.timestamp || new Date().toISOString(),
-    };
-  });
-
-  // If a feedback answer is supplied, append it directly into Stage 1 facts (The feedback loop!)
-  let newlyInjectedFact: SourceLinkedEvidence | undefined;
-  if (newFactAnswer && typeof newFactAnswer.answerText === 'string' && newFactAnswer.answerText.trim()) {
-    newlyInjectedFact = {
-      id: `feedback_fact_${Date.now()}`,
-      fact: `User clarified: "${newFactAnswer.answerText.trim()}"`,
-      source: 'User clarification response',
-      category: 'user_report',
-      allowedRole: 'Evidence of the reported experience',
-      confidence: 'verified',
-      timestamp: new Date().toISOString(),
-    };
-    stage1_facts.push(newlyInjectedFact);
+export function runClinicalReasoningPipeline(rawInput:{documentedFacts?:any[];primaryHypothesis?:string;executiveSummary?:string;uncertainties?:string[];missingLinks?:string[];questionsForClinician?:string[];perspectives?:any[];alternatives?:any[]},
+previousPayload?:ClinicalReasoningPayload|null,newFactAnswer?:{questionId:string;answerText:string}):ClinicalReasoningPayload {
+  const facts:SourceLinkedEvidence[]=(rawInput.documentedFacts || []).filter(f=>f && typeof(f.fact || f.text)==='string').map(f=>({
+    ...f,id:f.id || 'fact_'+stableEvidenceId(JSON.stringify([f.source,f.fact || f.text,f.eventDate])),
+    fact:f.fact || f.text,source:f.source || 'User report',category:f.category || 'user_report',
+    allowedRole:f.allowedRole || 'Evidence of the reported experience',confidence:f.category==='user_report'?'self_reported':'provisional',timestamp:f.timestamp,
+  }));
+  for(const f of previousPayload?.stage1_facts || []) if(f.id.startsWith('feedback_') && !facts.some(x=>x.id===f.id)) facts.push(f);
+  let injected:SourceLinkedEvidence|undefined;
+  if(newFactAnswer?.answerText?.trim()){
+    const question=previousPayload?.stage7_focusedQuestion;
+    if(!question?.question || question.id!==newFactAnswer.questionId) throw new Error('This question is no longer current. Reload the review before answering.');
+    injected={id:'feedback_'+stableEvidenceId(question.id+newFactAnswer.answerText.trim()),fact:newFactAnswer.answerText.trim(),
+      source:'User clarification response',category:'user_report',allowedRole:'Evidence of the reported experience',confidence:'self_reported',timestamp:new Date().toISOString()};
+    if(!facts.some(f=>f.id===injected!.id)) facts.push(injected);
   }
-
-  // STAGE 2: Align Time
-  const stage2_timeline = alignChronology(stage1_facts);
-
-  // STAGE 3: Reconcile Records
-  const stage3_correctionQueue = detectCorrectionQueue(stage1_facts);
-
-  // STAGE 4: Identify Relevant Perspectives
-  const unanswered = (rawInput.uncertainties || []).concat(rawInput.missingLinks || []);
-  const stage4_perspectives = justifyPerspectives(unanswered, rawInput.perspectives);
-
-  // STAGE 5: Generate Alternatives
-  let stage5_alternatives: AlternativeInterpretation[] = [];
-  if (Array.isArray(rawInput.alternatives) && rawInput.alternatives.length > 0) {
-    stage5_alternatives = rawInput.alternatives.map((alt, idx) => ({
-      id: alt.id || `alt_${idx + 1}`,
-      type: alt.type || (idx === 0 ? 'connected_explanation' : idx === 1 ? 'separate_explanations' : 'insufficient_evidence'),
-      title: alt.title || alt.condition || `Hypothesis ${idx + 1}`,
-      mechanismSummary: alt.mechanismSummary || alt.rationale || 'Proposed physiological relationship',
-      likelihoodAssessment: alt.likelihoodAssessment || (idx === 0 ? 'leading' : 'competing'),
-      rationale: alt.rationale || 'Grounding in documented findings',
-    }));
-  } else {
-    const primary = rawInput.primaryHypothesis || 'Autonomic and Metabolic Dysregulation';
-    stage5_alternatives = [
-      {
-        id: 'alt_1',
-        type: 'connected_explanation',
-        title: primary,
-        mechanismSummary: 'A unified neuro-vascular or metabolic cascade connecting autonomic stability to cellular reserve depletion.',
-        likelihoodAssessment: 'leading',
-        rationale: 'Accounts for temporal clustering of multi-system complaints.',
-      },
-      {
-        id: 'alt_2',
-        type: 'separate_explanations',
-        title: 'Concurrent Independent Conditions',
-        mechanismSummary: 'Two or more unrelated processes occurring simultaneously (e.g. primary iron depletion alongside benign postural intolerance).',
-        likelihoodAssessment: 'competing',
-        rationale: 'Avoids premature closure on a single overarching syndrome.',
-      },
-      {
-        id: 'alt_3',
-        type: 'insufficient_evidence',
-        title: 'Non-Specific Multi-System Pattern',
-        mechanismSummary: 'Current documentation is insufficient to distinguish physiological pathology from post-stress or deconditioning states.',
-        likelihoodAssessment: 'uncertain',
-        rationale: 'Requires targeted serial testing before confirming a specific clinical label.',
-      },
-    ];
-  }
-
-  // STAGE 6: Challenge Each Alternative (Tri-Prong)
-  const stage6_balancedAssessments = buildTriProngChallenges(
-    stage5_alternatives,
-    stage1_facts,
-    rawInput.missingLinks || [],
-    stage3_correctionQueue
-  );
-
-  // STAGE 7: Choose Useful Clarification
-  const stage7_focusedQuestion = selectFocusedClarification(
-    rawInput.questionsForClinician || [],
-    rawInput.missingLinks || [],
-    stage5_alternatives
-  );
-
-  // STAGE 8: Synthesize
-  const stage8_synthesis = synthesizeFindings(
-    stage1_facts,
-    stage5_alternatives,
-    stage6_balancedAssessments,
-    rawInput.uncertainties || [],
-    stage3_correctionQueue
-  );
-
-  // STAGE 9: Carry Forward
-  const stage9_continuity: ContinuityRecord = {
-    openQuestions: (rawInput.questionsForClinician || []).slice(0, 5),
-    chosenNextAction: 'Review the balanced assessment and questions with the treating physician.',
-    preservedHypotheses: stage5_alternatives.map(a => a.title),
-    savedAt: new Date().toISOString(),
+  const alternatives=facts.length?(rawInput.alternatives || []).filter(a=>a?.title && ['connected_explanation','separate_explanations','insufficient_evidence'].includes(a.type)).map(a=>({
+    ...a,id:a.id || 'alternative_'+stableEvidenceId(a.title),
+    likelihoodAssessment:['leading','competing','uncertain'].includes(a.likelihoodAssessment)?a.likelihoodAssessment:'uncertain',
+    mechanismSummary:a.mechanismSummary || '',rationale:a.rationale || '',
+  })):[];
+  const corrections=detectCorrectionQueue(facts),assessments=buildTriProngChallenges(alternatives,facts,rawInput.missingLinks || [],corrections);
+  const focused=selectFocusedClarification(rawInput.questionsForClinician || [],[],alternatives);
+  if(injected && previousPayload?.stage7_focusedQuestion.id===focused.id) Object.assign(focused,{status:'answered',userAnswer:injected.fact,answeredAt:injected.timestamp});
+  else if(previousPayload?.stage7_focusedQuestion.id===focused.id && previousPayload.stage7_focusedQuestion.status==='answered') Object.assign(focused,previousPayload.stage7_focusedQuestion);
+  const payload:ClinicalReasoningPayload={
+    stage1_facts:facts,stage2_timeline:alignChronology(facts),stage3_correctionQueue:corrections,
+    stage4_perspectives:facts.length?justifyPerspectives(rawInput.uncertainties || [],rawInput.perspectives):[],
+    stage5_alternatives:alternatives,stage6_balancedAssessments:assessments,stage7_focusedQuestion:focused,
+    stage8_synthesis:synthesizeFindings(facts,alternatives,assessments,rawInput.uncertainties || [],corrections),
+    stage9_continuity:{openQuestions:[...new Set(rawInput.questionsForClinician || [])],chosenNextAction:previousPayload?.stage9_continuity.chosenNextAction || '',preservedHypotheses:alternatives.map(a=>a.title),savedAt:new Date().toISOString()},
   };
-
-  // STAGE 10: Update Selectively
-  const partialPayload: ClinicalReasoningPayload = {
-    stage1_facts,
-    stage2_timeline,
-    stage3_correctionQueue,
-    stage4_perspectives,
-    stage5_alternatives,
-    stage6_balancedAssessments,
-    stage7_focusedQuestion,
-    stage8_synthesis,
-    stage9_continuity,
-  };
-
-  const stage10_selectiveUpdate = computeSelectiveUpdateDiff(
-    previousPayload,
-    partialPayload,
-    newlyInjectedFact
-  );
-
-  return {
-    ...partialPayload,
-    stage10_selectiveUpdate,
-  };
+  payload.stage10_selectiveUpdate=computeSelectiveUpdateDiff(previousPayload,payload,injected);
+  return payload;
 }

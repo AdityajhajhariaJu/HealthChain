@@ -571,12 +571,14 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       const rev = scope.caseItem?.reviews?.find((r: any) => r.type === 'jarvis' || r.report) || scope.caseItem?.reviews?.[0];
       setReport(getConnectionDetectiveReport(rev?.report, scope.caseItem));
     };
+    window.addEventListener('hc_detective_edges_updated', handleUpdate);
     window.addEventListener('hc_biomarkers_updated', handleUpdate);
     window.addEventListener('hc_profile_updated', handleUpdate);
     window.addEventListener('hc_cases_updated', handleUpdate);
     window.addEventListener('hc_triggers_updated', handleUpdate);
 
     return () => {
+      window.removeEventListener('hc_detective_edges_updated', handleUpdate);
       window.removeEventListener('hc_biomarkers_updated', handleUpdate);
       window.removeEventListener('hc_profile_updated', handleUpdate);
       window.removeEventListener('hc_cases_updated', handleUpdate);
@@ -603,7 +605,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     const text = `HEALTHCHAIN 360 • CLINIC USP CONNECTION DETECTIVE REPORT
 Patient: ${report.patientName}
 Generated: ${report.generatedAt}
-Primary Root-Cause Hypothesis: ${report.primaryHypothesis} (Board Alignment: ${report.matchConfidence}%)
+Primary Root-Cause Hypothesis: ${report.primaryHypothesis} (Board Alignment: not scored)
 
 [S] SITUATION:
 ${report.doctorDossier.sbar.situation}
@@ -649,7 +651,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <FeatureMissionHeader featureId="connection-detective" activeCaseId={report.patientName} />
+      <FeatureMissionHeader featureId="connection-detective" activeCaseId={activeCase?.id} />
 
       {/* 1. EXECUTIVE DIAGNOSTIC STATION OVERVIEW (TIER 1 BLUF) */}
       <div
@@ -736,7 +738,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             }}
           >
             <div style={{ fontSize: '18px', fontWeight: 900, color: '#38BDF8' }}>
-              {report.matchConfidence}%
+              Evidence review
             </div>
             <div style={{ fontSize: '9px', fontWeight: 700, color: '#BAE6FD', textTransform: 'uppercase' }}>
               Board Consensus
@@ -1662,7 +1664,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                               BOARD CONVERGENCE INDEX
                             </span>
                             <div style={{ fontSize: '18px', fontWeight: 900, color: '#0C4A6E' }}>
-                              {clusterEvaluation.matchConfidence}% Cross-System Correlation
+                              Recorded observations
                             </div>
                           </div>
                           <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', background: '#0284C7', color: '#FFFFFF' }}>

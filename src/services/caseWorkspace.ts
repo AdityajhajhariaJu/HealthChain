@@ -28,26 +28,11 @@ export function getUnifiedCaseScope(preferredCaseId?: string | null): UnifiedCas
   let resolvedCase: CaseItem | null = null;
 
   if (preferredCaseId) {
-    resolvedCase = (typeof getCase === 'function' ? getCase(preferredCaseId) : null) || null;
-    const currentActiveId = typeof getActiveCaseId === 'function' ? getActiveCaseId() : null;
-    if (resolvedCase && currentActiveId !== resolvedCase.id) {
-      try {
-        if (typeof setActiveCase === 'function') setActiveCase(resolvedCase.id);
-      } catch {}
-    }
+    resolvedCase = allCases.find(c => c.id === preferredCaseId) || null;
+  } else {
+    resolvedCase = (typeof getActiveCase === 'function' ? getActiveCase() : null) || allCases.find(c => !c.intakeData?.scenarioId) || null;
   }
-
-  if (!resolvedCase) {
-    resolvedCase = typeof getActiveCase === 'function' ? getActiveCase() : null;
-  }
-
-  if (!resolvedCase && allCases.length > 0) {
-    resolvedCase = allCases[0];
-    try {
-      if (typeof setActiveCase === 'function') setActiveCase(resolvedCase.id);
-    } catch {}
-  }
-
+  if (resolvedCase?.intakeData?.scenarioId) resolvedCase = null;
   const profileKey = getProfileKey();
   const profileId = getProfileEngineState()?.activeId || 'profile_1';
   const scopeKey = `${profileKey}_${profileId}_${resolvedCase?.id || 'none'}`;
@@ -130,7 +115,7 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
   }
 
   if (Array.isArray(item.events)) {
-    item.events.slice(0, 5).forEach(ev => {
+    item.events.filter(ev => /^(User clarification|User observation|Evidence update|Observation|Measurement|Question|Appointment outcome|Ava update|Case update)$/i.test(ev.label || '')).slice(0, 5).forEach(ev => {
       if (ev.note) {
         answers.push({
           topic: ev.label || 'Case Update',
@@ -147,6 +132,7 @@ export function getCaseDocumentedAnswers(item: CaseItem): DocumentedAnswerItem[]
 
 /** Keep reported evidence separate from machine-generated interpretations. */
 export function buildCaseContext(item: CaseItem): string {
+  if (item.intakeData?.scenarioId) return JSON.stringify({ notice: 'Illustrative example. Not patient evidence.' });
   const documentedAnswers = getCaseDocumentedAnswers(item);
 
   return JSON.stringify({

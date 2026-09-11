@@ -652,9 +652,7 @@ export default function AvaHealthBuddy() {
   const incomingStudy = location.state?.sourceStudy || null;
   const [activeSourceStudy, setActiveSourceStudy] = useState<any>(() => incomingStudy);
   useEffect(() => {
-    if (incomingStudy) {
-      setActiveSourceStudy(incomingStudy);
-    }
+    setActiveSourceStudy(incomingStudy);
   }, [incomingStudy]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isProcessingAttachment, setIsProcessingAttachment] = useState(false);
@@ -667,6 +665,7 @@ export default function AvaHealthBuddy() {
   const [isQuickMealOpen, setIsQuickMealOpen] = useState(false);
   const [isDetectiveOpen, setIsDetectiveOpen] = useState(false);
   const [detectiveTab, setDetectiveTab] = useState<string>('map');
+  useEffect(() => { if (new URLSearchParams(location.search).get('tool') === 'connection-detective') setIsDetectiveOpen(true); }, [location.search]);
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [showContextModal, setShowContextModal] = useState(false);
 
@@ -742,13 +741,13 @@ export default function AvaHealthBuddy() {
   const [selectedCaseId, setSelectedCaseId] = useState(() => {
     const paramId = new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId;
     const scope = getUnifiedCaseScope(paramId);
-    return scope.caseId || '';
+    return paramId || scope.caseId || '';
   });
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
   const saveUpdateBusy = useRef(false);
-  useEffect(() => { setSavedUpdate(null); }, [selectedCaseId]);
+  useEffect(() => { setSavedUpdate(null); if (activeSourceStudy?.caseId && activeSourceStudy.caseId !== selectedCaseId) setActiveSourceStudy(null); }, [selectedCaseId]);
   const saveDraftToCase = () => {
     if (!selectedCase || !input.trim() || saveUpdateBusy.current) return;
     saveUpdateBusy.current = true;
@@ -770,7 +769,7 @@ export default function AvaHealthBuddy() {
   const sendingRef = useRef(false);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    setSelectedCaseId(params.get('caseId') || params.get('importCase') || location.state?.caseId || '');
+    setSelectedCaseId(params.get('caseId') || params.get('importCase') || location.state?.caseId || getUnifiedCaseScope().caseId || '');
   }, [location.search, location.state?.caseId]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -980,7 +979,7 @@ export default function AvaHealthBuddy() {
   };
 
   const handleSend = async (text: string) => {
-    if ((!text.trim() && attachments.length === 0) || sendingRef.current || isTyping || isStreaming || attachmentBusyRef.current || (selectedCaseId && !selectedCase)) return;
+    if ((!text.trim() && attachments.length === 0) || sendingRef.current || isTyping || isStreaming || attachmentBusyRef.current || (selectedCaseId && (!selectedCase || selectedCase.intakeData?.scenarioId))) return;
     const triage = evaluateEmergencyTriage(text);
     if (triage.isEmergency) {
       setEmergencyTriage(triage);
@@ -1037,7 +1036,7 @@ export default function AvaHealthBuddy() {
 
     // Order 8: Research content handoff — inject full study abstract and criteria breakdown so Ava summarizes the retrieved source, not merely its title
     const studySnippet = activeSourceStudy
-      ? `\n\n[RETRIEVED RESEARCH SOURCE STUDY TO SUMMARIZE]:\nTitle: "${activeSourceStudy.briefTitle}"\nNCT ID: ${activeSourceStudy.nctId}\nPhase: ${activeSourceStudy.phase || 'N/A'}\nTarget Conditions: ${(activeSourceStudy.conditions || []).join(', ')}\nMatch Evaluation: ${activeSourceStudy.matchStatus}\nEligibility & Criteria Breakdown:\n- Age Criteria: ${activeSourceStudy.criteriaBreakdown?.ageCriteria || 'Not specified'}\n- Gender Criteria: ${activeSourceStudy.criteriaBreakdown?.genderCriteria || 'Not specified'}\n- Condition Match: ${activeSourceStudy.criteriaBreakdown?.conditionMatch || 'Not specified'}\n- Clinical Note: ${activeSourceStudy.criteriaBreakdown?.overallNote || ''}\nAbstract / Objectives:\n${activeSourceStudy.abstract || 'No abstract provided'}\n\n[CRITICAL INSTRUCTION FOR AVA]: The patient is discussing this retrieved clinical research study. You must summarize the actual scientific objectives and findings of this study in compassionate, clear language. Highlight why it matches or differs from their profile, and prepare 2-3 specific questions for them to discuss with their clinician.`
+      ? `\n\n[RETRIEVED RESEARCH SOURCE STUDY TO SUMMARIZE]:\nTitle: "${activeSourceStudy.title || activeSourceStudy.briefTitle}"\nNCT ID: ${activeSourceStudy.nctId}\nPhase: ${activeSourceStudy.phase || 'N/A'}\nTarget Conditions: ${(activeSourceStudy.conditions || []).join(', ')}\nMatch Evaluation: ${activeSourceStudy.matchStatus}\nEligibility & Criteria Breakdown:\n- Age Criteria: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.ageCriteria || null)}\n- Gender Criteria: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.genderCriteria || null)}\n- Condition Match: ${JSON.stringify(activeSourceStudy.criteriaBreakdown?.conditionMatch || null)}\n- Clinical Note: ${activeSourceStudy.criteriaBreakdown?.overallNote || ''}\nAbstract / Objectives:\n${activeSourceStudy.abstract || 'No abstract provided'}\n\n[CRITICAL INSTRUCTION FOR AVA]: The patient is discussing this retrieved clinical research study. You must summarize the actual scientific objectives and findings of this study in compassionate, clear language. Highlight why it matches or differs from their profile, and prepare 2-3 specific questions for them to discuss with their clinician.`
       : '';
     
     // Promise 5: Inject semantic memory context so user never repeats their story
@@ -1735,7 +1734,7 @@ export default function AvaHealthBuddy() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                 <span style={{ fontSize: '15px' }}>🔬</span>
                 <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <strong style={{ color: '#14532D' }}>Referenced Study: {activeSourceStudy.briefTitle}</strong>
+                  <strong style={{ color: '#14532D' }}>Referenced Study: {activeSourceStudy.title || activeSourceStudy.briefTitle}</strong>
                   <span style={{ color: '#166534', marginLeft: '6px' }}>({activeSourceStudy.nctId}) • Abstract Attached</span>
                 </div>
               </div>
@@ -1877,7 +1876,7 @@ export default function AvaHealthBuddy() {
               <button
                 aria-label="Send message"
                 type="submit"
-                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming || isProcessingAttachment || Boolean(selectedCaseId && !selectedCase)}
+                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming || isProcessingAttachment || Boolean(selectedCaseId && (!selectedCase || selectedCase.intakeData?.scenarioId))}
                 style={{
                   width: isMobile ? '34px' : '36px',
                   height: isMobile ? '34px' : '36px',

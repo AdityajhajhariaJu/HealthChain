@@ -38,7 +38,7 @@ describe('clinical review result boundary', () => {
   it('removes uncalibrated probabilities and tolerates malformed optional collections', () => {
     const result = normalizeClinicalReview({ executiveSummary: 'Records are incomplete.', matchConfidence: 84, topDiagnoses: [{ condition: 'An unverified possibility', confidence: 91 }], functionalBiomarkers: {}, uncertainties: ['Date unknown', null], immediateRelief: { dietSwaps: ['Double salt intake'] } });
     expect(result.matchConfidence).toBeNull();
-    expect(result.topDiagnoses[0]).not.toHaveProperty('confidence');
+    expect(result.topDiagnoses).toEqual([]);
     expect(result.functionalBiomarkers).toEqual([]);
     expect(result.uncertainties).toEqual(['Date unknown']);
     expect(result.immediateRelief.dietSwaps).toEqual([]);
@@ -48,6 +48,6 @@ describe('clinical review result boundary', () => {
     expect(prompt).toContain('My actual concern');
     expect(prompt).toContain('Example medication');
     expect(prompt).not.toContain('18 ng/mL');
-    expect(prompt).toContain('never fill them with imagined examples');
+    expect(prompt).toContain('Never add irrelevant specialties to fill a template');
   });
 });

@@ -80,7 +80,7 @@ describe('CaseEngine', () => {
     const enhanced = ensureRecordPassages(record);
     expect(enhanced.passages).toBeDefined();
     expect(enhanced.passages.length).toBeGreaterThan(0);
-    expect(enhanced.passages[0].id).toContain('pas_rec_lab_123');
+    expect(enhanced.passages[0].id).toContain('summary_rec_lab_123');
 
     // Create a case with this record
     const c = createCaseDraft({

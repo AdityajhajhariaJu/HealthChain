@@ -8,6 +8,8 @@ export interface ClinicalTrial {
   conditions: string[];
   interventions: string[];
   matchScore?: number; // AI will fill this
+  eligibility?: { minimumAge?: string; maximumAge?: string; sex?: string; eligibilityCriteria?: string };
+  url?: string;
   aiContext?: string; // AI will fill this explaining why it matches
 }
 
@@ -57,7 +59,7 @@ export async function fetchLiveTrials(conditions: string[]): Promise<ClinicalTri
 
   const url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(
     primaryCondition
-  )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=5&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule`;
+  )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=5&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule,EligibilityModule`;
 
   try {
     const response = await fetchWithTimeout(url);
@@ -97,10 +99,12 @@ export async function fetchLiveTrials(conditions: string[]): Promise<ClinicalTri
         summary,
         conditions: conds,
         interventions,
+        eligibility: protocol?.eligibilityModule,
+        url: 'https://clinicaltrials.gov/study/' + id,
       };
     });
   } catch (error) {
     console.error('Error fetching clinical trials:', error);
-    return [];
+    throw error;
   }
 }

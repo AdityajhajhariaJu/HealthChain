@@ -293,7 +293,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
             gap: '10px',
           }}>
             <div style={{ fontWeight: 800, fontSize: '11px', color: '#0369A1', textTransform: 'uppercase' }}>
-              Documented Origins & Verified Timestamps (Acceptance Criterion 2)
+              Sources and recorded dates
             </div>
             {layer2_whyThisMatters.sourcePassages.map((src, idx) => (
               <div 
