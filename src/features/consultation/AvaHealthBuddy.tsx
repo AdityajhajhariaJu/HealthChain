@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle, ChevronDown, Check, CheckCircle2, ExternalLink } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -22,7 +22,7 @@ import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiv
 import { SymptomSensitivityCapsuleCard } from '../../components/ui/SymptomSensitivityCapsuleCard';
 import { evaluateEmergencyTriage, TriageEvaluation } from '../../services/clinicalTriageEngine';
 import { EmergencyTriageModal } from '../../components/ui/EmergencyTriageModal';
-import { getCase, addCaseEvent } from '../../services/CaseEngine';
+import { getCase, getCases, addCaseEvent, addCaseQuestion, type CaseItem } from '../../services/CaseEngine';
 import { buildCaseContext, getUnifiedCaseScope, getCaseDocumentedAnswers } from '../../services/caseWorkspace';
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
@@ -597,6 +597,762 @@ const MessageRenderer = ({
   return <span>{content}</span>;
 };
 
+export function extractActionSuggestions(
+  modelContent: string,
+  userContent?: string,
+  options?: {
+    hasCase: boolean;
+    hasRecords: boolean;
+    hasStudy: boolean;
+    hasReview: boolean;
+  }
+) {
+  const cleanModel = cleanChatMessageText(modelContent || '');
+  const cleanUser = cleanChatMessageText(userContent || '');
+
+  // 1. Observation Detection:
+  let canSaveObservation = false;
+  let observationDraft = '';
+  if (cleanUser && cleanUser.length > 5) {
+    const observationKeywords = /(symptom|pain|bloat|headache|fatigue|ate|eat|meal|felt|noticed|started|flare|stomach|gut|reaction|woke up|sleep|took|medicine|dose|bp|blood pressure|pulse|ache|nausea|cramp|energy|stool|trigger|muscle|twitch|rash|fever|dizzy|weak|joint|experienced|feeling)/i;
+    if (observationKeywords.test(cleanUser) || observationKeywords.test(cleanModel)) {
+      canSaveObservation = true;
+      observationDraft = cleanUser.slice(0, 280);
+    }
+  }
+
+  // 2. Question Detection:
+  let canAddQuestion = false;
+  let questionDraft = '';
+  const questionMatches = cleanModel.match(/(?:Ask your (?:doctor|physician|care team|provider)|Questions? for your (?:clinician|doctor|provider|care team)|You might ask|Consider asking)[^\n:]*[:?-]?\s*(?:[-*•\d.]\s*)?([^\r\n?]+[?])/i);
+  if (questionMatches && questionMatches[1]) {
+    canAddQuestion = true;
+    questionDraft = questionMatches[1].trim();
+  } else {
+    const lines = cleanModel.split('\n');
+    const qLine = lines.find(l => l.includes('?') && l.length > 12 && l.length < 200 && !/^(how are you|anything else|what do you think)/i.test(l.trim()));
+    if (qLine) {
+      canAddQuestion = true;
+      questionDraft = qLine.replace(/^[-*•\d.]\s*/, '').trim();
+    }
+  }
+
+  // 3. Explain Source:
+  const canExplainSource = Boolean(options?.hasStudy || options?.hasRecords);
+  const sourceLabel = options?.hasStudy ? 'Explain this study' : 'Explain this source';
+
+  // 4. Open Related Review:
+  const canOpenReview = Boolean(options?.hasCase && options?.hasReview);
+
+  return {
+    canSaveObservation,
+    observationDraft,
+    canAddQuestion,
+    questionDraft,
+    canExplainSource,
+    sourceLabel,
+    canOpenReview,
+  };
+}
+
+export const AvaActionToolbar = ({
+  msgIndex,
+  modelContent,
+  userContent,
+  selectedCase,
+  activeSourceStudy,
+  savedActionIds,
+  onSaveObservation,
+  onAddQuestion,
+  onExplainSource,
+  onOpenReview,
+}: {
+  msgIndex: number;
+  modelContent: string;
+  userContent?: string;
+  selectedCase?: CaseItem | null;
+  activeSourceStudy?: any;
+  savedActionIds: Set<string>;
+  onSaveObservation: (text: string) => void;
+  onAddQuestion: (text: string) => void;
+  onExplainSource: () => void;
+  onOpenReview: () => void;
+}) => {
+  const suggestions = useMemo(() => {
+    return extractActionSuggestions(modelContent, userContent, {
+      hasCase: Boolean(selectedCase),
+      hasRecords: Boolean(selectedCase && selectedCase.medicalRecords && selectedCase.medicalRecords.length > 0),
+      hasStudy: Boolean(activeSourceStudy),
+      hasReview: Boolean(selectedCase && (selectedCase.currentSummary || (selectedCase.events && selectedCase.events.some(e => e.label?.includes('Review'))))),
+    });
+  }, [modelContent, userContent, selectedCase, activeSourceStudy]);
+
+  const obsSavedKey = `obs_${msgIndex}`;
+  const qSavedKey = `q_${msgIndex}`;
+  const isObsSaved = savedActionIds.has(obsSavedKey);
+  const isQSaved = savedActionIds.has(qSavedKey);
+
+  if (!suggestions.canSaveObservation && !suggestions.canAddQuestion && !suggestions.canExplainSource && !suggestions.canOpenReview) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        marginTop: '12px',
+        paddingTop: '10px',
+        borderTop: '1px dashed rgba(13, 148, 136, 0.25)',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+        alignItems: 'center',
+      }}
+    >
+      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px' }}>
+        Next Actions:
+      </span>
+
+      {suggestions.canSaveObservation && (
+        <button
+          type="button"
+          disabled={isObsSaved}
+          onClick={() => {
+            triggerHapticLight();
+            onSaveObservation(suggestions.observationDraft);
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '5px 12px',
+            borderRadius: '999px',
+            border: isObsSaved ? '1px solid #A7F3D0' : '1px solid #CCFBF1',
+            background: isObsSaved ? '#ECFDF5' : '#FFFFFF',
+            color: isObsSaved ? '#059669' : '#0F766E',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: isObsSaved ? 'default' : 'pointer',
+            boxShadow: '0 2px 6px rgba(13, 148, 136, 0.08)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          {isObsSaved ? <Check size={13} /> : <span>📝</span>}
+          <span>{isObsSaved ? 'Observation saved' : 'Save this observation'}</span>
+        </button>
+      )}
+
+      {suggestions.canAddQuestion && (
+        <button
+          type="button"
+          disabled={isQSaved}
+          onClick={() => {
+            triggerHapticLight();
+            onAddQuestion(suggestions.questionDraft);
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '5px 12px',
+            borderRadius: '999px',
+            border: isQSaved ? '1px solid #DDD6FE' : '1px solid #E0E7FF',
+            background: isQSaved ? '#F5F3FF' : '#FFFFFF',
+            color: isQSaved ? '#6D28D9' : '#4338CA',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: isQSaved ? 'default' : 'pointer',
+            boxShadow: '0 2px 6px rgba(79, 70, 229, 0.08)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          {isQSaved ? <Check size={13} /> : <span>❓</span>}
+          <span>{isQSaved ? 'Question added' : 'Add appointment question'}</span>
+        </button>
+      )}
+
+      {suggestions.canExplainSource && (
+        <button
+          type="button"
+          onClick={() => {
+            triggerHapticLight();
+            onExplainSource();
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '5px 12px',
+            borderRadius: '999px',
+            border: '1px solid #E2E8F0',
+            background: '#FFFFFF',
+            color: '#334155',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>🔍</span>
+          <span>{suggestions.sourceLabel}</span>
+        </button>
+      )}
+
+      {suggestions.canOpenReview && (
+        <button
+          type="button"
+          onClick={() => {
+            triggerHapticLight();
+            onOpenReview();
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '5px 12px',
+            borderRadius: '999px',
+            border: '1px solid #FED7AA',
+            background: '#FFF7ED',
+            color: '#C2410C',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(194, 65, 12, 0.08)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span>📊</span>
+          <span>Open related review</span>
+        </button>
+      )}
+    </div>
+  );
+};
+
+export const CaseSelectorModal = ({
+  isOpen,
+  selectedCaseId,
+  availableCases,
+  onSelectCase,
+  onClose,
+}: {
+  isOpen: boolean;
+  selectedCaseId: string;
+  availableCases: CaseItem[];
+  onSelectCase: (caseId: string) => void;
+  onClose: () => void;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Select Case Workspace"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(15, 23, 42, 0.45)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(24px)',
+          borderRadius: '24px',
+          border: '1.5px solid #CCFBF1',
+          boxShadow: '0 24px 48px rgba(13, 148, 136, 0.18)',
+          width: '100%',
+          maxWidth: '480px',
+          maxHeight: '80vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '18px 20px',
+            borderBottom: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
+              Select Active Case
+            </h3>
+            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748B' }}>
+              Ava grounds her answers and actions in the connected case.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Close case selector"
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#64748B',
+              padding: '6px',
+              borderRadius: '50%',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              onSelectCase('');
+              onClose();
+            }}
+            style={{
+              padding: '14px 16px',
+              borderRadius: '16px',
+              border: !selectedCaseId ? '2px solid #0D9488' : '1.5px solid #E2E8F0',
+              background: !selectedCaseId ? '#F0FDFA' : '#FFFFFF',
+              textAlign: 'left',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: !selectedCaseId ? '#0D9488' : '#F1F5F9',
+                  color: !selectedCaseId ? '#FFFFFF' : '#64748B',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontWeight: 800,
+                  fontSize: '16px',
+                  flexShrink: 0,
+                }}
+              >
+                🌐
+              </div>
+              <div>
+                <strong style={{ fontSize: '14px', color: !selectedCaseId ? '#0F766E' : '#1E293B', display: 'block' }}>
+                  General Health Conversation
+                </strong>
+                <span style={{ fontSize: '12px', color: '#64748B' }}>
+                  No case attached. Reflect on your day or ask general questions.
+                </span>
+              </div>
+            </div>
+            {!selectedCaseId && <Check size={18} color="#0D9488" />}
+          </button>
+
+          {availableCases.length > 0 && (
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.6px', marginTop: '6px', marginBottom: '2px' }}>
+              Your Cases ({availableCases.length})
+            </div>
+          )}
+
+          {availableCases.map((c) => {
+            const isSelected = c.id === selectedCaseId;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => {
+                  onSelectCase(c.id);
+                  onClose();
+                }}
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: '16px',
+                  border: isSelected ? '2px solid #0D9488' : '1.5px solid #E2E8F0',
+                  background: isSelected ? '#F0FDFA' : '#FFFFFF',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: isSelected ? 'linear-gradient(135deg, #0D9488, #0F766E)' : '#F1F5F9',
+                      color: isSelected ? '#FFFFFF' : '#0F766E',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: '16px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    📁
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <strong style={{ fontSize: '14px', color: isSelected ? '#0F766E' : '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {c.title}
+                      </strong>
+                      <span style={{ fontSize: '10px', fontWeight: 700, background: '#CCFBF1', color: '#0F766E', padding: '1px 6px', borderRadius: '6px' }}>
+                        {c.status || 'Active'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#64748B', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {c.intakeData?.chiefComplaint || c.intakeData?.concern || 'Case timeline'}
+                    </span>
+                  </div>
+                </div>
+                {isSelected && <Check size={18} color="#0D9488" style={{ flexShrink: 0 }} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const SaveTaskModal = ({
+  isOpen,
+  type,
+  initialText,
+  activeCaseId,
+  availableCases,
+  onClose,
+  onConfirm,
+}: {
+  isOpen: boolean;
+  type: 'observation' | 'question';
+  initialText: string;
+  activeCaseId: string;
+  availableCases: CaseItem[];
+  onClose: () => void;
+  onConfirm: (text: string, targetCaseId: string, specialty?: string) => void;
+}) => {
+  const [targetCaseId, setTargetCaseId] = useState(() => activeCaseId || (availableCases[0]?.id || ''));
+  const [text, setText] = useState(initialText);
+  const [specialty, setSpecialty] = useState('General');
+
+  useEffect(() => {
+    setText(initialText);
+  }, [initialText]);
+
+  useEffect(() => {
+    if (activeCaseId) setTargetCaseId(activeCaseId);
+    else if (availableCases.length > 0 && !targetCaseId) setTargetCaseId(availableCases[0].id);
+  }, [activeCaseId, availableCases]);
+
+  if (!isOpen) return null;
+
+  const targetCase = availableCases.find(c => c.id === targetCaseId);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={type === 'observation' ? 'Save Observation to Case' : 'Add Appointment Question'}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(15, 23, 42, 0.45)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(24px)',
+          borderRadius: '24px',
+          border: '1.5px solid #CCFBF1',
+          boxShadow: '0 24px 48px rgba(13, 148, 136, 0.18)',
+          width: '100%',
+          maxWidth: '520px',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '18px 22px',
+            borderBottom: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: type === 'observation' ? '#CCFBF1' : '#EDE9FE',
+                color: type === 'observation' ? '#0F766E' : '#6D28D9',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: '18px',
+              }}
+            >
+              {type === 'observation' ? '📝' : '❓'}
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
+                {type === 'observation' ? 'Save Observation to Case' : 'Add Appointment Question'}
+              </h3>
+              <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+                Review text and destination before saving
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            aria-label="Close modal"
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#64748B',
+              padding: '6px',
+              borderRadius: '50%',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ padding: '20px 22px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div
+            style={{
+              background: '#F8FAFC',
+              border: '1px solid #E2E8F0',
+              borderRadius: '14px',
+              padding: '12px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Destination Case:
+              </span>
+              {availableCases.length > 1 ? (
+                <select
+                  aria-label="Destination Case"
+                  value={targetCaseId}
+                  onChange={(e) => setTargetCaseId(e.target.value)}
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    color: '#0F766E',
+                    background: '#FFFFFF',
+                    border: '1px solid #CCFBF1',
+                    borderRadius: '8px',
+                    padding: '4px 8px',
+                    outline: 'none',
+                  }}
+                >
+                  {availableCases.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <strong style={{ fontSize: '13px', color: '#0F766E' }}>
+                  {targetCase?.title || 'Active Case Workspace'}
+                </strong>
+              )}
+            </div>
+
+            <div style={{ fontSize: '12px', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>Target Section:</span>
+              <strong style={{ color: '#0F172A' }}>
+                {type === 'observation' ? 'Case Timeline (Timeline Events)' : 'Doctor Visit Brief (Open Questions)'}
+              </strong>
+            </div>
+          </div>
+
+          {type === 'question' && (
+            <div>
+              <label htmlFor="ava-task-specialty-select" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Specialty or Care Team:
+              </label>
+              <select
+                id="ava-task-specialty-select"
+                aria-label="Specialty or Care Team"
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                style={{
+                  width: '100%',
+                  fontSize: '13.5px',
+                  color: '#1E293B',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #E2E8F0',
+                  borderRadius: '10px',
+                  padding: '8px 12px',
+                  outline: 'none',
+                }}
+              >
+                <option value="General">General / Primary Care</option>
+                <option value="Gastroenterology">Gastroenterology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Endocrinology">Endocrinology</option>
+                <option value="Rheumatology">Rheumatology</option>
+                <option value="Pharmacist">Pharmacist</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+              {type === 'observation' ? 'Observation Note (Patient-Reported):' : 'Question for Doctor:'}
+            </label>
+            <textarea
+              rows={4}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={type === 'observation' ? 'Describe the symptom, event, or reaction...' : 'Type your question...'}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                borderRadius: '12px',
+                border: '1.5px solid #CCFBF1',
+                padding: '12px 14px',
+                fontSize: '14px',
+                lineHeight: 1.5,
+                color: '#1E293B',
+                outline: 'none',
+                resize: 'vertical',
+                minHeight: '90px',
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: '#F0FDFA',
+              border: '1px solid #99F6E4',
+              fontSize: '12px',
+              color: '#0F766E',
+              lineHeight: 1.4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span>🛡️</span>
+            <span>
+              {type === 'observation'
+                ? 'Captured strictly as patient-reported evidence. Will not be mislabeled as an objective lab finding or physician diagnosis.'
+                : 'Will be recorded as an Open Question ready to export or discuss during your next clinical appointment.'}
+            </span>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: '14px 22px',
+            borderTop: '1px solid #E2E8F0',
+            background: '#F8FAFC',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: '10px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              padding: '9px 18px',
+              borderRadius: '10px',
+              border: '1px solid #CBD5E1',
+              background: '#FFFFFF',
+              color: '#475569',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!text.trim() || !targetCaseId}
+            onClick={() => {
+              if (text.trim() && targetCaseId) {
+                onConfirm(text.trim(), targetCaseId, specialty);
+              }
+            }}
+            style={{
+              padding: '9px 20px',
+              borderRadius: '10px',
+              border: 'none',
+              background: (!text.trim() || !targetCaseId) ? '#94A3B8' : 'linear-gradient(135deg, #0D9488, #0F766E)',
+              color: '#FFFFFF',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: (!text.trim() || !targetCaseId) ? 'not-allowed' : 'pointer',
+              boxShadow: (!text.trim() || !targetCaseId) ? 'none' : '0 4px 12px rgba(13, 148, 136, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Check size={16} /> Confirm & Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AvaHealthBuddy() {
   const isMobile = useIsMobile();
   const toast = useToast();
@@ -635,15 +1391,19 @@ export default function AvaHealthBuddy() {
     window.addEventListener('hc_reopen_meditation', handleReopen);
     return () => window.removeEventListener('hc_reopen_meditation', handleReopen);
   }, []);
+  const getDraftStorageKey = (scope: string, cId: string) => `hc_ava_draft_${scope}_${cId || 'general'}`;
+
   const incomingPrompt = location.state?.initialPrompt || location.state?.initialMessage;
+  const initialCaseIdParam = new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId || '';
   const [input, setInput] = useState(() => { 
     try { 
-      return incomingPrompt || sessionStorage.getItem(`${getAvaVaultKey()}_draft`) || '';
+      if (incomingPrompt) return incomingPrompt;
+      const scope = getAvaVaultKey();
+      return localStorage.getItem(getDraftStorageKey(scope, initialCaseIdParam)) || sessionStorage.getItem(`${scope}_draft`) || '';
     } catch { 
       return ''; 
     } 
   });
-  useEffect(() => { try { if (input.trim()) sessionStorage.setItem(`${getAvaVaultKey()}_draft`, input); else sessionStorage.removeItem(`${getAvaVaultKey()}_draft`); } catch(e){} }, [input]);
   useEffect(() => {
     if (incomingPrompt) {
       setInput(incomingPrompt);
@@ -772,6 +1532,98 @@ export default function AvaHealthBuddy() {
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
   const [savedUpdate, setSavedUpdate] = useState<{ caseId: string; title: string } | null>(null);
   const saveUpdateBusy = useRef(false);
+  const [isCaseSelectorOpen, setIsCaseSelectorOpen] = useState(false);
+  const [saveModalState, setSaveModalState] = useState<{
+    isOpen: boolean;
+    type: 'observation' | 'question';
+    initialText: string;
+    caseId: string;
+    specialty?: string;
+    msgIndex?: number;
+  } | null>(null);
+  const [savedActionIds, setSavedActionIds] = useState<Set<string>>(() => new Set());
+  const [failedDraft, setFailedDraft] = useState<string | null>(null);
+  const selectedCaseIdRef = useRef(selectedCaseId);
+  const lastFailedDraftRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    selectedCaseIdRef.current = selectedCaseId;
+  }, [selectedCaseId]);
+
+  useEffect(() => {
+    try {
+      const scope = getAvaVaultKey();
+      const draftKey = getDraftStorageKey(scope, selectedCaseId);
+      if (input.trim()) {
+        localStorage.setItem(draftKey, input);
+        sessionStorage.setItem(`${scope}_draft`, input);
+      } else {
+        localStorage.removeItem(draftKey);
+        sessionStorage.removeItem(`${scope}_draft`);
+      }
+    } catch (e) {}
+  }, [input, selectedCaseId]);
+
+  const handleSelectCase = (newCaseId: string) => {
+    if (newCaseId === selectedCaseId) return;
+    const scope = getAvaVaultKey();
+    if (input.trim()) {
+      try {
+        localStorage.setItem(getDraftStorageKey(scope, selectedCaseId), input);
+      } catch (e) {}
+    }
+    setSelectedCaseId(newCaseId);
+    let nextDraft = '';
+    try {
+      nextDraft = localStorage.getItem(getDraftStorageKey(scope, newCaseId)) || '';
+    } catch (e) {}
+    setInput(nextDraft);
+
+    const searchParams = new URLSearchParams(location.search);
+    if (newCaseId) {
+      searchParams.set('caseId', newCaseId);
+    } else {
+      searchParams.delete('caseId');
+    }
+    const nextQuery = searchParams.toString();
+    navigate({ search: nextQuery ? `?${nextQuery}` : '' }, { replace: true });
+  };
+
+  const handleConfirmSave = (confirmedText: string, targetCaseId: string, specialty?: string) => {
+    if (!confirmedText.trim() || !targetCaseId) return;
+    try {
+      const targetCase = getCase(targetCaseId);
+      if (!targetCase) throw new Error('Target case unavailable');
+
+      if (saveModalState?.type === 'observation') {
+        addCaseEvent(targetCaseId, confirmedText.trim(), 'Patient observation (Ava conversation)');
+        setSavedUpdate({ caseId: targetCaseId, title: targetCase.title });
+        toast.success('Observation Saved', `Added to case timeline for "${targetCase.title}".`);
+        triggerHapticSuccess();
+        if (saveModalState.msgIndex !== undefined) {
+          setSavedActionIds(prev => new Set([...prev, `obs_${saveModalState.msgIndex}`]));
+        }
+      } else {
+        addCaseQuestion(targetCaseId, {
+          questionText: confirmedText.trim(),
+          raisedBySpecialty: specialty || 'General',
+          supportingEvidenceIds: [],
+          status: 'open',
+        });
+        setSavedUpdate({ caseId: targetCaseId, title: targetCase.title });
+        toast.success('Question Added', `Added to doctor visit brief for "${targetCase.title}".`);
+        triggerHapticSuccess();
+        if (saveModalState?.msgIndex !== undefined) {
+          setSavedActionIds(prev => new Set([...prev, `q_${saveModalState.msgIndex}`]));
+        }
+      }
+    } catch (e: any) {
+      toast.error('Save failed', e?.message || 'Could not save to case.');
+    } finally {
+      setSaveModalState(null);
+    }
+  };
+
   useEffect(() => { setSavedUpdate(null); if (activeSourceStudy?.caseId && activeSourceStudy.caseId !== selectedCaseId) setActiveSourceStudy(null); }, [selectedCaseId]);
   const saveDraftToCase = () => {
     if (!selectedCase || !input.trim() || saveUpdateBusy.current) return;
@@ -790,7 +1642,7 @@ export default function AvaHealthBuddy() {
     }
   };
   const importedCase = selectedCase ? { caseId: selectedCase.id, title: selectedCase.title, type: 'Saved case', topConditions: '' } : null;
-  const setImportedCase = () => setSelectedCaseId('');
+  const setImportedCase = () => handleSelectCase('');
   const [sendError, setSendError] = useState(false);
   const lastRequestRef = useRef<AvaRequest | null>(null);
   const sendingRef = useRef(false);
@@ -907,7 +1759,7 @@ export default function AvaHealthBuddy() {
     onMutate: () => { setIsTyping(true); setSendError(false); },
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, request: AvaRequest) => {
-        if (!isMounted.current || request.scope !== getAvaVaultKey()) return;
+        if (!isMounted.current || request.scope !== getAvaVaultKey() || (request.caseId && request.caseId !== selectedCaseIdRef.current)) return;
         const newMessages = request.messages;
         setIsTyping(false);
         const hasWidget = response && response.includes('[WIDGET:');
@@ -943,10 +1795,13 @@ export default function AvaHealthBuddy() {
         recordTrialUsage('ava');
       },
     onError: (_error, request) => {
-      if (!isMounted.current || request.scope !== getAvaVaultKey()) return;
+      if (!isMounted.current || request.scope !== getAvaVaultKey() || (request.caseId && request.caseId !== selectedCaseIdRef.current)) return;
       setIsTyping(false);
       setIsStreaming(false);
       setSendError(true);
+      if (lastFailedDraftRef.current) {
+        setFailedDraft(lastFailedDraftRef.current);
+      }
     },
     onSettled: () => { sendingRef.current = false; },
   });
@@ -1218,33 +2073,65 @@ export default function AvaHealthBuddy() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                setWholeHealthTab('picture');
-                setIsWholeHealthOpen(true);
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                borderRadius: '999px',
-                background: '#FFFFFF',
-                border: '1.5px solid #CCFBF1',
-                color: '#E11D48',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
-                transition: 'transform 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
-            >
-              <Activity size={14} color="#E11D48" /> Whole Health
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                aria-label="Select active case workspace"
+                onClick={() => {
+                  triggerHapticLight();
+                  setIsCaseSelectorOpen(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '999px',
+                  background: selectedCase ? 'rgba(13, 148, 136, 0.12)' : 'rgba(241, 245, 249, 0.9)',
+                  border: selectedCase ? '1.5px solid #99F6E4' : '1.5px solid #E2E8F0',
+                  color: selectedCase ? '#0F766E' : '#64748B',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.08)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>{selectedCase ? '📁' : '🌐'}</span>
+                <span style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedCase ? selectedCase.title : 'General Mode'}
+                </span>
+                <ChevronDown size={14} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  setWholeHealthTab('picture');
+                  setIsWholeHealthOpen(true);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  borderRadius: '999px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CCFBF1',
+                  color: '#E11D48',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.08)',
+                  transition: 'transform 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+              >
+                <Activity size={14} color="#E11D48" /> Whole Health
+              </button>
+            </div>
           </div>
         )}
 
@@ -1270,6 +2157,47 @@ export default function AvaHealthBuddy() {
             }}
           >
             <FeatureMissionHeader featureId="ava" activeCaseId={selectedCaseId || importedCase?.caseId} />
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '-4px 0 4px 0',
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Active case workspace pill"
+                onClick={() => {
+                  triggerHapticLight();
+                  setIsCaseSelectorOpen(true);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '7px',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  background: selectedCase ? 'rgba(13, 148, 136, 0.1)' : 'rgba(255, 255, 255, 0.85)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: selectedCase ? '1.5px solid #99F6E4' : '1px solid #E2E8F0',
+                  color: selectedCase ? '#0F766E' : '#475569',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.06)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>{selectedCase ? '📁' : '🌐'}</span>
+                <span>
+                  {selectedCase ? `Active Case: ${selectedCase.title}` : 'General Consultation (Tap to link case)'}
+                </span>
+                <ChevronDown size={13} />
+              </button>
+            </div>
 
             {missingCaseNotice && (
               <motion.div
@@ -1613,6 +2541,48 @@ export default function AvaHealthBuddy() {
                                 <Play size={15} fill="#FFF" /> Begin Calm Session Now
                               </button>
                             </motion.div>
+                          )}
+                          {msg.role === 'model' && (
+                            <AvaActionToolbar
+                              msgIndex={idx}
+                              modelContent={msg.content}
+                              userContent={messages[idx - 1]?.role === 'user' ? messages[idx - 1].content : undefined}
+                              selectedCase={selectedCase}
+                              activeSourceStudy={activeSourceStudy}
+                              savedActionIds={savedActionIds}
+                              onSaveObservation={(draft) => {
+                                setSaveModalState({
+                                  isOpen: true,
+                                  type: 'observation',
+                                  initialText: draft || (messages[idx - 1]?.role === 'user' ? messages[idx - 1].content : 'Patient observation'),
+                                  caseId: selectedCaseId || (availableCases[0]?.id || ''),
+                                  msgIndex: idx,
+                                });
+                              }}
+                              onAddQuestion={(draft) => {
+                                setSaveModalState({
+                                  isOpen: true,
+                                  type: 'question',
+                                  initialText: draft || 'What are the recommended next steps for my doctor visit?',
+                                  caseId: selectedCaseId || (availableCases[0]?.id || ''),
+                                  msgIndex: idx,
+                                });
+                              }}
+                              onExplainSource={() => {
+                                if (activeSourceStudy) {
+                                  setInput(`Can you explain the clinical objectives, findings, and patient relevance of study ${activeSourceStudy.nctId} (${activeSourceStudy.title || activeSourceStudy.briefTitle}) in simple terms?`);
+                                } else if (selectedCase?.medicalRecords && selectedCase.medicalRecords.length > 0) {
+                                  const rec = selectedCase.medicalRecords[0];
+                                  setInput(`Can you explain the clinical significance and key findings of my uploaded record '${rec.filename}'?`);
+                                }
+                                textareaRef.current?.focus();
+                              }}
+                              onOpenReview={() => {
+                                if (selectedCase) {
+                                  navigate(`/app/jarvis?caseId=${encodeURIComponent(selectedCase.id)}`);
+                                }
+                              }}
+                            />
                           )}
                         </>
                       ) : <span style={{ opacity: 0.5 }}>...</span>
@@ -1982,7 +2952,40 @@ export default function AvaHealthBuddy() {
           {(isProcessingAttachment || sendError || (selectedCase && input.trim()) || savedUpdate) && (
             <div style={{ width: '100%', maxWidth: 720, marginTop: 8, fontSize: 12, color: '#475569' }}>
               {isProcessingAttachment && <p role="status">Reading your document… You can keep writing while it is processed.</p>}
-              {sendError && <div role="alert">Ava couldn’t respond. Your message is still here. <button type="button" className="btn btn-outline" onClick={() => { if (lastRequestRef.current && !sendingRef.current) { sendingRef.current = true; chatMutation.mutate(lastRequestRef.current); } }}>Retry message</button></div>}
+              {sendError && (
+                <div role="alert" style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', padding: '8px 12px', borderRadius: '10px', color: '#991B1B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                  <span>Ava couldn’t respond. Your message has been safely retained.</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {failedDraft && (
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        style={{ fontSize: '11.5px', padding: '4px 8px', cursor: 'pointer' }}
+                        onClick={() => {
+                          setInput(failedDraft);
+                          setFailedDraft(null);
+                          setSendError(false);
+                        }}
+                      >
+                        Restore to editor
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: '11.5px', padding: '4px 8px', cursor: 'pointer' }}
+                      onClick={() => {
+                        if (lastRequestRef.current && !sendingRef.current) {
+                          sendingRef.current = true;
+                          chatMutation.mutate(lastRequestRef.current);
+                        }
+                      }}
+                    >
+                      Retry message
+                    </button>
+                  </div>
+                </div>
+              )}
               {selectedCase && input.trim() && <button type="button" className="btn btn-outline" onClick={saveDraftToCase}>Save draft as a case update</button>}
               {savedUpdate && <div role="status" style={{ margin: '8px 0', lineHeight: 1.5 }}>
                 Saved to {savedUpdate.title}.{' '}
@@ -2361,6 +3364,26 @@ export default function AvaHealthBuddy() {
           </div>
         )}
       </AnimatePresence>
+
+      <CaseSelectorModal
+        isOpen={isCaseSelectorOpen}
+        selectedCaseId={selectedCaseId}
+        availableCases={availableCases}
+        onSelectCase={(newCaseId) => handleSelectCase(newCaseId)}
+        onClose={() => setIsCaseSelectorOpen(false)}
+      />
+
+      {saveModalState && (
+        <SaveTaskModal
+          isOpen={saveModalState.isOpen}
+          type={saveModalState.type}
+          initialText={saveModalState.initialText}
+          activeCaseId={saveModalState.caseId}
+          availableCases={availableCases}
+          onClose={() => setSaveModalState(null)}
+          onConfirm={(confirmedText, targetCaseId, specialty) => handleConfirmSave(confirmedText, targetCaseId, specialty)}
+        />
+      )}
     </div>
   );
 }
