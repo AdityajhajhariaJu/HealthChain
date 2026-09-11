@@ -1,6 +1,7 @@
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 import { getItemSync, setItemSync } from './storage';
+import { checkAndUpdateTimezone } from './NotificationEngine';
 
 export interface DailyReminderConfig {
   enabled: boolean;
@@ -277,9 +278,12 @@ export async function initDailyReminderService(onNotificationClick?: (route: str
     }
   }
 
+  // Check if device timezone changed and re-sync schedule if needed
+  const tzChanged = checkAndUpdateTimezone();
+
   // If enabled, ensure the schedule is active
   if (isDailyReminderEnabled()) {
     const scheduled = await scheduleDailyReminder(undefined, false);
-    if (!scheduled) await setDailyReminderEnabled(false);
+    if (!scheduled && !tzChanged) await setDailyReminderEnabled(false);
   }
 }

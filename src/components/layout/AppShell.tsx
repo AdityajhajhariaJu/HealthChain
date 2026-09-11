@@ -26,6 +26,7 @@ import { useToast } from '../ui/ToastProvider';
 import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
+import { getUnreadNotificationCount } from '../../services/NotificationEngine';
 import { HCLogo } from '../ui/HCLogo';
 import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
 import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
@@ -79,7 +80,7 @@ export default function AppShell() {
     const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [hasPendingCheckin, setHasPendingCheckin] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState<number>(() => getUnreadNotificationCount());
   const [profile, setProfile] = useState(getProfile());
   const [isScrolling, setIsScrolling] = useState(false);
   const lastScrollY = useRef(0);
@@ -88,17 +89,14 @@ export default function AppShell() {
   const [activeConflictCase, setActiveConflictCase] = useState<any>(null);
 
   useEffect(() => {
-    const checkCheckin = () => {
+    const refreshNotifications = () => {
       try {
-        const todayKey = new Date().toISOString().split('T')[0];
-        const prof = getProfile();
-        const done = (prof?.dailyCheckins || []).some((c: any) => c.date && c.date.startsWith(todayKey));
-        setHasPendingCheckin(!done);
+        setUnreadNotificationCount(getUnreadNotificationCount());
       } catch (e) {
-        setHasPendingCheckin(false);
+        setUnreadNotificationCount(0);
       }
     };
-    checkCheckin();
+    refreshNotifications();
     const handleOpenNotifications = () => setShowNotifications(true);
     const handleSyncError = (e: Event) => {
       const detail = (e as CustomEvent)?.detail;
@@ -129,8 +127,12 @@ export default function AppShell() {
       }
     };
 
-    window.addEventListener('hc_daily_checkin_completed', checkCheckin);
-    window.addEventListener('hc_profile_updated', checkCheckin);
+    window.addEventListener('hc_daily_checkin_completed', refreshNotifications);
+    window.addEventListener('hc_profile_updated', refreshNotifications);
+    window.addEventListener('hc_notifications_updated', refreshNotifications);
+    window.addEventListener('hc_water_updated', refreshNotifications);
+    window.addEventListener('hc_cases_updated', refreshNotifications);
+    window.addEventListener('hc_vitamins_updated', refreshNotifications);
     window.addEventListener('hc_open_notifications_panel', handleOpenNotifications);
     window.addEventListener('hc_sync_error', handleSyncError);
     window.addEventListener('hc_sync_pending', handleSyncPending);
@@ -139,8 +141,12 @@ export default function AppShell() {
     window.addEventListener('hc_open_conflict_modal', handleOpenConflictModal);
     initDailyReminderService((route) => navigate(route));
     return () => {
-      window.removeEventListener('hc_daily_checkin_completed', checkCheckin);
-      window.removeEventListener('hc_profile_updated', checkCheckin);
+      window.removeEventListener('hc_daily_checkin_completed', refreshNotifications);
+      window.removeEventListener('hc_profile_updated', refreshNotifications);
+      window.removeEventListener('hc_notifications_updated', refreshNotifications);
+      window.removeEventListener('hc_water_updated', refreshNotifications);
+      window.removeEventListener('hc_cases_updated', refreshNotifications);
+      window.removeEventListener('hc_vitamins_updated', refreshNotifications);
       window.removeEventListener('hc_open_notifications_panel', handleOpenNotifications);
       window.removeEventListener('hc_sync_error', handleSyncError);
       window.removeEventListener('hc_sync_pending', handleSyncPending);
@@ -358,7 +364,7 @@ const enforceSafeArea = () => {
               title="View Health Alerts & Notifications"
             >
               <Bell size={17} />
-              {hasPendingCheckin && (
+              {unreadNotificationCount > 0 && (
                 <span 
                   style={{ 
                     position: 'absolute', 
@@ -718,7 +724,7 @@ const enforceSafeArea = () => {
                   }}
                 >
                   <Bell size={20} aria-hidden="true" />
-                  {hasPendingCheckin && (
+                  {unreadNotificationCount > 0 && (
                     <span 
                       style={{ 
                         position: 'absolute', 

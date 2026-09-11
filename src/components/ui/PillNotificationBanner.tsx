@@ -5,6 +5,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
 import { toggleVitaminTaken, getTodayDateString } from '../../services/VitaminScheduleService';
+import { isQuietHoursActive, markNotificationAsRead, markNotificationAsDismissed } from '../../services/NotificationEngine';
 
 interface PillNotificationData {
   id?: string;
@@ -44,6 +45,7 @@ export default function PillNotificationBanner() {
   useEffect(() => {
     const checkSchedule = () => {
       try {
+        if (isQuietHoursActive()) return;
         const now = new Date();
         const currentHM = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         const lastCheckedMinute = sessionStorage.getItem('hc_last_checked_pill_minute');
@@ -76,6 +78,7 @@ export default function PillNotificationBanner() {
     triggerHapticSuccess();
     if (data?.id) {
       toggleVitaminTaken(data.id);
+      markNotificationAsRead(`med_${data.id}_${getTodayDateString()}`);
       awardPoints(5, `Tablet taken: ${data.name}`, 'lifestyle', `pill_${data.id}_${getTodayDateString()}`);
     } else {
       awardPoints(5, `Tablet taken: ${data?.name || 'Vitamins'}`, 'lifestyle');
@@ -86,6 +89,9 @@ export default function PillNotificationBanner() {
 
   const handleDismiss = () => {
     triggerHapticLight();
+    if (data?.id) {
+      markNotificationAsDismissed(`med_${data.id}_${getTodayDateString()}`);
+    }
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     setData(null);
   };
