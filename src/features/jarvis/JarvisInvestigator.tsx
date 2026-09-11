@@ -582,20 +582,57 @@ AI-generated preparation material. Verify against original records; this is not 
                         size="sm"
                       />
                       <small style={{ color: '#475569' }}>Source: {fact.source}</small>
+                      {fact.extractionStatus === 'user_corrected' && (
+                        <span style={{
+                          background: '#DCFCE7',
+                          color: '#15803D',
+                          border: '1px solid #86EFAC',
+                          borderRadius: '999px',
+                          padding: '1px 6px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}>
+                          User Corrected
+                        </span>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
                           triggerHapticLight();
+                          const activeCaseId = createdCaseId || selectedCaseId;
+                          const activeCase = activeCaseId ? getCase(activeCaseId) : null;
+                          const resolvedRecord = activeCase?.medicalRecords?.find(
+                            (r: any) => r.id === fact.recordId || r.filename === fact.source
+                          );
                           setSourceModalData({
                             isOpen: true,
                             onClose: () => setSourceModalData(null),
+                            caseId: activeCaseId,
+                            recordId: fact.recordId || resolvedRecord?.id,
+                            findingId: fact.id || resolvedRecord?.passages?.[0]?.id,
                             recordTitle: fact.source || 'Medical Document',
-                            recordType: 'Attached Case Document / Report',
-                            pageNumber: fact.page,
+                            recordType: resolvedRecord?.type || 'Attached Case Document / Report',
+                            pageNumber: fact.page || resolvedRecord?.passages?.[0]?.page,
                             sectionTitle: 'Direct Document Finding',
                             passageText: fact.fact,
-                            fullFindings: `Fact extracted from ${fact.source || 'attached medical record'}. Extraction may require checking against the original record.`,
+                            fullFindings: resolvedRecord?.findings || `Fact extracted from ${fact.source || 'attached medical record'}. Extraction may require checking against the original record.`,
                             findingClaim: fact.fact,
+                            extractedBiomarker: fact.extractedBiomarker || (fact.classifiedItem ? {
+                              biomarker: fact.classifiedItem.name || fact.fact.slice(0, 40),
+                              value: fact.classifiedItem.value,
+                              unit: fact.classifiedItem.unit,
+                              standardRange: fact.classifiedItem.referenceRange,
+                            } : undefined),
+                            onCorrectionSaved: (updatedText: string) => {
+                              if (!activeCaseId) return;
+                              const updatedFacts = (report.documentedFacts || []).map((f: any, i: number) =>
+                                (f.id === fact.id || i === index) ? { ...f, fact: updatedText, extractionStatus: 'user_corrected' } : f
+                              );
+                              const updatedReport = { ...report, documentedFacts: updatedFacts };
+                              saveReviewSnapshot({ caseId: activeCaseId, type: 'jarvis' as any, report: updatedReport, specialists: ['Clinical Data Engine'] });
+                              setReport(updatedReport);
+                              toast.success('Extraction Corrected', 'Updated finding saved non-destructively to case records.');
+                            }
                           });
                         }}
                         style={{
@@ -612,7 +649,7 @@ AI-generated preparation material. Verify against original records; this is not 
                           gap: '4px',
                         }}
                       >
-                        Inspect Record Passage ↗
+                        Inspect & Correct Extraction ↗
                       </button>
                     </div>
                   </li>
@@ -1595,6 +1632,20 @@ AI-generated preparation material. Verify against original records; this is not 
             {/* Uploaded File List */}
             {files.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                <div style={{
+                  padding: '8px 12px',
+                  background: '#F0FDF4',
+                  border: '1px solid #BBF7D0',
+                  borderRadius: '8px',
+                  fontSize: '11.5px',
+                  color: '#166534',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <ShieldCheck size={14} color="#16A34A" />
+                  <span>Original files are stored securely on this device (never retained on external servers).</span>
+                </div>
                 {files.map((f, idx) => (
                   <div 
                     key={idx} 
@@ -1639,6 +1690,83 @@ AI-generated preparation material. Verify against original records; this is not 
                 ))}
               </div>
             )}
+
+            {/* Existing Case Documents Review & Extraction Check */}
+            {(() => {
+              const activeCase = selectedCaseId ? getCase(selectedCaseId) : null;
+              if (!activeCase?.medicalRecords || activeCase.medicalRecords.length === 0) return null;
+              return (
+                <div style={{ marginTop: '16px', borderTop: '1px dashed #FED7AA', paddingTop: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase' }}>
+                      Attached Case Documents ({activeCase.medicalRecords.length})
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <ShieldCheck size={12} /> Stored on device
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {activeCase.medicalRecords.map((rec) => (
+                      <div
+                        key={rec.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 12px',
+                          background: '#FFFDFB',
+                          border: '1px solid #FED7AA',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                          <FileText size={14} color="#EA580C" />
+                          <span style={{ fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
+                            {rec.filename}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            setSourceModalData({
+                              isOpen: true,
+                              onClose: () => setSourceModalData(null),
+                              caseId: activeCase.id,
+                              recordId: rec.id,
+                              findingId: rec.passages?.[0]?.id,
+                              recordTitle: rec.filename,
+                              recordType: rec.type,
+                              pageNumber: rec.passages?.[0]?.page,
+                              passageText: rec.passages?.[0]?.text || rec.findings || 'No passage text available',
+                              fullFindings: rec.findings,
+                              dateAdded: rec.addedAt,
+                              findingClaim: rec.findings,
+                              onCorrectionSaved: () => {
+                                toast.success('Document Extraction Updated', 'Non-destructive correction recorded in case.');
+                              }
+                            });
+                          }}
+                          style={{
+                            background: 'rgba(2, 132, 199, 0.08)',
+                            border: '1px solid rgba(2, 132, 199, 0.3)',
+                            borderRadius: '6px',
+                            padding: '3px 8px',
+                            fontSize: '11px',
+                            color: '#0284C7',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Review Extractions ↗
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Isolated Investigation Toggle */}
@@ -1722,6 +1850,15 @@ AI-generated preparation material. Verify against original records; this is not 
 
         </div>
       </div>
+
+      {sourceModalData && (
+        <SourcePassageModal
+          caseId={createdCaseId || selectedCaseId}
+          {...sourceModalData}
+          isOpen={Boolean(sourceModalData)}
+          onClose={() => setSourceModalData(null)}
+        />
+      )}
     </div>
   );
 }
