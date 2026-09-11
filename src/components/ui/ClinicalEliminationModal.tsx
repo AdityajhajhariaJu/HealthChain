@@ -37,6 +37,7 @@ import {
 import { triggerHapticLight, triggerHapticSuccess, triggerHapticSelection } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useNavigate } from 'react-router-dom';
+import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 
 interface ClinicalEliminationModalProps {
   isOpen: boolean;
@@ -1110,7 +1111,9 @@ R (Recommendation):
                     onClick={() => {
                       triggerHapticSuccess();
                       onClose();
-                      navigate('/app/case-prep', {
+                      const activeCaseId = getUnifiedCaseScope().caseId;
+                      const targetUrl = activeCaseId ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseId)}` : '/app/case-prep';
+                      navigate(targetUrl, {
                         state: {
                           initialBriefNote: `[Clinical Elimination SBAR Summary]\nProtocol: ${activeProtocolDef.name}\nDay ${trial.currentDay}/${trial.totalDays}\nReduction: -${trial.reductionPercent}%\nCulprit: ${topSuspectFood ? topSuspectFood.name : activeProtocolDef.eliminatedFoods[0]}`
                         }

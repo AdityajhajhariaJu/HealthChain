@@ -92,6 +92,7 @@ import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarH
 import { EliminationProtocolSuite } from '../../components/ui/EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
 import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
+import { FeatureId } from '../../services/FeatureArchitectureContract';
 import {
   FullMealPlan,
   MealPlanItem,
@@ -1065,11 +1066,25 @@ export default function Dietician() {
   const normalizedPlanDays = mealPlan?.plan || mealPlan?.days || [];
   const currentSelectedDayObj = normalizedPlanDays.find((d: any) => (d.day || d.dayNumber) === selectedPlanDay) || normalizedPlanDays[0];
 
+  const currentFeatureId: FeatureId =
+    activeTab === 'elimination' ? 'elimination-suite' :
+    (activeTab === 'sensitivities' || activeTab === 'insights') ? 'food-detective' :
+    'diet-plan';
+
   return (
     <div style={{ paddingBottom: '100px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        
-
+        <FeatureMissionHeader
+          featureId={currentFeatureId}
+          activeCaseId={activeCaseScope.caseId || undefined}
+          onNavigateTab={(tabKey) => {
+            if (tabKey === 'insights' || tabKey === 'sensitivities') setActiveTab('sensitivities');
+            else if (tabKey === 'elimination') setActiveTab('elimination');
+            else if (tabKey === 'plan' || tabKey === 'mealplan') setActiveTab('mealplan');
+            else setActiveTab('dashboard');
+          }}
+          style={{ marginBottom: '20px' }}
+        />
 
         {/* Header */}
         <div
