@@ -62,8 +62,8 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
         {
           id: 'rec_ecg_01',
           filename: '12-Lead-ECG.pdf',
+          source: 'Cardiology Clinic',
           type: 'ecg',
-          date: '2026-03-01',
           findings: 'Sinus tachycardia at 112 bpm upon standing. Normal QT interval, no ST elevation.',
           addedAt: '2026-03-01T10:00:00.000Z',
         },
@@ -141,7 +141,7 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     const caseAfterV1 = saveAppointmentBrief(initialCase.id, briefV1Draft)!;
     expect(caseAfterV1.appointmentBriefs?.current).toBeDefined();
     expect(caseAfterV1.appointmentBriefs?.current?.version).toBe(1);
-    expect(caseAfterV1.appointmentBriefs?.history.length).toBe(0); // v1 is first, no prior history yet
+    expect(caseAfterV1.appointmentBriefs?.history?.length).toBe(0); // v1 is first, no prior history yet
 
     // =========================================================================
     // STEP 5: User records what happened at the appointment
@@ -227,8 +227,8 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
       {
         id: 'rec_ferritin_02',
         filename: 'Iron-and-Ferritin-Panel.pdf',
+        source: 'Hematology Lab',
         type: 'lab',
-        date: '2026-03-05',
         findings: 'Serum Ferritin is 14 ng/mL (depleted iron stores). Iron saturation 18%.',
         addedAt: '2026-03-05T11:00:00.000Z',
       },
@@ -249,9 +249,9 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     expect(caseAfterV2.appointmentBriefs?.current?.version).toBe(2);
 
     // 2. Immutability of history: v1 is in history as an untouched snapshot
-    expect(caseAfterV2.appointmentBriefs?.history.length).toBe(1);
-    expect(caseAfterV2.appointmentBriefs?.history[0].version).toBe(1);
-    expect(caseAfterV2.appointmentBriefs?.history[0].generatedAt).toBe('2026-03-02T10:00:00.000Z');
+    expect(caseAfterV2.appointmentBriefs?.history?.length).toBe(1);
+    expect(caseAfterV2.appointmentBriefs?.history?.[0]?.version).toBe(1);
+    expect(caseAfterV2.appointmentBriefs?.history?.[0]?.generatedAt).toBe('2026-03-02T10:00:00.000Z');
 
     // 3. What Changed Since Last Visit: Previous outcomes reviewed is populated
     const v2Brief = caseAfterV2.appointmentBriefs?.current!;
@@ -312,7 +312,7 @@ describe('Package 5 — Case Appointment Outcomes Workflow', () => {
     // Verify both Brief v2 (current) and Brief v1 (history) survived reload intact
     expect(rehydratedCase.appointmentBriefs?.current?.version).toBe(2);
     expect(rehydratedCase.appointmentBriefs?.history?.length).toBe(1);
-    expect(rehydratedCase.appointmentBriefs?.history[0]?.version).toBe(1);
+    expect(rehydratedCase.appointmentBriefs?.history?.[0]?.version).toBe(1);
     expect(rehydratedCase.appointmentBriefs?.current?.previousOutcomesReviewed?.length).toBeGreaterThanOrEqual(3);
   });
 });
