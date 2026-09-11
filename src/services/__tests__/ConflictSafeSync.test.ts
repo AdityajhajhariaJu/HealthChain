@@ -48,40 +48,40 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
 
   // Scenario 1: Device A adds a note; Device B adds a question -> Both survive
   it('Scenario 1: Merges concurrent additions (Device A note, Device B question) so both survive', () => {
-    const baseCase: CaseItem = {
+    const baseCase = {
       id: 'case_concurrent_1',
       title: 'Thyroid Investigation',
       updatedAt: '2026-09-01T10:00:00Z',
       revision: 1,
       events: [
-        { id: 'ev_base_1', title: 'Initial symptom check', timestamp: '2026-09-01T09:00:00Z', note: 'Fatigue noted' }
+        { id: 'ev_base_1', label: 'Initial symptom check', date: '2026-09-01T09:00:00Z', note: 'Fatigue noted' }
       ],
       questions: [
-        { id: 'q_base_1', question: 'Should we test Free T3?', status: 'open' }
+        { id: 'q_base_1', questionText: 'Should we test Free T3?', raisedBySpecialty: 'Endocrinology', supportingEvidenceIds: [], status: 'open' as const }
       ],
-    };
+    } as unknown as CaseItem;
 
     // Device A adds an observation note
-    const deviceACase: CaseItem = {
+    const deviceACase = {
       ...baseCase,
       revision: 2,
       updatedAt: '2026-09-01T10:05:00Z',
       events: [
-        ...baseCase.events!,
-        { id: 'ev_device_a_1', title: 'Temperature spike', timestamp: '2026-09-01T10:05:00Z', note: 'Body temp 38.2C' }
+        ...(baseCase.events || []),
+        { id: 'ev_device_a_1', label: 'Temperature spike', date: '2026-09-01T10:05:00Z', note: 'Body temp 38.2C' }
       ]
-    };
+    } as unknown as CaseItem;
 
     // Device B adds a clinical question
-    const deviceBCase: CaseItem = {
+    const deviceBCase = {
       ...baseCase,
       revision: 2,
       updatedAt: '2026-09-01T10:06:00Z',
       questions: [
-        ...baseCase.questions!,
-        { id: 'q_device_b_1', question: 'Dose adjustment needed for Levothyroxine?', status: 'open' }
+        ...(baseCase.questions || []),
+        { id: 'q_device_b_1', questionText: 'Dose adjustment needed for Levothyroxine?', raisedBySpecialty: 'Endocrinology', supportingEvidenceIds: [], status: 'open' as const }
       ]
-    };
+    } as unknown as CaseItem;
 
     const { merged, conflicts } = mergeCaseItems(deviceACase, deviceBCase);
 
@@ -97,33 +97,33 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
 
   // Scenario 2: Both edit the same question -> Explicit conflict recorded
   it('Scenario 2: Detects competing modifications to the same question and records an explicit conflict', () => {
-    const baseCase: CaseItem = {
+    const baseCase = {
       id: 'case_competing_1',
       title: 'Cardiology Review',
       updatedAt: '2026-09-01T10:00:00Z',
       revision: 1,
       questions: [
-        { id: 'q_shared_1', question: 'Is Beta Blocker indicated?', status: 'open', outcomeNote: 'Pending consultation' }
+        { id: 'q_shared_1', questionText: 'Is Beta Blocker indicated?', raisedBySpecialty: 'Cardiology', supportingEvidenceIds: [], status: 'open' as const, outcomeNote: 'Pending consultation' }
       ]
-    };
+    } as unknown as CaseItem;
 
-    const deviceACase: CaseItem = {
+    const deviceACase = {
       ...baseCase,
       revision: 2,
       updatedAt: '2026-09-01T10:10:00Z',
       questions: [
-        { id: 'q_shared_1', question: 'Is Beta Blocker indicated?', status: 'answered', outcomeNote: 'Dr Smith approved Metoprolol 25mg' }
+        { id: 'q_shared_1', questionText: 'Is Beta Blocker indicated?', raisedBySpecialty: 'Cardiology', supportingEvidenceIds: [], status: 'discussed' as const, outcomeNote: 'Dr Smith approved Metoprolol 25mg' }
       ]
-    };
+    } as unknown as CaseItem;
 
-    const deviceBCase: CaseItem = {
+    const deviceBCase = {
       ...baseCase,
       revision: 2,
       updatedAt: '2026-09-01T10:12:00Z',
       questions: [
-        { id: 'q_shared_1', question: 'Is Beta Blocker indicated?', status: 'deferred', outcomeNote: 'Hold pending 24h Holter monitor results' }
+        { id: 'q_shared_1', questionText: 'Is Beta Blocker indicated?', raisedBySpecialty: 'Cardiology', supportingEvidenceIds: [], status: 'deferred' as const, outcomeNote: 'Hold pending 24h Holter monitor results' }
       ]
-    };
+    } as unknown as CaseItem;
 
     const { merged, conflicts } = mergeCaseItems(deviceACase, deviceBCase);
 
@@ -312,17 +312,17 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
     const local = {
       id: 'case_dedupe_1',
       title: 'Version A',
-      events: [{ id: 'ev_1', title: 'Symptom', timestamp: '2026-09-01T10:00:00Z' }],
+      events: [{ id: 'ev_1', label: 'Symptom', date: '2026-09-01T10:00:00Z', note: 'Symptom note' }],
       updatedAt: '2026-09-01T10:00:00Z',
       revision: 1
-    };
+    } as unknown as CaseItem;
     const remote = {
       id: 'case_dedupe_1',
       title: 'Version B',
-      events: [{ id: 'ev_1', title: 'Symptom', timestamp: '2026-09-01T10:00:00Z' }],
+      events: [{ id: 'ev_1', label: 'Symptom', date: '2026-09-01T10:00:00Z', note: 'Symptom note' }],
       updatedAt: '2026-09-01T10:05:00Z',
       revision: 2
-    };
+    } as unknown as CaseItem;
 
     const { merged } = mergeCaseItems(local, remote);
     expect(merged.events).toHaveLength(1);
@@ -331,26 +331,26 @@ describe('Package 3: Conflict-Safe Cloud Synchronization Suite', () => {
   // Scenario 8: Server timestamp differs from device clock -> Clock-skew immunity
   it('Scenario 8: Relies on monotonic revisions rather than device clocks to prevent clock-skew drops', () => {
     // Local device clock is 2 years behind server time
-    const localSkewedCase: CaseItem = {
+    const localSkewedCase = {
       id: 'case_clock_skew',
       title: 'Thyroid Investigation',
       updatedAt: '2024-01-01T00:00:00Z', // old clock!
       revision: 3,
       events: [
-        { id: 'ev_skew_1', title: 'New observation on client with skewed clock', timestamp: '2024-01-01T00:00:00Z' }
+        { id: 'ev_skew_1', label: 'New observation on client with skewed clock', date: '2024-01-01T00:00:00Z', note: 'Skewed note' }
       ]
-    };
+    } as unknown as CaseItem;
 
     // Server time is 2026
-    const serverCase: CaseItem = {
+    const serverCase = {
       id: 'case_clock_skew',
       title: 'Thyroid Investigation',
       updatedAt: '2026-09-11T12:00:00Z',
       revision: 2,
       events: [
-        { id: 'ev_server_1', title: 'Server recorded event', timestamp: '2026-09-11T12:00:00Z' }
+        { id: 'ev_server_1', label: 'Server recorded event', date: '2026-09-11T12:00:00Z', note: 'Server note' }
       ]
-    };
+    } as unknown as CaseItem;
 
     // Under naive timestamp comparison, localSkewedCase would have been discarded because 2024 < 2026.
     // Under mergeCaseItems, both events survive and revision increments monotonically!

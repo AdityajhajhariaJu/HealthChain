@@ -83,7 +83,7 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
     it('detects missing case IDs explicitly without falling back to an unrelated case', () => {
       const realCase = createCaseDraft({
         title: 'Patient Active Record',
-        concern: 'Persistent fatigue',
+        intakeData: { concern: 'Persistent fatigue' },
       });
       setActiveCase(realCase.id);
 
@@ -98,7 +98,7 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
     it('resolves the correct case when explicit target exists', () => {
       const targetCase = createCaseDraft({
         title: 'Target Case',
-        concern: 'Explicitly requested by URL parameter',
+        intakeData: { concern: 'Explicitly requested by URL parameter' },
       });
 
       const scope = getUnifiedCaseScope(targetCase.id);
@@ -114,7 +114,7 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
 
       const created = createCaseDraft({
         title: 'Known ID Case',
-        concern: 'Validation test',
+        intakeData: { concern: 'Validation test' },
       });
       const validResult = validateCaseIdentifier(created.id);
       expect(validResult.isValid).toBe(true);
@@ -126,7 +126,7 @@ describe('Feature Handoffs & Route Integrity (Work Package 4)', () => {
     it('resolves active case ID for Health Canvas routing', () => {
       const sampleCase = createCaseDraft({
         title: 'Active Canvas Case',
-        concern: 'Cardiovascular investigation',
+        intakeData: { concern: 'Cardiovascular investigation' },
       });
       setActiveCase(sampleCase.id);
 
