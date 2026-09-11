@@ -20,11 +20,37 @@ export type ClinicalInformationCategory =
   | 'open_question'
   | 'outcome';
 
+export type ExtractionStatus = 'provisional' | 'source_matched' | 'user_corrected' | 'rejected' | 'checked';
+export type InterpretationStatus = 'grounded' | 'unsupported_speculation' | 'quarantined';
+export type ClaimKind = 'quotation' | 'observation' | 'ai_interpretation';
+
+export interface InformationAuditEntry {
+  originalText: string;
+  correctedText: string;
+  correctedAt: string;
+  correctedBy: string;
+}
+
+export interface GroundedClaimRecord {
+  id: string;
+  text: string;
+  category: ClinicalInformationCategory;
+  evidenceIds: string[];
+  limitations: string[];
+  reviewVersion: number;
+  claimKind: ClaimKind;
+  interpretationStatus: InterpretationStatus;
+  isGeneralGuidance: boolean;
+  unsupportedReason?: string;
+}
+
 export interface BaseInformationItem {
   id: string;
   category: ClinicalInformationCategory;
   text: string;
   createdAt: string;
+  originalText?: string;
+  auditTrail?: InformationAuditEntry[];
 }
 
 export interface UserReportItem extends BaseInformationItem {
@@ -49,7 +75,7 @@ export interface ExtractedFindingItem extends BaseInformationItem {
   originalFile: string;
   page?: number;
   units?: string;
-  extractionStatus: 'provisional' | 'checked' | 'rejected';
+  extractionStatus: ExtractionStatus;
   confidence?: number;
   allowedRole: 'Provisional record content until checked';
 }
@@ -256,14 +282,31 @@ export function validateCategorizedItem(item: CategorizedInformationItem): {isVa
   if(item.category==='extracted_finding' && item.page!==undefined && (!Number.isInteger(item.page)||item.page<1)) missingFields.push('page');
   return {isValid:!missingFields.length,missingFields};
 }
+export function validateGroundedClaim(
+  claim: Partial<GroundedClaimRecord>,
+  knownEvidenceIds: Set<string>
+): { isValid: boolean; reason?: string } {
+  if (!claim || typeof claim.text !== 'string' || !claim.text.trim()) {
+    return { isValid: false, reason: 'Claim text is empty or missing.' };
+  }
+  if (!claim.evidenceIds || !Array.isArray(claim.evidenceIds) || claim.evidenceIds.length === 0) {
+    return { isValid: false, reason: 'Claim cites no supporting evidence identifiers.' };
+  }
+  const invalidIds = claim.evidenceIds.filter(id => !knownEvidenceIds.has(id));
+  if (invalidIds.length > 0) {
+    return { isValid: false, reason: `Claim cites unknown or unverified evidence IDs: ${invalidIds.join(', ')}` };
+  }
+  return { isValid: true };
+}
+
 export function classifyClinicalInformation(raw: {
   id?:string;text:string;category?:ClinicalInformationCategory;source?:string;date?:string;author?:string;file?:string;page?:number;
-  value?:number|string;unit?:string;method?:string;extractionStatus?:'provisional'|'checked'|'rejected';attribution?:string;
+  value?:number|string;unit?:string;method?:string;extractionStatus?:ExtractionStatus;attribution?:string;
   supportingEvidenceIds?:string[];limitations?:string[];modelVersion?:string;identifier?:string;studyType?:string;relevantPassage?:string;
-  reasonForAsking?:string;missingInformation?:string;decisionText?:string;
+  reasonForAsking?:string;missingInformation?:string;decisionText?:string;originalText?:string;auditTrail?:InformationAuditEntry[];
 }):CategorizedInformationItem {
   let hash=2166136261;for(const c of JSON.stringify([raw.text,raw.source,raw.date])) hash=Math.imul(hash^c.charCodeAt(0),16777619);
-  const base={id:raw.id || 'item_'+(hash>>>0).toString(16),text:(raw.text || '').trim(),createdAt:raw.date || ''};
+  const base={id:raw.id || 'item_'+(hash>>>0).toString(16),text:(raw.text || '').trim(),createdAt:raw.date || '',originalText:raw.originalText,auditTrail:raw.auditTrail};
   // Provenance overrides words in the content. A number or "doctor" in prose
   // does not establish measurement or clinician provenance.
   const source=(raw.source || '').toLowerCase();

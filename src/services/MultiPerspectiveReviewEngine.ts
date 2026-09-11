@@ -78,7 +78,7 @@ export function buildVersionedEvidenceSet(facts: SourceLinkedEvidence[], medical
 }
 
 export function generateMeaningfulPerspectives(evidence:VersionedEvidenceSet, unansweredQuestions:string[]=[], raw:Partial<MeaningfulPerspective>[]=[]):MeaningfulPerspective[] {
-  const known=new Set(evidence.facts.filter(f=>!(f as any).isUnverifiedSource).map(f=>f.id));
+  const known=new Set(evidence.facts.filter(f=>!(f as any).isUnverifiedSource && (f as any).extractionStatus !== 'rejected').map(f=>f.id));
   if(!known.size) return [];
   const seen=new Set<string>();
   return raw.filter(p=>{

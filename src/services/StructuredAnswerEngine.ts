@@ -50,6 +50,7 @@ export interface StructuredRelationshipItem {
   status: EpistemicRelationshipStatus;
   rationale: string;
   evidenceBasis: string[];
+  isGeneralGuidance?: boolean;
 }
 
 export interface DoctorVisitBrief {
@@ -108,13 +109,17 @@ export interface BuildStructuredAnswerInput {
   executiveSummary?: string;
   primaryHypothesis?: string;
   documentedFacts?: Array<{
+    id?: string;
     fact?: string;
     source?: string;
     date?: string;
     category?: string;
     extractionStatus?: string;
     allowedRole?: string;
+    isUnverifiedSource?: boolean;
   }>;
+  quarantinedFacts?: any[];
+  quarantinedClaims?: any[];
   uncertainties?: string[];
   missingLinks?: string[];
   questionsForClinician?: string[];
@@ -127,6 +132,7 @@ export interface BuildStructuredAnswerInput {
     resolutionNeed?: string;
   }>;
   alternatives?: Array<{
+    id?: string;
     title?: string;
     mechanismSummary?: string;
     type?: string;
@@ -147,13 +153,27 @@ export function sanitizeArbitraryPercentages(text:string):string {
   return (text || '').replace(/\b(?:with\s*)?\d{1,3}%\s*(?:match|probability|likelihood|certainty|confidence)\b/gi,'uncertain').trim();
 }
 export function buildStructuredClinicalAnswer(input:BuildStructuredAnswerInput):StructuredClinicalAnswer {
-  const facts=(input.documentedFacts || []).filter(f=>f?.fact);
-  const summary=facts.length?sanitizeArbitraryPercentages(input.executiveSummary || ''):'Add your observations or records to begin a case review.';
-  const assessments=input.reasoningPipeline?.stage6_balancedAssessments || [];
-  const alternatives=input.alternatives || [];
-  const gaps=[...new Set([...(input.uncertainties || []),...(input.missingLinks || [])])];
-  const questions=input.questionsForClinician || [];
-  const records=facts.map(f=>f.source).filter((s):s is string=>!!s);
+  const quarantinedFactIds = new Set((input.quarantinedFacts || []).map((f: any) => f?.id).filter(Boolean));
+  const quarantinedSources = new Set((input.quarantinedFacts || []).map((f: any) => f?.source).filter(Boolean));
+
+  const facts = (input.documentedFacts || []).filter(
+    f => f?.fact && !f.isUnverifiedSource && f.extractionStatus !== 'rejected' && (!f.id || !quarantinedFactIds.has(f.id))
+  );
+  const hasQuarantine = Boolean((input.quarantinedFacts && input.quarantinedFacts.length > 0) || (input.quarantinedClaims && input.quarantinedClaims.length > 0));
+  const summary = facts.length
+    ? sanitizeArbitraryPercentages(input.executiveSummary || '')
+    : 'Add your observations or records to begin a case review.';
+  const assessments = input.reasoningPipeline?.stage6_balancedAssessments || [];
+  const alternatives = (input.alternatives || []).filter(a => a?.title && a.title !== 'Rejected claim');
+  const gaps = [...new Set([...(input.uncertainties || []), ...(input.missingLinks || [])])];
+  if (hasQuarantine) {
+    gaps.unshift('Some generated claims could not be verified against original documents and have been withheld.');
+  }
+  const questions = input.questionsForClinician || [];
+  const records = facts
+    .map(f => f.source)
+    .filter((s): s is string => Boolean(s && !quarantinedSources.has(s)));
+
   return {
     layer1_mainAnswer:{conciseAnswer:summary.split(/(?<=[.?!])\s+/).slice(0,3).join(' '),fullSynthesis:summary},
     layer2_whyThisMatters:{
@@ -170,7 +190,13 @@ export function buildStructuredClinicalAnswer(input:BuildStructuredAnswerInput):
           whatWouldChangeThis:(review?.missingEvidenceWhatWouldChangeIt || []).map((x:any)=>x.testOrObservation+': '+x.potentialImpact).join('\n'),
           likelihoodAssessment:a.likelihoodAssessment || 'uncertain'};
       }),
-      relationshipStatuses:alternatives.map(a=>({connection:a.title || '',status:'proposed' as const,rationale:'AI consideration; inspect supporting and conflicting evidence. Not an established causal relationship.',evidenceBasis:[]})),
+      relationshipStatuses:alternatives.map(a=>({
+        connection:a.title || '',
+        status:'proposed' as const,
+        rationale:'AI consideration; inspect supporting and conflicting evidence. Not an established causal relationship.',
+        evidenceBasis:[],
+        isGeneralGuidance: false,
+      })),
       contradictionQueue:(input.contradictions || []).map((c,i)=>({
         id:c.id || 'contradiction_'+i,topic:c.topic || 'Review source entries',
         itemA:{finding:c.itemA?.finding || '',source:c.itemA?.source || '',date:c.itemA?.date},

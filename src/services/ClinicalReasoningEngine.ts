@@ -15,6 +15,12 @@ export interface SourceLinkedEvidence {
   allowedRole: string;
   confidence?: 'verified' | 'provisional' | 'self_reported';
   timestamp?: string;
+  sourceVerificationStatus?: string;
+  extractionStatus?: string;
+  eventDate?: string;
+  reportDate?: string;
+  classifiedItem?: CategorizedInformationItem;
+  [key: string]: any;
 }
 
 /** Stage 2: Align Time — A coherent timeline */
@@ -197,15 +203,26 @@ export function alignChronology(facts: SourceLinkedEvidence[], entryDateOverride
   }
   return {entries,overlaps,gaps:[],summaryChronology:entries.length+' observations. Only explicit event and report dates determine chronology.'};
 }
-export function detectCorrectionQueue(facts: SourceLinkedEvidence[]): CorrectionQueueItem[] {
+export function detectCorrectionQueue(facts: SourceLinkedEvidence[], previousQueue: CorrectionQueueItem[] = []): CorrectionQueueItem[] {
   const queue: CorrectionQueueItem[] = [], seen = new Map<string, SourceLinkedEvidence>();
+  const prevMap = new Map<string, CorrectionQueueItem>(previousQueue.map(p => [p.id, p]));
   for(const f of facts as any[]) {
     const key=JSON.stringify([f.fact.trim().toLowerCase(), f.eventDate || null]);
     const prior=seen.get(key);
-    if(prior && prior.id!==f.id) queue.push({id:'duplicate_'+prior.id+'_'+f.id,type:'duplicate',title:'Possible repeated entry',
-      itemsInvolved:[prior.id,f.id],discrepancyDescription:'The same text appears more than once. Check dates and sources before consolidating.',
-      suggestedAction:'Review both original entries.',status:'pending'});
-    else seen.set(key,f);
+    if(prior && prior.id!==f.id) {
+      const id = 'duplicate_'+prior.id+'_'+f.id;
+      const priorState = prevMap.get(id);
+      queue.push({
+        id,
+        type:'duplicate',
+        title:'Possible repeated entry',
+        itemsInvolved:[prior.id,f.id],
+        discrepancyDescription:'The same text appears more than once. Check dates and sources before consolidating.',
+        suggestedAction:'Review both original entries.',
+        status: priorState?.status || 'pending',
+        resolutionNote: priorState?.resolutionNote,
+      });
+    } else seen.set(key,f);
   }
   // Same analyte and date required; shared units alone do not identify a measurement.
   const groups=new Map<string,any[]>();
@@ -217,10 +234,18 @@ export function detectCorrectionQueue(facts: SourceLinkedEvidence[]): Correction
   for(const group of groups.values()) for(let i=1;i<group.length;i++) {
     const a=group[0],b=group[i];
     if(a.unit===b.unit && String(a.value)===String(b.value)) continue;
-    queue.push({id:'measurement_'+a.id+'_'+b.id,type:a.unit===b.unit?'conflicting_values':'unit_change',
-      title:'Review '+a.analyte+' entries',itemsInvolved:[a.id,b.id],
+    const id = 'measurement_'+a.id+'_'+b.id;
+    const priorState = prevMap.get(id);
+    queue.push({
+      id,
+      type:a.unit===b.unit?'conflicting_values':'unit_change',
+      title:'Review '+a.analyte+' entries',
+      itemsInvolved:[a.id,b.id],
       discrepancyDescription:a.value+' '+a.unit+' and '+b.value+' '+b.unit+' are recorded for the same date. Sampling times and methods may differ.',
-      suggestedAction:'Check original values, sampling times and units; do not automatically overwrite.',status:'pending'});
+      suggestedAction:'Check original values, sampling times and units; do not automatically overwrite.',
+      status: priorState?.status || 'pending',
+      resolutionNote: priorState?.resolutionNote,
+    });
   }
   return queue;
 }
@@ -234,7 +259,7 @@ export function justifyPerspectives(questions:string[],raw:Partial<JustifiedPers
   }));
 }
 export function buildTriProngChallenges(alternatives:AlternativeInterpretation[],facts:SourceLinkedEvidence[],missing:string[],corrections?:CorrectionQueueItem[]):BalancedAssessment[] {
-  const ids=new Set(facts.filter(f=>!(f as any).isUnverifiedSource).map(f=>f.id));
+  const ids=new Set(facts.filter(f=>!(f as any).isUnverifiedSource && f.extractionStatus !== 'rejected').map(f=>f.id));
   const valid=(items:any):any[]=>Array.isArray(items)?items.filter(x=>ids.has(x.factId) && typeof x.description==='string' && x.description.trim()):[];
   return alternatives.map((a:any)=>({
     alternativeId:a.id,alternativeTitle:a.title,
@@ -266,12 +291,30 @@ export function computeSelectiveUpdateDiff(previous?:ClinicalReasoningPayload|nu
 }
 export function runClinicalReasoningPipeline(rawInput:{documentedFacts?:any[];primaryHypothesis?:string;executiveSummary?:string;uncertainties?:string[];missingLinks?:string[];questionsForClinician?:string[];perspectives?:any[];alternatives?:any[]},
 previousPayload?:ClinicalReasoningPayload|null,newFactAnswer?:{questionId:string;answerText:string}):ClinicalReasoningPayload {
-  const facts:SourceLinkedEvidence[]=(rawInput.documentedFacts || []).filter(f=>f && typeof(f.fact || f.text)==='string').map(f=>({
-    ...f,id:f.id || 'fact_'+stableEvidenceId(JSON.stringify([f.source,f.fact || f.text,f.eventDate])),
-    fact:f.fact || f.text,source:f.source || 'User report',category:f.category || 'user_report',
-    allowedRole:f.allowedRole || 'Evidence of the reported experience',confidence:f.category==='user_report'?'self_reported':'provisional',timestamp:f.timestamp,
-  }));
-  for(const f of previousPayload?.stage1_facts || []) if(f.id.startsWith('feedback_') && !facts.some(x=>x.id===f.id)) facts.push(f);
+  const seenFactIds = new Set<string>();
+  const facts:SourceLinkedEvidence[]=[];
+  for (const f of rawInput.documentedFacts || []) {
+    if (!f || typeof(f.fact || f.text) !== 'string') continue;
+    const id = f.id || 'fact_'+stableEvidenceId(JSON.stringify([f.source,f.fact || f.text,f.eventDate]));
+    if (seenFactIds.has(id)) continue;
+    seenFactIds.add(id);
+    facts.push({
+      ...f,
+      id,
+      fact:f.fact || f.text,
+      source:f.source || 'User report',
+      category:f.category || 'user_report',
+      allowedRole:f.allowedRole || 'Evidence of the reported experience',
+      confidence:f.category==='user_report'?'self_reported':'provisional',
+      timestamp:f.timestamp,
+    });
+  }
+  for(const f of previousPayload?.stage1_facts || []) {
+    if(f.id.startsWith('feedback_') && !facts.some(x=>x.id===f.id) && !seenFactIds.has(f.id)) {
+      seenFactIds.add(f.id);
+      facts.push(f);
+    }
+  }
   let injected:SourceLinkedEvidence|undefined;
   if(newFactAnswer?.answerText?.trim()){
     const question=previousPayload?.stage7_focusedQuestion;
@@ -285,7 +328,8 @@ previousPayload?:ClinicalReasoningPayload|null,newFactAnswer?:{questionId:string
     likelihoodAssessment:['leading','competing','uncertain'].includes(a.likelihoodAssessment)?a.likelihoodAssessment:'uncertain',
     mechanismSummary:a.mechanismSummary || '',rationale:a.rationale || '',
   })):[];
-  const corrections=detectCorrectionQueue(facts),assessments=buildTriProngChallenges(alternatives,facts,rawInput.missingLinks || [],corrections);
+  const corrections=detectCorrectionQueue(facts, previousPayload?.stage3_correctionQueue);
+  const assessments=buildTriProngChallenges(alternatives,facts,rawInput.missingLinks || [],corrections);
   const focused=selectFocusedClarification(rawInput.questionsForClinician || [],[],alternatives);
   if(injected && previousPayload?.stage7_focusedQuestion.id===focused.id) Object.assign(focused,{status:'answered',userAnswer:injected.fact,answeredAt:injected.timestamp});
   else if(previousPayload?.stage7_focusedQuestion.id===focused.id && previousPayload.stage7_focusedQuestion.status==='answered') Object.assign(focused,previousPayload.stage7_focusedQuestion);
