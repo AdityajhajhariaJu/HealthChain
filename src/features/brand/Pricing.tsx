@@ -23,17 +23,22 @@ import {
   HelpCircle,
   Clock,
   Shield,
-  Trophy
-, BrainCircuit} from 'lucide-react';
+  Trophy,
+  BrainCircuit,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { supabase } from '../../services/supabaseClient';
 import { useToast } from '../../components/ui/ToastProvider';
 import { trackCheckoutInitiated, trackPurchase, trackButtonClick } from '../../services/analytics';
-import { loadRazorpaySDK } from '../../services/razorpay';
+import {
+  initiateRazorpayCheckout,
+  resumeInterruptedTask,
+  PaymentPlanId,
+} from '../../services/razorpay';
+import { PaymentRecoveryBanner } from '../../components/ui/PaymentRecoveryBanner';
 import { triggerHapticLight } from '../../services/haptics';
 import { motion } from 'framer-motion';
-const BACKEND_BASE = ((import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '')) || '';
 
 interface FeatureItem {
   name: string;
@@ -128,122 +133,64 @@ export default function Pricing() {
         return;
       }
 
-      const res = await loadRazorpaySDK();
-      if (!res) {
-        toast.error('Payment Error', 'Razorpay SDK failed to load. Please check your internet connection.');
-        setIsProcessing(null);
-        return;
-      }
-
-      const authHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
-      };
-
-      const orderController = new AbortController();
-      const orderTimeout = setTimeout(() => orderController.abort(), 20000);
-
-      const orderRes = await fetch(`${BACKEND_BASE}/api/create-order`, {
-        method: 'POST',
-        headers: authHeaders,
-        body: JSON.stringify({ plan_id: planId }),
-        signal: orderController.signal
-      }).finally(() => clearTimeout(orderTimeout));
-
-      if (!orderRes.ok) {
-        const errData = await orderRes.json().catch(() => ({ error: `Failed to create order (${orderRes.status})` }));
-        throw new Error(errData.error || 'Failed to create order');
-      }
-
-      const orderData = await orderRes.json();
-      trackCheckoutInitiated(orderData.amount / 100, planId);
-
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
-      if (!razorpayKey) {
-        toast.error('Payment Configuration', 'Payment gateway is being updated. Please try again shortly.');
-        setIsProcessing(null);
-        return;
-      }
-
       const isTopup = planId.startsWith('topup_');
-      const planTitle = isTopup 
-        ? TOPUP_PLANS.find(t => t.id === planId)?.name || 'Feature Top-Up' 
+      const planTitle = isTopup
+        ? TOPUP_PLANS.find((t) => t.id === planId)?.name || 'Feature Top-Up'
         : `Upgrade to Pro (${planId === 'pro_30_days' ? '30' : '90'} Days)`;
 
-      const options = {
-        key: razorpayKey,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: isTopup ? 'HealthChain Top-Up' : 'HealthChain Pro',
-        description: planTitle,
-        order_id: orderData.id,
-        handler: async function (response: any) {
-          try {
-            const verifyController = new AbortController();
-            const verifyTimeout = setTimeout(() => verifyController.abort(), 25000);
+      trackCheckoutInitiated(planId === 'pro_90_days' ? 899 : (planId === 'pro_30_days' ? 499 : 99), planId);
 
-            const verifyRes = await fetch(`${BACKEND_BASE}/api/verify-payment`, {
-              method: 'POST',
-              headers: authHeaders,
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                plan_id: planId
-              }),
-              signal: verifyController.signal
-            }).finally(() => clearTimeout(verifyTimeout));
-
-            const verifyData = await verifyRes.json().catch(() => ({ success: false, error: `Payment verification failed (${verifyRes.status})` }));
-
-            if (verifyData.success) {
-              trackPurchase(orderData.amount / 100, planId);
-              if (isTopup) {
-                toast.success('Top-Up Activated!', 'Your feature credit has been added to your account.');
-              } else {
-                toast.success('Welcome to Pro!', 'Your expanded AI perspectives and case-preparation tools are unlocked.');
-              }
-              setTimeout(() => {
-                navigate('/app');
-              }, 800);
-            } else {
-              toast.error('Verification Failed', verifyData.error || 'Payment could not be verified.');
-            }
-          } catch (err: any) {
-            toast.error('Network Issue', 'Payment verification network error. Please contact healthchain360@gmail.com.');
-          } finally {
-            setIsProcessing(null);
-          }
-        },
-        prefill: {
+      const result = await initiateRazorpayCheckout(
+        planId as PaymentPlanId,
+        {
+          id: session.user.id,
           email: session.user.email,
+          name: session.user.user_metadata?.full_name,
         },
-        theme: {
-          color: '#059669'
-        },
-        modal: {
-          ondismiss: () => {
-            setIsProcessing(null);
-          }
+        session.access_token,
+        {
+          planTitle,
+          onPending: () => {
+            toast.info(
+              'Payment Confirmation In Progress',
+              'Payment was submitted. We are polling for confirmation.'
+            );
+          },
         }
-      };
+      );
 
-      const paymentObject = new (window as any).Razorpay(options);
-      paymentObject.on('payment.failed', function (response: any) {
-        toast.error('Payment Failed', response.error.description || 'Transaction could not be completed.');
-        setIsProcessing(null);
-      });
-      paymentObject.open();
+      if (result.success) {
+        trackPurchase(planId === 'pro_90_days' ? 899 : (planId === 'pro_30_days' ? 499 : 99), planId);
+        if (isTopup) {
+          toast.success('Top-Up Activated!', 'Your feature credit has been added to your account.');
+        } else {
+          toast.success('Welcome to Pro!', 'Your expanded AI perspectives and case-preparation tools are unlocked.');
+        }
 
+        const resumed = resumeInterruptedTask((path, opts) => navigate(path, opts), session.user.id);
+        if (!resumed) {
+          setTimeout(() => {
+            navigate('/app');
+          }, 800);
+        }
+      } else if (result.reason === 'cancelled') {
+        // User closed modal - no error toast needed
+      } else if (result.reason === 'network_error') {
+        toast.info('Payment Status Pending', result.message);
+      } else {
+        toast.error('Payment Error', result.message || 'Payment could not be verified.');
+      }
     } catch (err: any) {
-      console.error(err);
       toast.error('Checkout Error', err.message || 'Unable to initiate checkout.');
+    } finally {
       setIsProcessing(null);
     }
   };
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? '20px 16px' : '40px 24px', paddingBottom: '80px' }}>
+      <PaymentRecoveryBanner />
+
       <button
         onClick={() => navigate(-1)}
         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', marginBottom: '24px', fontWeight: 600, fontSize: '14px' }}

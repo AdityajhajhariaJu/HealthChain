@@ -8,11 +8,13 @@ export interface LiteraturePaper {
   url: string;
   matchScore?: number;
   aiContext?: string;
+  retrievedAt?: string;
+  sourceName?: string;
 }
 
-const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 30000) => {
+const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 12000) => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    throw new Error('Offline');
+    throw new Error('OFFLINE: Device is currently disconnected from network');
   }
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -21,7 +23,7 @@ const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 3000
     return response;
   } catch (err: any) {
     if (err.name === 'AbortError') {
-      throw new Error('Timeout');
+      throw new Error('TIMEOUT: Literature query timed out');
     }
     throw err;
   } finally {
@@ -71,58 +73,109 @@ export function cleanMedicalText(text: string): string {
   return cleaned.replace(/\s+/g, ' ').trim();
 }
 
+function parsePapersFromResults(resultList: any[], retrievedAt: string): LiteraturePaper[] {
+  return resultList.map((paper: any) => {
+    const id = paper.pmid || paper.id || 'N/A';
+    const title = cleanMedicalText(paper.title) || 'Untitled Paper';
+    const rawJournal = paper.journalTitle ||
+      paper.journalInfo?.journal?.title ||
+      paper.journalInfo?.journal?.medlineAbbreviation ||
+      paper.bookOrReportDetails?.publisher;
+    const cleanedJournal = rawJournal ? cleanMedicalText(rawJournal) : '';
+    const journal = (!cleanedJournal || cleanedJournal.toLowerCase() === 'unknown journal')
+      ? 'Peer-Reviewed Clinical Journal'
+      : cleanedJournal;
+    const pubYear = String(paper.pubYear || new Date().getFullYear());
+    const abstract = cleanMedicalText(paper.abstractText) || 'No abstract available.';
+    const authors = cleanMedicalText(paper.authorString) || 'Clinical Investigators';
+    const url = id && id !== 'N/A'
+      ? `https://europepmc.org/article/MED/${id}`
+      : `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(title)}`;
+
+    return {
+      id,
+      title,
+      journal,
+      pubYear,
+      abstract,
+      authors,
+      url,
+      retrievedAt,
+      sourceName: 'Europe PMC / PubMed',
+    };
+  });
+}
+
 /**
  * Fetch recent medical literature using the Europe PMC API (which mirrors PubMed but offers a cleaner JSON API).
  */
 export async function fetchRecentLiterature(conditions: string[]): Promise<LiteraturePaper[]> {
   if (!conditions || conditions.length === 0) return [];
 
-  const rawCondition = conditions[0] || '';
-  const sanitizedCondition = rawCondition.replace(/["\\]/g, '').replace(/[+\-&|!(){}[\]^~*?:/]/g, ' ').trim();
-  if (!sanitizedCondition) return [];
-  const query = `"${sanitizedCondition}" AND (SRC:MED) AND HAS_ABSTRACT:y AND PUB_YEAR:[2023 TO 2026]`;
+  const sanitizedConditions = conditions
+    .map(c => String(c || '').replace(/["\\]/g, '').replace(/[+\-&|!(){}[\]^~*?:/]/g, ' ').trim())
+    .filter(c => c.length > 1);
+
+  if (sanitizedConditions.length === 0) return [];
+
+  const primaryCondition = sanitizedConditions[0];
+  const currentYear = new Date().getFullYear();
+  const recentStartYear = currentYear - 3;
+  const retrievedAt = new Date().toISOString();
+
+  const query = `"${primaryCondition}" AND (SRC:MED) AND HAS_ABSTRACT:y AND PUB_YEAR:[${recentStartYear} TO ${currentYear}]`;
   const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(
     query
-  )}&format=json&resultType=core&pageSize=5`;
+  )}&format=json&resultType=core&pageSize=6`;
 
   try {
     const response = await fetchWithTimeout(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch literature: ${response.statusText}`);
+      throw new Error(`Europe PMC API responded with ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const resultList = data.resultList?.result || [];
+    let resultList = Array.isArray(data?.resultList?.result) ? data.resultList.result : [];
 
-    return resultList.map((paper: any) => {
+    // If recent window returned 0 results, retry with wider 10-year window
+    if (resultList.length === 0) {
+      const expandedStartYear = currentYear - 10;
+      const widerQuery = `"${primaryCondition}" AND (SRC:MED) AND HAS_ABSTRACT:y AND PUB_YEAR:[${expandedStartYear} TO ${currentYear}]`;
+      const widerUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(
+        widerQuery
+      )}&format=json&resultType=core&pageSize=6`;
 
-      const id = paper.pmid || paper.id;
-      const title = cleanMedicalText(paper.title) || 'Untitled Paper';
-      const rawJournal = paper.journalTitle ||
-        paper.journalInfo?.journal?.title ||
-        paper.journalInfo?.journal?.medlineAbbreviation ||
-        paper.bookOrReportDetails?.publisher;
-      const cleanedJournal = rawJournal ? cleanMedicalText(rawJournal) : '';
-      const journal = (!cleanedJournal || cleanedJournal.toLowerCase() === 'unknown journal')
-        ? 'Peer-Reviewed Clinical Journal'
-        : cleanedJournal;
-      const pubYear = paper.pubYear || '2025';
-      const abstract = cleanMedicalText(paper.abstractText) || 'No abstract available.';
-      const authors = cleanMedicalText(paper.authorString) || 'Clinical Investigators';
-      const url = `https://europepmc.org/article/MED/${id}`;
+      try {
+        const widerRes = await fetchWithTimeout(widerUrl);
+        if (widerRes.ok) {
+          const widerData = await widerRes.json();
+          if (Array.isArray(widerData?.resultList?.result) && widerData.resultList.result.length > 0) {
+            resultList = widerData.resultList.result;
+          }
+        }
+      } catch {}
+    }
 
-      return {
-        id,
-        title,
-        journal,
-        pubYear,
-        abstract,
-        authors,
-        url,
-      };
-    });
+    // Secondary fallback: If still 0 and secondary condition exists, query secondary
+    if (resultList.length === 0 && sanitizedConditions.length > 1) {
+      const secondaryQuery = `"${sanitizedConditions[1]}" AND (SRC:MED) AND HAS_ABSTRACT:y`;
+      const secUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(
+        secondaryQuery
+      )}&format=json&resultType=core&pageSize=6`;
+      try {
+        const secRes = await fetchWithTimeout(secUrl);
+        if (secRes.ok) {
+          const secData = await secRes.json();
+          if (Array.isArray(secData?.resultList?.result) && secData.resultList.result.length > 0) {
+            resultList = secData.resultList.result;
+          }
+        }
+      } catch {}
+    }
+
+    return parsePapersFromResults(resultList, retrievedAt);
   } catch (error) {
     console.error('Error fetching literature:', error);
-    return [];
+    throw error;
   }
 }

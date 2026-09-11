@@ -1411,17 +1411,23 @@ export default function AvaHealthBuddy() {
   }, [incomingPrompt]);
   const studyIdParam = new URLSearchParams(location.search).get('studyId') || new URLSearchParams(location.search).get('study');
   const incomingStudy = location.state?.sourceStudy || (() => {
-    if (!studyIdParam) return null;
+    if (studyIdParam) {
+      try {
+        const stored = sessionStorage.getItem(`hc_study_${studyIdParam}`);
+        if (stored) return JSON.parse(stored);
+        const savedTrials = getItemSync('hc_saved_trials');
+        if (savedTrials) {
+          const parsed = JSON.parse(savedTrials);
+          if (parsed[studyIdParam]) return { nctId: studyIdParam, title: `Study ${studyIdParam}` };
+        }
+      } catch {}
+      return { nctId: studyIdParam, title: `Clinical Study ${studyIdParam}` };
+    }
     try {
-      const stored = sessionStorage.getItem(`hc_study_${studyIdParam}`);
-      if (stored) return JSON.parse(stored);
-      const savedTrials = getItemSync('hc_saved_trials');
-      if (savedTrials) {
-        const parsed = JSON.parse(savedTrials);
-        if (parsed[studyIdParam]) return { nctId: studyIdParam, title: `Study ${studyIdParam}` };
-      }
+      const activeStored = sessionStorage.getItem('hc_active_source_study');
+      if (activeStored) return JSON.parse(activeStored);
     } catch {}
-    return { nctId: studyIdParam, title: `Clinical Study ${studyIdParam}` };
+    return null;
   })();
   const [activeSourceStudy, setActiveSourceStudy] = useState<any>(() => incomingStudy);
   useEffect(() => {

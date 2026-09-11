@@ -119,3 +119,25 @@ export function openTrialModal(lockedFeatureName?: string): void {
     );
   }
 }
+
+import { saveInterruptedTask } from './razorpay';
+
+export function recordInterruptedFeatureTask(
+  featureId: string,
+  returnPath: string,
+  draftState?: any,
+  title?: string,
+  userId?: string
+): void {
+  saveInterruptedTask(
+    {
+      featureId,
+      returnPath,
+      draftState,
+      timestamp: Date.now(),
+      title: title || featureId,
+    },
+    userId
+  );
+}
+

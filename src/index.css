@@ -155,17 +155,37 @@ textarea {
 
 .skip-link {
   position: absolute;
-  top: -40px;
-  left: 0;
-  background: var(--navy);
-  color: white;
-  padding: 8px;
-  z-index: 99999;
+  top: -60px;
+  left: 12px;
+  background: var(--teal);
+  color: #ffffff;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 8px;
+  z-index: 999999;
   transition: top 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  text-decoration: underline;
 }
 
-.skip-link:focus {
-  top: 0;
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 12px;
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .sidebar {
@@ -1319,6 +1339,16 @@ html.dark-theme body {
     box-shadow: 0 6px 24px rgba(0,0,0,0.06);
   }
 
+  .more-menu-item:focus-visible {
+    outline: 3px solid var(--teal) !important;
+    outline-offset: 2px !important;
+  }
+
+  .more-menu-settings-card:focus-visible {
+    outline: 3px solid var(--teal) !important;
+    outline-offset: 2px !important;
+  }
+
   .more-menu-settings-card:active .more-menu-icon {
     transform: scale(1.08);
     background: #F3E7D3;
@@ -1574,3 +1604,39 @@ input:-webkit-autofill:active{
   50% { opacity: 0.5; transform: scale(1.2); }
   100% { opacity: 1; transform: scale(1); }
 }
+
+/* Accessible focus rings for form elements */
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="tel"]:focus-visible,
+input[type="search"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--teal) !important;
+  outline-offset: 2px !important;
+  border-color: var(--teal) !important;
+}
+
+/* ===== ACCESSIBILITY: REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora-bg,
+  .aurora-1,
+  .aurora-2,
+  .aurora-3,
+  .spin,
+  .brand-pulse__mark,
+  .pulse {
+    animation: none !important;
+  }
+}
+

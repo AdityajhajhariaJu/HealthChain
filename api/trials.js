@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   const url = `https://clinicaltrials.gov/api/v2/studies?query.cond=${encodeURIComponent(
     queryCondition
-  )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=${pageSize}&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule`;
+  )}&filter.overallStatus=RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION&pageSize=${pageSize}&fields=NCTId,BriefTitle,OverallStatus,Phase,BriefSummary,ConditionsModule,ArmsInterventionsModule,ContactsLocationsModule,EligibilityModule`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -49,8 +49,9 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    const retrievedAt = new Date().toISOString();
     const studies = (data.studies || []).map((study) => {
-      const protocol = study.protocolSection;
+      const protocol = study?.protocolSection || {};
       const id = protocol?.identificationModule?.nctId || 'Unknown NCT';
       const title = protocol?.identificationModule?.briefTitle || 'Untitled Study';
       const status = protocol?.statusModule?.overallStatus || 'Unknown';
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
       const summary = protocol?.descriptionModule?.briefSummary || 'No summary provided.';
       const conds = protocol?.conditionsModule?.conditions || [];
       const interventionsList = protocol?.armsInterventionsModule?.interventions || [];
-      const interventions = interventionsList.map((i) => i.name);
+      const interventions = interventionsList.map((i) => typeof i === 'string' ? i : i?.name).filter(Boolean);
       const locations = protocol?.contactsLocationsModule?.locations || [];
       let locationStr = 'Multiple Locations / Global';
       if (locations.length > 0) {
@@ -75,6 +76,11 @@ export default async function handler(req, res) {
         summary,
         conditions: conds,
         interventions,
+        eligibility: protocol?.eligibilityModule || undefined,
+        url: `https://clinicaltrials.gov/study/${id}`,
+        retrievedAt,
+        sourceName: 'ClinicalTrials.gov',
+        protocolSection: protocol,
       };
     });
 

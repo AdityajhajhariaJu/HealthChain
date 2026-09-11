@@ -139,6 +139,15 @@ export default function AppShell() {
     window.addEventListener('hc_sync_complete', handleSyncComplete);
     window.addEventListener('hc_sync_conflict', handleSyncConflict);
     window.addEventListener('hc_open_conflict_modal', handleOpenConflictModal);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowMoreMenu(false);
+        setShowProfileMenu(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     initDailyReminderService((route) => navigate(route));
     return () => {
       window.removeEventListener('hc_daily_checkin_completed', refreshNotifications);
@@ -153,6 +162,7 @@ export default function AppShell() {
       window.removeEventListener('hc_sync_complete', handleSyncComplete);
       window.removeEventListener('hc_sync_conflict', handleSyncConflict);
       window.removeEventListener('hc_open_conflict_modal', handleOpenConflictModal);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [navigate]);
 
@@ -300,6 +310,7 @@ const enforceSafeArea = () => {
       
       <MedicalActionIsland />
       <a href="#main-content" className="skip-link">Skip to main content</a>
+      <div id="a11y-live-region" role="status" aria-live="polite" aria-atomic="true" className="sr-only" />
       {!isMobile && (
         <aside className="sidebar">
           <div className="sidebar__logo">
@@ -430,7 +441,7 @@ const enforceSafeArea = () => {
         </aside>
       )}
 
-        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: '#F8FAFC', overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : undefined)), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: '#F8FAFC', overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : (isMobile ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)' : undefined))), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: location.pathname.startsWith('/app/war-room') ? '100%' : '800px', margin: '0 auto' }}>
             {!(location.pathname.startsWith('/app/today') || location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult') || location.pathname.startsWith('/app/progress') || location.pathname.startsWith('/app/trophies') || location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) && (

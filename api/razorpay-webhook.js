@@ -92,6 +92,17 @@ export default async function handler(req, res) {
       
       const targetPlan = ALLOWED_PLANS[resolvedPlanId] || ALLOWED_PLANS.pro_30_days;
 
+      // Fast-path Idempotent check: return ok if payment was already processed
+      const { data: existingPayment } = await supabase
+        .from('payments')
+        .select('id, status, entitlement_expires_at')
+        .eq('razorpay_payment_id', paymentId)
+        .maybeSingle();
+
+      if (existingPayment?.status === 'paid' && existingPayment?.entitlement_expires_at) {
+        return res.status(200).json({ status: 'ok', message: 'Already processed' });
+      }
+
       if (targetPlan.type === 'subscription') {
         const { data: currentProfile } = await supabase.from('profiles').select('pro_expires_at').eq('id', userId).single();
         const currentExpiry = currentProfile?.pro_expires_at ? new Date(currentProfile.pro_expires_at) : new Date();
@@ -155,7 +166,7 @@ export default async function handler(req, res) {
         .update({ status: 'refunded', entitlement_expires_at: null })
         .eq('razorpay_payment_id', paymentId)
         .select('user_id')
-        .single();
+        .maybeSingle();
         
       const userId = notes.user_id || paymentRecord?.user_id;
       if (userId) {

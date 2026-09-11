@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { getTrialStatus, TrialStatus } from '../../services/TrialEngine';
 import { triggerHapticLight } from '../../services/haptics';
+import { saveInterruptedTask } from '../../services/razorpay';
 
 interface TrialModalProps {
   isOpen?: boolean;
@@ -72,6 +73,12 @@ export function TrialFeaturesModal({
 
   const handleGoToPricing = () => {
     try { triggerHapticLight(); } catch {}
+    saveInterruptedTask({
+      featureId: lockedFeatureName || 'trial_upgrade',
+      returnPath: window.location.pathname + window.location.search,
+      timestamp: Date.now(),
+      title: lockedFeatureName || 'Premium Feature',
+    });
     handleClose();
     navigate('/app/pricing');
   };

@@ -67,10 +67,6 @@ export default async function handler(req, res) {
       planId, plan_id
     } = req.body || {};
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ error: 'Missing payment signature verification parameters.' });
-    }
-
     if (!supabaseUrl || !supabaseServiceRoleKey) {
       return res.status(500).json({ error: 'Database configuration missing on server.' });
     }
@@ -97,6 +93,37 @@ export default async function handler(req, res) {
 
     const effectiveUserId = user.id;
 
+    // 1b. Order recovery / status polling check (if payment_id or signature is absent)
+    const checkOrderId = req.body?.check_order_id || (req.body?.razorpay_order_id && (!req.body?.razorpay_payment_id || !req.body?.razorpay_signature) ? req.body.razorpay_order_id : null);
+    if (checkOrderId) {
+      const { data: payment } = await supabase
+        .from('payments')
+        .select('id, status, entitlement_expires_at, razorpay_payment_id')
+        .eq('razorpay_order_id', checkOrderId)
+        .eq('user_id', effectiveUserId)
+        .maybeSingle();
+
+      if (payment && payment.status === 'paid' && payment.entitlement_expires_at) {
+        return res.status(200).json({
+          success: true,
+          recovered: true,
+          already_processed: true,
+          status: 'paid',
+          expires_at: payment.entitlement_expires_at,
+          payment_id: payment.razorpay_payment_id
+        });
+      }
+      return res.status(200).json({
+        success: false,
+        status: payment ? payment.status : 'pending',
+        message: 'Payment has not yet been processed or confirmed by gateway.'
+      });
+    }
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ error: 'Missing payment signature verification parameters.' });
+    }
+
     // 2. Timing-safe signature check
     const expectedSignature = crypto
       .createHmac('sha256', razorpaySecret)
@@ -108,6 +135,27 @@ export default async function handler(req, res) {
 
     if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
       return res.status(400).json({ error: 'Invalid Payment Signature.' });
+    }
+
+    // 2b. Fast-path Idempotent check: return success if payment was already verified and credited by webhook
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id, status, entitlement_expires_at, user_id')
+      .eq('razorpay_payment_id', razorpay_payment_id)
+      .maybeSingle();
+
+    if (existingPayment) {
+      if (existingPayment.user_id !== effectiveUserId) {
+        return res.status(403).json({ error: 'Payment identity mismatch. This payment belongs to another account.' });
+      }
+      if (existingPayment.status === 'paid' && existingPayment.entitlement_expires_at) {
+        return res.status(200).json({
+          success: true,
+          already_processed: true,
+          message: 'Payment was already verified and entitlement activated.',
+          expires_at: existingPayment.entitlement_expires_at
+        });
+      }
     }
 
     // 3. Server-Side Amount Verification
@@ -177,6 +225,15 @@ export default async function handler(req, res) {
       entitlementError = error;
 
       if (!error) {
+        const { data: updatedProf } = await supabase
+          .from('profiles')
+          .select('pro_expires_at')
+          .eq('id', effectiveUserId)
+          .single();
+        if (updatedProf?.pro_expires_at) {
+          finalExpiry = updatedProf.pro_expires_at;
+        }
+
         await supabase.rpc('provision_base_quota', {
           p_user_id: effectiveUserId,
           p_plan_id: resolvedPlanId,

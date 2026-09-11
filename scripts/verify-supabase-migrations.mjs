@@ -19,6 +19,7 @@ const requiredFiles = [
   '20260821_payment_integrity.sql',
   '20260822_caregiver_profiles.sql',
   '20260911_conflict_safe_sync.sql',
+  '20260911_payment_lifecycle_resilience.sql',
 ];
 
 const requiredVerifierTokens = [
