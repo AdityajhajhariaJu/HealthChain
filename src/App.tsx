@@ -5,7 +5,7 @@ import { syncProfileFromSupabase, getProfileKey, getProfileEngineState, backfill
 import { ensureWelcomeGrant } from './services/VitalityPointsEngine';
 import { initGlobalHaptics } from './services/haptics';
 import { initNativeLifecycle } from './services/NativeLifecycle';
-import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory } from './services/CaseEngine';
+import { initCaseEngine, clearCaseEngineCache, backfillCaseHealthMemory, getActiveCaseId } from './services/CaseEngine';
 import { syncHealthMemoryFromSupabase } from './services/HealthMemory';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -100,6 +100,27 @@ const ProRoute = ({ children, featureName = 'Premium Specialist Suite' }: { chil
     return <Navigate to="/app/today" replace />;
   }
   return <SafeRoute>{children}</SafeRoute>;
+};
+
+/**
+ * Route redirector that preserves URL query parameters and hashes across legacy route aliases.
+ * Fulfills Package 4 requirement: preserve context through redirects and direct links.
+ */
+const PreservedNavigate: React.FC<{ to: string }> = ({ to }) => {
+  const location = useLocation();
+  const target = `${to}${location.search}${location.hash}`;
+  return <Navigate to={target} replace />;
+};
+
+/**
+ * War Room & Cases redirector that routes to the active Health Canvas (/app/cases/:id)
+ * if an active case exists, or falls back to /app/my-cases. Does not invent a competing canvas.
+ */
+const WarRoomRedirect: React.FC = () => {
+  const location = useLocation();
+  const activeCaseId = getActiveCaseId();
+  const targetPath = activeCaseId ? `/app/cases/${activeCaseId}` : '/app/my-cases';
+  return <Navigate to={`${targetPath}${location.search}${location.hash}`} replace />;
 };
 
 const VIP_HASH = 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a';
@@ -577,7 +598,7 @@ export default function App() {
           <Route path="/app/onboarding" element={<SafeRoute><OnboardingFlow /></SafeRoute>} />
           <Route path="/app/progress" element={<SafeRoute><ProgressGallery /></SafeRoute>} />
           <Route path="/app/trophies" element={<SafeRoute><TrophyCabinet /></SafeRoute>} />
-          <Route path="/app/war-room" element={<Navigate to="/app/today" replace />} />
+          <Route path="/app/war-room" element={<WarRoomRedirect />} />
           <Route
             path="/app/today"
             element={
@@ -612,11 +633,11 @@ export default function App() {
             }
           />
           
-          {/* Redirects for old routes */}
-          <Route path="/app/cases" element={<Navigate to="/app/my-cases" replace />} />
-          <Route path="/app/multi" element={<Navigate to="/app/consult" replace />} />
-          <Route path="/app/mdthub" element={<Navigate to="/app/consult" replace />} />
-          <Route path="/app/mdt" element={<Navigate to="/app/consult" replace />} />
+          {/* Redirects for old routes preserving query parameters */}
+          <Route path="/app/cases" element={<WarRoomRedirect />} />
+          <Route path="/app/multi" element={<PreservedNavigate to="/app/consult" />} />
+          <Route path="/app/mdthub" element={<PreservedNavigate to="/app/consult" />} />
+          <Route path="/app/mdt" element={<PreservedNavigate to="/app/consult" />} />
 
           <Route
             path="/app/consult"
@@ -626,10 +647,10 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/collab" element={<Navigate to="/app/consult" replace />} />
+          <Route path="/app/collab" element={<PreservedNavigate to="/app/consult" />} />
           <Route path="/app/case-prep" element={<SafeRoute><CasePrep /></SafeRoute>} />
           <Route path="/app/health-memory" element={<SafeRoute><HealthMemory /></SafeRoute>} />
-          <Route path="/app/deep-collab-beta" element={<Navigate to="/app/case-prep" replace />} />
+          <Route path="/app/deep-collab-beta" element={<PreservedNavigate to="/app/case-prep" />} />
           <Route
             path="/app/medicine-lab"
             element={
@@ -638,8 +659,8 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/pharmacy" element={<Navigate to="/app/medicine-lab" replace />} />
-          <Route path="/app/nutrition" element={<Navigate to="/app/dietician" replace />} />
+          <Route path="/app/pharmacy" element={<PreservedNavigate to="/app/medicine-lab" />} />
+          <Route path="/app/nutrition" element={<PreservedNavigate to="/app/dietician" />} />
           <Route path="/app/nutrition-log" element={<SafeRoute><NutritionInterceptor /></SafeRoute>} />
           <Route
             path="/app/dietician"
@@ -649,8 +670,8 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/health-buddy" element={<Navigate to="/app/ava" replace />} />
-          <Route path="/chat" element={<Navigate to="/app/ava" replace />} />
+          <Route path="/app/health-buddy" element={<PreservedNavigate to="/app/ava" />} />
+          <Route path="/chat" element={<PreservedNavigate to="/app/ava" />} />
           <Route
             path="/app/ava"
             element={
@@ -659,7 +680,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/reports" element={<Navigate to="/app/medicine-lab" replace />} />
+          <Route path="/app/reports" element={<PreservedNavigate to="/app/medicine-lab" />} />
           <Route
             path="/app/trials"
             element={
@@ -676,7 +697,7 @@ export default function App() {
               </SafeRoute>
             }
           />
-          <Route path="/app/jarvis" element={<Navigate to="/app/consult" replace />} />
+          <Route path="/app/jarvis" element={<PreservedNavigate to="/app/consult" />} />
 
           <Route path="/app/pricing" element={<Navigate to="/pricing" replace />} />
           <Route path="/app/admin/content" element={<SafeRoute><AdminContentDashboard /></SafeRoute>} />

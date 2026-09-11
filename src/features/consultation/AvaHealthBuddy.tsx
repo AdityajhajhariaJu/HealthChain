@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera } from 'lucide-react';
-import { triggerHapticLight } from '../../services/haptics';
+import { ArrowLeft, Heart, Send, Sparkles, Paperclip, X, File as FileIcon, Activity, Play, Wind, Plus, Pill, Zap, Camera, AlertCircle } from 'lucide-react';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { chatWithTherapyGemini, analyzeLabReport, extractClinicalMemory } from '../../services/geminiService';
@@ -649,10 +649,30 @@ export default function AvaHealthBuddy() {
       setInput(incomingPrompt);
     }
   }, [incomingPrompt]);
-  const incomingStudy = location.state?.sourceStudy || null;
+  const studyIdParam = new URLSearchParams(location.search).get('studyId') || new URLSearchParams(location.search).get('study');
+  const incomingStudy = location.state?.sourceStudy || (() => {
+    if (!studyIdParam) return null;
+    try {
+      const stored = sessionStorage.getItem(`hc_study_${studyIdParam}`);
+      if (stored) return JSON.parse(stored);
+      const savedTrials = getItemSync('hc_saved_trials');
+      if (savedTrials) {
+        const parsed = JSON.parse(savedTrials);
+        if (parsed[studyIdParam]) return { nctId: studyIdParam, title: `Study ${studyIdParam}` };
+      }
+    } catch {}
+    return { nctId: studyIdParam, title: `Clinical Study ${studyIdParam}` };
+  })();
   const [activeSourceStudy, setActiveSourceStudy] = useState<any>(() => incomingStudy);
   useEffect(() => {
-    setActiveSourceStudy(incomingStudy);
+    if (incomingStudy) {
+      setActiveSourceStudy(incomingStudy);
+      if (incomingStudy.nctId) {
+        try {
+          sessionStorage.setItem(`hc_study_${incomingStudy.nctId}`, JSON.stringify(incomingStudy));
+        } catch {}
+      }
+    }
   }, [incomingStudy]);
   const [attachments, setAttachments] = useState<{name: string, data: string}[]>([]);
   const [isProcessingAttachment, setIsProcessingAttachment] = useState(false);
@@ -738,10 +758,15 @@ export default function AvaHealthBuddy() {
   }, []);
 
   const availableCases = useCaseWorkspace();
+  const [missingCaseNotice, setMissingCaseNotice] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState(() => {
     const paramId = new URLSearchParams(location.search).get('caseId') || new URLSearchParams(location.search).get('importCase') || location.state?.caseId;
-    const scope = getUnifiedCaseScope(paramId);
-    return paramId || scope.caseId || '';
+    if (paramId) {
+      const scope = getUnifiedCaseScope(paramId);
+      return scope.isRequestedCaseMissing ? '' : (scope.caseId || '');
+    }
+    const scope = getUnifiedCaseScope();
+    return scope.caseId || '';
   });
   const selectedCase = availableCases.find(item => item.id === selectedCaseId);
   const documentedAnswers = useMemo(() => selectedCase ? getCaseDocumentedAnswers(selectedCase) : [], [selectedCase]);
@@ -755,6 +780,8 @@ export default function AvaHealthBuddy() {
       if (!getCase(selectedCase.id)) throw new Error('Case unavailable');
       addCaseEvent(selectedCase.id, input.trim(), 'Personal update from Ava');
       setSavedUpdate({ caseId: selectedCase.id, title: selectedCase.title });
+      toast.success('Update Saved to Case', `Saved to case timeline for "${selectedCase.title || 'Active Case'}".`);
+      triggerHapticSuccess();
       setInput('');
     } catch {
       toast.error('Update not saved', 'Your draft is still here. Please try again.');
@@ -769,7 +796,20 @@ export default function AvaHealthBuddy() {
   const sendingRef = useRef(false);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    setSelectedCaseId(params.get('caseId') || params.get('importCase') || location.state?.caseId || getUnifiedCaseScope().caseId || '');
+    const explicitId = params.get('caseId') || params.get('importCase') || location.state?.caseId;
+    if (explicitId) {
+      const scope = getUnifiedCaseScope(explicitId);
+      if (scope.isRequestedCaseMissing) {
+        setMissingCaseNotice(explicitId);
+        setSelectedCaseId('');
+      } else {
+        setMissingCaseNotice(null);
+        setSelectedCaseId(scope.caseId || '');
+      }
+    } else {
+      setMissingCaseNotice(null);
+      setSelectedCaseId(getUnifiedCaseScope().caseId || '');
+    }
   }, [location.search, location.state?.caseId]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1230,6 +1270,47 @@ export default function AvaHealthBuddy() {
             }}
           >
             <FeatureMissionHeader featureId="ava" activeCaseId={selectedCaseId || importedCase?.caseId} />
+
+            {missingCaseNotice && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                role="alert"
+                style={{
+                  background: '#FEF2F2',
+                  border: '1.5px solid #FCA5A5',
+                  borderRadius: 16,
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  color: '#991B1B',
+                  fontSize: 13,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <AlertCircle size={18} color="#DC2626" style={{ flexShrink: 0 }} />
+                  <div>
+                    <strong>Case Not Found:</strong> Case &quot;{missingCaseNotice}&quot; was not found in your records. Continuing in general consultation mode.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMissingCaseNotice(null)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#991B1B',
+                    padding: 4,
+                  }}
+                  aria-label="Dismiss notice"
+                >
+                  <X size={16} />
+                </button>
+              </motion.div>
+            )}
 
             {importedCase && (
               <motion.div

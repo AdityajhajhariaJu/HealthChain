@@ -29,6 +29,8 @@ export interface InformationAuditEntry {
   correctedText: string;
   correctedAt: string;
   correctedBy: string;
+  action?: string;
+  field?: string;
 }
 
 export interface GroundedClaimRecord {

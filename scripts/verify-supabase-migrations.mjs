@@ -18,6 +18,7 @@ const requiredFiles = [
   '20260821_payment_entitlement.sql',
   '20260821_payment_integrity.sql',
   '20260822_caregiver_profiles.sql',
+  '20260911_conflict_safe_sync.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -70,6 +71,7 @@ const requiredSchemaTokens = [
   'revoke all on table public.healthchain_profiles from anon',
   'revoke all on public.healthchain_user_overview',
   'healthchain_set_updated_at',
+  'public.case_tombstones',
 ];
 const missingSchemaTokens = requiredSchemaTokens.filter((token) => !allSql.includes(token));
 if (missingSchemaTokens.length) {

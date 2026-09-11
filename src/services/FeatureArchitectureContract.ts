@@ -75,6 +75,8 @@ export interface FeatureContract {
   };
   downstreamHandoffs: HandoffRoute[];
   upstreamFeeds: UpstreamFeed[];
+  plainDescription?: string;
+  plainPurpose?: string;
 }
 
 export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
@@ -88,6 +90,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'A separate competing clinical report',
     pipelineStage: 'intake',
     route: '/app/ava',
+    plainDescription: 'Your conversational companion for describing symptoms, clarifying everyday health questions, and finding your next step without medical jargon.',
+    plainPurpose: 'Symptom description & everyday health guidance',
     badgeColor: {
       bg: '#F0FDF4',
       text: '#166534',
@@ -133,6 +137,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Day-to-day logging or a decorative specialist chat',
     pipelineStage: 'synthesis',
     route: '/app/consult',
+    plainDescription: 'Synthesizing your full medical history, lab values, and symptom timeline into structured insights to discuss with your doctor.',
+    plainPurpose: 'Multisystem evidence synthesis',
     badgeColor: {
       bg: '#FFFBEB',
       text: '#92400E',
@@ -177,6 +183,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Another independently generated diagnosis list',
     pipelineStage: 'exploration',
     route: '/app/cases',
+    plainDescription: 'Visualizing biological pathways and underlying mechanisms connecting your symptoms, vitals, and triggers.',
+    plainPurpose: 'Biological pathway & trigger exploration',
     badgeColor: {
       bg: '#F0F9FF',
       text: '#075985',
@@ -210,6 +218,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Simulated specialist discussion after every post',
     pipelineStage: 'outcome',
     route: '/app/cases',
+    plainDescription: 'Tracking ongoing case progress, unresolved questions, doctor guidance, and resolution timelines.',
+    plainPurpose: 'Ongoing case work & visit outcomes',
     badgeColor: {
       bg: '#F8FAFC',
       text: '#334155',
@@ -243,6 +253,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Another interpretation engine',
     pipelineStage: 'storage',
     route: '/app/my-cases',
+    plainDescription: 'Your complete archive of medical case records, organized and accessible in one place.',
+    plainPurpose: 'Case records & longitudinal timeline',
     badgeColor: {
       bg: '#F0FDFA',
       text: '#115E59',
@@ -286,6 +298,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'An entirely new assessment',
     pipelineStage: 'prep',
     route: '/app/case-prep',
+    plainDescription: 'Creating a concise appointment brief, question checklist, and key discussion points for your doctor visit.',
+    plainPurpose: 'Doctor visit preparation & checklist',
     badgeColor: {
       bg: '#FAF5FF',
       text: '#6B21A8',
@@ -324,6 +338,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Cross-case conclusions',
     pipelineStage: 'intake',
     route: '/app/medicine-lab',
+    plainDescription: 'Reviewing and organizing your lab results, blood work, and prescriptions with verified measurements.',
+    plainPurpose: 'Lab report & medication verification',
     badgeColor: {
       bg: '#EFF6FF',
       text: '#1E40AF',
@@ -357,6 +373,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Food-trigger investigation',
     pipelineStage: 'wellness',
     route: '/app/dietician',
+    plainDescription: 'Personalized meal planning, practical swaps, and daily nutrition tailored to your health profile.',
+    plainPurpose: 'Practical meal planning & nutrition',
     badgeColor: {
       bg: '#ECFDF5',
       text: '#065F46',
@@ -391,6 +409,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Broad cross-system reasoning',
     pipelineStage: 'exploration',
     route: '/app/dietician',
+    plainDescription: 'Discovering patterns and correlations between what you eat and how your body responds over time.',
+    plainPurpose: 'Food pattern & digestive tracking',
     badgeColor: {
       bg: '#FEF3C7',
       text: '#92400E',
@@ -431,6 +451,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Automatically deciding what caused symptoms',
     pipelineStage: 'action',
     route: '/app/dietician',
+    plainDescription: 'Guiding you through structured elimination and reintroduction phases to safely identify food sensitivities.',
+    plainPurpose: 'Structured elimination protocol',
     badgeColor: {
       bg: '#FFF7ED',
       text: '#9A3412',
@@ -470,6 +492,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Eligibility determination',
     pipelineStage: 'discovery',
     route: '/app/trials',
+    plainDescription: 'Exploring relevant clinical trials and peer-reviewed scientific studies matching your health profile.',
+    plainPurpose: 'Evidence & research discovery',
     badgeColor: {
       bg: '#F5F3FF',
       text: '#5B21B6',
@@ -509,6 +533,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Clinical interpretation',
     pipelineStage: 'wellness',
     route: '/app/today',
+    plainDescription: 'Mindful breathing, vagal tone resets, and calm spaces to help you de-stress and rest.',
+    plainPurpose: 'Calm space & nervous system recovery',
     badgeColor: {
       bg: '#FDF2F8',
       text: '#9D174D',

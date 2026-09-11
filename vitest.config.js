@@ -7,6 +7,7 @@ export default defineConfig({
     // Most service tests are pure Node tests. Browser-storage tests opt into
     // JSDOM per file, avoiding unnecessary browser emulation and open handles.
     environment: 'node',
+    pool: 'forks',
     globals: true,
     include: ['src/**/*.test.{js,jsx,ts,tsx}', 'src/**/__tests__/**/*.{js,jsx,ts,tsx}'],
     exclude: ['node_modules', 'dist', 'tests/e2e/**'],

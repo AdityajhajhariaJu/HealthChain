@@ -5,6 +5,7 @@ import {
   ExtractionStatus,
   InterpretationStatus,
   GroundedClaimRecord,
+  InformationAuditEntry,
 } from './ClinicalInformationClassifier';
 import {
   runClinicalReasoningPipeline,
@@ -99,6 +100,104 @@ export interface NormalizedClinicalReview {
   validationErrors?: string[];
 }
 
+export interface ExtractedBiomarkerFinding {
+  id?: string;
+  factId: string;
+  biomarker: string;
+  value: string;
+  unit?: string;
+  standardRange?: string;
+  optimalRange?: string;
+  clinicalRisk?: string;
+  reportDate?: string;
+  page?: number;
+  originalText?: string;
+  extractionStatus?: ExtractionStatus;
+  auditTrail?: InformationAuditEntry[];
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function matchesBiomarkerValue(sourceText: string, targetValue: string): boolean {
+  if (!sourceText || typeof sourceText !== 'string' || !targetValue || typeof targetValue !== 'string') return false;
+  const val = targetValue.trim();
+  if (!val) return false;
+  // If targetValue is numeric (with optional comparison operator and decimals, e.g. 12, 12.5, <0.05, >100)
+  const numMatch = val.match(/^([<>≤≥=~]?\s*)(\d+(?:\.\d+)?)(.*)$/);
+  if (numMatch) {
+    const prefix = escapeRegex(numMatch[1].trim());
+    const num = escapeRegex(numMatch[2]);
+    // Enforce digit/decimal boundary so 12 cannot match 112, 120, or 1.12
+    const pattern = prefix
+      ? `(?:${prefix}\\s*)?(?<![\\d.])${num}(?![\\d.])`
+      : `(?<![\\d.])${num}(?![\\d.])`;
+    return new RegExp(pattern, 'i').test(sourceText);
+  }
+  // For non-numeric or complex values, enforce word-boundary matching
+  return new RegExp(`\\b${escapeRegex(val)}\\b`, 'i').test(sourceText);
+}
+
+export function matchesBiomarkerName(sourceText: string, markerName: string): boolean {
+  if (!sourceText || !markerName || typeof sourceText !== 'string' || typeof markerName !== 'string') return false;
+  const trimmed = markerName.trim();
+  if (!trimmed) return false;
+  // Word boundary check around marker name
+  const escaped = escapeRegex(trimmed);
+  return new RegExp(`(?:^|[^a-zA-Z0-9])${escaped}(?:$|[^a-zA-Z0-9])`, 'i').test(sourceText);
+}
+
+export interface AmbiguousDateResult {
+  rawString: string;
+  isAmbiguous: boolean;
+  normalizedDate?: string;
+  displayDate: string;
+}
+
+export function preserveAmbiguousDate(rawDate?: string): AmbiguousDateResult {
+  if (!rawDate || typeof rawDate !== 'string') {
+    return { rawString: rawDate || '', isAmbiguous: true, displayDate: 'Undated' };
+  }
+  const trimmed = rawDate.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'undated' || trimmed.toLowerCase() === 'unknown') {
+    return { rawString: trimmed, isAmbiguous: true, displayDate: 'Undated' };
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const d = new Date(trimmed);
+    if (!isNaN(d.getTime())) {
+      return { rawString: trimmed, isAmbiguous: false, normalizedDate: trimmed, displayDate: trimmed };
+    }
+  }
+  return { rawString: trimmed, isAmbiguous: true, displayDate: trimmed };
+}
+
+export interface AmbiguousUnitResult {
+  rawUnit: string;
+  isAmbiguous: boolean;
+  unit: string;
+}
+
+const COMMON_KNOWN_UNITS = new Set([
+  'mg/dl', 'g/dl', 'mmol/l', 'umol/l', 'miu/l', 'iu/l', 'ug/dl', 'ng/ml', 'pg/ml',
+  'u/l', 'fl', 'k/ul', '%', 'cells/ul', 'meq/l', 'mm/hr', 'bpm', 'mmhg', 'kg', 'lbs'
+]);
+
+export function preserveAmbiguousUnit(rawUnit?: string): AmbiguousUnitResult {
+  if (!rawUnit || typeof rawUnit !== 'string') {
+    return { rawUnit: '', isAmbiguous: true, unit: '' };
+  }
+  const trimmed = rawUnit.trim();
+  if (!trimmed) {
+    return { rawUnit: '', isAmbiguous: true, unit: '' };
+  }
+  const lower = trimmed.toLowerCase();
+  if (COMMON_KNOWN_UNITS.has(lower)) {
+    return { rawUnit: trimmed, isAmbiguous: false, unit: trimmed };
+  }
+  return { rawUnit: trimmed, isAmbiguous: true, unit: trimmed };
+}
+
 export function buildReviewEvidence(history:string, sourceCase?:any):any[] {
   const facts:any[]=[];
   const add=(id:string,fact:string,source:string,category:string,extra:any={})=>{
@@ -110,8 +209,8 @@ export function buildReviewEvidence(history:string, sourceCase?:any):any[] {
         add('intake_'+sourceCase.id+'_'+key,value,'Patient intake','user_report');
     for(const record of sourceCase.medicalRecords || []){
       if(record.passages?.length) for(const p of record.passages)
-        add(p.id,p.text,record.filename,'extracted_finding',{file:record.filename,recordId:record.id,passageId:p.id,page:p.page,reportDate:record.reportDate,extractionStatus:'provisional'});
-      else add('record_'+record.id,record.findings,record.filename,'extracted_finding',{file:record.filename,recordId:record.id,extractionStatus:'provisional',sourceKind:'stored_summary'});
+        add(p.id,p.text,record.filename,'extracted_finding',{file:record.filename,recordId:record.id,passageId:p.id,page:p.page,reportDate:record.reportDate,extractionStatus:p.extractionStatus || record.extractionStatus || 'provisional',originalText:p.originalText || p.text,auditTrail:p.auditTrail});
+      else add('record_'+record.id,record.findings,record.filename,'extracted_finding',{file:record.filename,recordId:record.id,extractionStatus:record.extractionStatus || 'provisional',sourceKind:'stored_summary',originalText:record.originalText || record.findings,auditTrail:record.auditTrail});
     }
     for(const event of sourceCase.events || []) if(event.note && /^(User clarification|User observation|Evidence update|Observation|Measurement|Question|Appointment outcome|Ava update|Case update)$/i.test(event.label || ''))
       add('event_'+event.id,event.note,'Case update','user_report',{timestamp:event.date});
@@ -369,13 +468,21 @@ export function normalizeClinicalReview(value:unknown, previousPayload?:Clinical
     topDiagnoses: [],
     functionalBiomarkers: objects(report.functionalBiomarkers).filter(b => {
       const fact = enriched.find(f => f.id === b.factId);
-      return fact && typeof b.value === 'string' && fact.fact.includes(b.value) && typeof b.biomarker === 'string' && fact.fact.toLowerCase().includes(b.biomarker.toLowerCase());
-    }).map(b => ({
-      ...b,
-      optimalRange: 'Not established',
-      clinicalRisk: 'Review this extracted value against the original report.',
-      standardRange: enriched.find(f => f.id === b.factId)?.fact.includes(b.standardRange) ? b.standardRange : 'Not provided'
-    })),
+      return fact && typeof b.value === 'string' && matchesBiomarkerValue(fact.fact, b.value) && typeof b.biomarker === 'string' && matchesBiomarkerName(fact.fact, b.biomarker);
+    }).map(b => {
+      const fact = enriched.find(f => f.id === b.factId);
+      const isRangeGrounded = Boolean(fact && typeof b.standardRange === 'string' && b.standardRange.trim() && fact.fact.includes(b.standardRange.trim()));
+      return {
+        ...b,
+        value: typeof b.value === 'string' ? b.value.trim() : b.value,
+        unit: preserveAmbiguousUnit(b.unit).unit,
+        reportDate: preserveAmbiguousDate(b.reportDate || fact?.reportDate || fact?.eventDate || fact?.timestamp).displayDate,
+        optimalRange: 'Not established',
+        clinicalRisk: 'Review this extracted value against the original report.',
+        standardRange: isRangeGrounded ? b.standardRange.trim() : 'Not provided',
+        originalText: fact?.fact || '',
+      };
+    }),
     systemicPatterns: [],
     uncertainties: strings(report.uncertainties),
     missingLinks: strings(report.missingLinks),

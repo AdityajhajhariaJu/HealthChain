@@ -23,6 +23,7 @@ export default function CasePrep() {
   const [brief, setBrief] = useState<AppointmentBrief | null>(null);
   const [isRefining, setIsRefining] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [caseNotFoundId, setCaseNotFoundId] = useState<string | null>(null);
   const [showDrawer, setShowDrawer] = useState(false);
   const [outcomeNotes, setOutcomeNotes] = useState<Record<string, string>>({});
   const [outcomeStatuses, setOutcomeStatuses] = useState<Record<string, 'addressed' | 'deferred'>>({});
@@ -96,10 +97,17 @@ export default function CasePrep() {
       const match = allCases.find(c => c.id === caseIdParam) || getCase(caseIdParam);
       if (match) {
         setSelectedCase(match);
+        setCaseNotFoundId(null);
         return;
       }
+      // Explicit destination requested but missing: do not silently fall back!
+      setSelectedCase(null);
+      setCaseNotFoundId(caseIdParam);
+      setShowPicker(true);
+      return;
     }
-    const scope = getUnifiedCaseScope(caseIdParam);
+    setCaseNotFoundId(null);
+    const scope = getUnifiedCaseScope();
     const active = scope.caseItem;
     if (active && allCases.some(c => c.id === active.id)) {
       setSelectedCase(active);
@@ -226,6 +234,31 @@ export default function CasePrep() {
   if (showPicker) {
     return (
       <main style={{ maxWidth: 600, margin: '40px auto', padding: '0 20px' }}>
+        {caseNotFoundId && (
+          <div
+            role="alert"
+            style={{
+              padding: '14px 16px',
+              background: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              borderRadius: 12,
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              color: '#991B1B',
+              fontSize: 14,
+            }}
+          >
+            <AlertCircle size={20} color="#DC2626" style={{ flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 700 }}>Requested Case Not Found</div>
+              <div style={{ fontSize: 13, marginTop: 2, color: '#7F1D1D' }}>
+                Case ID &quot;{caseNotFoundId}&quot; could not be found in your records. Please choose an active case below to prepare your visit.
+              </div>
+            </div>
+          </div>
+        )}
         <h2 style={{ fontSize: 24, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
           <Briefcase size={24} color="#0d9488" /> Choose a case
         </h2>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { setActiveCase } from '../../services/CaseEngine';
+import { setActiveCase, getActiveCaseId } from '../../services/CaseEngine';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Workflow,
   HelpCircle,
+  Compass,
 } from 'lucide-react';
 import {
   FeatureId,
@@ -45,7 +46,8 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
 
   const handleHandoffClick = (handoff: HandoffRoute) => {
     triggerHapticSuccess();
-    if (activeCaseId) setActiveCase(activeCaseId);
+    const effectiveCaseId = activeCaseId || (typeof getActiveCaseId === 'function' ? getActiveCaseId() : null);
+    if (effectiveCaseId) setActiveCase(effectiveCaseId);
     if (handoff.targetTab && onNavigateTab) {
       onNavigateTab(handoff.targetTab);
       return;
@@ -53,11 +55,16 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
 
     const target = handoff.targetFeatureId === 'connection-detective' ? '/app/ava' : handoff.route;
     const query = new URLSearchParams();
-    if (activeCaseId) query.set('caseId', activeCaseId);
+    if (effectiveCaseId) query.set('caseId', effectiveCaseId);
     if (handoff.targetFeatureId === 'connection-detective') query.set('tool', 'connection-detective');
-    const targetUrl = target === '/app/cases' && activeCaseId
-      ? '/app/cases/' + encodeURIComponent(activeCaseId)
-      : target + (query.size ? '?' + query.toString() : '');
+    if (handoff.targetTab) query.set('tab', handoff.targetTab);
+
+    let targetUrl = target;
+    if (target === '/app/cases') {
+      targetUrl = effectiveCaseId ? '/app/cases/' + encodeURIComponent(effectiveCaseId) : '/app/my-cases';
+    } else {
+      targetUrl = target + (query.size ? '?' + query.toString() : '');
+    }
     navigate(targetUrl);
   };
 
@@ -210,24 +217,24 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
           }}
         >
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <strong style={{ color: '#0F172A', fontWeight: 700 }}>Owns:</strong>
-            <span>{contract.owns}</span>
+            <strong style={{ color: '#0F172A', fontWeight: 700 }}>Role:</strong>
+            <span>{contract.plainDescription || contract.owns}</span>
           </div>
           <span style={{ color: '#CBD5E1' }}>•</span>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <strong style={{ color: '#0F172A', fontWeight: 700 }}>Produces:</strong>
-            <span>{contract.produces}</span>
+            <strong style={{ color: '#0F172A', fontWeight: 700 }}>Focus:</strong>
+            <span>{contract.plainPurpose || contract.produces}</span>
           </div>
         </div>
       </div>
 
-      {/* Strict Non-Duplication Guardrail Banner */}
+      {/* Purpose & Guardrail Banner */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          background: 'rgba(241, 245, 249, 0.75)',
+          background: 'rgba(248, 250, 252, 0.85)',
           border: '1px solid #E2E8F0',
           borderRadius: 10,
           padding: '8px 12px',
@@ -243,15 +250,17 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
             alignItems: 'center',
             gap: 4,
             fontWeight: 700,
-            color: '#DC2626',
+            color: '#0F766E',
             fontSize: 11,
             textTransform: 'uppercase',
             letterSpacing: '0.4px',
           }}
         >
-          <ShieldAlert size={13} color="#DC2626" /> Strict Boundary:
+          <Compass size={13} color="#0F766E" /> Purpose & Focus:
         </span>
-        <span style={{ fontWeight: 500 }}>Must NOT duplicate {contract.mustNotDuplicate}.</span>
+        <span style={{ fontWeight: 500 }}>
+          {contract.plainDescription || contract.owns}. Distinct from {contract.mustNotDuplicate.toLowerCase()}.
+        </span>
       </div>
 
       {/* Expandable Technical Contract Details */}
@@ -286,7 +295,7 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
                 }}
               >
                 <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Layers size={13} color="#0F766E" /> Upstream Information Feeds
+                  <Layers size={13} color="#0F766E" /> Information Used
                 </div>
                 {contract.upstreamFeeds.map((feed, idx) => (
                   <div key={idx} style={{ color: '#64748B', lineHeight: 1.4, marginTop: 4 }}>
@@ -304,7 +313,7 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
                 }}
               >
                 <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Workflow size={13} color="#2563EB" /> Downstream Output Consumers
+                  <Workflow size={13} color="#2563EB" /> Connected Next Steps
                 </div>
                 {contract.downstreamHandoffs.map((handoff, idx) => (
                   <div key={idx} style={{ color: '#64748B', lineHeight: 1.4, marginTop: 4 }}>
@@ -340,7 +349,7 @@ export const FeatureMissionHeader: React.FC<FeatureMissionHeaderProps> = ({
               letterSpacing: '0.6px',
             }}
           >
-            Pipeline Next Steps:
+            Next Actions:
           </span>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

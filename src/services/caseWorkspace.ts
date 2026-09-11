@@ -10,6 +10,46 @@ export interface UnifiedCaseScope {
   caseId: string | null;
   allCases: CaseItem[];
   scopeKey: string;
+  isRequestedCaseMissing?: boolean;
+  requestedCaseId?: string;
+  validationError?: string;
+}
+
+export interface CaseValidationResult {
+  isValid: boolean;
+  caseItem: CaseItem | null;
+  error?: string;
+}
+
+/**
+ * Validates whether a provided case ID string exists in local storage.
+ * Fulfills Package 4 destination-side validation requirements.
+ */
+export function validateCaseIdentifier(caseId: string | null | undefined): CaseValidationResult {
+  if (!caseId || typeof caseId !== 'string' || !caseId.trim()) {
+    return {
+      isValid: false,
+      caseItem: null,
+      error: 'No case identifier was provided.',
+    };
+  }
+
+  const cleanId = caseId.trim();
+  const allCases = typeof getCases === 'function' ? getCases() : [];
+  const foundCase = allCases.find(c => c.id === cleanId) || null;
+
+  if (!foundCase) {
+    return {
+      isValid: false,
+      caseItem: null,
+      error: `Case with identifier '${cleanId}' does not exist in local records.`,
+    };
+  }
+
+  return {
+    isValid: true,
+    caseItem: foundCase,
+  };
 }
 
 export interface DocumentedAnswerItem {
@@ -22,13 +62,21 @@ export interface DocumentedAnswerItem {
 /**
  * Single canonical source of truth for resolving active case scope across all features.
  * Permanently resolves Point 10 Gap #5: Unifies ConsultPage and Case Workspace loading.
+ * Enforces explicit target validation: does not silently fall back when an explicit caseId is missing.
  */
 export function getUnifiedCaseScope(preferredCaseId?: string | null): UnifiedCaseScope {
   const allCases = typeof getCases === 'function' ? getCases() : [];
   let resolvedCase: CaseItem | null = null;
+  let isRequestedCaseMissing = false;
+  let validationError: string | undefined = undefined;
 
-  if (preferredCaseId) {
-    resolvedCase = allCases.find(c => c.id === preferredCaseId) || null;
+  if (preferredCaseId !== undefined && preferredCaseId !== null && preferredCaseId.trim() !== '') {
+    const trimmedId = preferredCaseId.trim();
+    resolvedCase = allCases.find(c => c.id === trimmedId) || null;
+    if (!resolvedCase) {
+      isRequestedCaseMissing = true;
+      validationError = `Case '${trimmedId}' was not found in local records.`;
+    }
   } else {
     resolvedCase = (typeof getActiveCase === 'function' ? getActiveCase() : null) || allCases.find(c => !c.intakeData?.scenarioId) || null;
   }
@@ -42,6 +90,9 @@ export function getUnifiedCaseScope(preferredCaseId?: string | null): UnifiedCas
     caseId: resolvedCase?.id || null,
     allCases,
     scopeKey,
+    isRequestedCaseMissing,
+    requestedCaseId: preferredCaseId ? preferredCaseId.trim() : undefined,
+    validationError,
   };
 }
 

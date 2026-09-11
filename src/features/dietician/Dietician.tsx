@@ -1,7 +1,7 @@
 import { DieticianDashboardTracker } from './DieticianDashboardTracker';
 import { ARGroceryLens } from '../../components/ui/ARGroceryLens';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 
 export function formatLocalDate(date: Date): string {
@@ -222,18 +222,40 @@ export default function Dietician() {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'elimination', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
   type DietTab = typeof validTabs[number];
+
+  const resolveTabKey = (raw?: string | null): DietTab | null => {
+    if (!raw) return null;
+    const clean = raw.trim().toLowerCase();
+    if (clean === 'food-detective') return 'sensitivities';
+    if (clean === 'elimination-suite') return 'elimination';
+    if (clean === 'diet-plan') return 'mealplan';
+    if ((validTabs as readonly string[]).includes(clean)) return clean as DietTab;
+    return null;
+  };
+
+  const searchTab = searchParams.get('tab');
   const stateTab = (location.state as { tab?: string } | null)?.tab;
-  const initialTab: DietTab = (stateTab && (validTabs as readonly string[]).includes(stateTab)) ? (stateTab as DietTab) : 'dashboard';
-  const [activeTab, setActiveTab] = useState<DietTab>(initialTab);
+  const initialTab: DietTab = resolveTabKey(searchTab) || resolveTabKey(stateTab) || 'dashboard';
+  const [activeTab, setActiveTabState] = useState<DietTab>(initialTab);
+
+  const setActiveTab = (nextTab: DietTab) => {
+    setActiveTabState(nextTab);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', nextTab);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   useEffect(() => {
-    const nextTab = (location.state as { tab?: string } | null)?.tab;
-    if (nextTab && (validTabs as readonly string[]).includes(nextTab)) {
-      setActiveTab(nextTab as DietTab);
+    const currentSearchTab = searchParams.get('tab');
+    const currentStateTab = (location.state as { tab?: string } | null)?.tab;
+    const resolved = resolveTabKey(currentSearchTab) || resolveTabKey(currentStateTab);
+    if (resolved && resolved !== activeTab) {
+      setActiveTabState(resolved);
     }
-  }, [location.state]);
+  }, [searchParams, location.state]);
   const [profile, setProfile] = useState<any>(null);
   const [foodLogs, setFoodLogs] = useState<any>({});
   const [hydration, setHydration] = useState<any>({});

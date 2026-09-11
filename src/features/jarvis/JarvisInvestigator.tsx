@@ -5,11 +5,11 @@ import {
   FileUp, Sparkles, Activity, Search, ArrowRight, 
   X, CheckCircle2, HelpCircle, BrainCircuit, Copy, Check,
   AlertTriangle, ShieldCheck, Stethoscope, Heart, CalendarClock,
-  FileText, Zap, ChevronRight, AlertCircle
+  FileText, Zap, ChevronRight, AlertCircle, Plus
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { runJarvisInvestigation } from '../../services/geminiService';
-import { createCaseDraft, saveReviewSnapshot, appendCaseRecords, MedicalRecord, addCaseEvent, getActiveCase, getCase } from '../../services/CaseEngine';
+import { createCaseDraft, saveReviewSnapshot, appendCaseRecords, MedicalRecord, addCaseEvent, getActiveCase, getCase, addCaseQuestion } from '../../services/CaseEngine';
 import { getActiveSession } from '../../services/authSession';
 import { getProfile, getProfileKey, getProfileEngineState } from '../../services/ProfileEngine';
 import { openTrialModal } from '../../services/TrialEngine';
@@ -29,6 +29,7 @@ import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMu
 import { StructuredAnswerView } from '../../components/ui/StructuredAnswerView';
 import { buildStructuredClinicalAnswer } from '../../services/StructuredAnswerEngine';
 import { runClinicalReasoningPipeline } from '../../services/ClinicalReasoningEngine';
+import { Sparkles as SparklesIcon, ExternalLink } from 'lucide-react';
 import { normalizeClinicalReview } from '../../services/clinicalReview';
 import '../../components/ui/caseWorkspace.css';
 import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
@@ -59,12 +60,36 @@ export default function JarvisInvestigator() {
   const [isIsolated, setIsIsolated] = useState(false);
   const [copiedSbar, setCopiedSbar] = useState(false);
   const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
+  const [missingCaseId, setMissingCaseId] = useState<string | null>(null);
+  const [addedQuestionIndexes, setAddedQuestionIndexes] = useState<Record<number, boolean>>({});
+
+  const handleAddQuestionToCasePrep = (qText: string, idx: number) => {
+    const caseId = createdCaseId || selectedCaseId;
+    if (!caseId) {
+      toast.error('No Active Case', 'Please select or create a case before saving visit questions.');
+      return;
+    }
+    try {
+      addCaseQuestion(caseId, {
+        questionText: qText,
+        status: 'open',
+        raisedBySpecialty: 'Clinical Data Engine',
+        supportingEvidenceIds: [],
+      });
+      setAddedQuestionIndexes(prev => ({ ...prev, [idx]: true }));
+      triggerHapticSuccess();
+      toast.success('Question Added to Case Prep', 'This question is now recorded in your clinical appointment brief.');
+    } catch {
+      toast.error('Save Failed', 'Unable to save question to Case Prep. Please try again.');
+    }
+  };
   const availableCases = useCaseWorkspace();
   const reviewHydrationKey = availableCases.map(item => `${item.id}:${item.reviews?.[0]?.id || ''}`).join('|');
   const [selectedCaseId, setSelectedCaseId] = useState(() => {
     const preferred = searchParams.get('caseId') || location.state?.caseId || '';
-    const scope = getUnifiedCaseScope(preferred);
-    return preferred || scope.caseId || '';
+    if (preferred) return preferred;
+    const scope = getUnifiedCaseScope();
+    return scope.caseId || '';
   });
   const [isReadingFiles, setIsReadingFiles] = useState(false);
   const selectedCaseRef = useRef(selectedCaseId);
@@ -78,7 +103,7 @@ export default function JarvisInvestigator() {
     const changeScope = () => {
       if (scopeRef.current === engineScope()) return;
       scopeRef.current = engineScope();
-      setHistory(''); setFiles([]); setReport(null); setPhase('input'); setSelectedCaseId(''); setCreatedCaseId(null);
+      setHistory(''); setFiles([]); setReport(null); setPhase('input'); setSelectedCaseId(''); setCreatedCaseId(null); setMissingCaseId(null);
     };
     window.addEventListener('hc_profile_updated', changeScope);
     window.addEventListener('hc_logout', changeScope);
@@ -96,21 +121,29 @@ export default function JarvisInvestigator() {
   // Rehydrate existing case if caseId is passed in URL query or navigation state
   useEffect(() => {
     const caseId = searchParams.get('caseId') || (location.state as any)?.caseId;
-    if (caseId && phase === 'input') {
+    if (caseId) {
       const existing = getCase(caseId);
       if (existing) {
-        setSelectedCaseId(existing.id);
-        setHistory(previous => previous || existing.intakeData?.chiefComplaint || existing.intakeData?.concern || '');
-        const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
-        if (jarvisReview?.report?.groundingVersion === 1 && searchParams.get('review') !== 'new') {
-          setReport(jarvisReview.report);
-          setCreatedCaseId(existing.id);
-          setHistory(existing.intakeData?.chiefComplaint || '');
-          setPhase('done');
+        setMissingCaseId(null);
+        if (phase === 'input') {
+          setSelectedCaseId(existing.id);
+          setHistory(previous => previous || existing.intakeData?.chiefComplaint || existing.intakeData?.concern || '');
+          const jarvisReview = existing.reviews?.find((r: any) => r.type === 'jarvis');
+          if (jarvisReview?.report?.groundingVersion === 1 && searchParams.get('review') !== 'new') {
+            setReport(jarvisReview.report);
+            setCreatedCaseId(existing.id);
+            setHistory(existing.intakeData?.chiefComplaint || '');
+            setPhase('done');
+          }
         }
+      } else {
+        setMissingCaseId(caseId);
+        setSelectedCaseId(caseId);
       }
+    } else {
+      setMissingCaseId(null);
     }
-  }, [searchParams, location.state, reviewHydrationKey]);
+  }, [searchParams, location.state, reviewHydrationKey, phase]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(true);
@@ -338,9 +371,10 @@ AI-generated preparation material. Verify against original records; this is not 
   const handleRunInvestigation = async () => {
     if (runningRef.current || readingRef.current) return;
     const requestScope = engineScope();
-    const requestCaseId = selectedCaseId;
-    const linkedCase = selectedCaseId ? getCase(selectedCaseId) : undefined;
-    if (selectedCaseId && (!linkedCase || linkedCase.intakeData?.scenarioId)) {
+    const effectiveCaseId = selectedCaseId || missingCaseId;
+    const requestCaseId = effectiveCaseId;
+    const linkedCase = effectiveCaseId ? getCase(effectiveCaseId) : undefined;
+    if (effectiveCaseId && (!linkedCase || linkedCase.intakeData?.scenarioId)) {
       toast.error('Case unavailable', 'Select an available case or start a new case.');
       return;
     }
@@ -409,7 +443,15 @@ AI-generated preparation material. Verify against original records; this is not 
             id: recordId, filename: attachment.file.name, source: 'uploaded_document',
             type: attachment.file.type, addedAt: new Date().toISOString(),
             findings: passages.map((p: any) => p.fact).join('\n'),
-            passages: passages.map((p: any) => ({ id: p.id, text: p.fact, page: p.page, section: 'Provisional extraction; check original' })),
+            passages: passages.map((p: any) => ({
+              id: p.id,
+              text: p.fact,
+              originalText: p.fact,
+              extractionStatus: 'provisional' as const,
+              auditTrail: [],
+              page: p.page,
+              section: 'Provisional extraction; check original',
+            })),
           });
           passages.forEach((p: any) => { p.recordId = recordId; p.passageId = p.id; });
         }
@@ -484,8 +526,9 @@ AI-generated preparation material. Verify against original records; this is not 
           <h2 id="review-ready-title">Your record review is ready</h2>
           <p>AI-generated information for a conversation with your clinician. Check extracted details against your original records.</p>
           <div className="case-workspace-grid">
-            <button className="btn btn-outline" onClick={() => navigate(`/app/cases/${createdCaseId}`)}>Open case timeline</button>
-            <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
+            <button className="btn btn-outline" onClick={() => navigate(`/app/cases/${createdCaseId || selectedCaseId}`)}>Open case timeline</button>
+            <button className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(createdCaseId || selectedCaseId || '')}`)}>Open Case Prep</button>
+            <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || selectedCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
             <button className="btn btn-outline" onClick={() => { setPhase('input'); setReport(null); }}>Review updated evidence</button>
             <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy visit summary'}</button>
           </div>
@@ -983,6 +1026,29 @@ AI-generated preparation material. Verify against original records; this is not 
                       <strong style={{ fontSize: '14.5px', color: '#0F172A' }}>{testName}</strong>
                       <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '6px' }}>DISCUSS</span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => handleAddQuestionToCasePrep(testName, i)}
+                      disabled={Boolean(addedQuestionIndexes[i])}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 10px',
+                        borderRadius: '8px',
+                        background: addedQuestionIndexes[i] ? '#ECFDF5' : '#FFFFFF',
+                        border: addedQuestionIndexes[i] ? '1px solid #6EE7B7' : '1px solid #CBD5E1',
+                        color: addedQuestionIndexes[i] ? '#047857' : '#0F172A',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: addedQuestionIndexes[i] ? 'default' : 'pointer',
+                        marginTop: '8px',
+                        alignSelf: 'flex-start',
+                      }}
+                    >
+                      {addedQuestionIndexes[i] ? <Check size={13} color="#047857" /> : <Plus size={13} />}
+                      <span>{addedQuestionIndexes[i] ? 'Added to Case Prep' : 'Add question to Case Prep'}</span>
+                    </button>
                   </div>
                 );
               })}
@@ -1342,6 +1408,28 @@ AI-generated preparation material. Verify against original records; this is not 
 
         {/* Form Body */}
         <div style={{ padding: isMobile ? '20px 16px' : '32px 36px' }}>
+          {missingCaseId && (
+            <div
+              role="alert"
+              style={{
+                marginBottom: 20,
+                padding: '12px 16px',
+                background: '#FEF2F2',
+                border: '1px solid #FCA5A5',
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                color: '#991B1B',
+                fontSize: 14,
+              }}
+            >
+              <AlertCircle size={20} color="#DC2626" style={{ flexShrink: 0 }} />
+              <div>
+                <strong>Case Not Found:</strong> Case &quot;{missingCaseId}&quot; could not be found in your local records. You can choose another case below or start a new case.
+              </div>
+            </div>
+          )}
           <div className="connected-experience" style={{ marginBottom: 24 }}>
             <label htmlFor="engine-case-context" style={{ fontWeight: 700 }}>Where should this review be saved?</label>
             <select id="engine-case-context" className="case-context-select" value={selectedCaseId} onChange={e => setSelectedCaseId(e.target.value)}>

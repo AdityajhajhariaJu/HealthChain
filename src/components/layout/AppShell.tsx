@@ -27,6 +27,8 @@ import FeedbackWidget from '../ui/FeedbackWidget';
 import NotificationPanel from '../ui/NotificationPanel';
 import { initDailyReminderService } from '../../services/DailyCheckinNotificationService';
 import { HCLogo } from '../ui/HCLogo';
+import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
+import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
 
 function AnimatedOutlet() {
   const o = useOutlet();
@@ -82,6 +84,8 @@ export default function AppShell() {
   const [isScrolling, setIsScrolling] = useState(false);
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<any>(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [activeConflictCase, setActiveConflictCase] = useState<any>(null);
 
   useEffect(() => {
     const checkCheckin = () => {
@@ -108,6 +112,22 @@ export default function AppShell() {
       const detail = (e as CustomEvent)?.detail;
       if (import.meta.env.DEV) console.log('[AppShell] Cloud sync complete:', detail);
     };
+    const handleSyncConflict = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
+      const current = getActiveCase();
+      if (current && (!detail?.caseId || detail.caseId === current.id)) {
+        setActiveConflictCase(current);
+        setShowConflictModal(true);
+      }
+    };
+    const handleOpenConflictModal = (e: Event) => {
+      const caseId = (e as CustomEvent)?.detail?.caseId;
+      const current = caseId ? getCases().find(c => c.id === caseId) : getActiveCase();
+      if (current) {
+        setActiveConflictCase(current);
+        setShowConflictModal(true);
+      }
+    };
 
     window.addEventListener('hc_daily_checkin_completed', checkCheckin);
     window.addEventListener('hc_profile_updated', checkCheckin);
@@ -115,6 +135,8 @@ export default function AppShell() {
     window.addEventListener('hc_sync_error', handleSyncError);
     window.addEventListener('hc_sync_pending', handleSyncPending);
     window.addEventListener('hc_sync_complete', handleSyncComplete);
+    window.addEventListener('hc_sync_conflict', handleSyncConflict);
+    window.addEventListener('hc_open_conflict_modal', handleOpenConflictModal);
     initDailyReminderService((route) => navigate(route));
     return () => {
       window.removeEventListener('hc_daily_checkin_completed', checkCheckin);
@@ -123,6 +145,8 @@ export default function AppShell() {
       window.removeEventListener('hc_sync_error', handleSyncError);
       window.removeEventListener('hc_sync_pending', handleSyncPending);
       window.removeEventListener('hc_sync_complete', handleSyncComplete);
+      window.removeEventListener('hc_sync_conflict', handleSyncConflict);
+      window.removeEventListener('hc_open_conflict_modal', handleOpenConflictModal);
     };
   }, [navigate]);
 
@@ -383,6 +407,9 @@ const enforceSafeArea = () => {
           </nav>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto', paddingTop: '12px' }}>
+            <div style={{ padding: '0 20px' }}>
+              <SyncStatusIndicator className="w-full justify-center" onConflictClick={() => setShowConflictModal(true)} />
+            </div>
             <div style={{ display: 'flex', gap: '12px', padding: '0 20px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
               <NavLink to="/changelog" style={{ color: 'inherit', textDecoration: 'none' }}>What's New</NavLink>
               <NavLink to="/help" style={{ color: 'inherit', textDecoration: 'none' }}>Help</NavLink>
@@ -857,6 +884,16 @@ const enforceSafeArea = () => {
       <TrialFeaturesModal />
       <FeedbackWidget />
       <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
+      <ConflictResolutionModal
+        isOpen={showConflictModal}
+        onClose={() => setShowConflictModal(false)}
+        caseItem={activeConflictCase || getActiveCase()}
+        onResolved={() => {
+          setActiveConflictCase(null);
+          setShowConflictModal(false);
+          toast.success('Conflict Resolved', 'Case changes have been merged and synchronized.');
+        }}
+      />
     </div>
   );
 }
@@ -912,12 +949,17 @@ export function ActiveCaseBar({ navigate }: any) {
           Updated {new Date(activeCase.updatedAt).toLocaleDateString()}
         </small>
       </div>
-      <button
-        className="btn btn-outline btn-sm"
-        onClick={() => navigate(`/app/cases/${activeCase.id}`)}
-      >
-        Open case <ArrowRight size={15} />
-      </button>
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <SyncStatusIndicator onConflictClick={() => {
+          window.dispatchEvent(new CustomEvent('hc_open_conflict_modal', { detail: { caseId: activeCase.id } }));
+        }} />
+        <button
+          className="btn btn-outline btn-sm"
+          onClick={() => navigate(`/app/cases/${activeCase.id}`)}
+        >
+          Open case <ArrowRight size={15} />
+        </button>
+      </div>
     </div>
   );
 }

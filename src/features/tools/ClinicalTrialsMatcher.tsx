@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FlaskConical, ExternalLink, Activity, Filter, ShieldCheck, ChevronDown, ChevronUp, Search, RotateCcw, X, MessageCircle, Bookmark, Check } from 'lucide-react';
 import { getProfile } from '../../services/ProfileEngine';
@@ -431,7 +431,7 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
             onClick={(e) => {
               e.stopPropagation();
               triggerHapticLight();
-              navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || ''), {
+              navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || '') + (item.id ? '&studyId=' + encodeURIComponent(item.id) : ''), {
                 state: {
                   initialPrompt: `I am reviewing this clinical research source: "${displayTitle}" (ID: ${item.id || 'N/A'}). Status: ${item.criteriaBreakdown?.matchStatus || 'General Relevance'}. Help me summarize what it actually says, evaluate whether its eligibility criteria align with my case, and outline specific questions I should ask my clinician or the study team.`,
                   sourceStudy: {
@@ -471,12 +471,36 @@ export default function ClinicalTrialsMatcher() {
   const [retrievalError, setRetrievalError] = useState('');
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
   const { caseItem: activeCase } = getUnifiedCaseScope();
   const profile = getProfile();
   const [loading, setLoading] = useState(true);
   const [researchItems, setResearchItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  const handleSelectItem = (item: any) => {
+    setSelectedItem(item);
+    const next = new URLSearchParams(searchParams);
+    if (item?.id) {
+      next.set('study', item.id);
+    } else {
+      next.delete('study');
+      next.delete('studyId');
+    }
+    setSearchParams(next, { replace: true });
+  };
+
+  useEffect(() => {
+    const studyParam = searchParams.get('study') || searchParams.get('studyId');
+    if (studyParam && researchItems.length > 0) {
+      const matched = researchItems.find(item => item.id === studyParam);
+      if (matched && (!selectedItem || selectedItem.id !== studyParam)) {
+        setSelectedItem(matched);
+      }
+    }
+  }, [researchItems, searchParams]);
+
   const [loadingStep, setLoadingStep] = useState(0);
   const [customQuery, setCustomQuery] = useState('');
   const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
@@ -826,7 +850,7 @@ export default function ClinicalTrialsMatcher() {
                     onClick={() => {
                       triggerHapticLight();
                       awardPoints(5, `Reviewed Evidence: ${(item.title || 'Trial').slice(0, 24)}...`, 'research', `trial_view_${item.id}`);
-                      setSelectedItem(item);
+                      handleSelectItem(item);
                     }} 
                   />
                 ))
@@ -844,12 +868,12 @@ export default function ClinicalTrialsMatcher() {
         {selectedItem && (
           <div 
             style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: isMobile ? '12px' : '20px' }} 
-            onClick={() => setSelectedItem(null)}
+            onClick={() => handleSelectItem(null)}
             role="dialog"
             aria-modal="true"
             aria-label="Research Detail Modal"
             tabIndex={-1}
-            onKeyDown={(e) => { if (e.key === 'Escape') setSelectedItem(null); }}
+            onKeyDown={(e) => { if (e.key === 'Escape') handleSelectItem(null); }}
           >
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }} 
@@ -902,7 +926,7 @@ export default function ClinicalTrialsMatcher() {
                     </div>
                   </div>
                   <div style={{ padding: isMobile ? '12px 16px' : '16px 24px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '10px', flexShrink: 0, borderTop: '1px solid #E2E8F0' }}>
-                    <button className="btn btn-outline" onClick={() => setSelectedItem(null)}>Close</button>
+                    <button className="btn btn-outline" onClick={() => handleSelectItem(null)}>Close</button>
                     <button
                       type="button"
                       className="btn btn-outline"
@@ -924,11 +948,11 @@ export default function ClinicalTrialsMatcher() {
                       className="btn btn-outline"
                       onClick={() => {
                         triggerHapticLight();
-                        navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || ''), {
+                        navigate('/app/ava?caseId=' + encodeURIComponent(getUnifiedCaseScope().caseId || '') + (selectedItem.id ? '&studyId=' + encodeURIComponent(selectedItem.id) : ''), {
                           state: {
                             initialPrompt: `I am reviewing this ${selectedItem.journal ? 'clinical literature paper' : 'clinical trial'}: "${modalTitle}" (ID: ${selectedItem.id || 'N/A'}). Status: ${selectedItem.criteriaBreakdown?.matchStatus || 'General Relevance'}. Summarize the source cautiously, evaluate whether its eligibility criteria align with my case, and help me prepare questions for my clinician or the study team.`,
                             sourceStudy: {
-                    caseId: getUnifiedCaseScope().caseId,
+                              caseId: getUnifiedCaseScope().caseId,
                               nctId: selectedItem.id,
                               title: modalTitle,
                               abstract: modalAbstract,

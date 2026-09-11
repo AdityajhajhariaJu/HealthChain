@@ -1,6 +1,11 @@
 import { del, get, set } from 'idb-keyval';
 import { getItemSync, setItemSync } from './storage';
 import { supabase } from './supabaseClient';
+import type { CaseItem } from './CaseEngine';
+import { mergeCaseItems } from './CaseMergeEngine';
+import { recordTombstone, isTombstoned } from './TombstoneManager';
+import { SyncStatusDetail, SyncStatusState } from './SyncTypes';
+import { getProfileKey, getProfileEngineState } from './ProfileEngine';
 
 type OutboxKind = 
   | 'case_upsert' 
@@ -20,12 +25,23 @@ interface OutboxEntry {
   attempts: number;
   createdAt: string;
   lastError?: string;
+  scopeKey?: string;
 }
 
 let flushInFlight: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let lastSyncError: string | null = null;
+let lastSyncedAt: string | null = null;
 
 function currentUserKey(userId: string) { return `hc_sync_outbox_${userId}`; }
+
+function getCurrentScope(): string {
+  try {
+    return `${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+  } catch {
+    return 'default:profile_1';
+  }
+}
 
 async function readQueue(userId: string): Promise<OutboxEntry[]> {
   const key = currentUserKey(userId);
@@ -55,9 +71,6 @@ const MAX_QUEUE_SIZE = 500;
 async function writeQueue(userId: string, queue: OutboxEntry[]) {
   const key = currentUserKey(userId);
   const bounded = queue.slice(-MAX_QUEUE_SIZE);
-  // Keep sensitive queued payloads in IndexedDB when available. Only use the
-  // localStorage copy as a compatibility fallback for environments without
-  // IndexedDB (older WebViews/private browsing).
   try {
     await set(key, bounded);
     try { window.localStorage.removeItem(key); } catch {}
@@ -76,6 +89,7 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
   const stableId = payload?.id || payload?.profile_id || payload?.data?.id || entryId();
   const existing = queue.findIndex((entry) => entry.kind === kind &&
     (entry.payload?.id || entry.payload?.profile_id || entry.payload?.data?.id) === stableId);
+  const currentScope = getCurrentScope();
   const entry: OutboxEntry = {
     id: existing >= 0 ? queue[existing].id : entryId(),
     kind,
@@ -83,13 +97,17 @@ export async function enqueueSync(kind: OutboxKind, userId: string, payload: any
     payload,
     attempts: existing >= 0 ? queue[existing].attempts : 0,
     createdAt: existing >= 0 ? queue[existing].createdAt : new Date().toISOString(),
+    scopeKey: currentScope,
   };
   if (existing >= 0) queue[existing] = entry;
   else queue.push(entry);
   await writeQueue(userId, queue);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: queue.length } }));
+  }
 }
 
-async function send(entry: OutboxEntry) {
+async function send(entry: OutboxEntry, expectedScope?: string) {
   const table = entry.kind === 'case_upsert' || entry.kind === 'case_delete'
     ? 'cases'
     : entry.kind === 'health_memory_upsert' ? 'health_memory'
@@ -100,10 +118,8 @@ async function send(entry: OutboxEntry) {
   const recordId = entry.payload?.id;
   const localUpdatedAt = entry.payload?.updated_at;
 
-  // Offline devices may reconnect out of order. Never let an older snapshot
-  // overwrite a newer server record, and never let an old queued delete erase
-  // a record updated on another device meanwhile.
-  if (recordId && localUpdatedAt) {
+  // Protect non-case entities from stale offline snapshots overwriting newer remote updates
+  if (entry.kind !== 'case_upsert' && entry.kind !== 'case_delete' && recordId && localUpdatedAt) {
     const ownerColumn = table === 'profiles' ? 'id' : 'user_id';
     const remoteResult = table === 'healthchain_profiles'
       ? await supabase.from(table).select('updated_at').eq(ownerColumn, entry.userId)
@@ -118,8 +134,122 @@ async function send(entry: OutboxEntry) {
   }
 
   if (entry.kind === 'case_upsert') {
+    const caseId = recordId;
+    const profileId = entry.payload?.data?.__profileId || getProfileEngineState()?.activeId || 'profile_1';
+
+    // 1. Tombstone check: if case was deleted locally or remotely, do not resurrect
+    if (caseId) {
+      const tombstoned = await isTombstoned(caseId, entry.userId, profileId);
+      if (tombstoned) {
+        return { error: null };
+      }
+    }
+
+    // 2. Concurrency-safe read & merge before write
+    if (caseId) {
+      const { data: remoteRow, error: readError } = await supabase
+        .from('cases')
+        .select('data, revision, updated_at, deleted_at')
+        .eq('user_id', entry.userId)
+        .eq('id', caseId)
+        .maybeSingle();
+
+      if (readError && readError.code !== 'PGRST116') {
+        return { error: readError };
+      }
+
+      if (remoteRow) {
+        // If server marked deleted_at, record tombstone locally and drop
+        if (remoteRow.deleted_at) {
+          await recordTombstone({
+            id: caseId,
+            entityType: 'case',
+            deletedAt: remoteRow.deleted_at,
+            userId: entry.userId,
+            profileId,
+          });
+          return { error: null };
+        }
+
+        const remoteCase = remoteRow.data as CaseItem;
+        const localCase = entry.payload?.data as CaseItem;
+
+        if (remoteCase && localCase) {
+          // Perform 3-way merge by stable entity IDs
+          const mergeResult = mergeCaseItems(localCase, remoteCase);
+          const nextRevision = Math.max(localCase.revision || 1, remoteRow.revision || 1) + 1;
+          const mergedCase: CaseItem = {
+            ...mergeResult.merged,
+            revision: nextRevision,
+            updatedAt: new Date().toISOString(),
+          };
+
+          entry.payload.data = mergedCase;
+          entry.payload.title = mergedCase.title;
+          entry.payload.revision = nextRevision;
+          entry.payload.updated_at = mergedCase.updatedAt;
+
+          // Dispatch conflict event if competing edits occurred
+          if (mergeResult.conflicts.length > 0 && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('hc_sync_conflict', {
+              detail: { caseId, conflicts: mergeResult.conflicts }
+            }));
+          }
+
+          // Notify local case cache of the merged state
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('hc_case_merged', {
+              detail: { case: mergedCase }
+            }));
+          }
+        }
+      } else {
+        // New record on server: ensure revision is initialized
+        if (!entry.payload.revision) {
+          entry.payload.revision = entry.payload?.data?.revision || 1;
+        }
+      }
+    }
+
+    if (expectedScope && getCurrentScope() !== expectedScope) {
+      return { error: new Error('Scope switched during case sync operation') };
+    }
+
     return supabase.from('cases').upsert(entry.payload, { onConflict: 'id' });
   }
+
+  if (entry.kind === 'case_delete') {
+    const caseId = entry.payload.id;
+    const profileId = entry.payload.profile_id || getProfileEngineState()?.activeId || 'profile_1';
+    const deletedAt = entry.payload.updated_at || new Date().toISOString();
+
+    if (expectedScope && getCurrentScope() !== expectedScope) {
+      return { error: new Error('Scope switched during case deletion operation') };
+    }
+
+    // 1. Record local tombstone to prevent resurrection from other tabs/reconnects
+    await recordTombstone({
+      id: caseId,
+      entityType: 'case',
+      deletedAt,
+      userId: entry.userId,
+      profileId,
+    });
+
+    // 2. Push durable tombstone to Supabase case_tombstones
+    try {
+      await supabase.from('case_tombstones').upsert({
+        id: caseId,
+        user_id: entry.userId,
+        profile_id: profileId,
+        deleted_at: deletedAt,
+      });
+    } catch {}
+
+    // 3. Delete from cases
+    return supabase.from('cases').delete().eq('id', caseId).eq('user_id', entry.userId);
+  }
+
   if (entry.kind === 'health_memory_upsert') {
     const result = await supabase.from('health_memory').upsert(entry.payload, { onConflict: 'id' });
     if (result.error?.code === '23505' && entry.payload?.dedupe_key) {
@@ -139,45 +269,63 @@ async function send(entry: OutboxEntry) {
     }
     return result;
   }
+
   if (entry.kind === 'caregiver_profile_upsert') {
     return supabase.from('healthchain_profiles').upsert(entry.payload, { onConflict: 'user_id,profile_id' });
   }
-  if (entry.kind === 'case_delete') {
-    return supabase.from('cases').delete().eq('id', entry.payload.id).eq('user_id', entry.userId);
-  }
+
   if (entry.kind === 'profile_upsert') {
     return supabase.from('profiles').upsert(entry.payload, { onConflict: 'id' });
   }
+
   if (entry.kind === 'fitness_history_upsert') {
     return supabase.from('user_fitness_history').upsert(entry.payload, { onConflict: 'id' });
   }
+
   if (entry.kind === 'body_measurements_upsert') {
     return supabase.from('user_body_measurements').upsert(entry.payload, { onConflict: 'id' });
   }
+
   if (entry.kind === 'health_metrics_upsert') {
     return supabase.from('user_health_metrics').upsert(entry.payload, { onConflict: 'user_id,metric_type,start_time,end_time' });
   }
+
   return { error: new Error('Unknown outbox kind') };
 }
 
 export async function flushSyncOutbox(userId?: string) {
   if (flushInFlight) return flushInFlight;
   flushInFlight = (async () => {
-    // If offline, pause sync until connection is restored to avoid churning attempts
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
     const { data: { session } } = await supabase.auth.getSession();
     const accountId = userId || session?.user?.id;
     if (!accountId) return;
     if (userId && session?.user?.id && userId !== session.user.id) return;
+
+    const startScope = getCurrentScope();
     const queue = await readQueue(accountId);
     if (!queue.length) return;
+
     const remaining: OutboxEntry[] = [];
     for (const entry of queue) {
+      // Step 15: Guard against profile switch mid-operation
+      if (getCurrentScope() !== startScope) {
+        remaining.push(entry);
+        continue;
+      }
+
       try {
-        const { error } = await send(entry);
+        const { error } = await send(entry, startScope);
         if (error) throw error;
+        lastSyncError = null;
+        lastSyncedAt = new Date().toISOString();
       } catch (error: any) {
+        if (error?.message?.includes('Scope switched')) {
+          remaining.push(entry);
+          continue;
+        }
+        lastSyncError = error?.message || 'Sync failed';
         const isNetworkError =
           (typeof navigator !== 'undefined' && !navigator.onLine) ||
           error?.message?.includes('Failed to fetch') ||
@@ -187,9 +335,19 @@ export async function flushSyncOutbox(userId?: string) {
           error?.name === 'AbortError' ||
           error?.code === 'PGRST000';
 
-        if (isNetworkError) {
-          // Network drop or offline: preserve queue item without incrementing attempts
-          // so medical records and memories are never permanently dropped while disconnected
+        const isAuthError =
+          error?.code === 'PGRST301' ||
+          error?.status === 401 ||
+          error?.message?.includes('JWT expired') ||
+          error?.message?.includes('invalid claim');
+
+        if (isAuthError) {
+          // Auth expired: preserve queue item without incrementing attempts penalty
+          remaining.push({ ...entry, lastError: 'Authentication expired' });
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('hc_sync_auth_expired', { detail: error }));
+          }
+        } else if (isNetworkError) {
           remaining.push({ ...entry, lastError: error?.message || 'Network unavailable' });
         } else if (entry.attempts + 1 <= 25) {
           remaining.push({ ...entry, attempts: entry.attempts + 1, lastError: error?.message || 'Sync failed' });
@@ -198,10 +356,14 @@ export async function flushSyncOutbox(userId?: string) {
         }
       }
     }
+
+    // Save remaining queue (unprocessed/deferred operations stay safely queued)
     await writeQueue(accountId, remaining);
+
     if (remaining.length) {
-      window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: remaining.length } }));
-      // Only schedule automated timer retry if we are currently online
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('hc_sync_pending', { detail: { count: remaining.length } }));
+      }
       if (typeof navigator === 'undefined' || navigator.onLine) {
         const attempts = Math.min(...remaining.map((entry) => entry.attempts));
         const delay = Math.min(5 * 60 * 1000, Math.max(5000, 5000 * (2 ** Math.min(attempts, 5))));
@@ -212,21 +374,49 @@ export async function flushSyncOutbox(userId?: string) {
           }, delay);
         }
       }
+    } else {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('hc_sync_complete', { detail: { at: lastSyncedAt } }));
+      }
     }
   })().finally(() => { flushInFlight = null; });
   return flushInFlight;
 }
 
-export async function getPendingSyncCount(userId: string) {
+export async function getPendingSyncCount(userId: string): Promise<number> {
   return (await readQueue(userId)).length;
 }
 
-/** Remove queued writes only after a confirmed account deletion. */
+export async function getSyncStatus(userId?: string): Promise<SyncStatusDetail> {
+  if (!userId) {
+    return {
+      state: 'saved_locally',
+      pendingCount: 0,
+      conflictsCount: 0,
+      lastSyncedAt: lastSyncedAt || undefined,
+      lastError: lastSyncError || undefined,
+    };
+  }
+  const queue = await readQueue(userId);
+  let state: SyncStatusState = 'synced';
+  if (lastSyncError && queue.length > 0) {
+    state = 'sync_failed';
+  } else if (queue.length > 0) {
+    state = 'sync_pending';
+  }
+
+  return {
+    state,
+    pendingCount: queue.length,
+    lastSyncedAt: lastSyncedAt || undefined,
+    lastError: lastSyncError || undefined,
+    conflictsCount: 0,
+  };
+}
+
 export async function clearSyncOutbox(userId: string) {
   if (!userId) return;
   const key = currentUserKey(userId);
   try { await del(key); } catch {}
   try { window.localStorage.removeItem(key); } catch {}
 }
-
-

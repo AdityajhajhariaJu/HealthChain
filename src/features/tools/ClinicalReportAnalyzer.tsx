@@ -16,6 +16,8 @@ import {
 import { analyzeLabReport, runDifferentialAnalysis } from '../../services/geminiService';
 import { addEvent, updateVitals, getProfile } from '../../services/ProfileEngine';
 import { addEvidenceToActiveCase, updateCaseDifferentials, getActiveCase, setActiveCase, saveReviewSnapshot } from '../../services/CaseEngine';
+import { saveOriginalCaseFile } from '../../services/caseRecordFiles';
+import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -47,11 +49,25 @@ export default function ClinicalReportAnalyzer() {
   }, [caseIdParam]);
 
   const activeCase = getUnifiedCaseScope(caseIdParam).caseItem;
+
+  const getSafeReturnUrl = () => {
+    if (returnTo && returnTo.startsWith('/app/')) {
+      if (activeCase && !returnTo.includes('caseId=')) {
+        const separator = returnTo.includes('?') ? '&' : '?';
+        return `${returnTo}${separator}caseId=${encodeURIComponent(activeCase.id)}`;
+      }
+      return returnTo;
+    }
+    return activeCase ? `/app/cases/${activeCase.id}` : '/app/my-cases';
+  };
+
   const reportCacheKey = getRunScope('lab', 'draft', 'ui');
   const cached = cachedReportAnalyzerState[reportCacheKey];
   const [file, setFile] = useState(cached?.file || null);
   const [loading, setLoading] = useState(cached?.loading || false);
   const [result, setResult] = useState(cached?.result || null);
+  const [sourceModalData, setSourceModalData] = useState<SourcePassageModalProps | null>(null);
+  const [savedRecordId, setSavedRecordId] = useState<string | null>(null);
   const fileInputRef = useRef<any>(null);
 
   useEffect(() => {
@@ -155,18 +171,33 @@ export default function ClinicalReportAnalyzer() {
           updateVitals(data.biomarkers, 'report_analyzer');
         }
 
-        addEvidenceToActiveCase({
+        const savedEvidence = addEvidenceToActiveCase({
           filename: selectedFile.name,
           findings: `${data.testName}: ${data.keyFindings || data.interpretation || 'Lab report analysed.'}`,
           source: 'clinical_report_analyzer',
           type: 'clinical_report',
         });
 
+        const currentCase = getUnifiedCaseScope(caseIdParam).caseItem || getActiveCase();
+        if (savedEvidence) {
+          setSavedRecordId(savedEvidence.id);
+          const targetCaseId = caseIdParam || currentCase?.id;
+          if (targetCaseId) {
+            try {
+              await saveOriginalCaseFile(targetCaseId, savedEvidence.id, selectedFile);
+            } catch (storageErr: any) {
+              console.warn('Could not store original document blob on this device:', storageErr);
+              if (storageErr?.code === 'quota_exceeded') {
+                toast.error('Device Storage Full', 'Storage quota exceeded on this device. Extraction results are preserved.');
+              }
+            }
+          }
+        }
+
         // Auto-trigger DDx analysis & save Snapshot
-        const activeCase = getUnifiedCaseScope(caseIdParam).caseItem;
-        if (activeCase) {
+        if (currentCase) {
           saveReviewSnapshot({
-            caseId: activeCase.id,
+            caseId: currentCase.id,
             type: 'lab_report',
             report: {
               executiveSummary: `Lab Report Analysis: ${data.testName}`,
@@ -180,9 +211,9 @@ export default function ClinicalReportAnalyzer() {
             basedOnEvidenceIds: [] // A new evidence ID would normally go here if returned synchronously
           });
 
-          runDifferentialAnalysis(activeCase.intakeData, activeCase.medicalRecords, profile).then(results => {
+          runDifferentialAnalysis(currentCase.intakeData, currentCase.medicalRecords, profile).then(results => {
             if (results && Array.isArray(results)) {
-              updateCaseDifferentials(activeCase.id, results);
+              updateCaseDifferentials(currentCase.id, results);
             }
           }).catch(e => console.error('Failed auto DDx:', e));
         }
@@ -259,17 +290,40 @@ export default function ClinicalReportAnalyzer() {
           updateVitals(data.biomarkers, 'report_analyzer');
         }
 
-        addEvidenceToActiveCase({
+        const savedEvidence = addEvidenceToActiveCase({
           filename: 'Captured_Image.' + photo.format,
           findings: `${data.testName}: ${data.keyFindings || data.interpretation || 'Lab report analysed.'}`,
           source: 'clinical_report_analyzer',
           type: 'clinical_report',
         });
 
-        const activeCase = getUnifiedCaseScope(caseIdParam).caseItem;
-        if (activeCase) {
+        const currentCase = getUnifiedCaseScope(caseIdParam).caseItem || getActiveCase();
+        if (savedEvidence) {
+          setSavedRecordId(savedEvidence.id);
+          const targetCaseId = caseIdParam || currentCase?.id;
+          if (targetCaseId) {
+            try {
+              const byteCharacters = atob(base64Data);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: mimeType });
+              const capturedFile = new File([blob], 'Captured_Image.' + photo.format, { type: mimeType });
+              await saveOriginalCaseFile(targetCaseId, savedEvidence.id, capturedFile);
+            } catch (storageErr: any) {
+              console.warn('Could not store original captured photo blob on this device:', storageErr);
+              if (storageErr?.code === 'quota_exceeded') {
+                toast.error('Device Storage Full', 'Storage quota exceeded on this device. Extraction results are preserved.');
+              }
+            }
+          }
+        }
+
+        if (currentCase) {
           saveReviewSnapshot({
-            caseId: activeCase.id,
+            caseId: currentCase.id,
             type: 'lab_report',
             report: {
               executiveSummary: `Lab Report Analysis: ${data.testName}`,
@@ -283,9 +337,9 @@ export default function ClinicalReportAnalyzer() {
             basedOnEvidenceIds: []
           });
 
-          runDifferentialAnalysis(activeCase.intakeData, activeCase.medicalRecords, profile).then(results => {
+          runDifferentialAnalysis(currentCase.intakeData, currentCase.medicalRecords, profile).then(results => {
             if (results && Array.isArray(results)) {
-              updateCaseDifferentials(activeCase.id, results);
+              updateCaseDifferentials(currentCase.id, results);
             }
           }).catch(e => console.error('Failed auto DDx:', e));
         }
@@ -579,24 +633,64 @@ export default function ClinicalReportAnalyzer() {
                           Evidence added to {activeCase.title}
                         </strong>
                         <span style={{ color: '#047857', fontSize: 13 }}>
-                          Your board correlation can now use this report with the existing Parallel
-                          findings.
+                          Original upload is stored locally on this device. You can review and correct extracted values anytime without modifying the source document.
                         </span>
                       </div>
-                      <button
-                        onClick={() => navigate(returnTo || (activeCase ? `/app/cases/${activeCase.id}` : '/app/my-cases'))}
-                        style={{
-                          padding: '11px 16px',
-                          border: 'none',
-                          borderRadius: '10px',
-                          background: '#059669',
-                          color: '#FFF',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Continue board correlation
-                      </button>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentCase = getUnifiedCaseScope(caseIdParam).caseItem;
+                            const currentRecord = currentCase?.medicalRecords?.find(r => r.id === savedRecordId) || currentCase?.medicalRecords?.[0];
+                            if (currentRecord && currentCase) {
+                              setSourceModalData({
+                                isOpen: true,
+                                onClose: () => setSourceModalData(null),
+                                caseId: currentCase.id,
+                                recordId: currentRecord.id,
+                                findingId: currentRecord.passages?.[0]?.id,
+                                recordTitle: currentRecord.filename || 'Clinical Lab Document',
+                                recordType: currentRecord.type || 'clinical_report',
+                                pageNumber: currentRecord.passages?.[0]?.page,
+                                passageText: currentRecord.passages?.[0]?.text || currentRecord.findings || 'No passage text available',
+                                fullFindings: currentRecord.findings,
+                                dateAdded: currentRecord.addedAt,
+                                findingClaim: displayData.keyFindings || displayData.interpretation,
+                                extractedBiomarker: {
+                                  biomarker: displayData.testName || 'Lab Finding',
+                                  value: typeof displayData.keyFindings === 'string' ? displayData.keyFindings.slice(0, 100) : '',
+                                  reportDate: displayData.date,
+                                }
+                              });
+                            }
+                          }}
+                          style={{
+                            padding: '11px 16px',
+                            border: '1px solid #059669',
+                            borderRadius: '10px',
+                            background: '#FFFFFF',
+                            color: '#059669',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Review & Correct Extraction
+                        </button>
+                        <button
+                          onClick={() => navigate(getSafeReturnUrl())}
+                          style={{
+                            padding: '11px 16px',
+                            border: 'none',
+                            borderRadius: '10px',
+                            background: '#059669',
+                            color: '#FFF',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Continue board correlation
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -790,8 +884,10 @@ export default function ClinicalReportAnalyzer() {
                           onClick={() => {
                             triggerHapticLight();
                             const recText = typeof displayData.recommendations === 'string' ? displayData.recommendations : JSON.stringify(displayData.recommendations);
-                            navigate('/app/ava', {
+                            const avaUrl = activeCase ? `/app/ava?caseId=${encodeURIComponent(activeCase.id)}` : '/app/ava';
+                            navigate(avaUrl, {
                               state: {
+                                caseId: activeCase?.id,
                                 initialPrompt: `My clinical report (${displayData.testName || 'Lab Report'}) recommended the following next steps: "${recText.slice(0, 300)}". Can you help me break this down into an actionable preparation checklist for my doctor?`
                               }
                             });
@@ -862,8 +958,10 @@ export default function ClinicalReportAnalyzer() {
                               onClick={() => {
                                 triggerHapticLight();
                                 const abnList = displayData.abnormalities.slice(0, 3).join('; ');
-                                navigate('/app/ava', {
+                                const avaUrl = activeCase ? `/app/ava?caseId=${encodeURIComponent(activeCase.id)}` : '/app/ava';
+                                navigate(avaUrl, {
                                   state: {
+                                    caseId: activeCase?.id,
                                     initialPrompt: `My clinical lab report flagged the following abnormalities: ${abnList}. Can you explain what physiological mechanisms might cause these variations and what follow-up questions I should ask my doctor?`
                                   }
                                 });
@@ -1047,6 +1145,14 @@ export default function ClinicalReportAnalyzer() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {sourceModalData && (
+        <SourcePassageModal
+          {...sourceModalData}
+          isOpen={Boolean(sourceModalData)}
+          onClose={() => setSourceModalData(null)}
+        />
+      )}
     </div>
   );
 }

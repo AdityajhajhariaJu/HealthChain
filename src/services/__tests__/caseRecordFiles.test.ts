@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const state = vi.hoisted(() => ({ account: 'account_a', profile: 'profile_a', get: vi.fn(), set: vi.fn() }));
-vi.mock('idb-keyval', () => ({ get: state.get, set: state.set }));
+const state = vi.hoisted(() => ({ account: 'account_a', profile: 'profile_a', get: vi.fn(), set: vi.fn(), del: vi.fn(), keys: vi.fn() }));
+vi.mock('idb-keyval', () => ({ get: state.get, set: state.set, del: state.del, keys: state.keys }));
 vi.mock('../ProfileEngine', () => ({ getProfileKey: () => state.account, getProfileEngineState: () => ({ activeId: state.profile }) }));
 import { loadOriginalCaseFile, saveOriginalCaseFile } from '../caseRecordFiles';
 

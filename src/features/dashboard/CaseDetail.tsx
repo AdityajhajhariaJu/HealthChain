@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, CalendarClock, GitMerge, Brain, FileText, 
@@ -19,9 +19,11 @@ import { InformationCategoryBadge } from '../../components/ui/InformationCategor
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
   try {
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return 'N/A';
-    return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(d);
+    return new Date(value).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   } catch {
     return 'N/A';
   }
@@ -30,10 +32,28 @@ const formatDate = (value?: string) => {
 export default function CaseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState<'reviews' | 'map' | 'records'>('reviews');
+  const tabParam = searchParams.get('tab');
+  const initialTab: 'reviews' | 'map' | 'records' = 
+    tabParam === 'map' ? 'map' : tabParam === 'records' ? 'records' : 'reviews';
+  const [activeTab, setActiveTabState] = useState<'reviews' | 'map' | 'records'>(initialTab);
+
+  const handleSelectTab = (tab: 'reviews' | 'map' | 'records') => {
+    setActiveTabState(tab);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', tab);
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  useEffect(() => {
+    if (tabParam === 'map' || tabParam === 'records' || tabParam === 'reviews') {
+      setActiveTabState(tabParam);
+    }
+  }, [tabParam]);
+
   const [caseItem, setCaseItem] = useState<CaseItem | undefined>(undefined);
   const [activeCaseId, setActiveCaseIdState] = useState<string | null>(null);
 
@@ -316,7 +336,7 @@ export default function CaseDetail() {
           <button
             role="tab"
             aria-selected={activeTab === 'reviews'}
-            onClick={() => { triggerHapticLight(); setActiveTab('reviews'); }}
+            onClick={() => { triggerHapticLight(); handleSelectTab('reviews'); }}
             style={{
               background: 'none',
               border: 'none',
@@ -348,7 +368,7 @@ export default function CaseDetail() {
           <button
             role="tab"
             aria-selected={activeTab === 'map'}
-            onClick={() => { triggerHapticLight(); setActiveTab('map'); }}
+            onClick={() => { triggerHapticLight(); handleSelectTab('map'); }}
             style={{
               background: 'none',
               border: 'none',
@@ -370,7 +390,7 @@ export default function CaseDetail() {
           <button
             role="tab"
             aria-selected={activeTab === 'records'}
-            onClick={() => { triggerHapticLight(); setActiveTab('records'); }}
+            onClick={() => { triggerHapticLight(); handleSelectTab('records'); }}
             style={{
               background: 'none',
               border: 'none',

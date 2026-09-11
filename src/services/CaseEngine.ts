@@ -3,6 +3,11 @@ import { setItemSync, getItemSync, removeItemSync } from './storage';
 import { recordHealthMemory } from './HealthMemory';
 import { enqueueSync, flushSyncOutbox, getPendingSyncCount } from './SyncOutbox';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
+import { ExtractionStatus, InformationAuditEntry } from './ClinicalInformationClassifier';
+import { cleanupCaseOriginalFiles, deleteOriginalCaseFile } from './caseRecordFiles';
+import { ConflictRecord } from './SyncTypes';
+import { mergeCaseItems } from './CaseMergeEngine';
+import { recordTombstone, fetchRemoteTombstones } from './TombstoneManager';
 
 export interface CaseUpdate {
   id: string;
@@ -26,6 +31,9 @@ export interface RecordPassage {
   section?: string;
   text: string;
   highlightCoordinates?: { x: number; y: number; width: number; height: number };
+  originalText?: string;
+  extractionStatus?: ExtractionStatus;
+  auditTrail?: InformationAuditEntry[];
 }
 
 export interface MedicalRecord {
@@ -36,6 +44,9 @@ export interface MedicalRecord {
   type: string;
   addedAt: string;
   passages?: RecordPassage[];
+  originalText?: string;
+  extractionStatus?: ExtractionStatus;
+  auditTrail?: InformationAuditEntry[];
 }
 
 export type QuestionLifecycleStatus = 'open' | 'prepared' | 'discussed' | 'resolved' | 'addressed' | 'deferred';
@@ -106,6 +117,9 @@ export interface CaseItem {
   connectionMap?: any;
   differentialHistory?: { date: string; differentials: Differential[] }[];
   appointmentBriefs?: { current?: AppointmentBrief; history?: AppointmentBrief[] };
+  revision?: number;
+  deletedAt?: string;
+  conflicts?: ConflictRecord[];
 }
 
 export interface CasePrepDraft {
@@ -238,11 +252,20 @@ function safeIsoDate(val?: string | number | Date | null): string {
 }
 
 async function save(cases: CaseItem[]) {
-  const safeCases = (typeof structuredClone === 'function') ? structuredClone(cases) : JSON.parse(JSON.stringify(cases));
-  // Persist before awaiting authentication/network work: users can reload as
-  // soon as the case is visible. Capture the profile scope before any await.
   const storageKey = getCasesKey();
   const profileId = getActiveProfileId();
+
+  // Find changed cases and increment monotonic revision
+  const updatedWithRevision = cases.map((c: any) => {
+    if (!cachedCases) return { ...c, revision: c.revision || 1 };
+    const old = cachedCases.find(o => o.id === c.id);
+    const isChanged = !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length;
+    return isChanged ? { ...c, revision: (c.revision || old?.revision || 1) + 1 } : c;
+  });
+
+  const safeCases = (typeof structuredClone === 'function') ? structuredClone(updatedWithRevision) : JSON.parse(JSON.stringify(updatedWithRevision));
+  // Persist before awaiting authentication/network work: users can reload as
+  // soon as the case is visible. Capture the profile scope before any await.
   setItemSync(storageKey, JSON.stringify(safeCases));
   if (typeof indexedDB !== 'undefined') {
     idbSet(storageKey, JSON.stringify(safeCases)).catch(error => {
@@ -250,42 +273,38 @@ async function save(cases: CaseItem[]) {
     });
   }
   
-  // Find changed cases by checking updatedAt or lengths
   const changedCases = safeCases.filter((c: any) => {
     if (!cachedCases) return true;
     const old = cachedCases.find(o => o.id === c.id);
-    return !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length;
+    return !old || old.updatedAt !== c.updatedAt || old.events?.length !== c.events?.length || old.revision !== c.revision;
   });
   
   cachedCases = safeCases;
   window.dispatchEvent(new Event('hc_cases_updated'));
 
   try {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (storageKey !== getCasesKey()) return;
-  if (session?.user) {
-    const currentProfileId = profileId;
-    // Queue before attempting network delivery. This keeps the local update
-    // recoverable if the app is closed or Supabase is temporarily unavailable.
-    for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
-       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
-       if (!isUUID) continue;
-       await enqueueSync('case_upsert', session.user.id, {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (storageKey !== getCasesKey() || profileId !== getActiveProfileId()) return;
+    if (session?.user) {
+      const currentProfileId = profileId;
+      for (const c of (changedCases.length > 0 ? changedCases : safeCases)) {
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
+        if (!isUUID) continue;
+        await enqueueSync('case_upsert', session.user.id, {
           id: c.id,
           user_id: session.user.id,
           title: c.title,
           status: c.status,
           specialty: c.currentStage,
+          revision: c.revision || 1,
           data: { ...c, __profileId: currentProfileId },
           updated_at: safeIsoDate(c.updatedAt)
-       });
+        });
+      }
+      if (storageKey !== getCasesKey() || profileId !== getActiveProfileId()) return;
+      await flushSyncOutbox(session.user.id);
     }
-    await flushSyncOutbox(session.user.id);
-    // Already persisted in the captured scope before authentication. Do not
-    // rewrite that snapshot here: a newer save may have completed meanwhile.
-  }
   } catch (error) {
-    // The durable local copy remains available for a later sync attempt.
     window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error }));
   }
 }
@@ -319,17 +338,152 @@ export function deleteCase(caseId: string) {
   const deletedCase = cases.find((item) => item.id === caseId);
   const updatedCases = cases.filter((c) => c.id !== caseId);
   save(updatedCases);
+  cleanupCaseOriginalFiles(caseId).catch(() => {});
+
+  const now = new Date().toISOString();
+  const profileId = getActiveProfileId();
+
   supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const userId = session?.user?.id || 'guest';
+    await recordTombstone({
+      id: caseId,
+      entityType: 'case',
+      deletedAt: deletedCase?.updatedAt || now,
+      userId,
+      profileId,
+    });
+
     if (!session?.user) return;
     await enqueueSync('case_delete', session.user.id, {
       id: caseId,
-      updated_at: deletedCase?.updatedAt || new Date().toISOString(),
+      profile_id: profileId,
+      updated_at: deletedCase?.updatedAt || now,
     });
     await flushSyncOutbox(session.user.id);
   }).catch((error) => window.dispatchEvent(new CustomEvent('hc_sync_error', { detail: error })));
   if (getActiveCaseId() === caseId) {
     setActiveCase(null);
   }
+}
+
+export function deleteCaseRecord(caseId: string, recordId: string): CaseItem | null {
+  const cases = getCases();
+  const existing = cases.find((c) => c.id === caseId);
+  if (!existing) return null;
+
+  deleteOriginalCaseFile(caseId, recordId).catch(() => {});
+
+  const now = new Date().toISOString();
+  const updatedRecords = (existing.medicalRecords || []).filter((r) => r.id !== recordId);
+  const updatedCase: CaseItem = {
+    ...existing,
+    medicalRecords: updatedRecords,
+    updatedAt: now,
+    events: [
+      {
+        id: id(),
+        date: now,
+        label: 'Record removed',
+        note: 'A medical record and its device attachments were removed from this case.',
+      },
+      ...(existing.events || []),
+    ].slice(0, 100),
+  };
+
+  save(cases.map((c) => c.id === caseId ? updatedCase : c));
+  return updatedCase;
+}
+
+export function updateExtractedFindingCorrection(
+  caseId: string,
+  recordId: string,
+  findingId: string,
+  correction: string | {
+    correctedText: string;
+    biomarker?: string;
+    value?: string;
+    unit?: string;
+    standardRange?: string;
+    note?: string;
+  }
+): CaseItem | null {
+  const cases = getCases();
+  const existing = cases.find((c) => c.id === caseId);
+  if (!existing) return null;
+
+  const normCorrection = typeof correction === 'string' ? { correctedText: correction } : correction;
+  const now = new Date().toISOString();
+  let found = false;
+
+  const updatedRecords = (existing.medicalRecords || []).map((record) => {
+    if (record.id !== recordId && record.filename !== recordId) return record;
+
+    let updatedPassages = record.passages;
+    if (record.passages && record.passages.length > 0) {
+      updatedPassages = record.passages.map((p) => {
+        if (p.id === findingId) {
+          found = true;
+          const audit: InformationAuditEntry = {
+            originalText: p.text,
+            correctedText: normCorrection.correctedText,
+            correctedAt: now,
+            correctedBy: 'user',
+          };
+          return {
+            ...p,
+            text: normCorrection.correctedText,
+            originalText: (p as any).originalText || p.text,
+            extractionStatus: 'user_corrected' as const,
+            auditTrail: [...((p as any).auditTrail || []), audit],
+          };
+        }
+        return p;
+      });
+    }
+
+    let updatedFindings = record.findings;
+    let recordAuditTrail = (record as any).auditTrail || [];
+    let recordOriginalText = (record as any).originalText || record.findings;
+
+    if (!found && (record.id === findingId || findingId.startsWith('record_') || findingId === record.filename)) {
+      found = true;
+      const audit: InformationAuditEntry = {
+        originalText: record.findings,
+        correctedText: normCorrection.correctedText,
+        correctedAt: now,
+        correctedBy: 'user',
+      };
+      recordAuditTrail = [...recordAuditTrail, audit];
+      updatedFindings = normCorrection.correctedText;
+    }
+
+    return {
+      ...record,
+      findings: updatedFindings,
+      passages: updatedPassages,
+      originalText: recordOriginalText,
+      extractionStatus: 'user_corrected' as const,
+      auditTrail: recordAuditTrail,
+    };
+  });
+
+  const updatedCase: CaseItem = {
+    ...existing,
+    medicalRecords: updatedRecords,
+    updatedAt: now,
+    events: [
+      {
+        id: id(),
+        date: now,
+        label: 'Observation corrected',
+        note: normCorrection.note ? `Extracted wording corrected by user: "${normCorrection.note}"` : 'Extracted wording corrected by user.',
+      },
+      ...(existing.events || []),
+    ].slice(0, 100),
+  };
+
+  save(cases.map((c) => c.id === caseId ? updatedCase : c));
+  return updatedCase;
 }
 
 export function resolveCase(caseId: string) {
@@ -354,6 +508,7 @@ export function createCaseDraft({ title, intakeData = {}, specialists = [], mode
     status: 'active',
     createdAt: now,
     updatedAt: now,
+    revision: 1,
     intakeData,
     medicalRecords: (medicalRecords || []).map(ensureRecordPassages),
     reviews: [],
@@ -620,14 +775,14 @@ export function addEvidenceToActiveCase({
 }): MedicalRecord | null {
   const activeCaseId = getActiveCaseId();
   if (!activeCaseId) return null;
-  const evidence: MedicalRecord = {
+  const evidence: MedicalRecord = ensureRecordPassages({
     id: id(),
     filename,
     findings,
     source,
     type,
     addedAt: new Date().toISOString(),
-  };
+  });
   const cases = getCases().map((item) =>
     item.id !== activeCaseId
       ? item
@@ -704,6 +859,10 @@ export async function initCaseEngine() {
   }
   
   if (session?.user) {
+    // 1. Fetch remote tombstones first so deleted cases are not resurrected
+    const tombstones = await fetchRemoteTombstones(session.user.id, currentProfileId);
+    if (getCasesKey() !== key) return;
+
     // Deliver queued writes before reading the remote snapshot so a device
     // switch does not briefly load an older case file over newer offline work.
     await flushSyncOutbox(session.user.id);
@@ -718,8 +877,15 @@ export async function initCaseEngine() {
       try {
         const localCases = JSON.parse(localRaw);
         if (Array.isArray(localCases) && localCases.length > 0) {
+          const eligibleCases: CaseItem[] = [];
           for (const c of localCases) {
             if (getCasesKey() !== key) return;
+            const tomb = tombstones.find(t => t.id === c.id);
+            if (tomb && new Date(tomb.deletedAt).getTime() >= new Date(c.updatedAt).getTime()) {
+              // Deleted on another device: do not upload
+              continue;
+            }
+            eligibleCases.push(c);
             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(c.id);
             if (!isUUID) continue;
             await enqueueSync('case_upsert', session.user.id, {
@@ -728,18 +894,20 @@ export async function initCaseEngine() {
               title: c.title,
               status: c.status,
               specialty: c.currentStage,
+              revision: c.revision || 1,
               data: { ...c, __profileId: currentProfileId },
               updated_at: safeIsoDate(c.updatedAt)
             });
+          }
+          if (eligibleCases.length !== localCases.length) {
+            idbSet(key, JSON.stringify(eligibleCases)).catch(() => {});
+            setItemSync(key, JSON.stringify(eligibleCases));
           }
           await flushSyncOutbox(session.user.id);
         }
       } catch (e) {
         console.error('Migration failed', e);
       }
-      // Keep the local copy until every migrated record has left the outbox.
-      // This makes a failed migration recoverable on the next launch.
-      // Retain the recoverable local copy, including writes made during sync.
     }
     
     // Fetch in bounded pages. Case data contains structured review history and
@@ -775,11 +943,34 @@ export async function initCaseEngine() {
     }
     if (!error && data && await getPendingSyncCount(session.user.id) === 0) {
        if (getCasesKey() !== key || getItemSync(key) !== initialMirror) return;
-       // Filter by profile
-       cachedCases = data.map(row => row.data).filter(d => (d.__profileId || 'profile_1') === currentProfileId);
-         // Fix: Always persist the remote snapshot locally so offline-mode has a durable fallback!
-         idbSet(key, JSON.stringify(cachedCases)).catch(() => {});
-         setItemSync(key, JSON.stringify(cachedCases));
+       // Filter remote cases by profile and active tombstones
+       const remoteCases = data
+         .map(row => row.data)
+         .filter(d => (d.__profileId || 'profile_1') === currentProfileId && !tombstones.some(t => t.id === d.id));
+
+       // Merge remote cases with existing local cases by stable ID
+       const existingLocal = getCases().filter(c => !tombstones.some(t => t.id === c.id));
+       const localMap = new Map<string, CaseItem>();
+       for (const lc of existingLocal) localMap.set(lc.id, lc);
+
+       const mergedList: CaseItem[] = [];
+       for (const rc of remoteCases) {
+         const lc = localMap.get(rc.id);
+         if (lc) {
+           const mergeRes = mergeCaseItems(lc, rc);
+           mergedList.push(mergeRes.merged);
+           localMap.delete(rc.id);
+         } else {
+           mergedList.push(rc);
+         }
+       }
+       for (const remainingLocal of localMap.values()) {
+         mergedList.push(remainingLocal);
+       }
+
+       cachedCases = mergedList;
+       idbSet(key, JSON.stringify(cachedCases)).catch(() => {});
+       setItemSync(key, JSON.stringify(cachedCases));
     } else if (localRaw) {
        // A transient remote read failure must never erase the last known case
        // list from the current device.
@@ -860,9 +1051,17 @@ export function saveAppointmentBrief(caseId: string, brief: AppointmentBrief) {
 export function ensureRecordPassages(record: MedicalRecord): MedicalRecord {
   if (record.passages?.length) return record;
   // Legacy findings are a stored summary, not an original page transcription.
-  return { ...record, passages: record.findings?.trim() ? [{
-    id: 'summary_' + record.id, section: 'Stored summary (original page not available)', text: record.findings,
-  }] : [] };
+  return {
+    ...record,
+    passages: record.findings?.trim() ? [{
+      id: 'summary_' + record.id,
+      section: 'Stored summary (original page not available)',
+      text: record.findings,
+      originalText: record.originalText || record.findings,
+      extractionStatus: record.extractionStatus || 'provisional',
+      auditTrail: record.auditTrail || [],
+    }] : []
+  };
 }
 
 export function getRecordPassage(caseId: string, recordId: string, passageId?: string): { record: MedicalRecord; passage?: RecordPassage } | null {
@@ -991,4 +1190,21 @@ export function appendCaseRecords(caseId:string, records:MedicalRecord[]):void {
   const existing=new Set((target.medicalRecords || []).map(r=>r.id));
   const additions=records.filter(r=>!existing.has(r.id)).map(ensureRecordPassages);
   save(cases.map(c=>c.id===caseId?{...c,medicalRecords:[...additions,...c.medicalRecords],updatedAt:new Date().toISOString()}:c));
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('hc_case_merged', ((e: CustomEvent) => {
+    const mergedCase = e.detail?.case as CaseItem;
+    if (!mergedCase?.id) return;
+    const current = getCases();
+    const idx = current.findIndex(c => c.id === mergedCase.id);
+    if (idx >= 0) {
+      current[idx] = mergedCase;
+      const key = getCasesKey();
+      idbSet(key, JSON.stringify(current)).catch(() => {});
+      setItemSync(key, JSON.stringify(current));
+      cachedCases = current;
+      window.dispatchEvent(new Event('hc_cases_updated'));
+    }
+  }) as EventListener);
 }
