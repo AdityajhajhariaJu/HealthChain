@@ -8,6 +8,7 @@ export default defineConfig({
     // JSDOM per file, avoiding unnecessary browser emulation and open handles.
     environment: 'node',
     globals: true,
+    setupFiles: ['./tests/setup.ts'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}', 'src/**/__tests__/**/*.{js,jsx,ts,tsx}'],
     exclude: ['node_modules', 'dist', 'tests/e2e/**'],
   },
