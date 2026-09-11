@@ -13,7 +13,7 @@ import { runClinicalReasoningPipeline } from '../ClinicalReasoningEngine';
 import { buildStructuredClinicalAnswer } from '../StructuredAnswerEngine';
 import { classifyClinicalInformation } from '../ClinicalInformationClassifier';
 
-describe('Package 11: Live Clinical Evaluation Suite (10 Real-World Grounding & Usefulness Cases)', () => {
+describe('Synthetic Clinical Contract Gate: 10 Normalization & Grounding Benchmark Cases (Synthetic Test Suite)', () => {
   beforeEach(() => {
     localStorage.clear();
   });
