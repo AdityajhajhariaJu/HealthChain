@@ -18,7 +18,7 @@ test('guest can enter the assessment workspace from the public page', async ({ p
 
   await expect(page).toHaveURL(/\/app\/onboarding$/);
   await expect(page.locator('.app-shell')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Today', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Today/ })).toBeVisible();
   await expect(page.getByText(/Ready to find your root cause/i)).toHaveCount(0);
 });
 

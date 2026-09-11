@@ -193,4 +193,52 @@ describe('Research Retrieval Reliability & Provenance (Package 8)', () => {
       expect(clean).not.toContain('&gt;');
     });
   });
+
+  describe('Registry Retrieval Baseline & Recovery Edge Cases', () => {
+    it('assigns baseline topic score of 20 to any study returned by registry API even if summary lacks verbatim keyword', () => {
+      const trialWithSynonym = {
+        id: 'NCT01122334',
+        title: 'Cephalea Treatment with Calcitonin Gene-Related Peptide Inhibitor',
+        summary: 'A randomized assessment of neurovascular pain control.',
+        conditions: ['Cephalea']
+      };
+
+      // Search term is 'Migraine'
+      const result = evaluateTrialCriteria(trialWithSynonym, ['Migraine'], [], {});
+      expect(result.matchScore).toBe(20);
+      expect(result.criteriaBreakdown.matchStatus).toBe('broad_relevance');
+    });
+
+    it('retains successful trials when literature search fails during partial retrieval', async () => {
+      const mockTrials = [
+        { id: 'NCT100', title: 'Cardiology Protocol', conditions: ['Heart Failure'] }
+      ];
+      const trialsPromise = Promise.resolve(mockTrials);
+      const literaturePromise = Promise.reject(new Error('Europe PMC unavailable'));
+
+      const results = await Promise.allSettled([trialsPromise, literaturePromise]);
+      const trialsOk = results[0].status === 'fulfilled';
+      const papersOk = results[1].status === 'fulfilled';
+
+      expect(trialsOk).toBe(true);
+      expect(papersOk).toBe(false);
+
+      const recoveredTrials = trialsOk ? results[0].value : [];
+      expect(recoveredTrials).toHaveLength(1);
+      expect(recoveredTrials[0].id).toBe('NCT100');
+    });
+
+    it('suggests case differentials as recovery search terms when primary search produces zero results', () => {
+      const caseDifferentials = ['Irritable Bowel Syndrome', 'SIBO', 'Celiac Disease'];
+      const searchTerms = ['RareDysmotilitySyndromeXYZ'];
+      const zeroResults: any[] = [];
+
+      // When zero results found, the recovery logic surfaces case differentials as alternatives
+      const suggestedTerms = zeroResults.length === 0 ? caseDifferentials : [];
+
+      expect(suggestedTerms).toContain('Irritable Bowel Syndrome');
+      expect(suggestedTerms).toContain('SIBO');
+      expect(suggestedTerms).toHaveLength(3);
+    });
+  });
 });

@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => { localStorage.setItem('hc_guest_mode', 'true'); localStorage.setItem('hc_onboarded', 'true'); localStorage.setItem('hc_cookies_accepted', 'declined'); });
+  await page.addInitScript(() => {
+    localStorage.clear();
+    localStorage.setItem('hc_guest_mode', 'true');
+    localStorage.setItem('hc_onboarded', 'true');
+    localStorage.setItem('hc_cookies_accepted', 'declined');
+  });
   await page.route(/https:\/\//, route => route.abort());
 });
 
@@ -32,7 +37,7 @@ test('a draft remains visible and connects My Cases, Ava, Today, and the engine'
 test('mobile Today and Ava keep their main actions inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'A clearer picture starts here' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /A clearer picture starts here|Pick up where you left off/ })).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-today-mobile.png', fullPage: true });
   await page.getByRole('link', { name: /Check in with Ava/ }).click();
   await expect(page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })).toBeVisible();

@@ -2861,6 +2861,7 @@ export default function AvaHealthBuddy() {
             >
               <Plus size={isMobile ? 16 : 18} />
             </button>
+            <input type="hidden" aria-label="Conversation context" value={selectedCaseId} readOnly />
             <textarea
               ref={textareaRef}
               rows={1}

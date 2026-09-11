@@ -120,7 +120,8 @@ export function evaluateTrialCriteria(
     matchStatus = 'topic_overlap';
   }
 
-  const finalScore = Math.min(100, Math.max(0, score));
+  const baselineScore = (trial.id || trial.title) ? 20 : 0;
+  const finalScore = Math.min(100, Math.max(baselineScore, score));
   const uniqueTerms = [...new Set([...matchedDifferentials, ...matchedTerms])].slice(0, 6);
   const aiContext = matchedDifferentials.length > 0
     ? `Matches active case differential: ${matchedDifferentials.join(', ')}. Registered protocol investigates related pathology.`
@@ -198,7 +199,8 @@ function scoreLiteraturePaper(paper: any, conditions: string[]): { matchScore: n
     if (abstractText.includes(word)) score += 7;
   }
 
-  const finalScore = Math.min(100, score);
+  const baselineScore = (paper.id || paper.title) ? 20 : 0;
+  const finalScore = Math.min(100, Math.max(baselineScore, score));
   return {
     matchScore: finalScore,
     matchedTerms: [...new Set(matchedTerms)].slice(0, 6),
@@ -678,23 +680,25 @@ export default function ClinicalTrialsMatcher() {
           setRetrievalError('One or more research sources could not be reached. These results may be incomplete.');
         }
       } else if (sourceToReload === 'trials') {
+        newPapers = researchItems.filter(i => !!i.journal);
         try {
           newTrials = await fetchLiveTrials(searchTerms);
           setSourceHealth(prev => ({ ...prev, trials: 'success' }));
         } catch {
+          newTrials = researchItems.filter(i => !i.journal);
           setSourceHealth(prev => ({ ...prev, trials: 'failed' }));
           setRetrievalError('ClinicalTrials.gov could not be reached.');
         }
-        newPapers = researchItems.filter(i => !!i.journal);
       } else if (sourceToReload === 'literature') {
+        newTrials = researchItems.filter(i => !i.journal);
         try {
           newPapers = await fetchRecentLiterature(searchTerms);
           setSourceHealth(prev => ({ ...prev, literature: 'success' }));
         } catch {
+          newPapers = researchItems.filter(i => !!i.journal);
           setSourceHealth(prev => ({ ...prev, literature: 'failed' }));
           setRetrievalError('Europe PMC / PubMed literature could not be reached.');
         }
-        newTrials = researchItems.filter(i => !i.journal);
       }
 
       const trialsWithScore = newTrials.map((t: any) => {
