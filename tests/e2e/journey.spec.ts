@@ -8,9 +8,8 @@ test('guest can enter the assessment workspace from the public page', async ({ p
   if (await consent.isVisible().catch(() => false)) {
     // The banner animates in WebKit; wait for it to render, then use a forced
     // click so the test does not mistake its entrance animation for a broken
-    // public-to-app transition.
     await consent.waitFor({ state: 'visible' });
-    await consent.click({ force: true });
+    await consent.dispatchEvent('click');
   }
 
   await expect(page.getByRole('heading', { name: /Your Health Story\. Finally Connected\./i })).toBeVisible();
