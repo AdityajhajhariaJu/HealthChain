@@ -253,14 +253,16 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: rpcError.message || 'Subscription activation failed',
             }).eq('razorpay_payment_id', razorpay_payment_id);
-          } catch {}
+          } catch (e) {
+            console.error('Failed to update payment status on error', e);
+          }
         }
       } else if (rpcResult?.expires_at) {
         finalExpiry = rpcResult.expires_at;
       }
     } else if (targetPlan.type === 'topup') {
       // Unified atomic top-up activation and quota allocation
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('activate_and_provision_topup', {
+      const { error: rpcError } = await supabase.rpc('activate_and_provision_topup', {
         p_user_id: effectiveUserId,
         p_order_id: razorpay_order_id,
         p_payment_id: razorpay_payment_id,
@@ -295,7 +297,9 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: rpcError.message || 'Top-up provisioning failed',
             }).eq('razorpay_payment_id', razorpay_payment_id);
-          } catch {}
+          } catch (e) {
+            console.error('Failed to update payment status on topup error', e);
+          }
         }
       }
     }
