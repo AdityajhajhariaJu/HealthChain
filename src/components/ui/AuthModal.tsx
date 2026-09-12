@@ -83,6 +83,7 @@ export function AuthModal() {
           >
             <button
               onClick={handleClose}
+              aria-label="Close authentication modal"
               style={{
                 position: 'absolute',
                 top: '16px',
@@ -126,10 +127,14 @@ export function AuthModal() {
               <ShieldAlert size={32} strokeWidth={1.5} />
             </div>
 
-            <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#0F172A', margin: '0 0 12px 0' }}>
+            <h3
+              style={{ fontSize: '20px', fontWeight: 600, color: '#0F172A', margin: '0 0 12px 0' }}
+            >
               {modalContent.title}
             </h3>
-            <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.5, margin: '0 0 32px 0' }}>
+            <p
+              style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.5, margin: '0 0 32px 0' }}
+            >
               {modalContent.message}
             </p>
 
