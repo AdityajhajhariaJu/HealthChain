@@ -8,7 +8,14 @@ if (!import.meta.env.VITE_SUPABASE_URL && !import.meta.env.DEV) {
   console.error('CRITICAL: VITE_SUPABASE_URL environment variable is not configured. Supabase cloud features will fail.');
 }
 
+// For Node.js (Vitest) environments to avoid WebSocket error
+let transport;
+try { transport = typeof window === 'undefined' ? require('ws') : undefined; } catch(e) {}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  realtime: {
+    transport,
+  },
   auth: {
     persistSession: true,
     autoRefreshToken: true,
