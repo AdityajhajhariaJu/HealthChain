@@ -73,7 +73,7 @@ export default defineConfig({
       jpeg: { quality: 80 },
       jpg: { quality: 80 },
     }),
-    visualizer({ open: false, filename: 'dist/bundle-stats.html' })
+    visualizer({ open: false, filename: '/tmp/bundle-stats.html' })
   ],
   build: {
     target: ['es2015', 'safari11', 'chrome87'],
