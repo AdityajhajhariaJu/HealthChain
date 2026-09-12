@@ -1,0 +1,4 @@
+## 2024-05-24 - Missing Authorization Check on Admin Endpoint
+**Vulnerability:** Found a TODO comment instead of an actual authorization check in `api/admin-content.js`. Any authenticated user could access admin functionalities like inserting, updating, or deleting content in `fitness_content`.
+**Learning:** Internal endpoints might bypass strict authorization assuming they are internal, but when exposed as Vercel serverless functions, they require strict role checks. Relying on TODOs for critical security gates leaves the system vulnerable in production.
+**Prevention:** Always implement role checks immediately when building endpoints for administrative actions. Verify against environment variables like `ADMIN_USER_ID` as a source of truth for admin privileges and ensure proper `403 Forbidden` responses.
