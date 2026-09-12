@@ -253,7 +253,7 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: rpcError.message || 'Subscription activation failed',
             }).eq('razorpay_payment_id', razorpay_payment_id);
-          } catch {}
+          } catch (e) { /* ignore */ }
         }
       } else if (rpcResult?.expires_at) {
         finalExpiry = rpcResult.expires_at;
@@ -295,7 +295,7 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: rpcError.message || 'Top-up provisioning failed',
             }).eq('razorpay_payment_id', razorpay_payment_id);
-          } catch {}
+          } catch (e) { /* ignore */ }
         }
       }
     }

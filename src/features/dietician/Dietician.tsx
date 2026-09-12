@@ -5,7 +5,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import LongevityBioStackCard from '../../components/ui/LongevityBioStackCard';
 
 export function formatLocalDate(date: Date): string {
-  const validDate = (date instanceof Date && !Number.isNaN(date.getTime())) ? date : new Date();
+  const validDate = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
   const year = validDate.getFullYear();
   const month = String(validDate.getMonth() + 1).padStart(2, '0');
   const day = String(validDate.getDate()).padStart(2, '0');
@@ -17,11 +17,16 @@ export function parseLocalDate(dateStr?: string): Date {
     return new Date();
   }
   const parts = dateStr.split('-').map(Number);
-  if (parts.length < 3 || Number.isNaN(parts[0]) || Number.isNaN(parts[1]) || Number.isNaN(parts[2])) {
+  if (
+    parts.length < 3 ||
+    Number.isNaN(parts[0]) ||
+    Number.isNaN(parts[1]) ||
+    Number.isNaN(parts[2])
+  ) {
     return new Date();
   }
   const [year, month, day] = parts;
-  return new Date(year, month - 1, day, 12, 0, 0); 
+  return new Date(year, month - 1, day, 12, 0, 0);
 }
 
 export function shiftDateString(dateStr: string, deltaDays: number): string {
@@ -75,11 +80,30 @@ import {
   generateNutritionalGuardrails,
   generateGroceryList,
 } from '../../services/geminiService';
-import { addEvent, addNutritionLog, getProfileKey, getProfile as getCoreProfile, updateProfileFeatureData } from '../../services/ProfileEngine';
-import { getLatestHealthMemory, recordHealthMemory, syncHealthMemoryFromSupabase } from '../../services/HealthMemory';
+import {
+  addEvent,
+  addNutritionLog,
+  getProfileKey,
+  getProfile as getCoreProfile,
+  updateProfileFeatureData,
+} from '../../services/ProfileEngine';
+import {
+  getLatestHealthMemory,
+  recordHealthMemory,
+  syncHealthMemoryFromSupabase,
+} from '../../services/HealthMemory';
 import { OnboardingWizard } from './DieticianComponents';
 import { FeatureProfileDataBanner } from '../../components/ui/FeatureProfileDataBanner';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+} from 'recharts';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getActiveSession } from '../../services/authSession';
 import FocusTrap from '../../components/ui/FocusTrap';
@@ -128,7 +152,17 @@ export const ACTIVITY_LEVELS = [
 ];
 export const RESTRICTIONS = ['Vegetarian', 'Vegan', 'Gluten-free', 'Lactose-free', 'None'];
 export const MEDICAL_CONDITIONS = ['Diabetes', 'PCOS', 'Hypertension', 'Thyroid', 'None'];
-export const CUISINES = ['North Indian', 'South Indian', 'Mediterranean', 'Middle Eastern', 'Mexican', 'East Asian', 'Western', 'Keto', 'Any'];
+export const CUISINES = [
+  'North Indian',
+  'South Indian',
+  'Mediterranean',
+  'Middle Eastern',
+  'Mexican',
+  'East Asian',
+  'Western',
+  'Keto',
+  'Any',
+];
 export const MEAL_SCHEDULES = [
   '3 Meals',
   '3 Meals + 1 Snack',
@@ -137,12 +171,66 @@ export const MEAL_SCHEDULES = [
 ];
 
 export const QUICK_PRESETS = [
-  { name: 'Steel-Cut Oats with Almonds & Berries', portion: '1 bowl (250g)', calories: 340, protein: 14, carbs: 52, fat: 8, emoji: '🥣', type: 'Breakfast' },
-  { name: 'Dal Tadka + 2 Whole Wheat Rotis + Salad', portion: '1 plate', calories: 450, protein: 18, carbs: 68, fat: 12, emoji: '🥗', type: 'Lunch' },
-  { name: 'Grilled Paneer / Chicken Tikka Quinoa Bowl', portion: '1 bowl (300g)', calories: 430, protein: 32, carbs: 30, fat: 18, emoji: '🍗', type: 'Lunch' },
-  { name: 'Sourdough Avocado Toast with 2 Poached Eggs', portion: '2 slices', calories: 380, protein: 20, carbs: 28, fat: 22, emoji: '🥑', type: 'Breakfast' },
-  { name: 'Moong Dal Khichdi + Desi Ghee & Curd', portion: '1 bowl', calories: 360, protein: 15, carbs: 54, fat: 10, emoji: '🍲', type: 'Dinner' },
-  { name: 'Whey Protein Isolate & Supergreens Shake', portion: '1 scoop (350ml)', calories: 220, protein: 28, carbs: 18, fat: 4, emoji: '🥤', type: 'Snack' },
+  {
+    name: 'Steel-Cut Oats with Almonds & Berries',
+    portion: '1 bowl (250g)',
+    calories: 340,
+    protein: 14,
+    carbs: 52,
+    fat: 8,
+    emoji: '🥣',
+    type: 'Breakfast',
+  },
+  {
+    name: 'Dal Tadka + 2 Whole Wheat Rotis + Salad',
+    portion: '1 plate',
+    calories: 450,
+    protein: 18,
+    carbs: 68,
+    fat: 12,
+    emoji: '🥗',
+    type: 'Lunch',
+  },
+  {
+    name: 'Grilled Paneer / Chicken Tikka Quinoa Bowl',
+    portion: '1 bowl (300g)',
+    calories: 430,
+    protein: 32,
+    carbs: 30,
+    fat: 18,
+    emoji: '🍗',
+    type: 'Lunch',
+  },
+  {
+    name: 'Sourdough Avocado Toast with 2 Poached Eggs',
+    portion: '2 slices',
+    calories: 380,
+    protein: 20,
+    carbs: 28,
+    fat: 22,
+    emoji: '🥑',
+    type: 'Breakfast',
+  },
+  {
+    name: 'Moong Dal Khichdi + Desi Ghee & Curd',
+    portion: '1 bowl',
+    calories: 360,
+    protein: 15,
+    carbs: 54,
+    fat: 10,
+    emoji: '🍲',
+    type: 'Dinner',
+  },
+  {
+    name: 'Whey Protein Isolate & Supergreens Shake',
+    portion: '1 scoop (350ml)',
+    calories: 220,
+    protein: 28,
+    carbs: 18,
+    fat: 4,
+    emoji: '🥤',
+    type: 'Snack',
+  },
 ];
 
 export const PANTRY_STAPLES = [
@@ -169,7 +257,7 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gp4', name: 'Fresh Lemons & Mint Leaves', checked: false },
       { id: 'gp5', name: 'Bell Peppers / Shimla Mirch (Tri-color)', checked: false },
       { id: 'gp6', name: 'Fresh Ginger Root & Garlic bulbs', checked: false },
-    ]
+    ],
   },
   {
     category: 'Whole Grains & Complex Legumes',
@@ -180,7 +268,7 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gg3', name: 'Organic White / Tricolor Quinoa (500g)', checked: false },
       { id: 'gg4', name: 'Whole Wheat / Multigrain Atta', checked: false },
       { id: 'gg5', name: 'Brown Basmati Rice / Millets', checked: false },
-    ]
+    ],
   },
   {
     category: 'Clean Proteins & Probiotics',
@@ -190,7 +278,7 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gpr2', name: 'Free-Range Eggs (Pack of 12)', checked: false },
       { id: 'gpr3', name: 'Probiotic Set Greek Dahi / Curd (800g)', checked: false },
       { id: 'gpr4', name: 'Whey Protein Isolate or Plant Blend', checked: false },
-    ]
+    ],
   },
   {
     category: 'Cold-Pressed Fats, Seeds & Spices',
@@ -202,14 +290,17 @@ export const DEFAULT_GROCERY_CATEGORIES = [
       { id: 'gf4', name: 'Pure Desi Cow Ghee (A2)', checked: false },
       { id: 'gf5', name: 'Organic Haldi (Turmeric) & Cumin (Jeera)', checked: false },
       { id: 'gf6', name: 'Himalayan Pink Mineral Salt', checked: false },
-    ]
-  }
+    ],
+  },
 ];
 
 function calculateTargets(p: any) {
-  const safeWeight = (!p?.weight || Number.isNaN(parseFloat(p.weight))) ? 70 : Math.max(20, parseFloat(p.weight));
-  const safeHeight = (!p?.height || Number.isNaN(parseFloat(p.height))) ? 170 : Math.max(50, parseFloat(p.height));
-  const safeAge = (!p?.age || Number.isNaN(parseInt(p.age, 10))) ? 30 : Math.max(1, parseInt(p.age, 10));
+  const safeWeight =
+    !p?.weight || Number.isNaN(parseFloat(p.weight)) ? 70 : Math.max(20, parseFloat(p.weight));
+  const safeHeight =
+    !p?.height || Number.isNaN(parseFloat(p.height)) ? 170 : Math.max(50, parseFloat(p.height));
+  const safeAge =
+    !p?.age || Number.isNaN(parseInt(p.age, 10)) ? 30 : Math.max(1, parseInt(p.age, 10));
 
   let bmr = 10 * safeWeight + 6.25 * safeHeight - 5 * safeAge;
   bmr = p?.gender === 'female' ? bmr - 161 : bmr + 5;
@@ -224,14 +315,18 @@ function calculateTargets(p: any) {
 
   const targetDays = parseInt(p?.targetDays, 10);
   if (!Number.isNaN(targetDays) && targetDays > 0 && p?.goal !== 'Maintain') {
-    const targetWeight = (!p?.targetWeight || Number.isNaN(parseFloat(p.targetWeight))) ? 65 : parseFloat(p.targetWeight);
+    const targetWeight =
+      !p?.targetWeight || Number.isNaN(parseFloat(p.targetWeight))
+        ? 65
+        : parseFloat(p.targetWeight);
     const weightDiff = Math.abs(safeWeight - targetWeight);
     const totalCalorieChange = weightDiff * 7700; // ~7700 kcal per kg
     const dailyChange = totalCalorieChange / targetDays;
     const safeDailyChange = Math.min(dailyChange, 1000);
 
     if (p?.goal === 'Lose weight') targetCalories = Math.round(tdee - safeDailyChange);
-    if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation') targetCalories = Math.round(tdee + safeDailyChange);
+    if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation')
+      targetCalories = Math.round(tdee + safeDailyChange);
   } else {
     if (p?.goal === 'Lose weight') targetCalories -= 500;
     if (p?.goal === 'Gain muscle' || p?.goal === 'Lean mass preservation') targetCalories += 500;
@@ -255,8 +350,18 @@ export default function Dietician() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const validTabs = ['dashboard', 'mealplan', 'sensitivities', 'calendar', 'elimination', 'insights', 'grocery', 'guardrails', 'longevity'] as const;
-  type DietTab = typeof validTabs[number];
+  const validTabs = [
+    'dashboard',
+    'mealplan',
+    'sensitivities',
+    'calendar',
+    'elimination',
+    'insights',
+    'grocery',
+    'guardrails',
+    'longevity',
+  ] as const;
+  type DietTab = (typeof validTabs)[number];
 
   const resolveTabKey = (raw?: string | null): DietTab | null => {
     if (!raw) return null;
@@ -314,18 +419,20 @@ export default function Dietician() {
     fat: 0,
     description: '',
   });
-  const [swappingMeal, setSwappingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(null);
+  const [swappingMeal, setSwappingMeal] = useState<{ day: number; meal: MealPlanItem } | null>(
+    null
+  );
   const [customSwapName, setCustomSwapName] = useState<string>('');
   const [customSwapRationale, setCustomSwapRationale] = useState<string>('');
   const [showStopPlanModal, setShowStopPlanModal] = useState<boolean>(false);
-  const [selectedStopReason, setSelectedStopReason] = useState<PlanStopReason>('digestive_discomfort');
+  const [selectedStopReason, setSelectedStopReason] =
+    useState<PlanStopReason>('digestive_discomfort');
   const [stopReasonDetails, setStopReasonDetails] = useState<string>('');
   const [showArchivedPlansModal, setShowArchivedPlansModal] = useState<boolean>(false);
   const [guardrails, setGuardrails] = useState<any[]>([]);
   const [isGeneratingGuardrails, setIsGeneratingGuardrails] = useState(false);
 
   const [isGeneratingGrocery, setIsGeneratingGrocery] = useState(false);
-
 
   const [advice, setAdvice] = useState<any>(null);
   const [isFetchingAdvice, setIsFetchingAdvice] = useState(false);
@@ -338,7 +445,9 @@ export default function Dietician() {
   const [showARLens, setShowARLens] = useState(false);
   const [foodInput, setFoodInput] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('Breakfast');
-  const [mealLatency, setMealLatency] = useState<'<30m Acute' | '1–2h Postprandial' | '4h+ Delayed'>('<30m Acute');
+  const [mealLatency, setMealLatency] = useState<
+    '<30m Acute' | '1–2h Postprandial' | '4h+ Delayed'
+  >('<30m Acute');
   const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [showResetDietConfirm, setShowResetDietConfirm] = useState(false);
@@ -349,19 +458,55 @@ export default function Dietician() {
   const detectedTriggers = useMemo(() => {
     const text = foodInput.toLowerCase();
     const triggers: { label: string; icon: string; color: string; bg: string }[] = [];
-    if (text.includes('spinach') || text.includes('tomato') || text.includes('wine') || text.includes('aged') || text.includes('fermented') || text.includes('avocado') || text.includes('vinegar')) {
+    if (
+      text.includes('spinach') ||
+      text.includes('tomato') ||
+      text.includes('wine') ||
+      text.includes('aged') ||
+      text.includes('fermented') ||
+      text.includes('avocado') ||
+      text.includes('vinegar')
+    ) {
       triggers.push({ label: 'Histamine/Amines', icon: '🍷', color: '#B45309', bg: '#FEF3C7' });
     }
-    if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) {
+    if (
+      text.includes('wheat') ||
+      text.includes('roti') ||
+      text.includes('bread') ||
+      text.includes('pasta') ||
+      text.includes('atta') ||
+      text.includes('maida') ||
+      text.includes('toast') ||
+      text.includes('sourdough')
+    ) {
       triggers.push({ label: 'Gluten / Wheat', icon: '🌾', color: '#B45309', bg: '#FEF3C7' });
     }
-    if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) {
+    if (
+      text.includes('milk') ||
+      text.includes('curd') ||
+      text.includes('paneer') ||
+      text.includes('cheese') ||
+      text.includes('butter') ||
+      text.includes('dahi') ||
+      text.includes('whey')
+    ) {
       triggers.push({ label: 'Dairy / Lactose', icon: '🥛', color: '#0369A1', bg: '#E0F2FE' });
     }
-    if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea')) {
+    if (
+      text.includes('coffee') ||
+      text.includes('espresso') ||
+      text.includes('caffeine') ||
+      text.includes('tea')
+    ) {
       triggers.push({ label: 'Caffeine Active', icon: '☕', color: '#4338CA', bg: '#EEF2FF' });
     }
-    if (text.includes('onion') || text.includes('garlic') || text.includes('apple') || text.includes('beans') || text.includes('chickpea')) {
+    if (
+      text.includes('onion') ||
+      text.includes('garlic') ||
+      text.includes('apple') ||
+      text.includes('beans') ||
+      text.includes('chickpea')
+    ) {
       triggers.push({ label: 'High FODMAP', icon: '🧄', color: '#7C3AED', bg: '#F5F3FF' });
     }
     return triggers;
@@ -386,13 +531,23 @@ export default function Dietician() {
       try {
         const coreProfile = getCoreProfile();
         if (coreProfile?.dietician) {
-          const { profile: p, foodLogs: fl, hydration: h, mealPlan: mp, advice: a, groceryList: gl } = coreProfile.dietician;
+          const {
+            profile: p,
+            foodLogs: fl,
+            hydration: h,
+            mealPlan: mp,
+            advice: a,
+            groceryList: gl,
+          } = coreProfile.dietician;
           if (p) setProfile({ ...p, ...calculateTargets(p) });
           if (fl) setFoodLogs(fl);
           if (h) setHydration(h);
-          if (mp) setMealPlan(normalizeFullMealPlan(mp, { caseId: activeCaseScope.caseId || undefined }));
+          if (mp)
+            setMealPlan(normalizeFullMealPlan(mp, { caseId: activeCaseScope.caseId || undefined }));
           if (coreProfile?.dietArchivedPlans && Array.isArray(coreProfile.dietArchivedPlans)) {
-            setArchivedPlans(coreProfile.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p)));
+            setArchivedPlans(
+              coreProfile.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p))
+            );
           }
           if (a) setAdvice(a);
           if (gl) setGroceryList(gl);
@@ -400,40 +555,54 @@ export default function Dietician() {
         }
         const unified = getCoreProfile() || {};
         const profileKey = getProfileKey();
-        
+
         try {
           if (localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'))) {
-             unified.dietProfile = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile')) || '{}');
-             unified.dietFoodLogs = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs')) || '{}');
-             unified.dietHydration = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration')) || '{}');
-             unified.dietMealPlan = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan')) || '{}');
-             unified.dietAdvice = localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
-             unified.dietGrocery = JSON.parse(localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list')) || '{}');
-             
-             updateProfileFeatureData('dietProfile', unified.dietProfile);
-             updateProfileFeatureData('dietFoodLogs', unified.dietFoodLogs);
-             updateProfileFeatureData('dietHydration', unified.dietHydration);
-             updateProfileFeatureData('dietMealPlan', unified.dietMealPlan);
-             updateProfileFeatureData('dietAdvice', unified.dietAdvice);
-             updateProfileFeatureData('dietGrocery', unified.dietGrocery);
-             
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
-             localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
+            unified.dietProfile = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile')) ||
+                '{}'
+            );
+            unified.dietFoodLogs = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_food_logs')) || '{}'
+            );
+            unified.dietHydration = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_hydration')) || '{}'
+            );
+            unified.dietMealPlan = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan')) || '{}'
+            );
+            unified.dietAdvice = localStorage.getItem(
+              profileKey.replace('hc_unified_profile', 'hc_diet_advice')
+            );
+            unified.dietGrocery = JSON.parse(
+              localStorage.getItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list')) ||
+                '{}'
+            );
+
+            updateProfileFeatureData('dietProfile', unified.dietProfile);
+            updateProfileFeatureData('dietFoodLogs', unified.dietFoodLogs);
+            updateProfileFeatureData('dietHydration', unified.dietHydration);
+            updateProfileFeatureData('dietMealPlan', unified.dietMealPlan);
+            updateProfileFeatureData('dietAdvice', unified.dietAdvice);
+            updateProfileFeatureData('dietGrocery', unified.dietGrocery);
+
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_profile'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_food_logs'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_hydration'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_meal_plan'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_diet_advice'));
+            localStorage.removeItem(profileKey.replace('hc_unified_profile', 'hc_grocery_list'));
           }
         } catch (migErr) {
           console.error('Diet migration error, skipping corrupted legacy entries:', migErr);
         }
-  
-          const savedProfile = unified.dietProfile ? JSON.stringify(unified.dietProfile) : null;
-          const savedLogs = unified.dietFoodLogs ? JSON.stringify(unified.dietFoodLogs) : null;
-          const savedHydration = unified.dietHydration ? JSON.stringify(unified.dietHydration) : null;
-          const savedPlan = unified.dietMealPlan ? JSON.stringify(unified.dietMealPlan) : null;
-          const savedAdvice = unified.dietAdvice || null;
-          const savedGrocery = unified.dietGrocery ? JSON.stringify(unified.dietGrocery) : null;
+
+        const savedProfile = unified.dietProfile ? JSON.stringify(unified.dietProfile) : null;
+        const savedLogs = unified.dietFoodLogs ? JSON.stringify(unified.dietFoodLogs) : null;
+        const savedHydration = unified.dietHydration ? JSON.stringify(unified.dietHydration) : null;
+        const savedPlan = unified.dietMealPlan ? JSON.stringify(unified.dietMealPlan) : null;
+        const savedAdvice = unified.dietAdvice || null;
+        const savedGrocery = unified.dietGrocery ? JSON.stringify(unified.dietGrocery) : null;
 
         if (savedProfile) {
           try {
@@ -444,30 +613,49 @@ export default function Dietician() {
           }
         }
         if (savedLogs) {
-          try { setFoodLogs(JSON.parse(savedLogs)); } catch (e) {}
+          try {
+            setFoodLogs(JSON.parse(savedLogs));
+          } catch (e) {}
         }
         if (savedHydration) {
-          try { setHydration(JSON.parse(savedHydration)); } catch (e) {}
+          try {
+            setHydration(JSON.parse(savedHydration));
+          } catch (e) {}
         }
         if (savedPlan) {
-          try { setMealPlan(normalizeFullMealPlan(JSON.parse(savedPlan), { caseId: activeCaseScope.caseId || undefined })); } catch (e) {}
+          try {
+            setMealPlan(
+              normalizeFullMealPlan(JSON.parse(savedPlan), {
+                caseId: activeCaseScope.caseId || undefined,
+              })
+            );
+          } catch (e) {}
         }
         if (unified?.dietArchivedPlans && Array.isArray(unified.dietArchivedPlans)) {
           setArchivedPlans(unified.dietArchivedPlans.map((p: any) => normalizeFullMealPlan(p)));
         }
         if (savedAdvice) setAdvice(savedAdvice);
         if (savedGrocery) {
-          try { setGroceryList(JSON.parse(savedGrocery)); } catch (e) {}
+          try {
+            setGroceryList(JSON.parse(savedGrocery));
+          } catch (e) {}
         }
 
         await syncHealthMemoryFromSupabase();
-        if (cancelled || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice) return;
+        if (cancelled || savedProfile || savedLogs || savedHydration || savedPlan || savedAdvice)
+          return;
         const snapshot = getLatestHealthMemory('diet', 'dietician')?.payload?.state;
         if (!snapshot) return;
-        if (snapshot.profile) setProfile({ ...snapshot.profile, ...calculateTargets(snapshot.profile) });
+        if (snapshot.profile)
+          setProfile({ ...snapshot.profile, ...calculateTargets(snapshot.profile) });
         if (snapshot.foodLogs) setFoodLogs(snapshot.foodLogs);
         if (snapshot.hydration) setHydration(snapshot.hydration);
-        if (snapshot.mealPlan) setMealPlan(normalizeFullMealPlan(snapshot.mealPlan, { caseId: activeCaseScope.caseId || undefined }));
+        if (snapshot.mealPlan)
+          setMealPlan(
+            normalizeFullMealPlan(snapshot.mealPlan, {
+              caseId: activeCaseScope.caseId || undefined,
+            })
+          );
         if (snapshot.archivedPlans && Array.isArray(snapshot.archivedPlans)) {
           setArchivedPlans(snapshot.archivedPlans.map((p: any) => normalizeFullMealPlan(p)));
         }
@@ -479,8 +667,8 @@ export default function Dietician() {
     };
     load().finally(() => setIsHydrated(true));
     window.addEventListener('hc_profile_updated', load);
-    return () => { 
-      cancelled = true; 
+    return () => {
+      cancelled = true;
       window.removeEventListener('hc_profile_updated', load);
     };
   }, [activeCaseScope.caseId]);
@@ -491,7 +679,7 @@ export default function Dietician() {
     try {
       const data = { profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans };
       updateProfileFeatureData('dietician', data);
-      
+
       if (profile) updateProfileFeatureData('dietProfile', profile);
       updateProfileFeatureData('dietFoodLogs', foodLogs);
       updateProfileFeatureData('dietHydration', hydration);
@@ -499,7 +687,7 @@ export default function Dietician() {
       if (archivedPlans.length > 0) updateProfileFeatureData('dietArchivedPlans', archivedPlans);
       if (advice) updateProfileFeatureData('dietAdvice', advice);
       if (groceryList) updateProfileFeatureData('dietGrocery', groceryList);
-    } catch(e) {}
+    } catch (e) {}
   }, [profile, foodLogs, hydration, mealPlan, advice, groceryList, archivedPlans]);
 
   // Record Health Memory snapshots
@@ -515,8 +703,20 @@ export default function Dietician() {
     })();
     const dailyFood = foodLogs[currentDate] || [];
     recordHealthMemory({
-      kind: 'diet', source: 'dietician', title: `Diet log: ${currentDate}`, occurredAt: safeOccurredAt,
-      payload: { profile: { goal: profile.goal, targetCalories: profile.targetCalories, targetProtein: profile.targetProtein }, food: dailyFood, hydration: hydration || {}, mealPlan: mealPlan || null },
+      kind: 'diet',
+      source: 'dietician',
+      title: `Diet log: ${currentDate}`,
+      occurredAt: safeOccurredAt,
+      payload: {
+        profile: {
+          goal: profile.goal,
+          targetCalories: profile.targetCalories,
+          targetProtein: profile.targetProtein,
+        },
+        food: dailyFood,
+        hydration: hydration || {},
+        mealPlan: mealPlan || null,
+      },
       dedupeKey: `diet-day:${currentDate}`,
     });
   }, [profile, foodLogs, hydration, mealPlan, currentDate]);
@@ -525,7 +725,9 @@ export default function Dietician() {
   const isMounted = useRef(true);
 
   useEffect(() => {
-    return () => { isMounted.current = false; };
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   // Keyboard dismissals for all interactive modals
@@ -553,23 +755,59 @@ export default function Dietician() {
       const calories = profile.targetCalories || 2000;
 
       let rule = '';
-      if (conditions.some((c: string) => c.includes('gerd') || c.includes('reflux') || c.includes('heartburn') || c.includes('lpr'))) {
-        rule = 'Prioritize alkaline, low-acid foods and finish dinner at least 3 hours before sleep to prevent esophageal micro-irritation.';
-      } else if (conditions.some((c: string) => c.includes('ibs') || c.includes('bloat') || c.includes('sibo') || c.includes('gut'))) {
-        rule = 'Incorporate gentle soluble fiber and space meals 3 to 4 hours to activate migrating motor complex (MMC) motility.';
-      } else if (conditions.some((c: string) => c.includes('pots') || c.includes('dysautonomia') || c.includes('tachycardia'))) {
-        rule = 'Maintain steady fluid volume and electrolyte balance with complex carbs to minimize postprandial splanchnic blood pooling.';
-      } else if (conditions.some((c: string) => c.includes('diabet') || c.includes('insulin') || c.includes('glucose') || c.includes('metabolic'))) {
-        rule = 'Anchor each meal with 25-30g of lean protein and healthy fats before complex carbs to stabilize postprandial glucose.';
-      } else if (conditions.some((c: string) => c.includes('histamine') || c.includes('mcas') || c.includes('allergy'))) {
-        rule = 'Prioritize fresh, non-fermented whole foods and minimize high-histamine culprits to preserve DAO enzyme capacity.';
+      if (
+        conditions.some(
+          (c: string) =>
+            c.includes('gerd') ||
+            c.includes('reflux') ||
+            c.includes('heartburn') ||
+            c.includes('lpr')
+        )
+      ) {
+        rule =
+          'Prioritize alkaline, low-acid foods and finish dinner at least 3 hours before sleep to prevent esophageal micro-irritation.';
+      } else if (
+        conditions.some(
+          (c: string) =>
+            c.includes('ibs') || c.includes('bloat') || c.includes('sibo') || c.includes('gut')
+        )
+      ) {
+        rule =
+          'Incorporate gentle soluble fiber and space meals 3 to 4 hours to activate migrating motor complex (MMC) motility.';
+      } else if (
+        conditions.some(
+          (c: string) =>
+            c.includes('pots') || c.includes('dysautonomia') || c.includes('tachycardia')
+        )
+      ) {
+        rule =
+          'Maintain steady fluid volume and electrolyte balance with complex carbs to minimize postprandial splanchnic blood pooling.';
+      } else if (
+        conditions.some(
+          (c: string) =>
+            c.includes('diabet') ||
+            c.includes('insulin') ||
+            c.includes('glucose') ||
+            c.includes('metabolic')
+        )
+      ) {
+        rule =
+          'Anchor each meal with 25-30g of lean protein and healthy fats before complex carbs to stabilize postprandial glucose.';
+      } else if (
+        conditions.some(
+          (c: string) => c.includes('histamine') || c.includes('mcas') || c.includes('allergy')
+        )
+      ) {
+        rule =
+          'Prioritize fresh, non-fermented whole foods and minimize high-histamine culprits to preserve DAO enzyme capacity.';
       } else {
         rule = `Target ${calories} kcal/day with whole-food nutrient density and balanced macronutrient distribution.`;
       }
 
-      const cuisineNote = cuisine && !cuisine.toLowerCase().includes('not specified')
-        ? ` Optimized for your ${cuisine} culinary preferences.`
-        : ' Ensure consistent protein distribution across all feeding windows.';
+      const cuisineNote =
+        cuisine && !cuisine.toLowerCase().includes('not specified')
+          ? ` Optimized for your ${cuisine} culinary preferences.`
+          : ' Ensure consistent protein distribution across all feeding windows.';
 
       const synthesizedAdvice = `${rule}${cuisineNote}`;
       setAdvice(synthesizedAdvice);
@@ -580,22 +818,35 @@ export default function Dietician() {
   // Derived state for current day
   const todayLogs = foodLogs[currentDate] || [];
   const { consumedCalories, consumedProtein, consumedCarbs, consumedFat } = useMemo(() => {
+    // ⚡ Bolt Performance Optimization:
+    // Consolidated 4 separate array reductions into a single O(N) pass.
+    let cal = 0,
+      pro = 0,
+      car = 0,
+      fat = 0;
+    for (let i = 0; i < todayLogs.length; i++) {
+      const item = todayLogs[i];
+      cal += item.calories || 0;
+      pro += item.protein || 0;
+      car += item.carbs || 0;
+      fat += item.fat || 0;
+    }
     return {
-      consumedCalories: todayLogs.reduce((sum: number, item: any) => sum + (item.calories || 0), 0),
-      consumedProtein: todayLogs.reduce((sum: number, item: any) => sum + (item.protein || 0), 0),
-      consumedCarbs: todayLogs.reduce((sum: number, item: any) => sum + (item.carbs || 0), 0),
-      consumedFat: todayLogs.reduce((sum: number, item: any) => sum + (item.fat || 0), 0)
+      consumedCalories: cal,
+      consumedProtein: pro,
+      consumedCarbs: car,
+      consumedFat: fat,
     };
   }, [todayLogs]);
 
   // Dynamic Presets from Meal Plan
   const dynamicPresets = React.useMemo(() => {
     if (!mealPlan || !mealPlan.plan || mealPlan.plan.length === 0) return QUICK_PRESETS;
-    
+
     // Extract up to 6 unique meals from the generated plan
     const meals: any[] = [];
     const seen = new Set();
-    
+
     for (const day of mealPlan.plan) {
       if (!day.meals) continue;
       for (const meal of day.meals) {
@@ -608,21 +859,31 @@ export default function Dietician() {
             protein: meal.protein || 0,
             carbs: meal.carbs || 0,
             fat: meal.fat || 0,
-            emoji: (meal as any).emoji || (meal.type?.toLowerCase().includes('break') ? '🥣' : meal.type?.toLowerCase().includes('lunch') ? '🥗' : meal.type?.toLowerCase().includes('din') ? '🍲' : meal.type?.toLowerCase().includes('snack') ? '🥑' : '🍽️'),
-            type: meal.type || 'Meal'
+            emoji:
+              (meal as any).emoji ||
+              (meal.type?.toLowerCase().includes('break')
+                ? '🥣'
+                : meal.type?.toLowerCase().includes('lunch')
+                  ? '🥗'
+                  : meal.type?.toLowerCase().includes('din')
+                    ? '🍲'
+                    : meal.type?.toLowerCase().includes('snack')
+                      ? '🥑'
+                      : '🍽️'),
+            type: meal.type || 'Meal',
           });
         }
         if (meals.length >= 6) return meals;
       }
     }
-    
+
     return meals.length > 0 ? meals : QUICK_PRESETS;
   }, [mealPlan]);
 
   const handleSaveProfile = (p: any) => {
     const fullProfile = { ...p, ...calculateTargets(p) };
     setProfile(fullProfile);
-    
+
     // Persist to unified profile
     const unified = getCoreProfile() || {};
     unified.dietProfile = fullProfile;
@@ -637,19 +898,62 @@ export default function Dietician() {
     return <OnboardingWizard onComplete={handleSaveProfile} />;
   }
 
-
-
   const waterGlasses = hydration[currentDate] || 0;
 
   const syncToUnifiedNutritionLogs = (mealItem: any) => {
     try {
       const text = (mealItem.name || '').toLowerCase();
       const sensitivities: string[] = [];
-      if (text.includes('spinach') || text.includes('tomato') || text.includes('wine') || text.includes('aged') || text.includes('fermented') || text.includes('avocado') || text.includes('pickle') || text.includes('achaar')) sensitivities.push('histamine');
-      if (text.includes('wheat') || text.includes('roti') || text.includes('bread') || text.includes('pasta') || text.includes('atta') || text.includes('maida') || text.includes('toast') || text.includes('sourdough')) sensitivities.push('gluten');
-      if (text.includes('milk') || text.includes('curd') || text.includes('paneer') || text.includes('cheese') || text.includes('butter') || text.includes('dahi') || text.includes('whey')) sensitivities.push('lactose_casein');
-      if (text.includes('coffee') || text.includes('espresso') || text.includes('caffeine') || text.includes('tea') || text.includes('chai')) sensitivities.push('caffeine');
-      if (text.includes('onion') || text.includes('garlic') || text.includes('chickpea') || text.includes('beans') || text.includes('chana') || text.includes('besan') || text.includes('dal')) sensitivities.push('fructans_gos');
+      if (
+        text.includes('spinach') ||
+        text.includes('tomato') ||
+        text.includes('wine') ||
+        text.includes('aged') ||
+        text.includes('fermented') ||
+        text.includes('avocado') ||
+        text.includes('pickle') ||
+        text.includes('achaar')
+      )
+        sensitivities.push('histamine');
+      if (
+        text.includes('wheat') ||
+        text.includes('roti') ||
+        text.includes('bread') ||
+        text.includes('pasta') ||
+        text.includes('atta') ||
+        text.includes('maida') ||
+        text.includes('toast') ||
+        text.includes('sourdough')
+      )
+        sensitivities.push('gluten');
+      if (
+        text.includes('milk') ||
+        text.includes('curd') ||
+        text.includes('paneer') ||
+        text.includes('cheese') ||
+        text.includes('butter') ||
+        text.includes('dahi') ||
+        text.includes('whey')
+      )
+        sensitivities.push('lactose_casein');
+      if (
+        text.includes('coffee') ||
+        text.includes('espresso') ||
+        text.includes('caffeine') ||
+        text.includes('tea') ||
+        text.includes('chai')
+      )
+        sensitivities.push('caffeine');
+      if (
+        text.includes('onion') ||
+        text.includes('garlic') ||
+        text.includes('chickpea') ||
+        text.includes('beans') ||
+        text.includes('chana') ||
+        text.includes('besan') ||
+        text.includes('dal')
+      )
+        sensitivities.push('fructans_gos');
 
       addNutritionLog({
         meal: mealItem.name,
@@ -695,11 +999,16 @@ export default function Dietician() {
           awardPoints(5, 'Logged Daily Nutrition', 'lifestyle', `diet_log_${currentDate}`);
         }
 
-        addEvent('diet', 'dietician', `Logged Food: ${result.items.map((i: any) => i.name).join(', ')} (${mealLatency})`, {
-          items: result.items,
-          type: selectedMealType,
-          latency: mealLatency,
-        });
+        addEvent(
+          'diet',
+          'dietician',
+          `Logged Food: ${result.items.map((i: any) => i.name).join(', ')} (${mealLatency})`,
+          {
+            items: result.items,
+            type: selectedMealType,
+            latency: mealLatency,
+          }
+        );
       }
     } catch (err) {
       console.error('Failed to analyze food:', err);
@@ -709,7 +1018,7 @@ export default function Dietician() {
     }
   };
 
-  const handleAddPreset = (preset: typeof QUICK_PRESETS[0]) => {
+  const handleAddPreset = (preset: (typeof QUICK_PRESETS)[0]) => {
     triggerHapticLight();
     const updatedLogs = { ...foodLogs };
     updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
@@ -741,7 +1050,10 @@ export default function Dietician() {
       setFoodLogs(updatedLogs);
       updateProfileFeatureData('dietFoodLogs', updatedLogs);
       updateProfileFeatureData('dietician', { foodLogs: updatedLogs });
-      toast.info('Meal Removed', `"${removedItem?.name || 'Meal'}" removed from daily nutrition log.`);
+      toast.info(
+        'Meal Removed',
+        `"${removedItem?.name || 'Meal'}" removed from daily nutrition log.`
+      );
     }
   };
 
@@ -754,16 +1066,22 @@ export default function Dietician() {
     updateProfileFeatureData('dietHydration', updated);
     updateProfileFeatureData('dietician', { hydration: updated });
     if (next >= 8 && current < 8) {
-      awardPoints(2, 'Daily Optimal Hydration Target (2L)', 'lifestyle', `hydration_target_${currentDate}`);
-      toast.success('Hydration Target Met! 💧', 'You reached your 2,000ml daily hydration goal (+2 PTS)');
+      awardPoints(
+        2,
+        'Daily Optimal Hydration Target (2L)',
+        'lifestyle',
+        `hydration_target_${currentDate}`
+      );
+      toast.success(
+        'Hydration Target Met! 💧',
+        'You reached your 2,000ml daily hydration goal (+2 PTS)'
+      );
       triggerHapticSuccess();
     } else if (delta > 0) {
       toast.info('Hydration Logged', `${next * 250}ml logged for today (${next}/8 glasses).`);
     }
   };
 
-  
-  
   const handleGenerateGrocery = async () => {
     if (isGeneratingGrocery) return;
     if (!mealPlan) {
@@ -797,10 +1115,18 @@ export default function Dietician() {
       if (data && data.guardrails) {
         if (isMounted.current) setGuardrails(data.guardrails);
         updateProfileFeatureData('dietician', { guardrails: data.guardrails });
-        awardPoints(10, 'Created Food-Planning Guardrails', 'lifestyle', `guardrails_${Date.now()}`);
+        awardPoints(
+          10,
+          'Created Food-Planning Guardrails',
+          'lifestyle',
+          `guardrails_${Date.now()}`
+        );
         triggerHapticSuccess();
       } else {
-        toast.error('Generation Failed', 'Could not synthesize medical guardrails. Please try again.');
+        toast.error(
+          'Generation Failed',
+          'Could not synthesize medical guardrails. Please try again.'
+        );
       }
     } catch (err) {
       console.error(err);
@@ -813,12 +1139,14 @@ export default function Dietician() {
   const handleGeneratePlan = async () => {
     if (isGeneratingPlan) return;
     if (!(await getActiveSession())) {
-      window.dispatchEvent(new CustomEvent('hc_require_auth', { 
-        detail: { 
-          title: 'Authentication Required', 
-          message: 'You need to log in or sign up to generate a personalized meal plan.' 
-        } 
-      }));
+      window.dispatchEvent(
+        new CustomEvent('hc_require_auth', {
+          detail: {
+            title: 'Authentication Required',
+            message: 'You need to log in or sign up to generate a personalized meal plan.',
+          },
+        })
+      );
       return;
     }
 
@@ -836,21 +1164,36 @@ export default function Dietician() {
             caseId: activeCaseScope.caseId || undefined,
             profileKey: getProfileKey(),
           });
-          if (mealPlan && ((mealPlan.days && mealPlan.days.length > 0) || (mealPlan.plan && mealPlan.plan.length > 0))) {
+          if (
+            mealPlan &&
+            ((mealPlan.days && mealPlan.days.length > 0) ||
+              (mealPlan.plan && mealPlan.plan.length > 0))
+          ) {
             const updatedArchived = archiveCurrentPlan(mealPlan, archivedPlans);
             setArchivedPlans(updatedArchived);
             updateProfileFeatureData('dietArchivedPlans', updatedArchived);
           }
           setMealPlan(normalized);
           updateProfileFeatureData('dietMealPlan', normalized);
-          awardPoints(15, 'Created Editable 7-Day Meal Blueprint', 'lifestyle', `diet_plan_${Date.now()}`);
+          awardPoints(
+            15,
+            'Created Editable 7-Day Meal Blueprint',
+            'lifestyle',
+            `diet_plan_${Date.now()}`
+          );
           triggerHapticSuccess();
           recordTrialUsage('dietician');
-          toast.success('Blueprint Created', '7-Day meal plan generated. You can edit meals, adjust portions, and swap ingredients.');
+          toast.success(
+            'Blueprint Created',
+            '7-Day meal plan generated. You can edit meals, adjust portions, and swap ingredients.'
+          );
         }
         addEvent('diet', 'dietician', 'Generated 7-Day Meal Plan', { plan: rawPlan });
       } else {
-        toast.error('Generation Failed', 'Failed to parse the meal plan from AI. Please try again.');
+        toast.error(
+          'Generation Failed',
+          'Failed to parse the meal plan from AI. Please try again.'
+        );
       }
     } catch (err) {
       console.error('Failed to generate meal plan:', err);
@@ -885,7 +1228,10 @@ export default function Dietician() {
     const updated = transitionPlanStatus(mealPlan, 'paused');
     setMealPlan(updated);
     updateProfileFeatureData('dietMealPlan', updated);
-    toast.info('Plan Paused', 'Meal plan paused. Your daily logs and reactions remain completely safe.');
+    toast.info(
+      'Plan Paused',
+      'Meal plan paused. Your daily logs and reactions remain completely safe.'
+    );
   };
 
   const handleResumePlan = () => {
@@ -905,8 +1251,16 @@ export default function Dietician() {
     });
     setMealPlan(updated);
     updateProfileFeatureData('dietMealPlan', updated);
-    awardPoints(25, 'Completed Clinical Meal Blueprint', 'lifestyle', `diet_complete_${Date.now()}`);
-    toast.success('Cycle Completed!', 'Congratulations on completing this plan! Full history preserved in your calendar.');
+    awardPoints(
+      25,
+      'Completed Clinical Meal Blueprint',
+      'lifestyle',
+      `diet_complete_${Date.now()}`
+    );
+    toast.success(
+      'Cycle Completed!',
+      'Congratulations on completing this plan! Full history preserved in your calendar.'
+    );
   };
 
   const handleConfirmStopPlan = () => {
@@ -919,7 +1273,10 @@ export default function Dietician() {
     setMealPlan(updated);
     updateProfileFeatureData('dietMealPlan', updated);
     setShowStopPlanModal(false);
-    toast.info('Plan Stopped', 'Your plan has been marked stopped. All logged days and past reactions remain permanently intact.');
+    toast.info(
+      'Plan Stopped',
+      'Your plan has been marked stopped. All logged days and past reactions remain permanently intact.'
+    );
   };
 
   const handleServingMultiplierChange = (dayNum: number, mealId: string, multiplier: number) => {
@@ -928,7 +1285,10 @@ export default function Dietician() {
     const updated = updateMealServing(mealPlan, dayNum, mealId, multiplier);
     setMealPlan(updated);
     updateProfileFeatureData('dietMealPlan', updated);
-    toast.success('Portion Adjusted', `Serving updated to ${multiplier}x. Daily totals recalculated.`);
+    toast.success(
+      'Portion Adjusted',
+      `Serving updated to ${multiplier}x. Daily totals recalculated.`
+    );
   };
 
   const handleExportToCasePrep = () => {
@@ -937,7 +1297,10 @@ export default function Dietician() {
     if (activeCaseScope.caseId) {
       exportDietObservationsToCase(activeCaseScope.caseId, summary);
     }
-    toast.success('Exported to Case Prep', 'Factual dietary observations added to your appointment visit brief.');
+    toast.success(
+      'Exported to Case Prep',
+      'Factual dietary observations added to your appointment visit brief.'
+    );
     const targetUrl = activeCaseScope.caseId
       ? `/app/case-prep?caseId=${encodeURIComponent(activeCaseScope.caseId)}`
       : '/app/case-prep';
@@ -997,7 +1360,12 @@ export default function Dietician() {
       replacementDetails: 'Custom personalized tolerance swap',
       expectedReliefTimeline: 'Within 24 hours',
     };
-    const updated = applyMealClinicalSwap(mealPlan, swappingMeal.day, swappingMeal.meal.id, customSwap);
+    const updated = applyMealClinicalSwap(
+      mealPlan,
+      swappingMeal.day,
+      swappingMeal.meal.id,
+      customSwap
+    );
     setMealPlan(updated);
     updateProfileFeatureData('dietMealPlan', updated);
     setSwappingMeal(null);
@@ -1017,7 +1385,10 @@ export default function Dietician() {
     setMealPlan(reactivated);
     updateProfileFeatureData('dietMealPlan', reactivated);
     setShowArchivedPlansModal(false);
-    toast.success('Blueprint Restored', 'Past blueprint restored as active plan. Historical logs remained intact.');
+    toast.success(
+      'Blueprint Restored',
+      'Past blueprint restored as active plan. Historical logs remained intact.'
+    );
   };
 
   const toggleGroceryItem = (catIndex: number, itemId: string) => {
@@ -1025,7 +1396,9 @@ export default function Dietician() {
     const updated = [...groceryList];
     const cat = updated[catIndex];
     if (cat && cat.items) {
-      cat.items = cat.items.map((item: any) => item.id === itemId ? { ...item, checked: !item.checked } : item);
+      cat.items = cat.items.map((item: any) =>
+        item.id === itemId ? { ...item, checked: !item.checked } : item
+      );
       setGroceryList(updated);
     }
   };
@@ -1033,7 +1406,7 @@ export default function Dietician() {
   const copyGroceryListText = async () => {
     triggerHapticLight();
     let text = `🛒 HealthChain 7-Day Grocery List (${profile?.cuisine || 'Healthy'} Plan)\n\n`;
-    groceryList.forEach(cat => {
+    groceryList.forEach((cat) => {
       text += `${cat.emoji} ${cat.category}\n`;
       cat.items.forEach((item: any) => {
         text += `  ${item.checked ? '☑' : '☐'} ${item.name}\n`;
@@ -1064,12 +1437,16 @@ export default function Dietician() {
   };
 
   const normalizedPlanDays = mealPlan?.plan || mealPlan?.days || [];
-  const currentSelectedDayObj = normalizedPlanDays.find((d: any) => (d.day || d.dayNumber) === selectedPlanDay) || normalizedPlanDays[0];
+  const currentSelectedDayObj =
+    normalizedPlanDays.find((d: any) => (d.day || d.dayNumber) === selectedPlanDay) ||
+    normalizedPlanDays[0];
 
   const currentFeatureId: FeatureId =
-    activeTab === 'elimination' ? 'elimination-suite' :
-    (activeTab === 'sensitivities' || activeTab === 'insights') ? 'food-detective' :
-    'diet-plan';
+    activeTab === 'elimination'
+      ? 'elimination-suite'
+      : activeTab === 'sensitivities' || activeTab === 'insights'
+        ? 'food-detective'
+        : 'diet-plan';
 
   return (
     <div style={{ paddingBottom: '100px' }}>
@@ -1136,13 +1513,20 @@ export default function Dietician() {
                     fontSize: '11px',
                     fontWeight: 800,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.5px',
                   }}
                 >
                   Active
                 </span>
               </div>
-              <p style={{ fontSize: '14.5px', color: '#64748B', margin: '2px 0 0 0', fontWeight: 500 }}>
+              <p
+                style={{
+                  fontSize: '14.5px',
+                  color: '#64748B',
+                  margin: '2px 0 0 0',
+                  fontWeight: 500,
+                }}
+              >
                 Editable meal examples, food logs, and condition-aware questions in one place.
               </p>
             </div>
@@ -1158,7 +1542,10 @@ export default function Dietician() {
               borderRadius: '14px',
               border: '1px solid #E2E8F0',
               boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-              overflowX: 'auto', width: isMobile ? '100%' : 'auto', maxWidth: '100%', flexWrap: 'nowrap',
+              overflowX: 'auto',
+              width: isMobile ? '100%' : 'auto',
+              maxWidth: '100%',
+              flexWrap: 'nowrap',
               WebkitOverflowScrolling: 'touch',
               alignItems: 'center',
             }}
@@ -1206,7 +1593,8 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Activity size={15} color={activeTab === 'sensitivities' ? '#34D399' : '#64748B'} /> Post-Meal Sensitivities
+              <Activity size={15} color={activeTab === 'sensitivities' ? '#34D399' : '#64748B'} />{' '}
+              Post-Meal Sensitivities
             </button>
             <button
               onClick={() => {
@@ -1230,7 +1618,8 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Calendar size={15} color={activeTab === 'calendar' ? '#38BDF8' : '#64748B'} /> Digestion Calendar
+              <Calendar size={15} color={activeTab === 'calendar' ? '#38BDF8' : '#64748B'} />{' '}
+              Digestion Calendar
             </button>
             <button
               onClick={() => {
@@ -1254,7 +1643,8 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} /> Symptom Hunt
+              <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} />{' '}
+              Symptom Hunt
             </button>
             <button
               onClick={() => {
@@ -1278,7 +1668,8 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Sparkles size={15} color={activeTab === 'insights' ? '#C084FC' : '#64748B'} /> Smart Insights
+              <Sparkles size={15} color={activeTab === 'insights' ? '#C084FC' : '#64748B'} /> Smart
+              Insights
             </button>
             <button
               onClick={() => setActiveTab('mealplan')}
@@ -1322,7 +1713,7 @@ export default function Dietician() {
             >
               <ShoppingCart size={15} /> Smart Grocery
             </button>
-            
+
             <button
               onClick={() => setActiveTab('guardrails')}
               style={{
@@ -1363,9 +1754,18 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Sparkles size={15} color={activeTab === 'longevity' ? '#38BDF8' : '#64748B'} /> Longevity Bio-Stack
+              <Sparkles size={15} color={activeTab === 'longevity' ? '#38BDF8' : '#64748B'} />{' '}
+              Longevity Bio-Stack
             </button>
-            <div style={{ width: '1px', height: '22px', background: '#E2E8F0', margin: '6px 2px', flexShrink: 0 }} />
+            <div
+              style={{
+                width: '1px',
+                height: '22px',
+                background: '#E2E8F0',
+                margin: '6px 2px',
+                flexShrink: 0,
+              }}
+            />
             <button
               onClick={() => setShowResetDietConfirm(true)}
               style={{
@@ -1396,8 +1796,23 @@ export default function Dietician() {
             style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
           >
             {/* Date Selector & Action */}
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'space-between' : 'flex-start', gap: '14px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: '16px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isMobile ? 'space-between' : 'flex-start',
+                  gap: '14px',
+                }}
+              >
                 <button
                   onClick={() => {
                     const d = parseLocalDate(currentDate);
@@ -1416,7 +1831,14 @@ export default function Dietician() {
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '160px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '160px',
+                  }}
+                >
                   <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                     {currentDate === formatLocalDate(new Date())
                       ? 'Today'
@@ -1426,7 +1848,15 @@ export default function Dietician() {
                           day: 'numeric',
                         })}
                   </h2>
-                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#64748B',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.8px',
+                    }}
+                  >
                     Daily Nutrition Log
                   </span>
                 </div>
@@ -1497,68 +1927,133 @@ export default function Dietician() {
               </div>
             </div>
 
-            
-              <DieticianDashboardTracker 
-                profile={profile} 
-                foodLogs={foodLogs} 
-                currentDate={currentDate}
-                waterGlasses={waterGlasses}
-                onLogMeal={(mealName: string) => { setSelectedMealType(mealName); setIsLoggingFood(true); }}
-                onDeleteMeal={handleDeleteFood}
-                onUpdateHydration={handleUpdateHydration}
-                onSnap={() => setShowARLens(true)}
-                onOpenSettings={() => { triggerHapticLight(); setIsEditingProfile(true); }}
-                onOpenSavedMeals={() => { triggerHapticLight(); setShowSavedMealsModal(true); }}
-                onOpenGallery={() => setShowARLens(true)}
-                onSelectTab={(t: any) => setActiveTab(t)}
-              />
-            </motion.div>
-          )}
+            <DieticianDashboardTracker
+              profile={profile}
+              foodLogs={foodLogs}
+              currentDate={currentDate}
+              waterGlasses={waterGlasses}
+              onLogMeal={(mealName: string) => {
+                setSelectedMealType(mealName);
+                setIsLoggingFood(true);
+              }}
+              onDeleteMeal={handleDeleteFood}
+              onUpdateHydration={handleUpdateHydration}
+              onSnap={() => setShowARLens(true)}
+              onOpenSettings={() => {
+                triggerHapticLight();
+                setIsEditingProfile(true);
+              }}
+              onOpenSavedMeals={() => {
+                triggerHapticLight();
+                setShowSavedMealsModal(true);
+              }}
+              onOpenGallery={() => setShowARLens(true)}
+              onSelectTab={(t: any) => setActiveTab(t)}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
-          {activeTab === 'sensitivities' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="food-detective" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
-              <PostMealReactionTimeline onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
-            </motion.div>
-          )}
+        {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
+        {activeTab === 'sensitivities' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <FeatureMissionHeader
+              featureId="food-detective"
+              onNavigateTab={(t) => setActiveTab(t as any)}
+              style={{ marginBottom: '16px' }}
+            />
+            <PostMealReactionTimeline
+              onOpenQuickMeal={() => {
+                setSelectedMealType('Quick Meal');
+                setIsLoggingFood(true);
+              }}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB: MONTHLY DIGESTION & BLOATING CALENDAR HEATMAP (media_1788704751525.png) */}
-          {activeTab === 'calendar' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="food-detective" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
-              <DigestionCalendarHeatmap onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
-            </motion.div>
-          )}
+        {/* TAB: MONTHLY DIGESTION & BLOATING CALENDAR HEATMAP (media_1788704751525.png) */}
+        {activeTab === 'calendar' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <FeatureMissionHeader
+              featureId="food-detective"
+              onNavigateTab={(t) => setActiveTab(t as any)}
+              style={{ marginBottom: '16px' }}
+            />
+            <DigestionCalendarHeatmap
+              onOpenQuickMeal={() => {
+                setSelectedMealType('Quick Meal');
+                setIsLoggingFood(true);
+              }}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB: 4-WEEK CLINICAL ELIMINATION SUITE (media_1788704747359.png) */}
-          {activeTab === 'elimination' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="elimination-suite" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
-              <EliminationProtocolSuite
-                onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }}
-                onOpenCalendarHeatmap={() => setActiveTab('calendar')}
-                onOpenPostMealTimeline={() => setActiveTab('sensitivities')}
-              />
-            </motion.div>
-          )}
+        {/* TAB: 4-WEEK CLINICAL ELIMINATION SUITE (media_1788704747359.png) */}
+        {activeTab === 'elimination' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <FeatureMissionHeader
+              featureId="elimination-suite"
+              onNavigateTab={(t) => setActiveTab(t as any)}
+              style={{ marginBottom: '16px' }}
+            />
+            <EliminationProtocolSuite
+              onOpenQuickMeal={() => {
+                setSelectedMealType('Quick Meal');
+                setIsLoggingFood(true);
+              }}
+              onOpenCalendarHeatmap={() => setActiveTab('calendar')}
+              onOpenPostMealTimeline={() => setActiveTab('sensitivities')}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
-          {activeTab === 'insights' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="food-detective" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
-              <SmartCorrelationInsightsView
-                onOpenElimination={() => setActiveTab('elimination')}
-                onOpenTimeline={() => setActiveTab('sensitivities')}
-                onOpenHeatmap={() => setActiveTab('calendar')}
-              />
-            </motion.div>
-          )}
+        {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
+        {activeTab === 'insights' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{ marginTop: '8px' }}
+          >
+            <FeatureMissionHeader
+              featureId="food-detective"
+              onNavigateTab={(t) => setActiveTab(t as any)}
+              style={{ marginBottom: '16px' }}
+            />
+            <SmartCorrelationInsightsView
+              onOpenElimination={() => setActiveTab('elimination')}
+              onOpenTimeline={() => setActiveTab('sensitivities')}
+              onOpenHeatmap={() => setActiveTab('calendar')}
+            />
+          </motion.div>
+        )}
 
-          {/* TAB 2: 7-DAY MEAL PLAN */}
+        {/* TAB 2: 7-DAY MEAL PLAN */}
         {activeTab === 'mealplan' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <FeatureMissionHeader featureId="diet-plan" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <FeatureMissionHeader
+              featureId="diet-plan"
+              onNavigateTab={(t) => setActiveTab(t as any)}
+              style={{ marginBottom: '16px' }}
+            />
             <div
               style={{
                 display: 'flex',
@@ -1570,11 +2065,19 @@ export default function Dietician() {
               }}
             >
               <div>
-                <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '20px' : '24px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                  }}
+                >
                   Editable 7-Day Meal Example
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  An AI-generated starting point for {profile.cuisine} preferences and an estimated {profile.targetCalories} kcal target.
+                  An AI-generated starting point for {profile.cuisine} preferences and an estimated{' '}
+                  {profile.targetCalories} kcal target.
                 </p>
               </div>
 
@@ -1630,8 +2133,8 @@ export default function Dietician() {
                       triggerHapticLight();
                       navigate('/app/ava', {
                         state: {
-                          initialPrompt: `I generated an editable 7-day meal example with an estimated daily target of ${profile?.targetCalories || 2000} kcal. Please review it as a planning aid, identify assumptions and missing information, and list questions for a clinician or registered dietitian. Do not describe it as a prescription.`
-                        }
+                          initialPrompt: `I generated an editable 7-day meal example with an estimated daily target of ${profile?.targetCalories || 2000} kcal. Please review it as a planning aid, identify assumptions and missing information, and list questions for a clinician or registered dietitian. Do not describe it as a prescription.`,
+                        },
                       });
                     }}
                     style={{
@@ -1675,17 +2178,34 @@ export default function Dietician() {
                     </>
                   ) : (
                     <>
-                      <Sparkles size={16} /> {mealPlan ? 'Regenerate Example' : 'Create 7-Day Example'}
+                      <Sparkles size={16} />{' '}
+                      {mealPlan ? 'Regenerate Example' : 'Create 7-Day Example'}
                     </>
                   )}
                 </button>
               </div>
             </div>
 
-            <div role="note" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', margin: '-4px 0 20px', padding: '13px 15px', borderRadius: '14px', background: '#FFF7F2', border: '1px solid #F8D8C6', color: '#7C2D12' }}>
+            <div
+              role="note"
+              style={{
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'flex-start',
+                margin: '-4px 0 20px',
+                padding: '13px 15px',
+                borderRadius: '14px',
+                background: '#FFF7F2',
+                border: '1px solid #F8D8C6',
+                color: '#7C2D12',
+              }}
+            >
               <Info size={18} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
               <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.55 }}>
-                <strong>Editable planning aid.</strong> Portions, calories, and nutrients are estimates. Verify packaged-food labels and review condition-specific restrictions, allergies, pregnancy needs, kidney disease, diabetes treatment, or eating-disorder concerns with a qualified clinician or registered dietitian.
+                <strong>Editable planning aid.</strong> Portions, calories, and nutrients are
+                estimates. Verify packaged-food labels and review condition-specific restrictions,
+                allergies, pregnancy needs, kidney disease, diabetes treatment, or eating-disorder
+                concerns with a qualified clinician or registered dietitian.
               </p>
             </div>
 
@@ -1715,11 +2235,27 @@ export default function Dietician() {
                 >
                   <Calendar size={32} />
                 </div>
-                <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>
+                <h3
+                  style={{
+                    fontSize: '19px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 8px 0',
+                  }}
+                >
                   No Active 7-Day Plan
                 </h3>
-                <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                  Generate an authentic, chef-grade nutritional schedule that balances your macros and guards against your health conditions.
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontSize: '14.5px',
+                    maxWidth: '440px',
+                    margin: '0 auto 24px auto',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Generate an authentic, chef-grade nutritional schedule that balances your macros
+                  and guards against your health conditions.
                 </p>
                 <button
                   onClick={handleGeneratePlan}
@@ -1739,7 +2275,11 @@ export default function Dietician() {
                     boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
                   }}
                 >
-                  {isGeneratingPlan ? <Loader2 size={18} className="spin" /> : <Sparkles size={18} />}
+                  {isGeneratingPlan ? (
+                    <Loader2 size={18} className="spin" />
+                  ) : (
+                    <Sparkles size={18} />
+                  )}
                   Generate My 7-Day Plan
                 </button>
               </div>
@@ -1758,20 +2298,73 @@ export default function Dietician() {
                     gap: '14px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#64748B',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.6px',
+                        }}
+                      >
                         Blueprint Status:
                       </span>
                       {(() => {
                         const status = mealPlan.lifecycle?.status || 'draft';
                         const config = {
-                          draft: { bg: '#F1F5F9', color: '#475569', border: '#CBD5E1', label: 'Draft Blueprint' },
-                          selected: { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE', label: 'Selected Blueprint' },
-                          active: { bg: '#ECFDF5', color: '#047857', border: '#A7F3D0', label: 'Active (Following)' },
-                          paused: { bg: '#FFFBEB', color: '#B45309', border: '#FDE68A', label: 'Paused' },
-                          completed: { bg: '#FAF5FF', color: '#7E22CE', border: '#E9D5FF', label: 'Completed Cycle' },
-                          stopped: { bg: '#FFF1F2', color: '#BE123C', border: '#FECDD3', label: 'Stopped' },
+                          draft: {
+                            bg: '#F1F5F9',
+                            color: '#475569',
+                            border: '#CBD5E1',
+                            label: 'Draft Blueprint',
+                          },
+                          selected: {
+                            bg: '#EFF6FF',
+                            color: '#1D4ED8',
+                            border: '#BFDBFE',
+                            label: 'Selected Blueprint',
+                          },
+                          active: {
+                            bg: '#ECFDF5',
+                            color: '#047857',
+                            border: '#A7F3D0',
+                            label: 'Active (Following)',
+                          },
+                          paused: {
+                            bg: '#FFFBEB',
+                            color: '#B45309',
+                            border: '#FDE68A',
+                            label: 'Paused',
+                          },
+                          completed: {
+                            bg: '#FAF5FF',
+                            color: '#7E22CE',
+                            border: '#E9D5FF',
+                            label: 'Completed Cycle',
+                          },
+                          stopped: {
+                            bg: '#FFF1F2',
+                            color: '#BE123C',
+                            border: '#FECDD3',
+                            label: 'Stopped',
+                          },
                         }[status];
                         return (
                           <span
@@ -1788,7 +2381,14 @@ export default function Dietician() {
                               border: `1px solid ${config.border}`,
                             }}
                           >
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: config.color }} />
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: config.color,
+                              }}
+                            />
                             {config.label}
                           </span>
                         );
@@ -1808,13 +2408,21 @@ export default function Dietician() {
                             fontWeight: 600,
                           }}
                         >
-                          <BookOpen size={12} color="#059669" /> Case: {activeCaseScope.caseItem.title}
+                          <BookOpen size={12} color="#059669" /> Case:{' '}
+                          {activeCaseScope.caseItem.title}
                         </span>
                       )}
                     </div>
 
                     {/* Action Controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       {(!mealPlan.lifecycle || mealPlan.lifecycle.status === 'draft') && (
                         <>
                           <button
@@ -2010,7 +2618,8 @@ export default function Dietician() {
                         </>
                       )}
 
-                      {(mealPlan.lifecycle?.status === 'completed' || mealPlan.lifecycle?.status === 'stopped') && (
+                      {(mealPlan.lifecycle?.status === 'completed' ||
+                        mealPlan.lifecycle?.status === 'stopped') && (
                         <button
                           type="button"
                           onClick={handleActivatePlan}
@@ -2092,8 +2701,12 @@ export default function Dietician() {
                     >
                       <AlertCircle size={15} color="#BE123C" />
                       <span>
-                        <strong>Stopped Reason:</strong> {PLAN_STOP_REASON_LABELS[mealPlan.lifecycle.stopReason] || mealPlan.lifecycle.stopReason}
-                        {mealPlan.lifecycle.stopReasonDetails ? ` — "${mealPlan.lifecycle.stopReasonDetails}"` : ''}
+                        <strong>Stopped Reason:</strong>{' '}
+                        {PLAN_STOP_REASON_LABELS[mealPlan.lifecycle.stopReason] ||
+                          mealPlan.lifecycle.stopReason}
+                        {mealPlan.lifecycle.stopReasonDetails
+                          ? ` — "${mealPlan.lifecycle.stopReasonDetails}"`
+                          : ''}
                       </span>
                     </div>
                   )}
@@ -2114,17 +2727,25 @@ export default function Dietician() {
                   >
                     <ShieldCheck size={14} color="#059669" />
                     <span>
-                      <strong>Non-destructive history retention:</strong> Changing, pausing, or stopping a plan never alters past daily food logs or recorded reactions. Past logs remain permanently intact in your calendar.
+                      <strong>Non-destructive history retention:</strong> Changing, pausing, or
+                      stopping a plan never alters past daily food logs or recorded reactions. Past
+                      logs remain permanently intact in your calendar.
                     </span>
                   </div>
                 </div>
 
                 {/* Day selector tabs */}
-                <div 
-                  role="tablist" 
+                <div
+                  role="tablist"
                   aria-label="7-Day Plan Days"
-                  className="hide-scrollbar scrollable-row" 
-                  style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' }}
+                  className="hide-scrollbar scrollable-row"
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    overflowX: 'auto',
+                    paddingBottom: '4px',
+                    WebkitOverflowScrolling: 'touch',
+                  }}
                 >
                   {normalizedPlanDays.map((day: any, idx: number) => {
                     const dayNum = day.day || idx + 1;
@@ -2140,7 +2761,10 @@ export default function Dietician() {
                           setSelectedPlanDay(dayNum);
                         }}
                         style={{
-                          flexShrink: 0, padding: '10px 18px', borderRadius: '12px', border: `1px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
+                          flexShrink: 0,
+                          padding: '10px 18px',
+                          borderRadius: '12px',
+                          border: `1px solid ${isSelected ? '#059669' : '#E2E8F0'}`,
                           background: isSelected ? '#ECFDF5' : '#FFFFFF',
                           color: isSelected ? '#065F46' : '#64748B',
                           fontWeight: 800,
@@ -2179,22 +2803,46 @@ export default function Dietician() {
                         gap: '12px',
                       }}
                     >
-                      <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                      <h3
+                        style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                      >
                         Day {currentSelectedDayObj.day || selectedPlanDay} Nutritional Blueprint
                       </h3>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Flame size={15} color="#F59E0B" /> {currentSelectedDayObj.total_calories || (currentSelectedDayObj as any).totalCalories || profile.targetCalories} kcal
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '14px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            color: '#059669',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Flame size={15} color="#F59E0B" />{' '}
+                          {currentSelectedDayObj.total_calories ||
+                            (currentSelectedDayObj as any).totalCalories ||
+                            profile.targetCalories}{' '}
+                          kcal
                         </span>
-                        
+
                         <button
                           onClick={() => {
                             triggerHapticSuccess();
                             const mealsToLog = currentSelectedDayObj.meals || [];
                             const updatedLogs = { ...foodLogs };
-                            updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-                            
+                            updatedLogs[currentDate] = updatedLogs[currentDate]
+                              ? [...updatedLogs[currentDate]]
+                              : [];
+
                             mealsToLog.forEach((m: any) => {
                               updatedLogs[currentDate].push({
                                 name: m.name,
@@ -2209,8 +2857,16 @@ export default function Dietician() {
                               });
                             });
                             setFoodLogs(updatedLogs);
-                            awardPoints(2, '🍏 Logged Full Meal Plan Day', 'lifestyle', `diet_day_${currentDate}`);
-                            toast.success('Meals Logged', `Day ${currentSelectedDayObj.day || selectedPlanDay} meals added to today's food log!`);
+                            awardPoints(
+                              2,
+                              '🍏 Logged Full Meal Plan Day',
+                              'lifestyle',
+                              `diet_day_${currentDate}`
+                            );
+                            toast.success(
+                              'Meals Logged',
+                              `Day ${currentSelectedDayObj.day || selectedPlanDay} meals added to today's food log!`
+                            );
                           }}
                           style={{
                             background: '#F0FDF4',
@@ -2231,163 +2887,219 @@ export default function Dietician() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-                      {(currentSelectedDayObj.meals || []).map((meal: MealPlanItem, mIdx: number) => {
-                        const dayNum = currentSelectedDayObj.day || selectedPlanDay;
-                        const multiplier = meal.servingMultiplier || 1.0;
-                        return (
-                          <div
-                            key={meal.id || mIdx}
-                            style={{
-                              background: '#F8FAFC',
-                              borderRadius: '16px',
-                              padding: '18px',
-                              border: '1px solid #E2E8F0',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
-                              gap: '12px',
-                            }}
-                          >
-                            <div>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  marginBottom: '6px',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: '11px',
-                                    fontWeight: 800,
-                                    color: '#059669',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.8px',
-                                  }}
-                                >
-                                  {meal.type}
-                                </span>
-                                
-                                <div style={{ display: 'flex', gap: '6px' }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStartEditMeal(dayNum, meal)}
-                                    title="Edit meal content or portions"
-                                    style={{
-                                      background: '#FFFFFF',
-                                      border: '1px solid #CBD5E1',
-                                      borderRadius: '6px',
-                                      padding: '3px 8px',
-                                      fontSize: '11px',
-                                      fontWeight: 700,
-                                      color: '#475569',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '3px',
-                                    }}
-                                  >
-                                    <Edit2 size={11} /> Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSwappingMeal({ day: dayNum, meal })}
-                                    title="Clinically swap this meal"
-                                    style={{
-                                      background: '#ECFDF5',
-                                      border: '1px solid #A7F3D0',
-                                      borderRadius: '6px',
-                                      padding: '3px 8px',
-                                      fontSize: '11px',
-                                      fontWeight: 700,
-                                      color: '#065F46',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '3px',
-                                    }}
-                                  >
-                                    <RefreshCw size={11} /> Swap
-                                  </button>
-                                </div>
-                              </div>
-
-                              <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0', lineHeight: 1.4 }}>
-                                {meal.name}
-                              </h4>
-
-                              {meal.isSwapped && meal.originalName && (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: isMobile
+                          ? '1fr'
+                          : 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: '16px',
+                      }}
+                    >
+                      {(currentSelectedDayObj.meals || []).map(
+                        (meal: MealPlanItem, mIdx: number) => {
+                          const dayNum = currentSelectedDayObj.day || selectedPlanDay;
+                          const multiplier = meal.servingMultiplier || 1.0;
+                          return (
+                            <div
+                              key={meal.id || mIdx}
+                              style={{
+                                background: '#F8FAFC',
+                                borderRadius: '16px',
+                                padding: '18px',
+                                border: '1px solid #E2E8F0',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                              }}
+                            >
+                              <div>
                                 <div
                                   style={{
-                                    fontSize: '11px',
-                                    background: '#EFF6FF',
-                                    color: '#1D4ED8',
-                                    border: '1px solid #BFDBFE',
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
-                                    marginBottom: '8px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '6px',
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 800,
+                                      color: '#059669',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.8px',
+                                    }}
+                                  >
+                                    {meal.type}
+                                  </span>
+
+                                  <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartEditMeal(dayNum, meal)}
+                                      title="Edit meal content or portions"
+                                      style={{
+                                        background: '#FFFFFF',
+                                        border: '1px solid #CBD5E1',
+                                        borderRadius: '6px',
+                                        padding: '3px 8px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        color: '#475569',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '3px',
+                                      }}
+                                    >
+                                      <Edit2 size={11} /> Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSwappingMeal({ day: dayNum, meal })}
+                                      title="Clinically swap this meal"
+                                      style={{
+                                        background: '#ECFDF5',
+                                        border: '1px solid #A7F3D0',
+                                        borderRadius: '6px',
+                                        padding: '3px 8px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        color: '#065F46',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '3px',
+                                      }}
+                                    >
+                                      <RefreshCw size={11} /> Swap
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <h4
+                                  style={{
+                                    fontSize: '15px',
+                                    fontWeight: 700,
+                                    color: '#0F172A',
+                                    margin: '0 0 6px 0',
                                     lineHeight: 1.4,
                                   }}
                                 >
-                                  <strong>Swapped from:</strong> {meal.originalName}
-                                  {meal.swapRationale ? ` · ${meal.swapRationale}` : ''}
-                                </div>
-                              )}
+                                  {meal.name}
+                                </h4>
 
-                              {meal.description && (
-                                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 10px 0', lineHeight: 1.5 }}>
-                                  {meal.description}
-                                </p>
-                              )}
-                            </div>
+                                {meal.isSwapped && meal.originalName && (
+                                  <div
+                                    style={{
+                                      fontSize: '11px',
+                                      background: '#EFF6FF',
+                                      color: '#1D4ED8',
+                                      border: '1px solid #BFDBFE',
+                                      padding: '4px 8px',
+                                      borderRadius: '6px',
+                                      marginBottom: '8px',
+                                      lineHeight: 1.4,
+                                    }}
+                                  >
+                                    <strong>Swapped from:</strong> {meal.originalName}
+                                    {meal.swapRationale ? ` · ${meal.swapRationale}` : ''}
+                                  </div>
+                                )}
 
-                            {/* Serving Multiplier Selector */}
-                            <div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                                  Serving: {meal.portion || '1 serving'}
-                                </span>
-                                <div style={{ display: 'flex', gap: '3px' }}>
-                                  {[0.5, 1.0, 1.5, 2.0].map((mult) => (
-                                    <button
-                                      key={mult}
-                                      type="button"
-                                      onClick={() => handleServingMultiplierChange(dayNum, meal.id, mult)}
-                                      style={{
-                                        padding: '2px 6px',
-                                        borderRadius: '4px',
-                                        fontSize: '10.5px',
-                                        fontWeight: 700,
-                                        border: multiplier === mult ? '1px solid #059669' : '1px solid #E2E8F0',
-                                        background: multiplier === mult ? '#ECFDF5' : '#FFFFFF',
-                                        color: multiplier === mult ? '#065F46' : '#64748B',
-                                        cursor: 'pointer',
-                                      }}
-                                    >
-                                      {mult}x
-                                    </button>
-                                  ))}
-                                </div>
+                                {meal.description && (
+                                  <p
+                                    style={{
+                                      fontSize: '12px',
+                                      color: '#64748B',
+                                      margin: '0 0 10px 0',
+                                      lineHeight: 1.5,
+                                    }}
+                                  >
+                                    {meal.description}
+                                  </p>
+                                )}
                               </div>
 
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #E2E8F0', fontSize: '12px', fontWeight: 600 }}>
-                                <span style={{ color: '#059669', fontWeight: 700 }}>
-                                  {meal.calories} kcal
-                                </span>
-                                <span style={{ color: '#94A3B8', fontSize: '11.5px' }}>
-                                  P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g
-                                </span>
+                              {/* Serving Multiplier Selector */}
+                              <div>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '6px',
+                                  }}
+                                >
+                                  <span
+                                    style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}
+                                  >
+                                    Serving: {meal.portion || '1 serving'}
+                                  </span>
+                                  <div style={{ display: 'flex', gap: '3px' }}>
+                                    {[0.5, 1.0, 1.5, 2.0].map((mult) => (
+                                      <button
+                                        key={mult}
+                                        type="button"
+                                        onClick={() =>
+                                          handleServingMultiplierChange(dayNum, meal.id, mult)
+                                        }
+                                        style={{
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                          fontSize: '10.5px',
+                                          fontWeight: 700,
+                                          border:
+                                            multiplier === mult
+                                              ? '1px solid #059669'
+                                              : '1px solid #E2E8F0',
+                                          background: multiplier === mult ? '#ECFDF5' : '#FFFFFF',
+                                          color: multiplier === mult ? '#065F46' : '#64748B',
+                                          cursor: 'pointer',
+                                        }}
+                                      >
+                                        {mult}x
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    paddingTop: '8px',
+                                    borderTop: '1px solid #E2E8F0',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  <span style={{ color: '#059669', fontWeight: 700 }}>
+                                    {meal.calories} kcal
+                                  </span>
+                                  <span style={{ color: '#94A3B8', fontSize: '11.5px' }}>
+                                    P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
 
                     {/* Portion and Nutrient Disclaimer & Clinical Guardrail */}
-                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div
+                      style={{
+                        marginTop: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
                       <div
                         style={{
                           display: 'flex',
@@ -2402,9 +3114,14 @@ export default function Dietician() {
                           lineHeight: 1.5,
                         }}
                       >
-                        <Info size={16} color="#64748B" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <Info
+                          size={16}
+                          color="#64748B"
+                          style={{ flexShrink: 0, marginTop: '2px' }}
+                        />
                         <span>
-                          <strong>Portion & Nutrient Estimates:</strong> {PORTION_ESTIMATE_DISCLAIMER}
+                          <strong>Portion & Nutrient Estimates:</strong>{' '}
+                          {PORTION_ESTIMATE_DISCLAIMER}
                         </span>
                       </div>
 
@@ -2422,7 +3139,11 @@ export default function Dietician() {
                           lineHeight: 1.5,
                         }}
                       >
-                        <ShieldCheck size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <ShieldCheck
+                          size={16}
+                          color="#DC2626"
+                          style={{ flexShrink: 0, marginTop: '2px' }}
+                        />
                         <span>
                           <strong>Clinical Safety Guardrail:</strong> {CLINICAL_SAFETY_GUARDRAIL}
                         </span>
@@ -2437,7 +3158,11 @@ export default function Dietician() {
 
         {/* TAB 3: SMART GROCERY LIST */}
         {activeTab === 'grocery' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -2449,11 +3174,19 @@ export default function Dietician() {
               }}
             >
               <div>
-                <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '20px' : '24px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                  }}
+                >
                   Smart Grocery Shopping List
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  Categorized grocery checklist mapped to your 7-day meal plan. Check off items as you shop.
+                  Categorized grocery checklist mapped to your 7-day meal plan. Check off items as
+                  you shop.
                 </p>
               </div>
 
@@ -2476,10 +3209,14 @@ export default function Dietician() {
                     boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)',
                     flex: isMobile ? 1 : 'unset',
                     justifyContent: 'center',
-                    opacity: isGeneratingGrocery ? 0.7 : 1
+                    opacity: isGeneratingGrocery ? 0.7 : 1,
                   }}
                 >
-                  {isGeneratingGrocery ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
+                  {isGeneratingGrocery ? (
+                    <Loader2 size={16} className="spin" />
+                  ) : (
+                    <Sparkles size={16} />
+                  )}
                   {isGeneratingGrocery ? 'Generating...' : 'Auto-Generate'}
                 </button>
                 <button
@@ -2504,7 +3241,13 @@ export default function Dietician() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: '20px',
+              }}
+            >
               {groceryList.map((cat, catIdx) => {
                 const total = cat.items.length;
                 const done = cat.items.filter((i: any) => i.checked).length;
@@ -2520,11 +3263,34 @@ export default function Dietician() {
                       boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <h3 style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <h3
+                        style={{
+                          fontSize: '15.5px',
+                          fontWeight: 800,
+                          color: '#0F172A',
+                          margin: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
                         <span>{cat.emoji}</span> {cat.category}
                       </h3>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: done === total ? '#059669' : '#64748B' }}>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: done === total ? '#059669' : '#64748B',
+                        }}
+                      >
                         {done} / {total}
                       </span>
                     </div>
@@ -2592,105 +3358,258 @@ export default function Dietician() {
           </motion.div>
         )}
 
-        
-          {/* TAB 4: CLINICAL GUARDRAILS */}
-          {activeTab === 'guardrails' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', marginBottom: '20px', gap: '12px' }}>
-                <div>
-                  <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                    Nutritional Guardrails & Bio-Compatibility Matrix
-                  </h2>
-                  <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                    AI-assisted food-plan checks using the profile details you supplied. Verify allergies, restrictions, and changes with a qualified clinician or dietitian.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={handleGenerateGuardrails}
-                    disabled={isGeneratingGuardrails}
-                    style={{
-                      background: guardrails.length > 0 ? '#FFFFFF' : '#0F172A',
-                      color: guardrails.length > 0 ? '#334155' : '#FFF',
-                      border: guardrails.length > 0 ? '1px solid #CBD5E1' : 'none',
-                      padding: '10px 16px',
-                      borderRadius: '12px',
-                      fontWeight: 700,
-                      fontSize: '13px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      cursor: isGeneratingGuardrails ? 'not-allowed' : 'pointer',
-                      opacity: isGeneratingGuardrails ? 0.7 : 1,
-                    }}
-                  >
-                    {isGeneratingGuardrails ? (
-                      <><Loader2 size={15} className="spin" /> Synthesizing...</>
-                    ) : (
-                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Update Guardrails' : 'Create Guardrails'}</>
-                    )}
-                  </button>
-                </div>
+        {/* TAB 4: CLINICAL GUARDRAILS */}
+        {activeTab === 'guardrails' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                flexDirection: isMobile ? 'column' : 'row',
+                marginBottom: '20px',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    fontSize: isMobile ? '20px' : '24px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 4px 0',
+                  }}
+                >
+                  Nutritional Guardrails & Bio-Compatibility Matrix
+                </h2>
+                <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
+                  AI-assisted food-plan checks using the profile details you supplied. Verify
+                  allergies, restrictions, and changes with a qualified clinician or dietitian.
+                </p>
               </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={handleGenerateGuardrails}
+                  disabled={isGeneratingGuardrails}
+                  style={{
+                    background: guardrails.length > 0 ? '#FFFFFF' : '#0F172A',
+                    color: guardrails.length > 0 ? '#334155' : '#FFF',
+                    border: guardrails.length > 0 ? '1px solid #CBD5E1' : 'none',
+                    padding: '10px 16px',
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: isGeneratingGuardrails ? 'not-allowed' : 'pointer',
+                    opacity: isGeneratingGuardrails ? 0.7 : 1,
+                  }}
+                >
+                  {isGeneratingGuardrails ? (
+                    <>
+                      <Loader2 size={15} className="spin" /> Synthesizing...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck size={15} />{' '}
+                      {guardrails.length > 0 ? 'Update Guardrails' : 'Create Guardrails'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
 
-              {guardrails.length === 0 && !isGeneratingGuardrails ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', background: '#FFFFFF', borderRadius: '24px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px auto' }}>
-                    <ShieldCheck size={32} />
-                  </div>
-                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>Matrix Offline</h3>
-                  <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                    Create editable planning guardrails from the information you entered. These are AI suggestions, not confirmation that a meal is safe or clinically appropriate.
-                  </p>
-                  <button onClick={handleGenerateGuardrails} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 800, fontSize: '15px', cursor: 'pointer' }}>
-                    Initialize Matrix
-                  </button>
+            {guardrails.length === 0 && !isGeneratingGuardrails ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  background: '#FFFFFF',
+                  borderRadius: '24px',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: '#F1F5F9',
+                    color: '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 18px auto',
+                  }}
+                >
+                  <ShieldCheck size={32} />
                 </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
-                  {guardrails.map((gr: any, idx: number) => {
-                    let IconComponent = ShieldCheck;
-                    if (gr.icon === 'Zap') IconComponent = Zap;
-                    if (gr.icon === 'Heart') IconComponent = Heart;
-                    if (gr.icon === 'Layers') IconComponent = Layers;
-                    if (gr.icon === 'Activity') IconComponent = Activity;
-                    if (gr.icon === 'Droplet') IconComponent = Droplet;
-                    if (gr.icon === 'Brain') IconComponent = Brain;
-                    if (gr.icon === 'Flame') IconComponent = Flame;
+                <h3
+                  style={{
+                    fontSize: '19px',
+                    fontWeight: 800,
+                    color: '#0F172A',
+                    margin: '0 0 8px 0',
+                  }}
+                >
+                  Matrix Offline
+                </h3>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontSize: '14.5px',
+                    maxWidth: '440px',
+                    margin: '0 auto 24px auto',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Create editable planning guardrails from the information you entered. These are AI
+                  suggestions, not confirmation that a meal is safe or clinically appropriate.
+                </p>
+                <button
+                  onClick={handleGenerateGuardrails}
+                  style={{
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    color: '#FFF',
+                    border: 'none',
+                    padding: '14px 28px',
+                    borderRadius: '14px',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Initialize Matrix
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gap: '20px',
+                }}
+              >
+                {guardrails.map((gr: any, idx: number) => {
+                  let IconComponent = ShieldCheck;
+                  if (gr.icon === 'Zap') IconComponent = Zap;
+                  if (gr.icon === 'Heart') IconComponent = Heart;
+                  if (gr.icon === 'Layers') IconComponent = Layers;
+                  if (gr.icon === 'Activity') IconComponent = Activity;
+                  if (gr.icon === 'Droplet') IconComponent = Droplet;
+                  if (gr.icon === 'Brain') IconComponent = Brain;
+                  if (gr.icon === 'Flame') IconComponent = Flame;
 
-                    let bgColor = '#F1F5F9';
-                    let iconColor = '#64748B';
-                    let targetColor = '#0F172A';
-                    
-                    if (gr.color === 'orange') { bgColor = '#FEF3C7'; iconColor = '#D97706'; targetColor = '#D97706'; }
-                    if (gr.color === 'blue') { bgColor = '#EFF6FF'; iconColor = '#2563EB'; targetColor = '#2563EB'; }
-                    if (gr.color === 'green') { bgColor = '#ECFDF5'; iconColor = '#059669'; targetColor = '#059669'; }
-                    if (gr.color === 'purple') { bgColor = '#F3E8FF'; iconColor = '#7E22CE'; targetColor = '#7E22CE'; }
-                    if (gr.color === 'red') { bgColor = '#FEE2E2'; iconColor = '#DC2626'; targetColor = '#DC2626'; }
+                  let bgColor = '#F1F5F9';
+                  let iconColor = '#64748B';
+                  let targetColor = '#0F172A';
 
-                    return (
-                      <div key={idx} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '24px', border: '1px solid #E2E8F0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor }}>
-                            <IconComponent size={18} />
-                          </div>
-                          <div>
-                            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: 0 }}>{gr.title}</h3>
-                            <span style={{ fontSize: '12px', color: targetColor, fontWeight: 700 }}>{gr.target}</span>
-                          </div>
+                  if (gr.color === 'orange') {
+                    bgColor = '#FEF3C7';
+                    iconColor = '#D97706';
+                    targetColor = '#D97706';
+                  }
+                  if (gr.color === 'blue') {
+                    bgColor = '#EFF6FF';
+                    iconColor = '#2563EB';
+                    targetColor = '#2563EB';
+                  }
+                  if (gr.color === 'green') {
+                    bgColor = '#ECFDF5';
+                    iconColor = '#059669';
+                    targetColor = '#059669';
+                  }
+                  if (gr.color === 'purple') {
+                    bgColor = '#F3E8FF';
+                    iconColor = '#7E22CE';
+                    targetColor = '#7E22CE';
+                  }
+                  if (gr.color === 'red') {
+                    bgColor = '#FEE2E2';
+                    iconColor = '#DC2626';
+                    targetColor = '#DC2626';
+                  }
+
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        background: '#FFFFFF',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        border: '1px solid #E2E8F0',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '10px',
+                            background: bgColor,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: iconColor,
+                          }}
+                        >
+                          <IconComponent size={18} />
                         </div>
-                        <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                          {gr.description}
-                        </p>
-                        <div style={{ fontSize: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', color: '#334155' }}>
-                          <strong>Key Nutrients:</strong> {gr.keyNutrients}
+                        <div>
+                          <h3
+                            style={{
+                              fontSize: '16px',
+                              fontWeight: 800,
+                              color: '#0F172A',
+                              margin: 0,
+                            }}
+                          >
+                            {gr.title}
+                          </h3>
+                          <span style={{ fontSize: '12px', color: targetColor, fontWeight: 700 }}>
+                            {gr.target}
+                          </span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-</motion.div>
+                      <p
+                        style={{
+                          fontSize: '13.5px',
+                          color: '#475569',
+                          lineHeight: 1.6,
+                          margin: '0 0 12px 0',
+                        }}
+                      >
+                        {gr.description}
+                      </p>
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          background: '#F8FAFC',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          color: '#334155',
+                        }}
+                      >
+                        <strong>Key Nutrients:</strong> {gr.keyNutrients}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
         )}
 
         {/* TAB 4: LONGEVITY BIO-STACK */}
@@ -2779,7 +3698,14 @@ export default function Dietician() {
                     <X size={16} />
                   </button>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '8px',
+                    }}
+                  >
                     <div
                       style={{
                         width: '38px',
@@ -2795,7 +3721,9 @@ export default function Dietician() {
                       <Utensils size={20} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                      <h3
+                        style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                      >
                         Log Meal / Nutrition
                       </h3>
                       <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
@@ -2805,31 +3733,47 @@ export default function Dietician() {
                   </div>
 
                   {/* Meal type selection */}
-                  <div style={{ display: 'flex', gap: '6px', margin: '18px 0 14px 0', flexWrap: 'wrap' }}>
-                    {['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'].map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setSelectedMealType(type)}
-                        style={{
-                          padding: '6px 14px',
-                          borderRadius: '10px',
-                          border: `1px solid ${selectedMealType === type ? '#059669' : '#E2E8F0'}`,
-                          background: selectedMealType === type ? '#ECFDF5' : '#FFFFFF',
-                          color: selectedMealType === type ? '#065F46' : '#64748B',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        {type}
-                      </button>
-                    ))}
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '6px',
+                      margin: '18px 0 14px 0',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'].map(
+                      (type) => (
+                        <button
+                          key={type}
+                          onClick={() => setSelectedMealType(type)}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '10px',
+                            border: `1px solid ${selectedMealType === type ? '#059669' : '#E2E8F0'}`,
+                            background: selectedMealType === type ? '#ECFDF5' : '#FFFFFF',
+                            color: selectedMealType === type ? '#065F46' : '#64748B',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {type}
+                        </button>
+                      )
+                    )}
                   </div>
 
                   {/* Quick Presets */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: '8px',
+                      }}
+                    >
                       ⚡ 1-Tap Quick Nutritious Presets:
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -2862,7 +3806,14 @@ export default function Dietician() {
 
                   {/* 1-Tap Pantry Staples */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: '6px',
+                      }}
+                    >
                       🥗 1-Tap Pantry Staples (Tap to append):
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -2872,7 +3823,9 @@ export default function Dietician() {
                           type="button"
                           onClick={() => {
                             triggerHapticLight();
-                            setFoodInput((prev) => (prev.trim() ? `${prev.trim()}, ${staple.name}` : staple.name));
+                            setFoodInput((prev) =>
+                              prev.trim() ? `${prev.trim()}, ${staple.name}` : staple.name
+                            );
                           }}
                           style={{
                             padding: '5px 10px',
@@ -2899,7 +3852,14 @@ export default function Dietician() {
 
                   {/* Latency / Reaction Window Chips */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '6px',
+                      }}
+                    >
                       <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
                         ⏱️ Post-Meal Reaction Window:
                       </span>
@@ -2922,7 +3882,8 @@ export default function Dietician() {
                             fontSize: '11.5px',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            border: mealLatency === lat ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
+                            border:
+                              mealLatency === lat ? '1.5px solid #0D9488' : '1px solid #E2E8F0',
                             background: mealLatency === lat ? '#CCFBF1' : '#FFFFFF',
                             color: mealLatency === lat ? '#0F766E' : '#475569',
                           }}
@@ -2935,7 +3896,16 @@ export default function Dietician() {
 
                   {/* Natural Language Input */}
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
-                    <label htmlFor="dietician-food-input" style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    <label
+                      htmlFor="dietician-food-input"
+                      style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: '6px',
+                      }}
+                    >
                       Or type in plain English / Hindi:
                     </label>
                     <textarea
@@ -2963,8 +3933,25 @@ export default function Dietician() {
 
                   {/* Live Biochemical Trigger Sensitivity Warning */}
                   {foodInput.trim().length > 2 && (
-                    <div style={{ marginBottom: '16px', padding: '10px 12px', borderRadius: '12px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <div
+                      style={{
+                        marginBottom: '16px',
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        background: '#F8FAFC',
+                        border: '1px solid #E2E8F0',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: 800,
+                          color: '#0F766E',
+                          letterSpacing: '0.5px',
+                          textTransform: 'uppercase',
+                          marginBottom: '6px',
+                        }}
+                      >
                         TriggerBite Biochemical Guard
                       </div>
                       {detectedTriggers.length > 0 ? (
@@ -2989,7 +3976,16 @@ export default function Dietician() {
                           ))}
                         </div>
                       ) : (
-                        <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#059669',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
                           <span>🛡️</span> Clinically Low Flare Risk detected
                         </div>
                       )}
@@ -3002,7 +3998,10 @@ export default function Dietician() {
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: isAnalyzingFood || !foodInput.trim() ? '#E2E8F0' : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                      background:
+                        isAnalyzingFood || !foodInput.trim()
+                          ? '#E2E8F0'
+                          : 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
                       color: isAnalyzingFood || !foodInput.trim() ? '#94A3B8' : '#FFF',
                       border: 'none',
                       borderRadius: '14px',
@@ -3013,7 +4012,10 @@ export default function Dietician() {
                       justifyContent: 'center',
                       gap: '8px',
                       cursor: isAnalyzingFood || !foodInput.trim() ? 'not-allowed' : 'pointer',
-                      boxShadow: isAnalyzingFood || !foodInput.trim() ? 'none' : '0 6px 20px rgba(13, 148, 136, 0.35)',
+                      boxShadow:
+                        isAnalyzingFood || !foodInput.trim()
+                          ? 'none'
+                          : '0 6px 20px rgba(13, 148, 136, 0.35)',
                       transition: 'all 0.2s',
                     }}
                   >
@@ -3047,7 +4049,7 @@ export default function Dietician() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px'
+                padding: '20px',
               }}
               onClick={() => setShowResetDietConfirm(false)}
             >
@@ -3066,17 +4068,39 @@ export default function Dietician() {
                   maxWidth: '440px',
                   width: '100%',
                   boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                  border: '1px solid #F1F5F9'
+                  border: '1px solid #F1F5F9',
                 }}
               >
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#FEE2E2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '14px',
+                    background: '#FEE2E2',
+                    color: '#EF4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '16px',
+                  }}
+                >
                   <Trash2 size={24} />
                 </div>
-                <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>
+                <h3
+                  style={{ margin: '0 0 8px', fontSize: '18px', color: '#0F172A', fontWeight: 700 }}
+                >
                   Reset Diet Profile & Plan?
                 </h3>
-                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748B', lineHeight: 1.5 }}>
-                  This will reset your personalized diet profile, active meal plans, grocery checklist, and food logs for this profile.
+                <p
+                  style={{
+                    margin: '0 0 24px',
+                    fontSize: '14px',
+                    color: '#64748B',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  This will reset your personalized diet profile, active meal plans, grocery
+                  checklist, and food logs for this profile.
                 </p>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
@@ -3089,20 +4113,23 @@ export default function Dietician() {
                   <button
                     onClick={() => {
                       updateProfileFeatureData('dietProfile', null);
-                          updateProfileFeatureData('dietFoodLogs', null);
-                          updateProfileFeatureData('dietHydration', null);
-                          updateProfileFeatureData('dietMealPlan', null);
-                          updateProfileFeatureData('dietAdvice', null);
-                          updateProfileFeatureData('dietGrocery', null);
+                      updateProfileFeatureData('dietFoodLogs', null);
+                      updateProfileFeatureData('dietHydration', null);
+                      updateProfileFeatureData('dietMealPlan', null);
+                      updateProfileFeatureData('dietAdvice', null);
+                      updateProfileFeatureData('dietGrocery', null);
                       setProfile(null);
-                        adviceFetched.current = false;
+                      adviceFetched.current = false;
                       setAdvice(null);
                       setMealPlan(null);
                       setFoodLogs({});
                       setHydration({});
                       setGroceryList(DEFAULT_GROCERY_CATEGORIES);
                       setShowResetDietConfirm(false);
-                      toast.success('Diet Profile Reset', 'Your diet plan and profile targets have been reset.');
+                      toast.success(
+                        'Diet Profile Reset',
+                        'Your diet plan and profile targets have been reset.'
+                      );
                     }}
                     style={{
                       flex: 1,
@@ -3112,7 +4139,7 @@ export default function Dietician() {
                       color: '#FFF',
                       border: 'none',
                       fontWeight: 650,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                   >
                     Reset Diet
@@ -3143,7 +4170,9 @@ export default function Dietician() {
                 overflowY: 'auto',
               }}
             >
-              <div style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div
+                style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto' }}
+              >
                 <OnboardingWizard
                   initialData={profile}
                   onCancel={() => setIsEditingProfile(false)}
@@ -3195,26 +4224,70 @@ export default function Dietician() {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div
+                  style={{
+                    padding: '20px 24px',
+                    borderBottom: '1px solid #F1F5F9',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(5, 150, 105, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '10px',
+                        background: 'rgba(5, 150, 105, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#059669',
+                      }}
+                    >
                       <BookOpen size={18} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Saved Meals Library</h3>
-                      <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>Quick-log your curated &amp; plan-derived meals</p>
+                      <h3
+                        style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                      >
+                        Saved Meals Library
+                      </h3>
+                      <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
+                        Quick-log your curated &amp; plan-derived meals
+                      </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowSavedMealsModal(false)}
-                    style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '12px',
+                      background: '#F1F5F9',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#64748B',
+                    }}
                   >
                     <X size={16} />
                   </button>
                 </div>
 
-                <div style={{ padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  style={{
+                    padding: '20px 24px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
                   {dynamicPresets.map((preset: any, idx: number) => (
                     <div
                       key={idx}
@@ -3229,14 +4302,32 @@ export default function Dietician() {
                         gap: '12px',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                      >
                         <span style={{ fontSize: '24px', flexShrink: 0 }}>{preset.emoji}</span>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 750, fontSize: '14px', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div
+                            style={{
+                              fontWeight: 750,
+                              fontSize: '14px',
+                              color: '#0F172A',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
                             {preset.name}
                           </div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                            {preset.calories} kcal · {preset.protein}g P · {preset.carbs}g C · {preset.fat}g F · {preset.portion}
+                            {preset.calories} kcal · {preset.protein}g P · {preset.carbs}g C ·{' '}
+                            {preset.fat}g F · {preset.portion}
                           </div>
                         </div>
                       </div>
@@ -3324,13 +4415,32 @@ export default function Dietician() {
                     gap: '16px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FFF1F2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#BE123C' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FFF1F2',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#BE123C',
+                        }}
+                      >
                         <StopCircle size={20} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Stop Meal Blueprint
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -3341,7 +4451,18 @@ export default function Dietician() {
                     <button
                       type="button"
                       onClick={() => setShowStopPlanModal(false)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
@@ -3366,7 +4487,9 @@ export default function Dietician() {
                       }}
                     >
                       {Object.entries(PLAN_STOP_REASON_LABELS).map(([key, label]) => (
-                        <option key={key} value={key}>{label}</option>
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -3408,13 +4531,26 @@ export default function Dietician() {
                       lineHeight: 1.5,
                     }}
                   >
-                    <ShieldCheck size={16} color="#059669" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <ShieldCheck
+                      size={16}
+                      color="#059669"
+                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    />
                     <span>
-                      <strong>Non-Destructive Guarantee:</strong> Stopping this blueprint archives it safely. All past daily food logs, symptom reactions, and calendar records remain 100% intact.
+                      <strong>Non-Destructive Guarantee:</strong> Stopping this blueprint archives
+                      it safely. All past daily food logs, symptom reactions, and calendar records
+                      remain 100% intact.
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '10px',
+                      marginTop: '6px',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setShowStopPlanModal(false)}
@@ -3511,13 +4647,32 @@ export default function Dietician() {
                     gap: '14px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#ECFDF5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#059669',
+                        }}
+                      >
                         <Edit2 size={18} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Edit Day {editingMeal.day} Meal
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -3528,94 +4683,205 @@ export default function Dietician() {
                     <button
                       type="button"
                       onClick={() => setEditingMeal(null)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Meal Name</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Meal Name
+                    </label>
                     <input
                       type="text"
                       value={editMealForm.name}
-                      onChange={(e) => setEditMealForm(prev => ({ ...prev, name: e.target.value }))}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      onChange={(e) =>
+                        setEditMealForm((prev) => ({ ...prev, name: e.target.value }))
+                      }
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Portion Assumption</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Portion Assumption
+                    </label>
                     <input
                       type="text"
                       value={editMealForm.portion}
-                      onChange={(e) => setEditMealForm(prev => ({ ...prev, portion: e.target.value }))}
+                      onChange={(e) =>
+                        setEditMealForm((prev) => ({ ...prev, portion: e.target.value }))
+                      }
                       placeholder="e.g. 1 bowl (300g) or 2 medium slices"
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}
+                  >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Calories (kcal)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>
+                        Calories (kcal)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.calories}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, calories: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({
+                            ...prev,
+                            calories: Number(e.target.value) || 0,
+                          }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Protein (g)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                        Protein (g)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.protein}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, protein: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({
+                            ...prev,
+                            protein: Number(e.target.value) || 0,
+                          }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Carbs (g)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                        Carbs (g)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.carbs}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, carbs: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({
+                            ...prev,
+                            carbs: Number(e.target.value) || 0,
+                          }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Fat (g)</label>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>
+                        Fat (g)
+                      </label>
                       <input
                         type="number"
                         value={editMealForm.fat}
-                        onChange={(e) => setEditMealForm(prev => ({ ...prev, fat: Number(e.target.value) || 0 }))}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                        onChange={(e) =>
+                          setEditMealForm((prev) => ({ ...prev, fat: Number(e.target.value) || 0 }))
+                        }
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          fontSize: '13px',
+                        }}
                       />
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Description / Recipe Notes</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                      Description / Recipe Notes
+                    </label>
                     <textarea
                       value={editMealForm.description}
-                      onChange={(e) => setEditMealForm(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setEditMealForm((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       rows={2}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px', resize: 'vertical' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                        resize: 'vertical',
+                      }}
                     />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '10px',
+                      marginTop: '6px',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setEditingMeal(null)}
-                      style={{ padding: '8px 16px', borderRadius: '10px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#475569', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '10px',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        color: '#475569',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveEditMeal}
-                      style={{ padding: '8px 18px', borderRadius: '10px', background: '#059669', border: 'none', color: '#FFFFFF', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                      style={{
+                        padding: '8px 18px',
+                        borderRadius: '10px',
+                        background: '#059669',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
                     >
                       Save Changes
                     </button>
@@ -3682,24 +4948,55 @@ export default function Dietician() {
                     overflowY: 'auto',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#ECFDF5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#059669',
+                        }}
+                      >
                         <RefreshCw size={18} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Clinical Dietary Swap
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-                          Replace <strong>{swappingMeal.meal.name}</strong> with a tolerance-tested clinical alternative.
+                          Replace <strong>{swappingMeal.meal.name}</strong> with a tolerance-tested
+                          clinical alternative.
                         </p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setSwappingMeal(null)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
@@ -3725,11 +5022,26 @@ export default function Dietician() {
                         }}
                       >
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginBottom: '2px' }}>
+                          <div
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              color: '#0F172A',
+                              marginBottom: '2px',
+                            }}
+                          >
                             {swap.smartReplacement}
                           </div>
-                          <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600, marginBottom: '4px' }}>
-                            Category: {swap.category.replace('_', ' ')} · Triggers: {swap.triggerName}
+                          <div
+                            style={{
+                              fontSize: '11.5px',
+                              color: '#059669',
+                              fontWeight: 600,
+                              marginBottom: '4px',
+                            }}
+                          >
+                            Category: {swap.category.replace('_', ' ')} · Triggers:{' '}
+                            {swap.triggerName}
                           </div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
                             {swap.biologicalMechanism}
@@ -3757,7 +5069,15 @@ export default function Dietician() {
                   </div>
 
                   {/* Custom Swap */}
-                  <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div
+                    style={{
+                      borderTop: '1px solid #E2E8F0',
+                      paddingTop: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
                     <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
                       Or Enter a Custom Replacement:
                     </div>
@@ -3766,14 +5086,24 @@ export default function Dietician() {
                       placeholder="Replacement food / dish name..."
                       value={customSwapName}
                       onChange={(e) => setCustomSwapName(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                     <input
                       type="text"
                       placeholder="Reason / rationale (optional)..."
                       value={customSwapRationale}
                       onChange={(e) => setCustomSwapRationale(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '13px' }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '13px',
+                      }}
                     />
                     <button
                       type="button"
@@ -3856,13 +5186,32 @@ export default function Dietician() {
                     overflowY: 'auto',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#F8FAFC',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#475569',
+                        }}
+                      >
                         <Archive size={18} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        <h3
+                          style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}
+                        >
                           Past Nutritional Blueprints
                         </h3>
                         <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
@@ -3873,7 +5222,18 @@ export default function Dietician() {
                     <button
                       type="button"
                       onClick={() => setShowArchivedPlansModal(false)}
-                      style={{ background: '#F1F5F9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B' }}
+                      style={{
+                        background: '#F1F5F9',
+                        border: 'none',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: '#64748B',
+                      }}
                     >
                       <X size={16} />
                     </button>
@@ -3899,11 +5259,17 @@ export default function Dietician() {
                             {archived.title || `Blueprint (${archived.days?.length || 7} Days)`}
                           </div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                            Archived: {new Date(archived.lifecycle?.updatedAt || archived.createdAt || Date.now()).toLocaleDateString()} · Status: {archived.lifecycle?.status || 'archived'}
+                            Archived:{' '}
+                            {new Date(
+                              archived.lifecycle?.updatedAt || archived.createdAt || Date.now()
+                            ).toLocaleDateString()}{' '}
+                            · Status: {archived.lifecycle?.status || 'archived'}
                           </div>
                           {archived.lifecycle?.stopReason && (
                             <div style={{ fontSize: '11.5px', color: '#BE123C', marginTop: '4px' }}>
-                              Stop reason: {PLAN_STOP_REASON_LABELS[archived.lifecycle.stopReason] || archived.lifecycle.stopReason}
+                              Stop reason:{' '}
+                              {PLAN_STOP_REASON_LABELS[archived.lifecycle.stopReason] ||
+                                archived.lifecycle.stopReason}
                             </div>
                           )}
                         </div>
@@ -3933,28 +5299,28 @@ export default function Dietician() {
           )}
         </AnimatePresence>
 
-
-        
-
-        {showARLens && <ARGroceryLens 
-          onClose={() => setShowARLens(false)} 
-          onLogFood={(food) => {
-            triggerHapticSuccess();
-            const updatedLogs = { ...foodLogs };
-            updatedLogs[currentDate] = updatedLogs[currentDate] ? [...updatedLogs[currentDate]] : [];
-            const entry = {
-              ...food,
-              id: Date.now() + Math.random(),
-            };
-            updatedLogs[currentDate].push(entry);
-            syncToUnifiedNutritionLogs(entry);
-            setFoodLogs(updatedLogs);
-            setShowARLens(false);
-            awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
-          }} 
-        />}
+        {showARLens && (
+          <ARGroceryLens
+            onClose={() => setShowARLens(false)}
+            onLogFood={(food) => {
+              triggerHapticSuccess();
+              const updatedLogs = { ...foodLogs };
+              updatedLogs[currentDate] = updatedLogs[currentDate]
+                ? [...updatedLogs[currentDate]]
+                : [];
+              const entry = {
+                ...food,
+                id: Date.now() + Math.random(),
+              };
+              updatedLogs[currentDate].push(entry);
+              syncToUnifiedNutritionLogs(entry);
+              setFoodLogs(updatedLogs);
+              setShowARLens(false);
+              awardPoints(5, 'AI Food Scanned & Logged', 'lifestyle', `ar_scan_${Date.now()}`);
+            }}
+          />
+        )}
       </div>
     </div>
   );
 }
-
