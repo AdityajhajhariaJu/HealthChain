@@ -1105,46 +1105,52 @@ export default function CaseDashboard() {
               <h2 className="serif-heading" style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 2px', color: '#2D3748', letterSpacing: '-0.5px' }}>Soundscapes</h2>
               <p style={{ fontSize: '14px', color: '#64748B', margin: 0, fontWeight: 600 }}>Immersive audio environments</p>
             </div>
-            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '4px 20px 24px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '18px', overflowX: 'auto', padding: '6px 20px 28px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
                 { 
                   name: 'Rain Sounds', 
                   desc: 'Deep Focus',
-                  format: 'Spatial 3D',
-                  icon: <Droplets size={18} color="#7DD3FC" />, 
+                  format: 'Spatial 3D Audio',
+                  icon: <Droplets size={20} color="#38BDF8" fill="#38BDF8" />, 
                   accentColor: '#38BDF8',
+                  shadowColor: 'rgba(14, 165, 233, 0.35)',
+                  overlayGradient: 'linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(14, 116, 144, 0.25) 40%, rgba(2, 6, 23, 0.92) 100%)',
                   img: '/images/thumb_rain_window_1788262571496.jpg'
                 },
                 { 
                   name: 'Focus Freqs', 
                   desc: '432Hz Tone',
-                  format: 'Harmonic Cymatics',
-                  icon: <Zap size={18} color="#C084FC" />, 
-                  accentColor: '#A855F7',
-                  img: '/images/thumb_freq_cymatics_1788264629537.jpg'
+                  format: 'Binaural Drift',
+                  icon: <Zap size={20} color="#E879F9" fill="#E879F9" />, 
+                  accentColor: '#E879F9',
+                  shadowColor: 'rgba(192, 132, 252, 0.35)',
+                  overlayGradient: 'linear-gradient(180deg, rgba(15, 5, 29, 0.08) 0%, rgba(88, 28, 135, 0.28) 40%, rgba(15, 5, 29, 0.92) 100%)',
+                  img: '/images/thumb_night_clouds_1788262545783.jpg'
                 },
                 { 
                   name: 'Forest Aura', 
                   desc: 'Nature Calm',
                   format: 'Bio-Acoustic Bed',
-                  icon: <Leaf size={18} color="#86EFAC" />, 
-                  accentColor: '#34D399',
+                  icon: <Leaf size={20} color="#4ADE80" fill="#4ADE80" />, 
+                  accentColor: '#4ADE80',
+                  shadowColor: 'rgba(34, 197, 94, 0.35)',
+                  overlayGradient: 'linear-gradient(180deg, rgba(2, 44, 34, 0.08) 0%, rgba(6, 78, 59, 0.28) 40%, rgba(2, 30, 24, 0.92) 100%)',
                   img: '/images/thumb_water_drop_1788260024692.jpg'
                 }
               ].map((type, i) => (
-                <div key={i} style={{ position: 'relative', flexShrink: 0, width: isMobile ? '150px' : '165px', height: isMobile ? '170px' : '185px', display: 'flex' }}>
+                <div key={i} style={{ position: 'relative', flexShrink: 0, width: isMobile ? '165px' : '190px', height: isMobile ? '210px' : '230px', display: 'flex' }}>
                   <motion.button 
-                    whileHover={{ y: -4, scale: 1.02 }}
+                    whileHover={{ y: -5, scale: 1.025 }}
                     whileTap={{ scale: 0.96 }}
                     style={{
-                      width: '100%', height: '100%', borderRadius: '28px',
-                      backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(15, 23, 42, 0.35) 45%, rgba(15, 23, 42, 0.92) 100%), url(${type.img})`,
+                      width: '100%', height: '100%', borderRadius: '32px',
+                      backgroundImage: `${type.overlayGradient}, url(${type.img})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       display: 'flex', flexDirection: 'column',
-                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px 15px', 
-                      border: '1px solid rgba(255, 255, 255, 0.32)', cursor: 'pointer',
-                      boxShadow: '0 18px 36px -6px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0,0,0,0.1), inset 0 1.5px 0 rgba(255, 255, 255, 0.45)',
+                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '16px 16px 18px', 
+                      border: '1.5px solid rgba(255, 255, 255, 0.38)', cursor: 'pointer',
+                      boxShadow: `0 22px 44px -10px ${type.shadowColor}, 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 2px 0 rgba(255, 255, 255, 0.65), inset 0 -1px 0 rgba(0, 0, 0, 0.3)`,
                       position: 'relative', overflow: 'hidden'
                     }}
                     onClick={() => {
@@ -1170,34 +1176,41 @@ export default function CaseDashboard() {
                       });
                     }}
                   >
+                    {/* Ambient Glow Aura */}
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, height: '55%',
+                      background: 'radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
+                      pointerEvents: 'none'
+                    }} />
+
                     {/* Top Action Row: Frosted Glass Ambient Pill & Play Pill */}
                     <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1 }}>
                       {/* Ambient Icon Frosted Disc */}
                       <div style={{
-                        width: '38px', height: '38px', borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.2)',
+                        width: '42px', height: '42px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.12) 100%)',
                         backdropFilter: 'blur(16px)',
                         WebkitBackdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255, 255, 255, 0.38)',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                        border: '1.5px solid rgba(255, 255, 255, 0.65)',
+                        boxShadow: '0 8px 18px rgba(0, 0, 0, 0.3), inset 0 1.5px 0 rgba(255, 255, 255, 0.85)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}>
                         {type.icon}
                       </div>
 
-                      {/* Frosted Play Pill */}
+                      {/* Radiant Frosted Play Pill */}
                       <div style={{
-                        display: 'flex', alignItems: 'center', gap: '4px',
-                        background: 'rgba(255, 255, 255, 0.22)',
-                        backdropFilter: 'blur(14px)',
-                        WebkitBackdropFilter: 'blur(14px)',
-                        padding: '4px 9px',
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.15) 100%)',
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        padding: '5px 11px',
                         borderRadius: '999px',
-                        border: '1px solid rgba(255, 255, 255, 0.38)',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                        border: '1.5px solid rgba(255, 255, 255, 0.7)',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.9)'
                       }}>
-                        <Play size={9} color="#FFFFFF" fill="#FFFFFF" />
-                        <span style={{ fontSize: '9px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.5px' }}>
+                        <Play size={10} color="#FFFFFF" fill="#FFFFFF" />
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.6px' }}>
                           PLAY
                         </span>
                       </div>
@@ -1205,39 +1218,60 @@ export default function CaseDashboard() {
 
                     {/* Bottom Information Cluster */}
                     <div style={{ width: '100%', textAlign: 'left', zIndex: 1, marginTop: 'auto' }}>
+                      {/* Pre-title Chip */}
                       <span style={{ 
+                        display: 'inline-block',
+                        background: 'rgba(255, 255, 255, 0.16)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255, 255, 255, 0.25)',
+                        padding: '2px 8px',
+                        borderRadius: '6px',
                         fontSize: '9.5px', 
                         fontWeight: 800, 
                         color: type.accentColor, 
                         letterSpacing: '0.8px', 
                         textTransform: 'uppercase', 
-                        display: 'block', 
-                        marginBottom: '2px',
-                        textShadow: '0 1px 4px rgba(0,0,0,0.8)'
+                        marginBottom: '6px',
+                        textShadow: `0 0 10px ${type.shadowColor}`
                       }}>
                         {type.desc}
                       </span>
+
+                      {/* Main Title */}
                       <span className="serif-heading" style={{ 
                         color: '#FFFFFF', 
                         fontWeight: 700, 
-                        fontSize: '17px', 
+                        fontSize: '19px', 
                         lineHeight: '1.15', 
                         display: 'block', 
-                        letterSpacing: '-0.3px',
-                        marginBottom: '6px',
-                        textShadow: '0 2px 10px rgba(0,0,0,0.85)'
+                        letterSpacing: '-0.4px',
+                        marginBottom: '8px',
+                        textShadow: '0 3px 14px rgba(0, 0, 0, 0.95)'
                       }}>
                         {type.name.split(' ')[0]}<br/>{type.name.split(' ')[1]}
                       </span>
 
                       {/* Micro Audio Equalizer & Format Row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5px', height: '9px' }}>
-                          <span style={{ width: '2px', height: '5px', background: type.accentColor, borderRadius: '1px' }} />
-                          <span style={{ width: '2px', height: '9px', background: type.accentColor, borderRadius: '1px' }} />
-                          <span style={{ width: '2px', height: '6px', background: type.accentColor, borderRadius: '1px' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '11px' }}>
+                          <motion.span 
+                            animate={{ height: ['4px', '11px', '5px', '9px', '4px'] }} 
+                            transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }} 
+                            style={{ width: '2.5px', background: type.accentColor, borderRadius: '2px', boxShadow: `0 0 6px ${type.accentColor}` }} 
+                          />
+                          <motion.span 
+                            animate={{ height: ['9px', '4px', '11px', '6px', '9px'] }} 
+                            transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }} 
+                            style={{ width: '2.5px', background: type.accentColor, borderRadius: '2px', boxShadow: `0 0 6px ${type.accentColor}` }} 
+                          />
+                          <motion.span 
+                            animate={{ height: ['5px', '10px', '4px', '11px', '5px'] }} 
+                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }} 
+                            style={{ width: '2.5px', background: type.accentColor, borderRadius: '2px', boxShadow: `0 0 6px ${type.accentColor}` }} 
+                          />
                         </div>
-                        <span style={{ fontSize: '10px', color: '#E2E8F0', fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+                        <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
                           {type.format}
                         </span>
                       </div>
