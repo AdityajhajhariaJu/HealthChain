@@ -602,11 +602,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     setReport(getConnectionDetectiveReport(activeReview?.report, activeCase));
   }, [activeReview, activeCase]);
   const [openedPillarId, setOpenedPillarId] = useState<PillarId | null>(() => {
-    if (initialTab) {
+    // Only open a pillar directly if an explicit non-default initialTab is provided (not 'map')
+    if (initialTab && initialTab !== 'map') {
       const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
       return target ? target.pillarId : null;
     }
-    return null;
+    return null; // Always show the 4 cards by default!
   });
   const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body' | 'cause' | 'dossier', TabId>>(() => ({
     gut: initialTab && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'map',
