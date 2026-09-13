@@ -86,7 +86,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
         overflow: 'hidden'
       }}
     >
-      {/* Ambient Radial Backlight */}
+      {/* Ambient Flame Radial Backlight */}
       <div 
         style={{
           position: 'absolute',
@@ -94,7 +94,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
           left: '-20px',
           width: '120px',
           height: '120px',
-          background: 'radial-gradient(circle, rgba(244, 63, 94, 0.2) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%)',
           pointerEvents: 'none',
           zIndex: 0
         }}
@@ -112,7 +112,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
           flexWrap: isMobile ? 'wrap' : 'nowrap'
         }}
       >
-        {/* Left: Icon & Streak Counter */}
+        {/* Left: Fire Flame & Streak Counter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <motion.div
             animate={{ 
@@ -126,15 +126,15 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               minWidth: isMobile ? '38px' : '42px',
               minHeight: isMobile ? '38px' : '42px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #FFE4E6 0%, #FECDD3 100%)',
-              border: '1.5px solid rgba(225, 29, 72, 0.4)',
-              boxShadow: '0 4px 14px rgba(225, 29, 72, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+              border: '1.5px solid rgba(217, 119, 6, 0.45)',
+              boxShadow: '0 4px 14px rgba(217, 119, 6, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Flame size={isMobile ? 20 : 22} color="#E11D48" fill="#F43F5E" />
+            <Flame size={isMobile ? 20 : 22} color="#D97706" fill="#F59E0B" />
           </motion.div>
 
           <div>
@@ -144,7 +144,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 style={{
                   fontSize: isMobile ? '18px' : '20px',
                   fontWeight: 800,
-                  color: '#4C0519',
+                  color: '#0F172A',
                   lineHeight: 1,
                   letterSpacing: '-0.5px'
                 }}
@@ -155,7 +155,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 style={{
                   fontSize: '11px',
                   fontWeight: 800,
-                  color: '#E11D48',
+                  color: '#D97706',
                   letterSpacing: '0.8px',
                   textTransform: 'uppercase'
                 }}

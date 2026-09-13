@@ -1110,41 +1110,69 @@ export default function CaseDashboard() {
                 { 
                   name: 'Rain Sounds', 
                   desc: 'Deep Focus',
-                  icon: <Droplets size={22} color="#0284C7" fill="#38BDF8" />, 
+                  format: 'Spatial Audio',
+                  icon: <Droplets size={20} color="#0284C7" fill="#38BDF8" />, 
+                  accentColor: '#0284C7',
                   themeRgb: '14, 165, 233', 
-                  bgGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 45%, #E0F2FE 100%)',
+                  bgGradient: 'linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 249, 255, 0.9) 45%, rgba(224, 242, 254, 0.75) 100%)',
                   iconBg: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
-                  glowColor: 'rgba(224, 242, 254, 0.5)'
+                  glowColor: 'rgba(186, 230, 253, 0.45)',
+                  graphic: (
+                    <svg style={{ position: 'absolute', right: '-8px', top: '22px', width: '100px', height: '100px', opacity: 0.22, pointerEvents: 'none' }} viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="14" fill="none" stroke="#0284C7" strokeWidth="1.5" strokeDasharray="3 3"/>
+                      <circle cx="50" cy="50" r="28" fill="none" stroke="#0284C7" strokeWidth="1.5"/>
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="#0284C7" strokeWidth="1.2" opacity="0.6"/>
+                    </svg>
+                  )
                 },
                 { 
                   name: 'Focus Freqs', 
                   desc: '432Hz Tone',
-                  icon: <Zap size={22} color="#7E22CE" fill="#A855F7" />, 
+                  format: 'Harmonic Flow',
+                  icon: <Zap size={20} color="#7E22CE" fill="#C084FC" />, 
+                  accentColor: '#7E22CE',
                   themeRgb: '168, 85, 247', 
-                  bgGradient: 'linear-gradient(135deg, #FFFFFF 0%, #FAF5FF 45%, #F3E8FF 100%)',
+                  bgGradient: 'linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(250, 245, 255, 0.9) 45%, rgba(243, 232, 255, 0.75) 100%)',
                   iconBg: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)',
-                  glowColor: 'rgba(243, 232, 255, 0.5)'
+                  glowColor: 'rgba(233, 213, 255, 0.45)',
+                  graphic: (
+                    <svg style={{ position: 'absolute', right: '-6px', top: '26px', width: '100px', height: '80px', opacity: 0.24, pointerEvents: 'none' }} viewBox="0 0 100 80">
+                      <path d="M0,40 Q25,12 50,40 T100,40" fill="none" stroke="#7E22CE" strokeWidth="1.8"/>
+                      <path d="M0,52 Q25,24 50,52 T100,52" fill="none" stroke="#A855F7" strokeWidth="1.4" opacity="0.7"/>
+                      <path d="M0,28 Q25,0 50,28 T100,28" fill="none" stroke="#C084FC" strokeWidth="1" opacity="0.5"/>
+                    </svg>
+                  )
                 },
                 { 
                   name: 'Forest Aura', 
                   desc: 'Nature Calm',
-                  icon: <Leaf size={22} color="#047857" fill="#34D399" />, 
+                  format: 'Bio-Acoustics',
+                  icon: <Leaf size={20} color="#047857" fill="#4ADE80" />, 
+                  accentColor: '#047857',
                   themeRgb: '34, 197, 94', 
-                  bgGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 45%, #DCFCE7 100%)',
+                  bgGradient: 'linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 253, 244, 0.9) 45%, rgba(220, 252, 231, 0.75) 100%)',
                   iconBg: 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
-                  glowColor: 'rgba(220, 252, 231, 0.5)'
+                  glowColor: 'rgba(187, 247, 208, 0.45)',
+                  graphic: (
+                    <svg style={{ position: 'absolute', right: '-8px', top: '20px', width: '100px', height: '90px', opacity: 0.22, pointerEvents: 'none' }} viewBox="0 0 100 90">
+                      <path d="M10,80 C30,30 70,20 90,10" fill="none" stroke="#047857" strokeWidth="1.8"/>
+                      <path d="M25,85 C45,45 75,35 95,28" fill="none" stroke="#10B981" strokeWidth="1.4" opacity="0.7"/>
+                      <path d="M5,70 C25,20 60,15 80,5" fill="none" stroke="#34D399" strokeWidth="1" opacity="0.5"/>
+                    </svg>
+                  )
                 }
               ].map((type, i) => (
-                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '135px', height: '150px', display: 'flex' }}>
+                <div key={i} style={{ position: 'relative', flexShrink: 0, width: isMobile ? '150px' : '165px', height: isMobile ? '165px' : '175px', display: 'flex' }}>
                   <motion.button 
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ y: -3, scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
                     style={{
-                      width: '100%', height: '100%', borderRadius: '26px',
+                      width: '100%', height: '100%', borderRadius: '28px',
                       background: type.bgGradient,
                       display: 'flex', flexDirection: 'column',
-                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '16px', 
-                      border: `1.5px solid rgba(${type.themeRgb}, 0.25)`, cursor: 'pointer',
-                      boxShadow: `0 12px 32px rgba(${type.themeRgb}, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.98), inset 0 0 20px ${type.glowColor}`,
+                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px 15px', 
+                      border: `1.5px solid rgba(${type.themeRgb}, 0.28)`, cursor: 'pointer',
+                      boxShadow: `0 14px 28px -4px rgba(${type.themeRgb}, 0.12), 0 2px 6px rgba(0,0,0,0.02), inset 0 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 0 24px ${type.glowColor}`,
                       position: 'relative', overflow: 'hidden'
                     }}
                     onClick={() => {
@@ -1170,32 +1198,82 @@ export default function CaseDashboard() {
                       });
                     }}
                   >
-                    {/* Radial Glow Backlight */}
+                    {/* Atmospheric Graphic Layer */}
+                    {type.graphic}
+
+                    {/* Ambient Radial Bloom */}
                     <div style={{
-                      position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px',
-                      background: `radial-gradient(circle, rgba(${type.themeRgb}, 0.16) 0%, transparent 70%)`,
+                      position: 'absolute', top: '-25px', left: '-25px', width: '110px', height: '110px',
+                      background: `radial-gradient(circle, rgba(${type.themeRgb}, 0.22) 0%, transparent 70%)`,
                       pointerEvents: 'none', zIndex: 0
                     }} />
 
-                    {/* Icon Container (Ava Style) */}
-                    <div style={{
-                      width: '42px', height: '42px', borderRadius: '50%',
-                      background: type.iconBg,
-                      border: `1.5px solid rgba(${type.themeRgb}, 0.4)`,
-                      boxShadow: `0 4px 14px rgba(${type.themeRgb}, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1
-                    }}>
-                      {type.icon}
+                    {/* Top Action Row: Jewel Dial + Play Pill */}
+                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 1 }}>
+                      {/* Jewel Icon Dial */}
+                      <div style={{
+                        width: '40px', height: '40px', borderRadius: '50%',
+                        background: type.iconBg,
+                        border: `1.5px solid rgba(${type.themeRgb}, 0.45)`,
+                        boxShadow: `0 4px 12px rgba(${type.themeRgb}, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.85)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        {type.icon}
+                      </div>
+
+                      {/* Frosted Play Pill */}
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: '4px',
+                        background: 'rgba(255, 255, 255, 0.88)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '4px 8px',
+                        borderRadius: '999px',
+                        border: `1px solid rgba(${type.themeRgb}, 0.25)`,
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)'
+                      }}>
+                        <Play size={9} color={type.accentColor} fill={type.accentColor} />
+                        <span style={{ fontSize: '9px', fontWeight: 800, color: type.accentColor, letterSpacing: '0.4px' }}>
+                          PLAY
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Bottom Text */}
+                    {/* Bottom Information Cluster */}
                     <div style={{ width: '100%', textAlign: 'left', zIndex: 1, marginTop: 'auto' }}>
-                      <span style={{ fontSize: '10px', fontWeight: 800, color: `rgb(${type.themeRgb})`, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      <span style={{ 
+                        fontSize: '9.5px', 
+                        fontWeight: 800, 
+                        color: type.accentColor, 
+                        letterSpacing: '0.8px', 
+                        textTransform: 'uppercase', 
+                        display: 'block', 
+                        marginBottom: '2px' 
+                      }}>
                         {type.desc}
                       </span>
-                      <span className="serif-heading" style={{ color: '#0F172A', fontWeight: 800, fontSize: '15px', lineHeight: '1.15', display: 'block', letterSpacing: '-0.2px' }}>
+                      <span className="serif-heading" style={{ 
+                        color: '#0F172A', 
+                        fontWeight: 700, 
+                        fontSize: '16px', 
+                        lineHeight: '1.15', 
+                        display: 'block', 
+                        letterSpacing: '-0.3px',
+                        marginBottom: '6px'
+                      }}>
                         {type.name.split(' ')[0]}<br/>{type.name.split(' ')[1]}
                       </span>
+
+                      {/* Micro Audio Equalizer & Format Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5px', height: '9px' }}>
+                          <span style={{ width: '2px', height: '5px', background: type.accentColor, borderRadius: '1px', opacity: 0.8 }} />
+                          <span style={{ width: '2px', height: '9px', background: type.accentColor, borderRadius: '1px' }} />
+                          <span style={{ width: '2px', height: '6px', background: type.accentColor, borderRadius: '1px', opacity: 0.9 }} />
+                        </div>
+                        <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
+                          {type.format}
+                        </span>
+                      </div>
                     </div>
                   </motion.button>
                 </div>
