@@ -480,6 +480,9 @@ export interface ParentPillarCardData {
   lightBg: string;
   borderColor: string;
   shadowColor: string;
+  gradient: string;
+  badgeBg: string;
+  badgeColor: string;
   stationIds: TabId[];
 }
 
@@ -492,11 +495,14 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     icon: '🥗',
     stationCount: 5,
     stationRange: '01 - 05',
-    telemetry: '4 Triggers',
+    telemetry: '4 Triggers Found',
     accentColor: '#0D9488',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
-    borderColor: 'rgba(13, 148, 136, 0.45)',
-    shadowColor: 'rgba(13, 148, 136, 0.22)',
+    borderColor: 'rgba(13, 148, 136, 0.35)',
+    shadowColor: 'rgba(13, 148, 136, 0.25)',
+    gradient: 'linear-gradient(135deg, #10B981 0%, #0D9488 100%)',
+    badgeBg: '#CCFBF1',
+    badgeColor: '#0F766E',
     stationIds: ['map', 'postmeal', 'calendar', 'elimination', 'insights']
   },
   {
@@ -510,8 +516,11 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     telemetry: 'Optimal Cutoffs',
     accentColor: '#0284C7',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 60%, #E0F2FE 100%)',
-    borderColor: 'rgba(2, 132, 199, 0.45)',
-    shadowColor: 'rgba(2, 132, 199, 0.22)',
+    borderColor: 'rgba(2, 132, 199, 0.35)',
+    shadowColor: 'rgba(2, 132, 199, 0.25)',
+    gradient: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
+    badgeBg: '#E0F2FE',
+    badgeColor: '#0369A1',
     stationIds: ['biomarkers', 'kinetic']
   },
   {
@@ -522,11 +531,14 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     icon: '⚡',
     stationCount: 4,
     stationRange: '08 - 11',
-    telemetry: '6 Panels',
+    telemetry: '6 Panels Aligned',
     accentColor: '#6366F1',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #EEF2FF 60%, #E0E7FF 100%)',
-    borderColor: 'rgba(99, 102, 241, 0.45)',
-    shadowColor: 'rgba(99, 102, 241, 0.22)',
+    borderColor: 'rgba(99, 102, 241, 0.35)',
+    shadowColor: 'rgba(99, 102, 241, 0.25)',
+    gradient: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
+    badgeBg: '#EEF2FF',
+    badgeColor: '#4338CA',
     stationIds: ['cascade', 'matcher', 'consensus', 'misses']
   },
   {
@@ -540,8 +552,11 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     telemetry: 'SBAR Ready',
     accentColor: '#E11D48',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #FFF1F2 60%, #FFE4E6 100%)',
-    borderColor: 'rgba(225, 29, 72, 0.45)',
-    shadowColor: 'rgba(225, 29, 72, 0.22)',
+    borderColor: 'rgba(225, 29, 72, 0.35)',
+    shadowColor: 'rgba(225, 29, 72, 0.25)',
+    gradient: 'linear-gradient(135deg, #FB7185 0%, #E11D48 100%)',
+    badgeBg: '#FFE4E6',
+    badgeColor: '#BE123C',
     stationIds: ['dossier']
   }
 ];
@@ -754,26 +769,20 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 <section
                   id={`cd-station-${station.id}`}
                   style={{
-                    background: '#FFFFFF',
-                    borderRadius: '20px',
-                    border: isHighlighted
-                      ? '2px solid #38BDF8'
-                      : '1.5px solid #E2E8F0',
-                    boxShadow: isHighlighted
-                      ? '0 0 0 4px rgba(56, 189, 248, 0.2), 0 8px 24px rgba(14, 165, 233, 0.08)'
-                      : '0 2px 10px rgba(0, 0, 0, 0.02)',
-                    overflow: 'hidden',
+                    background: 'transparent',
+                    border: 'none',
+                    boxShadow: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    gap: '8px',
                   }}
                 >
                 {/* STATION HEADER BAR */}
                 <header
                   style={{
-                    background: `linear-gradient(180deg, ${station.pillarBg} 0%, #FFFFFF 100%)`,
+                    background: 'transparent',
                     borderBottom: '1px solid #F1F5F9',
-                    padding: isMobile ? '12px 14px' : '14px 18px',
+                    padding: '8px 0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -2062,7 +2071,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               borderRadius: '999px',
             }}
           >
-            {openedPillarId ? '1 Domain Opened' : '12 Stations • 4 Clean Cards'}
+            12 Stations Total • Bento Folding Cards
           </span>
         </div>
       </div>
@@ -2070,606 +2079,399 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
       {/* FEATURE MISSION SCOPE BANNER */}
       <FeatureMissionHeader featureId="connection-detective" activeCaseId={activeCase?.id} />
 
-      {/* 2. CONDITIONAL VIEW: 4 CLEAN CARDS IN 2x2 MATRIX (DEFAULT) OR OPENED WORKSPACE */}
-      {openedPillarId === null ? (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-            gap: isMobile ? '14px' : '20px',
-          }}
-        >
-          {PARENT_PILLAR_CARDS.map((pillar) => {
-            const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
-
-            return (
-              <motion.div
-                key={pillar.id}
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  triggerHapticSelection();
-                  setOpenedPillarId(pillar.id);
-                  trackButtonClick('clinical_parent_pillar_open', pillar.id);
-                }}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '24px',
-                  border: `1.5px solid ${pillar.borderColor}`,
-                  boxShadow: `0 6px 20px -4px ${pillar.shadowColor}, 0 2px 6px rgba(0,0,0,0.02)`,
-                  padding: isMobile ? '18px 16px' : '24px 22px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  minHeight: isMobile ? '200px' : '230px',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-              >
-                {/* Top colored accent line */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '5px',
-                    background: pillar.accentColor,
-                  }}
-                />
-
-                <div>
-                  {/* Top Row: Icon + Badges */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <div
-                      style={{
-                        width: isMobile ? '42px' : '48px',
-                        height: isMobile ? '42px' : '48px',
-                        borderRadius: '14px',
-                        background: pillar.lightBg,
-                        border: `1.5px solid ${pillar.borderColor}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: isMobile ? '22px' : '26px',
-                        boxShadow: `0 3px 10px ${pillar.shadowColor}`,
-                      }}
-                    >
-                      {pillar.icon}
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          letterSpacing: '0.6px',
-                          textTransform: 'uppercase',
-                          color: pillar.accentColor,
-                          background: pillar.lightBg,
-                          padding: '3px 8px',
-                          borderRadius: '999px',
-                          border: `1px solid ${pillar.borderColor}`,
-                        }}
-                      >
-                        {pillar.badge}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          color: '#475569',
-                          background: '#F1F5F9',
-                          padding: '3px 8px',
-                          borderRadius: '999px',
-                        }}
-                      >
-                        {pillar.stationCount} {pillar.stationCount === 1 ? 'Station' : 'Stations'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <h3
-                    className="serif-heading"
-                    style={{
-                      margin: '0 0 8px 0',
-                      fontSize: isMobile ? '19px' : '22px',
-                      fontWeight: 800,
-                      color: '#0F172A',
-                      letterSpacing: '-0.4px',
-                      lineHeight: 1.25,
-                    }}
-                  >
-                    {pillar.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: isMobile ? '12.5px' : '13.5px',
-                      color: '#64748B',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {pillar.desc}
-                  </p>
-
-                  {/* Insider Station Tags Preview */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '16px' }}>
-                    {pillarStations.map((stn) => (
-                      <span
-                        key={stn.id}
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 700,
-                          color: '#475569',
-                          background: '#F8FAFC',
-                          border: '1px solid #E2E8F0',
-                          padding: '3px 8px',
-                          borderRadius: '7px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        <span>{stn.icon}</span>
-                        <span>{stn.shortTitle}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Card Footer: Telemetry + Action */}
-                <div
-                  style={{
-                    marginTop: '20px',
-                    paddingTop: '14px',
-                    borderTop: '1px solid #F1F5F9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '10.5px',
-                      fontWeight: 800,
-                      color: pillar.accentColor,
-                      background: pillar.lightBg,
-                      padding: '4px 9px',
-                      borderRadius: '8px',
-                      border: `1px solid ${pillar.borderColor}`,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: '5px',
-                        height: '5px',
-                        borderRadius: '50%',
-                        background: pillar.accentColor,
-                        boxShadow: `0 0 6px ${pillar.accentColor}`,
-                      }}
-                    />
-                    <span>{pillar.telemetry}</span>
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      color: pillar.accentColor,
-                    }}
-                  >
-                    <span>Tap to Open</span>
-                    <span>→</span>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      ) : (
-        /* OPENED CARD EXPANDED VIEW */
-        (() => {
-          const openedPillar = PARENT_PILLAR_CARDS.find((p) => p.id === openedPillarId) || PARENT_PILLAR_CARDS[0];
-          const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === openedPillar.id);
-          const activeStationIdForPillar = cardActiveStations[openedPillar.id as keyof typeof cardActiveStations] || pillarStations[0]?.id;
+      {/* 2. THE 4 BENTO CARDS IN 2x2 MATRIX (CLICKING ANY CARD FOLDS OPEN ITS CONTENT) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+          gap: isMobile ? '16px' : '22px',
+          alignItems: 'start',
+        }}
+      >
+        {PARENT_PILLAR_CARDS.map((pillar) => {
+          const isExpanded = openedPillarId === pillar.id;
+          const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === pillar.id);
+          const activeStationIdForPillar = cardActiveStations[pillar.id as keyof typeof cardActiveStations] || pillarStations[0]?.id;
           const activeStation = pillarStations.find((s) => s.id === activeStationIdForPillar) || pillarStations[0];
           const currentStationIndex = pillarStations.findIndex((s) => s.id === activeStation?.id);
           const prevStation = currentStationIndex > 0 ? pillarStations[currentStationIndex - 1] : null;
           const nextStation = currentStationIndex >= 0 && currentStationIndex < pillarStations.length - 1 ? pillarStations[currentStationIndex + 1] : null;
 
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Navigation & Domain Switcher Bar */}
+            <motion.div
+              id={`cd-card-${pillar.id}`}
+              key={pillar.id}
+              layout
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.45) 100%)',
+                backdropFilter: 'blur(32px)',
+                WebkitBackdropFilter: 'blur(32px)',
+                border: isExpanded ? `2px solid ${pillar.accentColor}` : '1px solid rgba(255, 255, 255, 0.95)',
+                boxShadow: isExpanded
+                  ? `0 24px 48px -10px ${pillar.shadowColor}, inset 0 1px 0 rgba(255,255,255,0.95)`
+                  : '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.6)',
+                borderRadius: isMobile ? '28px' : '36px',
+                padding: isMobile ? '18px 18px' : '24px 26px',
+                display: 'flex',
+                flexDirection: 'column',
+                gridColumn: isExpanded ? (isMobile ? 'auto' : '1 / -1') : 'auto',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'box-shadow 0.25s ease, border 0.25s ease',
+              }}
+            >
+              {/* CARD HEADER (CLICKABLE ACCORDION TRIGGER) */}
               <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '10px',
-                  padding: '2px 0',
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  triggerHapticSelection();
+                  setOpenedPillarId((prev) => (prev === pillar.id ? null : pillar.id));
                 }}
-              >
-                {/* Back Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    setOpenedPillarId(null);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '7px 16px',
-                    borderRadius: '999px',
-                    background: '#FFFFFF',
-                    border: '1.5px solid #CBD5E1',
-                    color: '#0F172A',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <ArrowLeft size={13} />
-                  <span>Back to 4 Cards</span>
-                </button>
-
-                {/* Quick Domain Switcher */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto' }}>
-                  {PARENT_PILLAR_CARDS.map((p) => {
-                    const isCurrent = p.id === openedPillar.id;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => {
-                          triggerHapticSelection();
-                          setOpenedPillarId(p.id);
-                        }}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          padding: '6px 12px',
-                          borderRadius: '999px',
-                          background: isCurrent ? p.accentColor : '#FFFFFF',
-                          border: `1.5px solid ${isCurrent ? p.accentColor : '#E2E8F0'}`,
-                          color: isCurrent ? '#FFFFFF' : '#475569',
-                          fontSize: '11px',
-                          fontWeight: isCurrent ? 800 : 600,
-                          cursor: 'pointer',
-                          boxShadow: isCurrent ? `0 2px 8px ${p.shadowColor}` : 'none',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <span>{p.icon}</span>
-                        <span>{p.title}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* THE OPENED PILLAR CARD CONTAINER */}
-              <div
-                id={`cd-card-${openedPillar.id}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticSelection();
+                    setOpenedPillarId((prev) => (prev === pillar.id ? null : pillar.id));
+                  }
+                }}
                 style={{
-                  background: '#FFFFFF',
-                  borderRadius: '24px',
-                  border: `2px solid ${openedPillar.accentColor}`,
-                  boxShadow: `0 16px 40px -8px ${openedPillar.shadowColor}, 0 4px 12px rgba(0,0,0,0.04)`,
-                  overflow: 'hidden',
+                  cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
+                  gap: '12px',
+                  userSelect: 'none',
                 }}
               >
-                {/* Card Header with insider tabs */}
-                <div
-                  style={{
-                    background: openedPillar.lightBg,
-                    borderBottom: `1.5px solid ${openedPillar.borderColor}`,
-                    padding: isMobile ? '14px 16px' : '16px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                >
-                  {/* Top row: Icon + Title + Badges + Close button */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div
-                        style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '12px',
-                          background: '#FFFFFF',
-                          border: `1.5px solid ${openedPillar.borderColor}`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '22px',
-                          boxShadow: `0 2px 8px ${openedPillar.shadowColor}`,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {openedPillar.icon}
-                      </div>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 800,
-                              letterSpacing: '0.6px',
-                              textTransform: 'uppercase',
-                              color: openedPillar.accentColor,
-                              background: '#FFFFFF',
-                              padding: '1px 6px',
-                              borderRadius: '999px',
-                              border: `1px solid ${openedPillar.borderColor}`,
-                            }}
-                          >
-                            {openedPillar.badge}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: 800,
-                              color: '#475569',
-                              background: '#F1F5F9',
-                              padding: '1px 6px',
-                              borderRadius: '999px',
-                            }}
-                          >
-                            {openedPillar.stationCount} {openedPillar.stationCount === 1 ? 'Station' : 'Stations'}
-                          </span>
-                        </div>
-                        <h3
-                          className="serif-heading"
-                          style={{
-                            margin: '2px 0 0 0',
-                            fontSize: isMobile ? '18px' : '20px',
-                            fontWeight: 800,
-                            color: '#0F172A',
-                            letterSpacing: '-0.3px',
-                            lineHeight: 1.2,
-                          }}
-                        >
-                          {openedPillar.title}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {/* Telemetry */}
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '10.5px',
-                          fontWeight: 800,
-                          color: openedPillar.accentColor,
-                          background: '#FFFFFF',
-                          padding: '4px 9px',
-                          borderRadius: '8px',
-                          border: `1px solid ${openedPillar.borderColor}`,
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: '5px',
-                            height: '5px',
-                            borderRadius: '50%',
-                            background: openedPillar.accentColor,
-                            boxShadow: `0 0 6px ${openedPillar.accentColor}`,
-                          }}
-                        />
-                        <span>{openedPillar.telemetry}</span>
-                      </div>
-
-                      {/* Close Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHapticLight();
-                          setOpenedPillarId(null);
-                        }}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          padding: '5px 10px',
-                          borderRadius: '8px',
-                          background: '#FFFFFF',
-                          border: '1px solid #CBD5E1',
-                          color: '#475569',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                        title="Close and return to 4 Cards"
-                      >
-                        <X size={13} />
-                        <span>Close</span>
-                      </button>
-                    </div>
+                {/* Top Row: Circular Icon + Badges + Chevron Fold Toggle */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      width: isMobile ? '40px' : '46px',
+                      height: isMobile ? '40px' : '46px',
+                      borderRadius: '50%',
+                      background: pillar.gradient,
+                      boxShadow: `0 8px 18px ${pillar.shadowColor}, inset 0 1px 0 rgba(255,255,255,0.5)`,
+                      border: '1px solid rgba(255,255,255,0.6)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: isMobile ? '20px' : '23px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {pillar.icon}
                   </div>
 
-                  {/* Description */}
-                  <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
-                    {openedPillar.desc}
-                  </p>
-
-                  {/* DOCKED INSIDER STATION TABS */}
-                  {pillarStations.length > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Micro-badge matching CaseDashboard */}
                     <div
+                      className="micro-badge"
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        overflowX: 'auto',
-                        paddingBottom: '2px',
-                        scrollbarWidth: 'none',
+                        background: isExpanded ? pillar.accentColor : pillar.badgeBg,
+                        color: isExpanded ? '#FFFFFF' : pillar.badgeColor,
+                        padding: '4px 12px',
+                        borderRadius: '999px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        letterSpacing: '0.6px',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      {pillarStations.map((station) => {
-                        const isActive = activeStation?.id === station.id;
-                        return (
+                      {pillar.stationCount} {pillar.stationCount === 1 ? 'STATION' : 'STATIONS'}
+                    </div>
+
+                    {/* Chevron Fold Indicator (Rotates 180° when open) */}
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: isExpanded ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.85)',
+                        border: '1px solid rgba(0,0,0,0.06)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: isExpanded ? pillar.accentColor : '#64748B',
+                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.25s ease',
+                      }}
+                    >
+                      <ChevronDown size={16} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title & Subtitle */}
+                <div>
+                  <h4
+                    className="serif-heading"
+                    style={{
+                      fontSize: isMobile ? '20px' : '22px',
+                      fontWeight: 700,
+                      margin: '0 0 4px',
+                      color: '#2D3748',
+                      lineHeight: 1.25,
+                      letterSpacing: '-0.3px',
+                    }}
+                  >
+                    {pillar.title}
+                  </h4>
+                  <p
+                    style={{
+                      fontSize: isMobile ? '12.5px' : '13.5px',
+                      color: '#64748B',
+                      margin: 0,
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {pillar.desc}
+                  </p>
+                </div>
+
+                {/* Closed Preview: Station Tags + Telemetry */}
+                {!isExpanded && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {pillarStations.map((stn) => (
+                        <span
+                          key={stn.id}
+                          style={{
+                            fontSize: '9.5px',
+                            fontWeight: 700,
+                            color: '#475569',
+                            background: 'rgba(255,255,255,0.85)',
+                            border: '1px solid #E2E8F0',
+                            padding: '2px 7px',
+                            borderRadius: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                          }}
+                        >
+                          <span>{stn.icon}</span>
+                          <span>{stn.shortTitle}</span>
+                        </span>
+                      ))}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        color: pillar.accentColor,
+                        background: pillar.badgeBg,
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          borderRadius: '50%',
+                          background: pillar.accentColor,
+                        }}
+                      />
+                      <span>{pillar.telemetry}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* FOLDED CONTENT (UNFOLDS WHEN CLICKED) */}
+              <AnimatePresence initial={false}>
+                {isExpanded && (
+                  <motion.div
+                    key="content"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div
+                      style={{
+                        marginTop: '18px',
+                        paddingTop: '16px',
+                        borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px',
+                      }}
+                    >
+                      {/* Insider Station Tabs Strip */}
+                      {pillarStations.length > 1 && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            overflowX: 'auto',
+                            paddingBottom: '4px',
+                            scrollbarWidth: 'none',
+                          }}
+                        >
+                          {pillarStations.map((station) => {
+                            const isStationActive = activeStation?.id === station.id;
+                            return (
+                              <button
+                                key={station.id}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  triggerHapticSelection();
+                                  setCardActiveStations((prev) => ({ ...prev, [pillar.id]: station.id }));
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px',
+                                  padding: '6px 12px',
+                                  borderRadius: '999px',
+                                  background: isStationActive ? '#0F172A' : '#FFFFFF',
+                                  color: isStationActive ? '#FFFFFF' : '#475569',
+                                  border: isStationActive ? '1.5px solid #0F172A' : '1px solid #E2E8F0',
+                                  fontSize: '11px',
+                                  fontWeight: isStationActive ? 800 : 600,
+                                  cursor: 'pointer',
+                                  whiteSpace: 'nowrap',
+                                  boxShadow: isStationActive ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: '9.5px',
+                                    fontWeight: 900,
+                                    padding: '1px 5px',
+                                    borderRadius: '4px',
+                                    background: isStationActive ? pillar.accentColor : '#F1F5F9',
+                                    color: isStationActive ? '#FFFFFF' : '#64748B',
+                                  }}
+                                >
+                                  {station.stationNumber}
+                                </span>
+                                <span>{station.icon}</span>
+                                <span>{station.shortTitle}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Station Content flat directly inside fold */}
+                      {activeStation && renderStation(activeStation)}
+
+                      {/* Stepper Footer inside fold */}
+                      <div
+                        style={{
+                          paddingTop: '12px',
+                          borderTop: '1px solid #E2E8F0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        {prevStation ? (
                           <button
-                            key={station.id}
                             type="button"
-                            onClick={() => {
-                              triggerHapticSelection();
-                              setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: station.id }));
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerHapticLight();
+                              setCardActiveStations((prev) => ({ ...prev, [pillar.id]: prevStation.id }));
                             }}
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '5px',
+                              gap: '4px',
                               padding: '6px 12px',
-                              borderRadius: '999px',
-                              background: isActive ? '#0F172A' : '#FFFFFF',
-                              color: isActive ? '#FFFFFF' : '#334155',
-                              border: isActive ? '1.5px solid #0F172A' : `1px solid ${openedPillar.borderColor}`,
+                              borderRadius: '8px',
+                              background: '#FFFFFF',
+                              border: '1px solid #CBD5E1',
+                              color: '#334155',
                               fontSize: '11px',
-                              fontWeight: isActive ? 800 : 600,
+                              fontWeight: 700,
                               cursor: 'pointer',
-                              whiteSpace: 'nowrap',
-                              boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.02)',
-                              transition: 'all 0.15s ease',
                             }}
                           >
-                            <span
-                              style={{
-                                fontSize: '9.5px',
-                                fontWeight: 900,
-                                padding: '1px 5px',
-                                borderRadius: '4px',
-                                background: isActive ? openedPillar.accentColor : '#F1F5F9',
-                                color: isActive ? '#FFFFFF' : '#64748B',
-                              }}
-                            >
-                              {station.stationNumber}
-                            </span>
-                            <span>{station.icon}</span>
-                            <span>{station.shortTitle}</span>
+                            <span>← Prev:</span>
+                            <span>{prevStation.icon}</span>
+                            <span>{prevStation.shortTitle}</span>
                           </button>
-                        );
-                      })}
+                        ) : <div />}
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerHapticLight();
+                            setOpenedPillarId(null);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '5px 12px',
+                            borderRadius: '999px',
+                            background: 'transparent',
+                            border: '1px solid #CBD5E1',
+                            color: '#64748B',
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span>Fold Card ⌃</span>
+                        </button>
+
+                        {nextStation ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerHapticLight();
+                              setCardActiveStations((prev) => ({ ...prev, [pillar.id]: nextStation.id }));
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              background: pillar.accentColor,
+                              border: 'none',
+                              color: '#FFFFFF',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              boxShadow: `0 2px 6px ${pillar.shadowColor}`,
+                            }}
+                          >
+                            <span>Next:</span>
+                            <span>{nextStation.icon}</span>
+                            <span>{nextStation.shortTitle}</span>
+                            <span>→</span>
+                          </button>
+                        ) : <div />}
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Card Body: Active Station Content */}
-                <div
-                  style={{
-                    padding: isMobile ? '14px 16px' : '20px 24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '16px',
-                  }}
-                >
-                  {activeStation && renderStation(activeStation)}
-                </div>
-
-                {/* Stepper Footer inside the opened card */}
-                {pillarStations.length > 1 && (
-                  <div
-                    style={{
-                      borderTop: '1px solid #F1F5F9',
-                      padding: '12px 20px',
-                      background: '#F8FAFC',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      disabled={!prevStation}
-                      onClick={() => {
-                        if (prevStation) {
-                          triggerHapticLight();
-                          setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: prevStation.id }));
-                        }
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        background: prevStation ? '#FFFFFF' : '#F1F5F9',
-                        border: '1px solid #CBD5E1',
-                        color: prevStation ? '#334155' : '#94A3B8',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: prevStation ? 'pointer' : 'not-allowed',
-                      }}
-                    >
-                      <span>← Prev:</span>
-                      <span>{prevStation?.icon}</span>
-                      <span>{prevStation?.shortTitle}</span>
-                    </button>
-
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B' }}>
-                      Station {currentStationIndex + 1} of {pillarStations.length} in {openedPillar.title}
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={!nextStation}
-                      onClick={() => {
-                        if (nextStation) {
-                          triggerHapticLight();
-                          setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: nextStation.id }));
-                        }
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        background: nextStation ? openedPillar.accentColor : '#F1F5F9',
-                        border: nextStation ? 'none' : '1px solid #CBD5E1',
-                        color: nextStation ? '#FFFFFF' : '#94A3B8',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: nextStation ? 'pointer' : 'not-allowed',
-                        boxShadow: nextStation ? `0 2px 6px ${openedPillar.shadowColor}` : 'none',
-                      }}
-                    >
-                      <span>Next:</span>
-                      <span>{nextStation?.icon}</span>
-                      <span>{nextStation?.shortTitle}</span>
-                      <span>→</span>
-                    </button>
-                  </div>
+                  </motion.div>
                 )}
-              </div>
-            </div>
+              </AnimatePresence>
+            </motion.div>
           );
-        })()
-      )}
+        })}
+      </div>
+
       {sourcePassageModalData && (
         <SourcePassageModal
           {...sourcePassageModalData}
