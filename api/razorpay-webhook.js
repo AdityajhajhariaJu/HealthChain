@@ -154,7 +154,9 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: error.message || 'Webhook subscription activation failed',
             }).eq('razorpay_payment_id', paymentId);
-          } catch {}
+          } catch (err) {
+            console.error('Failed to update fulfillment status:', err);
+          }
           return res.status(500).json({ error: 'Failed to activate entitlement' });
         }
       } else if (targetPlan.type === 'topup') {
@@ -200,7 +202,9 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: topupError.message || 'Webhook top-up activation failed',
             }).eq('razorpay_payment_id', paymentId);
-          } catch {}
+          } catch (err) {
+            console.error('Failed to update fulfillment status for top-up:', err);
+          }
           return res.status(500).json({ error: 'Failed to record topup' });
         }
       }
