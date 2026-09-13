@@ -116,25 +116,59 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <motion.div
             animate={{ 
-              scale: [1, 1.08, 1],
-              rotate: [-2, 2, -2]
+              scale: [1, 1.06, 1],
+              rotate: [-1.5, 1.5, -1.5]
             }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             style={{
-              width: isMobile ? '38px' : '42px',
-              height: isMobile ? '38px' : '42px',
-              minWidth: isMobile ? '38px' : '42px',
-              minHeight: isMobile ? '38px' : '42px',
+              width: isMobile ? '40px' : '44px',
+              height: isMobile ? '40px' : '44px',
+              minWidth: isMobile ? '40px' : '44px',
+              minHeight: isMobile ? '40px' : '44px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
-              border: '1.5px solid rgba(217, 119, 6, 0.45)',
-              boxShadow: '0 4px 14px rgba(217, 119, 6, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              background: 'linear-gradient(145deg, #FFF7ED 0%, #FEF3C7 45%, #FDE68A 100%)',
+              border: '1.5px solid rgba(245, 158, 11, 0.5)',
+              boxShadow: '0 4px 16px rgba(234, 88, 12, 0.28), inset 0 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -1.5px 3px rgba(245, 158, 11, 0.2)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              position: 'relative'
             }}
           >
-            <Flame size={isMobile ? 20 : 22} color="#D97706" fill="#F59E0B" />
+            <svg 
+              width={isMobile ? "22" : "24"} 
+              height={isMobile ? "22" : "24"} 
+              viewBox="0 0 32 32" 
+              fill="none" 
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(234, 88, 12, 0.45))' }}
+            >
+              <defs>
+                <linearGradient id="realFlameOuter" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#EF4444" />
+                  <stop offset="30%" stopColor="#F97316" />
+                  <stop offset="70%" stopColor="#F59E0B" />
+                  <stop offset="100%" stopColor="#FBBF24" />
+                </linearGradient>
+                <linearGradient id="realFlameCore" x1="16" y1="13" x2="16" y2="28" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#F59E0B" />
+                  <stop offset="45%" stopColor="#FDE047" />
+                  <stop offset="85%" stopColor="#FEF08A" />
+                  <stop offset="100%" stopColor="#FFFFFF" />
+                </linearGradient>
+              </defs>
+              {/* Realistic Outer Flame */}
+              <path 
+                d="M16 2.5C14.2 6.2 11.5 8.8 9 12C6.2 15.5 5 19 5 22.5C5 27.8 9.5 30.5 16 30.5C22.5 30.5 27 27.8 27 22.5C27 16.8 22.2 13.2 20 8.5C19 6.5 19 4 18 2.5C17.5 4 17 6.2 15.5 7.2C16.5 5.2 16.5 3.5 16 2.5Z" 
+                fill="url(#realFlameOuter)" 
+              />
+              {/* Inner Combustion Core */}
+              <path 
+                d="M16 14C14.5 16.5 12.5 18 12.5 21C12.5 24 14 26.5 16 26.5C18 26.5 19.5 24 19.5 21C19.5 18.5 18 17 17 15C16.5 16 16.2 17 15.5 17.5C15.8 16 16 15 16 14Z" 
+                fill="url(#realFlameCore)" 
+              />
+              {/* White-Hot Ignition Base Spark */}
+              <ellipse cx="16" cy="24.5" rx="3" ry="1.8" fill="#FFFFFF" opacity="0.95" />
+            </svg>
           </motion.div>
 
           <div>
