@@ -71,7 +71,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFDF7 45%, #FEF9C3 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 253, 247, 0.85) 45%, rgba(254, 249, 195, 0.75) 100%), url(/ava-floral-bg.jpg) center/cover no-repeat',
         backdropFilter: 'blur(32px)',
         WebkitBackdropFilter: 'blur(32px)',
         borderRadius: isMobile ? '20px' : '26px',
