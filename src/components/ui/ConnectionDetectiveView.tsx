@@ -467,6 +467,85 @@ export const TAB_TO_PILLAR: Record<TabId, 'gut' | 'body' | 'cause' | 'dossier'> 
   dossier: 'dossier',
 };
 
+export interface ParentPillarCardData {
+  id: PillarId;
+  title: string;
+  badge: string;
+  desc: string;
+  icon: string;
+  stationCount: number;
+  stationRange: string;
+  telemetry: string;
+  accentColor: string;
+  lightBg: string;
+  borderColor: string;
+  shadowColor: string;
+  stationIds: TabId[];
+}
+
+export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
+  {
+    id: 'gut',
+    title: 'Gut & Food',
+    badge: 'Pillar 01',
+    desc: 'Dietary triggers, histamine, post-meal timing & calendar flares',
+    icon: '🥗',
+    stationCount: 5,
+    stationRange: '01 - 05',
+    telemetry: '4 Triggers Detected',
+    accentColor: '#0D9488',
+    lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
+    borderColor: 'rgba(13, 148, 136, 0.45)',
+    shadowColor: 'rgba(13, 148, 136, 0.22)',
+    stationIds: ['map', 'postmeal', 'calendar', 'elimination', 'insights']
+  },
+  {
+    id: 'body',
+    title: 'Labs & Body',
+    badge: 'Pillar 02',
+    desc: 'Functional lab ranges, optimal targets & vagal biomechanics',
+    icon: '🧪',
+    stationCount: 2,
+    stationRange: '06 - 07',
+    telemetry: 'Optimal Cutoffs',
+    accentColor: '#0284C7',
+    lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 60%, #E0F2FE 100%)',
+    borderColor: 'rgba(2, 132, 199, 0.45)',
+    shadowColor: 'rgba(2, 132, 199, 0.22)',
+    stationIds: ['biomarkers', 'kinetic']
+  },
+  {
+    id: 'cause',
+    title: 'Root Cause',
+    badge: 'Pillar 03',
+    desc: '5-stage domino cascade, cluster matcher & specialist consensus',
+    icon: '⚡',
+    stationCount: 4,
+    stationRange: '08 - 11',
+    telemetry: '6 Panels Aligned',
+    accentColor: '#6366F1',
+    lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #EEF2FF 60%, #E0E7FF 100%)',
+    borderColor: 'rgba(99, 102, 241, 0.45)',
+    shadowColor: 'rgba(99, 102, 241, 0.22)',
+    stationIds: ['cascade', 'matcher', 'consensus', 'misses']
+  },
+  {
+    id: 'dossier',
+    title: 'Doctor Dossier',
+    badge: 'Pillar 04',
+    desc: 'Physician SBAR brief, diagnostic codes & clinical orders',
+    icon: '📋',
+    stationCount: 1,
+    stationRange: 'Station 12',
+    telemetry: 'SBAR Handoff Ready',
+    accentColor: '#E11D48',
+    lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #FFF1F2 60%, #FFE4E6 100%)',
+    borderColor: 'rgba(225, 29, 72, 0.45)',
+    shadowColor: 'rgba(225, 29, 72, 0.22)',
+    stationIds: ['dossier']
+  }
+];
+
 export interface PillarFilterOption {
   id: PillarId;
   label: string;
@@ -508,7 +587,13 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   useEffect(() => {
     setReport(getConnectionDetectiveReport(activeReview?.report, activeCase));
   }, [activeReview, activeCase]);
-  const [selectedPillar, setSelectedPillar] = useState<PillarId>('all');
+  const [selectedPillar, setSelectedPillar] = useState<PillarId>(() => {
+    if (initialTab) {
+      const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
+      if (target) return target.pillarId;
+    }
+    return 'gut';
+  });
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
 
@@ -649,6 +734,10 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
     return ALL_12_STATIONS.filter((s) => s.pillarId === selectedPillar);
   }, [selectedPillar, focusedStationId]);
 
+  const activePillarCard = useMemo(() => {
+    return PARENT_PILLAR_CARDS.find((p) => p.id === selectedPillar);
+  }, [selectedPillar]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <FeatureMissionHeader featureId="connection-detective" activeCaseId={activeCase?.id} />
@@ -745,145 +834,267 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             </div>
           </div>
         </div>
-
-        {/* 4 Clinical Pillars Micro-Summary */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-            gap: '6px',
-            background: 'rgba(0, 0, 0, 0.25)',
-            borderRadius: '14px',
-            padding: '8px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          {[
-            { label: '🥗 Gut & Food', count: '5 Stations', desc: 'Foods, timeline, hunt' },
-            { label: '🧪 Labs & Body', count: '2 Stations', desc: 'Ranges & biomechanics' },
-            { label: '⚡ Root Cause', count: '4 Stations', desc: 'Cascade & consensus' },
-            { label: '📋 Doctor Dossier', count: '1 Station', desc: 'Physician SBAR brief' },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              style={{
-                padding: '6px 8px',
-                borderRadius: '10px',
-                background: 'rgba(255, 255, 255, 0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1px',
-              }}
-            >
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#F1F5F9' }}>{item.label}</span>
-              <span style={{ fontSize: '9.5px', color: '#7DD3FC', fontWeight: 700 }}>{item.count}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* 2. PILLAR SEGMENTED CONTROLLER & ANCHOR NAVIGATION BAR */}
+      {/* 2. THE 4 PARENT PILLAR CARDS (SIDE-BY-SIDE BENTO DECK) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gap: isMobile ? '10px' : '14px',
+        }}
+      >
+        {PARENT_PILLAR_CARDS.map((pillar) => {
+          const isSelected = selectedPillar === pillar.id;
+
+          return (
+            <motion.button
+              key={pillar.id}
+              type="button"
+              whileHover={{ y: -3, scale: 1.015 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                triggerHapticSelection();
+                setSelectedPillar(pillar.id);
+                setFocusedStationId(null);
+                trackButtonClick('clinical_parent_pillar_select', pillar.id);
+              }}
+              style={{
+                background: isSelected ? pillar.lightBg : '#FFFFFF',
+                borderRadius: '20px',
+                border: isSelected
+                  ? `2px solid ${pillar.accentColor}`
+                  : '1.5px solid #E2E8F0',
+                boxShadow: isSelected
+                  ? `0 12px 28px -4px ${pillar.shadowColor}, 0 2px 8px rgba(0,0,0,0.03), inset 0 1.5px 0 #FFFFFF`
+                  : '0 4px 14px rgba(0, 0, 0, 0.03)',
+                padding: isMobile ? '12px' : '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                textAlign: 'left',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                transition: 'border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
+                minHeight: isMobile ? '135px' : '150px',
+              }}
+            >
+              {/* Active Ambient Glow Aura */}
+              {isSelected && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-30px',
+                    right: '-30px',
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    background: `radial-gradient(circle, ${pillar.shadowColor} 0%, transparent 70%)`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+
+              {/* Top Row: Icon Circle + Station Count Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '8px' }}>
+                <div
+                  style={{
+                    width: isMobile ? '34px' : '38px',
+                    height: isMobile ? '34px' : '38px',
+                    borderRadius: '12px',
+                    background: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#F8FAFC',
+                    border: `1px solid ${isSelected ? pillar.borderColor : '#E2E8F0'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: isMobile ? '18px' : '20px',
+                    boxShadow: isSelected ? '0 4px 10px rgba(0, 0, 0, 0.05)' : 'none',
+                  }}
+                >
+                  {pillar.icon}
+                </div>
+
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '3px 8px',
+                    borderRadius: '999px',
+                    background: isSelected ? 'rgba(255, 255, 255, 0.85)' : '#F1F5F9',
+                    border: `1px solid ${isSelected ? pillar.borderColor : '#E2E8F0'}`,
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    color: isSelected ? pillar.accentColor : '#64748B',
+                  }}
+                >
+                  <span>{pillar.stationCount} Stations</span>
+                </div>
+              </div>
+
+              {/* Middle: Title & Range */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                  <h4
+                    className="serif-heading"
+                    style={{
+                      margin: 0,
+                      fontSize: isMobile ? '15px' : '17px',
+                      fontWeight: 800,
+                      color: isSelected ? '#0F172A' : '#1E293B',
+                      letterSpacing: '-0.3px',
+                    }}
+                  >
+                    {pillar.title}
+                  </h4>
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: 800,
+                      color: isSelected ? pillar.accentColor : '#94A3B8',
+                      background: isSelected ? 'rgba(255,255,255,0.7)' : '#F1F5F9',
+                      padding: '1px 5px',
+                      borderRadius: '4px',
+                      letterSpacing: '0.3px',
+                    }}
+                  >
+                    {pillar.stationRange}
+                  </span>
+                </div>
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: isMobile ? '10.5px' : '11.5px',
+                    color: '#64748B',
+                    lineHeight: 1.35,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {pillar.desc}
+                </p>
+              </div>
+
+              {/* Bottom: Telemetry Pulse Badge */}
+              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '9.5px',
+                    fontWeight: 700,
+                    color: isSelected ? pillar.accentColor : '#475569',
+                    background: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#F8FAFC',
+                    padding: '3px 7px',
+                    borderRadius: '6px',
+                    border: `1px solid ${isSelected ? pillar.borderColor : '#E2E8F0'}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '5px',
+                      height: '5px',
+                      borderRadius: '50%',
+                      background: isSelected ? pillar.accentColor : '#94A3B8',
+                      boxShadow: isSelected ? `0 0 6px ${pillar.accentColor}` : 'none',
+                    }}
+                  />
+                  {pillar.telemetry}
+                </div>
+
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    color: isSelected ? pillar.accentColor : '#94A3B8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                  }}
+                >
+                  {isSelected ? 'Active' : 'Open'} →
+                </span>
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      {/* 3. STICKY INSIDER STATIONS BAR */}
       <div
         style={{
           position: 'sticky',
           top: '0',
           zIndex: 40,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          padding: '8px 0',
+          background: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          padding: '10px 14px',
+          borderRadius: '18px',
+          border: '1.5px solid #E2E8F0',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
-          borderBottom: '1px solid #E2E8F0',
         }}
       >
-        {/* Tier 1: Pillar Filter Buttons */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            background: '#F1F5F9',
-            borderRadius: '14px',
-            padding: '3px',
-            border: '1px solid #E2E8F0',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
-          {PILLAR_FILTERS.map((filter) => {
-            const isActive = !focusedStationId && selectedPillar === filter.id;
-            return (
-              <button
-                key={filter.id}
-                type="button"
-                onClick={() => {
-                  triggerHapticSelection();
-                  setSelectedPillar(filter.id);
-                  setFocusedStationId(null);
-                  trackButtonClick('clinical_pillar_filter', filter.id);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: isMobile ? '7px 9px' : '8px 12px',
-                  borderRadius: '10px',
-                  fontSize: isMobile ? '11px' : '12px',
-                  fontWeight: isActive ? 800 : 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  flex: isMobile ? 'none' : 1,
-                  justifyContent: 'center',
-                  border: isActive ? '1.5px solid rgba(56, 189, 248, 0.65)' : '1px solid transparent',
-                  background: isActive
-                    ? 'linear-gradient(135deg, rgba(240, 249, 255, 0.98) 0%, rgba(224, 242, 254, 0.9) 100%)'
-                    : 'transparent',
-                  color: isActive ? '#0369A1' : '#64748B',
-                  boxShadow: isActive ? '0 3px 10px rgba(14, 165, 233, 0.15), inset 0 1px 1px #FFFFFF' : 'none',
-                  transition: 'all 0.15s ease',
-                  minHeight: '36px',
-                }}
-              >
-                <span>{filter.icon}</span>
-                <span>{isMobile ? filter.shortLabel : filter.label}</span>
-              </button>
-            );
-          })}
+        {/* Top Header of the Bar: Active Pillar Indicator + All 12 Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>{activePillarCard?.icon || '✨'}</span>
+              <span>{selectedPillar === 'all' ? 'All 12 Clinical Stations' : `${activePillarCard?.title} Insider Stations`}</span>
+            </span>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                color: activePillarCard?.accentColor || '#0284C7',
+                background: '#F0F9FF',
+                padding: '2px 8px',
+                borderRadius: '999px',
+                border: '1px solid #BAE6FD',
+              }}
+            >
+              {visibleStations.length} {visibleStations.length === 1 ? 'Station' : 'Stations'} Active
+            </span>
+          </div>
 
-          {focusedStationId && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               type="button"
               onClick={() => {
-                triggerHapticLight();
+                triggerHapticSelection();
+                setSelectedPillar(selectedPillar === 'all' ? 'gut' : 'all');
                 setFocusedStationId(null);
               }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '6px 10px',
-                borderRadius: '10px',
-                background: '#0284C7',
-                color: '#FFFFFF',
-                border: 'none',
+                padding: '5px 10px',
+                borderRadius: '8px',
+                background: selectedPillar === 'all' ? '#0284C7' : '#F1F5F9',
+                color: selectedPillar === 'all' ? '#FFFFFF' : '#475569',
+                border: selectedPillar === 'all' ? '1px solid #0284C7' : '1px solid #E2E8F0',
                 fontSize: '11px',
                 fontWeight: 700,
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)',
+                transition: 'all 0.15s ease',
               }}
             >
-              <Minimize2 size={12} /> Show All 12
+              <Sparkles size={11} />
+              <span>{selectedPillar === 'all' ? 'Back to Pillar View' : 'View All 12 Linear'}</span>
             </button>
-          )}
+          </div>
         </div>
 
-        {/* Tier 2: Numbered Quick-Jump Capsules Strip (01 to 12) with Translucent Blue Highlight */}
+        {/* Insider Stations Numbered Pills Strip */}
         <div
           style={{
             display: 'flex',
@@ -895,7 +1106,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             alignItems: 'center',
           }}
         >
-          {ALL_12_STATIONS.map((station) => {
+          {visibleStations.map((station) => {
             const isHighlighted = highlightedStationId === station.id;
             const isFocused = focusedStationId === station.id;
             const isSelectedCapsule = isFocused || isHighlighted;
@@ -909,8 +1120,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '5px',
-                  padding: '5px 10px',
+                  gap: '6px',
+                  padding: '5px 12px',
                   borderRadius: '999px',
                   fontSize: '11px',
                   fontWeight: isSelectedCapsule ? 800 : 600,
@@ -929,11 +1140,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     : 'none',
                   transition: 'all 0.18s ease',
                   minHeight: '32px',
-                  backdropFilter: isSelectedCapsule ? 'blur(8px)' : 'none',
-                  WebkitBackdropFilter: isSelectedCapsule ? 'blur(8px)' : 'none',
                 }}
               >
-                {/* Micro Restrained Capsule Detail */}
                 <span
                   style={{
                     fontSize: '9.5px',
@@ -947,22 +1155,6 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 >
                   {station.stationNumber}
                 </span>
-
-                {/* Restrained two-tone micro-capsule icon on selected */}
-                {isSelectedCapsule && (
-                  <span
-                    style={{
-                      width: '10px',
-                      height: '5px',
-                      borderRadius: '2.5px',
-                      background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.95) 50%)',
-                      border: '0.8px solid #0284C7',
-                      display: 'inline-block',
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-
                 <span>{station.icon}</span>
                 <span>{station.shortTitle}</span>
               </button>
