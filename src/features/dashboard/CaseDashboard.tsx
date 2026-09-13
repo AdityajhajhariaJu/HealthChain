@@ -1107,21 +1107,45 @@ export default function CaseDashboard() {
             </div>
             <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '4px 20px 24px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
-                { name: 'Rain Sounds', mainIcon: <Waves size={24} />, accentIcon: <Droplets size={12} color="#7DD3FC" />, accentText: 'Rain', color: '#38bdf8', img: '/images/thumb_rain_window_1788262571496.jpg' },
-                { name: 'Focus Freqs', mainIcon: <Activity size={24} />, accentIcon: <Zap size={12} color="#C084FC" />, accentText: '432Hz', color: '#c084fc', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
-                { name: 'Forest Aura', mainIcon: <Wind size={24} />, accentIcon: <Leaf size={12} color="#6EE7B7" />, accentText: 'Nature', color: '#34d399', img: '/images/thumb_water_drop_1788260024692.jpg' }
+                { 
+                  name: 'Rain Sounds', 
+                  desc: 'Deep Focus',
+                  icon: <Droplets size={22} color="#0284C7" fill="#38BDF8" />, 
+                  themeRgb: '14, 165, 233', 
+                  bgGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 45%, #E0F2FE 100%)',
+                  iconBg: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
+                  glowColor: 'rgba(224, 242, 254, 0.5)'
+                },
+                { 
+                  name: 'Focus Freqs', 
+                  desc: '432Hz Tone',
+                  icon: <Zap size={22} color="#7E22CE" fill="#A855F7" />, 
+                  themeRgb: '168, 85, 247', 
+                  bgGradient: 'linear-gradient(135deg, #FFFFFF 0%, #FAF5FF 45%, #F3E8FF 100%)',
+                  iconBg: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)',
+                  glowColor: 'rgba(243, 232, 255, 0.5)'
+                },
+                { 
+                  name: 'Forest Aura', 
+                  desc: 'Nature Calm',
+                  icon: <Leaf size={22} color="#047857" fill="#34D399" />, 
+                  themeRgb: '34, 197, 94', 
+                  bgGradient: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 45%, #DCFCE7 100%)',
+                  iconBg: 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
+                  glowColor: 'rgba(220, 252, 231, 0.5)'
+                }
               ].map((type, i) => (
-                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '135px', height: '165px', display: 'flex' }}>
+                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '135px', height: '150px', display: 'flex' }}>
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
                     style={{
-                      width: '100%', height: '100%', borderRadius: '32px',
-                      backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(15,23,42,0.85) 100%), url(${type.img})`,
-                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      width: '100%', height: '100%', borderRadius: '26px',
+                      background: type.bgGradient,
                       display: 'flex', flexDirection: 'column',
-                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px', 
-                      border: `1px solid rgba(255, 255, 255, 0.25)`, cursor: 'pointer',
-                      boxShadow: `0 16px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)`
+                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '16px', 
+                      border: `1.5px solid rgba(${type.themeRgb}, 0.25)`, cursor: 'pointer',
+                      boxShadow: `0 12px 32px rgba(${type.themeRgb}, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.98), inset 0 0 20px ${type.glowColor}`,
+                      position: 'relative', overflow: 'hidden'
                     }}
                     onClick={() => {
                       triggerHapticLight();
@@ -1137,7 +1161,7 @@ export default function CaseDashboard() {
                         description: type.name === 'Rain Sounds' ? 'A continuous, looping recording of gentle rain falling on leaves.' : 
                                      type.name === 'Focus Freqs' ? 'A continuous 432Hz frequency hum mixed with subtle brown noise.' :
                                      'A spatial audio recording of a temperate forest. Features gentle wind and distant birdsong.',
-                        cover_image_url: type.img,
+                        cover_image_url: '',
                         audio_url: '',
                         video_url: '',
                         duration_minutes: 120,
@@ -1146,18 +1170,30 @@ export default function CaseDashboard() {
                       });
                     }}
                   >
-                    {/* Top Accent Pill */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', padding: '4px 8px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)' }}>
-                      {type.accentIcon}
-                      <span style={{ fontSize: '10px', fontWeight: 700, color: '#F8FAFC', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{type.accentText}</span>
+                    {/* Radial Glow Backlight */}
+                    <div style={{
+                      position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px',
+                      background: `radial-gradient(circle, rgba(${type.themeRgb}, 0.16) 0%, transparent 70%)`,
+                      pointerEvents: 'none', zIndex: 0
+                    }} />
+
+                    {/* Icon Container (Ava Style) */}
+                    <div style={{
+                      width: '42px', height: '42px', borderRadius: '50%',
+                      background: type.iconBg,
+                      border: `1.5px solid rgba(${type.themeRgb}, 0.4)`,
+                      boxShadow: `0 4px 14px rgba(${type.themeRgb}, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1
+                    }}>
+                      {type.icon}
                     </div>
 
-                    {/* Bottom Icon & Text */}
-                    <div style={{ width: '100%', textAlign: 'left' }}>
-                      <div style={{ color: type.color, marginBottom: '6px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
-                        {type.mainIcon}
-                      </div>
-                      <span className="serif-heading" style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '16px', lineHeight: '1.15', display: 'block', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                    {/* Bottom Text */}
+                    <div style={{ width: '100%', textAlign: 'left', zIndex: 1, marginTop: 'auto' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 800, color: `rgb(${type.themeRgb})`, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                        {type.desc}
+                      </span>
+                      <span className="serif-heading" style={{ color: '#0F172A', fontWeight: 800, fontSize: '15px', lineHeight: '1.15', display: 'block', letterSpacing: '-0.2px' }}>
                         {type.name.split(' ')[0]}<br/>{type.name.split(' ')[1]}
                       </span>
                     </div>
