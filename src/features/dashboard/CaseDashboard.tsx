@@ -29,7 +29,9 @@ import {
   Pill,
   Plus,
   FileText,
-  GitMerge
+  GitMerge,
+  Zap,
+  Leaf
 } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1105,19 +1107,21 @@ export default function CaseDashboard() {
             </div>
             <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '4px 20px 24px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
-                { name: 'Rain Sounds', icon: <Waves size={26} />, color: '#0284C7', bg: '#E0F2FE', img: '/images/thumb_rain_window_1788262571496.jpg' },
-                { name: 'Focus Frequencies', icon: <Activity size={26} />, color: '#9333EA', bg: '#F3E8FF', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
-                { name: 'Forest Ambience', icon: <Wind size={26} />, color: '#059669', bg: '#D1FAE5', img: '/images/thumb_water_drop_1788260024692.jpg' }
+                { name: 'Rain Sounds', mainIcon: <Waves size={24} />, accentIcon: <Droplets size={12} color="#7DD3FC" />, accentText: 'Rain', color: '#38bdf8', img: '/images/thumb_rain_window_1788262571496.jpg' },
+                { name: 'Focus Freqs', mainIcon: <Activity size={24} />, accentIcon: <Zap size={12} color="#C084FC" />, accentText: '432Hz', color: '#c084fc', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
+                { name: 'Forest Aura', mainIcon: <Wind size={24} />, accentIcon: <Leaf size={12} color="#6EE7B7" />, accentText: 'Nature', color: '#34d399', img: '/images/thumb_water_drop_1788260024692.jpg' }
               ].map((type, i) => (
-                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '130px', height: '140px', display: 'flex' }}>
+                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '135px', height: '165px', display: 'flex' }}>
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
                     style={{
-                      width: '100%', height: '100%', borderRadius: '28px',
-                      background: type.bg,
+                      width: '100%', height: '100%', borderRadius: '32px',
+                      backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(15,23,42,0.85) 100%), url(${type.img})`,
+                      backgroundSize: 'cover', backgroundPosition: 'center',
                       display: 'flex', flexDirection: 'column',
-                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '16px', border: `1px solid rgba(255, 255, 255, 0.6)`, cursor: 'pointer',
-                      boxShadow: `0 12px 24px rgba(0,0,0,0.04), inset 0 2px 4px rgba(255,255,255,0.8)`
+                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px', 
+                      border: `1px solid rgba(255, 255, 255, 0.25)`, cursor: 'pointer',
+                      boxShadow: `0 16px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)`
                     }}
                     onClick={() => {
                       triggerHapticLight();
@@ -1128,11 +1132,11 @@ export default function CaseDashboard() {
                         type: 'soundscape',
                         title: type.name,
                         subtitle: type.name === 'Rain Sounds' ? 'Continuous gentle downpour' : 
-                                  type.name === 'Focus Frequencies' ? '432Hz ambient hum' :
+                                  type.name === 'Focus Freqs' ? '432Hz ambient hum' :
                                   'Immersive woodland ecosystem',
-                        description: type.name === 'Rain Sounds' ? 'A continuous, looping recording of gentle rain falling on leaves. Perfect for masking background noise and creating a cozy, isolated environment for reading or sleeping.' : 
-                                     type.name === 'Focus Frequencies' ? 'A continuous 432Hz frequency hum mixed with subtle brown noise. Scientifically engineered to block out distractions and narrow your attentional focus.' :
-                                     'A spatial audio recording of a temperate forest. Features gentle wind, distant birdsong, and rustling leaves to create a calming, natural atmosphere anywhere you are.',
+                        description: type.name === 'Rain Sounds' ? 'A continuous, looping recording of gentle rain falling on leaves.' : 
+                                     type.name === 'Focus Freqs' ? 'A continuous 432Hz frequency hum mixed with subtle brown noise.' :
+                                     'A spatial audio recording of a temperate forest. Features gentle wind and distant birdsong.',
                         cover_image_url: type.img,
                         audio_url: '',
                         video_url: '',
@@ -1142,10 +1146,21 @@ export default function CaseDashboard() {
                       });
                     }}
                   >
-                    <div style={{ color: type.color, background: 'rgba(255,255,255,0.7)', borderRadius: '16px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                      {type.icon}
+                    {/* Top Accent Pill */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', padding: '4px 8px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                      {type.accentIcon}
+                      <span style={{ fontSize: '10px', fontWeight: 700, color: '#F8FAFC', letterSpacing: '0.5px', textTransform: 'uppercase' }}>{type.accentText}</span>
                     </div>
-                    <span className="serif-heading" style={{ color: '#1E293B', fontWeight: 700, fontSize: '15px', textAlign: 'left', lineHeight: '1.2', marginTop: '12px' }}>{type.name.replace(' ', '\n')}</span>
+
+                    {/* Bottom Icon & Text */}
+                    <div style={{ width: '100%', textAlign: 'left' }}>
+                      <div style={{ color: type.color, marginBottom: '6px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
+                        {type.mainIcon}
+                      </div>
+                      <span className="serif-heading" style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '16px', lineHeight: '1.15', display: 'block', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                        {type.name.split(' ')[0]}<br/>{type.name.split(' ')[1]}
+                      </span>
+                    </div>
                   </motion.button>
                 </div>
               ))}
