@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { buildCaseContext, caseMatchesSearch, caseActionLabel } from '../caseWorkspace';
 import { buildClinicalReviewPrompt, normalizeClinicalReview } from '../clinicalReview';
