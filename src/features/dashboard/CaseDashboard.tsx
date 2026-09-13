@@ -208,8 +208,8 @@ export default function CaseDashboard() {
   return (
     <div style={{
       width: '100%',
-      background: 'linear-gradient(180deg, #F8FAFC 0%, #F0FDFA 35%, #F8FAFC 100%)',
-      backgroundColor: '#F8FAFC',
+      background: 'linear-gradient(180deg, #FFFDF7 0%, #FDF7EC 35%, #FFFDF7 100%)',
+      backgroundColor: '#FFFDF7',
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -220,7 +220,7 @@ export default function CaseDashboard() {
         
         <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>Dashboard</h2>
+            <h2 className="serif-heading" style={{ fontSize: '28px', fontWeight: 700, margin: 0, color: '#2D3748', letterSpacing: '-0.5px' }}>Dashboard</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                 <LivingHeartIcon size={16} color="#F43F5E" />
@@ -240,13 +240,13 @@ export default function CaseDashboard() {
               <div 
                 aria-label="Health Canvas War Room"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.05) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.25) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.8)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.4)', 
+                  border: '1px solid rgba(255, 255, 255, 0.9)', 
+                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.04), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.6)', 
                   gridRow: 'span 2',
-                  borderRadius: isMobile ? '80px 80px 24px 24px' : '160px 160px 32px 32px', 
+                  borderRadius: isMobile ? '80px 80px 32px 32px' : '160px 160px 48px 48px', 
                   position: 'relative',
                   overflow: 'hidden',
                   cursor: 'default',
@@ -261,7 +261,7 @@ export default function CaseDashboard() {
                 
                   {/* Pushpin */}
                   <div style={{ position: 'absolute', top: '24px', right: '28px', transform: 'rotate(15deg)', zIndex: 10 }}>
-                    <Pin size={22} color="#EF4444" strokeWidth={2.5} />
+                    <Pin size={22} color="#F472B6" strokeWidth={2.5} />
                   </div>
                   
                   {/* Brass Pendant Light */}
@@ -273,8 +273,8 @@ export default function CaseDashboard() {
                 </div>
                 
                 <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
-                   <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#334155', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
+                   <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#2D3748', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
+                   <p style={{ fontSize: '11px', color: '#6EE7B7', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
                 </div>
               </div>
 
@@ -296,17 +296,17 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.85)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.95)', 
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.6)', 
+                  borderRadius: isMobile ? '32px' : '40px',
+                  padding: isMobile ? '16px' : '22px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
+                  minHeight: isMobile ? '135px' : '150px',
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden'
@@ -320,24 +320,22 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%)', 
-                    backdropFilter: 'blur(12px)', 
-                    WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(15,23,42,0.3), inset 0 1px 0 rgba(255,255,255,0.3)', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
+                    background: 'linear-gradient(135deg, #A7C796 0%, #8EB67A 100%)', 
+                    boxShadow: '0 8px 16px rgba(167, 199, 150, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)', 
+                    border: '1px solid rgba(255,255,255,0.5)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
                     <Scan size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: '#EF4444', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: '#FFD180', color: '#B45309', padding: '4px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     NEW
                   </div>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Clinical Lens</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Scan food for glycemic spikes</p>
                 </div>
               </motion.div>
 
@@ -358,17 +356,17 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: '1px solid rgba(255, 255, 255, 0.85)', 
-                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.4)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
+                  border: '1px solid rgba(255, 255, 255, 0.95)', 
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.6)', 
+                  borderRadius: isMobile ? '32px' : '40px',
+                  padding: isMobile ? '16px' : '22px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
+                  minHeight: isMobile ? '135px' : '150px',
                   cursor: 'pointer',
                   position: 'relative',
                   overflow: 'hidden'
@@ -382,24 +380,22 @@ export default function CaseDashboard() {
                     minHeight: isMobile ? '38px' : '44px', 
                     flexShrink: 0,
                     borderRadius: '50%', 
-                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.85) 100%)', 
-                    backdropFilter: 'blur(12px)', 
-                    WebkitBackdropFilter: 'blur(12px)', 
-                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.3)', 
-                    border: '1px solid rgba(255,255,255,0.2)', 
+                    background: 'linear-gradient(135deg, #7DD3FC 0%, #38BDF8 100%)', 
+                    boxShadow: '0 8px 16px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)', 
+                    border: '1px solid rgba(255,255,255,0.5)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center' 
                   }}>
                     <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
-                  <div className="micro-badge" style={{ background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', color: '#FFF', padding: '3px 8px', borderRadius: '999px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <div className="micro-badge" style={{ background: '#E0F2FE', color: '#0284C7', padding: '4px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     ROOT CAUSE
                   </div>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: '#64748B', margin: 0, fontWeight: 500, lineHeight: 1.3 }}>Cross-system root-cause map</p>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Cross-system root-cause map</p>
                 </div>
               </motion.div>
 
@@ -425,19 +421,19 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: completedHabits['hydration'] ? '1.5px solid #0284C7' : '1px solid rgba(255, 255, 255, 0.85)', 
+                  border: completedHabits['hydration'] ? '1px solid rgba(56, 189, 248, 0.6)' : '1px solid rgba(255, 255, 255, 0.95)', 
                   boxShadow: completedHabits['hydration'] 
-                    ? '0 20px 40px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255,255,255,0.95)' 
-                    : '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
+                    ? '0 20px 40px rgba(56, 189, 248, 0.1), inset 0 1px 0 rgba(255,255,255,0.95)' 
+                    : '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95)', 
+                  borderRadius: isMobile ? '32px' : '40px',
+                  padding: isMobile ? '16px' : '22px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
+                  minHeight: isMobile ? '135px' : '150px',
                   cursor: 'pointer',
                   transition: 'border 0.3s ease, box-shadow 0.3s ease'
                 }}
@@ -526,14 +522,14 @@ export default function CaseDashboard() {
                 </div>
 
                 <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
                     {hydrationData.currentMl >= hydrationData.targetMl 
                       ? 'Goal Reached 💧' 
                       : completedHabits['hydration'] 
                         ? 'Hydrated 💧' 
                         : 'Hydrate 500ml'}
                   </h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['hydration'] ? '#0284C7' : '#64748B', margin: '0 0 4px', fontWeight: 500, lineHeight: 1.3 }}>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: completedHabits['hydration'] ? '#0284C7' : '#64748B', margin: '0 0 8px', fontWeight: 600, lineHeight: 1.3 }}>
                     {hydrationData.currentMl > 0 
                       ? `${hydrationData.currentMl.toLocaleString()} / ${hydrationData.targetMl.toLocaleString()} ml • ${Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100)}%`
                       : 'Tap to log sips & track'}
@@ -542,17 +538,17 @@ export default function CaseDashboard() {
                   {/* Sleek Mini Fluid Progress Bar */}
                   <div style={{
                     width: '100%',
-                    height: '4px',
+                    height: '6px',
                     borderRadius: '999px',
-                    background: 'rgba(14, 165, 233, 0.15)',
+                    background: 'rgba(56, 189, 248, 0.15)',
                     overflow: 'hidden',
-                    marginBottom: '8px',
-                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
+                    marginBottom: '12px',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)'
                   }}>
                     <div style={{
                       height: '100%',
                       width: `${Math.min(100, Math.round((hydrationData.currentMl / hydrationData.targetMl) * 100))}%`,
-                      background: 'linear-gradient(90deg, #38BDF8 0%, #0284C7 100%)',
+                      background: 'linear-gradient(90deg, #BAE6FD 0%, #38BDF8 100%)',
                       borderRadius: '999px',
                       transition: 'width 0.4s ease'
                     }} />
@@ -680,19 +676,19 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.15) 100%)', 
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.35) 100%)', 
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
-                  border: completedHabits['vitamins'] ? '1.5px solid #10B981' : '1px solid rgba(255, 255, 255, 0.85)', 
+                  border: completedHabits['vitamins'] ? '1px solid rgba(251, 191, 36, 0.6)' : '1px solid rgba(255, 255, 255, 0.95)', 
                   boxShadow: completedHabits['vitamins'] 
-                    ? '0 20px 40px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255,255,255,0.95)' 
-                    : '0 20px 40px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.95)', 
-                  borderRadius: isMobile ? '24px' : '32px',
-                  padding: isMobile ? '14px 14px' : '20px',
+                    ? '0 20px 40px rgba(251, 191, 36, 0.1), inset 0 1px 0 rgba(255,255,255,0.95)' 
+                    : '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95)', 
+                  borderRadius: isMobile ? '32px' : '40px',
+                  padding: isMobile ? '16px' : '22px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  minHeight: isMobile ? '125px' : '140px',
+                  minHeight: isMobile ? '135px' : '150px',
                   cursor: 'pointer',
                   transition: 'border 0.3s ease, box-shadow 0.3s ease'
                 }}
@@ -757,13 +753,11 @@ export default function CaseDashboard() {
                 </div>
 
                 <div>
-                  <h4 style={{ fontSize: isMobile ? '14px' : '15px', fontWeight: 700, margin: '0 0 3px', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
-                    {completedHabits['vitamins'] ? 'Vitamins Taken 💊' : 'Daily Vitamins'}
+                  <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
+                    {completedHabits['vitamins'] ? 'Taken 💊' : 'Daily Vitamins'}
                   </h4>
-                  <p style={{ fontSize: isMobile ? '11px' : '12px', color: completedHabits['vitamins'] ? '#10B981' : '#64748B', margin: '0 0 6px', fontWeight: 500, lineHeight: 1.3 }}>
-                    {completedHabits['vitamins'] 
-                      ? 'Cellular micronutrients taken' 
-                      : `${vitaminSchedule.filter(v => v.enabled).length} scheduled • Tap to set times`}
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: completedHabits['vitamins'] ? '#B45309' : '#64748B', margin: '0 0 8px', fontWeight: 600, lineHeight: 1.3 }}>
+                    {completedHabits['vitamins'] ? 'Nice work' : 'Log your supplements'}
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>

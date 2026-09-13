@@ -107,12 +107,12 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     return (
       <button
         onClick={handleManualRetry}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 active:scale-95 transition-all hover:bg-amber-500/20 ${className}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800/50 text-slate-300 border border-slate-700/50 active:scale-95 transition-all hover:bg-slate-700/50 ${className}`}
         title="Syncing pending updates... Tap to sync now"
         aria-label={`Status: Sync pending (${pendingCount})`}
       >
-        <UploadCloud size={14} className={isSyncing ? 'animate-bounce' : 'animate-pulse'} />
-        <span>Sync pending {pendingCount > 0 ? `(${pendingCount})` : ''}</span>
+        <UploadCloud size={14} className={isSyncing ? 'animate-bounce' : 'animate-pulse text-slate-400'} />
+        <span>Saving {pendingCount > 0 ? `(${pendingCount})` : ''}</span>
       </button>
     );
   }

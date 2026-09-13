@@ -66,32 +66,37 @@ export default function OfflineBanner() {
           aria-live="polite"
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: isOffline ? '#D97706' : '#10B981',
-            color: 'white',
+            top: 'calc(16px + env(safe-area-inset-top))',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: isOffline ? 'rgba(30, 41, 59, 0.85)' : 'rgba(16, 185, 129, 0.9)',
+            color: '#F8FAFC',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            padding: 'calc(10px + env(safe-area-inset-top)) 16px 10px',
+            padding: '8px 16px',
+            borderRadius: '9999px',
             fontSize: '13px',
-            fontWeight: 650,
+            fontWeight: 500,
             zIndex: 999999,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-            letterSpacing: '0.2px'
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: isOffline ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            maxWidth: '90vw',
+            textAlign: 'center'
           }}
         >
           {isOffline ? (
             <>
-              <WifiOff size={16} />
-              <span>Working offline — changes are saved locally & will sync when reconnected.</span>
+              <WifiOff size={14} className="opacity-70" />
+              <span>Offline • Saving locally to auto-sync later</span>
             </>
           ) : (
             <>
-              <Wifi size={16} />
-              <span>Connection restored — local changes synced.</span>
+              <Wifi size={14} />
+              <span>Connection restored • Synced ✓</span>
             </>
           )}
         </motion.div>
