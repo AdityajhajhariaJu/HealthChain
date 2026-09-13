@@ -645,7 +645,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     if (initialTab) {
       const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
       if (target) {
-        scrollToStation(initialTab);
+        setSelectedPillar(target.pillarId);
+        setHighlightedStationId(initialTab);
+        const timer = setTimeout(() => {
+          setHighlightedStationId(null);
+        }, 2400);
+        return () => clearTimeout(timer);
       }
     }
   }, [initialTab]);
@@ -739,109 +744,74 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
   }, [selectedPillar]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <FeatureMissionHeader featureId="connection-detective" activeCaseId={activeCase?.id} />
-
-      {/* 1. EXECUTIVE DIAGNOSTIC STATION OVERVIEW (TIER 1 BLUF) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* 1. EXECUTIVE DIAGNOSTIC CONTINUUM HEADER */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #0369A1 50%, #0F172A 100%)',
-          borderRadius: '22px',
-          padding: isMobile ? '16px' : '20px',
-          color: '#FFFFFF',
-          boxShadow: '0 12px 32px rgba(2, 132, 199, 0.18)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          position: 'relative',
-          overflow: 'hidden',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px',
+          padding: '2px 4px',
         }}
       >
-        {/* Soft aqueous refractive ambient glow in top-right */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-40px',
-            right: '-40px',
-            width: '180px',
-            height: '180px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(186, 230, 253, 0.12) 50%, transparent 75%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', position: 'relative', zIndex: 1 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <span
-                style={{
-                  fontSize: '9.5px',
-                  fontWeight: 800,
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                  background: 'rgba(224, 242, 254, 0.18)',
-                  color: '#7DD3FC',
-                  padding: '2px 8px',
-                  borderRadius: '999px',
-                  border: '1px solid rgba(125, 211, 252, 0.35)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.2)',
-                }}
-              >
-                {/* Restrained two-tone micro-capsule detail */}
-                <span
-                  style={{
-                    width: '10px',
-                    height: '5px',
-                    borderRadius: '2.5px',
-                    background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.9) 50%)',
-                    display: 'inline-block',
-                  }}
-                />
-                12 Active Clinical Intelligence Stations
-              </span>
-            </div>
-            <h3 style={{ margin: 0, fontSize: isMobile ? '16px' : '18px', fontWeight: 900, letterSpacing: '-0.3px', color: '#F8FAFC' }}>
-              Multi-System Root Cause Architecture
-            </h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#BAE6FD', lineHeight: 1.4 }}>
-              Structured diagnostic continuum bridging gut barrier biochemistry, functional lab cutoffs, vagal kinetic chains, and physician handoff.
-            </p>
-          </div>
-
-          <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
             style={{
-              padding: '6px 12px',
-              borderRadius: '12px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(186, 230, 253, 0.25)',
-              textAlign: 'right',
-              flexShrink: 0,
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              fontSize: '10px',
+              fontWeight: 800,
+              letterSpacing: '0.8px',
+              textTransform: 'uppercase',
+              background: '#F0F9FF',
+              color: '#0284C7',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              border: '1px solid #BAE6FD',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
             }}
           >
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#38BDF8' }}>
-              Evidence review
-            </div>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: '#BAE6FD', textTransform: 'uppercase' }}>
-              Board Consensus
-            </div>
-          </div>
+            <span
+              style={{
+                width: '8px',
+                height: '4px',
+                borderRadius: '2px',
+                background: 'linear-gradient(90deg, #38BDF8 50%, #0284C7 50%)',
+                display: 'inline-block',
+              }}
+            />
+            Root Cause Continuum
+          </span>
+          <span style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.3px' }}>
+            4 Medical Domains
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 800,
+              color: '#0369A1',
+              background: 'rgba(240, 249, 255, 0.95)',
+              border: '1px solid #BAE6FD',
+              padding: '2px 8px',
+              borderRadius: '999px',
+            }}
+          >
+            12 Stations Total
+          </span>
         </div>
       </div>
 
-      {/* 2. THE 4 PARENT PILLAR CARDS (SIDE-BY-SIDE BENTO DECK) */}
+      {/* 2. THE 4 PARENT PILLAR CARDS (SIDE-BY-SIDE BENTO DECK - HERO) */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-          gap: isMobile ? '10px' : '14px',
+          gap: isMobile ? '8px' : '10px',
         }}
       >
         {PARENT_PILLAR_CARDS.map((pillar) => {
@@ -851,7 +821,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             <motion.button
               key={pillar.id}
               type="button"
-              whileHover={{ y: -3, scale: 1.015 }}
+              whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => {
                 triggerHapticSelection();
@@ -861,14 +831,14 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               }}
               style={{
                 background: isSelected ? pillar.lightBg : '#FFFFFF',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 border: isSelected
                   ? `2px solid ${pillar.accentColor}`
                   : '1.5px solid #E2E8F0',
                 boxShadow: isSelected
-                  ? `0 12px 28px -4px ${pillar.shadowColor}, 0 2px 8px rgba(0,0,0,0.03), inset 0 1.5px 0 #FFFFFF`
-                  : '0 4px 14px rgba(0, 0, 0, 0.03)',
-                padding: isMobile ? '12px' : '16px',
+                  ? `0 8px 22px -4px ${pillar.shadowColor}, 0 2px 6px rgba(0,0,0,0.03), inset 0 1.5px 0 #FFFFFF`
+                  : '0 2px 8px rgba(0, 0, 0, 0.03)',
+                padding: isMobile ? '10px 10px' : '12px 12px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -877,7 +847,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 position: 'relative',
                 overflow: 'hidden',
                 transition: 'border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
-                minHeight: isMobile ? '135px' : '150px',
+                minHeight: isMobile ? '125px' : '135px',
               }}
             >
               {/* Active Ambient Glow Aura */}
@@ -885,10 +855,10 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 <div
                   style={{
                     position: 'absolute',
-                    top: '-30px',
-                    right: '-30px',
-                    width: '100px',
-                    height: '100px',
+                    top: '-25px',
+                    right: '-25px',
+                    width: '80px',
+                    height: '80px',
                     borderRadius: '50%',
                     background: `radial-gradient(circle, ${pillar.shadowColor} 0%, transparent 70%)`,
                     pointerEvents: 'none',
@@ -896,20 +866,20 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 />
               )}
 
-              {/* Top Row: Icon Circle + Station Count Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '8px' }}>
+              {/* Top Row: Icon + Station Range Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '4px' }}>
                 <div
                   style={{
-                    width: isMobile ? '34px' : '38px',
-                    height: isMobile ? '34px' : '38px',
-                    borderRadius: '12px',
-                    background: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#F8FAFC',
+                    width: isMobile ? '28px' : '32px',
+                    height: isMobile ? '28px' : '32px',
+                    borderRadius: '9px',
+                    background: isSelected ? 'rgba(255, 255, 255, 0.95)' : '#F8FAFC',
                     border: `1px solid ${isSelected ? pillar.borderColor : '#E2E8F0'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: isMobile ? '18px' : '20px',
-                    boxShadow: isSelected ? '0 4px 10px rgba(0, 0, 0, 0.05)' : 'none',
+                    fontSize: isMobile ? '15px' : '17px',
+                    boxShadow: isSelected ? '0 2px 6px rgba(0, 0, 0, 0.05)' : 'none',
                   }}
                 >
                   {pillar.icon}
@@ -919,56 +889,44 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    padding: '3px 8px',
+                    gap: '3px',
+                    padding: '2px 6px',
                     borderRadius: '999px',
-                    background: isSelected ? 'rgba(255, 255, 255, 0.85)' : '#F1F5F9',
+                    background: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#F1F5F9',
                     border: `1px solid ${isSelected ? pillar.borderColor : '#E2E8F0'}`,
-                    fontSize: '10px',
+                    fontSize: '9.5px',
                     fontWeight: 800,
                     color: isSelected ? pillar.accentColor : '#64748B',
                   }}
                 >
-                  <span>{pillar.stationCount} Stations</span>
+                  <span>{pillar.stationCount} Stns</span>
                 </div>
               </div>
 
-              {/* Middle: Title & Range */}
+              {/* Middle: Title & Scope */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
                   <h4
                     className="serif-heading"
                     style={{
                       margin: 0,
-                      fontSize: isMobile ? '15px' : '17px',
+                      fontSize: isMobile ? '13.5px' : '15px',
                       fontWeight: 800,
                       color: isSelected ? '#0F172A' : '#1E293B',
                       letterSpacing: '-0.3px',
+                      lineHeight: 1.2,
                     }}
                   >
                     {pillar.title}
                   </h4>
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      fontWeight: 800,
-                      color: isSelected ? pillar.accentColor : '#94A3B8',
-                      background: isSelected ? 'rgba(255,255,255,0.7)' : '#F1F5F9',
-                      padding: '1px 5px',
-                      borderRadius: '4px',
-                      letterSpacing: '0.3px',
-                    }}
-                  >
-                    {pillar.stationRange}
-                  </span>
                 </div>
 
                 <p
                   style={{
                     margin: 0,
-                    fontSize: isMobile ? '10.5px' : '11.5px',
+                    fontSize: isMobile ? '9.5px' : '10.5px',
                     color: '#64748B',
-                    lineHeight: 1.35,
+                    lineHeight: 1.3,
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -979,29 +937,29 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 </p>
               </div>
 
-              {/* Bottom: Telemetry Pulse Badge */}
-              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {/* Bottom: Telemetry Pulse Badge & Status */}
+              <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
-                    fontSize: '9.5px',
+                    fontSize: '8.5px',
                     fontWeight: 700,
                     color: isSelected ? pillar.accentColor : '#475569',
-                    background: isSelected ? 'rgba(255, 255, 255, 0.9)' : '#F8FAFC',
-                    padding: '3px 7px',
-                    borderRadius: '6px',
+                    background: isSelected ? 'rgba(255, 255, 255, 0.95)' : '#F8FAFC',
+                    padding: '2px 5px',
+                    borderRadius: '5px',
                     border: `1px solid ${isSelected ? pillar.borderColor : '#E2E8F0'}`,
                   }}
                 >
                   <span
                     style={{
-                      width: '5px',
-                      height: '5px',
+                      width: '4.5px',
+                      height: '4.5px',
                       borderRadius: '50%',
                       background: isSelected ? pillar.accentColor : '#94A3B8',
-                      boxShadow: isSelected ? `0 0 6px ${pillar.accentColor}` : 'none',
+                      boxShadow: isSelected ? `0 0 5px ${pillar.accentColor}` : 'none',
                     }}
                   />
                   {pillar.telemetry}
@@ -1009,7 +967,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
 
                 <span
                   style={{
-                    fontSize: '10px',
+                    fontSize: '9px',
                     fontWeight: 800,
                     color: isSelected ? pillar.accentColor : '#94A3B8',
                     display: 'flex',
@@ -1017,7 +975,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     gap: '2px',
                   }}
                 >
-                  {isSelected ? 'Active' : 'Open'} →
+                  {isSelected ? '● Active' : 'Open →'}
                 </span>
               </div>
             </motion.button>
@@ -1034,29 +992,29 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           background: 'rgba(255, 255, 255, 0.96)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          padding: '10px 14px',
-          borderRadius: '18px',
+          padding: '8px 12px',
+          borderRadius: '16px',
           border: '1.5px solid #E2E8F0',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
+          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.04)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
+          gap: '7px',
         }}
       >
-        {/* Top Header of the Bar: Active Pillar Indicator + All 12 Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {/* Top Header of the Bar: Active Pillar Indicator + Quick Switcher + All 12 Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span>{activePillarCard?.icon || '✨'}</span>
-              <span>{selectedPillar === 'all' ? 'All 12 Clinical Stations' : `${activePillarCard?.title} Insider Stations`}</span>
+              <span>{selectedPillar === 'all' ? 'All 12 Stations' : `${activePillarCard?.title} Insider`}</span>
             </span>
             <span
               style={{
-                fontSize: '10px',
+                fontSize: '9px',
                 fontWeight: 800,
                 color: activePillarCard?.accentColor || '#0284C7',
                 background: '#F0F9FF',
-                padding: '2px 8px',
+                padding: '2px 7px',
                 borderRadius: '999px',
                 border: '1px solid #BAE6FD',
               }}
@@ -1066,6 +1024,44 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Quick Pillar Switcher Pill Group */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '7px' }}>
+              {PARENT_PILLAR_CARDS.map((p) => {
+                const isPillarActive = selectedPillar === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      triggerHapticSelection();
+                      setSelectedPillar(p.id);
+                      setFocusedStationId(null);
+                    }}
+                    title={`Switch to ${p.title}`}
+                    style={{
+                      border: 'none',
+                      background: isPillarActive ? '#FFFFFF' : 'transparent',
+                      color: isPillarActive ? p.accentColor : '#64748B',
+                      fontSize: '11px',
+                      padding: '2px 5px',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontWeight: isPillarActive ? 800 : 500,
+                      boxShadow: isPillarActive ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '2px',
+                    }}
+                  >
+                    <span>{p.icon}</span>
+                    <span style={{ fontSize: '9.5px', fontWeight: isPillarActive ? 800 : 600 }}>
+                      {p.id === 'gut' ? 'Gut' : p.id === 'body' ? 'Labs' : p.id === 'cause' ? 'Cause' : 'Dossier'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
             <button
               type="button"
               onClick={() => {
@@ -1076,20 +1072,20 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '5px 10px',
-                borderRadius: '8px',
-                background: selectedPillar === 'all' ? '#0284C7' : '#F1F5F9',
+                gap: '3px',
+                padding: '3px 8px',
+                borderRadius: '7px',
+                background: selectedPillar === 'all' ? '#0284C7' : '#FFFFFF',
                 color: selectedPillar === 'all' ? '#FFFFFF' : '#475569',
                 border: selectedPillar === 'all' ? '1px solid #0284C7' : '1px solid #E2E8F0',
-                fontSize: '11px',
+                fontSize: '10px',
                 fontWeight: 700,
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
             >
-              <Sparkles size={11} />
-              <span>{selectedPillar === 'all' ? 'Back to Pillar View' : 'View All 12 Linear'}</span>
+              <Sparkles size={10} />
+              <span>{selectedPillar === 'all' ? 'Pillars' : 'All 12'}</span>
             </button>
           </div>
         </div>
@@ -1163,8 +1159,9 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
         </div>
       </div>
 
-      {/* 3. THE 12 DEDICATED CLINICAL STATIONS */}
+      {/* 4. THE DEDICATED CLINICAL STATIONS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <FeatureMissionHeader featureId="connection-detective" activeCaseId={activeCase?.id} />
         {visibleStations.map((station) => {
           const isHighlighted = highlightedStationId === station.id;
           const isSingleFocus = focusedStationId === station.id;
