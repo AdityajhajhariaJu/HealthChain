@@ -123,15 +123,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 </button>
 
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#4F46E5', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                      CLINICAL DETECTIVE
-                    </span>
-                    <span style={{ background: '#EEF2FF', color: '#4338CA', padding: '1px 6px', borderRadius: '6px', fontSize: '9.5px', fontWeight: 800 }}>
-                      ROOT CAUSE
-                    </span>
-                  </div>
-                  <h2 style={{ margin: '1px 0 0 0', fontSize: '16px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     Connection <span style={{ color: '#4F46E5' }}>Detective</span>
                   </h2>
                 </div>

@@ -2015,68 +2015,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* 1. EXECUTIVE DIAGNOSTIC CONTINUUM HEADER */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '8px',
-          padding: '2px 4px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              letterSpacing: '0.8px',
-              textTransform: 'uppercase',
-              background: '#F0F9FF',
-              color: '#0284C7',
-              padding: '2px 8px',
-              borderRadius: '999px',
-              border: '1px solid #BAE6FD',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-            }}
-          >
-            <span
-              style={{
-                width: '8px',
-                height: '4px',
-                borderRadius: '2px',
-                background: 'linear-gradient(90deg, #38BDF8 50%, #0284C7 50%)',
-                display: 'inline-block',
-              }}
-            />
-            Root Cause Continuum
-          </span>
-          <span style={{ fontSize: '13px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.3px' }}>
-            4 Medical Domains
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              color: '#0369A1',
-              background: 'rgba(240, 249, 255, 0.95)',
-              border: '1px solid #BAE6FD',
-              padding: '2px 8px',
-              borderRadius: '999px',
-            }}
-          >
-            {openedPillarId ? 'Domain Opened' : '12 Stations • 4 Domains'}
-          </span>
-        </div>
-      </div>
-
-      {/* 2. ARCHITECTURAL CONDITIONAL: 4 BENTO CARDS OVERVIEW vs OPENED DOMAIN WORKSPACE */}
+      {/* ARCHITECTURAL CONDITIONAL: 4 BENTO CARDS OVERVIEW vs OPENED DOMAIN WORKSPACE */}
       <AnimatePresence mode="wait">
         {openedPillarId === null ? (
           /* ======================================================== */
