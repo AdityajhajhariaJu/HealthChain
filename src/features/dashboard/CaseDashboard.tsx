@@ -1100,24 +1100,24 @@ export default function CaseDashboard() {
             padding: '8px 0 16px'
           }}>
             <div style={{ padding: '0 16px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Soundscapes</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Immersive audio environments</p>
+              <h2 className="serif-heading" style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 2px', color: '#2D3748', letterSpacing: '-0.5px' }}>Soundscapes</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0, fontWeight: 600 }}>Immersive audio environments</p>
             </div>
-            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '20px', overflowX: 'auto', padding: '12px 20px 20px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
+            <div className="hide-scrollbar scrollable-row" style={{ display: 'flex', gap: '16px', overflowX: 'auto', padding: '4px 20px 24px', scrollbarWidth: 'none', margin: 0, WebkitOverflowScrolling: 'touch' }}>
               {[
-                { name: 'Rain Sounds', icon: <Waves size={24} />, color: '#38bdf8', img: '/images/thumb_rain_window_1788262571496.jpg' },
-                { name: 'Focus Frequencies', icon: <Activity size={24} />, color: '#c084fc', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
-                { name: 'Forest Ambience', icon: <Wind size={24} />, color: '#34d399', img: '/images/thumb_water_drop_1788260024692.jpg' }
+                { name: 'Rain Sounds', icon: <Waves size={26} />, color: '#0284C7', bg: '#E0F2FE', img: '/images/thumb_rain_window_1788262571496.jpg' },
+                { name: 'Focus Frequencies', icon: <Activity size={26} />, color: '#9333EA', bg: '#F3E8FF', img: '/images/thumb_freq_cymatics_1788264629537.jpg' },
+                { name: 'Forest Ambience', icon: <Wind size={26} />, color: '#059669', bg: '#D1FAE5', img: '/images/thumb_water_drop_1788260024692.jpg' }
               ].map((type, i) => (
-                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '144px', height: '144px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '130px', height: '140px', display: 'flex' }}>
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
                     style={{
-                      width: '100%', height: '100%', borderRadius: '50%',
-                      backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%), url(${type.img})`,
-                      backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', flexDirection: 'column',
-                      justifyContent: 'center', alignItems: 'center', padding: '16px', border: `1.5px solid rgba(255, 255, 255, 0.45)`, cursor: 'pointer',
-                      boxShadow: `0 10px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.4)`
+                      width: '100%', height: '100%', borderRadius: '28px',
+                      background: type.bg,
+                      display: 'flex', flexDirection: 'column',
+                      justifyContent: 'space-between', alignItems: 'flex-start', padding: '16px', border: `1px solid rgba(255, 255, 255, 0.6)`, cursor: 'pointer',
+                      boxShadow: `0 12px 24px rgba(0,0,0,0.04), inset 0 2px 4px rgba(255,255,255,0.8)`
                     }}
                     onClick={() => {
                       triggerHapticLight();
@@ -1142,10 +1142,10 @@ export default function CaseDashboard() {
                       });
                     }}
                   >
-                    <div style={{ color: 'white', marginBottom: '8px' }}>
+                    <div style={{ color: type.color, background: 'rgba(255,255,255,0.7)', borderRadius: '16px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
                       {type.icon}
                     </div>
-                    <span style={{ color: 'white', fontWeight: 600, fontSize: '14px', textAlign: 'center', lineHeight: '1.2' }}>{type.name}</span>
+                    <span className="serif-heading" style={{ color: '#1E293B', fontWeight: 700, fontSize: '15px', textAlign: 'left', lineHeight: '1.2', marginTop: '12px' }}>{type.name.replace(' ', '\n')}</span>
                   </motion.button>
                 </div>
               ))}
