@@ -71,11 +71,11 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, rgba(255, 241, 242, 0.75) 0%, rgba(255, 238, 240, 0.82) 45%, rgba(254, 226, 226, 0.85) 100%), url(/ava-floral-bg.jpg) center/cover no-repeat',
-        backdropFilter: 'blur(32px)',
-        WebkitBackdropFilter: 'blur(32px)',
+        background: 'linear-gradient(90deg, rgba(255, 245, 246, 0.94) 0%, rgba(255, 235, 238, 0.86) 50%, rgba(254, 215, 222, 0.60) 100%), url(/ava-floral-bg.jpg) center bottom / cover no-repeat',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         borderRadius: isMobile ? '20px' : '26px',
-        border: '1.5px solid rgba(244, 63, 94, 0.25)',
+        border: '1.5px solid rgba(244, 63, 94, 0.28)',
         boxShadow: '0 12px 32px rgba(225, 29, 72, 0.08), 0 2px 8px rgba(244, 63, 94, 0.04), inset 0 2px 0 rgba(255, 255, 255, 0.98), inset 0 0 20px rgba(255, 228, 230, 0.6)',
         padding: isMobile ? '12px 14px' : '14px 20px',
         marginBottom: '16px',
@@ -449,5 +449,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
         )}
       </AnimatePresence>
     </div>
+  );
+};
 
 export default VitalityStreakBanner;
