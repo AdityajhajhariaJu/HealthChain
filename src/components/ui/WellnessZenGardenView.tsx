@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Droplet, Wind, Sparkles, Sun, Heart, Flame, RefreshCw, Award } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
-import { FeatureMissionHeader } from './FeatureMissionHeader';
 
 interface WellnessZenGardenViewProps {
   onOpenMindfulness?: () => void;
@@ -45,7 +44,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <FeatureMissionHeader featureId="zen-garden" />
+      
 
       {/* Top Banner */}
       <div

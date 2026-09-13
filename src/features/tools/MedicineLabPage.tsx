@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { Pill, FileText, Layers } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 
 export default function MedicineLabPage() {
   const isMobile = useIsMobile();
@@ -48,7 +47,7 @@ export default function MedicineLabPage() {
       }}
     >
       <div style={{ maxWidth: '1000px', margin: '0 auto 16px auto' }}>
-        <FeatureMissionHeader featureId="medicine-labs" />
+        
       </div>
 
       {/* Tool Switcher Header Tabs */}

@@ -22,7 +22,6 @@ import { buildCaseContext, getUnifiedCaseScope } from '../../services/caseWorksp
 import { useCaseWorkspace } from '../../hooks/useCaseWorkspace';
 import { SourcePassageModal, SourcePassageModalProps } from '../../components/ui/SourcePassageModal';
 import { DataSovereigntyModal } from '../../components/ui/DataSovereigntyModal';
-import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import { InformationCategoryBadge } from '../../components/ui/InformationCategoryBadge';
 import { ClinicalReasoningPipelineView } from '../../components/ui/ClinicalReasoningPipelineView';
 import { MeaningfulMultiPerspectiveView } from '../../components/ui/MeaningfulMultiPerspectiveView';
@@ -520,7 +519,7 @@ AI-generated preparation material. Verify against original records; this is not 
           position: 'relative' 
         }}
       >
-        <FeatureMissionHeader featureId="engine" activeCaseId={createdCaseId || selectedCaseId} />
+        
         <section className="case-workspace" aria-labelledby="review-ready-title">
           <span className="case-workspace-eyebrow">REVIEW SAVED TO MY CASES</span>
           <h2 id="review-ready-title">Your record review is ready</h2>
@@ -1276,7 +1275,7 @@ AI-generated preparation material. Verify against original records; this is not 
       }}
     >
       <div style={{ width: '100%', maxWidth: '960px', marginBottom: '16px' }}>
-        <FeatureMissionHeader featureId="engine" activeCaseId={selectedCaseId} />
+        
       </div>
 
       <div 

@@ -59,7 +59,6 @@ import { SmartCorrelationInsightsView } from './SmartCorrelationInsightsView';
 import { FeatureProfileDataBanner } from './FeatureProfileDataBanner';
 import { trackButtonClick } from '../../services/analytics';
 import { SourcePassageModal, SourcePassageModalProps } from './SourcePassageModal';
-import { FeatureMissionHeader } from './FeatureMissionHeader';
 
 export type TabId =
   | 'map'
@@ -2075,9 +2074,6 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
           </span>
         </div>
       </div>
-
-      {/* FEATURE MISSION SCOPE BANNER */}
-      <FeatureMissionHeader featureId="connection-detective" activeCaseId={activeCase?.id} />
 
       {/* 2. ARCHITECTURAL CONDITIONAL: 4 BENTO CARDS OVERVIEW vs OPENED DOMAIN WORKSPACE */}
       <AnimatePresence mode="wait">

@@ -91,7 +91,6 @@ import { PostMealReactionTimeline } from '../../components/ui/PostMealReactionTi
 import { DigestionCalendarHeatmap } from '../../components/ui/DigestionCalendarHeatmap';
 import { EliminationProtocolSuite } from '../../components/ui/EliminationProtocolSuite';
 import { SmartCorrelationInsightsView } from '../../components/ui/SmartCorrelationInsightsView';
-import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 import { FeatureId } from '../../services/FeatureArchitectureContract';
 import {
   FullMealPlan,
@@ -1074,17 +1073,7 @@ export default function Dietician() {
   return (
     <div style={{ paddingBottom: '100px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        <FeatureMissionHeader
-          featureId={currentFeatureId}
-          activeCaseId={activeCaseScope.caseId || undefined}
-          onNavigateTab={(tabKey) => {
-            if (tabKey === 'insights' || tabKey === 'sensitivities') setActiveTab('sensitivities');
-            else if (tabKey === 'elimination') setActiveTab('elimination');
-            else if (tabKey === 'plan' || tabKey === 'mealplan') setActiveTab('mealplan');
-            else setActiveTab('dashboard');
-          }}
-          style={{ marginBottom: '20px' }}
-        />
+        
 
         {/* Header */}
         <div
@@ -1518,7 +1507,7 @@ export default function Dietician() {
           {/* TAB: POST-MEAL SENSITIVITIES TIMELINE (media_1788704739504.png) */}
           {activeTab === 'sensitivities' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="food-detective" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
+              
               <PostMealReactionTimeline onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
             </motion.div>
           )}
@@ -1526,7 +1515,7 @@ export default function Dietician() {
           {/* TAB: MONTHLY DIGESTION & BLOATING CALENDAR HEATMAP (media_1788704751525.png) */}
           {activeTab === 'calendar' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="food-detective" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
+              
               <DigestionCalendarHeatmap onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }} />
             </motion.div>
           )}
@@ -1534,7 +1523,7 @@ export default function Dietician() {
           {/* TAB: 4-WEEK CLINICAL ELIMINATION SUITE (media_1788704747359.png) */}
           {activeTab === 'elimination' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="elimination-suite" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
+              
               <EliminationProtocolSuite
                 onOpenQuickMeal={() => { setSelectedMealType('Quick Meal'); setIsLoggingFood(true); }}
                 onOpenCalendarHeatmap={() => setActiveTab('calendar')}
@@ -1546,7 +1535,7 @@ export default function Dietician() {
           {/* TAB: SMART CORRELATION INSIGHTS (media_1788703634311.png) */}
           {activeTab === 'insights' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} style={{ marginTop: '8px' }}>
-              <FeatureMissionHeader featureId="food-detective" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
+              
               <SmartCorrelationInsightsView
                 onOpenElimination={() => setActiveTab('elimination')}
                 onOpenTimeline={() => setActiveTab('sensitivities')}
@@ -1558,7 +1547,7 @@ export default function Dietician() {
           {/* TAB 2: 7-DAY MEAL PLAN */}
         {activeTab === 'mealplan' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <FeatureMissionHeader featureId="diet-plan" onNavigateTab={(t) => setActiveTab(t as any)} style={{ marginBottom: '16px' }} />
+            
             <div
               style={{
                 display: 'flex',

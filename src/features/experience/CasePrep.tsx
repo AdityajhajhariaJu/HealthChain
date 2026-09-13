@@ -47,7 +47,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { awardPoints } from '../../services/VitalityPointsEngine';
-import { FeatureMissionHeader } from '../../components/ui/FeatureMissionHeader';
 
 const DOCTOR_ACTION_PRESETS = [
   'General discussion / clinical reassurance',
@@ -394,7 +393,7 @@ export default function CasePrep() {
   if (!selectedCase && !showPicker) {
     return (
       <main style={{ maxWidth: 800, margin: '40px auto', padding: '0 20px', textAlign: 'center' }}>
-        <FeatureMissionHeader featureId="case-prep" />
+        
         <div style={{ width: 80, height: 80, background: '#f0fdfa', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto', color: '#0d9488' }}>
           <Briefcase size={36} />
         </div>
@@ -494,7 +493,7 @@ export default function CasePrep() {
     <main style={{ maxWidth: 840, margin: '0 auto', padding: '40px 20px 80px' }}>
 
       <div className="print-hide">
-        <FeatureMissionHeader featureId="case-prep" activeCaseId={selectedCase?.id} />
+        
       </div>
 
       {/* Navigation & Controls */}
