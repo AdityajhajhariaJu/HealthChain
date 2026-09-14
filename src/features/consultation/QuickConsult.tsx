@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { JarvisCore } from '../../components/ui/JarvisCoreIcon';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -210,10 +210,11 @@ export default function QuickConsult() {
     return () => window.removeEventListener('hc_profile_updated', handleUpdate);
   }, []);
 
-  const filteredSpecialists = ALL_SPECIALISTS.filter((s) =>
+  // ⚡ Bolt Optimization: Memoize the filtered specialists to prevent unnecessary re-filtering on every render.
+  const filteredSpecialists = useMemo(() => ALL_SPECIALISTS.filter((s) =>
     s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [searchQuery]);
 
   const [emergencyTriage, setEmergencyTriage] = useState<TriageEvaluation | null>(null);
   const [processingStepText, setProcessingStepText] = useState<string>('');
