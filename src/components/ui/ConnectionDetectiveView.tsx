@@ -38,10 +38,8 @@ import {
   SpecialistDialogue,
   ClinicalMissItem,
   NodeDetail,
-  CausalCascadeStage,
   SymptomClusterItem,
   SystemAxis,
-  evaluateSymptomCluster,
   deriveSemanticEvidenceGraphFromEngineReview,
   getFunctionalBiomarkers,
 } from '../../services/ConnectionDetectiveEngine';
@@ -68,19 +66,14 @@ export type TabId =
   | 'elimination'
   | 'insights'
   | 'biomarkers'
-  | 'kinetic'
-  | 'cascade'
-  | 'matcher'
-  | 'consensus'
-  | 'misses'
-  | 'dossier';
+  | 'kinetic';
 
-export type PillarId = 'all' | 'gut' | 'body' | 'cause';
+export type PillarId = 'all' | 'gut' | 'body';
 
 export interface StationConfig {
   id: TabId;
   stationNumber: string;
-  pillarId: 'gut' | 'body' | 'cause';
+  pillarId: 'gut' | 'body';
   pillarLabel: string;
   pillarColor: string;
   pillarBg: string;
@@ -273,67 +266,11 @@ export const ALL_12_STATIONS: StationConfig[] = [
     statusBadge: 'Vagus Axis',
   },
 
-  // Pillar 3: Root Cause Engine (08 - 11)
-  {
-    id: 'cascade',
-    stationNumber: '08',
-    pillarId: 'cause',
-    pillarLabel: 'Root Cause',
-    pillarColor: '#6366F1',
-    pillarBg: '#EEF2FF',
-    pillarBorder: '#C7D2FE',
-    title: '5-Stage Causal Cascade',
-    shortTitle: 'Causal Flow',
-    icon: '⚡',
-    subtitle: 'Chronological progression of systemic symptoms',
-    statusBadge: '5 Stages',
-  },
-  {
-    id: 'matcher',
-    stationNumber: '09',
-    pillarId: 'cause',
-    pillarLabel: 'Root Cause',
-    pillarColor: '#6366F1',
-    pillarBg: '#EEF2FF',
-    pillarBorder: '#C7D2FE',
-    title: 'Symptom Cluster Matcher',
-    shortTitle: 'Cross-Matcher',
-    icon: '🔍',
-    subtitle: 'Dynamic alignment across medical disciplines',
-    statusBadge: 'Recalibration Active',
-  },
-  {
-    id: 'consensus',
-    stationNumber: '10',
-    pillarId: 'cause',
-    pillarLabel: 'Root Cause',
-    pillarColor: '#6366F1',
-    pillarBg: '#EEF2FF',
-    pillarBorder: '#C7D2FE',
-    title: 'Specialist Consensus Panels',
-    shortTitle: 'Consensus',
-    icon: '🏛️',
-    subtitle: 'Multi-specialist cross-validation of findings',
-    statusBadge: 'Specialist Panels',
-  },
-  {
-    id: 'misses',
-    stationNumber: '11',
-    pillarId: 'cause',
-    pillarLabel: 'Root Cause',
-    pillarColor: '#6366F1',
-    pillarBg: '#EEF2FF',
-    pillarBorder: '#C7D2FE',
-    title: 'Cross-Discipline Insights',
-    shortTitle: 'Key Insights',
-    icon: '⚠️',
-    subtitle: 'Atypical presentations & cross-organ connections',
-    statusBadge: 'Correlations Found',
-  },
+
 
 ];
 
-export const TAB_TO_PILLAR: Partial<Record<TabId, 'gut' | 'body' | 'cause'>> = {
+export const TAB_TO_PILLAR: Partial<Record<TabId, 'gut' | 'body'>> = {
   map: 'gut',
   postmeal: 'gut',
   calendar: 'gut',
@@ -341,10 +278,6 @@ export const TAB_TO_PILLAR: Partial<Record<TabId, 'gut' | 'body' | 'cause'>> = {
   insights: 'gut',
   biomarkers: 'body',
   kinetic: 'body',
-  cascade: 'cause',
-  matcher: 'cause',
-  consensus: 'cause',
-  misses: 'cause',
 };
 
 export interface ParentPillarCardData {
@@ -403,24 +336,6 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     badgeColor: '#0369A1',
     stationIds: ['biomarkers', 'kinetic']
   },
-  {
-    id: 'cause',
-    title: 'Root Cause',
-    badge: 'Pillar 03',
-    desc: 'Sequential symptom analysis & specialist consensus',
-    icon: '⚡',
-    stationCount: 4,
-    stationRange: '08 - 11',
-    telemetry: 'Multi-System Links',
-    accentColor: '#6366F1',
-    lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #EEF2FF 60%, #E0E7FF 100%)',
-    borderColor: 'rgba(99, 102, 241, 0.35)',
-    shadowColor: 'rgba(99, 102, 241, 0.25)',
-    gradient: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
-    badgeBg: '#EEF2FF',
-    badgeColor: '#4338CA',
-    stationIds: ['cascade', 'matcher', 'consensus', 'misses']
-  },
 ];
 
 export interface PillarFilterOption {
@@ -432,10 +347,9 @@ export interface PillarFilterOption {
 }
 
 export const PILLAR_FILTERS: PillarFilterOption[] = [
-  { id: 'all', label: 'All Domains', shortLabel: 'All', icon: '✨', count: 11 },
+  { id: 'all', label: 'All Domains', shortLabel: 'All', icon: '✨', count: 7 },
   { id: 'gut', label: 'Gut & Food', shortLabel: '🥗 Gut', icon: '🥗', count: 5 },
   { id: 'body', label: 'Labs & Body', shortLabel: '🧪 Labs', icon: '🧪', count: 2 },
-  { id: 'cause', label: 'Root Cause', shortLabel: '⚡ Cause', icon: '⚡', count: 4 },
 ];
 
 interface ConnectionDetectiveViewProps {
@@ -482,10 +396,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     if (onOpenedPillarChange) onOpenedPillarChange(id);
     setInternalOpenedPillarId(id);
   };
-  const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body' | 'cause', TabId>>(() => ({
+  const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body', TabId>>(() => ({
     gut: initialTab && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'map',
     body: initialTab && TAB_TO_PILLAR[initialTab] === 'body' ? initialTab : 'biomarkers',
-    cause: initialTab && TAB_TO_PILLAR[initialTab] === 'cause' ? initialTab : 'cascade',
   }));
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
@@ -496,9 +409,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     trackButtonClick('clinical_parent_pillar_select', pillarId);
   };
 
-  // States for interactive subcomponents inside stations
-  const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+
 
   const [sourcePassageModalData, setSourcePassageModalData] = useState<SourcePassageModalProps | null>(null);
 
@@ -642,22 +553,9 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       ? `${totalMarkersCount} ${totalMarkersCount === 1 ? 'Marker' : 'Markers'} Tracked`
       : 'Awaiting Lab Panels';
 
-    // 3. Root Cause
-    const connectionsCount = report?.mapData?.connections?.length || (semanticGraph?.edges?.length || 0);
-    const conditionsCount = report?.mapData?.conditions?.length || 0;
-    const consensusCount = report?.consensusDialogue?.length || 0;
-    const causeTelemetry = connectionsCount > 0
-      ? `${connectionsCount} Causal Links Mapped`
-      : conditionsCount > 0
-      ? `${conditionsCount} ${conditionsCount === 1 ? 'Pathway' : 'Pathways'} Aligned`
-      : consensusCount > 0
-      ? `${consensusCount} ${consensusCount === 1 ? 'Panel' : 'Panels'} Aligned`
-      : 'Awaiting Clinical Review';
-
     return {
       gut: { telemetry: gutTelemetry, triggersCount: gutTriggersCount },
       body: { telemetry: bodyTelemetry, flaggedCount: flaggedMarkers, totalCount: totalMarkersCount },
-      cause: { telemetry: causeTelemetry, connectionsCount, conditionsCount, consensusCount },
     };
   }, [activeCase, report, semanticGraph, resolvedCulpritFoods, activeReview]);
 
@@ -673,34 +571,14 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
           : dynamicPillarData.body.totalCount > 0
           ? `${dynamicPillarData.body.totalCount} Markers`
           : 'Optimal Ranges';
-      case 'cascade':
-        return (report?.cascadeStages?.length || 0) > 0
-          ? `${report.cascadeStages.length}-Stage Cascade`
-          : 'Symptom Flow';
-      case 'consensus':
-        return dynamicPillarData.cause.consensusCount > 0
-          ? `${dynamicPillarData.cause.consensusCount} Panels Aligned`
-          : 'Clinical Board';
-      case 'misses':
-        return (report?.clinicalMisses?.length || 0) > 0
-          ? `${report.clinicalMisses.length} Blind Spots Mapped`
-          : 'Clinical Audit';
+
 
       default:
         return station.statusBadge;
     }
   };
 
-  const clusterEvaluation = useMemo(() => {
-    return evaluateSymptomCluster(selectedSymptoms);
-  }, [selectedSymptoms]);
 
-  const toggleSymptom = (sympId: string) => {
-    triggerHapticSelection();
-    setSelectedSymptoms((prev) =>
-      prev.includes(sympId) ? prev.filter((id) => id !== sympId) : [...prev, sympId]
-    );
-  };
 
 
 
@@ -1073,567 +951,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                     </div>
                   )}
 
-                  {/* STATION 08: CAUSAL FLOW CASCADE */}
-                  {station.id === 'cascade' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {report.cascadeStages.length === 0 ? (
-                        /* Empty state with subtle translucent blue illustration plate */
-                        <div
-                          style={{
-                            textAlign: 'center',
-                            padding: '28px 20px',
-                            background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.65) 0%, rgba(224, 242, 254, 0.45) 100%)',
-                            borderRadius: '20px',
-                            border: '1.5px solid rgba(186, 230, 253, 0.75)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '12px',
-                          }}
-                        >
-                          <SubtleAqueousLensIllustration size={110} />
-                          <div style={{ maxWidth: '380px' }}>
-                            <strong style={{ fontSize: '14px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>
-                              No Progression Data Yet
-                            </strong>
-                            <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.45 }}>
-                              Start a consultation or connect health logs to generate a symptom progression analysis.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (onOpenConsult) onOpenConsult();
-                              else window.location.href = '/app/consult';
-                            }}
-                            style={{
-                              background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-                              color: '#FFF',
-                              border: 'none',
-                              borderRadius: '10px',
-                              padding: '8px 16px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              boxShadow: '0 3px 10px rgba(2, 132, 199, 0.25)',
-                            }}
-                          >
-                            + Start Intake Consultation
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Stage Selector Stepper Rail */}
-                          <div
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(5, 1fr)',
-                              gap: '6px',
-                              background: '#F8FAFC',
-                              padding: '6px',
-                              borderRadius: '14px',
-                              border: '1px solid #E2E8F0',
-                            }}
-                          >
-                            {report.cascadeStages.map((stage) => {
-                              const isSelected = activeCascadeStage === stage.stage;
-                              return (
-                                <button
-                                  key={stage.stage}
-                                  type="button"
-                                  onClick={() => {
-                                    triggerHapticSelection();
-                                    setActiveCascadeStage(stage.stage);
-                                  }}
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '2px',
-                                    padding: '6px 2px',
-                                    borderRadius: '10px',
-                                    border: isSelected ? '1.5px solid #6366F1' : '1px solid transparent',
-                                    background: isSelected ? '#FFFFFF' : 'transparent',
-                                    color: isSelected ? '#4338CA' : '#64748B',
-                                    cursor: 'pointer',
-                                    boxShadow: isSelected ? '0 2px 6px rgba(99, 102, 241, 0.15)' : 'none',
-                                  }}
-                                >
-                                  <span style={{ fontSize: '15px' }}>{stage.organIcon}</span>
-                                  <span style={{ fontSize: '10px', fontWeight: 800 }}>Stage {stage.stage}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
 
-                          {/* Active Stage Card */}
-                          {(() => {
-                            const cur = report.cascadeStages.find((s) => s.stage === activeCascadeStage) || report.cascadeStages[0];
-                            return (
-                              <div
-                                style={{
-                                  background: 'linear-gradient(135deg, #FFFFFF 0%, #EEF2FF 100%)',
-                                  borderRadius: '16px',
-                                  padding: '14px 16px',
-                                  border: '1.5px solid #C7D2FE',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: '10px',
-                                }}
-                              >
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span style={{ fontSize: '22px' }}>{cur.organIcon}</span>
-                                    <div>
-                                      <strong style={{ fontSize: '14px', color: '#1E1B4B', display: 'block' }}>
-                                        Stage {cur.stage}: {cur.title}
-                                      </strong>
-                                      <span style={{ fontSize: '11px', color: '#4F46E5', fontWeight: 700 }}>
-                                        Organ Axis: {cur.organSystem}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: '#E0E7FF', color: '#4338CA', fontWeight: 800 }}>
-                                    Step {cur.stage} of 5
-                                  </span>
-                                </div>
-
-                                <div style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.45, background: 'rgba(255,255,255,0.9)', padding: '10px 12px', borderRadius: '10px', border: '1px solid #C7D2FE' }}>
-                                  <strong>Mechanism:</strong> {cur.mechanism}
-                                </div>
-
-                                {/* Source evidence badge */}
-                                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                  <SourceEvidenceBadge
-                                    source="Autonomic Pathophysiology Model"
-                                    citation="Cross-Organ Mapping"
-                                    onClick={() => openSourcePassage(
-                                      "Autonomic Pathophysiology Model",
-                                      "Cross-Organ Mapping",
-                                      `Stage ${cur.stage} (${cur.title}): ${cur.mechanism}. Downstream effect: ${cur.downstreamEffect}.`,
-                                      `Progression stage ${cur.stage}`
-                                    )}
-                                  />
-                                </div>
-
-                                <div>
-                                  <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>
-                                    Clinical Manifestations:
-                                  </span>
-                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                    {cur.clinicalSigns.map((sign, i) => (
-                                      <span key={i} style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '999px', background: '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}>
-                                        • {sign}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '6px', fontSize: '11px' }}>
-                                  <div style={{ background: '#F8FAFC', padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                                    <strong style={{ color: '#0284C7', display: 'block' }}>← Upstream Trigger:</strong>
-                                    <span style={{ color: '#475569' }}>{cur.upstreamCause}</span>
-                                  </div>
-                                  <div style={{ background: '#F8FAFC', padding: '8px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                                    <strong style={{ color: '#059669', display: 'block' }}>→ Downstream Consequence:</strong>
-                                    <span style={{ color: '#475569' }}>{cur.downstreamEffect}</span>
-                                  </div>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                                  <button
-                                    type="button"
-                                    disabled={activeCascadeStage === 1}
-                                    onClick={() => {
-                                      triggerHapticLight();
-                                      setActiveCascadeStage((prev) => Math.max(1, prev - 1));
-                                    }}
-                                    style={{
-                                      padding: '6px 12px',
-                                      borderRadius: '8px',
-                                      border: '1px solid #E2E8F0',
-                                      background: '#FFFFFF',
-                                      color: activeCascadeStage === 1 ? '#CBD5E1' : '#334155',
-                                      fontSize: '11.5px',
-                                      fontWeight: 700,
-                                      cursor: activeCascadeStage === 1 ? 'default' : 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    <ArrowLeft size={12} /> Previous Stage
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    disabled={activeCascadeStage === 5}
-                                    onClick={() => {
-                                      triggerHapticLight();
-                                      setActiveCascadeStage((prev) => Math.min(5, prev + 1));
-                                    }}
-                                    style={{
-                                      padding: '6px 12px',
-                                      borderRadius: '8px',
-                                      border: 'none',
-                                      background: activeCascadeStage === 5 ? '#E2E8F0' : '#4F46E5',
-                                      color: activeCascadeStage === 5 ? '#94A3B8' : '#FFFFFF',
-                                      fontSize: '11.5px',
-                                      fontWeight: 700,
-                                      cursor: activeCascadeStage === 5 ? 'default' : 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    Next Stage <ArrowRight size={12} />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* STATION 09: SYMPTOM CLUSTER CROSS-MATCHER */}
-                  {station.id === 'matcher' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '11px', color: '#64748B' }}>
-                            Tap symptoms to recalculate specialist consensus:
-                          </span>
-                          <SourceEvidenceBadge
-                            source="Multi-System Cluster Evaluator"
-                            citation="Cross-Board Aligned"
-                            onClick={() => openSourcePassage(
-                              "Multi-System Cluster Evaluator",
-                              "Cross-Board Aligned",
-                              "Dynamic cross-matching calculates alignment across cardiology, gastroenterology, neurology, and endocrinology to reveal common roots instead of isolated silos.",
-                              "Multi-symptom cluster consensus"
-                            )}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
-                          {report.symptomCluster.map((item) => {
-                            const isSelected = selectedSymptoms.includes(item.id);
-                            return (
-                              <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => toggleSymptom(item.id)}
-                                style={{
-                                  padding: '7px 12px',
-                                  borderRadius: '999px',
-                                  border: isSelected ? '1.5px solid #0284C7' : '1.5px solid #E2E8F0',
-                                  background: isSelected ? 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)' : '#FFFFFF',
-                                  color: isSelected ? '#FFFFFF' : '#334155',
-                                  fontSize: '12px',
-                                  fontWeight: isSelected ? 800 : 600,
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '5px',
-                                  boxShadow: isSelected ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none',
-                                  transition: 'all 0.15s ease',
-                                }}
-                              >
-                                <span>{item.icon}</span>
-                                <span>{item.name}</span>
-                                {isSelected && <Check size={12} strokeWidth={3} />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Convergence Synthesis Card */}
-                      <div
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.75) 100%)',
-                          borderRadius: '14px',
-                          padding: '14px 16px',
-                          border: '1.5px solid rgba(186, 230, 253, 0.85)',
-                          boxShadow: '0 4px 14px rgba(14, 165, 233, 0.08), inset 0 1px 2px #FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '8px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
-                              SPECIALIST AGREEMENT
-                            </span>
-                            <div style={{ fontSize: '18px', fontWeight: 900, color: '#0C4A6E' }}>
-                              Recorded observations
-                            </div>
-                          </div>
-                          <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', background: '#0284C7', color: '#FFFFFF' }}>
-                            {clusterEvaluation.summonedBoards.length} Specialties Active
-                          </span>
-                        </div>
-
-                        <div style={{ fontSize: '12px', color: '#0369A1', lineHeight: 1.4 }}>
-                          {clusterEvaluation.summaryNote}
-                        </div>
-
-                        <div>
-                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>
-                            Aligned Medical Disciplines:
-                          </span>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                            {clusterEvaluation.summonedBoards.map((b, i) => (
-                              <span
-                                key={i}
-                                style={{
-                                  padding: '2px 7px',
-                                  borderRadius: '6px',
-                                  background: '#FFFFFF',
-                                  color: '#0284C7',
-                                  fontSize: '10.5px',
-                                  fontWeight: 700,
-                                  border: '1px solid #BAE6FD',
-                                }}
-                              >
-                                ✓ {b} Board
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* STATION 10: SPECIALIST CONSENSUS PANELS */}
-                  {station.id === 'consensus' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {report.consensusDialogue.length === 0 ? (
-                        /* Empty state with subtle translucent blue illustration plate */
-                        <div
-                          style={{
-                            textAlign: 'center',
-                            padding: '28px 20px',
-                            background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.65) 0%, rgba(224, 242, 254, 0.45) 100%)',
-                            borderRadius: '20px',
-                            border: '1.5px solid rgba(186, 230, 253, 0.75)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '12px',
-                          }}
-                        >
-                          <SubtleAqueousLensIllustration size={110} />
-                          <div style={{ maxWidth: '380px' }}>
-                            <strong style={{ fontSize: '14px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>
-                              Specialist Reviews Not Yet Generated
-                            </strong>
-                            <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.45 }}>
-                              Gastroenterology, Neuro-Immunology, and Functional Medicine boards convene once intake consultation or records are provided.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (onOpenConsult) onOpenConsult();
-                              else window.location.href = '/app/consult';
-                            }}
-                            style={{
-                              background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-                              color: '#FFF',
-                              border: 'none',
-                              borderRadius: '10px',
-                              padding: '8px 16px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              boxShadow: '0 3px 10px rgba(2, 132, 199, 0.25)',
-                            }}
-                          >
-                            Convene Clinical Board
-                          </button>
-                        </div>
-                      ) : (
-                        report.consensusDialogue.map((dialogue, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              background: '#F8FAFC',
-                              borderRadius: '14px',
-                              padding: '12px 14px',
-                              border: '1px solid #E2E8F0',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '8px',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div
-                                  style={{
-                                    width: '34px',
-                                    height: '34px',
-                                    borderRadius: '10px',
-                                    background: dialogue.bg,
-                                    color: dialogue.color,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '18px',
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  {dialogue.icon}
-                                </div>
-                                <div>
-                                  <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
-                                    {dialogue.doctorName}
-                                  </strong>
-                                  <span style={{ fontSize: '11px', color: '#64748B' }}>
-                                    {dialogue.credentials}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <SourceEvidenceBadge
-                                source="Autonomous Panel Synthesis"
-                                citation="Cross-Validated"
-                                onClick={() => openSourcePassage(
-                                  dialogue.doctorName,
-                                  dialogue.credentials,
-                                  `"${dialogue.finding}" — Organ Axis: ${dialogue.organ}`,
-                                  `Specialist dialogue: ${dialogue.role}`
-                                )}
-                              />
-                            </div>
-
-                            <div
-                              style={{
-                                background: '#FFFFFF',
-                                borderRadius: '10px',
-                                padding: '10px 12px',
-                                fontSize: '12px',
-                                color: '#334155',
-                                lineHeight: 1.45,
-                                border: '1px solid #E2E8F0',
-                                fontStyle: 'italic',
-                              }}
-                            >
-                              "{dialogue.finding}"
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B' }}>
-                              <span>Organ Axis: <strong style={{ color: dialogue.color }}>{dialogue.organ}</strong></span>
-                              <span style={{ color: '#0284C7', fontWeight: 600 }}>Cross-Validated ✓</span>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-
-                  {/* STATION 11: WHAT 15-MINUTE VISITS MISSED */}
-                  {station.id === 'misses' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <div
-                        style={{
-                          background: '#FFF1F2',
-                          borderRadius: '12px',
-                          padding: '10px 12px',
-                          border: '1px solid #FECDD3',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <AlertTriangle size={18} color="#E11D48" style={{ flexShrink: 0 }} />
-                        <div>
-                          <strong style={{ fontSize: '12.5px', color: '#BE123C', display: 'block' }}>
-                            The Single-Specialist Silo Trap
-                          </strong>
-                          <span style={{ fontSize: '11px', color: '#9F1239' }}>
-                            Standard 15-minute consultations review organs in isolation. HealthChain resolves these specific blind spots.
-                          </span>
-                        </div>
-                      </div>
-
-                      {report.clinicalMisses.length === 0 ? (
-                        <div
-                          style={{
-                            textAlign: 'center',
-                            padding: '24px 16px',
-                            background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.65) 0%, rgba(224, 242, 254, 0.45) 100%)',
-                            borderRadius: '16px',
-                            border: '1.5px solid rgba(186, 230, 253, 0.75)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '10px',
-                          }}
-                        >
-                          <SubtleAqueousLensIllustration size={100} />
-                          <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
-                            Clinical blind spot detection activates once consultation history is logged.
-                          </p>
-                        </div>
-                      ) : (
-                        report.clinicalMisses.map((item, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              background: '#F8FAFC',
-                              borderRadius: '14px',
-                              padding: '12px 14px',
-                              border: '1px solid #E2E8F0',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '8px',
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>
-                                {item.overlookedBy}
-                              </span>
-                              <SourceEvidenceBadge
-                                source="Multi-Specialty Silo Audit"
-                                citation="Cross-Discipline Gap Analysis"
-                                onClick={() => openSourcePassage(
-                                  item.overlookedBy,
-                                  "15-Minute Visit Audit",
-                                  `What Was Missed: ${item.whatWasMissed}\n\nClinical Impact: ${item.clinicalImpact}\n\nHidden Systemic Link: ${item.hiddenConnection}`,
-                                  `Clinical blind spot analysis for ${item.overlookedBy}`
-                                )}
-                              />
-                            </div>
-
-                            <div style={{ background: '#FEF2F2', padding: '8px 10px', borderRadius: '8px', border: '1px solid #FCA5A5' }}>
-                              <span style={{ fontSize: '10px', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase', display: 'block' }}>
-                                Routine 15-Min Conclusion:
-                              </span>
-                              <span style={{ fontSize: '11.5px', color: '#991B1B' }}>{item.standardFinding}</span>
-                            </div>
-
-                            <div style={{ background: '#F0FDF4', padding: '8px 10px', borderRadius: '8px', border: '1px solid #86EFAC' }}>
-                              <span style={{ fontSize: '10px', fontWeight: 800, color: '#16A34A', textTransform: 'uppercase', display: 'block' }}>
-                                What Was Missed (HealthChain Connection):
-                              </span>
-                              <span style={{ fontSize: '11.5px', color: '#166534', fontWeight: 600 }}>{item.whatWasMissed}</span>
-                            </div>
-
-                            <div style={{ fontSize: '11.5px', color: '#475569', lineHeight: 1.4 }}>
-                              <strong>Clinical Impact:</strong> {item.clinicalImpact}
-                            </div>
-
-                            <div style={{ fontSize: '11px', color: '#0284C7', background: '#F0F9FF', padding: '5px 8px', borderRadius: '6px', border: '1px solid #BAE6FD' }}>
-                              🔗 <strong>Hidden Systemic Link:</strong> {item.hiddenConnection}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
 
 
 
@@ -1668,32 +986,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
               )}
 
               {!focusedStationId && station.id === 'kinetic' && (
-                <div
-                  style={{
-                    background: '#F8FAFC',
-                    borderRadius: '12px',
-                    padding: '10px 14px',
-                    border: '1px solid #E2E8F0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '12px',
-                    color: '#0369A1',
-                  }}
-                >
-                  <span style={{ fontSize: '16px' }}>⚡</span>
-                  <div>
-                    <strong style={{ display: 'block', color: '#0369A1', fontSize: '12px' }}>
-                      Clinical Correlation: Biomechanics & Labs
-                    </strong>
-                    <span style={{ color: '#64748B', fontSize: '11.5px' }}>
-                      Cervical alignment and nutritional cofactors evaluate together in the root cause analysis.
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {!focusedStationId && station.id === 'misses' && (
                 <div
                   style={{
                     background: 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)',
@@ -1752,11 +1044,11 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* ARCHITECTURAL CONDITIONAL: 4 BENTO CARDS OVERVIEW vs OPENED DOMAIN WORKSPACE */}
+      {/* DOMAIN CARDS OVERVIEW vs OPENED DOMAIN WORKSPACE */}
       <AnimatePresence mode="wait">
         {openedPillarId === null ? (
           /* ======================================================== */
-          /* 4 BENTO CARDS IN 2x2 MATRIX (OVERVIEW)                   */
+          /* 2 DOMAIN CARDS (OVERVIEW)                                */
           /* ======================================================== */
           <motion.div
             key="four-cards-grid"
@@ -1766,7 +1058,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
             transition={{ duration: 0.2 }}
             style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
               gap: isMobile ? '12px' : '16px',
               alignItems: 'stretch',
             }}

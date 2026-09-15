@@ -394,12 +394,12 @@ export default function CaseDashboard() {
                     <GitMerge size={isMobile ? 18 : 20} color="#FFF" />
                   </div>
                   <div className="micro-badge" style={{ background: '#E0F2FE', color: '#0284C7', padding: '4px 10px', borderRadius: '999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.5px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    ROOT CAUSE
+                    CORRELATIONS
                   </div>
                 </div>
                 <div>
                   <h4 className="serif-heading" style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, margin: '0 0 3px', color: '#2D3748', lineHeight: 1.25, letterSpacing: '-0.3px' }}>Connection Detective</h4>
-                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Cross-system root-cause map</p>
+                  <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#64748B', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>Gut, food & biomarker connections</p>
                 </div>
               </motion.div>
 
