@@ -498,7 +498,7 @@ Generated via HealthChain Clinical Elimination Protocol.`;
               }}
             >
               {copiedSummary ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-              <span>{copiedSummary ? 'Copied Dossier' : isMobile ? 'GI Dossier' : 'Copy Doctor Dossier'}</span>
+              <span>{copiedSummary ? 'Copied' : isMobile ? 'Summary' : 'Copy Protocol Summary'}</span>
             </button>
           </div>
         </div>

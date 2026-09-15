@@ -418,7 +418,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                 { id: 'guardrails', label: "Today's Guardrails", icon: ShieldAlert },
                 { id: 'rechallenge', label: 'Rechallenge Calendar', icon: Calendar },
                 { id: 'outcomes', label: 'Outcomes & Verdict', icon: TrendingDown },
-                { id: 'dossier', label: 'Doctor Dossier', icon: FileText },
+                { id: 'dossier', label: 'Visit Summary', icon: FileText },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1017,7 +1017,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
               </div>
             )}
 
-            {/* TAB 4: PHYSICIAN DOSSIER EXPORT */}
+            {/* TAB 4: PHYSICIAN VISIT SUMMARY */}
             {activeTab === 'dossier' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ fontSize: '12px', color: '#475569' }}>

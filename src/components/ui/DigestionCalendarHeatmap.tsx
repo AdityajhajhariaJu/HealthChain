@@ -599,7 +599,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
             <button
               type="button"
               onClick={handleCopyDoctorSummary}
-              aria-label="Copy Doctor GI Dossier to clipboard"
+              aria-label="Copy GI Summary to clipboard"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -618,7 +618,7 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
               }}
             >
               {copiedDoctorDossier ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-              <span>{copiedDoctorDossier ? 'Copied Dossier' : isMobile ? 'GI Summary' : 'Doctor GI Dossier'}</span>
+              <span>{copiedDoctorDossier ? 'Copied' : 'Copy GI Summary'}</span>
             </button>
 
             <button

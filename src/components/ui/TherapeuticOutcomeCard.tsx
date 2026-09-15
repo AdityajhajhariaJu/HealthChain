@@ -60,7 +60,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         role="button"
         tabIndex={0}
         aria-label={trial 
-          ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to manage protocol, rechallenges and doctor dossier` 
+          ? `Elimination Protocol - Day ${trial.currentDay} of ${trial.totalDays}. Tap to manage protocol, rechallenges and visit summary` 
           : 'Elimination Protocol - Inactive. Tap to select a targeted washout protocol'}
         whileHover={{ y: -3, scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
