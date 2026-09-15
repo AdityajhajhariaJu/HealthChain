@@ -534,7 +534,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       navigator.mediaSession.metadata = new MediaMetadata({
         title: trackTitle,
         artist: `HealthChain • ${playlistTitle}`,
-        album: 'Zen Garden Soundscapes',
+        album: 'Calm Space Soundscapes',
         artwork: [
           { src: absoluteCover, sizes: '512x512', type: 'image/jpeg' }
         ]
@@ -971,7 +971,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                   boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)'
                 }}
               >
-                Return to Zen Garden
+                Return to Calm Space
               </button>
             </motion.div>
           ) : (
@@ -2260,7 +2260,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             setShowSummaryModal(false);
                             setShowConfetti(false);
                             onClose();
-                            const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Zen Garden. Can you explain how this breathing session supports heart-rate variability and relaxation?`;
+                            const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you explain how this breathing session supports heart-rate variability and relaxation?`;
                             navigate('/app/ava', { state: { initialPrompt: calmPrompt, initialMessage: calmPrompt } });
                           }}
                           style={{
@@ -2317,4 +2317,3 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     document.body
   );
 };
-

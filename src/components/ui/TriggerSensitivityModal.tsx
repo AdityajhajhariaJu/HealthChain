@@ -36,6 +36,7 @@ interface TriggerSensitivityModalProps {
   onClose: () => void;
   onOpenMindfulness?: () => void;
   initialTab?: WholeHealthTab;
+  standaloneTab?: boolean;
 }
 
 export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = ({
@@ -43,6 +44,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
   onClose,
   onOpenMindfulness,
   initialTab = 'picture',
+  standaloneTab = false,
 }) => {
   const [activeTab, setActiveTab] = useState<WholeHealthTab>(initialTab);
   const [historyMode, setHistoryMode] = useState<'month' | '7day'>('month');
@@ -91,7 +93,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Whole Health Picture and Food Sensitivities"
+          aria-label={standaloneTab && activeTab === 'garden' ? 'Zen Garden' : 'Whole Health Picture and Food Sensitivities'}
           style={{
             position: 'fixed',
             top: 0,
@@ -144,10 +146,14 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
             >
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                  PRECISION METABOLIC INTELLIGENCE
+                  {standaloneTab && activeTab === 'garden' ? 'WELLNESS GARDEN' : 'PRECISION METABOLIC INTELLIGENCE'}
                 </span>
                 <h2 style={{ margin: '2px 0 0 0', fontSize: '21px', fontWeight: 800, color: '#1C1917', letterSpacing: '-0.4px' }}>
-                  Your Whole <span style={{ color: '#0D9488' }}>Health Picture</span>
+                  {standaloneTab && activeTab === 'garden' ? (
+                    <>Zen <span style={{ color: '#0D9488' }}>Garden</span></>
+                  ) : (
+                    <>Your Whole <span style={{ color: '#0D9488' }}>Health Picture</span></>
+                  )}
                 </h2>
               </div>
 
@@ -178,50 +184,52 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
             </div>
 
             {/* Horizontal Segmented Tabs (Triggerbites Architecture) */}
-            <div
-              style={{
-                padding: '0 20px 12px 20px',
-                display: 'flex',
-                gap: '8px',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-              }}
-            >
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setActiveTab(tab.id);
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '7px 13px',
-                      borderRadius: '999px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0,
-                      border: isActive ? '1.5px solid #0D9488' : '1.5px solid #F1F5F9',
-                      background: isActive ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
-                      color: isActive ? '#FFFFFF' : '#64748B',
-                      boxShadow: isActive ? '0 4px 12px rgba(13, 148, 136, 0.28)' : '0 2px 6px rgba(0,0,0,0.02)',
-                      transition: 'all 0.18s ease',
-                    }}
-                  >
-                    <span>{tab.icon}</span>
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {!standaloneTab && (
+              <div
+                style={{
+                  padding: '0 20px 12px 20px',
+                  display: 'flex',
+                  gap: '8px',
+                  overflowX: 'auto',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                {tabs.map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        triggerHapticLight();
+                        setActiveTab(tab.id);
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '7px 13px',
+                        borderRadius: '999px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                        border: isActive ? '1.5px solid #0D9488' : '1.5px solid #F1F5F9',
+                        background: isActive ? 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : '#64748B',
+                        boxShadow: isActive ? '0 4px 12px rgba(13, 148, 136, 0.28)' : '0 2px 6px rgba(0,0,0,0.02)',
+                        transition: 'all 0.18s ease',
+                      }}
+                    >
+                      <span>{tab.icon}</span>
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Scrollable Content Container */}
             <div

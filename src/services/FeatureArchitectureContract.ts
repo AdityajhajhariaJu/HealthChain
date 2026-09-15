@@ -533,8 +533,8 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
     mustNotDuplicate: 'Clinical interpretation',
     pipelineStage: 'wellness',
     route: '/app/today',
-    plainDescription: 'Mindful breathing, meditation, and restorative sound to help you pause and reset.',
-    plainPurpose: 'Mindful rest and nervous system recovery',
+    plainDescription: 'A living garden that grows with supportive routines, clean-meal logs, breathwork, and calm days.',
+    plainPurpose: 'Reflect routine consistency through an interactive garden',
     badgeColor: {
       bg: '#FDF2F8',
       text: '#9D174D',

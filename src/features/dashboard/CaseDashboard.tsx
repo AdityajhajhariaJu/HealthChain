@@ -64,6 +64,7 @@ import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -174,7 +175,8 @@ export default function CaseDashboard() {
 
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
   const lastMeditationRef = useRef<FitnessContent | null>(null);
-  const zenGardenRef = useRef<HTMLDivElement | null>(null);
+  const calmSpaceRef = useRef<HTMLDivElement | null>(null);
+  const [showZenGardenModal, setShowZenGardenModal] = useState(false);
 
   useEffect(() => {
     if (activeMeditation) {
@@ -236,13 +238,13 @@ export default function CaseDashboard() {
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                 onClick={() => {
                   triggerHapticSelection();
-                  zenGardenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  setShowZenGardenModal(true);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     triggerHapticSelection();
-                    zenGardenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setShowZenGardenModal(true);
                   }
                 }}
                 style={{
@@ -965,7 +967,7 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        <div ref={zenGardenRef} id="zen-garden" style={{ position: 'relative', margin: '0 0 16px 0', scrollMarginTop: '24px' }}>
+        <div ref={calmSpaceRef} id="calm-space" style={{ position: 'relative', margin: '0 0 16px 0', scrollMarginTop: '24px' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
@@ -991,8 +993,8 @@ export default function CaseDashboard() {
           {/* Our Own Meditation Hub (Hero) */}
           <section>
             <div style={{ padding: '0 16px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Zen Garden</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Meditation, breathing, and restorative sound</p>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Calm Space</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Meditation and restorative sound</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
@@ -1317,6 +1319,18 @@ export default function CaseDashboard() {
         onOpenFoodDetective={() => navigate('/app/dietician', { state: { tab: 'elimination' } })}
         onOpenConsult={() => navigate('/app/consult')}
         onOpenCasePrep={() => navigate('/app/case-prep')}
+      />
+
+      <TriggerSensitivityModal
+        isOpen={showZenGardenModal}
+        onClose={() => setShowZenGardenModal(false)}
+        initialTab="garden"
+        standaloneTab
+        onOpenMindfulness={() => {
+          window.setTimeout(() => {
+            calmSpaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }}
       />
 
     </div>
