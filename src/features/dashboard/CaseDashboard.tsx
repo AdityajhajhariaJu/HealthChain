@@ -65,7 +65,6 @@ import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
-import { TodayCaseWorkspace } from '../../components/ui/TodayCaseWorkspace';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -222,8 +221,6 @@ export default function CaseDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
             <h2 className="serif-heading" style={{ fontSize: '28px', fontWeight: 700, margin: 0, color: '#2D3748', letterSpacing: '-0.5px' }}>Dashboard</h2>
           </div>
-
-          <TodayCaseWorkspace />
 
           <VitalityStreakBanner completedHabits={completedHabits} />
 
@@ -956,11 +953,7 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        <details style={{ margin: '0 0 16px' }}>
-          <summary style={{ cursor: 'pointer', padding: '14px 16px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, color: '#0F172A', fontWeight: 800 }}>
-            Calm Space <span style={{ color: '#64748B', fontSize: 13, fontWeight: 500, marginLeft: 8 }}>Breathing, meditation, and sound</span>
-          </summary>
-        <div style={{ position: 'relative', margin: '12px 0 0' }}>
+        <div style={{ position: 'relative', margin: '0 0 16px 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
@@ -985,6 +978,11 @@ export default function CaseDashboard() {
             borderRadius: '32px',}}>
           {/* Our Own Meditation Hub (Hero) */}
           <section>
+            <div style={{ padding: '0 16px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Zen Garden</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Meditation, breathing, and restorative sound</p>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
               {[
                 { 
@@ -1257,14 +1255,8 @@ export default function CaseDashboard() {
           </section>
         </div>
       </div>
-      </details>
 
-      <details style={{ margin: '0 24px 16px' }}>
-        <summary style={{ cursor: 'pointer', padding: '14px 16px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, color: '#0F172A', fontWeight: 800 }}>
-          Learning library <span style={{ color: '#64748B', fontSize: 13, fontWeight: 500, marginLeft: 8 }}>Articles for general education</span>
-        </summary>
-        <ClinicalArticleSection />
-      </details>
+      <ClinicalArticleSection />
 
       <CompleteProfileModal
         isOpen={showCompleteProfileModal}

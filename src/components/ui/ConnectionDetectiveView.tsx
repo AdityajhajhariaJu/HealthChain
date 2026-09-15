@@ -879,12 +879,14 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   {station.id === 'map' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {/* STEP 8: THE 6 CANONICAL RELATIONSHIPS EVIDENCE GRAPH */}
-                      <SemanticEvidenceGraphView
-                        graph={semanticGraph}
-                        onOpenConsult={onOpenConsult}
-                        onOpenCasePrep={onOpenCasePrep}
-                        onOpenSourceModal={(d) => setSourcePassageModalData(d)}
-                      />
+                      {semanticGraph.nodes.length > 0 && (
+                        <SemanticEvidenceGraphView
+                          graph={semanticGraph}
+                          onOpenConsult={onOpenConsult}
+                          onOpenCasePrep={onOpenCasePrep}
+                          onOpenSourceModal={(d) => setSourcePassageModalData(d)}
+                        />
+                      )}
 
                       {resolvedCulpritFoods.length > 0 && (
                         <div
@@ -2016,7 +2018,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             style={{
               display: 'grid',
               gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: isMobile ? '16px' : '22px',
+              gap: isMobile ? '10px' : '14px',
               alignItems: 'stretch',
             }}
           >
@@ -2027,7 +2029,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 <motion.div
                   id={`cd-card-${pillar.id}`}
                   key={pillar.id}
-                  whileHover={{ y: -3, scale: 1.01 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', damping: 26, stiffness: 280 }}
                   onClick={() => {
@@ -2036,17 +2038,15 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     trackButtonClick('clinical_parent_pillar_open', pillar.id);
                   }}
                   style={{
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.45) 100%)',
-                    backdropFilter: 'blur(32px)',
-                    WebkitBackdropFilter: 'blur(32px)',
-                    border: '1px solid rgba(255, 255, 255, 0.95)',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 30px rgba(255,255,255,0.6)',
-                    borderRadius: isMobile ? '28px' : '36px',
-                    padding: isMobile ? '18px 18px' : '24px 26px',
+                    background: '#FFFFFF',
+                    border: `1px solid ${pillar.borderColor}`,
+                    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.05)',
+                    borderRadius: '20px',
+                    padding: isMobile ? '16px' : '20px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    minHeight: isMobile ? '180px' : '210px',
+                    minHeight: isMobile ? '150px' : '170px',
                     cursor: 'pointer',
                     position: 'relative',
                     overflow: 'hidden',
@@ -2124,38 +2124,9 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       </p>
                     </div>
 
-                    {/* Clickable Station Tags Preview */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '14px' }}>
-                      {pillarStations.map((stn) => (
-                        <span
-                          key={stn.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            triggerHapticSelection();
-                            setOpenedPillarId(pillar.id);
-                            setCardActiveStations((prev) => ({ ...prev, [pillar.id]: stn.id }));
-                          }}
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            color: '#475569',
-                            background: 'rgba(255,255,255,0.9)',
-                            border: '1px solid #E2E8F0',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
-                          title={`Click to jump to ${stn.shortTitle}`}
-                        >
-                          <span>{stn.icon}</span>
-                          <span>{stn.shortTitle}</span>
-                        </span>
-                      ))}
-                    </div>
+                    <p style={{ margin: '12px 0 0', color: '#94A3B8', fontSize: '11.5px', lineHeight: 1.45 }}>
+                      {pillarStations.map((station) => station.shortTitle).join(' · ')}
+                    </p>
                   </div>
 
                   {/* Telemetry pill */}
@@ -2211,9 +2182,6 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             const pillarStations = ALL_12_STATIONS.filter((s) => s.pillarId === openedPillar.id);
             const activeStationIdForPillar = cardActiveStations[openedPillar.id as keyof typeof cardActiveStations] || pillarStations[0]?.id;
             const activeStation = pillarStations.find((s) => s.id === activeStationIdForPillar) || pillarStations[0];
-            const currentStationIndex = pillarStations.findIndex((s) => s.id === activeStation?.id);
-            const prevStation = currentStationIndex > 0 ? pillarStations[currentStationIndex - 1] : null;
-            const nextStation = currentStationIndex >= 0 && currentStationIndex < pillarStations.length - 1 ? pillarStations[currentStationIndex + 1] : null;
 
             return (
               <motion.div
@@ -2228,90 +2196,15 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   gap: '16px',
                 }}
               >
-                {/* Navigation Bar: Back to 4 Cards & Quick Domain Switcher */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    overflowX: 'auto',
-                    padding: '2px 0',
-                  }}
-                >
-                  {/* All Domains Overview Pill */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerHapticLight();
-                      setOpenedPillarId(null);
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '7px 14px',
-                      borderRadius: '999px',
-                      background: '#FFFFFF',
-                      border: '1.5px solid #CBD5E1',
-                      color: '#0F172A',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                      transition: 'all 0.15s ease',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span>🗂️</span>
-                    <span>All Domains</span>
-                  </button>
-
-                  {/* Domain Switcher Pills */}
-                  {PARENT_PILLAR_CARDS.map((p) => {
-                    const isCurrent = p.id === openedPillar.id;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => {
-                          triggerHapticSelection();
-                          setOpenedPillarId(p.id);
-                        }}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          padding: '7px 14px',
-                          borderRadius: '999px',
-                          background: isCurrent ? p.accentColor : '#FFFFFF',
-                          border: `1.5px solid ${isCurrent ? p.accentColor : '#E2E8F0'}`,
-                          color: isCurrent ? '#FFFFFF' : '#475569',
-                          fontSize: '12px',
-                          fontWeight: isCurrent ? 800 : 600,
-                          cursor: 'pointer',
-                          boxShadow: isCurrent ? `0 2px 8px ${p.shadowColor}` : 'none',
-                          transition: 'all 0.15s ease',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <span>{p.icon}</span>
-                        <span>{p.title}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
                 {/* THE OPENED DOMAIN CONTAINER */}
                 <div
                   id={`cd-card-${openedPillar.id}`}
                   style={{
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%)',
-                    backdropFilter: 'blur(32px)',
-                    WebkitBackdropFilter: 'blur(32px)',
-                    border: `2px solid ${openedPillar.borderColor}`,
-                    boxShadow: `0 20px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.95)`,
-                    borderRadius: isMobile ? '28px' : '36px',
-                    padding: isMobile ? '18px 16px' : '24px 28px',
+                    background: '#FFFFFF',
+                    border: 'none',
+                    boxShadow: 'none',
+                    borderRadius: 0,
+                    padding: isMobile ? '10px 2px' : '14px 8px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '18px',
@@ -2323,7 +2216,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px',
-                      paddingBottom: '16px',
+                      paddingBottom: '12px',
                       borderBottom: '1px solid #E2E8F0',
                     }}
                   >
@@ -2427,80 +2320,6 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     {activeStation && renderStation(activeStation)}
                   </div>
 
-                  {/* STEPPER FOOTER */}
-                  {pillarStations.length > 1 && (
-                    <div
-                      style={{
-                        paddingTop: '16px',
-                        borderTop: '1px solid #E2E8F0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      {prevStation ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            triggerHapticLight();
-                            setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: prevStation.id }));
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '7px 14px',
-                            borderRadius: '8px',
-                            background: '#FFFFFF',
-                            border: '1px solid #CBD5E1',
-                            color: '#334155',
-                            fontSize: '11.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <span>← Prev:</span>
-                          <span>{prevStation.icon}</span>
-                          <span>{prevStation.shortTitle}</span>
-                        </button>
-                      ) : <div />}
-
-                      <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#64748B' }}>
-                        {currentStationIndex + 1} of {pillarStations.length}
-                      </span>
-
-                      {nextStation ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            triggerHapticLight();
-                            setCardActiveStations((prev) => ({ ...prev, [openedPillar.id]: nextStation.id }));
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '7px 14px',
-                            borderRadius: '8px',
-                            background: openedPillar.accentColor,
-                            border: 'none',
-                            color: '#FFFFFF',
-                            fontSize: '11.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            boxShadow: `0 2px 6px ${openedPillar.shadowColor}`,
-                          }}
-                        >
-                          <span>Next:</span>
-                          <span>{nextStation.icon}</span>
-                          <span>{nextStation.shortTitle}</span>
-                          <span>→</span>
-                        </button>
-                      ) : <div />}
-                    </div>
-                  )}
                 </div>
               </motion.div>
             );

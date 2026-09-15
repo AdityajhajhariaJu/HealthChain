@@ -15,7 +15,7 @@
  * 9. Food Detective: "What patterns occur in my food logs?"
  * 10. Clinical Elimination Suite: "How do I follow and document this selected plan?"
  * 11. Clinical Trials: "What relevant research can I investigate?"
- * 12. Zen Garden / Calm Space: "How do I take a worthwhile break?"
+ * 12. Zen Garden: "How do I take a worthwhile break?"
  */
 
 export type FeatureId =
@@ -525,16 +525,16 @@ export const FEATURE_CONTRACTS: Record<FeatureId, FeatureContract> = {
 
   'zen-garden': {
     id: 'zen-garden',
-    name: 'Zen Garden / Calm Space',
-    shortLabel: 'Calm Space',
+    name: 'Zen Garden',
+    shortLabel: 'Zen Garden',
     uniqueQuestion: 'How do I take a worthwhile break?',
     owns: 'Separate wellness experiences',
     produces: 'Completed activities and sessions',
     mustNotDuplicate: 'Clinical interpretation',
     pipelineStage: 'wellness',
     route: '/app/today',
-    plainDescription: 'Mindful breathing, vagal tone resets, and calm spaces to help you de-stress and rest.',
-    plainPurpose: 'Calm space & nervous system recovery',
+    plainDescription: 'Mindful breathing, meditation, and restorative sound to help you pause and reset.',
+    plainPurpose: 'Mindful rest and nervous system recovery',
     badgeColor: {
       bg: '#FDF2F8',
       text: '#9D174D',

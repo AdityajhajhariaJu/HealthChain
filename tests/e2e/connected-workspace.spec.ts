@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
   await page.route(/https:\/\//, route => route.abort());
 });
 
-test('a draft remains visible and connects My Cases, Ava, Today, and the engine', async ({ page }) => {
+test('a draft remains visible and connects My Cases, Ava, and the engine', async ({ page }) => {
   await page.goto('/app/my-cases?new=true', { waitUntil: 'domcontentloaded' });
   await page.getByLabel('Case title', { exact: true }).fill('My energy timeline');
   await page.getByLabel('What would you like help with?', { exact: true }).fill('My energy changes after lunch. I want to prepare for my appointment.');
@@ -26,9 +26,7 @@ test('a draft remains visible and connects My Cases, Ava, Today, and the engine'
   await input.fill('A change I noticed today');
   await page.getByRole('button', { name: 'Save draft as a case update' }).click();
   await expect(input).toHaveValue('');
-  await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'Pick up where you left off' })).toBeVisible();
-  await page.getByRole('link', { name: /Review your records/ }).click();
+  await page.goto(`/app/consult?caseId=${caseId}&review=new`, { waitUntil: 'domcontentloaded' });
   await expect(page.getByLabel('Where should this review be saved?')).toHaveValue(caseId!);
   await expect(page.getByRole('textbox', { name: 'Clinical timeline and symptom notes' })).toHaveValue(/My energy changes/);
   await page.screenshot({ path: 'test-results/connected-engine-desktop.png', fullPage: true });
@@ -37,14 +35,30 @@ test('a draft remains visible and connects My Cases, Ava, Today, and the engine'
 test('mobile Today and Ava keep their main actions inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: /A clearer picture starts here|Pick up where you left off/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByText(/days streak/i)).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-today-mobile.png', fullPage: true });
-  await page.getByRole('link', { name: /Check in with Ava/ }).click();
+  await page.getByRole('link', { name: 'Ava', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Send message', exact: true })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
   expect(overflow).toBe(false);
   await page.screenshot({ path: 'test-results/connected-ava-mobile.png', fullPage: true });
+});
+
+test('Connection Detective keeps empty domains clear and preserves every workspace', async ({ page }) => {
+  await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
+  await page.getByLabel('Connection Detective - Cross-system root-cause map').click();
+  const detective = page.getByRole('dialog', { name: 'Clinical Connections' });
+  await expect(detective.getByRole('heading', { name: 'Connection Detective' })).toBeVisible();
+  await expect(page.getByText('Gut & Food', { exact: true })).toBeVisible();
+  await expect(page.getByText('Labs & Body', { exact: true })).toBeVisible();
+  await expect(page.getByText('Root Cause', { exact: true })).toBeVisible();
+  await expect(page.getByText('Doctor Dossier', { exact: true })).toBeVisible();
+  await page.getByText('Gut & Food', { exact: true }).click();
+  await expect(page.getByText('No Dietary Triggers Logged Yet')).toBeVisible();
+  await expect(page.getByText('Evidence Connection Graph')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Post-Meal' })).toBeVisible();
 });
 
 test('the engine rejects unsupported documents and preserves written notes', async ({ page }) => {
