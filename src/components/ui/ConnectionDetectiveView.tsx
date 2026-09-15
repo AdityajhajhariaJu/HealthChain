@@ -43,6 +43,7 @@ import {
   SystemAxis,
   evaluateSymptomCluster,
   deriveSemanticEvidenceGraphFromEngineReview,
+  getFunctionalBiomarkers,
 } from '../../services/ConnectionDetectiveEngine';
 import { getActiveCase } from '../../services/CaseEngine';
 import { getUnifiedCaseScope } from '../../services/caseWorkspace';
@@ -287,7 +288,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     shortTitle: 'Foods',
     icon: '🔬',
     subtitle: 'Primary dietary triggers, histamine & FODMAP permeability compounds',
-    statusBadge: '4 Triggers Found',
+    statusBadge: 'Dietary Triggers',
   },
   {
     id: 'postmeal',
@@ -417,7 +418,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     shortTitle: 'Consensus',
     icon: '🏛️',
     subtitle: 'Autonomous specialist panels (Gastroenterology, Neuro-Immunology, Functional Med, Biomechanics) cross-validating findings',
-    statusBadge: '6 Panels Aligned',
+    statusBadge: 'Specialist Panels',
   },
   {
     id: 'misses',
@@ -494,7 +495,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     icon: '🥗',
     stationCount: 5,
     stationRange: '01 - 05',
-    telemetry: '4 Triggers Found',
+    telemetry: 'Triggers & Flares',
     accentColor: '#0D9488',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
     borderColor: 'rgba(13, 148, 136, 0.35)',
@@ -512,7 +513,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     icon: '🧪',
     stationCount: 2,
     stationRange: '06 - 07',
-    telemetry: 'Optimal Cutoffs',
+    telemetry: 'Biomarkers & Vagus',
     accentColor: '#0284C7',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #F0F9FF 60%, #E0F2FE 100%)',
     borderColor: 'rgba(2, 132, 199, 0.35)',
@@ -530,7 +531,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     icon: '⚡',
     stationCount: 4,
     stationRange: '08 - 11',
-    telemetry: '6 Panels Aligned',
+    telemetry: 'Multi-System Links',
     accentColor: '#6366F1',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #EEF2FF 60%, #E0E7FF 100%)',
     borderColor: 'rgba(99, 102, 241, 0.35)',
@@ -548,7 +549,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     icon: '📋',
     stationCount: 1,
     stationRange: 'Station 12',
-    telemetry: 'SBAR Ready',
+    telemetry: 'Physician SBAR',
     accentColor: '#E11D48',
     lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #FFF1F2 60%, #FFE4E6 100%)',
     borderColor: 'rgba(225, 29, 72, 0.35)',
@@ -709,6 +710,134 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
   const dietSummary = useMemo(() => generateDoctorSummary(), [report]);
 
+  const resolvedCulpritFoods = useMemo(() => {
+    if (dietSummary?.topCulpritFoods && dietSummary.topCulpritFoods.length > 0) {
+      return dietSummary.topCulpritFoods;
+    }
+    const intakeTriggers: string[] = Array.isArray(activeCase?.intakeData?.triggers)
+      ? activeCase.intakeData.triggers
+      : [];
+    if (intakeTriggers.length > 0) {
+      return intakeTriggers.map((t, idx) => ({
+        id: `intake_trigger_${idx}`,
+        name: t,
+        emoji: '🥗',
+        category: 'Intake Trigger',
+        primarySensitivity: 'Patient Reported Trigger',
+        correlationPercent: 75,
+        reactionWindow: '2-6 hours',
+        safeSwap: 'Elimination Trial Swap',
+        evidenceRef: 'Intake History',
+      }));
+    }
+    const dietStreamItems = report?.streams?.find((s) => s.id === 'diet')?.items || [];
+    if (dietStreamItems.length > 0) {
+      return dietStreamItems.map((item, idx) => ({
+        id: `stream_trigger_${idx}`,
+        name: item,
+        emoji: '🥗',
+        category: 'Dietary Stream',
+        primarySensitivity: 'Identified Sensitivity',
+        correlationPercent: 70,
+        reactionWindow: 'Active Observation',
+        safeSwap: 'Clinical Swap',
+        evidenceRef: 'Dietary Stream',
+      }));
+    }
+    return [];
+  }, [dietSummary, activeCase, report]);
+
+  const dynamicPillarData = useMemo(() => {
+    // 1. Gut & Food
+    const directTriggers = Array.isArray(activeCase?.intakeData?.triggers) ? activeCase.intakeData.triggers.length : 0;
+    const streamDiet = report?.streams?.find((s) => s.id === 'diet');
+    const streamDietCount = streamDiet?.count || streamDiet?.items?.length || 0;
+    const culpritCount = resolvedCulpritFoods.length;
+    const gutTriggersCount = culpritCount || directTriggers || streamDietCount;
+    const gutTelemetry = gutTriggersCount > 0
+      ? `${gutTriggersCount} ${gutTriggersCount === 1 ? 'Trigger' : 'Triggers'} Found`
+      : 'Awaiting Meal Logs';
+
+    // 2. Labs & Body
+    const biomarkers = getFunctionalBiomarkers();
+    const flaggedMarkers = biomarkers.filter((b) => b.status === 'suboptimal_low' || b.status === 'suboptimal_high').length;
+    const labStream = report?.streams?.find((s) => s.id === 'labs');
+    const labStreamCount = labStream?.count || labStream?.items?.length || 0;
+    const directLabsCount = Array.isArray(activeCase?.intakeData?.labs) ? activeCase.intakeData.labs.length : 0;
+    const totalMarkersCount = biomarkers.length || directLabsCount || labStreamCount;
+    const bodyTelemetry = flaggedMarkers > 0
+      ? `${flaggedMarkers} Flagged ${flaggedMarkers === 1 ? 'Marker' : 'Markers'}`
+      : totalMarkersCount > 0
+      ? `${totalMarkersCount} ${totalMarkersCount === 1 ? 'Marker' : 'Markers'} Tracked`
+      : 'Awaiting Lab Panels';
+
+    // 3. Root Cause
+    const connectionsCount = report?.mapData?.connections?.length || (semanticGraph?.edges?.length || 0);
+    const conditionsCount = report?.mapData?.conditions?.length || 0;
+    const consensusCount = report?.consensusDialogue?.length || 0;
+    const causeTelemetry = connectionsCount > 0
+      ? `${connectionsCount} Causal Links Mapped`
+      : conditionsCount > 0
+      ? `${conditionsCount} ${conditionsCount === 1 ? 'Pathway' : 'Pathways'} Aligned`
+      : consensusCount > 0
+      ? `${consensusCount} ${consensusCount === 1 ? 'Panel' : 'Panels'} Aligned`
+      : 'Awaiting Clinical Review';
+
+    // 4. Doctor Dossier
+    const hasSbar = Boolean(
+      report?.doctorDossier?.sbar?.situation?.trim() ||
+      report?.doctorDossier?.sbar?.assessment?.trim() ||
+      activeReview?.report?.executiveSummary?.trim()
+    );
+    const orderCount = report?.doctorDossier?.testsToOrder?.length || 0;
+    const icdCount = report?.doctorDossier?.icdCodes?.length || 0;
+    const dossierTelemetry = hasSbar
+      ? (orderCount + icdCount > 0 ? `${orderCount + icdCount} Orders & Codes` : 'SBAR Brief Ready')
+      : 'Intake Incomplete';
+
+    return {
+      gut: { telemetry: gutTelemetry, triggersCount: gutTriggersCount },
+      body: { telemetry: bodyTelemetry, flaggedCount: flaggedMarkers, totalCount: totalMarkersCount },
+      cause: { telemetry: causeTelemetry, connectionsCount, conditionsCount, consensusCount },
+      dossier: { telemetry: dossierTelemetry, orderCount, icdCount, hasSbar },
+    };
+  }, [activeCase, report, semanticGraph, resolvedCulpritFoods, activeReview]);
+
+  const getDynamicStationBadge = (station: StationConfig): string => {
+    switch (station.id) {
+      case 'map':
+        return dynamicPillarData.gut.triggersCount > 0
+          ? `${dynamicPillarData.gut.triggersCount} ${dynamicPillarData.gut.triggersCount === 1 ? 'Trigger' : 'Triggers'} Found`
+          : 'Awaiting Logs';
+      case 'biomarkers':
+        return dynamicPillarData.body.flaggedCount > 0
+          ? `${dynamicPillarData.body.flaggedCount} Flagged`
+          : dynamicPillarData.body.totalCount > 0
+          ? `${dynamicPillarData.body.totalCount} Markers`
+          : 'Optimal Ranges';
+      case 'cascade':
+        return (report?.cascadeStages?.length || 0) > 0
+          ? `${report.cascadeStages.length}-Stage Cascade`
+          : 'Domino Flow';
+      case 'consensus':
+        return dynamicPillarData.cause.consensusCount > 0
+          ? `${dynamicPillarData.cause.consensusCount} Panels Aligned`
+          : 'Clinical Board';
+      case 'misses':
+        return (report?.clinicalMisses?.length || 0) > 0
+          ? `${report.clinicalMisses.length} Blind Spots Mapped`
+          : 'Clinical Audit';
+      case 'dossier':
+        return dynamicPillarData.dossier.hasSbar
+          ? (dynamicPillarData.dossier.orderCount > 0
+              ? `${dynamicPillarData.dossier.orderCount} Orders Ready`
+              : 'Physician Ready')
+          : 'Draft Intake';
+      default:
+        return station.statusBadge;
+    }
+  };
+
   const clusterEvaluation = useMemo(() => {
     return evaluateSymptomCluster(selectedSymptoms);
   }, [selectedSymptoms]);
@@ -856,7 +985,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {station.statusBadge}
+                      {getDynamicStationBadge(station)}
                     </span>
 
                     <button
@@ -967,79 +1096,119 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       </div>
 
                       {/* Top Culprit Foods Breakdown Grid */}
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                          gap: '8px',
-                        }}
-                      >
-                        {(dietSummary.topCulpritFoods.length > 0
-                          ? dietSummary.topCulpritFoods.slice(0, 4)
-                          : [
-                              { id: 'histamine_dairy', name: 'Aged Cheese & Dairy', emoji: '🧀', category: 'Dairy', primarySensitivity: 'Histamine Rebound', correlationPercent: 88, safeSwap: 'Fresh paneer or goat cheese', reactionWindow: '2-4 hours', evidenceRef: 'Am. J. Gastroenterol' },
-                              { id: 'fodmap_allium', name: 'Garlic & Onion (Alliums)', emoji: '🧄', category: 'FODMAPs', primarySensitivity: 'Fructan Fermentation', correlationPercent: 82, safeSwap: 'Garlic-infused olive oil / Hing', reactionWindow: '3-6 hours', evidenceRef: 'Monash FODMAP Registry' },
-                              { id: 'solanaceae', name: 'Tomatoes & Peppers', emoji: '🍅', category: 'Nightshades', primarySensitivity: 'Solanine Permeability', correlationPercent: 74, safeSwap: 'Beetroot & carrot purée', reactionWindow: '4-8 hours', evidenceRef: 'Gut Barrier Study' },
-                              { id: 'fermented_soy', name: 'Fermented Soy / Tamari', emoji: '🥢', category: 'Histamine', primarySensitivity: 'Biogenic Amines', correlationPercent: 68, safeSwap: 'Coconut aminos', reactionWindow: '1-3 hours', evidenceRef: 'Clinical Nutrition' },
-                            ]
-                        ).map((culprit: any) => (
-                          <div
-                            key={culprit.id}
+                      {resolvedCulpritFoods.length > 0 ? (
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                            gap: '8px',
+                          }}
+                        >
+                          {resolvedCulpritFoods.slice(0, 4).map((culprit: any) => (
+                            <div
+                              key={culprit.id}
+                              style={{
+                                background: '#F8FAFC',
+                                borderRadius: '12px',
+                                padding: '10px 12px',
+                                border: '1px solid #E2E8F0',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '6px',
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '18px' }}>{culprit.emoji}</span>
+                                  <strong style={{ fontSize: '12.5px', color: '#0F172A' }}>{culprit.name}</strong>
+                                </div>
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                    color: '#B45309',
+                                    background: '#FEF3C7',
+                                    padding: '2px 6px',
+                                    borderRadius: '6px',
+                                  }}
+                                >
+                                  +{culprit.correlationPercent}% flare
+                                </span>
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748B' }}>
+                                <span style={{ color: '#0F766E', fontWeight: 600 }}>{culprit.primarySensitivity}</span>
+                                <span>Window: {culprit.reactionWindow}</span>
+                              </div>
+
+                              {/* Small visual linking finding to source */}
+                              <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '2px' }}>
+                                <SourceEvidenceBadge
+                                  source={culprit.evidenceRef || 'Clinical Evidence Baseline'}
+                                  onClick={() => openSourcePassage(
+                                    culprit.evidenceRef || 'Clinical Evidence Baseline',
+                                    undefined,
+                                    `Flare correlation tracked for ${culprit.name}: +${culprit.correlationPercent}% flare rate across active observation windows.`,
+                                    `Dietary trigger verification for ${culprit.name}`
+                                  )}
+                                />
+                              </div>
+
+                              {culprit.safeSwap && (
+                                <div style={{ fontSize: '11px', color: '#334155', background: '#FFFFFF', padding: '4px 8px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
+                                  🌱 <span style={{ fontWeight: 600 }}>Swap:</span> {culprit.safeSwap}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            textAlign: 'center',
+                            padding: '20px 16px',
+                            background: 'linear-gradient(135deg, rgba(240, 253, 250, 0.65) 0%, rgba(204, 251, 241, 0.35) 100%)',
+                            borderRadius: '14px',
+                            border: '1.5px solid rgba(153, 246, 228, 0.75)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <span style={{ fontSize: '24px' }}>🥗</span>
+                          <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F766E' }}>
+                            No Dietary Triggers Logged Yet
+                          </div>
+                          <p style={{ margin: 0, fontSize: '11.5px', color: '#134E4A', maxWidth: '420px', lineHeight: 1.4 }}>
+                            Record daily meals in the Food Detective or specify known food sensitivities in Case Intake to calculate real-time correlation and symptom flare windows.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticLight();
+                              if (onOpenFoodDetective) onOpenFoodDetective();
+                              else window.dispatchEvent(new CustomEvent('hc_open_whole_health_modal', { detail: { tab: 'detective' } }));
+                            }}
                             style={{
-                              background: '#F8FAFC',
-                              borderRadius: '12px',
-                              padding: '10px 12px',
-                              border: '1px solid #E2E8F0',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px',
+                              marginTop: '4px',
+                              background: '#0D9488',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '6px 14px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
                             }}
                           >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '18px' }}>{culprit.emoji}</span>
-                                <strong style={{ fontSize: '12.5px', color: '#0F172A' }}>{culprit.name}</strong>
-                              </div>
-                              <span
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 800,
-                                  color: '#B45309',
-                                  background: '#FEF3C7',
-                                  padding: '2px 6px',
-                                  borderRadius: '6px',
-                                }}
-                              >
-                                +{culprit.correlationPercent}% flare
-                              </span>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748B' }}>
-                              <span style={{ color: '#0F766E', fontWeight: 600 }}>{culprit.primarySensitivity}</span>
-                              <span>Window: {culprit.reactionWindow}</span>
-                            </div>
-
-                            {/* Small visual linking finding to source */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '2px' }}>
-                              <SourceEvidenceBadge
-                                source={culprit.evidenceRef || 'Clinical Evidence Baseline'}
-                                onClick={() => openSourcePassage(
-                                  culprit.evidenceRef || 'Clinical Evidence Baseline',
-                                  undefined,
-                                  `Flare correlation tracked for ${culprit.name}: +${culprit.correlationPercent}% flare rate across active observation windows.`,
-                                  `Dietary trigger verification for ${culprit.name}`
-                                )}
-                              />
-                            </div>
-
-                            {culprit.safeSwap && (
-                              <div style={{ fontSize: '11px', color: '#334155', background: '#FFFFFF', padding: '4px 8px', borderRadius: '6px', border: '1px solid #F1F5F9' }}>
-                                🌱 <span style={{ fontWeight: 600 }}>Swap:</span> {culprit.safeSwap}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                            Open Food Detective <ArrowRight size={12} />
+                          </button>
+                        </div>
+                      )}
 
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <button
@@ -2209,7 +2378,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                           background: pillar.accentColor,
                         }}
                       />
-                      <span>{pillar.telemetry}</span>
+                      <span>{dynamicPillarData[pillar.id as keyof typeof dynamicPillarData]?.telemetry || pillar.telemetry}</span>
                     </div>
 
                     <span
@@ -2443,7 +2612,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                             background: openedPillar.accentColor,
                           }}
                         />
-                        <span>{openedPillar.telemetry}</span>
+                        <span>{dynamicPillarData[openedPillar.id as keyof typeof dynamicPillarData]?.telemetry || openedPillar.telemetry}</span>
                       </div>
                     </div>
 
