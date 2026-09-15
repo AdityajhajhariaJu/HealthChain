@@ -363,7 +363,7 @@ export default function CaseDashboard() {
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label="Connection Detective - Cross-system root-cause map"
+                aria-label="Connection Detective - Gut, food and biomarker connections"
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}

@@ -309,7 +309,7 @@ export const DigestionCalendarHeatmap: React.FC<DigestionCalendarHeatmapProps> =
   const [selectedDayEntry, setSelectedDayEntry] = useState<DigestionDayEntry | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
   const [modalTab, setModalTab] = useState<'inspect' | 'edit'>('inspect');
-  const [copiedDoctorDossier, setCopiedDoctorDossier] = useState<boolean>(false);
+  const [copiedDoctorSummary, setCopiedDoctorSummary] = useState<boolean>(false);
 
   // Editable Form State in Modal
   const [editBloatScore, setEditBloatScore] = useState<number>(2);
@@ -511,7 +511,7 @@ export const DigestionCalendarHeatmap: React.FC<DigestionCalendarHeatmapProps> =
 
   const handleCopyDoctorSummary = () => {
     triggerHapticLight();
-    const summaryText = `HEALTHCHAIN 360 • 30-DAY GI DIGESTIVE SUMMARY DOSSIER
+    const summaryText = `HEALTHCHAIN 360 • 30-DAY GI DIGESTIVE SUMMARY
 Month: ${monthName} ${year}
 Patient Profile: ${profile?.profileName || 'Active Patient'}
 
@@ -532,9 +532,9 @@ Patient Profile: ${profile?.profileName || 'Active Patient'}
 Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
 
     navigator.clipboard.writeText(summaryText);
-    setCopiedDoctorDossier(true);
+    setCopiedDoctorSummary(true);
     toast?.info?.('30-Day GI Summary copied to clipboard');
-    setTimeout(() => setCopiedDoctorDossier(false), 2500);
+    setTimeout(() => setCopiedDoctorSummary(false), 2500);
   };
 
   const isCurrentMonth = new Date().getFullYear() === year && new Date().getMonth() === month;
@@ -617,8 +617,8 @@ Generated via HealthChain360 Digestion & Bloating Calendar Heatmap.`;
                 transition: 'all 0.15s',
               }}
             >
-              {copiedDoctorDossier ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-              <span>{copiedDoctorDossier ? 'Copied' : 'Copy GI Summary'}</span>
+              {copiedDoctorSummary ? <Check size={14} color="#059669" /> : <Copy size={14} />}
+              <span>{copiedDoctorSummary ? 'Copied' : 'Copy GI Summary'}</span>
             </button>
 
             <button

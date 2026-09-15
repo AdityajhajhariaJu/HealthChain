@@ -355,9 +355,9 @@ export const EliminationProtocolSuite: React.FC<EliminationProtocolSuiteProps> =
   };
 
   // Copy structured clinical report for doctor
-  const handleCopyProtocolDossier = () => {
+  const handleCopyProtocolSummary = () => {
     triggerHapticLight();
-    const dossierText = `HEALTHCHAIN 360 • CLINICAL ELIMINATION PROTOCOL DOSSIER
+    const summaryText = `HEALTHCHAIN 360 • CLINICAL ELIMINATION PROTOCOL SUMMARY
 Active Protocol: ${activeProtocol.name}
 Clinical Framework: ${activeProtocol.clinicalAuthority}
 Progress: Day ${currentProtocolData.currentDay} of ${activeProtocol.targetDurationDays} (${Math.round((currentProtocolData.currentDay / activeProtocol.targetDurationDays) * 100)}% complete)
@@ -379,9 +379,9 @@ ${activeProtocol.safeSwaps.map((s) => `• ${s.insteadOf} ⇢ ${s.swapTo} (${s.c
 
 Generated via HealthChain Clinical Elimination Protocol.`;
 
-    navigator.clipboard.writeText(dossierText);
+    navigator.clipboard.writeText(summaryText);
     setCopiedSummary(true);
-    toast?.info?.('Protocol Clinical Dossier copied to clipboard');
+    toast?.info?.('Protocol Clinical Summary copied to clipboard');
     setTimeout(() => setCopiedSummary(false), 2500);
   };
 
@@ -480,7 +480,7 @@ Generated via HealthChain Clinical Elimination Protocol.`;
 
             <button
               type="button"
-              onClick={handleCopyProtocolDossier}
+              onClick={handleCopyProtocolSummary}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

@@ -218,7 +218,7 @@ export const KineticBiomechanicsView: React.FC = () => {
 
           <div style={{ background: '#F0FDFA', borderRadius: '14px', padding: '12px 14px', border: '1px solid #99F6E4' }}>
             <div style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '4px' }}>
-              🟢 HIDDEN MECHANICAL ROOT CAUSE
+              🟢 MECHANICAL ORIGIN & TRIGGER
             </div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#134E4A', lineHeight: 1.3 }}>
               {currentPathway.hiddenOrigin}

@@ -192,7 +192,7 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0F766E' }}>
-              Primary Upstream Root Cause
+              Primary Upstream Trigger
             </span>
             <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
               <Clock size={11} /> {reactionWindow}
@@ -241,7 +241,7 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
         <div style={{ padding: '14px 18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B' }}>
-              Suspect Root-Cause Vectors
+              Suspect Trigger Vectors
             </span>
 
             {/* Category Filter Pills */}
