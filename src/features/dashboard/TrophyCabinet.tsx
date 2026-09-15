@@ -88,7 +88,7 @@ export const TrophyCabinet: React.FC = () => {
         <h1 style={{ margin: 0, fontSize: isMobile ? '32px' : '42px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '-0.5px' }}>
           Milestones <Trophy size={32} color="#DF7045" />
         </h1>
-        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>A calm record of useful actions — not a measure of health or worth.</p>
+        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>Useful actions you completed.</p>
       </div>
 
       <div style={{ padding: isMobile ? '0 24px 24px' : '0 40px 40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -111,8 +111,7 @@ export const TrophyCabinet: React.FC = () => {
 
         {/* Badges Grid */}
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Recorded milestones</h2>
-          <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 24px' }}>They mark completed actions only. There are no random rewards, penalties, or lost progress.</p>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '20px' }}>Recorded milestones</h2>
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
@@ -349,4 +348,3 @@ export const TrophyCabinet: React.FC = () => {
 };
 
 export default TrophyCabinet;
-

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import PharmacyHub from './PharmacyHub';
 import ClinicalReportAnalyzer from './ClinicalReportAnalyzer';
 import { motion } from 'framer-motion';
-import { Pill, FileText, Layers } from 'lucide-react';
+import { Pill, FileText } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
@@ -46,11 +46,7 @@ export default function MedicineLabPage() {
         padding: '24px 16px 60px 16px',
       }}
     >
-      <div style={{ maxWidth: '1000px', margin: '0 auto 16px auto' }}>
-        
-      </div>
-
-      {/* Tool Switcher Header Tabs */}
+      {/* Tool switcher */}
       <div 
         style={{ 
           maxWidth: '1000px', 
@@ -121,7 +117,7 @@ export default function MedicineLabPage() {
               color: activeTab === 'reports' ? '#FFFFFF' : '#64748B',
             }}
           >
-            <FileText size={15} /> Report Analyzer
+            <FileText size={15} /> Reports
           </button>
         </div>
       </div>

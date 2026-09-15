@@ -289,10 +289,10 @@ export default function PharmacyHub() {
                   margin: '0 0 6px 0',
                   letterSpacing: '-0.03em',
                 }}>
-                  HealthChain Pharmacy Assistant
+                  Medicines
                 </h1>
                 <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
-                  Sourcing clinical drug data from verified pharmacology databases.
+                  Look up a medicine and save it to your profile.
                 </p>
               </div>
             </div>
@@ -949,7 +949,7 @@ export default function PharmacyHub() {
               </div>
               <div>
                 <h2 style={{ fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                  High-Yield Clinical Medications
+                  Common medicines
                 </h2>
                 <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: '#64748B' }}>
                   Tap any medication for instant nutrient depletions, timing rules, and food interactions (Zero Tokens).

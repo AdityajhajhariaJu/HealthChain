@@ -474,7 +474,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                   aria-label="Mark all notifications as read"
                 >
                   <CheckCheck size={14} />
-                  <span>Mark Read</span>
+                  <span>Mark all read</span>
                 </button>
               )}
               <button
@@ -512,9 +512,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
             }}
           >
             {[
-              { key: 'all', label: `All Alerts (${undismissedNotifications.length})` },
+              { key: 'all', label: `All (${undismissedNotifications.length})` },
               { key: 'unread', label: `Unread (${unreadCount})` },
-              { key: 'rhythm', label: 'Care Rhythm' },
+              { key: 'rhythm', label: 'Check-in' },
             ].map((tab) => {
               const active = activeFilter === tab.key;
               return (
@@ -559,7 +559,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                    Active Health Alerts
+                    Notifications
                   </span>
                   <span style={{ fontSize: '11px', color: '#94A3B8' }}>
                     {displayedNotifications.length} items
@@ -595,10 +595,10 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                       <CheckCircle2 size={20} />
                     </div>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
-                      All Caught Up!
+                      You’re all caught up
                     </span>
                     <p style={{ margin: 0, fontSize: '12px', color: '#64748B', maxWidth: '280px', lineHeight: 1.4 }}>
-                      No active alerts pending. Your case context, medications, and wellness rhythm are up to date.
+                      No unread notifications.
                     </p>
                   </div>
                 ) : (
@@ -721,10 +721,10 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '0' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                  Daily Care Rhythm
+                  Daily check-in
                 </span>
                 <span style={{ fontSize: '11px', color: '#059669', fontWeight: 600 }}>
-                  24/7 Context Engine
+                  Today
                 </span>
               </div>
 
@@ -756,7 +756,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                       gap: '4px',
                     }}
                   >
-                    {isCheckinPending ? '⚡ Action Available · +2 PTS' : '✓ Completed Today · +2 PTS'}
+                    {isCheckinPending ? 'Check-in available' : 'Completed today'}
                   </span>
 
                   <div
@@ -908,7 +908,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                         cursor: 'pointer',
                       }}
                     >
-                      {showDetailedWidget ? 'Hide 7-Day Rhythm ▲' : 'View 7-Day Rhythm & Log ▾'}
+                      {showDetailedWidget ? 'Hide history' : 'View history'}
                     </button>
                     {showDetailedWidget && (
                       <div style={{ marginTop: '12px' }}>
@@ -1165,217 +1165,6 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                 </div>
               </div>
 
-              {/* 2. Active Case Context Card */}
-              <div
-                style={{
-                  border: '1px solid #E2E8F0',
-                  background: '#FFFFFF',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      background: activeCase ? '#EFF6FF' : '#F1F5F9',
-                      color: activeCase ? '#2563EB' : '#64748B',
-                    }}
-                  >
-                    {activeCase ? 'Active Clinical Case' : 'Clinical Focus'}
-                  </span>
-                  <BriefcaseBusiness size={14} color={activeCase ? '#2563EB' : '#64748B'} />
-                </div>
-
-                {activeCase ? (
-                  <div>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
-                      {activeCase.title}
-                    </h4>
-                    <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
-                      {(activeCase.medicalRecords || []).length} medical records · {pendingActionsCount} pending actions
-                    </p>
-                    <button
-                      onClick={() => handleNavigate('/app/cases/' + activeCase.id)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '7px 12px',
-                        borderRadius: '8px',
-                        background: '#F1F5F9',
-                        color: '#0F172A',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        border: '1px solid #CBD5E1',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Open Case File <ArrowRight size={13} />
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
-                      No Active Case in Focus
-                    </h4>
-                    <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
-                      Structure your complex symptoms and lab reports into an integrated multi-specialist file.
-                    </p>
-                    <button
-                      onClick={() => handleNavigate('/app/consult?new=true')}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '7px 12px',
-                        borderRadius: '8px',
-                        background: '#0F8B7E',
-                        color: '#FFFFFF',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Start Quick Consult <ArrowRight size={13} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Cellular Hydration Pulse (Verified Profile-Isolated) */}
-              <div
-                style={{
-                  border: '1px solid #BAE6FD',
-                  background: '#F0F9FF',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      background: '#E0F2FE',
-                      color: '#0284C7',
-                    }}
-                  >
-                    Hydration Target · {waterGlasses}/8 Glasses
-                  </span>
-                  <Droplets size={14} color="#0284C7" />
-                </div>
-
-                <div style={{ marginBottom: '10px' }}>
-                  <div
-                    style={{
-                      height: '6px',
-                      width: '100%',
-                      background: '#BAE6FD',
-                      borderRadius: '3px',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: '100%',
-                        width: Math.min(100, (waterGlasses / 8) * 100) + '%',
-                        background: 'linear-gradient(90deg, #38BDF8, #0284C7)',
-                        borderRadius: '3px',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '12px', color: '#0369A1', fontWeight: 600 }}>
-                    {waterGlasses >= 8 ? 'Daily hydration goal reached! 🎉' : (8 - waterGlasses) + ' glasses remaining today'}
-                  </span>
-                  <button
-                    onClick={handleAddWater}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '5px 10px',
-                      borderRadius: '6px',
-                      background: '#0284C7',
-                      color: '#FFFFFF',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Plus size={13} /> +1 Glass
-                  </button>
-                </div>
-              </div>
-
-              {/* 4. Ava Medical Buddy Card */}
-              <div
-                style={{
-                  border: '1px solid #FBCFE8',
-                  background: '#FDF2F8',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      background: '#FCE7F3',
-                      color: '#BE185D',
-                    }}
-                  >
-                    Ava Clinical Buddy · Available 24/7
-                  </span>
-                  <Sparkles size={14} color="#BE185D" />
-                </div>
-
-                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
-                  Ask questions regarding medication interactions, lab interpretations, or symptom escalations anytime.
-                </p>
-
-                <button
-                  onClick={() => handleNavigate('/app/ava')}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '7px 12px',
-                    borderRadius: '8px',
-                    background: '#BE185D',
-                    color: '#FFFFFF',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Chat with Ava <ArrowRight size={13} />
-                </button>
-              </div>
             </div>
             )}
           </div>

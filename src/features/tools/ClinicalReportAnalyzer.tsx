@@ -417,8 +417,8 @@ export default function ClinicalReportAnalyzer() {
               </h1>
               <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
                 {activeCase
-                  ? `This report will be securely saved to: ${activeCase.title}`
-                  : 'HealthChain Lab Analysis'}
+                  ? `Save extracted results to: ${activeCase.title}`
+                  : 'Upload a report to extract its printed values'}
               </p>
             </div>
           </div>
@@ -524,10 +524,10 @@ export default function ClinicalReportAnalyzer() {
                 transition={{ duration: 1.5, repeat: Infinity }}
                 style={{ color: '#0F172A', fontWeight: 800, fontSize: '18px', marginBottom: '8px' }}
               >
-                Extracting Clinical Data...
+                Reading report...
               </motion.div>
               <div style={{ color: '#64748B', fontSize: '13px', fontWeight: 600 }}>
-                Extracting lab values and reference ranges
+                Extracting printed values and ranges
               </div>
             </div>
           </div>
@@ -571,7 +571,7 @@ export default function ClinicalReportAnalyzer() {
               }}
             >
               {activeCase
-                ? 'We will analyse it, extract key biomarkers, and integrate the findings into the case timeline'
+                ? 'Extract printed values and add them to the case timeline'
                 : 'Photo or PDF (camera and files supported)'}
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>
@@ -584,7 +584,7 @@ export default function ClinicalReportAnalyzer() {
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 10 }}
               >
-                <UploadCloud size={18} /> Select File or Camera
+                <UploadCloud size={18} /> Choose file or camera
               </button>
             </div>
           </>
@@ -1136,7 +1136,7 @@ export default function ClinicalReportAnalyzer() {
                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.transform = 'translateY(0)'; }}
                     >
-                      <RotateCcw size={16} /> Analyze Another Clinical Report
+                      <RotateCcw size={16} /> Analyze another report
                     </button>
                   </div>
                 </>

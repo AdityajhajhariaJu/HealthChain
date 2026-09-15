@@ -321,7 +321,7 @@ const enforceSafeArea = () => {
             </div>
           </div>
 
-          {/* Desktop Vitality Rewards & Notifications Row */}
+          {/* Desktop activity and notifications */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 16px 14px' }}>
             <button
               onClick={() => {
@@ -340,14 +340,14 @@ const enforceSafeArea = () => {
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
-              title="View Vitality Points & Daily Rewards"
+              title="View activity"
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Trophy size={15} color="#059669" />
                 <span className="tabular-nums" style={{ fontSize: '12.5px', fontWeight: 800, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
                 <span style={{ fontSize: '13px', lineHeight: 1 }}>{currentTierBadge}</span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Rewards →</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669' }}>Activity →</span>
             </button>
             <button
               onClick={() => {
@@ -667,7 +667,7 @@ const enforceSafeArea = () => {
               ) : (
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                   <span style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    Ava Pro <span style={{ background: 'linear-gradient(135deg, #14B8A6, #0D9488)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, verticalAlign: 'middle', marginLeft: '2px' }}>Plus</span>
+                    Ava
                   </span>
                 </div>
               )}
@@ -689,7 +689,7 @@ const enforceSafeArea = () => {
                         borderRadius: '20px',
                         border: 'none'
                       }}
-                      aria-label="View Vitality Points & Daily Rewards"
+                      aria-label="View activity"
                     >
                       <Trophy size={14} color="#059669" />
                       <span className="tabular-nums" style={{ fontWeight: 900, color: '#065F46', fontVariantNumeric: 'tabular-nums' }}>{points} PTS</span>
@@ -963,8 +963,6 @@ export function ActiveCaseBar({ navigate }: any) {
 function BrandPulseBanner() {
   return null;
 }
-
-
 
 
 

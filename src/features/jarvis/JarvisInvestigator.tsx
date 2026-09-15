@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { 
-  FileUp, Sparkles, Activity, Search, ArrowRight, 
-  X, CheckCircle2, HelpCircle, BrainCircuit, Copy, Check,
-  AlertTriangle, ShieldCheck, Stethoscope, Heart, CalendarClock,
+  FileUp, Sparkles, Search, ArrowRight,
+  X, HelpCircle, BrainCircuit, Copy, Check,
+  AlertTriangle, ShieldCheck, Stethoscope, CalendarClock,
   FileText, Zap, ChevronRight, AlertCircle, Plus
 } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -153,32 +153,6 @@ export default function JarvisInvestigator() {
       isMounted.current = false;
     };
   }, []);
-
-  // Compute real intake telemetry (Zero fake or hardcoded mock numbers)
-  const intakeTelemetry = useMemo(() => {
-    let foodLogsCount = 0;
-    try {
-      const storedLogs = localStorage.getItem('hc_food_logs');
-      if (storedLogs) {
-        const parsed = JSON.parse(storedLogs);
-        if (Array.isArray(parsed)) foodLogsCount = parsed.length;
-      }
-    } catch {}
-
-    const vitals = profile?.vitals || {};
-    const rhr = vitals.restingHeartRate || vitals.restingHR;
-    const delta = vitals.standingHRDelta || vitals.orthostaticDelta;
-    const bp = vitals.bloodPressure || vitals.bp;
-
-    return {
-      labsCount: files.length,
-      foodLogsCount,
-      hasVitals: Boolean(rhr || delta || bp),
-      vitalsLabel: delta ? `+${delta} bpm Standing Delta` : rhr ? `${rhr} bpm Resting HR` : bp ? `BP ${bp}` : null,
-      notesReady: history.trim().length > 0
-    };
-  }, [files, profile, history]);
-
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || readingRef.current) return;
@@ -507,261 +481,52 @@ AI-generated preparation material. Verify against original records; this is not 
   }
 
   if (phase === 'done' && report) {
-    const primaryCondition = report.primaryHypothesis || report.topDiagnoses?.[0]?.condition || 'Multi-System Clinical Pattern';
-    const confidencePct = 0; // Model-generated percentages are not calibrated clinical probabilities.
+    const caseId = createdCaseId || selectedCaseId;
+    const primaryCondition = report.primaryHypothesis || report.topDiagnoses?.[0]?.condition || 'Case review';
+    const reasoningPayload = report.reasoningPipeline || runClinicalReasoningPipeline(report);
+    const perspectives = report.meaningfulPerspectives || report.perspectives || [];
 
     return (
-      <div className="connected-experience"
-        style={{ 
-          padding: isMobile ? '12px 0 80px' : '24px 0 100px', 
-          maxWidth: '960px', 
-          margin: '0 auto', 
-          position: 'relative' 
+      <div
+        className="connected-experience"
+        style={{
+          padding: isMobile ? '12px 0 80px' : '24px 0 100px',
+          maxWidth: '960px',
+          margin: '0 auto',
         }}
       >
-        
         <section className="case-workspace" aria-labelledby="review-ready-title">
-          <span className="case-workspace-eyebrow">REVIEW SAVED TO MY CASES</span>
-          <h2 id="review-ready-title">Your record review is ready</h2>
-          <p>AI-generated information for a conversation with your clinician. Check extracted details against your original records.</p>
-          <div className="case-workspace-grid">
-            <button className="btn btn-outline" onClick={() => navigate(`/app/cases/${createdCaseId || selectedCaseId}`)}>Open case timeline</button>
-            <button className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(createdCaseId || selectedCaseId || '')}`)}>Open Case Prep</button>
-            <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || selectedCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
-            <button className="btn btn-outline" onClick={() => { setPhase('input'); setReport(null); }}>Review updated evidence</button>
-            <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy Summary'}</button>
-          </div>
+          <header style={{ marginBottom: 18 }}>
+            <span className="case-workspace-eyebrow">Saved to My Cases</span>
+            <h2 id="review-ready-title" style={{ marginBottom: 6 }}>Your record review is ready</h2>
+            <p style={{ margin: 0 }}>Check extracted details against the original records.</p>
+          </header>
 
-          {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH ENGINE & CYCLIC FEEDBACK LOOP */}
-          {report && (
-            <ClinicalReasoningPipelineView
-              payload={report.reasoningPipeline || runClinicalReasoningPipeline(report)}
-              onClarificationSubmit={handleClarificationFeedback}
-              onChooseNextAction={(action) => {
-                const caseId = createdCaseId || selectedCaseId;
-                if (!caseId) return;
-                const updated = { ...report, reasoningPipeline: { ...report.reasoningPipeline, stage9_continuity: { ...report.reasoningPipeline.stage9_continuity, chosenNextAction: action } } };
-                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Review'] });
-                setReport(updated);
-              }}
-              onCorrectionAcknowledge={(id) => {
-                const updated = { ...report, reasoningPipeline: { ...report.reasoningPipeline, stage3_correctionQueue: report.reasoningPipeline.stage3_correctionQueue.map((c: any) => c.id === id ? { ...c, status: 'acknowledged' } : c) } };
-                const caseId = createdCaseId || selectedCaseId;
-                if (!caseId) return;
-                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Review'] });
-                setReport(updated);
-              }}
-              isUpdating={isUpdatingReasoning}
-            />
-          )}
-          {report.documentedFacts?.length > 0 && (
-            <div className="case-workspace-next">
-              <h3>What the input documents</h3>
-              {report.categorizedSummary && (
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '8px 0 12px 0' }}>
-                  {Object.entries(report.categorizedSummary).map(([cat, count]: [any, any]) => {
-                    if (!count || count <= 0) return null;
-                    return (
-                      <span key={cat} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <InformationCategoryBadge category={cat} size="sm" />
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>({count})</span>
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-              <ul>
-                {report.documentedFacts.map((fact: any, index: number) => (
-                  <li key={index} style={{ padding: '10px 0' }}>
-                    <div style={{ color: '#0F172A', fontWeight: 600 }}>{fact.fact}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                      <InformationCategoryBadge
-                        category={fact.category || 'extracted_finding'}
-                        item={fact.classifiedItem}
-                        size="sm"
-                      />
-                      <small style={{ color: '#475569' }}>Source: {fact.source}</small>
-                      {fact.extractionStatus === 'user_corrected' && (
-                        <span style={{
-                          background: '#DCFCE7',
-                          color: '#15803D',
-                          border: '1px solid #86EFAC',
-                          borderRadius: '999px',
-                          padding: '1px 6px',
-                          fontSize: '10px',
-                          fontWeight: 700,
-                        }}>
-                          User Corrected
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHapticLight();
-                          const activeCaseId = createdCaseId || selectedCaseId;
-                          const activeCase = activeCaseId ? getCase(activeCaseId) : null;
-                          const resolvedRecord = activeCase?.medicalRecords?.find(
-                            (r: any) => r.id === fact.recordId || r.filename === fact.source
-                          );
-                          setSourceModalData({
-                            isOpen: true,
-                            onClose: () => setSourceModalData(null),
-                            caseId: activeCaseId,
-                            recordId: fact.recordId || resolvedRecord?.id,
-                            findingId: fact.id || resolvedRecord?.passages?.[0]?.id,
-                            recordTitle: fact.source || 'Medical Document',
-                            recordType: resolvedRecord?.type || 'Attached Case Document / Report',
-                            pageNumber: fact.page || resolvedRecord?.passages?.[0]?.page,
-                            sectionTitle: 'Direct Document Finding',
-                            passageText: fact.fact,
-                            fullFindings: resolvedRecord?.findings || `Fact extracted from ${fact.source || 'attached medical record'}. Extraction may require checking against the original record.`,
-                            findingClaim: fact.fact,
-                            extractedBiomarker: fact.extractedBiomarker || (fact.classifiedItem ? {
-                              biomarker: fact.classifiedItem.name || fact.fact.slice(0, 40),
-                              value: fact.classifiedItem.value,
-                              unit: fact.classifiedItem.unit,
-                              standardRange: fact.classifiedItem.referenceRange,
-                            } : undefined),
-                            onCorrectionSaved: (updatedText: string) => {
-                              if (!activeCaseId) return;
-                              const updatedFacts = (report.documentedFacts || []).map((f: any, i: number) =>
-                                (f.id === fact.id || i === index) ? { ...f, fact: updatedText, extractionStatus: 'user_corrected' } : f
-                              );
-                              const updatedReport = { ...report, documentedFacts: updatedFacts };
-                              saveReviewSnapshot({ caseId: activeCaseId, type: 'jarvis' as any, report: updatedReport, specialists: ['Clinical Review'] });
-                              setReport(updatedReport);
-                              toast.success('Extraction Corrected', 'Updated finding saved non-destructively to case records.');
-                            }
-                          });
-                        }}
-                        style={{
-                          background: 'rgba(2, 132, 199, 0.08)',
-                          border: '1px solid rgba(2, 132, 199, 0.3)',
-                          borderRadius: '999px',
-                          padding: '2px 8px',
-                          fontSize: '10px',
-                          color: '#0284C7',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        Inspect & Correct Extraction ↗
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {report.uncertainties?.length > 0 && <div className="case-workspace-next"><h3>What remains uncertain</h3><ul>{report.uncertainties.map((item: string, index: number) => <li key={index} style={{ padding: '10px 0' }}>{item}</li>)}</ul></div>}
-          {report.questionsForClinician?.length > 0 && <div className="case-workspace-next"><h3>Questions to take to your visit</h3><ol>{report.questionsForClinician.map((question: string, index: number) => <li key={index} style={{ padding: '6px 0', lineHeight: 1.6 }}>{question}</li>)}</ol></div>}
-        </section>
-        {/* Top Header Badge */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div 
-              style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '14px', 
-                background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                boxShadow: '0 8px 20px rgba(249, 115, 22, 0.28)' 
-              }}
-            >
-              <BrainCircuit size={26} color="#FFFFFF" />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span 
-                  style={{ 
-                    fontSize: '11px', 
-                    fontWeight: 800, 
-                    color: '#9A3412', 
-                    background: '#FFEDD5', 
-                    border: '1px solid #FED7AA',
-                    padding: '2px 8px', 
-                    borderRadius: '6px',
-                    letterSpacing: '0.6px',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  CLINICAL DOSSIER
-                </span>
-                {createdCaseId && (
-                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                    Case #{createdCaseId.slice(0, 8)}
-                  </span>
-                )}
-              </div>
-              <h1 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 900, color: '#0F172A', margin: '4px 0 0 0', letterSpacing: '-0.4px' }}>
-                Source-Aware Case Review
-              </h1>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              onClick={handleCopySbar}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '10px',
-                background: copiedSbar ? '#ECFDF5' : '#FFF',
-                border: copiedSbar ? '1px solid #6EE7B7' : '1px solid #CBD5E1',
-                color: copiedSbar ? '#047857' : '#0F172A',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-              }}
-            >
-              {copiedSbar ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-              <span>{copiedSbar ? 'Copied' : 'Copy Summary'}</span>
+          <div className="case-workspace-grid" style={{ marginBottom: 20 }}>
+            <button className="btn btn-primary" onClick={() => navigate(`/app/cases/${caseId}`)}>
+              Open case
             </button>
-            <button
-              onClick={resetInvestigation}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '10px',
-                background: '#FFF7ED',
-                border: '1px solid #FED7AA',
-                color: '#C2410C',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              <span>New Analysis</span>
+            <button className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(caseId || '')}`)}>
+              Prepare for visit
+            </button>
+            <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(caseId || '')}`, {
+              state: { initialPrompt: 'Help me understand my latest record review and prepare questions for my clinician.' }
+            })}>
+              Ask Ava
             </button>
           </div>
-        </motion.div>
 
-        {/* Dynamic 6-Part Output Dossier */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <details style={{ marginBottom: 20 }}>
+            <summary style={{ cursor: 'pointer', color: '#475569', fontSize: 13, fontWeight: 700 }}>
+              More actions
+            </summary>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 10 }}>
+              <button className="btn btn-outline btn-sm" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy summary'}</button>
+              <button className="btn btn-outline btn-sm" onClick={() => { setPhase('input'); setReport(null); }}>Review updated information</button>
+              <button className="btn btn-outline btn-sm" onClick={resetInvestigation}>Start another review</button>
+            </div>
+          </details>
 
-          {/* STEP 7: 5-LAYER PROGRESSIVE-DISCLOSURE STRUCTURED CASE SYNTHESIS */}
           <StructuredAnswerView
             answer={report.structuredAnswer || buildStructuredClinicalAnswer({
               primaryHypothesis: primaryCondition,
@@ -772,492 +537,71 @@ AI-generated preparation material. Verify against original records; this is not 
               questionsForClinician: report.questionsForClinician,
               contradictions: report.contradictions || report.contradictionQueue,
               alternatives: report.alternatives,
-              perspectives: report.meaningfulPerspectives || report.perspectives,
+              perspectives,
               boundedComparison: report.boundedComparison,
             })}
             onOpenSourceModal={(src) => setSourceModalData(src)}
           />
 
-          {/* PART 1: THE BOTTOM LINE UP FRONT (BLUF) */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{ 
-              background: 'linear-gradient(135deg, #FFFDFB 0%, #FFF7ED 100%)', 
-              padding: isMobile ? '20px 16px' : '26px 28px', 
-              borderRadius: '20px', 
-              border: '2px solid #FDBA74',
-              boxShadow: '0 8px 24px rgba(249, 115, 22, 0.08)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#EA580C', color: '#FFF', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                <Sparkles size={13} />
-                LEADING DISCUSSION POSSIBILITY
-              </div>
-
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 800 }}>
-                <ShieldCheck size={14} color="#059669" />
-                <span>Evidence-Grounded Review</span>
-              </div>
-            </div>
-
-            <h2 style={{ fontSize: isMobile ? '19px' : '23px', fontWeight: 900, color: '#0F172A', margin: '0 0 10px 0', lineHeight: 1.3 }}>
-              {primaryCondition}
-            </h2>
-
-            <p style={{ margin: 0, color: '#334155', fontSize: '15px', lineHeight: 1.6, fontWeight: 500 }}>
-              {report.executiveSummary || 'The available information was organized into possible discussion pathways and evidence gaps for clinician review.'}
-            </p>
-          </motion.div>
-
-          {/* PART 2: THE 3-STEP MECHANISTIC DOMINO CHAIN */}
-          {report.dominoChain && <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            style={{ 
-              background: '#FFFFFF', 
-              padding: isMobile ? '20px 16px' : '24px 28px', 
-              borderRadius: '20px', 
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Zap size={18} color="#EA580C" />
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                Possible connections to discuss
-              </h3>
-            </div>
-
-            <div 
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr auto 1fr', 
-                gap: isMobile ? '12px' : '12px',
-                alignItems: 'center'
+          <details style={{ marginTop: 18, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
+            <summary style={{ cursor: 'pointer', color: '#0F766E', fontSize: 14, fontWeight: 800 }}>
+              Review reasoning
+            </summary>
+            <ClinicalReasoningPipelineView
+              payload={reasoningPayload}
+              onClarificationSubmit={handleClarificationFeedback}
+              onChooseNextAction={(action) => {
+                if (!caseId) return;
+                const updated = {
+                  ...report,
+                  reasoningPipeline: {
+                    ...reasoningPayload,
+                    stage9_continuity: { ...reasoningPayload.stage9_continuity, chosenNextAction: action },
+                  },
+                };
+                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Review'] });
+                setReport(updated);
               }}
-            >
-              <div style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: '14px', padding: '16px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#9A3412', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                  OBSERVATION 1 • POSSIBLE STARTING POINT
-                </div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
-                  {report.dominoChain?.step1_trigger || 'Not established'}
-                </div>
-              </div>
-
-              {!isMobile && (
-                <div style={{ display: 'flex', justifyContent: 'center', color: '#F97316' }}>
-                  <ArrowRight size={20} />
-                </div>
-              )}
-
-              <div style={{ background: '#FFFDFB', border: '1.5px solid #FDBA74', borderRadius: '14px', padding: '16px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                  OBSERVATION 2 • POSSIBLE RELATIONSHIP
-                </div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
-                  {report.dominoChain?.step2_cascade || 'Not established'}
-                </div>
-              </div>
-
-              {!isMobile && (
-                <div style={{ display: 'flex', justifyContent: 'center', color: '#F97316' }}>
-                  <ArrowRight size={20} />
-                </div>
-              )}
-
-              <div style={{ background: '#FEF2F2', border: '1.5px solid #FECACA', borderRadius: '14px', padding: '16px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                  OBSERVATION 3 • REPORTED SYMPTOMS
-                </div>
-                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>
-                  {report.dominoChain?.step3_symptoms || 'Not established'}
-                </div>
-              </div>
-            </div>
-          </motion.div>}
-
-          {/* STEP 5: MEANINGFUL MULTI-PERSPECTIVE REVIEW & BOUNDED COMPARISON */}
-          {(report.meaningfulPerspectives || report.perspectives) && (
-            <MeaningfulMultiPerspectiveView
-              perspectives={report.meaningfulPerspectives || report.perspectives}
-              boundedComparison={report.boundedComparison}
-              versionedEvidence={report.versionedEvidence}
+              onCorrectionAcknowledge={(id) => {
+                if (!caseId) return;
+                const updated = {
+                  ...report,
+                  reasoningPipeline: {
+                    ...reasoningPayload,
+                    stage3_correctionQueue: reasoningPayload.stage3_correctionQueue.map((item: any) =>
+                      item.id === id ? { ...item, status: 'acknowledged' } : item
+                    ),
+                  },
+                };
+                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Review'] });
+                setReport(updated);
+              }}
+              isUpdating={isUpdatingReasoning}
             />
+          </details>
+
+          {perspectives.length > 0 && (
+            <details style={{ marginTop: 14, borderTop: '1px solid #E2E8F0', paddingTop: 14 }}>
+              <summary style={{ cursor: 'pointer', color: '#0F766E', fontSize: 14, fontWeight: 800 }}>
+                Perspectives ({perspectives.length})
+              </summary>
+              <MeaningfulMultiPerspectiveView
+                perspectives={perspectives}
+                boundedComparison={report.boundedComparison}
+                versionedEvidence={report.versionedEvidence}
+              />
+            </details>
           )}
-
-          {/* PART 3: SUB-CLINICAL BIOMARKER DISCREPANCY MATRIX */}
-          {Array.isArray(report.functionalBiomarkers) && report.functionalBiomarkers.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              style={{ 
-                background: '#FFFFFF', 
-                padding: isMobile ? '20px 16px' : '24px 28px', 
-                borderRadius: '20px', 
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Activity size={18} color="#EA580C" />
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                    Measurements in your records
-                  </h3>
-                </div>
-                <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
-                  Verify values, units, and reference ranges against the original
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {report.functionalBiomarkers.map((bio: any, i: number) => (
-                  <div 
-                    key={i} 
-                    style={{ 
-                      background: '#FFFDFB', 
-                      borderRadius: '14px', 
-                      border: '1px solid #FED7AA', 
-                      padding: '14px 16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                      <strong style={{ fontSize: '15px', color: '#0F172A' }}>{bio.biomarker}</strong>
-                      {bio.value && (
-                        <span style={{ background: '#FFF7ED', border: '1px solid #FDBA74', color: '#C2410C', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 800 }}>
-                          Detected: {bio.value}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: isMobile ? '10px' : '20px', fontSize: '12.5px', color: '#64748B', flexWrap: 'wrap' }}>
-                      <span>Printed reference range: <strong style={{ color: '#475569' }}>{bio.standardRange || 'Not provided'}</strong></span>
-                      <span>•</span>
-                      <span>Alternative “optimal” range: <strong style={{ color: '#475569' }}>Not established here</strong></span>
-                    </div>
-
-                    {(bio.clinicalRisk || bio.insight) && (
-                      <p style={{ margin: 0, fontSize: '13.5px', color: '#334155', lineHeight: 1.5, background: '#FFF', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                        {bio.clinicalRisk || bio.insight}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* PART 4: WHAT DOCTORS OVERLOOKED (THE BLINDSPOTS) */}
-          {Array.isArray(report.missingLinks) && report.missingLinks.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              style={{ 
-                background: '#FFFBEB', 
-                border: '1.5px solid #FDE68A', 
-                borderRadius: '20px', 
-                padding: isMobile ? '20px 16px' : '24px 28px' 
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                <Search size={18} color="#D97706" />
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#92400E' }}>
-                  Information still missing
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {report.missingLinks.map((link: string, i: number) => (
-                  <div 
-                    key={i} 
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'flex-start', 
-                      gap: '10px', 
-                      background: '#FFFFFF', 
-                      padding: '12px 14px', 
-                      borderRadius: '12px',
-                      border: '1px solid #FEF08A'
-                    }}
-                  >
-                    <AlertTriangle size={16} color="#D97706" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <span style={{ fontSize: '14px', color: '#78350F', lineHeight: 1.5, fontWeight: 600 }}>
-                      {link}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* PART 5: DOCTOR-READY ACTION PLAN */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            style={{ 
-              background: '#FFFFFF', 
-              padding: isMobile ? '20px 16px' : '24px 28px', 
-              borderRadius: '20px', 
-              border: '1px solid #E2E8F0',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Stethoscope size={18} color="#EA580C" />
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                  Topics for your clinician
-                </h3>
-              </div>
-              
-              <button
-                onClick={handleCopySbar}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 12px',
-                  background: '#FFF7ED',
-                  border: '1px solid #FDBA74',
-                  borderRadius: '8px',
-                  color: '#C2410C',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer'
-                }}
-              >
-                {copiedSbar ? <Check size={13} color="#059669" /> : <Copy size={13} />}
-                <span>{copiedSbar ? 'Copied' : 'Copy Summary'}</span>
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {(report.questionsForClinician || []).map((item: string, i: number) => {
-                const testName = item;
-
-                return (
-                  <div 
-                    key={i}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      background: '#F8FAFC',
-                      border: '1px solid #E2E8F0'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                      <strong style={{ fontSize: '14.5px', color: '#0F172A' }}>{testName}</strong>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '6px' }}>DISCUSS</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleAddQuestionToCasePrep(testName, i)}
-                      disabled={Boolean(addedQuestionIndexes[i])}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '5px 10px',
-                        borderRadius: '8px',
-                        background: addedQuestionIndexes[i] ? '#ECFDF5' : '#FFFFFF',
-                        border: addedQuestionIndexes[i] ? '1px solid #6EE7B7' : '1px solid #CBD5E1',
-                        color: addedQuestionIndexes[i] ? '#047857' : '#0F172A',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: addedQuestionIndexes[i] ? 'default' : 'pointer',
-                        marginTop: '8px',
-                        alignSelf: 'flex-start',
-                      }}
-                    >
-                      {addedQuestionIndexes[i] ? <Check size={13} color="#047857" /> : <Plus size={13} />}
-                      <span>{addedQuestionIndexes[i] ? 'Added to Case Prep' : 'Add question to Case Prep'}</span>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-
-          {/* PART 6: 24-HOUR IMMEDIATE RELIEF PROTOCOL */}
-          {report.immediateRelief?.redFlags?.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              style={{ 
-                background: '#FFFFFF', 
-                padding: isMobile ? '20px 16px' : '24px 28px', 
-                borderRadius: '20px', 
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <Heart size={18} color="#EA580C" />
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                  When to seek urgent care
-                </h3>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {false && Array.isArray(report.immediateRelief.dietSwaps) && report.immediateRelief.dietSwaps.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '6px' }}>
-                      Dietary Swaps for Today:
-                    </div>
-                    <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {report.immediateRelief.dietSwaps.map((swap: string, i: number) => (
-                        <li key={i} style={{ fontSize: '14px', color: '#334155', lineHeight: 1.5 }}>{swap}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {false && report.immediateRelief.pacingProtocol && (
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '4px' }}>
-                      Somatic & Hydration Pacing:
-                    </div>
-                    <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: 1.5 }}>
-                      {report.immediateRelief.pacingProtocol}
-                    </p>
-                  </div>
-                )}
-
-                {Array.isArray(report.immediateRelief.redFlags) && report.immediateRelief.redFlags.length > 0 && (
-                  <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#991B1B', marginBottom: '4px' }}>
-                      <AlertCircle size={14} color="#DC2626" />
-                      EMERGENCY RED FLAGS
-                    </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#7F1D1D', lineHeight: 1.4 }}>
-                      {report.immediateRelief.redFlags.join(' ')}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {/* CROSS-SYSTEM ACTION BRIDGES */}
-          <div 
-            style={{ 
-              marginTop: '12px', 
-              background: '#FFF', 
-              padding: isMobile ? '20px 16px' : '24px 28px', 
-              borderRadius: '20px', 
-              border: '1.5px solid #FED7AA',
-              boxShadow: '0 8px 30px rgba(249, 115, 22, 0.06)' 
-            }}
-          >
-            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>
-              Next Steps
-            </h3>
-            <p style={{ color: '#64748B', fontSize: '13.5px', margin: '0 0 16px 0' }}>
-              Continue with Ava, prepare discussion points, or review saved case.
-            </p>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
-              <button 
-                onClick={() => {
-                  triggerHapticLight();
-                  const initialPrompt = `I just ran a Clinical Review. One AI-generated possibility was "${primaryCondition}". Help me separate documented facts, missing evidence, and questions to discuss with my clinician. Do not treat it as a diagnosis.`;
-                  navigate('/app/ava', { state: { initialPrompt } });
-                }}
-                style={{ 
-                  padding: '14px 16px', 
-                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', 
-                  color: '#FFF', 
-                  border: 'none', 
-                  borderRadius: '12px', 
-                  fontWeight: 700, 
-                  fontSize: '14px', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '8px', 
-                  boxShadow: '0 4px 12px rgba(249, 115, 22, 0.25)' 
-                }}
-              >
-                💬 Discuss with Ava
-              </button>
-
-              <button 
-                onClick={() => {
-                  triggerHapticLight();
-                  navigate(createdCaseId ? `/app/case-prep?caseId=${createdCaseId}` : '/app/case-prep');
-                }}
-                style={{ 
-                  padding: '14px 16px', 
-                  background: '#FFF7ED', 
-                  color: '#C2410C', 
-                  border: '1px solid #FED7AA', 
-                  borderRadius: '12px', 
-                  fontWeight: 700, 
-                  fontSize: '14px', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '8px' 
-                }}
-              >
-                📋 Prepare for Doctor
-              </button>
-
-              <button 
-                onClick={() => {
-                  triggerHapticLight();
-                  navigate(createdCaseId ? `/app/cases/${createdCaseId}` : '/app/my-cases');
-                }}
-                style={{ 
-                  padding: '14px 16px', 
-                  background: '#F8FAFC', 
-                  color: '#0F172A', 
-                  border: '1px solid #CBD5E1', 
-                  borderRadius: '12px', 
-                  fontWeight: 700, 
-                  fontSize: '14px', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  gap: '8px' 
-                }}
-              >
-                📁 View in My Cases
-              </button>
-            </div>
-          </div>
-        </div>
+        </section>
 
         {sourceModalData && (
           <SourcePassageModal
-            caseId={createdCaseId || selectedCaseId}
+            caseId={caseId}
             {...sourceModalData}
             isOpen={Boolean(sourceModalData)}
             onClose={() => setSourceModalData(null)}
           />
         )}
-
-        <DataSovereigntyModal
-          isOpen={showSovereigntyModal}
-          onClose={() => setShowSovereigntyModal(false)}
-        />
       </div>
     );
   }
@@ -1314,28 +658,19 @@ AI-generated preparation material. Verify against original records; this is not 
               <BrainCircuit size={20} color="#FFFFFF" />
             </div>
             <span style={{ color: '#9A3412', fontWeight: 800, fontSize: '12px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              CLINICAL DATA ENGINE • CONNECTED CASE REVIEW
+              Clinical Review
             </span>
           </div>
 
           <h1 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: 900, color: '#0F172A', margin: '0 0 12px 0', letterSpacing: '-0.5px', lineHeight: 1.25 }}>
-            Make sense of your health records
+            Review your health records
           </h1>
 
           <p style={{ color: '#475569', fontSize: '14.5px', margin: '0 0 18px 0', lineHeight: 1.6, maxWidth: '680px' }}>
-            Bring your timeline and records together. Review what is documented, what is uncertain, and which questions to discuss with your clinician.
+            Organize documented facts, uncertainties, and questions for your visit.
           </p>
 
-          {/* Honest Intake Data Bar (No fake metrics - computes real local state) */}
-          <div 
-            style={{ 
-              display: 'flex', 
-              gap: '8px', 
-              flexWrap: 'wrap',
-              marginTop: '8px'
-            }}
-          >
-            {/* Workspace Sovereignty pill (Promise 8) */}
+          <div style={{ marginTop: 8 }}>
             <button
               type="button"
               onClick={() => {
@@ -1355,90 +690,11 @@ AI-generated preparation material. Verify against original records; this is not 
                 fontWeight: 700,
                 cursor: 'pointer'
               }}
-              title="Inspect local device storage vs. ephemeral AI processing"
+              title="Review how data is stored and processed"
             >
               <ShieldCheck size={13} />
-              <span>Workspace Sovereignty • Local Vault & Ephemeral AI</span>
+              <span>Privacy and data use</span>
             </button>
-
-            {/* Labs status pill */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '999px',
-                background: intakeTelemetry.labsCount > 0 ? '#ECFDF5' : '#FFF',
-                border: intakeTelemetry.labsCount > 0 ? '1px solid #6EE7B7' : '1px solid #FED7AA',
-                color: intakeTelemetry.labsCount > 0 ? '#047857' : '#9A3412',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              <FileText size={13} />
-              <span>{intakeTelemetry.labsCount > 0 ? `${intakeTelemetry.labsCount} Lab Files Attached` : '+ Attach Labs (PDF/Image)'}</span>
-            </button>
-
-            {/* Vitals status pill */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '999px',
-                background: intakeTelemetry.hasVitals ? '#FFF7ED' : '#F8FAFC',
-                border: intakeTelemetry.hasVitals ? '1px solid #FDBA74' : '1px solid #E2E8F0',
-                color: intakeTelemetry.hasVitals ? '#C2410C' : '#64748B',
-                fontSize: '12px',
-                fontWeight: 700
-              }}
-            >
-              <Activity size={13} />
-              <span>{intakeTelemetry.vitalsLabel || 'Vitals: None (Optional)'}</span>
-            </div>
-
-            {/* Diet status pill */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '999px',
-                background: intakeTelemetry.foodLogsCount > 0 ? '#FFF7ED' : '#F8FAFC',
-                border: intakeTelemetry.foodLogsCount > 0 ? '1px solid #FDBA74' : '1px solid #E2E8F0',
-                color: intakeTelemetry.foodLogsCount > 0 ? '#C2410C' : '#64748B',
-                fontSize: '12px',
-                fontWeight: 700
-              }}
-            >
-              <Heart size={13} />
-              <span>{intakeTelemetry.foodLogsCount > 0 ? `${intakeTelemetry.foodLogsCount} Diet Logs Active` : 'Diet: None (Optional)'}</span>
-            </div>
-
-            {/* Notes status pill */}
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '999px',
-                background: intakeTelemetry.notesReady ? '#ECFDF5' : '#F8FAFC',
-                border: intakeTelemetry.notesReady ? '1px solid #6EE7B7' : '1px solid #E2E8F0',
-                color: intakeTelemetry.notesReady ? '#047857' : '#64748B',
-                fontSize: '12px',
-                fontWeight: 700
-              }}
-            >
-              <CheckCircle2 size={13} />
-              <span>{intakeTelemetry.notesReady ? 'Timeline Active' : 'Timeline Ready'}</span>
-            </div>
           </div>
         </div>
 
@@ -1467,13 +723,12 @@ AI-generated preparation material. Verify against original records; this is not 
             </div>
           )}
           <div className="connected-experience" style={{ marginBottom: 24 }}>
-            <label htmlFor="engine-case-context" style={{ fontWeight: 700 }}>Where should this review be saved?</label>
-            <select id="engine-case-context" className="case-context-select" value={selectedCaseId} onChange={e => setSelectedCaseId(e.target.value)}>
+            <label htmlFor="engine-case-context" style={{ fontWeight: 700 }}>Save to</label>
+            <select id="engine-case-context" aria-label="Where should this review be saved?" className="case-context-select" value={selectedCaseId} onChange={e => setSelectedCaseId(e.target.value)}>
               <option value="">Start a new case</option>
               {availableCases.filter(item => item.status !== 'archived').map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
             </select>
-            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>{selectedCaseId ? 'This case’s saved concern, record findings, and prior review will be included. Your new review will stay in the same case.' : 'A new case will be saved after your review completes.'}</p>
-            <p style={{ fontSize: 12, color: '#475569' }}>Running a review sends your notes, selected case context, attached documents, and included profile information to our AI service.</p>
+            <p style={{ fontSize: 12, color: '#475569' }}>{selectedCaseId ? 'Uses this case’s saved context.' : 'Creates a new case.'} Starting a review sends the included information to the AI service.</p>
             {isReadingFiles && <p role="status">Preparing your documents… Please wait before starting the review.</p>}
           </div>
 
@@ -1482,9 +737,8 @@ AI-generated preparation material. Verify against original records; this is not 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#C2410C', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <Sparkles size={13} color="#EA580C" />
-                Build your timeline
+                Writing prompts
               </span>
-              <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Add a writing prompt</span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
@@ -1537,7 +791,7 @@ AI-generated preparation material. Verify against original records; this is not 
           {/* Clinical Timeline & Symptoms Textarea */}
           <div style={{ marginBottom: '24px' }}>
             <label htmlFor="clinical-timeline" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
-              <span style={{ fontSize: '14.5px' }}>Clinical Timeline, Symptoms & Chief Concerns</span>
+              <span style={{ fontSize: '14.5px' }}>Timeline and symptoms</span>
               <span style={{ fontSize: '12px', fontWeight: 700, color: (history.trim().split(/\s+/).filter(w => w.length > 0).length >= 800) ? '#EF4444' : '#64748B' }}>
                 {history.trim().split(/\s+/).filter(w => w.length > 0).length} / 800 words
               </span>

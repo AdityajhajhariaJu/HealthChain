@@ -668,23 +668,9 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.3px' }}>
-                    Clinical Health Profile
+                    Health profile
                   </h3>
-                  <span style={{
-                    fontSize: '10.5px',
-                    fontWeight: 800,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    background: '#ECFDF5',
-                    color: '#059669',
-                    border: '1px solid #A7F3D0'
-                  }}>
-                    +50 PTS
-                  </span>
                 </div>
-                <p style={{ margin: 0, fontSize: '11.5px', color: '#64748B', fontWeight: 500 }}>
-                  Essential clinical baseline for safety & protocols
-                </p>
               </div>
             </div>
 
@@ -797,41 +783,6 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
             {/* STEP 0: Demographics & Biometrics (TriggerBites Interactive Style) */}
             {activeStep === 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Clinical Context Banner */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)',
-                  borderRadius: '18px',
-                  padding: '12px 14px',
-                  border: '1.5px solid #CCFBF1',
-                  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px'
-                }}>
-                  <div style={{
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '11px',
-                    background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    flexShrink: 0,
-                    boxShadow: '0 3px 10px rgba(13, 148, 136, 0.22)'
-                  }}>
-                    <ShieldCheck size={18} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                      PRECISION BIO-CALIBRATION
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.35, fontWeight: 500 }}>
-                      Biological sex, age, and biometric ratios determine reference baselines for all AI specialist differential analyses.
-                    </div>
-                  </div>
-                </div>
-
                 {/* Name Card */}
                 <div style={{
                   background: '#FFFFFF',
@@ -855,9 +806,8 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     </div>
                     <div>
                       <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A', display: 'block' }}>
-                        What should Dr. Ava call you?
+                        Name
                       </label>
-                      <span style={{ fontSize: '10.5px', color: '#64748B' }}>Used for clinical greetings & report headers</span>
                     </div>
                   </div>
                   <input
@@ -1669,10 +1619,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         </div>
                         <div>
                           <span style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'block' }}>
-                            LIVE METABOLIC PROFILE
-                          </span>
-                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                            Biometric Calibration
+                            Body measurements
                           </span>
                         </div>
                       </div>
@@ -1702,7 +1649,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       border: '1px solid #CCFBF1'
                     }}>
                       <div>
-                        <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>BMI Index</span>
+                        <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, display: 'block' }}>BMI</span>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
                           <span style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
                             {bmiData.bmi}
@@ -1713,7 +1660,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
 
                       {bmiData.bmr && (
                         <div>
-                          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Est. BMR</span>
+                          <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, display: 'block' }}>Estimated BMR</span>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
                             <span style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.5px' }}>
                               {bmiData.bmr}
@@ -1724,7 +1671,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                       )}
 
                       <div>
-                        <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', display: 'block' }}>Healthy Target</span>
+                        <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, display: 'block' }}>Reference range</span>
                         <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginTop: '4px', display: 'block' }}>
                           {bmiData.idealRange}
                         </span>
@@ -1774,7 +1721,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     </div>
 
                     <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#475569', lineHeight: 1.4 }}>
-                      ⚡ <strong style={{ color: '#0F766E' }}>Clinical Takeaway:</strong> {bmiData.takeaway}
+                      <strong style={{ color: '#0F766E' }}>Note:</strong> {bmiData.takeaway}
                     </p>
                   </motion.div>
                 ) : (
@@ -2259,7 +2206,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             boxShadow: medName.trim() ? '0 4px 12px rgba(13, 148, 136, 0.28)' : 'none'
                           }}
                         >
-                          <Plus size={16} /> Add to Chronotherapy Schedule
+                          <Plus size={16} /> Add medicine
                         </button>
                       </div>
                     </div>
@@ -2530,7 +2477,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                             boxShadow: customAllergy.trim() ? '0 4px 12px rgba(13, 148, 136, 0.28)' : 'none'
                           }}
                         >
-                          <Plus size={16} /> Add to Allergy Guard
+                          <Plus size={16} /> Add allergy
                         </button>
                       </div>
                     </div>

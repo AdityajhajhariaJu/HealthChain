@@ -170,7 +170,7 @@ export const ProgressGallery: React.FC = () => {
               Recorded activity
             </h1>
             <p style={{ color: '#64748B', fontSize: '15px', margin: 0 }}>
-              See what you actually logged. Counts are activity history, not health scores.
+              Your recent logs, not a health score.
             </p>
           </div>
           <button
@@ -246,8 +246,8 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
                 <div style={{ background: '#FEF2F2', padding: '8px', borderRadius: '10px', color: '#EF4444' }}><Flame size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Active Energy Expenditure</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 Days (kcal)</p>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Active energy</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 days · kcal</p>
                 </div>
               </div>
               <div style={{ height: '220px', width: '100%' }}>
@@ -277,8 +277,8 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
                 <div style={{ background: '#ECFEFF', padding: '8px', borderRadius: '10px', color: '#06B6D4' }}><Clock size={20} /></div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Restorative & Calming Minutes</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 Days (mins)</p>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Calm minutes</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Last 7 days</p>
                 </div>
               </div>
               <div style={{ height: '220px', width: '100%' }}>
@@ -313,7 +313,7 @@ export const ProgressGallery: React.FC = () => {
                 </div>
               </div>
               <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
-                Exact counts from HealthChain activity. A lower count means less information was logged—not worse health.
+                A lower count means less information was logged.
               </p>
 
               <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
@@ -327,12 +327,6 @@ export const ProgressGallery: React.FC = () => {
                 </ResponsiveContainer>
               </div>
               
-              <div style={{ background: '#FFF9F5', borderRadius: '16px', padding: '16px', display: 'flex', gap: '12px', marginTop: '16px', border: '1px solid #F8D8C6' }}>
-                <ListChecks color="#C2410C" size={24} style={{ flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#0F172A' }}>How to read this:</strong> These bars only show coverage. Use them to spot missing context before an appointment; they do not measure wellbeing, adherence, recovery, or clinical progress.
-                </p>
-              </div>
             </div>
           </motion.div>
         )}

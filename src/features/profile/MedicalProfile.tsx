@@ -446,10 +446,10 @@ export default function MedicalProfile() {
               margin: '0 0 6px 0',
               letterSpacing: '-0.03em',
             }}>
-              Unified Medical Profile
+              Medical profile
             </h1>
             <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
-              Comprehensive health summary, active conditions, and clinical records.
+              Health summary and records.
             </p>
           </div>
 
@@ -585,16 +585,16 @@ export default function MedicalProfile() {
           <div style={{ flex: '1 1 300px', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#99f6e4' }}>
               <ShieldCheck size={18} />
-              <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Profile Completeness</span>
+              <span style={{ fontSize: '12px', fontWeight: 800 }}>Profile completeness</span>
             </div>
-            <h3 style={{ fontSize: '20px', margin: '0 0 6px 0', fontWeight: 700 }}>Profile completeness: {healthScore.score}%</h3>
+            <h3 style={{ fontSize: '20px', margin: '0 0 6px 0', fontWeight: 700 }}>{healthScore.score}% complete</h3>
             <p style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: 1.5, margin: 0, maxWidth: '480px' }}>
               More context can make summaries more relevant. Add only what you are comfortable storing, and verify AI output before using it.
             </p>
 
             {healthScore.missing.length > 0 && (
               <div style={{ marginTop: '16px' }}>
-                <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px' }}>Next Steps to 100%</div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, marginBottom: '6px' }}>Optional details</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {healthScore.missing.map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#f8fafc', background: 'rgba(255,255,255,0.08)', padding: '6px 12px', borderRadius: '6px' }}>
@@ -676,7 +676,7 @@ export default function MedicalProfile() {
           </div>
         ) : (
           <>
-<div className={(activeTab !== "overview" && activeTab !== "insights") ? "tab-content-hidden" : ""} style={{ display: (activeTab === "overview" || activeTab === "insights") ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
+<div className={activeTab !== "insights" ? "tab-content-hidden" : ""} style={{ display: activeTab === "insights" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
 
       {/* NEW: Holistic Health Synthesis */}
       <motion.div 
@@ -696,15 +696,14 @@ export default function MedicalProfile() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
           <div style={{ width: 72, height: 72, borderRadius: 24, display: 'grid', placeItems: 'center', background: '#ECFDF5', color: 'var(--teal)', fontSize: 32 }}>📋</div>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', marginTop: '12px', letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center' }}>Profile review snapshot</div>
-          <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: 12, lineHeight: 1.5, textAlign: 'center' }}>A summary of saved information, not a health score.</p>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', marginTop: '12px', textAlign: 'center' }}>Saved profile</div>
         </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8B5CF6' }}>
               <Sparkles size={20} />
-              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>AI Profile Summary</h3>
+              <h3 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>Profile summary</h3>
             </div>
             {!profile?.isPro && (
               <button 
@@ -725,7 +724,7 @@ export default function MedicalProfile() {
             {isGeneratingSynthesis && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8B5CF6', fontSize: '13px', fontWeight: 600 }}>
                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ width: '14px', height: '14px', border: '2px solid rgba(139,92,246,0.3)', borderTopColor: '#8B5CF6', borderRadius: '50%' }} />
-                Analyzing Profile...
+                Reviewing profile...
               </div>
             )}
           </div>
@@ -772,7 +771,7 @@ export default function MedicalProfile() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
               <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-                {isGeneratingSynthesis ? 'Clinical synthesis is generating based on profile records...' : 'Add medical conditions, medications, or allergies to generate a clinical synthesis.'}
+                {isGeneratingSynthesis ? 'Reviewing saved profile details...' : 'Add conditions, medicines, or allergies to create a summary.'}
               </p>
             </div>
           )}
@@ -1566,8 +1565,7 @@ export default function MedicalProfile() {
           className="card"
           style={{ padding: '24px' }}
         >
-          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>Vitality Score</h2>
-          <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '13px' }}>Your 7-day health momentum.</p>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0', color: '#0F172A', letterSpacing: '-0.5px' }}>7-day activity</h2>
           <VitalityRing progress={vitalityScore} />
           <SensualLineChart />
           
@@ -1785,7 +1783,7 @@ export default function MedicalProfile() {
               <User size={18} color="#F59E0B" /> Family History
             </h3>
             <p className="text-xs text-gray mb-4">
-              Adding family history improves AI investigative accuracy.
+              Add details that may be relevant to your care.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
@@ -2021,75 +2019,6 @@ export default function MedicalProfile() {
               })()}
             </div>
           </div>
-</div>
-<div className={activeTab !== "insights" ? "tab-content-hidden" : ""} style={{ display: activeTab === "insights" ? "flex" : "none", flexDirection: "column", gap: "24px", gridColumn: "1 / -1" }}>
-{/* NEW: Care Team & Document Vault */}
-          <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
-            <h3
-              style={{
-                fontSize: '16px',
-                color: 'var(--text-main)',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <Users size={18} color="#10B981" /> Active Care Team
-            </h3>
-            
-            {activeCase ? (
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-                <motion.div 
-                  role="button"
-                  tabIndex={0}
-                  aria-label="Navigate to AI Discussion Board"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      navigate('/app/collab');
-                    }
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => navigate('/app/collab')} 
-                  style={{ padding: '12px', background: 'var(--surface-hover)', borderRadius: '10px', cursor: 'pointer', border: '1px solid var(--border)' }}
-                >
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#ECFDF5', color: '#10B981', display: 'grid', placeItems: 'center' }}><User size={12}/></div>
-                    <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>AI Discussion Board</strong>
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Assigned to active case</span>
-                </motion.div>
-              </div>
-            ) : (
-              <div style={{ padding: '24px', background: 'var(--surface-hover)', borderRadius: '10px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', marginBottom: '24px', border: '1px dashed var(--border)' }}>
-                Start an investigation to assemble your active AI Care Team.
-              </div>
-            )}
-
-            <h3
-              style={{
-                fontSize: '16px',
-                color: 'var(--text-main)',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                borderTop: '1px solid var(--border)',
-                paddingTop: '20px'
-              }}
-            >
-              <FileText size={18} color="#64748B" /> Document Vault
-            </h3>
-            <button 
-              className="btn btn-outline btn-sm" 
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => navigate('/app/reports')}
-            >
-               View Source Documents
-            </button>
-          </div>
-
 </div>
         </>
         )}

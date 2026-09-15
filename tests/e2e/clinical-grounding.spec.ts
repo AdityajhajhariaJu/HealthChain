@@ -25,8 +25,10 @@ test('saved review has one reasoning view and one perspective view',async({page}
   const id=await seed(page);
   await page.goto('/app/consult?caseId='+id);
   await expect(page.getByRole('heading',{name:'Your record review is ready'})).toBeVisible();
+  await page.getByText('Review reasoning',{exact:true}).click();
   await expect(page.getByText('Clinical reasoning and follow-up',{exact:true})).toHaveCount(1);
-  await expect(page.getByText('AI perspectives on your case',{exact:true})).toHaveCount(1);
+  await page.getByText(/Perspectives \(\d+\)/).click();
+  await expect(page.getByText('Clinical perspectives',{exact:true})).toHaveCount(1);
   await expect(page.getByText('Save clarification',{exact:true})).toBeVisible();
   await expect(page.getByText('Recorded Measurement: Postural Tachycardia Delta (+34 bpm)',{exact:true})).toHaveCount(0);
 });
@@ -34,6 +36,7 @@ test('saved review has one reasoning view and one perspective view',async({page}
 test('clarification survives reload and remains a report, not a resolved conclusion',async({page})=>{
   const id=await seed(page);
   await page.goto('/app/consult?caseId='+id);
+  await page.getByText('Review reasoning',{exact:true}).click();
   const input=page.locator('form textarea').first();
   await input.fill('I do not know the exact activity timing');
   await page.getByText('Save clarification',{exact:true}).click();

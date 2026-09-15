@@ -803,7 +803,7 @@ export default function ClinicalTrialsMatcher() {
         <div>
           <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research</h1>
           <p style={{ margin: 0, color: '#C7D2FE', fontSize: '15px' }}>
-            Search live registry studies and recent literature using a topic from your selected case or your own search. Results are ranked by text overlap, not medical eligibility.
+            Find registry studies and recent literature by topic.
           </p>
         </div>
       </motion.div>
@@ -812,13 +812,13 @@ export default function ClinicalTrialsMatcher() {
         <div>
           <div className="card" style={{ padding: isMobile ? '16px' : '24px' }}>
             <h3 style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Filter size={16} /> Search Parameters
+              <Filter size={16} /> Search
             </h3>
 
             {/* Custom Query Search Box */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Search Topic or Condition
+                Topic or condition
               </label>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <input
@@ -896,18 +896,15 @@ export default function ClinicalTrialsMatcher() {
 
             <div>
               <label style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>
-                Eligibility boundary
+                Eligibility
               </label>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>Age, sex, location, medications, test results, and other criteria are not automatically verified here. Confirm them on the official study page.</p>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>Relevance does not confirm eligibility. Check the official study page.</p>
             </div>
           </div>
           
           <div style={{ marginTop: '24px', padding: '16px', background: '#F8FAFC', borderRadius: 'var(--radius-lg)', border: '1px dashed #CBD5E1' }}>
-             <h4 style={{ fontSize: '13px', color: '#0F172A', display: 'flex', gap: '6px', alignItems: 'center', margin: '0 0 8px 0' }}>
-               <ShieldCheck size={14} color="#10B981" /> Safety Notice
-             </h4>
              <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
-               Trials listed are for informational purposes. Always consult your primary care physician before enrolling.
+               Discuss participation with the study team and your clinician.
              </p>
           </div>
         </div>
@@ -925,7 +922,7 @@ export default function ClinicalTrialsMatcher() {
               </div>
               <div>
                 <div style={{ color: '#0F172A', fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>
-                  Scanning global clinical registries...
+                  Searching sources...
                 </div>
               </div>
             </div>
@@ -954,7 +951,7 @@ export default function ClinicalTrialsMatcher() {
                     No direct registry records found for "{effectiveTerms.join(', ')}"
                   </h3>
                   <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '480px', margin: '0 auto 16px auto', lineHeight: 1.5 }}>
-                    Clinical registries use standardized medical terminology. Rare conditions, specific phenotypes, or composite search terms may return zero direct matches.
+                    Try a broader condition or symptom.
                   </p>
                   {caseDifferentials.length > 0 && (
                     <div style={{ marginBottom: '16px' }}>

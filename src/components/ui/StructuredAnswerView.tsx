@@ -82,54 +82,9 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
         fontFamily: 'inherit',
       }}
     >
-      {/* HEADER: STEP 7 ARCHITECTURAL CONTRACT */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '8px',
-        padding: '12px 18px',
-        background: '#F8FAFC',
-        borderRadius: '14px',
-        border: '1px solid #E2E8F0',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '24px',
-            height: '24px',
-            borderRadius: '6px',
-            background: '#0F172A',
-            color: '#FFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '12px',
-            fontWeight: 800,
-          }}>
-            5L
-          </div>
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.2px' }}>
-              Structured Case Synthesis
-            </span>
-            <span style={{ fontSize: '11px', color: '#64748B', marginLeft: '8px' }}>
-              Progressive disclosure • Source-grounded reasoning
-            </span>
-          </div>
-        </div>
-        <span style={{
-          fontSize: '11px',
-          fontWeight: 700,
-          color: '#059669',
-          background: '#ECFDF5',
-          border: '1px solid #A7F3D0',
-          padding: '2px 8px',
-          borderRadius: '999px',
-        }}>
-          No Fake Probabilities
-        </span>
-      </div>
+      <h3 style={{ margin: 0, fontSize: isMobile ? '18px' : '20px', color: '#0F172A' }}>
+        Review summary
+      </h3>
 
       {/* ==========================================
           LAYER 1: MAIN ANSWER (2-3 Sentences -> Full Synthesis)
@@ -153,7 +108,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               padding: '2px 8px',
               borderRadius: '6px',
             }}>
-              Layer 1 • Main Answer
+              Summary
             </span>
           </div>
           <button
@@ -174,7 +129,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               padding: '4px 6px',
             }}
           >
-            <span>{expandL1 ? 'Hide Full Synthesis' : 'Expand Full Synthesis'}</span>
+            <span>{expandL1 ? 'Show less' : 'Show more'}</span>
             {expandL1 ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
@@ -203,7 +158,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
             borderRadius: '10px',
           }}>
             <div style={{ fontWeight: 800, fontSize: '11.5px', color: '#14532D', textTransform: 'uppercase', marginBottom: '6px' }}>
-              Full Pathophysiological & Evidentiary Synthesis
+              Full review
             </div>
             {layer1_mainAnswer.fullSynthesis}
           </div>
@@ -231,7 +186,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
             padding: '2px 8px',
             borderRadius: '6px',
           }}>
-            Layer 2 • Why This Matters in My Case
+            Why it may matter
           </span>
           <button
             onClick={() => {
@@ -251,7 +206,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               padding: '4px 6px',
             }}
           >
-            <span>{expandL2 ? 'Hide Source Details' : 'View Source Passages & Dates'}</span>
+            <span>{expandL2 ? 'Hide sources' : 'View sources'}</span>
             {expandL2 ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
@@ -349,7 +304,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
             padding: '2px 8px',
             borderRadius: '6px',
           }}>
-            Layer 3 • Other Explanations
+            Other explanations
           </span>
           <button
             onClick={() => {
@@ -369,7 +324,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               padding: '4px 6px',
             }}
           >
-            <span>{expandL3 ? 'Hide Alternatives' : 'View Differential & Relationship Statuses'}</span>
+            <span>{expandL3 ? 'Hide' : 'Review'}</span>
             {expandL3 ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
@@ -562,7 +517,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
             padding: '2px 8px',
             borderRadius: '6px',
           }}>
-            Layer 4 • What We Still Need
+            Missing information
           </span>
           <button
             onClick={() => {
@@ -582,7 +537,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               padding: '4px 6px',
             }}
           >
-            <span>{expandL4 ? 'Hide Gaps' : 'View Complete Missing-Information List'}</span>
+            <span>{expandL4 ? 'Hide' : 'Review'}</span>
             {expandL4 ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>
@@ -662,7 +617,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
             padding: '2px 8px',
             borderRadius: '6px',
           }}>
-            Layer 5 • Next Step
+            Next step
           </span>
           <button
             onClick={() => {
@@ -682,7 +637,7 @@ ${brief.relevantRecords.map(r => `• ${r}`).join('\n')}`;
               padding: '4px 6px',
             }}
           >
-            <span>{expandL5 ? 'Hide Other Actions' : 'View Doctor Brief & Other Options'}</span>
+            <span>{expandL5 ? 'Hide options' : 'More options'}</span>
             {expandL5 ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
         </div>

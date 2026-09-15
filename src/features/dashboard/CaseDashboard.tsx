@@ -54,7 +54,6 @@ import { FitnessService, FitnessContent, FitnessCategory } from '../../services/
 import { SensualLineChart } from '../../components/ui/SensualLineChart';
 
 import { VitalityNav } from '../../components/ui/FitnessNav';
-import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
 
 import { getProfile } from '../../services/ProfileEngine';
@@ -66,6 +65,7 @@ import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { ClinicalArticleSection } from './ClinicalArticleSection';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
+import { TodayCaseWorkspace } from '../../components/ui/TodayCaseWorkspace';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -221,15 +221,10 @@ export default function CaseDashboard() {
         <div style={{ padding: isMobile ? '0 12px 20px' : '0 24px 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
             <h2 className="serif-heading" style={{ fontSize: '28px', fontWeight: 700, margin: 0, color: '#2D3748', letterSpacing: '-0.5px' }}>Dashboard</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                <LivingHeartIcon size={16} color="#F43F5E" />
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Live Biometrics</span>
-              </div>
-            </div>
           </div>
 
-          {/* Gamified Vitality Streak, 7-Day Horizon, Mystery Drop & Trophy Catch */}
+          <TodayCaseWorkspace />
+
           <VitalityStreakBanner completedHabits={completedHabits} />
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
@@ -894,7 +889,7 @@ export default function CaseDashboard() {
                   setShowCompleteProfileModal(true);
                 }
               }}
-              aria-label="Complete Health Profile (Takes 2 mins)"
+              aria-label="Complete health profile"
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
                 <div style={{
@@ -913,14 +908,11 @@ export default function CaseDashboard() {
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                      Complete Health Profile
+                      Complete health profile
                     </h4>
-                    <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 7px', borderRadius: '6px', background: '#ECFDF5', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                      +50 PTS REWARD
-                    </span>
                   </div>
                   <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748B', lineHeight: 1.3 }}>
-                    Add age, conditions, medications & allergies • Takes 2 mins
+                    Add age, conditions, medicines, and allergies
                   </p>
                 </div>
               </div>
@@ -947,7 +939,7 @@ export default function CaseDashboard() {
                   boxShadow: '0 2px 6px rgba(15, 118, 110, 0.25)'
                 }}
               >
-                Start Setup <ArrowRight size={13} />
+                Add details <ArrowRight size={13} />
               </button>
             </div>
           </div>
@@ -964,8 +956,11 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-
-        <div style={{ position: 'relative', margin: '0 0 16px 0' }}>
+        <details style={{ margin: '0 0 16px' }}>
+          <summary style={{ cursor: 'pointer', padding: '14px 16px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, color: '#0F172A', fontWeight: 800 }}>
+            Calm Space <span style={{ color: '#64748B', fontSize: 13, fontWeight: 500, marginLeft: 8 }}>Breathing, meditation, and sound</span>
+          </summary>
+        <div style={{ position: 'relative', margin: '12px 0 0' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
@@ -990,11 +985,6 @@ export default function CaseDashboard() {
             borderRadius: '32px',}}>
           {/* Our Own Meditation Hub (Hero) */}
           <section>
-            <div style={{ padding: '0 16px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Calm Space</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Guided breathwork, meditation, and audio</p>
-            </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
               {[
                 { 
@@ -1267,9 +1257,14 @@ export default function CaseDashboard() {
           </section>
         </div>
       </div>
+      </details>
 
-      {/* 10 Clinical Evidence Dossiers & Immersive Reading Section */}
-      <ClinicalArticleSection />
+      <details style={{ margin: '0 24px 16px' }}>
+        <summary style={{ cursor: 'pointer', padding: '14px 16px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, color: '#0F172A', fontWeight: 800 }}>
+          Learning library <span style={{ color: '#64748B', fontSize: 13, fontWeight: 500, marginLeft: 8 }}>Articles for general education</span>
+        </summary>
+        <ClinicalArticleSection />
+      </details>
 
       <CompleteProfileModal
         isOpen={showCompleteProfileModal}

@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, ClipboardList, FileText, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
+import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
 import { getCases, CaseItem, deleteCase } from '../../services/CaseEngine';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useToast } from '../../components/ui/ToastProvider';
@@ -20,115 +20,6 @@ const formatDate = (value: string) => {
     return 'N/A';
   }
 };
-
-function CrossCaseInsightBanner({ cases, isMobile }: { cases: CaseItem[]; isMobile: boolean }) {
-  const insights = useMemo(() => {
-    if (!cases || cases.length < 2) return null;
-
-    const allSpecialists = new Set<string>();
-    const allDiagnoses: string[] = [];
-    let jarvisCount = 0;
-    let mdtCount = 0;
-    let quickCount = 0;
-
-    cases.forEach(c => {
-      const isJarvis = c.currentStage === 'jarvis_complete' || c.reviews?.[0]?.type === 'jarvis' || c.title?.toLowerCase().includes('j.a.r.v.i.s.');
-      const isQuick = c.title?.toLowerCase().includes('quick consult') || c.reviews?.[0]?.type === 'parallel';
-
-      if (isJarvis) {
-        jarvisCount++;
-      } else if (isQuick) {
-        quickCount++;
-      } else {
-        mdtCount++;
-      }
-
-      if (Array.isArray(c.reviews)) {
-        c.reviews.forEach(r => {
-          if (Array.isArray(r.specialists)) {
-            r.specialists.forEach((s: any) => {
-              const name = typeof s === 'string' ? s : (s?.label || s?.name);
-              if (name) allSpecialists.add(name);
-            });
-          }
-        });
-      }
-      if (Array.isArray(c.currentSummary?.topDiagnoses)) {
-        c.currentSummary.topDiagnoses.forEach((d: any) => {
-          if (d?.condition) allDiagnoses.push(d.condition);
-        });
-      }
-    });
-
-    const uniqueDiagnoses = Array.from(new Set(allDiagnoses)).slice(0, 3);
-    const specialistList = Array.from(allSpecialists).slice(0, 4);
-
-    return {
-      totalCases: cases.length,
-      jarvisCount,
-      mdtCount,
-      quickCount,
-      specialistList,
-      themes: uniqueDiagnoses
-    };
-  }, [cases]);
-
-  if (!insights) return null;
-
-  return (
-    <div
-      style={{
-        background: 'linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 60%, #E6FFFA 100%)',
-        borderRadius: 24,
-        padding: isMobile ? '20px 16px' : '24px 28px',
-        color: '#0F172A',
-        marginBottom: 20,
-        boxShadow: '0 8px 24px rgba(13,148,136,0.08)',
-        border: '1.5px solid #99F6E4'
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: '#CCFBF1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={16} />
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#0F766E', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-            Cross-Case Clinical Intelligence
-          </span>
-        </div>
-        <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>
-          {insights.totalCases} Consultations Synced
-        </span>
-      </div>
-
-      <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, margin: '0 0 8px 0', color: '#0F172A' }}>
-        Synthesized across {insights.specialistList.length > 0 ? insights.specialistList.join(', ') : 'your medical consultations'}
-      </h3>
-
-      {insights.themes.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12, alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>Active Diagnostic Threads:</span>
-          {insights.themes.map((theme, i) => (
-            <span
-              key={i}
-              style={{
-                background: '#F0FDFA',
-                padding: '4px 10px',
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#0F766E',
-                border: '1px solid #CCFBF1'
-              }}
-            >
-              {theme}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function MyCases() {
   const isMobile = useIsMobile();
@@ -188,48 +79,20 @@ export default function MyCases() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
-  const openActions = cases.reduce((total, item) => total + (item?.actions || []).filter(action => action && action.status !== 'completed').length, 0);
-  const evidenceItems = cases.reduce((total, item) => total + (item?.medicalRecords?.length || 0), 0);
-
-  const stats = [
-    { label: 'Active cases', value: cases.filter(c => c.status === 'active').length, icon: Archive, color: '#10B981', bg: '#F0FDFA' },
-    { label: 'Open next steps', value: openActions, icon: ClipboardList, color: '#4F46E5', bg: '#EEF2FF' },
-    { label: 'Evidence saved', value: evidenceItems, icon: FileText, color: '#B45309', bg: '#FFFBEB' },
-  ];
-
   return (
     <div className="connected-experience" style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 24 }}>
-      <header style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: isMobile ? 26 : 32, margin: '0 0 4px', letterSpacing: '-1.2px' }}>My Cases</h1>
-          
-        <p style={{ color: '#64748b', fontSize: 15, margin: 0 }}>
-          Manage ongoing medical cases and specialist discussions.
-        </p>
+      <header style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <h1 style={{ fontSize: isMobile ? 26 : 32, margin: 0, letterSpacing: '-1.2px' }}>My Cases</h1>
+        <button type="button" className="btn btn-primary" onClick={() => setShowNewCase(true)}>New case</button>
       </header>
-
-      
-
-      <button type="button" className="btn btn-primary" style={{ marginBottom: 16 }} onClick={() => setShowNewCase(true)}>New case</button>
       {showNewCase && <NewCaseForm onCancel={() => setShowNewCase(false)} onCreated={id => navigate(`/app/cases/${id}`)} />}
-
-      <section style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 16 }}>
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return <div key={stat.label} style={{ padding: '12px', borderRadius: 16, background: '#FFF', border: '1px solid #E8EEF5', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 4px 12px rgba(15,23,42,.02)' }}>
-            <div style={{ width: 38, height: 38, display: 'grid', placeItems: 'center', borderRadius: 12, background: stat.bg, color: stat.color }}><Icon size={18} /></div>
-            <div><strong style={{ display: 'block', color: '#0F172A', fontSize: 18, lineHeight: 1 }}>{stat.value}</strong><span style={{ color: '#64748B', fontSize: 12, fontWeight: 650 }}>{stat.label}</span></div>
-          </div>;
-        })}
-      </section>
 
 
       {!isLoading && cases.length >= 1 && (
         <>
-          {cases.length >= 2 && <CrossCaseInsightBanner cases={cases} isMobile={isMobile} />}
-          
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: '#F1F5F9', padding: '4px', borderRadius: '12px', width: 'fit-content' }}>
-            <button onClick={() => setViewMode('list')} style={{ background: viewMode === 'list' ? '#FFFFFF' : 'transparent', color: viewMode === 'list' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'list' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>List View</button>
-            <button onClick={() => setViewMode('canvas')} style={{ background: viewMode === 'canvas' ? '#FFFFFF' : 'transparent', color: viewMode === 'canvas' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'canvas' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>Case Canvas</button>
+            <button onClick={() => setViewMode('list')} aria-pressed={viewMode === 'list'} style={{ background: viewMode === 'list' ? '#FFFFFF' : 'transparent', color: viewMode === 'list' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'list' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>List</button>
+            <button onClick={() => setViewMode('canvas')} aria-pressed={viewMode === 'canvas'} style={{ background: viewMode === 'canvas' ? '#FFFFFF' : 'transparent', color: viewMode === 'canvas' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'canvas' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>Canvas</button>
           </div>
 
           {viewMode === 'canvas' && (

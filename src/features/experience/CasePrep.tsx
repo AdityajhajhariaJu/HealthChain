@@ -398,9 +398,6 @@ export default function CasePrep() {
           <Briefcase size={36} />
         </div>
         <h1 style={{ fontSize: 32, color: '#0f172a', marginBottom: 16 }}>Prepare appointment brief</h1>
-        <p style={{ fontSize: 16, color: '#475569', lineHeight: 1.6, maxWidth: 500, margin: '0 auto 32px' }}>
-          Choose the case to bring to a clinician. We will organise its existing symptoms, records, past AI summaries, and unanswered questions into one clear brief.
-        </p>
         <button className="btn btn-primary" onClick={() => setShowPicker(true)} style={{ padding: '14px 28px', fontSize: 16, borderRadius: 30 }}>
           Select case <ArrowRight size={18} style={{ marginLeft: 8 }} />
         </button>
@@ -429,9 +426,9 @@ export default function CasePrep() {
           >
             <AlertCircle size={20} color="#DC2626" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontWeight: 700 }}>Requested Case Not Found</div>
+              <div style={{ fontWeight: 700 }}>Case not found</div>
               <div style={{ fontSize: 13, marginTop: 2, color: '#7F1D1D' }}>
-                Case ID &quot;{caseNotFoundId}&quot; could not be found in case records. Please choose an active case below to prepare the visit.
+                Choose another active case to prepare this visit.
               </div>
             </div>
           </div>
@@ -603,10 +600,7 @@ export default function CasePrep() {
       <div className="print-hide" style={{ display: 'flex', justifyContent: 'space-between', background: '#f0fdfa', border: '1px solid #ccfbf1', padding: '12px 16px', borderRadius: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0f766e' }}>
           <CheckCircle2 size={16} />
-          <span>
-            Prepared from saved case &middot; <strong>Brief Version {displayedBrief.version || 1}</strong>
-            {isViewingArchived ? ' (Archived)' : ' (Current)'}
-          </span>
+          <span><strong>{isViewingArchived ? 'Archived' : 'Current'} brief</strong> &middot; v{displayedBrief.version || 1}</span>
         </div>
         {!isViewingArchived && (
           <button
@@ -640,10 +634,10 @@ export default function CasePrep() {
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0F172A' }}>
-                  Select Questions for this Visit
+                  Choose questions
                 </h3>
                 <div style={{ fontSize: 12.5, color: '#64748B' }}>
-                  {selectedQuestionIds.length} of {caseQuestions.length} questions prioritized for this appointment
+                  {selectedQuestionIds.length} of {caseQuestions.length} selected
                 </div>
               </div>
             </div>
@@ -652,7 +646,7 @@ export default function CasePrep() {
               className="btn btn-outline btn-sm"
               style={{ fontSize: 12, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4 }}
             >
-              {showQuestionSelector ? 'Hide Selector' : 'Customize Questions'}
+              {showQuestionSelector ? 'Hide' : 'Choose'}
               {showQuestionSelector ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           </div>
@@ -805,7 +799,7 @@ export default function CasePrep() {
         {/* Section 1: Chief Concern */}
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>
-            1. Why I'm here (Chief Concern)
+            Why I'm here
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.6, color: '#0f172a', margin: 0 }}>
             {displayedBrief.mainConcern?.text || 'No specific concern specified.'}
@@ -817,7 +811,7 @@ export default function CasePrep() {
           (displayedBrief.changesSinceLastVisit && displayedBrief.changesSinceLastVisit.length > 0)) && (
           <section style={{ marginBottom: 28, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20 }}>
             <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #E2E8F0', paddingBottom: 8, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock size={18} /> 2. What Changed Since Last Visit
+              <Clock size={18} /> Since the last visit
             </h2>
 
             {/* A. Outcomes from Prior Consultations */}
@@ -878,7 +872,7 @@ export default function CasePrep() {
         {/* Section 3: Timeline & Recent Changes */}
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>
-            {displayedBrief.changesSinceLastVisit?.length || displayedBrief.previousOutcomesReviewed?.length ? '3' : '2'}. What changed and when
+            Timeline
           </h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
             {(displayedBrief.timeline || []).map((t, i) => (
@@ -891,7 +885,7 @@ export default function CasePrep() {
         {/* Section 4: Context & Facts */}
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>
-            {displayedBrief.changesSinceLastVisit?.length || displayedBrief.previousOutcomesReviewed?.length ? '4' : '3'}. Important context to review
+            Important context
           </h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
             {(displayedBrief.knownFacts || []).map((f: any, i: number) => <li key={i}>{typeof f === 'string' ? f : f?.text || 'Fact'}</li>)}
@@ -903,7 +897,7 @@ export default function CasePrep() {
         {/* Section 5: Questions for Clinician */}
         <section style={{ marginBottom: 28 }}>
           <h2 style={{ fontSize: 18, color: '#0f766e', borderBottom: '1px solid #e2e8f0', paddingBottom: 8, marginBottom: 16 }}>
-            {displayedBrief.changesSinceLastVisit?.length || displayedBrief.previousOutcomesReviewed?.length ? '5' : '4'}. What I need help deciding (Questions to Align On)
+            Questions for the visit
           </h2>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: '#334155' }}>
             {(displayedBrief.questionsForClinician || []).map((q: any, i: number) => {

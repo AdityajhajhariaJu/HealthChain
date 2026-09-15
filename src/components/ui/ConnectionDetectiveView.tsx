@@ -546,10 +546,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       recordType: 'Verified Medical Record & Clinical Protocol',
       pageNumber: 1,
       sectionTitle: 'Correlated Evidence Passage',
-      passageText: snippet || `Supporting clinical observation and laboratory reference derived from ${source}${citation ? ` [Citation: ${citation}]` : ''}.`,
-      fullFindings: `Direct clinical extraction from ${source}${citation ? `, protocol reference: ${citation}` : ''}. Verified against active clinical timeline and multi-system biomarkers.`,
+      passageText: snippet || 'Source details are unavailable in this view.',
+      fullFindings: 'Open the case record to review the original source.',
       dateAdded: 'Active Case Timeline',
-      findingClaim: claim || `Biomarker & physiological finding attributed to ${source}`,
+      findingClaim: claim || 'Source-linked item',
     });
   };
 

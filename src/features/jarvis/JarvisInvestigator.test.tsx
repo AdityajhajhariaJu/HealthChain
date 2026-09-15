@@ -31,6 +31,9 @@ describe('Clinical Review case continuity', () => {
     expect(mocks.run.mock.calls[0][0]).toBe('My actual symptom history');
     expect(mocks.run.mock.calls[0][3]).toBe(mocks.cases[0]);
     expect(screen.getByRole('heading', { name: 'Your record review is ready' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Review summary' })).toBeTruthy();
+    expect(screen.queryByText('Clinical dossier')).toBeNull();
+    expect(screen.queryByText(/Layer 1/i)).toBeNull();
   }, 15000);
   it('keeps the input and case selection after a failed review', async () => {
     mocks.run.mockResolvedValue(null);

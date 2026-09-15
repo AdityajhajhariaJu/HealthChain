@@ -241,9 +241,6 @@ export default function Settings() {
           >
             Settings
           </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-            Manage your account and preferences.
-          </p>
         </div>
       </div>
 
@@ -619,7 +616,7 @@ export default function Settings() {
             marginTop: '40px',
           }}
         >
-          Growth & Rewards
+          Activity
         </h2>
 
         <div
@@ -653,7 +650,7 @@ export default function Settings() {
               </div>
               <div>
                 <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{points} Vitality Points</span>
+                  <span>{points} points</span>
                   <span>{currentTierBadge}</span>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -725,7 +722,7 @@ export default function Settings() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Zap size={18} color="#D97706" />
-                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)' }}>Daily Vitality Hub</span>
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)' }}>Activity history</span>
               </div>
               <ChevronRight size={16} color="var(--text-muted)" />
             </button>
@@ -821,8 +818,6 @@ export default function Settings() {
           </div>
         )}
 
-        <HealthDeviceIntegrations />
-          
           <h2
             style={{
               fontSize: '18px',
@@ -832,7 +827,7 @@ export default function Settings() {
               marginTop: '40px',
             }}
           >
-          Privacy & Data Handling
+          Privacy
           </h2>
         
         <div
@@ -849,7 +844,7 @@ export default function Settings() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <ShieldCheck size={18} color="var(--teal)" />
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-              Data Control & Storage
+              Data use and storage
             </div>
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
@@ -866,7 +861,7 @@ export default function Settings() {
             marginTop: '16px',
           }}
         >
-          Data Portability
+          Your data
         </h2>
         <div
           style={{

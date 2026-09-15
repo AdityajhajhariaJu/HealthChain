@@ -45,13 +45,13 @@ type AllergySeverity = 'mild' | 'moderate' | 'severe';
 const GOAL_OPTIONS: GoalOption[] = [
   { 
     title: 'Chronic Management', 
-    desc: 'Connect symptoms, records, AI perspectives, and open questions',
+    desc: 'Organize symptoms, records, and questions',
     icon: <HeartPulse size={26} color="#F43F5E" />,
     route: '/app/consult',
     badge: 'Connected Case Workspace',
     dataPills: [
       { label: 'Conditions', icon: '🩺' },
-      { label: 'Chrono-Meds', icon: '💊' },
+      { label: 'Medicines', icon: '💊' },
       { label: 'Allergies', icon: '💉' },
       { label: 'Biometrics', icon: '🧬' }
     ]
@@ -404,7 +404,7 @@ export default function OnboardingFlow() {
                 Build your<br/>health profile.
               </h1>
               <p style={{ color: '#475569', fontSize: isMobile ? '16px' : '18px', textAlign: 'center', margin: '0 0 40px 0', fontWeight: 500, maxWidth: '380px', lineHeight: 1.4 }}>
-                Clinical precision meets daily wellness. Start with a baseline.
+                Add the details you want HealthChain to use.
               </p>
 
               <motion.button
@@ -557,7 +557,7 @@ export default function OnboardingFlow() {
                   <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0', transition: 'all 0.3s ease' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
-                  <span>Stage 1 of 3: Basic context</span>
+                  <span>1 of 3 · Basics</span>
                   <span style={{ color: '#059669', fontWeight: 800 }}>33% complete</span>
                 </div>
               </div>
@@ -967,7 +967,7 @@ export default function OnboardingFlow() {
                   <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: '#E2E8F0' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
-                  <span>Stage 2 of 3: Clinical Conditions 🩺 ({conditions.length} Active)</span>
+                  <span>2 of 3 · Conditions ({conditions.length})</span>
                   <span style={{ color: '#059669', fontWeight: 800 }}>66% complete</span>
                 </div>
               </div>
@@ -1000,7 +1000,7 @@ export default function OnboardingFlow() {
                 {/* None Shortcut */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <ShieldCheck size={16} color="#0D9488" /> Clinical History
+                    <ShieldCheck size={16} color="#0D9488" /> Health history
                   </span>
                   <button
                     type="button"
@@ -1212,7 +1212,7 @@ export default function OnboardingFlow() {
                   <div style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'linear-gradient(90deg, #059669, #10B981)' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
-                  <span>Stage 3 of 3: Chrono-Meds &amp; Allergies 💊</span>
+                  <span>3 of 3 · Medicines &amp; allergies</span>
                   <span style={{ color: '#059669', fontWeight: 800 }}>Final Step!</span>
                 </div>
               </div>
@@ -1220,7 +1220,7 @@ export default function OnboardingFlow() {
               {/* Headline */}
               <div>
                 <h2 style={{ fontSize: isMobile ? '23px' : '27px', fontWeight: 900, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.4px', lineHeight: 1.25 }}>
-                  Chrono-Medications &amp; Allergies
+                  Medicines &amp; allergies
                 </h2>
                 <p style={{ color: '#475569', fontSize: '13px', margin: 0, lineHeight: 1.35 }}>
                   Ensure clinical safety by syncing your daily medication timing and substance sensitivities.

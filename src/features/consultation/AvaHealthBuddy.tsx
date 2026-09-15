@@ -112,7 +112,6 @@ const CASE_RECHECK_SUGGESTIONS = [
   "Can you explain the underlying biological mechanism in simple terms?"
 ];
 
-import { GlassBoxExplanation } from '../../components/ui/GlassBoxExplanation';
 import { MeditationPlayer } from '../../components/ui/MeditationPlayer';
 import { FitnessContent } from '../../services/FitnessService';
 import { getItemSync, setItemSync } from '../../services/storage';
@@ -628,6 +627,8 @@ export const AvaActionToolbar = ({
   const isObsSaved = savedActionIds.has(obsSavedKey);
   const isQSaved = savedActionIds.has(qSavedKey);
 
+  if (!userContent?.trim()) return null;
+
   if (!suggestions.canSaveObservation && !suggestions.canAddQuestion && !suggestions.canExplainSource && !suggestions.canOpenReview) {
     return null;
   }
@@ -644,10 +645,6 @@ export const AvaActionToolbar = ({
         alignItems: 'center',
       }}
     >
-      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px' }}>
-        Next Actions:
-      </span>
-
       {suggestions.canSaveObservation && (
         <button
           type="button"
@@ -1998,7 +1995,7 @@ export default function AvaHealthBuddy() {
                     gap: '8px',
                   }}
                 >
-                  Ava Pro <span style={{ background: 'linear-gradient(135deg, #14B8A6, #0D9488)', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 800 }}>Plus</span>
+                  Ava
                 </h1>
                 <p
                   style={{
@@ -2010,7 +2007,7 @@ export default function AvaHealthBuddy() {
                     margin: 0,
                   }}
                 >
-                  CLINICAL HEALTH ASSISTANT
+                  Health assistant
                 </p>
               </div>
             </div>
@@ -2123,7 +2120,7 @@ export default function AvaHealthBuddy() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <AlertCircle size={18} color="#DC2626" style={{ flexShrink: 0 }} />
                   <div>
-                    <strong>Case Not Found:</strong> Case &quot;{missingCaseNotice}&quot; was not found in your records. Continuing in general consultation mode.
+                    <strong>Case not found.</strong> Ava is using general context.
                   </div>
                 </div>
                 <button
@@ -2167,15 +2164,9 @@ export default function AvaHealthBuddy() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: 0.6 }}>Connected Case In Session</span>
-                      <span style={{ fontSize: 10.5, fontWeight: 700, background: 'rgba(13,148,136,0.15)', color: '#0F766E', padding: '1px 7px', borderRadius: 999 }}>{importedCase.type || 'Consultation'}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', letterSpacing: 0.6 }}>Using case</span>
                     </div>
                     <strong style={{ fontSize: 14.5, color: '#115E59', display: 'block', lineHeight: 1.3 }}>{importedCase.title}</strong>
-                    {importedCase.topConditions && (
-                      <span style={{ fontSize: 12, color: '#0F766E', display: 'block', marginTop: 2 }}>
-                        Differentials: {importedCase.topConditions}
-                      </span>
-                    )}
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2193,7 +2184,7 @@ export default function AvaHealthBuddy() {
                         cursor: 'pointer'
                       }}
                     >
-                      View Case File
+                      Open case
                     </button>
                   )}
                   <button
@@ -2218,7 +2209,7 @@ export default function AvaHealthBuddy() {
               </motion.div>
             )}
 
-            {/* Promise 5: Context Disclosure Pill */}
+            {/* Context disclosure */}
             <div
               style={{
                 display: 'flex',
@@ -2253,11 +2244,9 @@ export default function AvaHealthBuddy() {
                 onMouseEnter={(e) => (e.currentTarget.style.background = '#F0FDFA')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.88)')}
               >
-                <span style={{ fontSize: '13px' }}>🧠</span>
                 <span>
-                  Evaluated {memoryContext.evaluatedCount} records & memories • {memoryContext.omittedCount} background items omitted for relevance
+                  Using {memoryContext.includedItems.length} context {memoryContext.includedItems.length === 1 ? 'item' : 'items'}
                 </span>
-                <span style={{ fontSize: '10px', opacity: 0.7, marginLeft: '2px' }}>ℹ️</span>
               </button>
             </div>
 
@@ -2343,7 +2332,6 @@ export default function AvaHealthBuddy() {
                             onOpenCalm={() => setActiveMeditation(DEFAULT_CALM_TRACK)}
                             onOpenWholeHealth={() => setIsWholeHealthOpen(true)}
                           />
-                          {msg.role === 'model' && msg.content.length > 50 && <GlassBoxExplanation />}
                           {msg.role === 'model' && documentedAnswers.length > 0 && (() => {
                             const matched = documentedAnswers.filter(ans => {
                               const topicWords = ans.topic.toLowerCase().split(/\s+/).filter(w => w.length > 3);
@@ -3062,9 +3050,9 @@ export default function AvaHealthBuddy() {
               textTransform: 'uppercase',
             }}
           >
-            © 2026 POWERED BY HEALTHCHAIN
+            HealthChain
           </div>
-          <div>AI COMPANION • FOR SEVERE CRISES, PLEASE CONTACT A PROFESSIONAL HELPLINE</div>
+          <div>Not emergency care. Contact local emergency services for urgent help.</div>
         </div>
       )}
 
@@ -3126,7 +3114,7 @@ export default function AvaHealthBuddy() {
         triage={emergencyTriage}
         onClose={() => setEmergencyTriage(null)}
       />
-      {/* Context Scope Disclosure Modal (Promise 5) */}
+      {/* Context scope */}
       <AnimatePresence>
         {showContextModal && (
           <div
@@ -3152,8 +3140,8 @@ export default function AvaHealthBuddy() {
                 width: '100%',
                 maxWidth: '520px',
                 background: '#FFFFFF',
-                borderRadius: '24px',
-                border: '1.5px solid #CCFBF1',
+                borderRadius: '18px',
+                border: '1px solid #CCFBF1',
                 boxShadow: '0 24px 60px rgba(13, 148, 136, 0.2)',
                 padding: '28px',
                 display: 'flex',
@@ -3180,12 +3168,7 @@ export default function AvaHealthBuddy() {
                     🧠
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                      Never Repeat Your Story
-                    </h3>
-                    <div style={{ fontSize: '12px', color: '#0D9488', fontWeight: 700 }}>
-                      Semantic Memory & Context Retrieval
-                    </div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>Conversation context</h3>
                   </div>
                 </div>
                 <button
@@ -3210,12 +3193,12 @@ export default function AvaHealthBuddy() {
               </div>
 
               <p style={{ margin: 0, fontSize: '13.5px', color: '#475569', lineHeight: 1.55 }}>
-                Ava continuously indexes your clinical notes, meal journals, and diagnostic lab reports so you never have to re-explain symptoms or timeline milestones.
+                Ava uses recent saved items for this conversation.
               </p>
 
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '8px' }}>
-                  Active Working Context ({memoryContext.includedItems.length} items loaded)
+                  Included ({memoryContext.includedItems.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
                   {memoryContext.includedItems.map((item, i) => (
@@ -3251,15 +3234,15 @@ export default function AvaHealthBuddy() {
 
               <div style={{ background: '#FFFBEB', borderRadius: '12px', padding: '12px 14px', border: '1px solid #FDE68A' }}>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-                  Omitted for Relevance ({memoryContext.omittedCount} background items)
+                  Not included ({memoryContext.omittedCount})
                 </div>
                 <p style={{ margin: 0, fontSize: '12.5px', color: '#92400E', lineHeight: 1.5 }}>
-                  Routine stable vital logs and non-correlated diary entries are intentionally omitted to avoid context clutter and maximize clinical reasoning precision.
+                  Other saved items were left out because they were less relevant to this conversation.
                 </p>
               </div>
 
               <div style={{ fontSize: '11px', color: '#94A3B8', textAlign: 'center' }}>
-                🔒 Complete history is stored encrypted in your local browser vault.
+                Review important details before acting on an answer.
               </div>
             </motion.div>
           </div>
@@ -3288,6 +3271,3 @@ export default function AvaHealthBuddy() {
     </div>
   );
 }
-
-
-

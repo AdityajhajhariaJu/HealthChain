@@ -1560,10 +1560,10 @@ export default function Dietician() {
             >
               <div>
                 <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  Editable 7-Day Meal Example
+                  7-day meal plan
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                  An AI-generated starting point for {profile.cuisine} preferences and an estimated {profile.targetCalories} kcal target.
+                  Editable example · {profile.cuisine} · about {profile.targetCalories} kcal/day
                 </p>
               </div>
 
@@ -1585,7 +1585,7 @@ export default function Dietician() {
                       cursor: 'pointer',
                     }}
                   >
-                    <Printer size={15} /> Print Dossier
+                    <Printer size={15} /> Print
                   </button>
                 )}
                 {mealPlan && (
@@ -2439,7 +2439,7 @@ export default function Dietician() {
             >
               <div>
                 <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  Grocery Shopping List
+                  Grocery list
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
                   Categorized grocery checklist mapped to your 7-day meal plan. Check off items as you shop.
@@ -2588,10 +2588,10 @@ export default function Dietician() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', marginBottom: '20px', gap: '12px' }}>
                 <div>
                   <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                    Nutritional Guardrails & Compatibility Check
+                    Meal guide
                   </h2>
                   <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
-                    AI-assisted food-plan checks using the profile details you supplied. Verify allergies, restrictions, and changes with a qualified clinician or dietitian.
+                    Checks the plan against your saved allergies and restrictions.
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -2614,9 +2614,9 @@ export default function Dietician() {
                     }}
                   >
                     {isGeneratingGuardrails ? (
-                      <><Loader2 size={15} className="spin" /> Synthesizing...</>
+                      <><Loader2 size={15} className="spin" /> Working...</>
                     ) : (
-                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Update Guardrails' : 'Create Guardrails'}</>
+                      <><ShieldCheck size={15} /> {guardrails.length > 0 ? 'Update guide' : 'Create guide'}</>
                     )}
                   </button>
                 </div>
@@ -2627,12 +2627,12 @@ export default function Dietician() {
                   <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px auto' }}>
                     <ShieldCheck size={32} />
                   </div>
-                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>No Guardrails Active</h3>
+                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>No meal guide yet</h3>
                   <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                    Create editable planning guardrails from the information you entered. These are AI suggestions, not confirmation that a meal is safe or clinically appropriate.
+                    Create an editable guide from your saved preferences. Review it before use.
                   </p>
                   <button onClick={handleGenerateGuardrails} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 800, fontSize: '15px', cursor: 'pointer' }}>
-                    Run Compatibility Check
+                    Create guide
                   </button>
                 </div>
               ) : (
@@ -3946,4 +3946,3 @@ export default function Dietician() {
     </div>
   );
 }
-
