@@ -92,114 +92,10 @@ export interface StationConfig {
   statusBadge: string;
 }
 
-/**
- * 1. SUBTLE ILLUSTRATION BEHIND EMPTY CONNECTION DETECTIVE STATES
- * A refined static optical glass dish with translucent blue, soft refractive depth,
- * and restrained capsule details. Avoids misleading DNA/cellular scenes or moving particles.
- */
-export const SubtleAqueousLensIllustration: React.FC<{ size?: number; label?: string }> = ({ size = 110, label }) => (
-  <div
-    style={{
-      position: 'relative',
-      width: `${size}px`,
-      height: `${size}px`,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      margin: '0 auto',
-    }}
-  >
-    {/* Soft aqueous ambient glow */}
-    <div
-      style={{
-        position: 'absolute',
-        inset: '-8px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(186, 230, 253, 0.08) 55%, transparent 75%)',
-        filter: 'blur(8px)',
-        pointerEvents: 'none',
-      }}
-    />
-
-    {/* Translucent Blue Optical Glass Dish */}
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 120 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{
-        filter: 'drop-shadow(0 8px 18px rgba(14, 165, 233, 0.16))',
-      }}
-    >
-      <defs>
-        {/* Dish Glass Base Radial */}
-        <radialGradient id="cdDishGlassGrad" cx="50%" cy="40%" r="55%">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-          <stop offset="35%" stopColor="#E0F2FE" stopOpacity="0.75" />
-          <stop offset="75%" stopColor="#BAE6FD" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#7DD3FC" stopOpacity="0.65" />
-        </radialGradient>
-
-        {/* Outer Beveled Rim Gradient */}
-        <linearGradient id="cdRingGrad" x1="10" y1="10" x2="110" y2="110" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-          <stop offset="30%" stopColor="#BAE6FD" stopOpacity="0.8" />
-          <stop offset="70%" stopColor="#38BDF8" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#0284C7" stopOpacity="0.7" />
-        </linearGradient>
-
-        {/* Static Droplet Glow */}
-        <radialGradient id="cdDropletGlow" cx="35%" cy="35%" r="60%">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-          <stop offset="40%" stopColor="#38BDF8" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#0284C7" stopOpacity="0.2" />
-        </radialGradient>
-
-        {/* Restrained Capsule Gradient */}
-        <linearGradient id="cdCapsuleGrad" x1="0" y1="0" x2="24" y2="12" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#38BDF8" />
-          <stop offset="50%" stopColor="#0284C7" />
-          <stop offset="50.1%" stopColor="#FFFFFF" stopOpacity="0.95" />
-          <stop offset="100%" stopColor="#BAE6FD" stopOpacity="0.85" />
-        </linearGradient>
-      </defs>
-
-      {/* Main Glass Lens Body */}
-      <circle cx="60" cy="60" r="54" fill="url(#cdDishGlassGrad)" stroke="url(#cdRingGrad)" strokeWidth="2.5" />
-
-      {/* Inner Optical Refraction Ring */}
-      <circle cx="60" cy="60" r="47" stroke="rgba(255, 255, 255, 0.75)" strokeWidth="1.2" strokeDasharray="3 2" />
-
-      {/* Soft Aqueous Depth Pool */}
-      <ellipse cx="60" cy="63" rx="38" ry="32" fill="rgba(186, 230, 253, 0.35)" />
-
-      {/* Floating Refractive Droplets (Static soft depth) */}
-      <circle cx="42" cy="45" r="7" fill="url(#cdDropletGlow)" stroke="rgba(255,255,255,0.85)" strokeWidth="0.8" />
-      <circle cx="40" cy="43" r="2" fill="#FFFFFF" opacity="0.95" />
-
-      <circle cx="78" cy="72" r="5" fill="url(#cdDropletGlow)" stroke="rgba(255,255,255,0.75)" strokeWidth="0.7" />
-      <circle cx="77" cy="70" r="1.5" fill="#FFFFFF" opacity="0.9" />
-
-      <circle cx="82" cy="48" r="3.5" fill="rgba(255,255,255,0.65)" stroke="#38BDF8" strokeWidth="0.6" />
-
-      {/* Restrained Clinical Capsule Detail */}
-      <g transform="translate(48, 54)">
-        <rect
-          x="0"
-          y="0"
-          width="24"
-          height="12"
-          rx="6"
-          fill="url(#cdCapsuleGrad)"
-          stroke="rgba(255,255,255,0.95)"
-          strokeWidth="1"
-          style={{ filter: 'drop-shadow(0 2px 5px rgba(2, 132, 199, 0.3))' }}
-        />
-        <line x1="12" y1="0" x2="12" y2="12" stroke="rgba(2, 132, 199, 0.4)" strokeWidth="0.8" />
-        <ellipse cx="6" cy="3.5" rx="3" ry="1.2" fill="#FFFFFF" opacity="0.85" />
-      </g>
-    </svg>
+// Minimalist Clean Empty State Icon
+export const SubtleAqueousLensIllustration: React.FC<{ size?: number; label?: string }> = ({ size = 48 }) => (
+  <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: '#F0F9FF', border: '1px solid #BAE6FD', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', color: '#0284C7' }}>
+    <Activity size={Math.round(size * 0.45)} />
   </div>
 );
 
@@ -570,11 +466,11 @@ export interface PillarFilterOption {
 }
 
 export const PILLAR_FILTERS: PillarFilterOption[] = [
-  { id: 'all', label: 'All 12 Stations', shortLabel: 'All (12)', icon: '✨', count: 12 },
-  { id: 'gut', label: 'Gut & Food', shortLabel: '🥗 Gut (5)', icon: '🥗', count: 5 },
-  { id: 'body', label: 'Labs & Body', shortLabel: '🧪 Labs (2)', icon: '🧪', count: 2 },
-  { id: 'cause', label: 'Root Cause', shortLabel: '⚡ Cause (4)', icon: '⚡', count: 4 },
-  { id: 'dossier', label: 'Doctor Dossier', shortLabel: '📋 Dossier (1)', icon: '📋', count: 1 },
+  { id: 'all', label: 'All Domains', shortLabel: 'All', icon: '✨', count: 12 },
+  { id: 'gut', label: 'Gut & Food', shortLabel: '🥗 Gut', icon: '🥗', count: 5 },
+  { id: 'body', label: 'Labs & Body', shortLabel: '🧪 Labs', icon: '🧪', count: 2 },
+  { id: 'cause', label: 'Root Cause', shortLabel: '⚡ Cause', icon: '⚡', count: 4 },
+  { id: 'dossier', label: 'Doctor Dossier', shortLabel: '📋 Dossier', icon: '📋', count: 1 },
 ];
 
 interface ConnectionDetectiveViewProps {
@@ -929,83 +825,34 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     gap: '10px',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                    <div
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                    <h4
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '10px',
-                        background: station.pillarColor,
-                        color: '#FFFFFF',
+                        margin: 0,
+                        fontSize: isMobile ? '15px' : '16px',
+                        fontWeight: 700,
+                        color: '#0F172A',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 900,
-                        fontSize: '13px',
-                        flexShrink: 0,
-                        boxShadow: `0 2px 8px ${station.pillarColor}40`,
-                      }}
-                    >
-                      {station.stationNumber}
-                    </div>
-
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                        <span
-                          style={{
-                            fontSize: '9.5px',
-                            fontWeight: 800,
-                            letterSpacing: '0.6px',
-                            textTransform: 'uppercase',
-                            color: station.pillarColor,
-                          }}
-                        >
-                          STATION {station.stationNumber} • {station.pillarLabel}
-                        </span>
-                      </div>
-                      <h4
-                        style={{
-                          margin: 0,
-                          fontSize: isMobile ? '14.5px' : '16px',
-                          fontWeight: 800,
-                          color: '#0F172A',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <span>{station.icon}</span>
-                        <span>{station.title}</span>
-                      </h4>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 800,
-                        padding: '3px 8px',
-                        borderRadius: '999px',
-                        background: station.pillarBg,
-                        color: station.pillarColor,
-                        border: `1px solid ${station.pillarBorder}`,
+                        gap: '6px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {getDynamicStationBadge(station)}
-                    </span>
+                      <span>{station.icon}</span>
+                      <span>{station.title}</span>
+                    </h4>
+                  </div>
 
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                     <button
                       type="button"
                       onClick={() => {
                         triggerHapticLight();
                         setFocusedStationId(isSingleFocus ? null : station.id);
                       }}
-                      title={isSingleFocus ? 'Exit Focus (Show All)' : 'Focus On This Station'}
+                      title={isSingleFocus ? 'Exit Focus' : 'Focus On Section'}
                       style={{
                         width: '30px',
                         height: '30px',
@@ -1018,7 +865,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         cursor: 'pointer',
                         color: isSingleFocus ? '#0284C7' : '#64748B',
                       }}
-                      aria-label={isSingleFocus ? 'Show all stations' : `Focus on station ${station.stationNumber}`}
+                      aria-label={isSingleFocus ? 'Show all' : `Focus on ${station.title}`}
                     >
                       {isSingleFocus ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                     </button>
@@ -1039,72 +886,58 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         onOpenSourceModal={(d) => setSourcePassageModalData(d)}
                       />
 
-                      <div
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.8) 100%)',
-                          borderRadius: '16px',
-                          padding: '14px 16px',
-                          border: '1.5px solid rgba(186, 230, 253, 0.85)',
-                          boxShadow: '0 4px 14px rgba(14, 165, 233, 0.08), inset 0 1px 2px #FFFFFF',
-                          display: 'flex',
-                          alignItems: isMobile ? 'flex-start' : 'center',
-                          flexDirection: isMobile ? 'column' : 'row',
-                          justifyContent: 'space-between',
-                          gap: '12px',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ fontSize: '24px' }}>🔬</span>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                              <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>
-                                Identified Primary Dietary Triggers
-                              </strong>
-                              <SourceEvidenceBadge
-                                source="Monash FODMAP Lab"
-                                citation="AGA 2024"
-                                onClick={() => openSourcePassage(
-                                  "Monash FODMAP Lab",
-                                  "AGA 2024",
-                                  "Excess fructose and oligosaccharide fermentation elevates intraluminal osmotic pressure and increases intestinal permeability.",
-                                  "FODMAP osmotic permeability"
-                                )}
-                              />
-                            </div>
-                            <span style={{ fontSize: '11.5px', color: '#475569' }}>
-                              Histamine, tyramine & FODMAP alliums trigger acute vascular and intestinal permeability.
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            triggerHapticLight();
-                            if (onOpenFoodDetective) onOpenFoodDetective();
-                            else window.dispatchEvent(new CustomEvent('hc_open_whole_health_modal', { detail: { tab: 'detective' } }));
-                          }}
+                      {resolvedCulpritFoods.length > 0 && (
+                        <div
                           style={{
-                            background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '10px',
-                            padding: '8px 14px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
+                            background: '#F8FAFC',
+                            borderRadius: '16px',
+                            padding: '14px 16px',
+                            border: '1px solid #E2E8F0',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            whiteSpace: 'nowrap',
-                            width: isMobile ? '100%' : 'auto',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)',
+                            alignItems: isMobile ? 'flex-start' : 'center',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            justifyContent: 'space-between',
+                            gap: '12px',
                           }}
                         >
-                          Inspect in Food Detective <ArrowRight size={13} />
-                        </button>
-                      </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '20px' }}>🔬</span>
+                            <div>
+                              <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                                Suspected Dietary Triggers
+                              </strong>
+                              <span style={{ fontSize: '12px', color: '#64748B' }}>
+                                Flare correlations identified from documented meal events.
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHapticLight();
+                              if (onOpenFoodDetective) onOpenFoodDetective();
+                              else window.dispatchEvent(new CustomEvent('hc_open_whole_health_modal', { detail: { tab: 'detective' } }));
+                            }}
+                            style={{
+                              background: '#0F766E',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '7px 12px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Food Detective <ArrowRight size={12} />
+                          </button>
+                        </div>
+                      )}
 
                       {/* Top Culprit Foods Breakdown Grid */}
                       {resolvedCulpritFoods.length > 0 ? (
@@ -1188,11 +1021,11 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                           }}
                         >
                           <span style={{ fontSize: '24px' }}>🥗</span>
-                          <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0F766E' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F766E' }}>
                             No Dietary Triggers Logged Yet
                           </div>
-                          <p style={{ margin: 0, fontSize: '11.5px', color: '#134E4A', maxWidth: '420px', lineHeight: 1.4 }}>
-                            Record daily meals in the Food Detective or specify known food sensitivities in Case Intake to calculate real-time correlation and symptom flare windows.
+                          <p style={{ margin: 0, fontSize: '12px', color: '#475569', maxWidth: '420px', lineHeight: 1.4 }}>
+                            Record daily meals in Food Detective or specify sensitivities in Case Intake to view correlation windows.
                           </p>
                           <button
                             type="button"
@@ -1350,8 +1183,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         >
                           <SubtleAqueousLensIllustration size={110} />
                           <div style={{ maxWidth: '380px' }}>
-                            <strong style={{ fontSize: '14.5px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>
-                              Awaiting Clinical Pathophysiology Intake
+                            <strong style={{ fontSize: '14px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>
+                              No Progression Data Yet
                             </strong>
                             <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.45 }}>
                               Start a consultation or connect health logs to generate a symptom progression analysis.
@@ -1684,8 +1517,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         >
                           <SubtleAqueousLensIllustration size={110} />
                           <div style={{ maxWidth: '380px' }}>
-                            <strong style={{ fontSize: '14.5px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>
-                              Multi-Specialist Panels Awaiting Review
+                            <strong style={{ fontSize: '14px', color: '#0F172A', display: 'block', marginBottom: '4px' }}>
+                              Specialist Reviews Not Yet Generated
                             </strong>
                             <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.45 }}>
                               Gastroenterology, Neuro-Immunology, and Functional Medicine boards convene once intake consultation or records are provided.
@@ -1911,34 +1744,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         {/* Cover Top Meta Strip */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid rgba(186, 230, 253, 0.6)', paddingBottom: '10px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {/* Restrained two-tone blue micro-capsule badge */}
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                padding: '3px 8px',
-                                borderRadius: '999px',
-                                background: '#FFFFFF',
-                                border: '1px solid #BAE6FD',
-                                boxShadow: '0 2px 5px rgba(2, 132, 199, 0.1)',
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                color: '#0369A1',
-                              }}
-                            >
-                              <span
-                                style={{
-                                  width: '10px',
-                                  height: '5px',
-                                  borderRadius: '2.5px',
-                                  background: 'linear-gradient(90deg, #38BDF8 50%, rgba(255,255,255,0.9) 50%)',
-                                  border: '0.8px solid #0284C7',
-                                  display: 'inline-block',
-                                }}
-                              />
-                              SBAR CASE DOSSIER COVER
-                            </span>
+
 
                             <SourceEvidenceBadge
                               source="AMA / SBAR Standard"
@@ -2115,24 +1921,24 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               {!focusedStationId && station.id === 'insights' && (
                 <div
                   style={{
-                    background: 'linear-gradient(90deg, rgba(240, 253, 250, 0.9) 0%, rgba(240, 249, 255, 0.9) 100%)',
-                    borderRadius: '16px',
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
                     padding: '10px 14px',
-                    border: '1.5px dashed #99F6E4',
+                    border: '1px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    fontSize: '11.5px',
+                    fontSize: '12px',
                     color: '#0F766E',
                   }}
                 >
-                  <span style={{ fontSize: '18px' }}>🔗</span>
+                  <span style={{ fontSize: '16px' }}>🔗</span>
                   <div>
-                    <strong style={{ display: 'block', color: '#0F766E' }}>
-                      Diagnostic Bridge: Gut Barrier → Systemic Lab Biomarkers
+                    <strong style={{ display: 'block', color: '#0F766E', fontSize: '12px' }}>
+                      Clinical Correlation: Gut Barrier & Biomarkers
                     </strong>
-                    <span style={{ color: '#475569' }}>
-                      Mucosal permeability allows undigested metabolites into systemic circulation, altering functional bloodwork before conventional alarms trip.
+                    <span style={{ color: '#64748B', fontSize: '11.5px' }}>
+                      Mucosal permeability patterns link directly to downstream functional lab trends.
                     </span>
                   </div>
                 </div>
@@ -2141,24 +1947,24 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               {!focusedStationId && station.id === 'kinetic' && (
                 <div
                   style={{
-                    background: 'linear-gradient(90deg, rgba(240, 249, 255, 0.9) 0%, rgba(238, 242, 255, 0.9) 100%)',
-                    borderRadius: '16px',
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
                     padding: '10px 14px',
-                    border: '1.5px dashed #BAE6FD',
+                    border: '1px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    fontSize: '11.5px',
+                    fontSize: '12px',
                     color: '#0369A1',
                   }}
                 >
-                  <span style={{ fontSize: '18px' }}>⚡</span>
+                  <span style={{ fontSize: '16px' }}>⚡</span>
                   <div>
-                    <strong style={{ display: 'block', color: '#0369A1' }}>
-                      Diagnostic Bridge: Biomechanics & Labs → Root Cause Flow
+                    <strong style={{ display: 'block', color: '#0369A1', fontSize: '12px' }}>
+                      Clinical Correlation: Biomechanics & Labs
                     </strong>
-                    <span style={{ color: '#475569' }}>
-                      Upper cervical alignment combined with borderline nutritional cofactors may contribute to multi-system symptoms.
+                    <span style={{ color: '#64748B', fontSize: '11.5px' }}>
+                      Cervical alignment and nutritional cofactors evaluate together in the root cause analysis.
                     </span>
                   </div>
                 </div>
@@ -2167,24 +1973,24 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               {!focusedStationId && station.id === 'misses' && (
                 <div
                   style={{
-                    background: 'linear-gradient(90deg, rgba(238, 242, 255, 0.9) 0%, rgba(236, 253, 245, 0.9) 100%)',
-                    borderRadius: '16px',
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
                     padding: '10px 14px',
-                    border: '1.5px dashed #A7F3D0',
+                    border: '1px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    fontSize: '11.5px',
+                    fontSize: '12px',
                     color: '#059669',
                   }}
                 >
-                  <span style={{ fontSize: '18px' }}>📋</span>
+                  <span style={{ fontSize: '16px' }}>📋</span>
                   <div>
-                    <strong style={{ display: 'block', color: '#059669' }}>
-                      Diagnostic Bridge: Multi-Disciplinary Synthesis → Physician Handoff
+                    <strong style={{ display: 'block', color: '#059669', fontSize: '12px' }}>
+                      Case Summary & Physician Handoff
                     </strong>
-                    <span style={{ color: '#475569' }}>
-                      Consolidating all 11 prior clinical stations into a 60-second actionable SBAR dossier with prioritized orders for your doctor.
+                    <span style={{ color: '#64748B', fontSize: '11.5px' }}>
+                      Consolidates findings into an actionable SBAR brief with diagnostic considerations.
                     </span>
                   </div>
                 </div>
@@ -2268,21 +2074,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div
-                          className="micro-badge"
-                          style={{
-                            background: pillar.badgeBg,
-                            color: pillar.badgeColor,
-                            padding: '4px 12px',
-                            borderRadius: '999px',
-                            fontSize: '10px',
-                            fontWeight: 800,
-                            letterSpacing: '0.6px',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {pillar.stationCount} {pillar.stationCount === 1 ? 'STATION' : 'STATIONS'}
-                        </div>
+
 
                         {/* Open Arrow Button Indicator */}
                         <div
@@ -2556,34 +2348,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         </div>
 
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                letterSpacing: '0.6px',
-                                textTransform: 'uppercase',
-                                color: openedPillar.accentColor,
-                                background: openedPillar.badgeBg,
-                                padding: '2px 8px',
-                                borderRadius: '999px',
-                              }}
-                            >
-                              {openedPillar.badge}
-                            </span>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                color: '#475569',
-                                background: '#F1F5F9',
-                                padding: '2px 8px',
-                                borderRadius: '999px',
-                              }}
-                            >
-                              {openedPillar.stationCount} {openedPillar.stationCount === 1 ? 'Station' : 'Stations'}
-                            </span>
-                          </div>
+
 
                           <h3
                             className="serif-heading"
@@ -2601,29 +2366,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         </div>
                       </div>
 
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          color: openedPillar.accentColor,
-                          background: openedPillar.badgeBg,
-                          padding: '5px 12px',
-                          borderRadius: '8px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            background: openedPillar.accentColor,
-                          }}
-                        />
-                        <span>{dynamicPillarData[openedPillar.id as keyof typeof dynamicPillarData]?.telemetry || openedPillar.telemetry}</span>
-                      </div>
+
                     </div>
 
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
@@ -2669,18 +2412,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                                 transition: 'all 0.15s ease',
                               }}
                             >
-                              <span
-                                style={{
-                                  fontSize: '9.5px',
-                                  fontWeight: 900,
-                                  padding: '1px 5px',
-                                  borderRadius: '4px',
-                                  background: isStationActive ? openedPillar.accentColor : '#F1F5F9',
-                                  color: isStationActive ? '#FFFFFF' : '#64748B',
-                                }}
-                              >
-                                {station.stationNumber}
-                              </span>
+
                               <span>{station.icon}</span>
                               <span>{station.shortTitle}</span>
                             </button>
@@ -2735,8 +2467,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         </button>
                       ) : <div />}
 
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B' }}>
-                        Station {currentStationIndex + 1} of {pillarStations.length} in {openedPillar.title}
+                      <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#64748B' }}>
+                        {currentStationIndex + 1} of {pillarStations.length}
                       </span>
 
                       {nextStation ? (

@@ -83,20 +83,7 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
         paddingBottom: '16px',
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{
-              background: '#0284C7',
-              color: '#FFF',
-              fontSize: '10.5px',
-              fontWeight: 800,
-              padding: '2px 8px',
-              borderRadius: '6px',
-              letterSpacing: '0.6px',
-              textTransform: 'uppercase',
-            }}>
-              Step 8 • Connection Detective
-            </span>
-          </div>
+
           <h3 style={{ margin: 0, fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#0F172A' }}>
             Evidence Connection Graph
           </h3>

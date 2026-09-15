@@ -142,8 +142,8 @@ export const FunctionalBiomarkersView: React.FC = () => {
       {/* Preset Profiles Selector Ribbon */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Simulate Clinical Telemetry Profiles:
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+            Reference Baselines:
           </div>
           <button
             type="button"

@@ -55,7 +55,7 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Connection Detective Root Cause Intelligence"
+          aria-label="Clinical Connections"
           style={{
             position: 'fixed',
             inset: 0,
