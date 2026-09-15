@@ -502,10 +502,10 @@ export default function QuickConsult() {
                   </span>
                 </div>
                 <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>
-                  Which AI clinical perspective would you like to explore?
+                  Which clinical specialty would you like to explore?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '14px', margin: 0, fontWeight: 500 }}>
-                  Choose an AI perspective to help organize questions for your clinician—not a consultation with a licensed professional.
+                  Select a specialty viewpoint to help organize questions for clinician review.
                 </p>
               </div>
             </div>
@@ -513,7 +513,7 @@ export default function QuickConsult() {
             <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
-                    Choose an AI Perspective
+                    Available Specialties
                   </h3>
                 <div style={{ position: 'relative' }}>
                   <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
@@ -952,7 +952,7 @@ export default function QuickConsult() {
             </div>
             <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
             <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px auto' }}>
-              Your AI-guided {selectedSpecialist?.label} perspective has been saved to your case for clinician discussion.
+              Saved to case records for clinician discussion.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>

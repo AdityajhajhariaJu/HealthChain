@@ -529,7 +529,7 @@ AI-generated preparation material. Verify against original records; this is not 
             <button className="btn btn-outline" onClick={() => navigate(`/app/case-prep?caseId=${encodeURIComponent(createdCaseId || selectedCaseId || '')}`)}>Open Case Prep</button>
             <button className="btn btn-outline" onClick={() => navigate(`/app/ava?caseId=${encodeURIComponent(createdCaseId || selectedCaseId || '')}`, { state: { initialPrompt: 'Help me understand my latest record review and prepare three questions for my clinician.' } })}>Discuss with Ava</button>
             <button className="btn btn-outline" onClick={() => { setPhase('input'); setReport(null); }}>Review updated evidence</button>
-            <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy visit summary'}</button>
+            <button className="btn btn-outline" onClick={handleCopySbar}>{copiedSbar ? 'Copied' : 'Copy Summary'}</button>
           </div>
 
           {/* STEP 4: 10-STAGE CLINICAL REASONING DEPTH ENGINE & CYCLIC FEEDBACK LOOP */}
@@ -735,7 +735,7 @@ AI-generated preparation material. Verify against original records; this is not 
               }}
             >
               {copiedSbar ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-              <span>{copiedSbar ? 'Copied SBAR' : 'Copy SBAR'}</span>
+              <span>{copiedSbar ? 'Copied' : 'Copy Summary'}</span>
             </button>
             <button
               onClick={resetInvestigation}
@@ -1037,7 +1037,7 @@ AI-generated preparation material. Verify against original records; this is not 
                 }}
               >
                 {copiedSbar ? <Check size={13} color="#059669" /> : <Copy size={13} />}
-                <span>{copiedSbar ? 'Copied SBAR' : 'Copy SBAR for Doctor'}</span>
+                <span>{copiedSbar ? 'Copied' : 'Copy Summary'}</span>
               </button>
             </div>
 
@@ -1164,10 +1164,10 @@ AI-generated preparation material. Verify against original records; this is not 
             }}
           >
             <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0' }}>
-              Propagate Findings Across Your Care Ecosystem
+              Next Steps
             </h3>
             <p style={{ color: '#64748B', fontSize: '13.5px', margin: '0 0 16px 0' }}>
-              Connect these insights directly with your AI care team, doctor visit handout, or medical profile.
+              Continue with Ava, prepare discussion points, or review saved case.
             </p>
             
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>

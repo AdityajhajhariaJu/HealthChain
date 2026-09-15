@@ -118,10 +118,10 @@ export default function HelpCenter() {
 
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-1px' }}>
-          Help & Feedback Center
+          Help Center
         </h1>
         <p style={{ fontSize: '16px', color: 'var(--text-muted)' }}>
-          Have a question, clinical feedback, or feature request? We’re here for you.
+          Find answers, review guides, or share product feedback.
         </p>
         
         <div style={{ position: 'relative', maxWidth: '500px', margin: '24px auto 0' }}>
@@ -405,7 +405,7 @@ export default function HelpCenter() {
               </div>
               <div>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 2px' }}>Ava AI Health Companion</h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>24/7 In-App Clinical Triage</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>In-app health guidance</p>
               </div>
             </div>
             <p style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>Chat with Ava anytime for instant symptom organization, lab report explanations, or medication checks.</p>

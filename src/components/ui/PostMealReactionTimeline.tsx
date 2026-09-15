@@ -308,7 +308,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
           </button>
         </div>
         <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0', lineHeight: 1.4 }}>
-          Discover post-meal digestive and autonomic sensitivities across the 1.5h – 2.0h incubation latency window.
+          Post-meal digestive & autonomic reaction timeline.
         </p>
         <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px', background: 'rgba(248, 250, 252, 0.9)', padding: '6px 10px', borderRadius: '8px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span>💡</span>
@@ -417,7 +417,7 @@ export const PostMealReactionTimeline: React.FC<PostMealReactionTimelineProps> =
               No Meals Logged Today
             </div>
             <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '4px', maxWidth: '320px', lineHeight: 1.4 }}>
-              Track your meals to discover delayed gut distension, reflux, or heart rate fluctuations in the 1.5h – 2.0h incubation window.
+              Log meals to track post-meal digestive and autonomic reactions.
             </div>
           </div>
           <button

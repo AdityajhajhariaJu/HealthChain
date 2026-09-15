@@ -402,24 +402,13 @@ function ResearchCard({ item, onClick }: { item: any, onClick: () => void }) {
                 </div>
               )}
 
-              {/* 4. MISSING ELIGIBILITY CRITERIA SEPARATION (Promise 7) */}
+              {/* 4. ELIGIBILITY SCREENING NOTE */}
               {!isPaper && (
-                <div style={{ background: '#FFFBEB', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #FDE68A' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '12px' }}>⚠️</span>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                      Eligibility Not Evaluated • Missing Screening Criteria
-                    </span>
-                  </div>
-                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#92400E', lineHeight: 1.45 }}>
-                    HealthChain matches topic relevance only. A patient cannot be deemed eligible without verifying:
-                  </p>
-                  <ul style={{ margin: 0, paddingLeft: '18px', color: '#78350F', fontSize: '11.5px', lineHeight: 1.5 }}>
-                    <li>Histopathologic & sub-phenotype verification</li>
-                    <li>Baseline organ function & lab exclusionary limits (eGFR, LFTs, ANC)</li>
-                    <li>Prior therapeutic lines & required pharmaceutical washout intervals</li>
-                    <li>Site enrollment capacity and investigator in-person intake</li>
-                  </ul>
+                <div style={{ background: '#FFFBEB', padding: '8px 12px', borderRadius: '10px', border: '1px solid #FDE68A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px' }}>⚠️</span>
+                  <span style={{ fontSize: '11.5px', color: '#92400E' }}>
+                    Topic match only. Clinical eligibility requires investigator evaluation and full protocol screening.
+                  </span>
                 </div>
               )}
 

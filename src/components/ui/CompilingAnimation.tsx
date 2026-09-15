@@ -28,20 +28,20 @@ export function CompilingAnimation({ isDark = false, isMobile = false }: { isDar
   const [compText, setCompText] = useState(COMPUTATION_STRINGS[0]);
 
   useEffect(() => {
-    // 6 steps over ~10 seconds = about 1667ms per step
+    // 6 steps over ~2.5 seconds = about 416ms per step
     const stepInterval = setInterval(() => {
       setActiveStep(prev => Math.min(prev + 1, STEPS.length - 1));
-    }, 10000 / STEPS.length);
+    }, 2500 / STEPS.length);
 
-    // Smooth progress bar over 10 seconds
+    // Smooth progress bar over 2.5 seconds
     const startTime = Date.now();
-    const duration = 10000;
+    const duration = 2500;
     const progressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const pct = Math.min((elapsed / duration) * 100, 100);
       setProgress(pct);
       if (pct >= 100) clearInterval(progressInterval);
-    }, 50);
+    }, 30);
 
     // Random terminal text
     const textInterval = setInterval(() => {

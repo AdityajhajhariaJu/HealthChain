@@ -592,19 +592,19 @@ export default function VitalityPlayground() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Flame size={13} color="#F59E0B" /> 24-Hour Lucky Drop
+                    <Flame size={13} color="#F59E0B" /> Daily Vitality Drop
                   </span>
                   <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#FBBF24', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px' }}>
                     +1 to +5 PTS
                   </span>
                 </div>
                 <h4 style={{ margin: '0 0 4px', fontSize: '16.5px', fontWeight: 800, color: '#FFFFFF' }}>
-                  {mysteryClaimed !== null ? '✨ Today’s Mystery Drop Unlocked!' : 'Tap the Golden Vault to Unlock Today’s Reward'}
+                  {mysteryClaimed !== null ? '✨ Today’s Mystery Drop Unlocked!' : 'Collect Today’s Vitality Reward'}
                 </h4>
                 <p style={{ margin: 0, fontSize: '13px', color: '#94A3B8', lineHeight: 1.4 }}>
                   {mysteryClaimed !== null
-                    ? `You received +${mysteryClaimed} Vitality Points! Come back tomorrow after midnight for your next drop.`
-                    : 'Every day brings a new surprise vitality spark or multiplier boost. Test your daily luck!'}
+                    ? `You received +${mysteryClaimed} Vitality Points! Come back tomorrow for the next daily drop.`
+                    : 'Claim your daily streak bonus points to support healthy habits.'}
                 </p>
               </div>
 

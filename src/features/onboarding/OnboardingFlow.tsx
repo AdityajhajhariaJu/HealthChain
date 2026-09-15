@@ -85,11 +85,11 @@ const GOAL_OPTIONS: GoalOption[] = [
 ];
 
 const AGE_BRACKETS = [
-  { range: '18–25', stage: 'Gen Z', defaultAge: 22, hint: 'Metabolic Velocity' },
-  { range: '26–35', stage: 'Prime', defaultAge: 28, hint: 'Hormonal Peak' },
-  { range: '36–49', stage: 'Mid-Life', defaultAge: 42, hint: 'Cellular Recovery' },
-  { range: '50–64', stage: 'Mature', defaultAge: 56, hint: 'Vascular Focus' },
-  { range: '65+', stage: 'Senior', defaultAge: 68, hint: 'Longevity Protection' },
+  { range: '18–25', stage: 'Young Adult', defaultAge: 22, hint: 'Age 18–25' },
+  { range: '26–35', stage: 'Adult', defaultAge: 28, hint: 'Age 26–35' },
+  { range: '36–49', stage: 'Mid-Adult', defaultAge: 42, hint: 'Age 36–49' },
+  { range: '50–64', stage: 'Mature Adult', defaultAge: 56, hint: 'Age 50–64' },
+  { range: '65+', stage: 'Older Adult', defaultAge: 68, hint: 'Age 65+' },
 ];
 
 const COMMON_CONDITIONS = [
@@ -401,10 +401,10 @@ export default function OnboardingFlow() {
                 <Sparkles size={38} color="#059669" />
               </div>
               <h1 style={{ fontSize: isMobile ? '32px' : '40px', fontWeight: 800, letterSpacing: '-1px', textAlign: 'center', color: '#0F172A', margin: '0 0 14px 0', lineHeight: 1.15 }}>
-                Let's build your<br/>health story.
+                Build your<br/>health profile.
               </h1>
               <p style={{ color: '#475569', fontSize: isMobile ? '16px' : '18px', textAlign: 'center', margin: '0 0 40px 0', fontWeight: 500, maxWidth: '380px', lineHeight: 1.4 }}>
-                Clinical precision meets daily wellness. Start with a personalized baseline.
+                Clinical precision meets daily wellness. Start with a baseline.
               </p>
 
               <motion.button
@@ -426,7 +426,7 @@ export default function OnboardingFlow() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Begin Journey <ChevronRight size={20} />
+                Get Started <ChevronRight size={20} />
               </motion.button>
             </motion.div>
           )}
@@ -454,7 +454,7 @@ export default function OnboardingFlow() {
                   What brings you to<br/><span style={{ color: '#059669' }}>HealthChain</span>?
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '15px', margin: 0, lineHeight: 1.4 }}>
-                  Select your primary focus to personalize your experience.
+                  Select a primary focus to tailor the workspace.
                 </p>
               </div>
 

@@ -2217,7 +2217,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       }}>
                         <Sparkles size={14} color="#F59E0B" />
                         <span style={{ color: '#FCD34D', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px' }}>
-                          +{sessionStats.pointsAwarded} VITALITY POINTS MINTED
+                          +{sessionStats.pointsAwarded} VITALITY POINTS EARNED
                         </span>
                       </div>
 
@@ -2225,7 +2225,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                         Session Completed
                       </h3>
                       <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.7)', margin: '0 0 24px' }}>
-                        Your nervous system is grounded and restored.
+                        Session complete. Rest and recharge.
                       </p>
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '24px' }}>

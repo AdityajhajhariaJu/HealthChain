@@ -57,10 +57,10 @@ export default function InvestigationBoard({ analysis }: { analysis: any }) {
               <h2
                 style={{ color: 'var(--text-main)', margin: 0, fontSize: '18px', fontWeight: 600 }}
               >
-                The Investigation Board
+                Symptom Relationship Map
               </h2>
               <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '13px' }}>
-                How your symptoms are connected
+                Observed symptom sequences and physiological links
               </p>
             </div>
           </div>

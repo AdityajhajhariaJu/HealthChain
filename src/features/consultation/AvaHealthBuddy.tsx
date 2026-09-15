@@ -33,107 +33,44 @@ const QUICK_ACTION_PILLS = [
     color: '#047857', border: '#A7F3D0', action: 'meal',
   },
   {
-    id: 'kinetic_chains',
-    label: 'Back & Headache',
-    icon: '🦴',
-    bg: '#F0FDFA',
-    color: '#0F766E',
-    border: '#CCFBF1',
-    prompt: 'Help me describe when my back discomfort or headache happens and what information to record for my clinician.',
-  },
-  {
-    id: 'health_river',
-    label: 'Whole Health River',
-    icon: '🌊',
-    bg: '#ECFDF5',
-    color: '#047857',
-    border: '#A7F3D0',
-    action: 'river',
-  },
-  {
     id: 'log_day',
-    label: 'Log your day',
+    label: 'Daily Check-in',
     icon: '⚡',
     bg: '#CCFBF1',
     color: '#0F766E',
     border: '#99F6E4',
-    prompt: 'Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.',
+    prompt: 'Help me log my day: sleep, meals, energy levels, and any symptoms.',
   },
   {
-    id: 'food_detective',
-    label: 'Food Detective',
-    icon: '🔍',
-    bg: '#F8FAFC',
+    id: 'kinetic_chains',
+    label: 'Discomfort Check',
+    icon: '🦴',
+    bg: '#F0FDFA',
     color: '#0F766E',
-    border: '#E2E8F0',
-    action: 'tab:detective',
-  },
-  {
-    id: 'suspect_foods',
-    label: 'Suspect triggers',
-    icon: '⚠️',
-    bg: '#FFF1F2',
-    color: '#BE123C',
-    border: '#FECDD3',
-    action: 'tab:suspects',
-  },
-  {
-    id: 'zen_garden',
-    label: 'Zen Garden',
-    icon: '🌸',
-    bg: '#FDF4FF',
-    color: '#C026D3',
-    border: '#F5D0FE',
-    action: 'tab:garden',
-  },
-  {
-    id: 'diet_trials',
-    label: 'Diet trials',
-    icon: '🔬',
-    bg: '#ECFDF5',
-    color: '#059669',
-    border: '#A7F3D0',
-    action: 'tab:trials',
-  },
-  {
-    id: 'doctor_export',
-    label: 'Doctor export',
-    icon: '📋',
-    bg: '#EFF6FF',
-    color: '#2563EB',
-    border: '#BFDBFE',
-    action: 'tab:doctor',
+    border: '#CCFBF1',
+    prompt: 'Help me describe my physical discomfort or pain patterns for clinician review.',
   },
   {
     id: 'food_triggers',
-    label: 'Find food triggers',
-    icon: '🔬',
+    label: 'Food Sensitivities',
+    icon: '🔍',
     bg: '#FEF3C7',
     color: '#B45309',
     border: '#FDE68A',
-    prompt: "What's been triggering my bloating and food sensitivities lately?",
-  },
-  {
-    id: 'food_mood',
-    label: 'Food, sleep & mood',
-    icon: '💗',
-    bg: '#FFE4E6',
-    color: '#BE123C',
-    border: '#FECDD3',
-    prompt: 'Check in on my day: Track my food, sleep duration, and energy levels.',
+    prompt: "What might be triggering my digestive reactions or symptoms?",
   },
   {
     id: 'medication',
-    label: 'Medication tracking',
+    label: 'Medications',
     icon: '💊',
     bg: '#EDE9FE',
     color: '#6D28D9',
     border: '#DDD6FE',
-    prompt: 'Could any of my active medications be reacting with foods I eat or causing gut symptoms?',
+    prompt: 'Could any of my active medications be interacting with meals or symptoms?',
   },
   {
     id: 'mindfulness',
-    label: 'Practice mindfulness',
+    label: 'Guided Calm',
     icon: '🍃',
     bg: '#DCFCE7',
     color: '#15803D',
@@ -151,18 +88,18 @@ const SUGGESTIONS = [
 ];
 
 const TOOL_PURPOSES: Record<string, string> = {
-  meal_log: 'Save a meal in your food diary',
+  meal_log: 'Save a meal in food diary',
   kinetic_chains: 'Describe discomfort and prepare questions',
-  health_river: 'See your daily observations in time order',
-  log_day: 'Capture sleep, meals, energy and symptoms',
-  food_detective: 'Explore patterns in your food observations',
-  suspect_foods: 'Review foods you want to investigate',
-  zen_garden: 'Return to your garden and wellness activities',
-  diet_trials: 'Follow and record a selected dietary plan',
-  doctor_export: 'Prepare a summary to share at your visit',
-  food_triggers: 'Talk through a food reaction with Ava',
-  food_mood: 'Discuss how your day felt',
-  medication: 'Discuss questions about your medicines',
+  health_river: 'See daily observations in order',
+  log_day: 'Capture sleep, meals, energy, and symptoms',
+  food_detective: 'Explore patterns in food observations',
+  suspect_foods: 'Review suspect triggers',
+  zen_garden: 'Wellness activities and relaxation',
+  diet_trials: 'Record dietary elimination protocol',
+  doctor_export: 'Prepare summary for clinician visit',
+  food_triggers: 'Investigate food reactions and symptoms',
+  food_mood: 'Log daily energy, food, and sleep',
+  medication: 'Review medication notes and questions',
   mindfulness: 'Start a guided relaxation session',
 };
 
@@ -186,9 +123,9 @@ const DEFAULT_CALM_TRACK: FitnessContent = {
   category_id: 'mindfulness',
   is_active: true,
   type: 'breathwork',
-  title: 'Autonomic 4-7-8 Calm Reset',
-  subtitle: 'Parasympathetic Vagal Tone Activation',
-  description: 'Evidence-based rhythmic breathwork specifically engineered to reduce acute adrenergic stress and settle cognitive overactivation.',
+  title: '4-7-8 Breathing Reset',
+  subtitle: 'Guided Breathing',
+  description: 'Calming rhythmic breathwork to reduce stress and ease cognitive tension.',
   cover_image_url: '/images/nature_calm.webp',
   audio_url: 'https://cdn.freesound.org/previews/518/518888_11504996-lq.mp3',
   video_url: '',
@@ -2073,7 +2010,7 @@ export default function AvaHealthBuddy() {
                     margin: 0,
                   }}
                 >
-                  MEDICAL CHIEF OF STAFF
+                  CLINICAL HEALTH ASSISTANT
                 </p>
               </div>
             </div>
@@ -2163,46 +2100,7 @@ export default function AvaHealthBuddy() {
           >
             
 
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '-4px 0 4px 0',
-              }}
-            >
-              <button
-                type="button"
-                aria-label="Active case workspace pill"
-                onClick={() => {
-                  triggerHapticLight();
-                  setIsCaseSelectorOpen(true);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '7px',
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  background: selectedCase ? 'rgba(13, 148, 136, 0.1)' : 'rgba(255, 255, 255, 0.85)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: selectedCase ? '1.5px solid #99F6E4' : '1px solid #E2E8F0',
-                  color: selectedCase ? '#0F766E' : '#475569',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.06)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span>{selectedCase ? '📁' : '🌐'}</span>
-                <span>
-                  {selectedCase ? `Active Case: ${selectedCase.title}` : 'General Consultation (Tap to link case)'}
-                </span>
-                <ChevronDown size={13} />
-              </button>
-            </div>
+
 
             {missingCaseNotice && (
               <motion.div
@@ -3135,10 +3033,7 @@ export default function AvaHealthBuddy() {
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
               >
                 <span>{pill.icon}</span>
-                <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
-                  <span>{pill.label}</span>
-                  <span style={{ fontSize: 11, fontWeight: 400 }}>{TOOL_PURPOSES[pill.id]}</span>
-                </span>
+                <span>{pill.label}</span>
               </button>
             ))}
           </div>

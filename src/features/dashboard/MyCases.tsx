@@ -200,7 +200,6 @@ export default function MyCases() {
   return (
     <div className="connected-experience" style={{ maxWidth: 1020, margin: '0 auto', paddingBottom: 24 }}>
       <header style={{ marginBottom: 16 }}>
-        <div style={{ color: '#0f9488', fontWeight: 800, fontSize: 12, letterSpacing: '.9px', marginBottom: 6 }}>YOUR CASEWORK</div>
         <h1 style={{ fontSize: isMobile ? 26 : 32, margin: '0 0 4px', letterSpacing: '-1.2px' }}>My Cases</h1>
           
         <p style={{ color: '#64748b', fontSize: 15, margin: 0 }}>
@@ -223,22 +222,6 @@ export default function MyCases() {
         })}
       </section>
 
-      {/* Quick Navigation — replaces the heavy ConnectionTriggerHeroCard */}
-      <div style={{ display: 'flex', gap: '8px', margin: '0 0 16px' }}>
-        <button onClick={() => navigate('/app/consult')}
-          style={{ flex: 1, padding: '10px', borderRadius: '12px',
-                   background: '#F0F4FF', border: '1px solid #DBEAFE',
-                   fontSize: '12.5px', fontWeight: 600, color: '#1E40AF', cursor: 'pointer' }}>
-          Clinical Data Engine
-        </button>
-
-        <button onClick={() => navigate('/app/case-prep')}
-          style={{ flex: 1, padding: '10px', borderRadius: '12px',
-                   background: '#FFF7ED', border: '1px solid #FED7AA',
-                   fontSize: '12.5px', fontWeight: 600, color: '#9A3412', cursor: 'pointer' }}>
-          📋 Doctor Prep
-        </button>
-      </div>
 
       {!isLoading && cases.length >= 1 && (
         <>
@@ -432,8 +415,8 @@ export default function MyCases() {
         ) : (
           <div style={{ padding: 60, textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: 16, border: '2px dashed #e2e8f0' }}>
             <Archive size={40} color="#cbd5e1" style={{ marginBottom: 16 }} />
-            <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>{cases.length ? 'No matching cases' : 'Your health story belongs here'}</h3>
-            <p style={{ margin: '0 0 24px' }}>{cases.length ? 'Try a different title, condition, document name, or case filter.' : 'Save your concern, timeline, and questions. You can add records and AI reviews later.'}</p>
+            <h3 style={{ margin: '0 0 8px', color: '#0F172A' }}>{cases.length ? 'No matching cases' : 'No cases yet'}</h3>
+            <p style={{ margin: '0 0 24px' }}>{cases.length ? 'Try a different title, condition, document name, or case filter.' : 'Record symptoms, documents, and clinician discussion questions to start a case.'}</p>
             {cases.length > 0 && <button className="btn btn-outline" onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}>Clear filters</button>}
             <button className="btn btn-primary" onClick={() => { setShowNewCase(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Start a New Case</button>
           </div>

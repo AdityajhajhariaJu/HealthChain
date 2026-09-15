@@ -444,10 +444,10 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
               </span>
             </div>
             <h2 style={{ margin: '0 0 4px 0', fontSize: isMobile ? '18px' : '22px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.4px' }}>
-              4-Week Clinical Elimination Suite
+              4-Week Elimination Protocol
             </h2>
             <p style={{ margin: 0, fontSize: isMobile ? '12px' : '13px', color: '#475569', lineHeight: 1.4 }}>
-              Evidence-based gastroenterology protocols to systematically isolate food sensitivities and heal digestive mucosal inflammation.
+              Systematically isolate food sensitivities and identify digestive triggers.
             </p>
           </div>
 

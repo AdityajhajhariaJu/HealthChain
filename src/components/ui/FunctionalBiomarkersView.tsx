@@ -86,11 +86,11 @@ export const FunctionalBiomarkersView: React.FC = () => {
   };
 
   const getComputedStatus = (b: FunctionalBiomarker, val: number) => {
-    if (val < b.standardRange.min) return { key: 'critical_low', label: 'Pathology Deficit (Below Standard)', color: '#EF4444', bg: '#FEF2F2' };
-    if (val < b.optimalRange.min) return { key: 'suboptimal_low', label: 'Subclinical Gap (Standard Normal, Cellular Starvation)', color: '#D97706', bg: '#FFFBEB' };
-    if (val > b.standardRange.max) return { key: 'critical_high', label: 'Pathology Excess (Above Standard)', color: '#DC2626', bg: '#FEF2F2' };
-    if (val > b.optimalRange.max) return { key: 'suboptimal_high', label: 'Subclinical Elevation (Compensatory Strain)', color: '#D97706', bg: '#FFFBEB' };
-    return { key: 'optimal', label: 'Optimal Functional Longevity', color: '#059669', bg: '#ECFDF5' };
+    if (val < b.standardRange.min) return { key: 'critical_low', label: 'Below Standard Range', color: '#EF4444', bg: '#FEF2F2' };
+    if (val < b.optimalRange.min) return { key: 'suboptimal_low', label: 'Suboptimal (Below Functional Target)', color: '#D97706', bg: '#FFFBEB' };
+    if (val > b.standardRange.max) return { key: 'critical_high', label: 'Above Standard Range', color: '#DC2626', bg: '#FEF2F2' };
+    if (val > b.optimalRange.max) return { key: 'suboptimal_high', label: 'Suboptimal (Above Functional Target)', color: '#D97706', bg: '#FFFBEB' };
+    return { key: 'optimal', label: 'Optimal Target Range', color: '#059669', bg: '#ECFDF5' };
   };
 
   const filtered = initialBiomarkers.filter((b) => selectedCategory === 'all' || b.category === selectedCategory);
@@ -128,13 +128,13 @@ export const FunctionalBiomarkersView: React.FC = () => {
         </div>
         <div>
           <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            DUAL-BAND METABOLIC REFERENCE SCALES • 20 LAB MARKERS
+            LAB MARKER COMPARISON
           </div>
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E293B', lineHeight: 1.2 }}>
-            Optimal Functional vs Hospital Cutoffs
+            Functional Target vs. Standard Range
           </div>
           <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-            Standard labs flag end-stage failure; functional optimal ranges uncover subclinical gaps years before diagnosis.
+            Standard cutoffs identify clinical pathology. Functional targets highlight early trends.
           </div>
         </div>
       </div>

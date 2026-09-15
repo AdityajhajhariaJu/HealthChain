@@ -287,7 +287,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     title: 'Connected Foods & Sensitivities',
     shortTitle: 'Foods',
     icon: '🔬',
-    subtitle: 'Primary dietary triggers, histamine & FODMAP permeability compounds',
+    subtitle: 'Dietary triggers & sensitivity compounds',
     statusBadge: 'Dietary Triggers',
   },
   {
@@ -301,7 +301,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     title: 'Post-Meal Sensitivities Timeline',
     shortTitle: 'Post-Meal',
     icon: '🍽️',
-    subtitle: 'Hour-by-hour physiological flare tracking after meals to isolate rapid vs delayed reactions',
+    subtitle: 'Post-meal reaction timeline & delay windows',
     statusBadge: '2h & 6h Windows',
   },
   {
@@ -315,7 +315,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     title: 'Digestion & Bloating Calendar Heatmap',
     shortTitle: 'Heatmap',
     icon: '📅',
-    subtitle: '30-day empirical calendar view cross-referencing meal logs with digestive flare days',
+    subtitle: 'Monthly meal logs & flare calendar',
     statusBadge: '30-Day Matrix',
   },
   {
@@ -326,10 +326,10 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#0D9488',
     pillarBg: '#F0FDFA',
     pillarBorder: '#CCFBF1',
-    title: 'Symptom Hunt Elimination Protocol',
-    shortTitle: 'Symptom Hunt',
+    title: 'Elimination Protocol',
+    shortTitle: 'Elimination',
     icon: '🎯',
-    subtitle: 'Structured 4-week clinical elimination, tracking, and phased re-introduction pipeline',
+    subtitle: '4-week elimination and phased reintroduction',
     statusBadge: '4-Week Protocol',
   },
   {
@@ -340,11 +340,11 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#0D9488',
     pillarBg: '#F0FDFA',
     pillarBorder: '#CCFBF1',
-    title: 'Smart Cross-Correlation Insights',
+    title: 'Cross-Correlation Insights',
     shortTitle: 'Insights',
     icon: '💡',
-    subtitle: 'Multi-factor statistical correlations between specific ingredients, timing, and flare intensity',
-    statusBadge: 'AI Cross-Analysis',
+    subtitle: 'Ingredient-to-symptom statistical correlations',
+    statusBadge: 'Correlations',
   },
 
   // Pillar 2: Labs & Biomechanics (06 - 07)
@@ -359,7 +359,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     title: 'Functional Labs & Optimal Biomarkers',
     shortTitle: 'Labs',
     icon: '🧪',
-    subtitle: 'Comparing standard conventional hospital lab cutoffs against tighter integrative functional wellness targets',
+    subtitle: 'Standard cutoffs vs. functional target ranges',
     statusBadge: 'Optimal Ranges',
   },
   {
@@ -373,7 +373,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     title: 'Kinetic Biomechanics & Vagus Axis',
     shortTitle: 'Biomechanics',
     icon: '🦴',
-    subtitle: 'Assessing posture chains, cervical spine compression, and parasympathetic vagal signaling',
+    subtitle: 'Posture chains & vagus nerve axis',
     statusBadge: 'Vagus Axis',
   },
 
@@ -386,11 +386,11 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#6366F1',
     pillarBg: '#EEF2FF',
     pillarBorder: '#C7D2FE',
-    title: '5-Stage Causal Domino Cascade',
+    title: '5-Stage Causal Cascade',
     shortTitle: 'Causal Flow',
     icon: '⚡',
-    subtitle: 'Scrub through the 5 chronological stages showing how cellular nutrient deficits trigger autonomic symptoms',
-    statusBadge: '5-Stage Domino',
+    subtitle: 'Chronological progression of systemic symptoms',
+    statusBadge: '5 Stages',
   },
   {
     id: 'matcher',
@@ -400,10 +400,10 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#6366F1',
     pillarBg: '#EEF2FF',
     pillarBorder: '#C7D2FE',
-    title: 'Multi-Symptom Cluster Cross-Matcher',
+    title: 'Symptom Cluster Matcher',
     shortTitle: 'Cross-Matcher',
     icon: '🔍',
-    subtitle: 'Tap active symptoms to dynamically calculate multi-specialty board convergence and aligned disciplines',
+    subtitle: 'Dynamic alignment across medical disciplines',
     statusBadge: 'Recalibration Active',
   },
   {
@@ -414,10 +414,10 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#6366F1',
     pillarBg: '#EEF2FF',
     pillarBorder: '#C7D2FE',
-    title: 'Clinical Board Consensus Panels',
+    title: 'Specialist Consensus Panels',
     shortTitle: 'Consensus',
     icon: '🏛️',
-    subtitle: 'Autonomous specialist panels (Gastroenterology, Neuro-Immunology, Functional Med, Biomechanics) cross-validating findings',
+    subtitle: 'Multi-specialist cross-validation of findings',
     statusBadge: 'Specialist Panels',
   },
   {
@@ -428,11 +428,11 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#6366F1',
     pillarBg: '#EEF2FF',
     pillarBorder: '#C7D2FE',
-    title: 'What 15-Minute Doctor Visits Missed',
-    shortTitle: 'Doctor Misses',
+    title: 'Cross-Discipline Insights',
+    shortTitle: 'Key Insights',
     icon: '⚠️',
-    subtitle: 'Revealing the atypical presentations and cross-organ linkages that single-organ consultations overlook',
-    statusBadge: 'Blind Spots Found',
+    subtitle: 'Atypical presentations & cross-organ connections',
+    statusBadge: 'Correlations Found',
   },
 
   // Pillar 4: Doctor Dossier (12)
@@ -444,10 +444,10 @@ export const ALL_12_STATIONS: StationConfig[] = [
     pillarColor: '#059669',
     pillarBg: '#ECFDF5',
     pillarBorder: '#A7F3D0',
-    title: 'Doctor Dossier (<60s SBAR Brief)',
+    title: 'Doctor Dossier (SBAR Brief)',
     shortTitle: 'SBAR Dossier',
     icon: '📋',
-    subtitle: 'Physician-ready SBAR handoff, prioritized laboratory test orders, ICD-10 diagnostic codes, and one-tap copy/print',
+    subtitle: 'Physician SBAR handoff, lab orders & codes',
     statusBadge: 'Physician Ready',
   },
 ];
@@ -579,6 +579,8 @@ export const PILLAR_FILTERS: PillarFilterOption[] = [
 
 interface ConnectionDetectiveViewProps {
   initialTab?: TabId;
+  openedPillarId?: PillarId | null;
+  onOpenedPillarChange?: (id: PillarId | null) => void;
   onOpenFoodDetective?: () => void;
   onOpenConsult?: () => void;
   onOpenCasePrep?: () => void;
@@ -586,6 +588,8 @@ interface ConnectionDetectiveViewProps {
 
 export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = ({
   initialTab,
+  openedPillarId: controlledOpenedPillarId,
+  onOpenedPillarChange,
   onOpenFoodDetective,
   onOpenConsult,
   onOpenCasePrep,
@@ -602,7 +606,8 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   useEffect(() => {
     setReport(getConnectionDetectiveReport(activeReview?.report, activeCase));
   }, [activeReview, activeCase]);
-  const [openedPillarId, setOpenedPillarId] = useState<PillarId | null>(() => {
+
+  const [internalOpenedPillarId, setInternalOpenedPillarId] = useState<PillarId | null>(() => {
     // Only open a pillar directly if an explicit non-default initialTab is provided (not 'map')
     if (initialTab && initialTab !== 'map') {
       const target = ALL_12_STATIONS.find((s) => s.id === initialTab);
@@ -610,6 +615,12 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     }
     return null; // Always show the 4 cards by default!
   });
+
+  const openedPillarId = controlledOpenedPillarId !== undefined ? controlledOpenedPillarId : internalOpenedPillarId;
+  const setOpenedPillarId = (id: PillarId | null) => {
+    if (onOpenedPillarChange) onOpenedPillarChange(id);
+    setInternalOpenedPillarId(id);
+  };
   const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body' | 'cause' | 'dossier', TabId>>(() => ({
     gut: initialTab && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'map',
     body: initialTab && TAB_TO_PILLAR[initialTab] === 'body' ? initialTab : 'biomarkers',
@@ -852,7 +863,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   const handleCopySbar = () => {
     triggerHapticLight();
     trackButtonClick('sbar_dossier_copied', report.patientName);
-    const text = `HEALTHCHAIN 360 • CLINIC USP CONNECTION DETECTIVE REPORT
+    const text = `HEALTHCHAIN 360 • CONNECTION DETECTIVE REPORT
 Patient: ${report.patientName}
 Generated: ${report.generatedAt}
 Primary Root-Cause Hypothesis: ${report.primaryHypothesis} (Board Alignment: not scored)
@@ -2144,7 +2155,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   <span style={{ fontSize: '18px' }}>⚡</span>
                   <div>
                     <strong style={{ display: 'block', color: '#0369A1' }}>
-                      Diagnostic Bridge: Biomechanics & Labs → Root Cause Domino Engine
+                      Diagnostic Bridge: Biomechanics & Labs → Root Cause Flow
                     </strong>
                     <span style={{ color: '#475569' }}>
                       Upper cervical vagal impingement combined with depleted cellular cofactors directly launches multi-organ autonomic cascades.
@@ -2430,13 +2441,12 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '10px',
+                    gap: '6px',
+                    overflowX: 'auto',
                     padding: '2px 0',
                   }}
                 >
-                  {/* Back to 4 Domains Button */}
+                  {/* All Domains Overview Pill */}
                   <button
                     type="button"
                     onClick={() => {
@@ -2446,57 +2456,57 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 16px',
+                      gap: '5px',
+                      padding: '7px 14px',
                       borderRadius: '999px',
                       background: '#FFFFFF',
                       border: '1.5px solid #CBD5E1',
                       color: '#0F172A',
                       fontSize: '12px',
-                      fontWeight: 800,
+                      fontWeight: 700,
                       cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                       transition: 'all 0.15s ease',
+                      flexShrink: 0,
                     }}
                   >
-                    <ArrowLeft size={14} />
-                    <span>Back to 4 Domains</span>
+                    <span>🗂️</span>
+                    <span>All Domains</span>
                   </button>
 
-                  {/* Quick Domain Switcher Pills */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto' }}>
-                    {PARENT_PILLAR_CARDS.map((p) => {
-                      const isCurrent = p.id === openedPillar.id;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => {
-                            triggerHapticSelection();
-                            setOpenedPillarId(p.id);
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '6px 12px',
-                            borderRadius: '999px',
-                            background: isCurrent ? p.accentColor : '#FFFFFF',
-                            border: `1.5px solid ${isCurrent ? p.accentColor : '#E2E8F0'}`,
-                            color: isCurrent ? '#FFFFFF' : '#475569',
-                            fontSize: '11px',
-                            fontWeight: isCurrent ? 800 : 600,
-                            cursor: 'pointer',
-                            boxShadow: isCurrent ? `0 2px 8px ${p.shadowColor}` : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <span>{p.icon}</span>
-                          <span>{p.title}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {/* Domain Switcher Pills */}
+                  {PARENT_PILLAR_CARDS.map((p) => {
+                    const isCurrent = p.id === openedPillar.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          triggerHapticSelection();
+                          setOpenedPillarId(p.id);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '7px 14px',
+                          borderRadius: '999px',
+                          background: isCurrent ? p.accentColor : '#FFFFFF',
+                          border: `1.5px solid ${isCurrent ? p.accentColor : '#E2E8F0'}`,
+                          color: isCurrent ? '#FFFFFF' : '#475569',
+                          fontSize: '12px',
+                          fontWeight: isCurrent ? 800 : 600,
+                          cursor: 'pointer',
+                          boxShadow: isCurrent ? `0 2px 8px ${p.shadowColor}` : 'none',
+                          transition: 'all 0.15s ease',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span>{p.icon}</span>
+                        <span>{p.title}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* THE OPENED DOMAIN CONTAINER */}

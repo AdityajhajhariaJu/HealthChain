@@ -271,8 +271,8 @@ export default function Auth() {
                 {isForgotPassword 
                   ? 'Enter your email to receive a password reset link.'
                   : isLogin
-                  ? 'Enter your details to access your clinical dashboard.'
-                  : 'Start organizing your health journey today.'}
+                  ? 'Sign in to access clinical dashboard.'
+                  : 'Get started with HealthChain.'}
               </p>
 
               <form

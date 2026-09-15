@@ -64,10 +64,10 @@ export const EmpiricalMatchInsights: React.FC<EmpiricalMatchInsightsProps> = ({
             EMPIRICAL FREQUENCY CORRELATION
           </div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E293B', lineHeight: 1.2 }}>
-            Smart Insights & Recurrence Matches
+            Flare Recurrence Matches
           </div>
           <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-            Mathematical ratio of days where specific foods precipitated symptom flares.
+            Frequency of days where specific foods correlated with symptom flares.
           </div>
         </div>
       </div>

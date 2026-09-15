@@ -716,8 +716,9 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
               </div>
             )}
 
-            {/* SECTION B: Daily Care Rhythm Cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: activeFilter !== 'rhythm' ? '8px' : '0' }}>
+            {/* SECTION B: Daily Care Rhythm Cards - Only on rhythm tab */}
+            {activeFilter === 'rhythm' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '0' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                   Daily Care Rhythm
@@ -1376,6 +1377,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                 </button>
               </div>
             </div>
+            )}
           </div>
 
           {/* Footer */}

@@ -271,7 +271,7 @@ export const TriggerSensitivityCard: React.FC<TriggerSensitivityCardProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '11px', fontWeight: 800, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={14} color="#16A34A" /> Smart Therapeutic Swap
+              <CheckCircle2 size={14} color="#16A34A" /> Suggested Food Swap
             </span>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#15803D', background: '#DCFCE7', padding: '2px 8px', borderRadius: '999px' }}>
               For {topSwap.triggerName}

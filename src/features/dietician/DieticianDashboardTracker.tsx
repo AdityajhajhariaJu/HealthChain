@@ -128,7 +128,7 @@ export function DieticianDashboardTracker({
               <Droplet size={20} color="#0284C7" />
             </div>
             <div>
-              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Cellular Hydration</div>
+              <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600, marginBottom: '2px' }}>Hydration</div>
               <div style={{ fontSize: '11px', color: '#94A3B8' }}>{waterGlasses * 250}ml of 2,000ml (Target: 8 glasses)</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: '#0284C7' }}>{waterGlasses} / 8 Glasses</div>
             </div>
@@ -212,7 +212,7 @@ export function DieticianDashboardTracker({
           <div style={{ background: '#8B5CF6', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Sparkles size={16} color="#FFF" />
           </div>
-          ⚡ Ambient Log
+          ⚡ Quick Log
         </button>
         <button onClick={onOpenGallery} style={{ background: '#FFF', padding: '16px', borderRadius: '16px', border: 'none', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', cursor: 'pointer', fontWeight: 700, color: '#0F172A', fontSize: '14px', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
           <div style={{ background: '#0F172A', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -331,7 +331,7 @@ export function DieticianDashboardTracker({
             🎈
           </div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Symptom Hunt</div>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Elimination Protocol</div>
             <div style={{ fontSize: '11px', color: '#64748B' }}>4-Wk Elimination</div>
           </div>
         </button>
@@ -368,7 +368,7 @@ export function DieticianDashboardTracker({
             💡
           </div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Smart Insights</div>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Insights</div>
             <div style={{ fontSize: '11px', color: '#64748B' }}>Match Ratios</div>
           </div>
         </button>
@@ -443,7 +443,7 @@ export function DieticianDashboardTracker({
           </div>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Timeline</div>
-            <div style={{ fontSize: '11px', color: '#64748B' }}>Post-Meal Latency</div>
+            <div style={{ fontSize: '11px', color: '#64748B' }}>Reaction Timing</div>
           </div>
         </button>
       </div>

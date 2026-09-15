@@ -144,10 +144,10 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
               textTransform: 'uppercase',
             }}
           >
-            CLINIC USP ENGINE
+            CLINIC INTELLIGENCE
           </div>
           <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
-            4-Stream Multi-Specialist Convergence
+            Cross-Specialty Insights
           </span>
         </div>
 
@@ -180,7 +180,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
       >
         Connection Detective:{' '}
         <span style={{ color: '#0D9488' }}>
-          What 15-Minute Visits Missed
+          Cross-System Map
         </span>
       </h3>
 

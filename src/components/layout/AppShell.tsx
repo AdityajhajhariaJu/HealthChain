@@ -444,11 +444,6 @@ const enforceSafeArea = () => {
         <motion.main className={`app-shell__content ${isMobile ? 'mobile' : ''} ${location.pathname.startsWith('/app/war-room') ? 'war-room-shell' : ''}`} id="main-content" style={{ backgroundColor: '#F8FAFC', overflowY: isMobile && (location.pathname.startsWith('/app/ava') || location.pathname.startsWith('/app/onboarding')) ? 'hidden' : 'auto', paddingTop: (location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) ? '0px' : undefined, paddingLeft: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingRight: location.pathname.startsWith('/app/war-room') ? '0px' : undefined, paddingBottom: location.pathname.startsWith('/app/onboarding') ? '0px' : (isMobile && location.pathname.startsWith('/app/ava') ? '0px' : (location.pathname.startsWith('/app/war-room') ? '0px' : (isMobile ? 'calc(var(--bottom-tab-height, 64px) + var(--safe-area-bottom, 0px) + 28px)' : undefined))), transformOrigin: 'top center', borderRadius: showMoreMenu || showProfileMenu ? '16px' : '0px' }} onScroll={handleMainScroll} animate={{ scale: showMoreMenu || showProfileMenu ? 0.93 : 1, opacity: showMoreMenu || showProfileMenu ? 0.5 : 1 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
           {/* Hardware-accelerated structural wrapper to force standard document flow and prevent flex-overlap bugs */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, position: 'relative', width: '100%', maxWidth: location.pathname.startsWith('/app/war-room') ? '100%' : '800px', margin: '0 auto' }}>
-            {!(location.pathname.startsWith('/app/today') || location.pathname.startsWith('/app/jarvis') || location.pathname.startsWith('/app/consult') || location.pathname.startsWith('/app/progress') || location.pathname.startsWith('/app/trophies') || location.pathname.startsWith('/app/onboarding') || location.pathname.startsWith('/app/war-room')) && (
-              <div style={{ flexShrink: 0, display: (isMobile && ['/app/dietician', '/app/medicine-lab', '/app/settings', '/app/ava', '/app/trials', '/app/case-prep'].some(p => location.pathname.startsWith(p))) ? 'none' : 'block', position: 'relative', zIndex: 1 }}>
-                <BrandPulseBanner />
-              </div>
-            )}
             {!['/app/today', '/app/consult', '/app/dietician', '/app/medicine-lab', '/app/collab', '/app/case-prep', '/app/settings', '/app/ava', '/app/trials', '/app/profile', '/app/my-cases', '/app/cases', '/app/jarvis', '/app/progress', '/app/trophies', '/app/war-room'].some(p => location.pathname.startsWith(p)) && (
               <ActiveCaseBar navigate={navigate} />
             )}
@@ -660,13 +655,9 @@ const enforceSafeArea = () => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F43F5E', flexShrink: 0 }}>
-                    <motion.div
-                      animate={shouldReduceMotion ? { scale: 1, opacity: 1 } : { scale: [1, 1.15, 1], opacity: [0.85, 1, 0.85] }}
-                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                      style={{ display: 'flex', alignItems: 'center' }}
-                    >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                       <Heart size={13} fill="#F43F5E" color="#F43F5E" />
-                    </motion.div>
+                    </div>
                     <span style={{ fontWeight: 800, fontSize: '12px', letterSpacing: '-0.2px' }}>Ava</span>
                   </div>
                   <span style={{ 
@@ -982,81 +973,7 @@ export function ActiveCaseBar({ navigate }: any) {
 }
 
 function BrandPulseBanner() {
-  const messages = [
-    {
-      quote: 'One health story. Multiple specialist perspectives.',
-      sub: 'Multiple-Specialists investigates your case from more than one clinical angle.',
-    },
-    {
-      quote:
-        "You've explained your symptoms to five different doctors. Your labs come back 'normal,' but you still feel terrible.",
-      sub: 'Your experience is real. HealthChain360.ai helps you organise the full picture for the next conversation.',
-    },
-    {
-      quote: 'When symptoms do not fit neatly into one box, one perspective may not be enough.',
-      sub: 'Bring relevant AI specialist perspectives together before you decide what to ask next.',
-    },
-    {
-      quote: 'Parallel investigation. Connected evidence. Clearer next steps.',
-      sub: 'HealthChain360.ai turns your symptoms, records, and answers into one evolving case.',
-    },
-    {
-      quote: 'You should not have to repeat your health story from the beginning every time.',
-      sub: 'Keep your records, patterns, questions, and next actions connected in one case file.',
-    },
-    {
-      quote: 'Your case should not restart every time new evidence arrives.',
-      sub: 'Reopen your review when a report, appointment, or symptom changes.',
-    },
-    {
-      quote: 'The goal is not more noise. It is better questions for the right clinician.',
-      sub: 'Use your case brief to make the next appointment more focused and productive.',
-    },
-    {
-      quote: 'Better clinical conversations start with a better-organised case.',
-      sub: 'Bring an evidence-led brief, the right questions, and your next actions to your clinician.',
-    },
-    {
-      quote: 'HealthChain360.ai isn\'t a one-off search engine.',
-      sub: 'It is a persistent, AI-driven medical detective that stays on the case until the mystery is actually solved.',
-    },
-  ];
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => setActive((current) => (current + 1) % messages.length), 10000);
-    return () => clearInterval(timer);
-  }, []);
-  const message = messages[active];
-  return (
-    <section className="brand-pulse" aria-label="What makes HealthChain360.ai different">
-      <div className="brand-pulse__mark">
-        <Quote size={20} />
-      </div>
-      <div className="brand-pulse__copy">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.32 }}
-          >
-            <strong>"{message.quote}"</strong>
-            <span>{message.sub}</span>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-      <div className="brand-pulse__meta">
-        <Sparkles size={15} />
-        <span>HEALTHCHAIN360.AI METHOD</span>
-        <div className="brand-pulse__dots">
-          {messages.map((_, index) => (
-            <i key={index} className={index === active ? 'active' : ''} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 

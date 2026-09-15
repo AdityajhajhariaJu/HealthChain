@@ -808,7 +808,7 @@ export default function Settings() {
             </p>
             <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '12px', borderRadius: '8px', marginBottom: '24px', textAlign: 'left' }}>
               <strong style={{ color: '#D97706', fontSize: '14px', display: 'block', marginBottom: '4px' }}>Warning: Guest Mode</strong>
-              <span style={{ color: '#B45309', fontSize: '13px' }}>Your data is currently stored locally in this browser. If you clear your browser cache or switch devices, your data will be permanently lost. Create an account to securely back up your data.</span>
+              <span style={{ color: '#B45309', fontSize: '13px' }}>Data is stored locally in this browser. Clearing browser cache or switching devices will erase local records. Create an account to back up data securely.</span>
             </div>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button className="btn btn-navy" onClick={() => navigate('/login')}>
@@ -849,7 +849,7 @@ export default function Settings() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <ShieldCheck size={18} color="var(--teal)" />
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-              Your Data, Your Control
+              Data Control & Storage
             </div>
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>

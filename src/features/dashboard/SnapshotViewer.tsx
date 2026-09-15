@@ -359,7 +359,7 @@ AI-generated preparation material. Verify against original records.`;
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                           <Zap size={16} color="#EA580C" />
                           <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>
-                            3-Step Mechanistic Domino Chain
+                            Symptom Progression Chain
                           </h4>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto 1fr auto 1fr', gap: 10, alignItems: 'center' }}>
@@ -385,7 +385,7 @@ AI-generated preparation material. Verify against original records.`;
                       <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                           <Activity size={16} color="#EA580C" />
-                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Sub-Clinical Biomarker Discrepancies</h4>
+                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Borderline Lab Discrepancies</h4>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {activeReview.report.functionalBiomarkers.map((b: any, idx: number) => (
@@ -412,7 +412,7 @@ AI-generated preparation material. Verify against original records.`;
                       <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                           <AlertTriangle size={16} color="#D97706" />
-                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#92400E' }}>What Previous Doctors Overlooked</h4>
+                          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#92400E' }}>Additional Considerations for Clinicians</h4>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {activeReview.report.missingLinks.map((link: string, idx: number) => (
@@ -427,7 +427,7 @@ AI-generated preparation material. Verify against original records.`;
 
                     {Array.isArray(activeReview.report?.doctorActionPlan?.confirmatoryTests) && activeReview.report.doctorActionPlan.confirmatoryTests.length > 0 && (
                       <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: isMobile ? '16px' : '20px' }}>
-                        <h4 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Doctor-Ready Action Plan: Confirmatory Tests</h4>
+                        <h4 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: '#0F172A' }}>Suggested Follow-up Tests</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {activeReview.report.doctorActionPlan.confirmatoryTests.map((t: any, idx: number) => {
                             const name = typeof t === 'string' ? t : t.test;

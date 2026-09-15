@@ -10,11 +10,11 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 export default function MedicineLabPage() {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<'all' | 'pharmacy' | 'reports'>(() => {
+  const [activeTab, setActiveTab] = useState<'pharmacy' | 'reports'>(() => {
     if (typeof window !== 'undefined' && (window.location.hash === '#clinical-report-analyzer' || location.hash === '#clinical-report-analyzer')) {
       return 'reports';
     }
-    return 'all';
+    return 'pharmacy';
   });
 
   useEffect(() => {
@@ -74,28 +74,7 @@ export default function MedicineLabPage() {
             gap: '4px'
           }}
         >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'all'}
-            onClick={() => { triggerHapticLight(); setActiveTab('all'); }}
-            style={{
-              padding: isMobile ? '8px 14px' : '10px 20px',
-              borderRadius: '99px',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              background: activeTab === 'all' ? '#0F172A' : 'transparent',
-              color: activeTab === 'all' ? '#FFFFFF' : '#64748B',
-            }}
-          >
-            <Layers size={15} /> All Tools
-          </button>
+
           <button
             type="button"
             role="tab"
@@ -147,69 +126,13 @@ export default function MedicineLabPage() {
         </div>
       </div>
 
-      {(activeTab === 'all' || activeTab === 'pharmacy') && (
+      {activeTab === 'pharmacy' && (
         <section style={{ position: 'relative', zIndex: 2 }}>
           <PharmacyHub />
         </section>
       )}
 
-      {activeTab === 'all' && (
-        <div 
-          style={{ 
-            maxWidth: '800px', 
-            margin: '24px auto', 
-            padding: '0 20px',
-            textAlign: 'center',
-            position: 'relative',
-            zIndex: 2
-          }}
-        >
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{ 
-              display: 'flex', 
-              width: '100%',
-              alignItems: 'center',
-              gap: '16px'
-            }}
-          >
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(15, 139, 126, 0.15))' }} />
-            
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '36px',
-                height: '36px',
-                background: '#F0FDF4',
-                borderRadius: '50%',
-                border: '1px solid #BBF7D0',
-                boxShadow: '0 2px 6px rgba(187, 247, 208, 0.15)',
-                flexShrink: 0
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  color: '#16A34A',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}
-              >
-                +
-              </span>
-            </div>
-            
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(270deg, transparent, rgba(15, 139, 126, 0.15))' }} />
-          </motion.div>
-        </div>
-      )}
-
-      {(activeTab === 'all' || activeTab === 'reports') && (
+      {activeTab === 'reports' && (
         <section id="clinical-report-analyzer" style={{ position: 'relative', zIndex: 1, scrollMarginTop: '24px' }}>
           <ClinicalReportAnalyzer />
         </section>

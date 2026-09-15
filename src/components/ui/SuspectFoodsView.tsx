@@ -225,7 +225,7 @@ export const SuspectFoodsView: React.FC<SuspectFoodsViewProps> = ({ onStartTrial
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <ShieldCheck size={16} color="#16A34A" />
                       <span style={{ fontSize: '12.5px', color: '#166534', fontWeight: 700 }}>
-                        Smart Clinical Swap: {displaySwap}
+                        Suggested Swap: {displaySwap}
                       </span>
                     </div>
 

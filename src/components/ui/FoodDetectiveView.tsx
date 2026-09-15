@@ -142,10 +142,10 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
               </div>
               <div>
                 <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-                  CLINICAL BIOCHEMICAL SCANNER
+                  FOOD SENSITIVITY SEARCH
                 </div>
                 <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-                  Food Detective & 18 Sensitivity Lenses
+                  Food Sensitivity & Compound Analysis
                 </div>
                 <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '2px' }}>
                   Look up any food to uncover hidden biogenic amines and safe swaps.

@@ -58,7 +58,6 @@ import { LivingHeartIcon } from '../../components/ui/LivingHeartIcon';
 import { getItemSync, setItemSync } from '../../services/storage';
 
 import { getProfile } from '../../services/ProfileEngine';
-import { ClinicalFrictionModal } from '../../components/ui/ClinicalFrictionModal';
 
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
@@ -70,14 +69,14 @@ import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiv
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
-    summary: 'Activates intravascular blood volume expansion.',
-    detail: 'Rapid hydration upon waking offsets overnight hemoconcentration, lowering resting sympathetic tone and supporting renal clearance of inflammatory markers.',
-    biomarker: 'Osmolality / Cortisol'
+    summary: 'Supports daily hydration and energy.',
+    detail: 'Drinking water consistently throughout the day supports circulation, energy levels, and healthy digestion.',
+    biomarker: 'Hydration / Energy'
   },
   vitamins: {
-    summary: 'Saturates essential mitochondrial coenzymes.',
-    detail: 'Consistent daily administration maintains steady micronutrient serum concentration, optimizing cellular Krebs cycle bioenergetics and antioxidant enzyme activity.',
-    biomarker: 'Bioavailability'
+    summary: 'Maintains consistent nutrient levels.',
+    detail: 'Taking vitamins at regular times supports steady daily absorption and nutritional balance.',
+    biomarker: 'Nutrient Balance'
   }
 };
 
@@ -273,7 +272,7 @@ export default function CaseDashboard() {
                 
                 <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
                    <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#2D3748', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#6EE7B7', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>WAR ROOM WORKSPACE</p>
+                   <p style={{ fontSize: '11px', color: '#6EE7B7', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>CONNECTED TIMELINE</p>
                 </div>
               </div>
 
@@ -958,7 +957,7 @@ export default function CaseDashboard() {
           <div style={{ padding: isMobile ? '0 12px 14px' : '0 24px 18px' }}>
             <FeatureProfileDataBanner
               featureName="Daily Circadian Tracker"
-              contextMessage="Circadian medication slots, adherence tracking & drug-nutrient depletion alerts calibrated from your health profile."
+              contextMessage="Medication schedule, adherence tracking, and nutrient depletion alerts."
               accentColor="#0D9488"
             />
           </div>
@@ -992,8 +991,8 @@ export default function CaseDashboard() {
           {/* Our Own Meditation Hub (Hero) */}
           <section>
             <div style={{ padding: '0 16px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Your Calm Space</h2>
-              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Curated experiences to shift your state</p>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 2px', color: '#0F172A', letterSpacing: '-0.5px' }}>Calm Space</h2>
+              <p style={{ fontSize: '14px', color: '#64748B', margin: 0 }}>Guided breathwork, meditation, and audio</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', padding: '0 16px 16px' }}>
@@ -1001,7 +1000,7 @@ export default function CaseDashboard() {
                 { 
                   id: 'm1', 
                   title: 'Full Meditation', 
-                  subtitle: 'Immersive audio journey',
+                  subtitle: 'Guided audio',
                   duration: '30 MIN',
                   img: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80',
                   description: 'Our most complete meditation experience.'
@@ -1009,7 +1008,7 @@ export default function CaseDashboard() {
                 {
                   id: 'mood-0',
                   title: 'Deep Sleep',
-                  subtitle: 'Restorative slumber',
+                  subtitle: 'Sleep soundscape',
                   duration: '45 MIN',
                   img: '/images/thumb_night_clouds_1788262545783.jpg',
                   description: 'A guided progression into delta-wave sleep.'
@@ -1017,7 +1016,7 @@ export default function CaseDashboard() {
                 {
                   id: 'mood-1',
                   title: 'Deep Focus',
-                  subtitle: 'Intense concentration',
+                  subtitle: 'Focus soundscape',
                   duration: '60 MIN',
                   img: '/images/thumb_focus_sphere_1788262954419.jpg',
                   description: 'Designed for deep work.'
@@ -1025,7 +1024,7 @@ export default function CaseDashboard() {
                 {
                   id: 'mood-2',
                   title: 'Morning Energy',
-                  subtitle: 'Start with clarity',
+                  subtitle: 'Morning protocol',
                   duration: '30 MIN',
                   img: '/images/thumb_energy_sun_1788263731169.jpg',
                   description: 'An energizing morning protocol.'
@@ -1107,7 +1106,7 @@ export default function CaseDashboard() {
                 { 
                   name: 'Rain Sounds', 
                   desc: 'Deep Focus',
-                  format: 'Spatial 3D Audio',
+                  format: 'Ambient Audio',
                   icon: <Droplets size={20} color="#38BDF8" fill="#38BDF8" />, 
                   accentColor: '#38BDF8',
                   shadowColor: 'rgba(14, 165, 233, 0.35)',
@@ -1117,7 +1116,7 @@ export default function CaseDashboard() {
                 { 
                   name: 'Focus Freqs', 
                   desc: '432Hz Tone',
-                  format: 'Binaural Drift',
+                  format: 'Calm Tone',
                   icon: <Zap size={20} color="#E879F9" fill="#E879F9" />, 
                   accentColor: '#E879F9',
                   shadowColor: 'rgba(192, 132, 252, 0.35)',
@@ -1127,7 +1126,7 @@ export default function CaseDashboard() {
                 { 
                   name: 'Forest Aura', 
                   desc: 'Nature Calm',
-                  format: 'Bio-Acoustic Bed',
+                  format: 'Nature Sounds',
                   icon: <Leaf size={20} color="#4ADE80" fill="#4ADE80" />, 
                   accentColor: '#4ADE80',
                   shadowColor: 'rgba(34, 197, 94, 0.35)',
@@ -1249,24 +1248,12 @@ export default function CaseDashboard() {
                         {type.name.split(' ')[0]}<br/>{type.name.split(' ')[1]}
                       </span>
 
-                      {/* Micro Audio Equalizer & Format Row */}
+                      {/* Audio Format Row */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '11px' }}>
-                          <motion.span 
-                            animate={{ height: ['4px', '11px', '5px', '9px', '4px'] }} 
-                            transition={{ duration: 1.3, repeat: Infinity, ease: 'easeInOut' }} 
-                            style={{ width: '2.5px', background: type.accentColor, borderRadius: '2px', boxShadow: `0 0 6px ${type.accentColor}` }} 
-                          />
-                          <motion.span 
-                            animate={{ height: ['9px', '4px', '11px', '6px', '9px'] }} 
-                            transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut', delay: 0.15 }} 
-                            style={{ width: '2.5px', background: type.accentColor, borderRadius: '2px', boxShadow: `0 0 6px ${type.accentColor}` }} 
-                          />
-                          <motion.span 
-                            animate={{ height: ['5px', '10px', '4px', '11px', '5px'] }} 
-                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }} 
-                            style={{ width: '2.5px', background: type.accentColor, borderRadius: '2px', boxShadow: `0 0 6px ${type.accentColor}` }} 
-                          />
+                          <span style={{ width: '2.5px', height: '6px', background: type.accentColor, borderRadius: '2px' }} />
+                          <span style={{ width: '2.5px', height: '10px', background: type.accentColor, borderRadius: '2px' }} />
+                          <span style={{ width: '2.5px', height: '5px', background: type.accentColor, borderRadius: '2px' }} />
                         </div>
                         <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: 600, textShadow: '0 1px 4px rgba(0,0,0,0.85)' }}>
                           {type.format}
@@ -1283,8 +1270,6 @@ export default function CaseDashboard() {
 
       {/* 10 Clinical Evidence Dossiers & Immersive Reading Section */}
       <ClinicalArticleSection />
-
-      <ClinicalFrictionModal isOpen={showFrictionModal} onComplete={() => setShowFrictionModal(false)} />
 
       <CompleteProfileModal
         isOpen={showCompleteProfileModal}

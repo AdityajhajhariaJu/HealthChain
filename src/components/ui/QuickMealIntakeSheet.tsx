@@ -20,8 +20,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Morning',
     icon: '☀️',
     timeRange: '07:00 – 11:00',
-    organClock: 'Stomach Agni Peak (07:00–09:00)',
-    organTip: 'Maximum stomach acid (HCl) secretion; optimal for protein assimilation and dense complex carbohydrates.',
+    organClock: 'Morning Digestion (07:00–09:00)',
+    organTip: 'Optimal window for breakfast and morning hydration.',
     desc: 'Breakfast & Fasting Break',
   },
   {
@@ -29,8 +29,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Noon',
     icon: '🌤️',
     timeRange: '11:00 – 15:00',
-    organClock: 'Spleen & Small Intestine Peak (11:00–13:00)',
-    organTip: 'Solar metabolic fire at absolute peak; highest digestive enzyme concentration of the day.',
+    organClock: 'Peak Digestion (11:00–13:00)',
+    organTip: 'Highest digestive enzyme activity of the day; optimal for primary meal.',
     desc: 'Core Lunch & Digest',
   },
   {
@@ -38,8 +38,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Evening',
     icon: '🌆',
     timeRange: '15:00 – 19:00',
-    organClock: 'Kidney & Autonomic Balance (17:00–19:00)',
-    organTip: 'Optimal window for hydration & electrolyte balance; parasympathetic nervous system wind-down.',
+    organClock: 'Evening Transition (17:00–19:00)',
+    organTip: 'Good window for light nourishment and hydration.',
     desc: 'Afternoon Tea & Transition',
   },
   {
@@ -47,8 +47,8 @@ const CIRCADIAN_SLOTS: { id: CircadianSlot; label: string; icon: string; timeRan
     label: 'Night',
     icon: '🌙',
     timeRange: '19:00 – 23:00',
-    organClock: 'Triple Burner & Autophagy Onset (21:00–23:00)',
-    organTip: 'Digestive enzyme secretion drops 70%; avoid high-histamine fermentations to prevent nocturnal vagal tachycardia.',
+    organClock: 'Night Rest (21:00–23:00)',
+    organTip: 'Digestive activity slows; favor lighter foods before sleep.',
     desc: 'Dinner & Fasting Onset',
   },
 ];

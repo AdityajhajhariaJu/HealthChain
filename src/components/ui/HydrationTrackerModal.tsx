@@ -197,7 +197,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   Hydration Tracker
                 </h3>
                 <p style={{ margin: 0, fontSize: '12px', color: '#78716C', fontWeight: 500 }}>
-                  Optimal cellular blood volume & renal clearance
+                  Daily fluid intake & electrolyte balance
                 </p>
               </div>
             </div>

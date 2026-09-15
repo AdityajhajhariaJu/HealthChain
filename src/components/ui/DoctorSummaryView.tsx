@@ -13,7 +13,7 @@ export const DoctorSummaryView: React.FC = () => {
     const formattedText = `CLINICAL METABOLIC & FOOD SENSITIVITY REPORT
 Patient: ${report.patientName} (Age: ${report.age || 26})
 Generated: ${report.generatedAt}
-Platform: HealthChain 360 Precision Metabolic Intelligence
+Platform: HealthChain 360
 
 1. SBAR CLINICAL SUMMARY
 - Situation: ${report.sbarSummary.situation}

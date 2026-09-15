@@ -106,13 +106,13 @@ export const KineticBiomechanicsView: React.FC = () => {
         </div>
         <div>
           <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            MULTI-SYSTEM TENSEGRITY & FASCIAL VECTORS • 8 PATHWAYS
+            BIOMECHANICAL PATHWAYS • 8 CHAINS
           </div>
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E293B', lineHeight: 1.2 }}>
-            Kinetic Chain Referral & Viscerosomatic Loops
+            Posture Chains & Nerve Referral
           </div>
           <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-            Biomechanical entrapments and spinal dural tension mimicking autonomic and visceral pathology.
+            Structural tension patterns and nerve compression that influence systemic symptoms.
           </div>
         </div>
       </div>

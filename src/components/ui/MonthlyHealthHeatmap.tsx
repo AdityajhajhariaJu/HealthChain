@@ -132,7 +132,7 @@ export const MonthlyHealthHeatmap: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0D9488', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-              MONTHLY ORGAN STATUS MATRIX
+              MONTHLY SYMPTOM CALENDAR
             </span>
             <h3 style={{ margin: '2px 0 0 0', fontSize: '18px', fontWeight: 800, color: '#1E293B' }}>
               {monthNames[currentMonth]} {currentYear}

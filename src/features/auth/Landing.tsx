@@ -82,8 +82,8 @@ const BENTO_COL_LEFT = [
     img: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
     tag: '📖 Patient Guide',
     status: 'GUIDE',
-    title: 'What is HealthChain and How Can It Improve Your Doctor Visits?',
-    desc: 'Confused about managing your health records? HealthChain provides a clear, unified timeline so you never repeat your story.'
+    title: 'What is HealthChain and How Can It Improve Doctor Visits?',
+    desc: 'Managing health records made simple. HealthChain provides a clear, unified timeline so you never repeat the story.'
   },
   {
     id: 'bento_left_2',
@@ -112,16 +112,16 @@ const BENTO_COL_RIGHT = [
     img: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=800&q=80',
     tag: '📄 Trade Publication',
     status: 'WORKFLOW',
-    title: 'How HealthChain Helps Bridge Communication Gaps with Your...',
-    desc: 'Ever felt unheard at an appointment? HealthChain helps you bring an organized summary, evidence gaps, and discussion questions.'
+    title: 'How HealthChain Helps Bridge Communication Gaps with Clinicians',
+    desc: 'Prepare for appointments with an organized summary, evidence gaps, and key discussion questions.'
   },
   {
     id: 'bento_right_2',
     type: 'privacy',
     tag: '🛡️ Private Workspace',
     status: 'USER CONTROLLED',
-    title: 'You Choose What to Add and Share',
-    desc: 'Guest drafts remain on the device. Signed-in data is stored in your account workspace, and AI processing is disclosed before record review.'
+    title: 'Data Control & Privacy',
+    desc: 'Guest drafts remain on device. Signed-in data is stored in the account workspace, and AI processing is disclosed before record review.'
   },
   {
     id: 'bento_right_3',
@@ -130,12 +130,12 @@ const BENTO_COL_RIGHT = [
     tag: '🔬 Clinical Trials',
     status: 'SOURCE LINKS',
     title: 'Search Active Trials and Recent Literature',
-    desc: 'Uses your chosen case topics to retrieve current registry studies and recent papers, with source links and transparent relevance cues.'
+    desc: 'Uses chosen case topics to retrieve current registry studies and recent papers, with source links and transparent relevance cues.'
   }
 ];
 
 const LIVE_NETWORK_UPDATES = [
-  'Organize Your Complete Health Story',
+  'Organize Complete Health History',
   'Keep Questions, Records & Timelines Connected',
   'Prepare for More Productive Appointments',
   'Separate Documented Facts from Open Questions',
@@ -686,7 +686,7 @@ export default function Landing() {
                   className={styles.demoCtaMini}
                   onClick={() => handleStartInvestigation('landing_consensus_demo', 'Post-viral chronic fatigue with normal labs')}
                 >
-                  <span>Try with your symptoms →</span>
+                  <span>Explore Sample Scenario →</span>
                 </button>
               </div>
             </motion.div>
@@ -732,7 +732,7 @@ export default function Landing() {
                 className={styles.videoCta}
                 onClick={() => handleStartInvestigation('landing_video_1', 'AI Perspective Review')}
               >
-                <span>Try this with your symptoms</span>
+                <span>Try this scenario</span>
                 <ArrowRight size={14} />
               </button>
             </div>
@@ -761,7 +761,7 @@ export default function Landing() {
                 className={styles.videoCta}
                 onClick={() => handleStartInvestigation('landing_video_2', 'Full Lab & Symptom Dossier')}
               >
-                <span>Generate your clinical brief</span>
+                <span>Generate clinical brief</span>
                 <ArrowRight size={14} />
               </button>
             </div>
@@ -1039,7 +1039,7 @@ export default function Landing() {
               className={styles.bentoCtaButton}
               onClick={() => handleStartInvestigation('bento_bottom_cta')}
             >
-              <span>Start Your Free Case Dossier</span>
+              <span>Start Free Case Dossier</span>
               <ArrowRight size={18} />
             </button>
           </div>
@@ -1125,7 +1125,7 @@ export default function Landing() {
                   <div className={styles.caseSpecialistMeta}>
                     <span className={styles.caseSpecialistLabel}>🔬 {item.specialistTag}</span>
                     <span>•</span>
-                    <span>Workflow design · not conclusions about a patient</span>
+                    <span>Case Simulation</span>
                   </div>
                   <div className={styles.workflowCardButtons}>
                     <button

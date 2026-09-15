@@ -96,15 +96,12 @@ export const SemanticEvidenceGraphView: React.FC<SemanticEvidenceGraphViewProps>
             }}>
               Step 8 • Connection Detective
             </span>
-            <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700, background: '#ECFDF5', padding: '2px 8px', borderRadius: '999px', border: '1px solid #A7F3D0' }}>
-              Semantic Edge Grammar
-            </span>
           </div>
           <h3 style={{ margin: 0, fontSize: isMobile ? '16px' : '18px', fontWeight: 800, color: '#0F172A' }}>
-            Give Every Line a Meaning
+            Evidence Connection Graph
           </h3>
           <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748B' }}>
-            Every connection is grounded in a verified source, chronological sequence, or labeled hypothesis.
+            Connections grounded in verified clinical observations, timeline sequences, and hypotheses.
           </p>
         </div>
 

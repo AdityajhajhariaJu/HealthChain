@@ -210,7 +210,7 @@ export default function MedicalProfile() {
       setIsEditingDemo(false);
       setShowSaved(true);
       triggerHapticSuccess();
-      toast.success('Demographics Updated', 'Your medical dossier has been safely saved.');
+      toast.success('Profile Saved', 'Demographics safely updated.');
       setTimeout(() => setShowSaved(false), 2000);
     }, 500); // Simulate network latency for the saving indicator
   };
@@ -399,23 +399,6 @@ export default function MedicalProfile() {
 
   const completedActions = uniqueActionItems.filter((i) => i.status === 'completed').length;
   const totalActions = uniqueActionItems.length;
-  const recordFields = [
-    profile?.demographics?.name,
-    profile?.demographics?.age,
-    profile?.demographics?.gender,
-    profile?.demographics?.bloodGroup,
-    profile?.demographics?.height,
-    profile?.demographics?.weight,
-    profile?.demographics?.emergencyContact,
-  ];
-  const recordReady = Math.round(
-    ((recordFields.filter(Boolean).length +
-      (profile?.conditions?.length ? 1 : 0) +
-      (profile?.allergies?.length ? 1 : 0) +
-      (profile?.medications?.length ? 1 : 0)) /
-      10) *
-      100
-  );
 
   return (
     <motion.div 
@@ -466,7 +449,7 @@ export default function MedicalProfile() {
               Unified Medical Profile
             </h1>
             <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
-              Your entire health story on one screen — alive, updating, and ready to share.
+              Comprehensive health summary, active conditions, and clinical records.
             </p>
           </div>
 
@@ -499,7 +482,7 @@ export default function MedicalProfile() {
                 boxShadow: '0 4px 12px rgba(15, 118, 110, 0.2)'
               }}
             >
-              <MessageSquare size={16} /> Review Dossier with Ava
+              <MessageSquare size={16} /> Review with Ava
             </button>
             <button
               type="button"
@@ -524,74 +507,11 @@ export default function MedicalProfile() {
         </div>
       </motion.div>
 
-      <div
-        style={{
-          display: isMobile ? 'flex' : 'grid',
-          flexDirection: isMobile ? 'column' : 'unset',
-          gridTemplateColumns: isMobile ? 'unset' : '1.1fr .9fr',
-          gap: '16px',
-          marginBottom: '28px',
-        }}
-      >
+      {/* Active Case Summary Banner */}
+      <div style={{ marginBottom: '24px' }}>
         <section
           style={{
-            padding: '22px 24px',
-            borderRadius: '18px',
-            background: 'linear-gradient(135deg,#F0FDFA,#FFFFFF)',
-            border: '1px solid #CCFBF1',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '18px',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '15px',
-              background: '#10B981',
-              color: '#FFF',
-              display: 'grid',
-              placeItems: 'center',
-            }}
-          >
-            <ClipboardCheck size={23} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div
-              style={{ color: '#0F766E', fontSize: '11px', fontWeight: 800, letterSpacing: '.8px' }}
-            >
-              HEALTH RECORD READINESS
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', marginTop: '3px' }}>
-              <strong style={{ fontSize: isMobile ? '20px' : '24px' }}>{recordReady}%</strong>
-              <span style={{ color: '#64748B', fontSize: '13px' }}>
-                complete for more relevant case reviews
-              </span>
-            </div>
-            <div
-              style={{
-                height: '7px',
-                borderRadius: '9px',
-                background: '#CCFBF1',
-                marginTop: '10px',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${recordReady}%`,
-                  height: '100%',
-                  borderRadius: '9px',
-                  background: 'linear-gradient(90deg,#059669,#10B981)',
-                }}
-              />
-            </div>
-          </div>
-        </section>
-        <section
-          style={{
-            padding: '22px 24px',
+            padding: '18px 24px',
             borderRadius: '18px',
             background: '#FFFFFF',
             border: '1px solid #E2E8F0',
@@ -609,6 +529,7 @@ export default function MedicalProfile() {
               color: '#059669',
               display: 'grid',
               placeItems: 'center',
+              flexShrink: 0
             }}
           >
             <BriefcaseBusiness size={21} />
@@ -633,7 +554,7 @@ export default function MedicalProfile() {
             <span style={{ color: '#64748B', fontSize: '12px' }}>
               {activeCase
                 ? `${activeCase.medicalRecords?.length || 0} evidence items · ${activeCase.actions?.filter((a) => a.status !== 'completed').length || 0} actions open`
-                : 'Start Multiple-Specialists to create one.'}
+                : 'Start a specialist session to link evidence.'}
             </span>
           </div>
           <button
@@ -844,14 +765,14 @@ export default function MedicalProfile() {
                     boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)'
                   }}
                 >
-                  <MessageSquare size={15} /> Discuss Synthesis with Ava
+                  <MessageSquare size={15} /> Discuss with Ava
                 </button>
               </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
               <p style={{ fontSize: '15px', color: 'var(--text-muted)', margin: 0 }}>
-                {isGeneratingSynthesis ? 'Your AI Clinical Synthesis is being automatically generated based on your profile...' : 'Add medical conditions, medications, or allergies to unlock your automated AI Clinical Synthesis.'}
+                {isGeneratingSynthesis ? 'Clinical synthesis is generating based on profile records...' : 'Add medical conditions, medications, or allergies to generate a clinical synthesis.'}
               </p>
             </div>
           )}

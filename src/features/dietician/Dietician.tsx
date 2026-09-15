@@ -1243,7 +1243,7 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} /> Symptom Hunt
+              <Target size={15} color={activeTab === 'elimination' ? '#F43F5E' : '#64748B'} /> Elimination Protocol
             </button>
             <button
               onClick={() => {
@@ -1267,7 +1267,7 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <Sparkles size={15} color={activeTab === 'insights' ? '#C084FC' : '#64748B'} /> Smart Insights
+              <Sparkles size={15} color={activeTab === 'insights' ? '#C084FC' : '#64748B'} /> Insights
             </button>
             <button
               onClick={() => setActiveTab('mealplan')}
@@ -1309,7 +1309,7 @@ export default function Dietician() {
                 flexShrink: 0,
               }}
             >
-              <ShoppingCart size={15} /> Smart Grocery
+              <ShoppingCart size={15} /> Grocery List
             </button>
             
             <button
@@ -1481,7 +1481,7 @@ export default function Dietician() {
                   }}
                   title="Ambient Natural Language & Voice Food Tracking"
                 >
-                  <Sparkles size={16} color="#34D399" /> Ambient Log
+                  <Sparkles size={16} color="#34D399" /> Quick Log
                 </button>
               </div>
             </div>
@@ -2439,7 +2439,7 @@ export default function Dietician() {
             >
               <div>
                 <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  Smart Grocery Shopping List
+                  Grocery Shopping List
                 </h2>
                 <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
                   Categorized grocery checklist mapped to your 7-day meal plan. Check off items as you shop.

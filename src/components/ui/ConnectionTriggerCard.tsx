@@ -152,7 +152,7 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#CCFBF1' }}>
-                  USP Clinic Connection Detective
+                  Connection Detective
                 </span>
               </div>
               <h4 style={{ margin: 0, fontSize: '15.5px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.2px' }}>

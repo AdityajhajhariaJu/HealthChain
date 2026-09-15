@@ -38,7 +38,7 @@ export const PhysicianDossierModal: React.FC<PhysicianDossierModalProps> = ({ is
     const formattedText = `CLINICAL SBAR PHYSICIAN BRIEF
 Patient: ${report.patientName} | Age: ${report.age || profile?.demographics?.age || 'Adult'} | Blood Group: ${profile?.demographics?.bloodGroup || 'Recorded'}
 Date: ${report.generatedAt}
-Platform: HealthChain 360 Clinical Intelligence
+Platform: HealthChain 360
 
 1. SBAR CLINICAL SUMMARY
 - Situation: ${report.sbarSummary.situation}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowLeft, Sparkles, Network, GitMerge } from 'lucide-react';
@@ -18,20 +18,34 @@ interface ConnectionDetectiveModalProps {
 export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> = ({
   isOpen,
   onClose,
-  initialTab,
+  initialTab = 'map',
   onOpenFoodDetective,
   onOpenConsult,
   onOpenCasePrep,
 }) => {
+  const [openedPillarId, setOpenedPillarId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setOpenedPillarId(null);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (openedPillarId) {
+          setOpenedPillarId(null);
+        } else {
+          onClose();
+        }
+      }
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [isOpen, onClose]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, openedPillarId, onClose]);
 
   if (!isOpen) return null;
 
@@ -44,21 +58,20 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
           aria-label="Connection Detective Root Cause Intelligence"
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 999999,
+            inset: 0,
+            zIndex: 99999,
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'flex-end',
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            justifyContent: 'center',
+            background: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
           }}
           onClick={onClose}
         >
           <motion.div
+            id="connection-detective-modal-sheet"
+            tabIndex={-1}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -66,15 +79,16 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: '680px',
-              maxHeight: '96dvh',
-              background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 40%, #F0FDFA 100%)',
+              maxWidth: '960px',
+              height: '92vh',
+              maxHeight: '92vh',
+              background: '#FFFFFF',
               borderTopLeftRadius: '28px',
               borderTopRightRadius: '28px',
-              border: '1.5px solid #CCFBF1',
-              boxShadow: '0 -16px 48px rgba(0, 0, 0, 0.18)',
               display: 'flex',
               flexDirection: 'column',
+              boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.15)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
               overflow: 'hidden',
             }}
           >
@@ -95,32 +109,34 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHapticLight();
-                    onClose();
-                  }}
-                  aria-label="Back to dashboard"
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    minWidth: '38px',
-                    minHeight: '38px',
-                    borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    border: '1px solid #E2E8F0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#1E293B',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
-                  }}
-                >
-                  <ArrowLeft size={18} />
-                </button>
+                {openedPillarId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      setOpenedPillarId(null);
+                    }}
+                    aria-label="Back to all domains"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      minWidth: '36px',
+                      minHeight: '36px',
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #E2E8F0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#1E293B',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                    }}
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                )}
 
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#1C1917', letterSpacing: '-0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -137,10 +153,10 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
                 }}
                 aria-label="Close Connection Detective"
                 style={{
-                  width: '38px',
-                  height: '38px',
-                  minWidth: '38px',
-                  minHeight: '38px',
+                  width: '36px',
+                  height: '36px',
+                  minWidth: '36px',
+                  minHeight: '36px',
                   borderRadius: '50%',
                   background: 'rgba(255, 255, 255, 0.95)',
                   border: '1px solid #E2E8F0',
@@ -167,6 +183,8 @@ export const ConnectionDetectiveModal: React.FC<ConnectionDetectiveModalProps> =
             >
               <ConnectionDetectiveView
                 initialTab={initialTab as any}
+                openedPillarId={openedPillarId as any}
+                onOpenedPillarChange={(id) => setOpenedPillarId(id)}
                 onOpenFoodDetective={() => {
                   onClose();
                   if (onOpenFoodDetective) onOpenFoodDetective();

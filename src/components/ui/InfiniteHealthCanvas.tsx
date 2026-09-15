@@ -29,8 +29,8 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: '#64748B', background: '#F8FAFC', borderRadius: '24px', border: '1px dashed #CBD5E1' }}>
         <Activity size={32} color="#94A3B8" style={{ margin: '0 auto 10px' }} />
-        <p style={{ margin: 0, fontWeight: 600 }}>No cases to map on your journey yet.</p>
-        <span style={{ fontSize: '13px', color: '#94A3B8' }}>Start an investigation or import clinical records to view your health journey.</span>
+        <p style={{ margin: 0, fontWeight: 600 }}>No cases on the timeline yet.</p>
+        <span style={{ fontSize: '13px', color: '#94A3B8' }}>Start an investigation or import clinical records to map health events.</span>
       </div>
     );
   }
@@ -274,7 +274,7 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#0D9488', textTransform: 'uppercase', background: '#F0FDFA', padding: '2px 8px', borderRadius: '999px', border: '1px solid #CCFBF1' }}>
-                  Selected Journey Case
+                  Selected Case
                 </span>
                 <strong style={{ fontSize: '14.5px', color: '#0F172A' }}>{activeSelectedCase.title || 'Case'}</strong>
               </div>

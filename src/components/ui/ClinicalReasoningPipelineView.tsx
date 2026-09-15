@@ -95,7 +95,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               Clinical reasoning and follow-up
             </h3>
             <p style={{ margin: '6px 0 0 0', fontSize: '13.5px', color: '#94A3B8', lineHeight: 1.5, maxWidth: '780px' }}>
-              From source-verified facts to temporal alignment, record reconciliation, justified perspectives, tri-prong challenges, and continuous selective updates.
+              Track verified facts, aligned timelines, specialist perspectives, and reasoning updates.
             </p>
           </div>
 
@@ -113,7 +113,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               fontWeight: 600
             }}>
               <RotateCw size={14} className={isUpdating ? 'animate-spin' : ''} color="#38BDF8" />
-              <span>{isUpdating ? 'Executing Feedback Loop...' : 'Cyclic State Active'}</span>
+              <span>{isUpdating ? 'Updating reasoning...' : 'Pipeline Active'}</span>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
           overflowX: 'auto'
         }}>
           <div style={{ fontSize: '11px', fontWeight: 800, color: '#38BDF8', textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>Clinical Pipeline Topology (Click any node to inspect reasoning)</span>
+            <span>Reasoning Pipeline (tap any node to inspect)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', minWidth: '850px', gap: '8px' }}>
