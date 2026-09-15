@@ -37,6 +37,7 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await page.goto('/app/today', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.getByText(/days streak/i)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Open Zen Garden' })).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-today-mobile.png', fullPage: true });
   await page.getByRole('link', { name: 'Ava', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })).toBeVisible();

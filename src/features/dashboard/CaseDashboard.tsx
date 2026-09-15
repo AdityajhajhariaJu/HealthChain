@@ -13,7 +13,6 @@ import {
   Wind, 
   Share2, 
   Bookmark, 
-  Pin, 
   Scan, 
   Check, 
   Droplets, 
@@ -175,6 +174,7 @@ export default function CaseDashboard() {
 
   const [activeMeditation, setActiveMeditation] = useState<FitnessContent | null>(null);
   const lastMeditationRef = useRef<FitnessContent | null>(null);
+  const zenGardenRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (activeMeditation) {
@@ -226,34 +226,46 @@ export default function CaseDashboard() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             
-            {/* The Glassmorphic Arch Canvas Tile - View Only */}
-              <div 
-                aria-label="Health Canvas"
+            {/* Zen Garden arch tile */}
+              <motion.div
+                role="button"
+                tabIndex={0}
+                aria-label="Open Zen Garden"
+                whileHover={{ y: -3, scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+                onClick={() => {
+                  triggerHapticSelection();
+                  zenGardenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerHapticSelection();
+                    zenGardenRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.25) 100%)', 
+                  backgroundImage: 'linear-gradient(180deg, rgba(255, 250, 246, 0.06) 0%, rgba(255, 250, 246, 0.18) 46%, rgba(255, 250, 246, 0.94) 100%), url(/images/zen-garden-dashboard.webp)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
                   border: '1px solid rgba(255, 255, 255, 0.9)', 
-                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.04), inset 0 2px 0 rgba(255,255,255,0.7), inset 0 0 30px rgba(255,255,255,0.6)', 
+                  boxShadow: '0 24px 48px rgba(139, 86, 59, 0.14), inset 0 2px 0 rgba(255,255,255,0.7)',
                   gridRow: 'span 2',
                   borderRadius: isMobile ? '80px 80px 32px 32px' : '160px 160px 48px 48px', 
                   position: 'relative',
                   overflow: 'hidden',
-                  cursor: 'default',
+                  cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: 'flex-end',
                   padding: isMobile ? '18px 12px' : '24px',
                   minHeight: isMobile ? '220px' : '260px'
                 }}
               >
-                
-                  {/* Pushpin */}
-                  <div style={{ position: 'absolute', top: '24px', right: '28px', transform: 'rotate(15deg)', zIndex: 10 }}>
-                    <Pin size={22} color="#F472B6" strokeWidth={2.5} />
-                  </div>
-                  
                   {/* Brass Pendant Light */}
                 <div style={{ position: 'absolute', top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={{ width: 2, height: 80, background: 'linear-gradient(to bottom, rgba(170,140,44,0.3) 0%, rgba(170,140,44,0.9) 100%)' }} />
@@ -262,11 +274,11 @@ export default function CaseDashboard() {
                   </div>
                 </div>
                 
-                <div style={{ position: 'relative', zIndex: 1, marginTop: '80px', textAlign: 'center' }}>
-                   <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#2D3748', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Health<br/>Canvas</h3>
-                   <p style={{ fontSize: '11px', color: '#6EE7B7', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>CONNECTED TIMELINE</p>
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', textShadow: '0 1px 12px rgba(255,255,255,0.9)' }}>
+                   <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#243746', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Zen<br/>Garden</h3>
+                   <p style={{ fontSize: '11px', color: '#0F766E', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>PAUSE · BREATHE · RESET</p>
                 </div>
-              </div>
+              </motion.div>
 
               
               {/* AR Lens Bento Tile */}
@@ -953,7 +965,7 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        <div style={{ position: 'relative', margin: '0 0 16px 0' }}>
+        <div ref={zenGardenRef} id="zen-garden" style={{ position: 'relative', margin: '0 0 16px 0', scrollMarginTop: '24px' }}>
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
