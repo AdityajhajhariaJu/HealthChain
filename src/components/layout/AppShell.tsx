@@ -394,24 +394,17 @@ const enforceSafeArea = () => {
 
           <nav className="sidebar__nav" aria-label="Main navigation">
             {links.map((l) => {
-              const isLocked = l.locked;
+
               return (
               <NavLink
                 key={l.to}
-                to={isLocked ? '#' : l.to}
+                to={l.to}
                 end={l.to === '/app'}
-                onClick={(e) => {
-                  if (isLocked) {
-                    e.preventDefault();
-                    toast.info('Coming Soon', `${l.label} is currently in development.`);
-                  }
-                }}
-                className={({ isActive }) => `sidebar__link ${isActive && !isLocked ? 'active' : ''}`}
-                style={{ opacity: isLocked ? 0.6 : 1, position: 'relative' }}
+                className={({ isActive }) => `sidebar__link ${isActive ? 'active' : ''}`}
               >
                 <l.icon size={18} aria-hidden="true" />
                 {l.label}
-                {isLocked && <Lock size={14} style={{ position: 'absolute', right: '20px' }} />}
+
               </NavLink>
             )})}
             <NavLink
@@ -813,26 +806,21 @@ const enforceSafeArea = () => {
                 </div>
                 <div className="mobile-more-menu__grid">
                   {links.filter(l => !mobileTabs.find(mt => mt.to === l.to) && l.to !== '/app/progress' && l.to !== '/app/trophies' && l.to !== '/app/my-cases').map((l) => {
-                    const isLocked = l.locked;
+      
                     return (
                     <button
                       key={l.to}
                       onClick={() => {
-                        if (isLocked) {
-                          toast.info('Coming Soon', `${l.label} is currently in development.`);
-                          return;
-                        }
                         navigate(l.to);
                         setShowMoreMenu(false);
                       }}
                       className="more-menu-item"
-                      style={{ position: 'relative', opacity: isLocked ? 0.6 : 1 }}
                     >
                       <div className="more-menu-icon">
                         <l.icon size={22} />
                       </div>
                       <span>{l.label}</span>
-                      {isLocked && <Lock size={16} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
+
                     </button>
                   )})}
                   <button 

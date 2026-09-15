@@ -119,8 +119,6 @@ export default function ClinicalReportAnalyzer() {
     
     if (fileReportCache[fileHash]) {
       // CACHE HIT: Save API tokens!
-      setLoading(true);
-      await new Promise(r => setTimeout(r, 1000)); // Brief animation for UX
       setResult(fileReportCache[fileHash]);
       setLoading(false);
       return;

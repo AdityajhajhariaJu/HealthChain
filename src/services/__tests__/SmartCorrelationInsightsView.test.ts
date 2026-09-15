@@ -82,10 +82,10 @@ describe('SmartCorrelationInsightsView & PersonalizedJourneyGoalSelector', () =>
       expect(goalIds).toEqual(['bloating_hunt', 'heartburn_hunt', 'transit_hunt', 'vagal_hunt']);
 
       const goalNames = JOURNEY_GOALS.map((g) => g.name);
-      expect(goalNames).toContain('Bloating Hunt');
-      expect(goalNames).toContain('Heartburn Hunt');
-      expect(goalNames).toContain('Diarrhea / Constipation Hunt');
-      expect(goalNames).toContain('Stress + IBS Hunt');
+      expect(goalNames).toContain('Bloating Tracker');
+      expect(goalNames).toContain('Heartburn Tracker');
+      expect(goalNames).toContain('Bowel Movement Tracker');
+      expect(goalNames).toContain('Stress & IBS Tracker');
     });
 
     it('should have 4 weeks duration for all goals as per reference design', () => {

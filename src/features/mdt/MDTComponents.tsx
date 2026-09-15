@@ -5,30 +5,8 @@ import { CaseConnectionMap } from '../../components/ui/CaseConnectionMap';
 import { RichReportTemplate } from '../../components/ui/RichReportTemplate';
 
 export function StreamingMarkdown({ text, isNew, inline = false }: { text: string, isNew: boolean, inline?: boolean }) {
-  const [displayed, setDisplayed] = useState(isNew ? '' : text);
-  
-  useEffect(() => {
-    if (!isNew) {
-      setDisplayed(text);
-      return;
-    }
-    
-    let isMounted = true;
-    const stream = async () => {
-      let current = '';
-      for (let i = 0; i < text.length; i++) {
-        if (!isMounted) break;
-        current += text[i];
-        const delay = Math.floor(Math.random() * 15) + 5;
-        await new Promise((r) => setTimeout(r, delay));
-        if (isMounted) setDisplayed(current);
-      }
-    };
-    stream();
-    return () => { isMounted = false; };
-  }, [text, isNew]);
-
-  return <span style={{ display: inline ? 'inline' : 'block', whiteSpace: 'pre-wrap' }}>{displayed}</span>;
+  // UX Fatigue Fix: Removed artificial typing delays. Text renders instantly.
+  return <span style={{ display: inline ? 'inline' : 'block', whiteSpace: 'pre-wrap' }}>{text}</span>;
 }
 
 import { generateCaseConnectionMap } from '../../services/geminiService';

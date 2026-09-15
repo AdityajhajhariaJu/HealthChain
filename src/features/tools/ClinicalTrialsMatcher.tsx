@@ -14,12 +14,7 @@ import { useToast } from '../../components/ui/ToastProvider';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { getItemSync, setItemSync } from '../../services/storage';
 
-const loadingSteps = [
-  "Retrieving registry studies...",
-  "Retrieving recent literature...",
-  "Comparing titles and topics...",
-  "Preparing source links..."
-];
+
 
 export interface TrialCriteriaBreakdown {
   matchStatus: 'differential_match' | 'probable_match' | 'topic_overlap' | 'broad_relevance';
@@ -520,7 +515,7 @@ export default function ClinicalTrialsMatcher() {
     }
   }, [researchItems, searchParams]);
 
-  const [loadingStep, setLoadingStep] = useState(0);
+
   const [customQuery, setCustomQuery] = useState('');
   const [customSearchTerms, setCustomSearchTerms] = useState<string[] | null>(null);
   const [savedItems, setSavedItems] = useState<Record<string, boolean>>(() => {
@@ -553,17 +548,7 @@ export default function ClinicalTrialsMatcher() {
     toast.success('Saved to Dossier (+10 pts)', 'Study added to your medical case evidence memory.');
   };
 
-  useEffect(() => {
-    if (loading) {
-      const interval = setInterval(() => {
-        setLoadingStep(s => {
-          if (s >= loadingSteps.length - 1) return s;
-          return s + 1;
-        });
-      }, 700);
-      return () => clearInterval(interval);
-    }
-  }, [loading]);
+
 
   const caseDifferentials: string[] = [
     ...(activeCase?.differentials?.map(d => typeof d === 'string' ? d : d.condition) || []),
@@ -939,15 +924,9 @@ export default function ClinicalTrialsMatcher() {
                 <FlaskConical size={20} color="#4F46E5" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
               </div>
               <div>
-                <motion.div
-                  key={loadingStep}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{ color: '#0F172A', fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}
-                >
-                  {loadingSteps[loadingStep]}
-                </motion.div>
-                <div style={{ color: '#64748B', fontSize: '13px' }}>Scanning global clinical registries...</div>
+                <div style={{ color: '#0F172A', fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>
+                  Scanning global clinical registries...
+                </div>
               </div>
             </div>
           ) : (

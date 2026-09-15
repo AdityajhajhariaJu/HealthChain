@@ -18,31 +18,8 @@ function compactMessages(messages: any[]) {
 }
 
 export function StreamingMarkdown({ text, isNew, inline = false }: { text: string, isNew: boolean, inline?: boolean }) {
-  const [displayed, setDisplayed] = useState(isNew ? '' : text);
-  
-  useEffect(() => {
-    if (!isNew) {
-      setDisplayed(text);
-      return;
-    }
-    
-    let isMounted = true;
-    const stream = async () => {
-      let current = '';
-      for (let i = 0; i < text.length; i++) {
-        if (!isMounted) break;
-        current += text[i];
-        const delay = Math.floor(Math.random() * 20) + 10;
-        await new Promise((r) => setTimeout(r, delay));
-        if (isMounted) setDisplayed(current);
-      }
-    };
-    stream();
-    
-    return () => { isMounted = false; };
-  }, [text, isNew]);
-
-  return <ReactMarkdown components={inline ? { p: ({node, ...props}) => <span {...props} /> } : {}}>{displayed}</ReactMarkdown>;
+  // UX Fatigue Fix: Removed artificial typing delays. Text renders instantly.
+  return <ReactMarkdown components={inline ? { p: ({node, ...props}) => <span {...props} /> } : {}}>{text}</ReactMarkdown>;
 }
 
 export function useSpecialistStream(specialist: any, isRunning: boolean, isPaused: boolean, startDelay: number, onComplete: (id: string, messages: any[]) => void, allSpecialists: any[] = [], intakeData: any, activeDifferentials: any[], cachedSpecialistStreams: any, workflow = 'mdt', caseId = 'draft', runId = 'session') {
