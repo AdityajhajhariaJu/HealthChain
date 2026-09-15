@@ -497,10 +497,10 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
 
                   <div style={{ padding: '12px', borderRadius: '14px', background: '#F0FDFA', border: '1px solid #CCFBF1' }}>
                     <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F766E', marginBottom: '4px' }}>
-                      Step 3: Diaphragmatic Vagal Grounding (60s)
+                      Step 3: Breathing Exercise (60s)
                     </div>
                     <div style={{ fontSize: '12px', color: '#334155' }}>
-                      4 seconds inhale through the nose, 7 seconds hold, 8 seconds slow mouth exhale to reset sympathetic tone.
+                      4 seconds inhale through the nose, 7 seconds hold, 8 seconds slow mouth exhale to relax.
                     </div>
                   </div>
                 </div>

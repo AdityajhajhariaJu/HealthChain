@@ -95,7 +95,7 @@ export default function MedicineLabPage() {
               color: activeTab === 'pharmacy' ? '#FFFFFF' : '#64748B',
             }}
           >
-            <Pill size={15} /> Pharmacy Hub
+            <Pill size={15} /> Pharmacy
           </button>
           <button
             type="button"

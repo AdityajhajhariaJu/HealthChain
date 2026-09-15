@@ -19,7 +19,7 @@ export interface JourneyGoalItem {
 export const JOURNEY_GOALS: JourneyGoalItem[] = [
   {
     id: 'bloating_hunt',
-    name: 'Bloating Hunt',
+    name: 'Bloating Tracker',
     emoji: '🎈',
     durationLabel: '4 weeks',
     description: 'Systematic Low-FODMAP washout of fermentable gas & SIBO triggers',
@@ -28,7 +28,7 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
   },
   {
     id: 'heartburn_hunt',
-    name: 'Heartburn Hunt',
+    name: 'Heartburn Tracker',
     emoji: '🔥',
     durationLabel: '4 weeks',
     description: 'Kaufman Acid Watcher protocol neutralizing nocturnal reflux & LES laxity',
@@ -37,7 +37,7 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
   },
   {
     id: 'transit_hunt',
-    name: 'Diarrhea / Constipation Hunt',
+    name: 'Bowel Movement Tracker',
     emoji: '💩',
     durationLabel: '4 weeks',
     description: 'Soluble fiber & motility pacing normalizing stool transit to Bristol Type 4',
@@ -46,7 +46,7 @@ export const JOURNEY_GOALS: JourneyGoalItem[] = [
   },
   {
     id: 'vagal_hunt',
-    name: 'Stress + IBS Hunt',
+    name: 'Stress & IBS Tracker',
     emoji: '😰',
     durationLabel: '4 weeks',
     description: 'Gut-brain axis restoration calming postprandial visceral hypersensitivity',

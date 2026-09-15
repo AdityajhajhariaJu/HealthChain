@@ -816,7 +816,7 @@ export default function ClinicalTrialsMatcher() {
           <FlaskConical size={36} color="#A5B4FC" />
         </div>
         <div>
-          <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research Hub</h1>
+          <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Clinical Research</h1>
           <p style={{ margin: 0, color: '#C7D2FE', fontSize: '15px' }}>
             Search live registry studies and recent literature using a topic from your selected case or your own search. Results are ranked by text overlap, not medical eligibility.
           </p>

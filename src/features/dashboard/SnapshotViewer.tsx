@@ -84,7 +84,7 @@ export default function SnapshotViewer({ item }: { item: CaseItem }) {
       assessment: primary,
       recommendation: (rep.questionsForClinician || []).join('\n') || 'Review these concerns with the treating clinician.'
     };
-    const text = `CLINICAL DATA ENGINE • DOCTOR SBAR BRIEF
+    const text = `CLINICAL REVIEW • DOCTOR SBAR BRIEF
 AI consideration for clinician review: ${primary}
 Generated: ${new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
 

@@ -127,7 +127,7 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
 
   heartburn_hunt: {
     id: 'heartburn_hunt',
-    name: 'Acid Watcher 21-Day GERD & LPR Hunt',
+    name: 'Acid Watcher 21-Day GERD & LPR Plan',
     tagline: 'Mucosal healing protocol eliminating pepsin activators & night reflux triggers',
     badge: 'GERD ELIMINATION PROTOCOL',
     targetDurationDays: 21,
@@ -172,9 +172,9 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
 
   transit_hunt: {
     id: 'transit_hunt',
-    name: 'Bristol Motility & Colonic Transit Hunt',
+    name: 'Bristol Motility & Colonic Transit Plan',
     tagline: 'Soluble prebiotic gel modulation to normalize Bristol Stool to Type 3–4',
-    badge: 'COLONIC MOTILITY & MICROBIOME SUITE',
+    badge: 'COLONIC MOTILITY & MICROBIOME',
     targetDurationDays: 21,
     clinicalAuthority: 'World Gastroenterology Organisation (WGO Motility Guidelines)',
     icon: '🪵',

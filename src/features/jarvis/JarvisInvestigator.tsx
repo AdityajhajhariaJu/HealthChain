@@ -298,7 +298,7 @@ export default function JarvisInvestigator() {
       recommendation: (report.questionsForClinician || []).join('\n') || 'Review the concerns and records with the treating clinician.'
     };
 
-    const text = `CLINICAL DATA ENGINE • DOCTOR SBAR BRIEF
+    const text = `CLINICAL REVIEW • DOCTOR SBAR BRIEF
 AI consideration for clinician review: ${primary}
 Generated: ${new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date())}
 
@@ -702,7 +702,7 @@ AI-generated preparation material. Verify against original records; this is not 
                     textTransform: 'uppercase'
                   }}
                 >
-                  CLINICAL DATA ENGINE DOSSIER
+                  CLINICAL DOSSIER
                 </span>
                 {createdCaseId && (
                   <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
