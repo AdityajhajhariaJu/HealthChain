@@ -75,12 +75,12 @@ export type TabId =
   | 'misses'
   | 'dossier';
 
-export type PillarId = 'all' | 'gut' | 'body' | 'cause' | 'dossier';
+export type PillarId = 'all' | 'gut' | 'body' | 'cause';
 
 export interface StationConfig {
   id: TabId;
   stationNumber: string;
-  pillarId: 'gut' | 'body' | 'cause' | 'dossier';
+  pillarId: 'gut' | 'body' | 'cause';
   pillarLabel: string;
   pillarColor: string;
   pillarBg: string;
@@ -331,24 +331,9 @@ export const ALL_12_STATIONS: StationConfig[] = [
     statusBadge: 'Correlations Found',
   },
 
-  // Pillar 4: Doctor Dossier (12)
-  {
-    id: 'dossier',
-    stationNumber: '12',
-    pillarId: 'dossier',
-    pillarLabel: 'Doctor Dossier',
-    pillarColor: '#059669',
-    pillarBg: '#ECFDF5',
-    pillarBorder: '#A7F3D0',
-    title: 'Doctor Dossier (SBAR Brief)',
-    shortTitle: 'SBAR Dossier',
-    icon: '📋',
-    subtitle: 'Physician SBAR handoff, lab orders & codes',
-    statusBadge: 'Physician Ready',
-  },
 ];
 
-export const TAB_TO_PILLAR: Record<TabId, 'gut' | 'body' | 'cause' | 'dossier'> = {
+export const TAB_TO_PILLAR: Partial<Record<TabId, 'gut' | 'body' | 'cause'>> = {
   map: 'gut',
   postmeal: 'gut',
   calendar: 'gut',
@@ -360,7 +345,6 @@ export const TAB_TO_PILLAR: Record<TabId, 'gut' | 'body' | 'cause' | 'dossier'> 
   matcher: 'cause',
   consensus: 'cause',
   misses: 'cause',
-  dossier: 'dossier',
 };
 
 export interface ParentPillarCardData {
@@ -437,24 +421,6 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     badgeColor: '#4338CA',
     stationIds: ['cascade', 'matcher', 'consensus', 'misses']
   },
-  {
-    id: 'dossier',
-    title: 'Doctor Dossier',
-    badge: 'Pillar 04',
-    desc: 'Physician SBAR brief, diagnostic codes & clinical orders',
-    icon: '📋',
-    stationCount: 1,
-    stationRange: 'Station 12',
-    telemetry: 'Physician SBAR',
-    accentColor: '#E11D48',
-    lightBg: 'linear-gradient(145deg, #FFFFFF 0%, #FFF1F2 60%, #FFE4E6 100%)',
-    borderColor: 'rgba(225, 29, 72, 0.35)',
-    shadowColor: 'rgba(225, 29, 72, 0.25)',
-    gradient: 'linear-gradient(135deg, #FB7185 0%, #E11D48 100%)',
-    badgeBg: '#FFE4E6',
-    badgeColor: '#BE123C',
-    stationIds: ['dossier']
-  }
 ];
 
 export interface PillarFilterOption {
@@ -466,11 +432,10 @@ export interface PillarFilterOption {
 }
 
 export const PILLAR_FILTERS: PillarFilterOption[] = [
-  { id: 'all', label: 'All Domains', shortLabel: 'All', icon: '✨', count: 12 },
+  { id: 'all', label: 'All Domains', shortLabel: 'All', icon: '✨', count: 11 },
   { id: 'gut', label: 'Gut & Food', shortLabel: '🥗 Gut', icon: '🥗', count: 5 },
   { id: 'body', label: 'Labs & Body', shortLabel: '🧪 Labs', icon: '🧪', count: 2 },
   { id: 'cause', label: 'Root Cause', shortLabel: '⚡ Cause', icon: '⚡', count: 4 },
-  { id: 'dossier', label: 'Doctor Dossier', shortLabel: '📋 Dossier', icon: '📋', count: 1 },
 ];
 
 interface ConnectionDetectiveViewProps {
@@ -517,11 +482,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     if (onOpenedPillarChange) onOpenedPillarChange(id);
     setInternalOpenedPillarId(id);
   };
-  const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body' | 'cause' | 'dossier', TabId>>(() => ({
+  const [cardActiveStations, setCardActiveStations] = useState<Record<'gut' | 'body' | 'cause', TabId>>(() => ({
     gut: initialTab && TAB_TO_PILLAR[initialTab] === 'gut' ? initialTab : 'map',
     body: initialTab && TAB_TO_PILLAR[initialTab] === 'body' ? initialTab : 'biomarkers',
     cause: initialTab && TAB_TO_PILLAR[initialTab] === 'cause' ? initialTab : 'cascade',
-    dossier: 'dossier',
   }));
   const [focusedStationId, setFocusedStationId] = useState<TabId | null>(null);
   const [highlightedStationId, setHighlightedStationId] = useState<TabId | null>(null);
@@ -535,7 +499,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   // States for interactive subcomponents inside stations
   const [activeCascadeStage, setActiveCascadeStage] = useState<number>(1);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-  const [isCopied, setIsCopied] = useState(false);
+
   const [sourcePassageModalData, setSourcePassageModalData] = useState<SourcePassageModalProps | null>(null);
 
   const openSourcePassage = (source: string, citation?: string, snippet?: string, claim?: string) => {
@@ -690,23 +654,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       ? `${consensusCount} ${consensusCount === 1 ? 'Panel' : 'Panels'} Aligned`
       : 'Awaiting Clinical Review';
 
-    // 4. Doctor Dossier
-    const hasSbar = Boolean(
-      report?.doctorDossier?.sbar?.situation?.trim() ||
-      report?.doctorDossier?.sbar?.assessment?.trim() ||
-      activeReview?.report?.executiveSummary?.trim()
-    );
-    const orderCount = report?.doctorDossier?.testsToOrder?.length || 0;
-    const icdCount = report?.doctorDossier?.icdCodes?.length || 0;
-    const dossierTelemetry = hasSbar
-      ? (orderCount + icdCount > 0 ? `${orderCount + icdCount} Orders & Codes` : 'SBAR Brief Ready')
-      : 'Intake Incomplete';
-
     return {
       gut: { telemetry: gutTelemetry, triggersCount: gutTriggersCount },
       body: { telemetry: bodyTelemetry, flaggedCount: flaggedMarkers, totalCount: totalMarkersCount },
       cause: { telemetry: causeTelemetry, connectionsCount, conditionsCount, consensusCount },
-      dossier: { telemetry: dossierTelemetry, orderCount, icdCount, hasSbar },
     };
   }, [activeCase, report, semanticGraph, resolvedCulpritFoods, activeReview]);
 
@@ -734,12 +685,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
         return (report?.clinicalMisses?.length || 0) > 0
           ? `${report.clinicalMisses.length} Blind Spots Mapped`
           : 'Clinical Audit';
-      case 'dossier':
-        return dynamicPillarData.dossier.hasSbar
-          ? (dynamicPillarData.dossier.orderCount > 0
-              ? `${dynamicPillarData.dossier.orderCount} Orders Ready`
-              : 'Physician Ready')
-          : 'Draft Intake';
+
       default:
         return station.statusBadge;
     }
@@ -756,45 +702,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
     );
   };
 
-  const handleCopySbar = () => {
-    triggerHapticLight();
-    trackButtonClick('sbar_dossier_copied', report.patientName);
-    const text = `HEALTHCHAIN 360 • CONNECTION DETECTIVE REPORT
-Patient: ${report.patientName}
-Generated: ${report.generatedAt}
-Primary Root-Cause Hypothesis: ${report.primaryHypothesis} (Board Alignment: not scored)
 
-[S] SITUATION:
-${report.doctorDossier.sbar.situation}
-
-[B] BACKGROUND:
-${report.doctorDossier.sbar.background}
-
-[A] ASSESSMENT:
-${report.doctorDossier.sbar.assessment}
-
-[R] RECOMMENDATION:
-${report.doctorDossier.sbar.recommendation}
-
-PRIORITIZED TESTS TO ORDER:
-${report.doctorDossier.testsToOrder.map((t) => `• [${t.priority}] ${t.test} — ${t.rationale}`).join('\n')}
-
-ICD-10 CODES:
-${report.doctorDossier.icdCodes.map((c) => `• ${c.code}: ${c.label}`).join('\n')}
-
-CLINICAL CITATIONS:
-${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
-`;
-    navigator.clipboard.writeText(text);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
-
-  const handlePrint = () => {
-    triggerHapticLight();
-    trackButtonClick('sbar_dossier_printed', report.patientName);
-    window.print();
-  };
 
   const renderStation = (station: StationConfig) => {
     const isHighlighted = highlightedStationId === station.id;
@@ -1727,194 +1635,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                     </div>
                   )}
 
-                  {/* STATION 12: DOCTOR DOSSIER SBAR BRIEF (POLISHED CASE SUMMARY COVER) */}
-                  {station.id === 'dossier' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {/* 4. POLISHED COVER FOR A CASE SUMMARY */}
-                      <div
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.8) 50%, #FFFFFF 100%)',
-                          borderRadius: '18px',
-                          padding: '16px 18px',
-                          border: '1.5px solid rgba(186, 230, 253, 0.85)',
-                          boxShadow: '0 8px 24px rgba(14, 165, 233, 0.08), inset 0 1px 2px #FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '12px',
-                        }}
-                      >
-                        {/* Cover Top Meta Strip */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid rgba(186, 230, 253, 0.6)', paddingBottom: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
 
-
-                            <SourceEvidenceBadge
-                              source="AMA / SBAR Standard"
-                              citation="Physician Ready"
-                              onClick={() => openSourcePassage(
-                                "AMA / SBAR Clinical Standard",
-                                "Physician Ready Protocol",
-                                `Situation: ${report.doctorDossier.sbar.situation}\n\nAssessment: ${report.doctorDossier.sbar.assessment}\n\nRecommendation: ${report.doctorDossier.sbar.recommendation}`,
-                                "Doctor SBAR Dossier Hand-off"
-                              )}
-                            />
-                          </div>
-
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                              type="button"
-                              onClick={handleCopySbar}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                background: isCopied ? '#ECFDF5' : '#FFFFFF',
-                                color: isCopied ? '#059669' : '#1E293B',
-                                border: isCopied ? '1.5px solid #10B981' : '1px solid #CBD5E1',
-                                fontSize: '11.5px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                              }}
-                            >
-                              {isCopied ? <Check size={12} color="#10B981" /> : <Copy size={12} />}
-                              <span>{isCopied ? 'Copied' : 'Copy SBAR'}</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={handlePrint}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                background: '#0284C7',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                fontSize: '11.5px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
-                              }}
-                            >
-                              <Printer size={12} />
-                              <span>Print / PDF</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Patient & Hypothesis Headline */}
-                        <div>
-                          <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '2px' }}>
-                            Patient: <strong style={{ color: '#0F172A' }}>{report.patientName}</strong> • Generated: {report.generatedAt}
-                          </div>
-                          <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 900, color: '#0C4A6E' }}>
-                            {report.primaryHypothesis}
-                          </h4>
-                        </div>
-
-                        {/* SBAR 4-Box Grid with Soft Refractive Depth */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <div style={{ background: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(186, 230, 253, 0.8)', boxShadow: '0 1px 4px rgba(0,0,0,0.02)' }}>
-                            <strong style={{ fontSize: '10.5px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                              [S] Situation
-                            </strong>
-                            <span style={{ fontSize: '12px', color: '#334155', lineHeight: 1.45 }}>{report.doctorDossier.sbar.situation}</span>
-                          </div>
-
-                          <div style={{ background: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(186, 230, 253, 0.8)', boxShadow: '0 1px 4px rgba(0,0,0,0.02)' }}>
-                            <strong style={{ fontSize: '10.5px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                              [B] Background
-                            </strong>
-                            <span style={{ fontSize: '12px', color: '#334155', lineHeight: 1.45 }}>{report.doctorDossier.sbar.background}</span>
-                          </div>
-
-                          <div style={{ background: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(186, 230, 253, 0.8)', boxShadow: '0 1px 4px rgba(0,0,0,0.02)' }}>
-                            <strong style={{ fontSize: '10.5px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                              [A] Assessment
-                            </strong>
-                            <span style={{ fontSize: '12px', color: '#334155', lineHeight: 1.45 }}>{report.doctorDossier.sbar.assessment}</span>
-                          </div>
-
-                          <div style={{ background: '#FFFFFF', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(186, 230, 253, 0.8)', boxShadow: '0 1px 4px rgba(0,0,0,0.02)' }}>
-                            <strong style={{ fontSize: '10.5px', color: '#0284C7', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                              [R] Recommendation
-                            </strong>
-                            <span style={{ fontSize: '12px', color: '#334155', lineHeight: 1.45 }}>{report.doctorDossier.sbar.recommendation}</span>
-                          </div>
-                        </div>
-
-                        {/* Prioritized Tests to Order */}
-                        <div style={{ marginTop: '4px' }}>
-                          <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                            Recommended Diagnostic Orders for Physician:
-                          </span>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                            {report.doctorDossier.testsToOrder.map((t, i) => (
-                              <div
-                                key={i}
-                                style={{
-                                  padding: '6px 10px',
-                                  borderRadius: '8px',
-                                  background: '#F0FDF4',
-                                  border: '1px solid #BBF7D0',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  fontSize: '11.5px',
-                                }}
-                              >
-                                <div>
-                                  <strong style={{ color: '#166534', display: 'block' }}>{t.test}</strong>
-                                  <span style={{ color: '#15803D', fontSize: '10.5px' }}>{t.rationale}</span>
-                                </div>
-                                <span
-                                  style={{
-                                    fontSize: '9.5px',
-                                    fontWeight: 800,
-                                    padding: '1px 5px',
-                                    borderRadius: '4px',
-                                    background: t.priority === 'High' ? '#DC2626' : '#0284C7',
-                                    color: '#FFFFFF',
-                                  }}
-                                >
-                                  {t.priority}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Associated ICD-10 Diagnostic Codes */}
-                        <div style={{ marginTop: '4px' }}>
-                          <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
-                            Associated ICD-10 Clinical Codes:
-                          </span>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                            {report.doctorDossier.icdCodes.map((c) => (
-                              <span
-                                key={c.code}
-                                style={{
-                                  fontSize: '10.5px',
-                                  padding: '2px 7px',
-                                  borderRadius: '6px',
-                                  background: '#FFFFFF',
-                                  color: '#475569',
-                                  border: '1px solid #CBD5E1',
-                                }}
-                              >
-                                <strong>{c.code}</strong> — {c.label}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                 </div>
               </section>
@@ -1975,26 +1696,54 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
               {!focusedStationId && station.id === 'misses' && (
                 <div
                   style={{
-                    background: '#F8FAFC',
-                    borderRadius: '12px',
-                    padding: '10px 14px',
-                    border: '1px solid #E2E8F0',
+                    background: 'linear-gradient(135deg, #F0FDFA 0%, #ECFDF5 100%)',
+                    borderRadius: '14px',
+                    padding: '14px 16px',
+                    border: '1.5px solid #A7F3D0',
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '12px',
-                    color: '#059669',
+                    alignItems: isMobile ? 'flex-start' : 'center',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    marginTop: '4px',
                   }}
                 >
-                  <span style={{ fontSize: '16px' }}>📋</span>
-                  <div>
-                    <strong style={{ display: 'block', color: '#059669', fontSize: '12px' }}>
-                      Case Summary & Physician Handoff
-                    </strong>
-                    <span style={{ color: '#64748B', fontSize: '11.5px' }}>
-                      Consolidates findings into an actionable SBAR brief with diagnostic considerations.
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '20px' }}>📋</span>
+                    <div>
+                      <strong style={{ display: 'block', color: '#065F46', fontSize: '13px' }}>
+                        Ready for your doctor visit?
+                      </strong>
+                      <span style={{ color: '#047857', fontSize: '12px' }}>
+                        Prepare your clinical appointment brief, choose visit questions, and print or export in Case Prep.
+                      </span>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHapticLight();
+                      if (onOpenCasePrep) onOpenCasePrep();
+                      else window.location.href = '/app/case-prep';
+                    }}
+                    style={{
+                      background: '#0D9488',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 14px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 6px rgba(13, 148, 136, 0.25)',
+                    }}
+                  >
+                    Prepare Visit Brief <ArrowRight size={13} />
+                  </button>
                 </div>
               )}
             </React.Fragment>
@@ -2017,8 +1766,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
             transition={{ duration: 0.2 }}
             style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-              gap: isMobile ? '10px' : '14px',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: isMobile ? '12px' : '16px',
               alignItems: 'stretch',
             }}
           >
@@ -2172,6 +1921,59 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                 </motion.div>
               );
             })}
+
+            {/* Doctor Appointment Prep Action Card */}
+            <div
+              style={{
+                gridColumn: isMobile ? '1' : '1 / -1',
+                background: '#F8FAFC',
+                borderRadius: '16px',
+                padding: '14px 18px',
+                border: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '20px' }}>📋</span>
+                <div>
+                  <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
+                    Preparing for a doctor visit?
+                  </strong>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>
+                    Create a clinical appointment brief with prioritized questions and clinical records in Case Prep.
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHapticLight();
+                  if (onOpenCasePrep) onOpenCasePrep();
+                  else window.location.href = '/app/case-prep';
+                }}
+                style={{
+                  background: '#0F766E',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 14px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                }}
+              >
+                Go to Case Prep <ArrowRight size={13} />
+              </button>
+            </div>
           </motion.div>
         ) : (
           /* ======================================================== */
