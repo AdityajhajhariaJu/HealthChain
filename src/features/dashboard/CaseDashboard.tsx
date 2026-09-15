@@ -248,13 +248,13 @@ export default function CaseDashboard() {
                   }
                 }}
                 style={{
-                  backgroundImage: 'linear-gradient(180deg, rgba(255, 250, 246, 0.06) 0%, rgba(255, 250, 246, 0.18) 46%, rgba(255, 250, 246, 0.94) 100%), url(/images/zen-garden-dashboard.webp)',
+                  backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.0) 0%, rgba(255, 255, 255, 0.0) 48%, rgba(240, 253, 244, 0.82) 76%, rgba(240, 253, 244, 0.98) 100%), url(/images/zen-garden-dashboard.webp)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backdropFilter: 'blur(32px)', 
                   WebkitBackdropFilter: 'blur(32px)', 
                   border: '1px solid rgba(255, 255, 255, 0.9)', 
-                  boxShadow: '0 24px 48px rgba(139, 86, 59, 0.14), inset 0 2px 0 rgba(255,255,255,0.7)',
+                  boxShadow: '0 24px 48px rgba(13, 148, 136, 0.16), inset 0 2px 0 rgba(255,255,255,0.8)',
                   gridRow: 'span 2',
                   borderRadius: isMobile ? '80px 80px 32px 32px' : '160px 160px 48px 48px', 
                   position: 'relative',
@@ -268,17 +268,33 @@ export default function CaseDashboard() {
                   minHeight: isMobile ? '220px' : '260px'
                 }}
               >
-                  {/* Brass Pendant Light */}
-                <div style={{ position: 'absolute', top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ width: 2, height: 80, background: 'linear-gradient(to bottom, rgba(170,140,44,0.3) 0%, rgba(170,140,44,0.9) 100%)' }} />
-                  <div style={{ width: 24, height: 36, borderRadius: '12px', background: 'rgba(255,255,255,0.9)', border: '2px solid #AA8C2C', boxShadow: '0 8px 16px rgba(170,140,44,0.2)', display: 'grid', placeItems: 'center' }}>
-                    <div style={{ width: 12, height: 16, borderRadius: '6px', background: '#AA8C2C', boxShadow: '0 0 8px #AA8C2C' }} />
-                  </div>
+                {/* Zen Sanctuary pill badge */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: isMobile ? '16px' : '20px',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(167, 243, 208, 0.9)',
+                    borderRadius: '999px',
+                    padding: '4px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    boxShadow: '0 4px 14px rgba(13, 148, 136, 0.15)',
+                    zIndex: 1,
+                  }}
+                >
+                  <span style={{ fontSize: '11px' }}>🌸</span>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
+                    Zen Sanctuary
+                  </span>
                 </div>
                 
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', textShadow: '0 1px 12px rgba(255,255,255,0.9)' }}>
-                   <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#243746', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Zen<br/>Garden</h3>
-                   <p style={{ fontSize: '11px', color: '#0F766E', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>PAUSE · BREATHE · RESET</p>
+                   <h3 className="serif-heading" style={{ fontSize: isMobile ? '26px' : '32px', fontWeight: 700, color: '#134E4A', margin: '0 0 4px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>Zen<br/>Garden</h3>
+                   <p style={{ fontSize: '11px', color: '#0D9488', margin: 0, fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase' }}>PAUSE · BREATHE · RESET</p>
                 </div>
               </motion.div>
 
