@@ -97,7 +97,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
             <Loader2 size={32} color="#6366F1" />
           </motion.div>
           <p style={{ margin: 0, color: '#6366F1', fontWeight: 700, fontSize: 16 }}>
-            Mapping connections across your case...
+            Mapping case connections...
           </p>
           <p style={{ margin: '8px 0 0', color: '#94A3B8', fontSize: 13 }}>
             Organizing shared evidence, uncertainty, and missing information
@@ -118,7 +118,7 @@ export default function DDxBoard({ item, profile }: { item: CaseItem; profile: a
             Component connections not yet mapped
           </h3>
           <p style={{ margin: '0 0 20px', color: '#64748B', fontSize: 14, maxWidth: 420, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
-            Organize possible overlaps between your symptoms, recorded measurements, and discussion pathways.
+            Organize possible overlaps between reported symptoms, recorded measurements, and discussion pathways.
           </p>
           <button
             type="button"

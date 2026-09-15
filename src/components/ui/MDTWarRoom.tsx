@@ -34,17 +34,12 @@ export function MDTWarRoom() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '350px', background: '#020617', borderRadius: '16px', overflow: 'hidden' }}>
-      {/* Radar Sweep */}
-      <motion.div 
-        animate={{ rotate: 360 }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+      {/* Background Ambience */}
+      <div 
         style={{
           position: 'absolute',
-          top: '50%', left: '50%',
-          width: '150%', height: '150%',
-          background: 'conic-gradient(from 0deg, transparent 70%, rgba(15, 148, 136, 0.2) 100%)',
-          transformOrigin: '0 0',
-          marginLeft: 0, marginTop: 0
+          inset: 0,
+          background: 'radial-gradient(circle at 50% 50%, rgba(15, 148, 136, 0.12) 0%, transparent 70%)',
         }}
       />
       
@@ -94,14 +89,13 @@ export function MDTWarRoom() {
             gap: '8px'
           }}
         >
-          <motion.div
-            animate={{ boxShadow: [`0 0 0px ${a.color}`, `0 0 20px ${a.color}`, `0 0 0px ${a.color}`] }}
-            transition={{ duration: 2, repeat: Infinity }}
+          <div
             style={{
               width: '16px', height: '16px',
               borderRadius: '50%',
               background: a.color,
-              border: '2px solid #fff'
+              border: '2px solid #fff',
+              boxShadow: `0 0 10px ${a.color}`
             }}
           />
           <div style={{ background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: '4px', border: `1px solid ${a.color}40`, color: a.color, fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>

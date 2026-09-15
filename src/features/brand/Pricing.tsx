@@ -53,7 +53,7 @@ const BASIC_FEATURES: FeatureItem[] = [
   { name: '1 Record Review (Trial)', desc: 'Source-separated case review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
   { name: 'Ava Health Buddy (10 Replies)', desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Food & Symptom Tools (1 Plan Trial)', desc: 'Editable meal planning and observation logging', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Research Hub (Unlimited)', desc: 'Live registry and literature search by case topic', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
+  { name: 'Clinical Research (Unlimited)', desc: 'Live registry and literature search by case topic', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Medicines & Reports (Unlimited)', desc: 'Medication information and interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Medical Profile & Vault', desc: 'Encrypted personal history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
@@ -62,7 +62,7 @@ const BASIC_FEATURES: FeatureItem[] = [
 const PRO_30_FEATURES: FeatureItem[] = [
   { name: '3 Quick Consult Sessions', desc: 'Instant single-specialist reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
   { name: '2 Multi-Perspective Reviews', desc: 'Cross-specialty AI perspectives with visible uncertainty', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '1 Clinical Data Engine Session', desc: 'Connected record and symptom review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
+  { name: '1 Clinical Review Session', desc: 'Connected record and symptom review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
   { name: 'Ava Health Buddy (30 Replies)', desc: 'AI Chief of Staff assistance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Doctor dossiers & trial matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Food & Symptom Tools (Unlimited)', desc: 'Editable meal plans and observation tracking', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
@@ -75,11 +75,11 @@ const PRO_30_FEATURES: FeatureItem[] = [
 const PRO_90_FEATURES: FeatureItem[] = [
   { name: '10 Quick Consult Sessions', desc: 'Continuous specialist evaluation', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
   { name: '8 Deep Collab Specialist Boards', desc: 'Complex multi-system case reviews', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '3 Clinical Data Engine Sessions', desc: 'Deep systemic pattern discovery', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
+  { name: '3 Clinical Review Sessions', desc: 'Deep systemic pattern discovery', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
   { name: 'Ava Health Buddy (120 Replies)', desc: 'Extended longitudinal health guidance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable dossiers & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Food Planner (Unlimited)', desc: 'Culturally relevant example meals and grocery planning', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Pharmacy Hub & Interactions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { name: 'Pharmacy & Interactions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Lab Report PDF Analyzer (Full)', desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
@@ -89,27 +89,27 @@ const TOPUP_PLANS = [
   { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '+10 Replies', desc: 'Instant AI Chief of Staff consultation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '+1 Session', desc: 'Single-specialist acute review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
   { id: 'topup_deep_collab', name: 'Clinical Perspectives', price: 149, qty: '+1 Session', desc: 'Multiple AI review perspectives', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
-  { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '+1 Session', desc: 'Connected health record review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
-  { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '+30 Sessions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { id: 'topup_jarvis', name: 'Clinical Review', price: 169, qty: '+1 Session', desc: 'Connected health record review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
+  { id: 'topup_pharmacy_hub', name: 'Pharmacy', price: 99, qty: '+30 Sessions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
   { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
 
 const FAQS = [
   {
-    q: 'How do Clinical Data Engine Investigations work?',
-    a: 'Clinical Data Engine organizes your notes, uploaded records, and available profile context into documented facts, uncertainties, and questions to review with a qualified clinician. It does not diagnose or replace medical care.',
+    q: 'How do Clinical Review sessions work?',
+    a: 'Clinical Review organizes clinical notes, uploaded records, and available profile context into documented facts, uncertainties, and questions to review with a qualified clinician. It does not diagnose or replace medical care.',
   },
   {
     q: 'What happens if I finish my consult quotas early?',
-    a: 'You retain full access to all your historical reports, dossiers, and profiles. You can continue using unlimited tools (Dietician, Pharmacy, Case Prep) or purchase flexible single top-ups whenever needed.',
+    a: 'You retain full access to all historical reports, dossiers, and profiles. You can continue using unlimited tools (Dietician, Pharmacy, Case Prep) or purchase flexible single top-ups whenever needed.',
   },
   {
     q: 'Is my personal health data encrypted and private?',
-    a: 'Health information is stored in your private account workspace and is not sold to insurers or advertisers. AI features send the information needed for the requested analysis to our AI service; the product explains this before upload or review.',
+    a: 'Health information is stored in a private account workspace and is not sold to insurers or advertisers. AI features send the information needed for the requested analysis to our AI service; the product explains this before upload or review.',
   },
   {
     q: 'Can I renew or switch between 30-Day and 90-Day plans?',
-    a: 'Yes. When your plan expires, you can renew or switch plans. Your saved cases, timeline events, and notes remain available in your account subject to the service retention policy.',
+    a: 'Yes. When a plan expires, you can renew or switch plans. Saved cases, timeline events, and notes remain available in the account subject to the service retention policy.',
   },
 ];
 
@@ -162,9 +162,9 @@ export default function Pricing() {
       if (result.success) {
         trackPurchase(planId === 'pro_90_days' ? 899 : (planId === 'pro_30_days' ? 499 : 99), planId);
         if (isTopup) {
-          toast.success('Top-Up Activated!', 'Your feature credit has been added to your account.');
+          toast.success('Top-Up Activated!', 'Feature credit has been added to the account.');
         } else {
-          toast.success('Welcome to Pro!', 'Your expanded AI perspectives and case-preparation tools are unlocked.');
+          toast.success('Welcome to Pro!', 'Expanded AI perspectives and case-preparation tools are unlocked.');
         }
 
         const resumed = resumeInterruptedTask((path, opts) => navigate(path, opts), session.user.id);
@@ -207,7 +207,7 @@ export default function Pricing() {
           Keep Every Record, Question, and Next Step Connected.
         </h1>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: '#F8FAFC', borderRadius: '20px', fontSize: '13px', color: '#475569', border: '1px solid #E2E8F0' }}>
-          <Info size={15} color="#059669" /> Any purchased top-ups expire when your base subscription expires.
+          <Info size={15} color="#059669" /> Any purchased top-ups expire when the base subscription expires.
         </div>
       </div>
 
@@ -410,7 +410,7 @@ export default function Pricing() {
               whiteSpace: 'nowrap',
             }}
           >
-            <Sparkles size={13} fill="#FFFFFF" /> 👑 BEST VALUE · SAVE 40%
+            BEST VALUE · SAVE 40%
           </div>
 
           <div style={{ marginBottom: '16px' }}>
@@ -466,7 +466,7 @@ export default function Pricing() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, borderTop: '1px solid #BBF7D0', paddingTop: '20px' }}>
             <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-              Maximum Power & Quota:
+              Expanded Quota:
             </div>
             {PRO_90_FEATURES.map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
@@ -488,7 +488,7 @@ export default function Pricing() {
       <div style={{ maxWidth: '1100px', margin: '0 auto 60px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#EDE9FE', color: '#6D28D9', padding: '4px 14px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, marginBottom: '10px' }}>
-            <Sparkles size={13} fill="#6D28D9" /> FLEXIBLE POWER-UPS
+            ADD-ONS
           </div>
           <h2 style={{ fontSize: isMobile ? '24px' : '30px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.5px', margin: '0 0 8px' }}>
             Need Extra Quota? Add Top-Ups Anytime
@@ -597,7 +597,7 @@ export default function Pricing() {
           <div>
             <h4 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>Continuing Health Memory</h4>
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
-              Saved cases and timelines remain available after plan expiration, subject to the service retention policy and your account controls.
+              Saved cases and timelines remain available after plan expiration, subject to the service retention policy and account controls.
             </p>
           </div>
         </div>

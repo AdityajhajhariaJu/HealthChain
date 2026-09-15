@@ -21,7 +21,7 @@ vi.mock('../../components/ui/CompilingAnimation', () => ({ CompilingAnimation: (
 beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); mocks.session.mockResolvedValue({ user: { id: 'user' } }); });
 afterEach(cleanup);
 const open = () => render(<MemoryRouter initialEntries={['/app/consult?caseId=existing&review=new']}><JarvisInvestigator /></MemoryRouter>);
-describe('Clinical Data Engine case continuity', () => {
+describe('Clinical Review case continuity', () => {
   it('includes selected evidence and saves the result into the same case', async () => {
     mocks.run.mockResolvedValue({ executiveSummary: 'Review summary', primaryHypothesis: 'Reported concern', questionsForClinician: ['What history is missing?'] });
     open();

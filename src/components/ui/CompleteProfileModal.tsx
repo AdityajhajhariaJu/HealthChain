@@ -1806,7 +1806,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                         Metabolic BMI & BMR Preview
                       </div>
                       <div style={{ fontSize: '11.5px', color: '#64748B', lineHeight: 1.4 }}>
-                        Adjust your <strong style={{ color: '#0F172A' }}>height</strong> and <strong style={{ color: '#0F172A' }}>weight</strong> above to preview your metabolic BMI score, daily BMR calories, and healthy target range.
+                        Adjust <strong style={{ color: '#0F172A' }}>height</strong> and <strong style={{ color: '#0F172A' }}>weight</strong> above to preview the BMI score, daily BMR, and target range.
                       </div>
                     </div>
                   </div>
@@ -1872,7 +1872,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   color: '#334155',
                   lineHeight: 1.4
                 }}>
-                  💡 <strong style={{ color: '#0F172A' }}>Medical Context:</strong> Chronic conditions help your AI specialist board tailor differential diagnoses, care protocols, and drug interactions.
+                  💡 <strong style={{ color: '#0F172A' }}>Medical Context:</strong> Chronic conditions help tailor differential diagnoses, care protocols, and drug interactions.
                 </div>
 
                 {/* Healthy Toggle Pill Card */}
@@ -2065,7 +2065,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                   color: '#57534E',
                   lineHeight: 1.4
                 }}>
-                  💊 <strong style={{ color: '#0F172A' }}>Circadian Chronotherapy:</strong> Tag medications with their biological circadian slot (🌅 Morning, ☀️ Midday, 🌇 Evening, 🌙 Bedtime). They automatically sync to your daily medication alarms!
+                  💊 <strong style={{ color: '#0F172A' }}>Medication Timing:</strong> Tag medications with their daily slot (🌅 Morning, ☀️ Midday, 🌇 Evening, 🌙 Bedtime). They automatically sync to daily medication reminders.
                 </div>
 
                 {/* No Medications Toggle */}

@@ -88,7 +88,7 @@ export function MedicalRecordsBar({
               Medical Records & Diagnostics
             </h3>
             <p style={{ fontSize: '12px', color: '#64748B', margin: 0 }}>
-              Add blood tests, MRIs, and clinician notes to keep the facts together for your next discussion.
+              Add blood tests, MRIs, and clinician notes to keep records organized for doctor discussions.
             </p>
           </div>
         </div>

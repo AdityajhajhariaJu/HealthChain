@@ -168,7 +168,7 @@ export const InfiniteHealthCanvas: React.FC<InfiniteHealthCanvasProps> = ({ case
                       color: isJarvis ? '#C2410C' : '#0F766E',
                     }}
                   >
-                    {isJarvis ? 'Clinical Engine' : 'Active Case'}
+                    {isJarvis ? 'Clinical Review' : 'Active Case'}
                   </span>
                 </div>
                 {brief && (

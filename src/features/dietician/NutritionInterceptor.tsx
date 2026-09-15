@@ -137,7 +137,7 @@ export const NutritionInterceptor: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h2 className="text-white/40 font-medium text-lg mb-2 uppercase tracking-widest">Ambient Tracking</h2>
+          <h2 className="text-white/40 font-medium text-lg mb-2 uppercase tracking-widest">Quick Meal Log</h2>
           <p className="text-white text-4xl font-black tracking-tight leading-tight">
             What did you eat?
           </p>

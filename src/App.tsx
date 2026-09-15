@@ -93,7 +93,7 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 
 import { openTrialModal } from './services/TrialEngine';
 
-const ProRoute = ({ children, featureName = 'Premium Specialist Suite' }: { children: React.ReactNode; featureName?: string }) => {
+const ProRoute = ({ children, featureName = 'Premium Features' }: { children: React.ReactNode; featureName?: string }) => {
   const profile = getProfile();
   if (!profile?.isPro) {
     setTimeout(() => openTrialModal(featureName), 80);

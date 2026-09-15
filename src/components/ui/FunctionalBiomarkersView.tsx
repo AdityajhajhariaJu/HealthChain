@@ -42,11 +42,11 @@ export const FunctionalBiomarkersView: React.FC = () => {
 
   const categories = [
     { id: 'all', label: 'All 20 Biomarkers', icon: '🧪' },
-    { id: 'metabolic', label: 'Cellular Energetics & Iron', icon: '⚡' },
+    { id: 'metabolic', label: 'Energy & Iron', icon: '⚡' },
     { id: 'endocrine', label: 'Thyroid Axis & Adrenals', icon: '🦋' },
     { id: 'immune', label: 'Immune & Mucosal Barrier', icon: '🛡️' },
     { id: 'enteric', label: 'Biogenic Amine Clearance', icon: '⚗️' },
-    { id: 'neuromuscular', label: 'Cellular Neuromuscular', icon: '🧠' },
+    { id: 'neuromuscular', label: 'Neuromuscular', icon: '🧠' },
   ];
 
   const handleSelectPreset = (preset: ClinicalProfilePreset) => {
@@ -445,7 +445,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94A3B8' }}>
                         <span>Lower Pathology</span>
                         <span>Normal Lab Margin</span>
-                        <span style={{ color: '#059669', fontWeight: 700 }}>Peak Cellular Health</span>
+                        <span style={{ color: '#059669', fontWeight: 700 }}>Optimal Range</span>
                         <span>Upper Pathology</span>
                       </div>
                     </div>

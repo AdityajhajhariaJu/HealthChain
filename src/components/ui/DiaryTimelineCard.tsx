@@ -20,7 +20,7 @@ export interface DiaryTimelineCardProps {
 }
 
 export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
-  title = 'Logged in your diary',
+  title = 'Diary entry logged',
   date = 'Today',
   entries = [],
   autoSync = true,
@@ -50,7 +50,7 @@ export const DiaryTimelineCard: React.FC<DiaryTimelineCardProps> = ({
             });
           } else if (isPosture) {
             recordDailyCheckin({
-              symptom: 'Biomechanical Exposure',
+              symptom: 'Posture & Ergonomics',
               severity: 'Mild',
               score: 1,
               note: `Posture & Ergonomics: ${itemsText} at ${entry.time}`,

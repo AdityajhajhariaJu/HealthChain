@@ -67,7 +67,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
 
   // Clinic Notes Conduit
   const topMiss = report.clinicalMisses?.[0];
-  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} × Vagal` : 'Clinical Synthesis';
+  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} Notes` : 'Clinical Synthesis';
   const rawNotesSub = topMiss?.hiddenConnection ? topMiss.hiddenConnection.split('—')[0].trim() : 'Cross-discipline correlation';
   const notesSubtitle = rawNotesSub.toLowerCase().includes('without anemia')
     ? 'Iron deficiency w/o anemia'
@@ -144,7 +144,7 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
               textTransform: 'uppercase',
             }}
           >
-            CLINIC INTELLIGENCE
+            CLINICAL SUMMARY
           </div>
           <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
             Cross-Specialty Insights

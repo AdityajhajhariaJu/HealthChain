@@ -109,9 +109,9 @@ export const MonthlyHealthHeatmap: React.FC = () => {
   const organFilters: { id: OrganFilter; label: string; icon: string }[] = [
     { id: 'all', label: 'All Systems', icon: '🌐' },
     { id: 'gut', label: 'Stomach & Bloat', icon: '🎈' },
-    { id: 'cardiac', label: 'Heart & Vagal', icon: '💓' },
+    { id: 'cardiac', label: 'Heart & HRV', icon: '💓' },
     { id: 'kinetic', label: 'Kinetic & Head', icon: '🦴' },
-    { id: 'energy', label: 'Cellular Energy', icon: '⚡' },
+    { id: 'energy', label: 'Energy', icon: '⚡' },
   ];
 
   return (

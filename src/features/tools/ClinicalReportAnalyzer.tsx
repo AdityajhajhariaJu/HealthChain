@@ -157,8 +157,7 @@ export default function ClinicalReportAnalyzer() {
       const profile = getProfile() || {};
       const data = await analyzeLabReport(base64Data, mimeType, profile);
 
-      // Add minimum scanning delay for effect (e.g. 2s) to show the cool animation
-      await new Promise(r => setTimeout(r, 2000));
+
 
       if (data) {
         fileReportCache[fileHash] = data; // Cache the result!
@@ -246,7 +245,7 @@ export default function ClinicalReportAnalyzer() {
     };
     reader.onerror = () => {
       setLoading(false);
-      toast.error('File Error', 'Failed to read file from your device.');
+      toast.error('File Error', 'Failed to read file from device.');
     };
 
     reader.readAsDataURL(selectedFile);
@@ -280,8 +279,7 @@ export default function ClinicalReportAnalyzer() {
       const profile = getProfile() || {};
       const data = await analyzeLabReport(base64Data, mimeType, profile);
 
-      await new Promise(r => setTimeout(r, 2000));
-
+      
       if (data) {
         setResult(data);
         addEvent('lab_report', 'report_analyzer', `Analyzed ${data.testName}`, data, true);
@@ -417,7 +415,7 @@ export default function ClinicalReportAnalyzer() {
                 margin: '0 0 6px 0',
                 letterSpacing: '-0.03em',
               }}>
-                {activeCase ? 'Add evidence to your active case' : 'Lab report interpreter'}
+                {activeCase ? 'Add evidence to active case' : 'Lab report interpreter'}
               </h1>
               <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
                 {activeCase
@@ -531,7 +529,7 @@ export default function ClinicalReportAnalyzer() {
                 Extracting Clinical Data...
               </motion.div>
               <div style={{ color: '#64748B', fontSize: '13px', fontWeight: 600 }}>
-                Running optical character recognition & NLP analysis
+                Extracting lab values and reference ranges
               </div>
             </div>
           </div>
@@ -575,7 +573,7 @@ export default function ClinicalReportAnalyzer() {
               }}
             >
               {activeCase
-                ? 'We will analyse it, extract key biomarkers, and integrate the findings into your case timeline'
+                ? 'We will analyse it, extract key biomarkers, and integrate the findings into the case timeline'
                 : 'Photo or PDF (camera and files supported)'}
             </p>
             <div style={{ display: 'flex', gap: '16px' }}>

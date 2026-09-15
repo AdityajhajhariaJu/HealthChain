@@ -5,9 +5,9 @@ import { ChevronRight, Home } from 'lucide-react';
 const routeNames: Record<string, string> = {
   app: 'Dashboard',
   today: 'Health Today',
-  consult: 'Clinical Data Engine',
+  consult: 'Clinical Review',
   'my-cases': 'My Cases',
-  pharmacy: 'Pharmacy Hub',
+  pharmacy: 'Pharmacy',
   dietician: 'Dietician',
   ava: 'Ava Health Buddy',
   reports: 'Lab Report Interpreter',

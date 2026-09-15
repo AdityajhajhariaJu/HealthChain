@@ -296,7 +296,7 @@ export default function CasePrep() {
         }
         awardPoints(10, 'AI Refined Appointment Brief', 'consult', 'brief_refined_' + selectedCase.id);
         triggerHapticSuccess();
-        toast.success('Brief Refined', 'AI polished your clinical appointment brief.');
+        toast.success('Brief Refined', 'AI refined the appointment brief.');
       }
     } catch (e) {
       console.error('Failed to refine appointment brief:', e);
@@ -397,12 +397,12 @@ export default function CasePrep() {
         <div style={{ width: 80, height: 80, background: '#f0fdfa', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px auto', color: '#0d9488' }}>
           <Briefcase size={36} />
         </div>
-        <h1 style={{ fontSize: 32, color: '#0f172a', marginBottom: 16 }}>Prepare my appointment</h1>
+        <h1 style={{ fontSize: 32, color: '#0f172a', marginBottom: 16 }}>Prepare appointment brief</h1>
         <p style={{ fontSize: 16, color: '#475569', lineHeight: 1.6, maxWidth: 500, margin: '0 auto 32px' }}>
-          Choose the case you want to bring to your clinician. We will organise its existing symptoms, records, past AI summaries, and unanswered questions into one clear brief.
+          Choose the case to bring to a clinician. We will organise its existing symptoms, records, past AI summaries, and unanswered questions into one clear brief.
         </p>
         <button className="btn btn-primary" onClick={() => setShowPicker(true)} style={{ padding: '14px 28px', fontSize: 16, borderRadius: 30 }}>
-          Import my case <ArrowRight size={18} style={{ marginLeft: 8 }} />
+          Select case <ArrowRight size={18} style={{ marginLeft: 8 }} />
         </button>
       </main>
     );
@@ -431,7 +431,7 @@ export default function CasePrep() {
             <div>
               <div style={{ fontWeight: 700 }}>Requested Case Not Found</div>
               <div style={{ fontSize: 13, marginTop: 2, color: '#7F1D1D' }}>
-                Case ID &quot;{caseNotFoundId}&quot; could not be found in your records. Please choose an active case below to prepare your visit.
+                Case ID &quot;{caseNotFoundId}&quot; could not be found in case records. Please choose an active case below to prepare the visit.
               </div>
             </div>
           </div>
@@ -604,7 +604,7 @@ export default function CasePrep() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0f766e' }}>
           <CheckCircle2 size={16} />
           <span>
-            Prepared from your saved case &middot; <strong>Brief Version {displayedBrief.version || 1}</strong>
+            Prepared from saved case &middot; <strong>Brief Version {displayedBrief.version || 1}</strong>
             {isViewingArchived ? ' (Archived)' : ' (Current)'}
           </span>
         </div>
@@ -661,7 +661,7 @@ export default function CasePrep() {
             <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F1F5F9' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ fontSize: 12, color: '#64748B' }}>
-                  Check the questions you want your clinician to address during this visit:
+                  Check questions to address during this visit:
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
@@ -969,18 +969,18 @@ export default function CasePrep() {
               Record Doctor Visit Outcomes
             </h3>
             <div style={{ fontSize: '12.5px', color: '#64748B' }}>
-              Record your clinician's guidance for each question. Outcomes are tagged as patient-reported and carry forward into subsequent briefs.
+              Record clinician guidance for each question. Outcomes are tagged as patient-reported and carry forward into subsequent briefs.
             </div>
           </div>
         </div>
 
         {isViewingArchived ? (
           <div style={{ padding: '20px', background: '#FFFBEB', borderRadius: '12px', fontSize: '13px', color: '#92400E', textAlign: 'center', marginTop: '16px' }}>
-            Outcome recording is disabled while inspecting an archived brief. Switch back to your Current Brief to record outcomes.
+            Outcome recording is disabled while inspecting an archived brief. Switch back to Current Brief to record outcomes.
           </div>
         ) : caseQuestions.length === 0 ? (
           <div style={{ padding: '20px', background: '#F8FAFC', borderRadius: '12px', fontSize: '13px', color: '#64748B', textAlign: 'center', marginTop: '16px' }}>
-            No specific clinical questions were extracted for this visit yet. You can discuss your main concern with Ava to generate tailored questions.
+            No specific clinical questions were extracted for this visit yet. Discuss the main concern with Ava to generate tailored questions.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
@@ -1101,7 +1101,7 @@ export default function CasePrep() {
                     {/* Note input */}
                     <input
                       type="text"
-                      placeholder="What did your doctor say or advise? (Saved as patient-reported clinician guidance)"
+                      placeholder="What did the doctor advise? (Saved as patient-reported clinician guidance)"
                       value={outcomeNotes[q.id] !== undefined ? outcomeNotes[q.id] : (q.outcomeNote || '')}
                       onChange={(e) => setOutcomeNotes(prev => ({ ...prev, [q.id]: e.target.value }))}
                       style={{
@@ -1178,7 +1178,7 @@ export default function CasePrep() {
               </div>
               <div style={{ padding: '24px 24px calc(24px + env(safe-area-inset-bottom)) 24px', overflowY: 'auto', flex: 1 }}>
                 <p style={{ fontSize: 14, color: '#475569', marginBottom: 24, lineHeight: 1.5 }}>
-                  This brief was deterministically generated without inventing new facts. Here are the perspectives mapped into your brief:
+                  This brief was deterministically generated without inventing new facts. Here are the perspectives mapped into the brief:
                 </p>
                 <div style={{ display: 'grid', gap: 16 }}>
                   {(displayedBrief.priorPerspectives || []).map((p: any, i: number) => (

@@ -2260,7 +2260,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                             setShowSummaryModal(false);
                             setShowConfetti(false);
                             onClose();
-                            const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you analyze how this parasympathetic activation affects my autonomic nervous system, vagal tone, and resting heart rate metrics?`;
+                            const calmPrompt = `I just completed a ${sessionStats.minutesLogged}-minute restorative session ("${currentTrack?.title || playlistTitle}") in Calm Space. Can you explain how this breathing session supports heart-rate variability and relaxation?`;
                             navigate('/app/ava', { state: { initialPrompt: calmPrompt, initialMessage: calmPrompt } });
                           }}
                           style={{

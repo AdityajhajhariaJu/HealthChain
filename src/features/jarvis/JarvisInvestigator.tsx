@@ -72,7 +72,7 @@ export default function JarvisInvestigator() {
       addCaseQuestion(caseId, {
         questionText: qText,
         status: 'open',
-        raisedBySpecialty: 'Clinical Data Engine',
+        raisedBySpecialty: 'Clinical Review',
         supportingEvidenceIds: [],
       });
       setAddedQuestionIndexes(prev => ({ ...prev, [idx]: true }));
@@ -191,7 +191,7 @@ export default function JarvisInvestigator() {
     
     // Limits: Max 10 files total
     if (files.length + selected.length > 10) {
-      toast.error("Document Limit", "Clinical Data Engine is currently limited to processing 10 documents at a time.");
+      toast.error("Document Limit", "Clinical Review is currently limited to processing 10 documents at a time.");
       return;
     }
 
@@ -352,7 +352,7 @@ AI-generated preparation material. Verify against original records; this is not 
           caseId: targetCaseId,
           type: 'jarvis' as any,
           report: updatedReport,
-          specialists: ['Clinical Data Engine'],
+          specialists: ['Clinical Review'],
         });
       }
       setReport(updatedReport);
@@ -390,7 +390,7 @@ AI-generated preparation material. Verify against original records; this is not 
       window.dispatchEvent(new CustomEvent('hc_require_auth', {
         detail: {
           title: 'Authentication Required',
-          message: 'You need to log in or sign up to run a Clinical Data Engine investigation.'
+          message: 'You need to log in or sign up to run a Clinical Review investigation.'
         }
       }));
       return;
@@ -399,7 +399,7 @@ AI-generated preparation material. Verify against original records; this is not 
     const isVip = typeof localStorage !== 'undefined' && (localStorage.getItem('hc_vp_sig') === 'a6564a23f9738db13c830d57ebb6beede82dcb7d1bcf83239a006089de3ba40a');
     if (!profile?.isPro && !isVip) {
       runningRef.current = false;
-      openTrialModal('Clinical Data Engine');
+      openTrialModal('Clinical Review');
       return;
     }
 
@@ -424,10 +424,10 @@ AI-generated preparation material. Verify against original records; this is not 
         
         const primaryTitle = result.primaryHypothesis || result.topDiagnoses?.[0]?.condition || history.slice(0, 32);
         const newCase = linkedCase || createCaseDraft({
-          title: `Clinical Data Engine: ${primaryTitle.slice(0, 36)}`,
+          title: `Clinical Review: ${primaryTitle.slice(0, 36)}`,
           mode: 'jarvis',
           intakeData: { 
-            chiefComplaint: history || "Clinical Data Engine investigation",
+            chiefComplaint: history || "Clinical Review investigation",
             filesCount: mappedFiles.length,
             analyzedAt: new Date().toISOString()
           }
@@ -461,13 +461,13 @@ AI-generated preparation material. Verify against original records; this is not 
           caseId: newCase.id,
           type: 'jarvis' as any,
           report: result,
-          specialists: ['Clinical Data Engine']
+          specialists: ['Clinical Review']
         });
 
         recordHealthMemory({
           kind: 'research',
           source: 'jarvis',
-          title: `Clinical Data Engine: ${primaryTitle.slice(0, 36)}`,
+          title: `Clinical Review: ${primaryTitle.slice(0, 36)}`,
           occurredAt: new Date().toISOString(),
           caseId: newCase.id,
           payload: {
@@ -480,11 +480,11 @@ AI-generated preparation material. Verify against original records; this is not 
           dedupeKey: `jarvis:${newCase.id}`
         });
 
-        awardPoints(25, 'Clinical Data Engine Investigation', 'checkin');
+        awardPoints(25, 'Clinical Review Investigation', 'checkin');
         setPhase('done');
       } else {
         if (!isMounted.current) return;
-        toast.error("Analysis Disrupted", "Clinical Data Engine encountered a network disruption. Please try again.");
+        toast.error("Analysis Disrupted", "Clinical Review encountered a network disruption. Please try again.");
         setPhase('input');
       }
     } catch (e) {
@@ -541,14 +541,14 @@ AI-generated preparation material. Verify against original records; this is not 
                 const caseId = createdCaseId || selectedCaseId;
                 if (!caseId) return;
                 const updated = { ...report, reasoningPipeline: { ...report.reasoningPipeline, stage9_continuity: { ...report.reasoningPipeline.stage9_continuity, chosenNextAction: action } } };
-                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Data Engine'] });
+                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Review'] });
                 setReport(updated);
               }}
               onCorrectionAcknowledge={(id) => {
                 const updated = { ...report, reasoningPipeline: { ...report.reasoningPipeline, stage3_correctionQueue: report.reasoningPipeline.stage3_correctionQueue.map((c: any) => c.id === id ? { ...c, status: 'acknowledged' } : c) } };
                 const caseId = createdCaseId || selectedCaseId;
                 if (!caseId) return;
-                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Data Engine'] });
+                saveReviewSnapshot({ caseId, type: 'jarvis', report: updated, specialists: ['Clinical Review'] });
                 setReport(updated);
               }}
               isUpdating={isUpdatingReasoning}
@@ -628,7 +628,7 @@ AI-generated preparation material. Verify against original records; this is not 
                                 (f.id === fact.id || i === index) ? { ...f, fact: updatedText, extractionStatus: 'user_corrected' } : f
                               );
                               const updatedReport = { ...report, documentedFacts: updatedFacts };
-                              saveReviewSnapshot({ caseId: activeCaseId, type: 'jarvis' as any, report: updatedReport, specialists: ['Clinical Data Engine'] });
+                              saveReviewSnapshot({ caseId: activeCaseId, type: 'jarvis' as any, report: updatedReport, specialists: ['Clinical Review'] });
                               setReport(updatedReport);
                               toast.success('Extraction Corrected', 'Updated finding saved non-destructively to case records.');
                             }
@@ -1174,7 +1174,7 @@ AI-generated preparation material. Verify against original records; this is not 
               <button 
                 onClick={() => {
                   triggerHapticLight();
-                  const initialPrompt = `I just ran a Clinical Data Engine review. One AI-generated possibility was "${primaryCondition}". Help me separate documented facts, missing evidence, and questions to discuss with my clinician. Do not treat it as a diagnosis.`;
+                  const initialPrompt = `I just ran a Clinical Review. One AI-generated possibility was "${primaryCondition}". Help me separate documented facts, missing evidence, and questions to discuss with my clinician. Do not treat it as a diagnosis.`;
                   navigate('/app/ava', { state: { initialPrompt } });
                 }}
                 style={{ 

@@ -111,7 +111,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
         title="Syncing pending updates... Tap to sync now"
         aria-label={`Status: Sync pending (${pendingCount})`}
       >
-        <UploadCloud size={14} className={isSyncing ? 'animate-bounce' : 'animate-pulse text-slate-400'} />
+        <UploadCloud size={14} className={isSyncing ? 'animate-spin' : 'text-slate-400'} />
         <span>Saving {pendingCount > 0 ? `(${pendingCount})` : ''}</span>
       </button>
     );
@@ -121,7 +121,7 @@ export const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ classN
     return (
       <button
         onClick={onConflictClick}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 active:scale-95 transition-all hover:bg-purple-500/25 animate-pulse ${className}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 active:scale-95 transition-all hover:bg-purple-500/25 ${className}`}
         title="Simultaneous edits detected between devices. Tap to review."
         aria-label="Status: Conflict needs review"
       >

@@ -408,15 +408,12 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
                       overflow: 'hidden'
                     }}
                   >
-                    <motion.div
-                       animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.2, 0.9] }}
-                       transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                    <div
                        style={{
                          width: '8px',
                          height: '8px',
                          borderRadius: '50%',
                          background: specialist.color,
-                         boxShadow: `0 0 10px ${specialist.color}`,
                          flexShrink: 0
                        }}
                     />
@@ -532,8 +529,8 @@ export function SpecialistPanel({ specialist, isRunning, isPaused, index, onComp
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Your answer..."
-              aria-label="Your answer"
+              placeholder="Type response..."
+              aria-label="Type response"
               style={{
                 flex: 1,
                 padding: '14px 20px',

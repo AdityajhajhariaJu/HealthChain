@@ -245,7 +245,7 @@ useEffect(() => {
             label: 'AI Specialist',
             icon: BrainCircuit,
             color: '#8B5CF6',
-            description: 'Advanced Follow-up Specialist focusing on your cross-questions and new findings.',
+            description: 'Follow-up specialist for additional questions and new findings.',
           }
         ];
       } else {
@@ -715,8 +715,8 @@ useEffect(() => {
             }}
           >
             {activeCase 
-                ? 'Collaborative Specialists decode your unique chain of symptoms like clinical DNA—cross-referencing perspectives to find agreement, resolve conflict, and map your next steps.'
-              : 'Our AI will automatically select a team of specialists to deeply investigate your case from multiple angles.'}
+                ? 'Specialists cross-reference perspectives to find consensus and plan next steps.'
+              : 'Specialists selected to review the case from multiple angles.'}
           </p>
 
           {/* Progress Stepper (Pill Style) */}
@@ -903,7 +903,7 @@ useEffect(() => {
                             marginBottom: '8px',
                           }}
                         >
-                          Assembling Your Board...
+                          Assembling Specialist Board...
                         </h2>
                         <p style={{ color: '#64748B', fontWeight: 500 }}>
                           Analyzing clinical intake to select the ideal specialists.
@@ -955,8 +955,8 @@ useEffect(() => {
                             lineHeight: 1.6,
                           }}
                         >
-                          Based on your symptoms, we've selected this multi-disciplinary panel to
-                          investigate your case.
+                          Based on reported symptoms, this multi-disciplinary panel will
+                          investigate the case.
                         </p>
                       </div>
 
@@ -1110,7 +1110,7 @@ useEffect(() => {
                 </div>
                 <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>Assessment Complete</h2>
                 <p style={{ color: '#64748B', fontSize: '16px', marginBottom: '40px', maxWidth: '400px', margin: '0 auto 40px auto' }}>
-                  The Multi-Disciplinary Board has finalized your case and generated the consensus report.
+                  The Multi-Disciplinary Board has finalized the case and generated the consensus report.
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', margin: '0 auto' }}>
@@ -1227,7 +1227,7 @@ useEffect(() => {
                   margin: '60px auto'
                 }}>
                   <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#101828' }}>Synthesis Failed</h2>
-                  <p style={{ margin: 0, fontSize: 16, color: '#475467', lineHeight: 1.6 }}>There was a network issue while synthesizing the board consensus. Your specialist transcripts have been preserved.</p>
+                  <p style={{ margin: 0, fontSize: 16, color: '#475467', lineHeight: 1.6 }}>There was a network issue while synthesizing the board consensus. Specialist transcripts have been preserved.</p>
                   <button
                     onClick={() => {
                       setPhase('compiling'); // Retries the effect

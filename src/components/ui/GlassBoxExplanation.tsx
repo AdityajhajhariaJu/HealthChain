@@ -16,7 +16,7 @@ export const GlassBoxExplanation = () => {
       <button
         onClick={toggle}
         aria-expanded={isOpen}
-        aria-label={isOpen ? "Collapse neural breakdown" : "Expand neural breakdown"}
+        aria-label={isOpen ? "Collapse reasoning steps" : "Expand reasoning steps"}
         style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           background: 'none', border: 'none', padding: 0,
@@ -24,7 +24,7 @@ export const GlassBoxExplanation = () => {
           cursor: 'pointer'
         }}
       >
-        <Brain size={14} /> Neural Breakdown {isOpen ? 'Collapse' : 'Expand'}
+        <Brain size={14} /> Reasoning Steps {isOpen ? 'Collapse' : 'Expand'}
       </button>
 
       <AnimatePresence>

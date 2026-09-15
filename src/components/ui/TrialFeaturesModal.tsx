@@ -564,7 +564,7 @@ export function TrialFeaturesModal({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <Brain size={16} color="#38BDF8" />
                 <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
-                  Ready for the 16-Specialist Board, Clinical Data Engine & All Premium Features?
+                  Ready for Specialist Board, Clinical Review & All Premium Features?
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: '#94A3B8', margin: 0, lineHeight: 1.45 }}>

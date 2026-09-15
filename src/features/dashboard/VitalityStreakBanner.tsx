@@ -114,12 +114,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
       >
         {/* Left: Fire Flame & Streak Counter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <motion.div
-            animate={{ 
-              scale: [1, 1.06, 1],
-              rotate: [-1.5, 1.5, -1.5]
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          <div
             style={{
               width: isMobile ? '40px' : '44px',
               height: isMobile ? '40px' : '44px',
@@ -169,7 +164,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               {/* White-Hot Ignition Base Spark */}
               <ellipse cx="16" cy="24.5" rx="3" ry="1.8" fill="#FFFFFF" opacity="0.95" />
             </svg>
-          </motion.div>
+          </div>
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -370,12 +365,10 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                   {day.isCompleted ? (
                     <Check size={isMobile ? 10 : 12} color="#FFF" strokeWidth={3} />
                   ) : day.isToday ? (
-                    <motion.div
-                      animate={{ scale: [0.8, 1.2, 0.8] }}
-                      transition={{ duration: 1.6, repeat: Infinity }}
+                    <div
                       style={{
-                        width: 4,
-                        height: 4,
+                        width: 5,
+                        height: 5,
                         borderRadius: '50%',
                         background: '#E11D48'
                       }}

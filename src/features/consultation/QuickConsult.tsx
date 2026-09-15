@@ -348,7 +348,7 @@ export default function QuickConsult() {
     completionHandledRef.current = true;
     setFinalTranscripts({ [id]: messages });
     setPhase('compiling');
-    completionTimerRef.current = setTimeout(() => setPhase('done'), 10000);
+    completionTimerRef.current = setTimeout(() => setPhase('done'), 2000);
     
     const caseTitle = `Quick Consult: ${selectedSpecialist?.label || 'Specialist'}`;
     const newCase = createCaseDraft({
@@ -1045,7 +1045,7 @@ export default function QuickConsult() {
                     <Network size={18} color="#FFF" />
                   </div>
                   <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 800 }}>Review in the Clinical Data Engine</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800 }}>Review in Clinical Review</div>
                     <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: 500 }}>Multi-system causal cascades, biomarker deltas &amp; doctor-ready dossier</div>
                   </div>
                 </div>

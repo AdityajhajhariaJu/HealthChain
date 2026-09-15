@@ -36,7 +36,7 @@ export const ProgressGallery: React.FC = () => {
         setItemSync('hc_progress_photo', dataUrl);
         triggerHapticSuccess();
         awardPoints(10, '📸 Progress Snapshot Logged', 'milestone', `photo_${Date.now()}`);
-        toast.success('Private photo saved', 'Your visual note was added (+10 activity points). HealthChain does not interpret appearance as a clinical result.');
+        toast.success('Private photo saved', 'Visual note added (+10 activity points). HealthChain does not interpret appearance as a clinical result.');
       }
     };
     reader.readAsDataURL(file);
@@ -313,7 +313,7 @@ export const ProgressGallery: React.FC = () => {
                 </div>
               </div>
               <p style={{ color: '#64748B', fontSize: '13px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
-                Exact counts from your HealthChain activity. A lower count means less information was logged—not worse health.
+                Exact counts from HealthChain activity. A lower count means less information was logged—not worse health.
               </p>
 
               <div style={{ height: '320px', width: '100%', position: 'relative', zIndex: 1 }}>
@@ -344,7 +344,7 @@ export const ProgressGallery: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>Private visual notes</h3>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Date-stamped photos for your own reference; no clinical inference</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Date-stamped photos for personal reference; no clinical inference</p>
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                 <button 
@@ -412,10 +412,10 @@ export const ProgressGallery: React.FC = () => {
             <div style={{ background: '#FFF', padding: isMobile ? '16px' : '24px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
               <div style={{ marginBottom: '20px' }}>
                 <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: '#0F172A' }}>
-                  Spatial Memory Vault
+                  Records Archive
                 </h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>
-                  Explore your saved laboratory records, imaging, and case snapshots by date. Items shown here remain source records, not diagnoses.
+                  Explore saved laboratory records, imaging, and case snapshots by date. Items shown here remain source records, not diagnoses.
                 </p>
               </div>
               <SpatialGalleryCanvas />

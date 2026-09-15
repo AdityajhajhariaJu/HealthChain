@@ -236,7 +236,7 @@ export default function CaseDashboard() {
             
             {/* The Glassmorphic Arch Canvas Tile - View Only */}
               <div 
-                aria-label="Health Canvas War Room"
+                aria-label="Health Canvas"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.25) 100%)', 
                   backdropFilter: 'blur(32px)', 
@@ -561,7 +561,7 @@ export default function CaseDashboard() {
                         triggerHapticLight();
                         setShowHydrationModal(true);
                       }}
-                      aria-label="Open Cellular Hydration Tracker"
+                      aria-label="Open Hydration Tracker"
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -755,7 +755,7 @@ export default function CaseDashboard() {
                     {completedHabits['vitamins'] ? 'Taken 💊' : 'Daily Vitamins'}
                   </h4>
                   <p style={{ fontSize: isMobile ? '12px' : '13px', color: completedHabits['vitamins'] ? '#B45309' : '#64748B', margin: '0 0 8px', fontWeight: 600, lineHeight: 1.3 }}>
-                    {completedHabits['vitamins'] ? 'Nice work' : 'Log your supplements'}
+                    {completedHabits['vitamins'] ? 'Logged' : 'Log supplements'}
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>

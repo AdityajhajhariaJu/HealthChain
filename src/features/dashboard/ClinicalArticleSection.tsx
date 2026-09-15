@@ -152,9 +152,9 @@ export function ClinicalArticleSection() {
     setItemSync('healthchain_bookmarked_articles', JSON.stringify(updated));
 
     if (!isSaved) {
-      toast.success('Article Saved', 'Added to your personal reading list.');
+      toast.success('Article Saved', 'Added to saved articles.');
     } else {
-      toast.info('Removed', 'Removed from your saved articles.');
+      toast.info('Removed', 'Removed from saved articles.');
     }
   };
 
@@ -174,7 +174,7 @@ export function ClinicalArticleSection() {
       } catch {}
     }
     try {
-      await navigator.clipboard.writeText(`${article.title}\n${article.subtitle}\nHealthChain360 Clinical Intelligence`);
+      await navigator.clipboard.writeText(`${article.title}\n${article.subtitle}\nHealthChain Clinical Reference`);
       toast.success('Summary Copied', 'Article details copied to clipboard.');
     } catch {
       toast.info('Article Shared', article.title);
@@ -1184,7 +1184,7 @@ export function ClinicalArticleSection() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
-                    HealthChain Clinical Intelligence
+                    HealthChain Clinical Reference
                   </span>
                 </div>
                 <div style={{ fontSize: '11.5px', color: '#15803D', fontWeight: 500 }}>
@@ -1347,7 +1347,7 @@ export function ClinicalArticleSection() {
                 }}
               >
                 <MessageSquare size={16} color="#34D399" />
-                Discuss with Ava Medical Buddy
+                Discuss with Ava Health Buddy
               </button>
 
               <button

@@ -256,7 +256,7 @@ export const MealReactionLatencyStream: React.FC<MealReactionLatencyStreamProps>
                 No Meal Latency Events Recorded
               </div>
               <p style={{ fontSize: '0.8rem', color: '#64748B', maxWidth: '380px', margin: '0 auto', lineHeight: 1.5 }}>
-                Log your meals alongside daily check-ins to track postprandial symptom latency and pinpoint immunological food sensitivities.
+                Log meals alongside daily check-ins to track symptom timing after eating.
               </p>
             </div>
             <button

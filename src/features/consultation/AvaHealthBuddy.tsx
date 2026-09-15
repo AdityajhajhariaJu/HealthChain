@@ -436,11 +436,11 @@ const MessageRenderer = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#A7F3D0' }}>
             <Wind size={18} />
             <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              AUTONOMIC VAGAL TONE RESET
+              GUIDED BREATHING RESET
             </span>
           </div>
           <h4 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#FFFFFF' }}>
-            4-7-8 Parasympathetic Calm Session
+            4-7-8 Calm Breathing Session
           </h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#CCFBF1', lineHeight: 1.5 }}>
             Evidence-based rhythmic breathwork engineered to lower sympathetic overdrive, steady heart rate, and restore prefrontal clarity.
@@ -2413,12 +2413,12 @@ export default function AvaHealthBuddy() {
                                     Recommended Clinical Protocol
                                   </div>
                                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', lineHeight: 1.2 }}>
-                                    Autonomic 4-7-8 Calm Reset
+                                    4-7-8 Breathing Reset
                                   </div>
                                 </div>
                               </div>
                               <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
-                                Vagal nerve stimulation to rapidly down-regulate sympathetic fight-or-flight arousal in 5 minutes.
+                                Guided breathing to help steady heart rate and calm the body in 5 minutes.
                               </p>
                               <button
                                 onClick={() => {

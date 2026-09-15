@@ -292,7 +292,7 @@ export default function PharmacyHub() {
                   HealthChain Pharmacy Assistant
                 </h1>
                 <p style={{ margin: 0, fontSize: '15px', color: '#64748B', fontWeight: 500, lineHeight: 1.5, maxWidth: '600px' }}>
-                  Sourcing clinical drug data from HealthChain Network.
+                  Sourcing clinical drug data from verified pharmacology databases.
                 </p>
               </div>
             </div>
@@ -597,7 +597,7 @@ export default function PharmacyHub() {
                             Nutrient Depletion Alert
                           </h3>
                           <span style={{ fontSize: '12px', color: '#B45309', fontWeight: 600 }}>
-                            Essential micronutrients depleted from your body by this medication
+                            Essential micronutrients depleted by this medication
                           </span>
                         </div>
                       </div>
@@ -656,7 +656,7 @@ export default function PharmacyHub() {
                             Optimal Daily Timing & Food Synergies
                           </h3>
                           <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                            Maximizing therapeutic bioavailability while protecting your gut
+                            Maximizing therapeutic bioavailability while supporting gastric comfort
                           </span>
                         </div>
                       </div>
@@ -683,7 +683,7 @@ export default function PharmacyHub() {
                       {displayData.optimalTiming.criticalSpacingRules && displayData.optimalTiming.criticalSpacingRules.length > 0 && (
                         <div style={{ background: '#F1F5F9', borderRadius: '8px', padding: '10px 14px' }}>
                           <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                            CRITICAL SPACING RULES:
+                            Timing & Spacing Guidance:
                           </div>
                           <ul style={{ margin: 0, paddingLeft: '18px', color: '#334155', fontSize: '12.5px', lineHeight: 1.5 }}>
                             {displayData.optimalTiming.criticalSpacingRules.map((rule: string, i: number) => (
@@ -1039,7 +1039,7 @@ export default function PharmacyHub() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {dynamicRegimen.length === 0 && (
               <div style={{ textAlign: 'center', padding: '20px 12px', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1' }}>
-                <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 12px 0' }}>No active medications in your profile.</p>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 12px 0' }}>No active medications in profile.</p>
                 <button
                   type="button"
                   onClick={() => navigate('/app/profile')}

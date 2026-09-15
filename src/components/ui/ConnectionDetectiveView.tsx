@@ -316,7 +316,7 @@ export const ALL_12_STATIONS: StationConfig[] = [
     shortTitle: 'Heatmap',
     icon: '📅',
     subtitle: 'Monthly meal logs & flare calendar',
-    statusBadge: '30-Day Matrix',
+    statusBadge: '30-Day Trend',
   },
   {
     id: 'elimination',
@@ -509,7 +509,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     id: 'body',
     title: 'Labs & Body',
     badge: 'Pillar 02',
-    desc: 'Functional lab ranges, optimal targets & vagal biomechanics',
+    desc: 'Lab ranges, optimal targets & biomechanics',
     icon: '🧪',
     stationCount: 2,
     stationRange: '06 - 07',
@@ -527,7 +527,7 @@ export const PARENT_PILLAR_CARDS: ParentPillarCardData[] = [
     id: 'cause',
     title: 'Root Cause',
     badge: 'Pillar 03',
-    desc: '5-stage domino cascade, cluster matcher & specialist consensus',
+    desc: 'Sequential symptom analysis & specialist consensus',
     icon: '⚡',
     stationCount: 4,
     stationRange: '08 - 11',
@@ -829,7 +829,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
       case 'cascade':
         return (report?.cascadeStages?.length || 0) > 0
           ? `${report.cascadeStages.length}-Stage Cascade`
-          : 'Domino Flow';
+          : 'Symptom Flow';
       case 'consensus':
         return dynamicPillarData.cause.consensusCount > 0
           ? `${dynamicPillarData.cause.consensusCount} Panels Aligned`
@@ -1321,8 +1321,8 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                           onClick={() => openSourcePassage(
                             "Upper Cervical & Vagus Axis Analysis",
                             "Autonomic Neuro-Biomechanics",
-                            "Occipito-atlanto-axial mechanical misalignment alters dorsal motor vagal efferent signaling, impacting baroreflex heart rate regulation and enteric gastrointestinal peristalsis.",
-                            "Kinetic craniocervical vagal nerve compression"
+                            "Upper cervical postural strain alters autonomic signaling, impacting heart rate responsiveness and digestive motility.",
+                            "Craniocervical alignment and autonomic signaling"
                           )}
                         />
                       </div>
@@ -1354,7 +1354,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                               Awaiting Clinical Pathophysiology Intake
                             </strong>
                             <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.45 }}>
-                              Start a consultation or connect health logs to generate your personal 5-stage sequential causal domino chain.
+                              Start a consultation or connect health logs to generate a symptom progression analysis.
                             </p>
                           </div>
                           <button
@@ -1468,7 +1468,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                                       "Autonomic Pathophysiology Model",
                                       "Cross-Organ Mapping",
                                       `Stage ${cur.stage} (${cur.title}): ${cur.mechanism}. Downstream effect: ${cur.downstreamEffect}.`,
-                                      `Causal domino cascade stage ${cur.stage}`
+                                      `Progression stage ${cur.stage}`
                                     )}
                                   />
                                 </div>
@@ -1560,7 +1560,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                           <span style={{ fontSize: '11px', color: '#64748B' }}>
-                            Tap symptoms to dynamically recalculate multi-specialist board convergence in real-time:
+                            Tap symptoms to recalculate specialist consensus:
                           </span>
                           <SourceEvidenceBadge
                             source="Multi-System Cluster Evaluator"
@@ -1622,14 +1622,14 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <span style={{ fontSize: '10px', fontWeight: 800, color: '#0369A1', textTransform: 'uppercase' }}>
-                              BOARD CONVERGENCE INDEX
+                              SPECIALIST AGREEMENT
                             </span>
                             <div style={{ fontSize: '18px', fontWeight: 900, color: '#0C4A6E' }}>
                               Recorded observations
                             </div>
                           </div>
                           <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '3px 8px', borderRadius: '999px', background: '#0284C7', color: '#FFFFFF' }}>
-                            {clusterEvaluation.summonedBoards.length} Boards Summoned
+                            {clusterEvaluation.summonedBoards.length} Specialties Active
                           </span>
                         </div>
 
@@ -2158,7 +2158,7 @@ ${report.doctorDossier.citations.map((cite) => `• ${cite}`).join('\n')}
                       Diagnostic Bridge: Biomechanics & Labs → Root Cause Flow
                     </strong>
                     <span style={{ color: '#475569' }}>
-                      Upper cervical vagal impingement combined with depleted cellular cofactors directly launches multi-organ autonomic cascades.
+                      Upper cervical alignment combined with borderline nutritional cofactors may contribute to multi-system symptoms.
                     </span>
                   </div>
                 </div>

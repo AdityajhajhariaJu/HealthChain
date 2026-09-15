@@ -149,7 +149,7 @@ export const InformationCategoryBadge: React.FC<InformationCategoryBadgeProps> =
                     </div>
                     <div>
                       <div style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', color: spec.badgeColors.text }}>
-                        CLINICAL EPISTEMIC CATEGORY
+                        EVIDENCE CATEGORY
                       </div>
                       <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
                         {spec.name}

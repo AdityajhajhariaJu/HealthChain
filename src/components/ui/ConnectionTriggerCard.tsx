@@ -94,7 +94,7 @@ export const ConnectionTriggerCard: React.FC<ConnectionTriggerCardProps> = ({
 
   const handleCopySbar = () => {
     triggerHapticLight();
-    const sbarText = `HEALTHCHAIN 360 • CLINIC USP CAUSAL CONNECTION BRIEF
+    const sbarText = `HEALTHCHAIN • CAUSAL CONNECTION BRIEF
 [SITUATION]: Patient reports ${symptom} appearing ${reactionWindow}.
 [BACKGROUND]: Identified upstream causality linked to ${upstreamRootCause}.
 [ASSESSMENT]: Kinetic chain evaluation demonstrates myofascial/dural pull along: ${kineticPathway.join(' -> ')}.

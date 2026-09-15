@@ -113,7 +113,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
               fontWeight: 600
             }}>
               <RotateCw size={14} className={isUpdating ? 'animate-spin' : ''} color="#38BDF8" />
-              <span>{isUpdating ? 'Updating reasoning...' : 'Pipeline Active'}</span>
+              <span>{isUpdating ? 'Updating reasoning...' : 'Active'}</span>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export const ClinicalReasoningPipelineView: React.FC<ClinicalReasoningPipelineVi
           overflowX: 'auto'
         }}>
           <div style={{ fontSize: '11px', fontWeight: 800, color: '#38BDF8', textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>Reasoning Pipeline (tap any node to inspect)</span>
+            <span>Reasoning chain (tap any step to inspect)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', minWidth: '850px', gap: '8px' }}>

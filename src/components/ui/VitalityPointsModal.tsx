@@ -380,7 +380,7 @@ export default function VitalityPointsModal() {
                     </div>
                     <div>
                       <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>60-Sec Mindful HRV Reset</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>4-4-4 Calming Vagal Nerve Rhythm</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>4-4-4 Calming Breathing Rhythm</div>
                     </div>
                   </div>
                   <button onClick={() => handleQuestAction('/app/today')} className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>
@@ -406,7 +406,7 @@ export default function VitalityPointsModal() {
                     </div>
                     <div>
                       <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>Start a Specialist Consult</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>Quick consult or Clinical Data Engine session</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>Quick consult or Clinical Review session</div>
                     </div>
                   </div>
                   <button onClick={() => handleQuestAction('/app/consult')} className="btn btn-outline btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>

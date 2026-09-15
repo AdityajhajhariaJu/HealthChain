@@ -98,7 +98,7 @@ const BENTO_COL_LEFT = [
     id: 'bento_left_3',
     type: 'img',
     img: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80',
-    tag: '🧬 Biomarker Matrix',
+    tag: '🧬 Biomarker Analysis',
     status: 'LAB',
     title: 'When a Report Is Hard to Interpret, Keep the Source Visible',
     desc: 'Extracts printed values, units, dates, and laboratory ranges so you can review changes and questions without losing the original context.'

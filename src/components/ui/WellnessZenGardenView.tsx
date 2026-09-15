@@ -76,13 +76,13 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = ({ on
         </div>
         <div>
           <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            AUTONOMIC GUT-BRAIN EQUILIBRIUM
+            RELAXATION & MINDFULNESS
           </div>
           <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-            Calm Your Body & Mind, Grow Your Garden
+            Calm Body & Mind, Grow the Garden
           </div>
           <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>
-            Every clean meal, breathwork reset, and flare-free day blooms rare flowers and restores gut microbiome serenity.
+            Clean meals, breathing exercises, and calm days help grow the garden.
           </div>
         </div>
       </div>

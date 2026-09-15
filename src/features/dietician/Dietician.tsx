@@ -775,14 +775,14 @@ export default function Dietician() {
       if (data && data.groceryList) {
         if (isMounted.current) setGroceryList(data.groceryList);
         updateProfileFeatureData('dietician', { groceryList: data.groceryList });
-        awardPoints(2, '🛒 Smart List Created', 'lifestyle', `grocery_${Date.now()}`);
+        awardPoints(2, '🛒 Grocery List Created', 'lifestyle', `grocery_${Date.now()}`);
         triggerHapticSuccess();
       } else {
         toast.error('Generation Failed', 'Could not extract grocery list. Please try again.');
       }
     } catch (err) {
       console.error(err);
-      toast.error('Network Error', 'Failed to connect to AI matrix.');
+      toast.error('Network Error', 'Failed to generate grocery list.');
     } finally {
       if (isMounted.current) setIsGeneratingGrocery(false);
     }
@@ -1609,7 +1609,7 @@ export default function Dietician() {
                       cursor: 'pointer',
                     }}
                   >
-                    <ShoppingCart size={15} /> Smart Grocery
+                    <ShoppingCart size={15} /> Grocery List
                   </button>
                 )}
                 {mealPlan && (
@@ -1708,7 +1708,7 @@ export default function Dietician() {
                   No Active 7-Day Plan
                 </h3>
                 <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-                  Generate an authentic, chef-grade nutritional schedule that balances your macros and guards against your health conditions.
+                  Generate a balanced nutritional schedule tailored to macro targets and health conditions.
                 </p>
                 <button
                   onClick={handleGeneratePlan}
@@ -2588,7 +2588,7 @@ export default function Dietician() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', marginBottom: '20px', gap: '12px' }}>
                 <div>
                   <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
-                    Nutritional Guardrails & Bio-Compatibility Matrix
+                    Nutritional Guardrails & Compatibility Check
                   </h2>
                   <p style={{ color: '#64748B', margin: 0, fontSize: '14px' }}>
                     AI-assisted food-plan checks using the profile details you supplied. Verify allergies, restrictions, and changes with a qualified clinician or dietitian.
@@ -2627,12 +2627,12 @@ export default function Dietician() {
                   <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#F1F5F9', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px auto' }}>
                     <ShieldCheck size={32} />
                   </div>
-                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>Matrix Offline</h3>
+                  <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0' }}>No Guardrails Active</h3>
                   <p style={{ color: '#64748B', fontSize: '14.5px', maxWidth: '440px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
                     Create editable planning guardrails from the information you entered. These are AI suggestions, not confirmation that a meal is safe or clinically appropriate.
                   </p>
                   <button onClick={handleGenerateGuardrails} style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#FFF', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 800, fontSize: '15px', cursor: 'pointer' }}>
-                    Initialize Matrix
+                    Run Compatibility Check
                   </button>
                 </div>
               ) : (

@@ -152,8 +152,8 @@ export const ClinicalEliminationModal: React.FC<ClinicalEliminationModalProps> =
     : [
         { id: 'task_0', label: `Zero ${activeProtocolDef.eliminatedFoods[0] || 'primary triggers'}`, desc: `Strictly avoid ${activeProtocolDef.eliminatedFoods.slice(0, 2).join(', ')}` },
         { id: 'task_1', label: `Incorporate ${activeProtocolDef.allowedAlternatives[0] || 'safe swaps'}`, desc: 'Maintain clean nutrient density and satiety' },
-        { id: 'task_2', label: 'Hydration with mineral electrolytes (2.0L+)', desc: 'Flushes osmotic colonic gradient' },
-        { id: 'task_3', label: '12-Hour overnight gut motilin rest window', desc: 'Allows Migrating Motor Complex (MMC) housekeeping waves' },
+        { id: 'task_2', label: 'Hydration with mineral electrolytes (2.0L+)', desc: 'Supports hydration and digestion' },
+        { id: 'task_3', label: '12-Hour overnight gut motilin rest window', desc: 'Gives the digestive system a rest' },
       ];
 
   const sosOptions = (() => {
@@ -340,7 +340,7 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                       textTransform: 'uppercase',
                     }}
                   >
-                    {trial ? (activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL') : 'CLINICAL ELIMINATION SUITE'}
+                    {trial ? (activeProtocolDef.targetSensitivity ? activeProtocolDef.targetSensitivity.toUpperCase() : 'CLINICAL GI PROTOCOL') : 'CLINICAL ELIMINATION'}
                   </span>
                   {trial ? (
                     <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 700 }}>
@@ -485,14 +485,14 @@ ${trial.symptomScores.map((s) => `• Day ${s.day}: ${s.severity}/10 (${s.adhere
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Sparkles size={16} color="#7C3AED" />
                     <span style={{ fontSize: '12px', fontWeight: 800, color: '#6D28D9', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                      Clinical Trial Protocol Suite
+                      Clinical Trial Protocol
                     </span>
                   </div>
                   <div style={{ fontSize: '15px', fontWeight: 800, color: '#1E1B4B' }}>
                     Choose an Evidence-Based Elimination Protocol
                   </div>
                   <div style={{ fontSize: '12.5px', color: '#4C1D95', lineHeight: 1.5 }}>
-                    Select a structured dietary protocol to isolate inflammatory triggers, test systemic tolerance windows, and generate physician-grade SBAR dossiers.
+                    Choose a protocol to identify food triggers and track results.
                   </div>
                 </div>
 
@@ -1173,7 +1173,7 @@ R (Recommendation):
                 gap: '4px',
               }}
             >
-              <span>Full Dietician Suite View</span>
+              <span>Full Dietician View</span>
               <ArrowRight size={13} />
             </button>
 

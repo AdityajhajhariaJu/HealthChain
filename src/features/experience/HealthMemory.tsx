@@ -25,7 +25,7 @@ const labelFor = (kind: HealthMemoryItem['kind']) => ({
   profile_event: 'Health profile',
   pharmacy: 'Medication & Pharmacy',
   research: 'Clinical Trials & Evidence',
-  jarvis_analysis: 'Clinical Data Engine Analysis',
+  jarvis_analysis: 'Clinical Review Analysis',
   discussion_guide: 'Clinical Discussion Guide',
 }[kind] || kind);
 
@@ -153,23 +153,23 @@ export default function HealthMemory() {
     <div style={{ maxWidth: 1060, margin: '0 auto', padding: '8px 0 48px' }}>
       <section style={{ padding: '32px', borderRadius: 28, color: '#fff', background: 'linear-gradient(135deg, #0f766e, #115e59 56%, #0f172a)', boxShadow: '0 18px 44px rgba(15, 118, 110, .18)' }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', color: '#ccfbf1', fontWeight: 800, fontSize: 13, letterSpacing: '.08em', textTransform: 'uppercase' }}><Brain size={18}/> Private Health Memory</div>
-        <h1 style={{ margin: '14px 0 10px', fontSize: 'clamp(30px, 5vw, 46px)', lineHeight: 1.05 }}>Your health story, kept connected.</h1>
+        <h1 style={{ margin: '14px 0 10px', fontSize: 'clamp(30px, 5vw, 46px)', lineHeight: 1.05 }}>Health records and insights, kept connected.</h1>
         <p style={{ maxWidth: 720, color: '#d1fae5', fontSize: 17, lineHeight: 1.6, margin: 0 }}>HealthChain automatically preserves the useful knowledge created across Case Prep, Quick Consult, collaborative reviews, lab analysis, diet, and Ava—without retaining original uploaded files.</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 22 }}>
-          <span style={{ padding: '8px 12px', borderRadius: 99, background: 'rgba(255,255,255,.12)', fontSize: 13 }}><Cloud size={14} style={{ verticalAlign: -2, marginRight: 6 }}/>Syncs to your signed-in account</span>
+          <span style={{ padding: '8px 12px', borderRadius: 99, background: 'rgba(255,255,255,.12)', fontSize: 13 }}><Cloud size={14} style={{ verticalAlign: -2, marginRight: 6 }}/>Syncs to signed-in account</span>
           <span style={{ padding: '8px 12px', borderRadius: 99, background: 'rgba(255,255,255,.12)', fontSize: 13 }}><CheckCircle2 size={14} style={{ verticalAlign: -2, marginRight: 6 }}/>Structured knowledge, not raw files</span>
         </div>
       </section>
 
       <section style={{ marginTop: 22, padding: 24, borderRadius: 22, background: '#fff', border: '1px solid #e2e8f0' }}>
-        <h2 style={{ margin: 0, fontSize: 19 }}>What your profile currently contains</h2>
+        <h2 style={{ margin: 0, fontSize: 19 }}>Current profile contents</h2>
         <p style={{ color: '#64748b', margin: '7px 0 14px' }}>User-reported and clinician-confirmed information stays clearly separate from AI-organised material.</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>{facts.length ? facts.map(fact => <span key={fact} style={{ padding: '9px 12px', background: '#f0fdfa', borderRadius: 10, color: '#115e59', fontWeight: 650, fontSize: 13 }}>{fact}</span>) : <span style={{ color: '#64748b' }}>Complete your medical profile to add enduring facts here.</span>}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>{facts.length ? facts.map(fact => <span key={fact} style={{ padding: '9px 12px', background: '#f0fdfa', borderRadius: 10, color: '#115e59', fontWeight: 650, fontSize: 13 }}>{fact}</span>) : <span style={{ color: '#64748b' }}>Complete medical profile to add enduring facts here.</span>}</div>
       </section>
 
       <section style={{ marginTop: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'end', flexWrap: 'wrap' }}>
-          <div><h2 style={{ margin: 0, fontSize: 24 }}>Your timeline</h2><p style={{ margin: '6px 0 0', color: '#64748b' }}>{items.length} saved health memory item{items.length === 1 ? '' : 's'}</p></div>
+          <div><h2 style={{ margin: 0, fontSize: 24 }}>Activity timeline</h2><p style={{ margin: '6px 0 0', color: '#64748b' }}>{items.length} saved health memory item{items.length === 1 ? '' : 's'}</p></div>
           <select
             aria-label="Filter health memory by category"
             value={filter}
@@ -185,7 +185,7 @@ export default function HealthMemory() {
             <option value="health_buddy">Ava</option>
             <option value="pharmacy">Medication & Pharmacy</option>
             <option value="research">Clinical Trials & Evidence</option>
-            <option value="jarvis_analysis">Clinical Data Engine Analysis</option>
+            <option value="jarvis_analysis">Clinical Review Analysis</option>
             <option value="discussion_guide">Discussion Guides</option>
           </select>
         </div>

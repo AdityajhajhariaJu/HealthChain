@@ -407,7 +407,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                         boxShadow: historyMode === 'month' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
                       }}
                     >
-                      <span>📅 Monthly Matrix</span>
+                      <span>📅 Monthly Trends</span>
                     </button>
                     <button
                       type="button"
@@ -630,13 +630,13 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
                   >
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '2px' }}>
-                        MINDFULNESS & VAGAL TONE
+                        MINDFULNESS & RELAXATION
                       </div>
                       <div style={{ fontSize: '16px', fontWeight: 800, color: '#1C1917' }}>
-                        Calm your body & mind
+                        Calm body & mind
                       </div>
                       <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '2px' }}>
-                        4-7-8 parasympathetic breathwork to settle autonomic gut contractions.
+                        4-7-8 breathing to ease digestive tension.
                       </div>
                     </div>
 

@@ -82,7 +82,7 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
     id: 'bloating_hunt',
     name: 'Low-FODMAP Bloating & Fermentation Protocol',
     tagline: 'Systematic 28-day washout of fermentable carbohydrates & SIBO gas triggers',
-    badge: 'CLINICAL GI WASHOUT PROTOCOL',
+    badge: 'GI ELIMINATION PROTOCOL',
     targetDurationDays: 28,
     clinicalAuthority: 'Clinical Gastroenterology Low-FODMAP Protocol (Rome IV Standards)',
     icon: '💨',
@@ -115,7 +115,7 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
       { id: 'zero_fodmap', label: 'Zero High-FODMAP Ingredients', sublabel: 'Cross-checked lunch & dinner against forbidden list' },
       { id: 'meal_logged', label: 'Logged All Meals & Reactions', sublabel: 'Recorded post-meal sensations in Post-Meal Timeline' },
       { id: 'hydration_pacing', label: 'Hydration Paced Between Meals', sublabel: 'Drank 2.5L water without drinking heavily during meals' },
-      { id: 'posture_calm', label: '15-Minute Upright Postprandial Walk', sublabel: 'Enhanced gastric motility and vagal clearance' },
+      { id: 'posture_calm', label: '15-Minute Upright Postprandial Walk', sublabel: 'Supports healthy digestion and motility' },
     ],
     symptomDrop: {
       metric: 'Abdominal Bloat Severity',
@@ -129,7 +129,7 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
     id: 'heartburn_hunt',
     name: 'Acid Watcher 21-Day GERD & LPR Hunt',
     tagline: 'Mucosal healing protocol eliminating pepsin activators & night reflux triggers',
-    badge: 'CLINICAL GASTROENTEROLOGY GERD SUITE',
+    badge: 'GERD ELIMINATION PROTOCOL',
     targetDurationDays: 21,
     clinicalAuthority: 'Koufman Acid Watcher / American College of Gastroenterology',
     icon: '🔥',
@@ -214,9 +214,9 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
 
   vagal_hunt: {
     id: 'vagal_hunt',
-    name: 'Gut-Brain Vagal Axis & Visceral Sensitivity Hunt',
-    tagline: 'Parasympathetic tone restoration to eliminate nervous gut spasms & clutching',
-    badge: 'NEURO-GASTROENTEROLOGY SUITE',
+    name: 'Gut-Brain Sensitivity Protocol',
+    tagline: 'Relaxation and mindful eating techniques to ease digestive discomfort',
+    badge: 'GUT-BRAIN SENSITIVITY PROTOCOL',
     targetDurationDays: 14,
     clinicalAuthority: 'Rome IV Functional GI Disorder Consortium (Gut-Brain Axis)',
     icon: '🧠',
@@ -237,13 +237,13 @@ export const PROTOCOLS: Record<ProtocolId, EliminationProtocolDef> = {
     safeSwaps: [
       { insteadOf: 'Eating at Work Desk', swapTo: 'Dedicated 20-Min Screen-Free Dining Table', culinaryNote: 'Cephalic digestive cascade increases stomach enzyme release by 40%.' },
       { insteadOf: 'Gulping Meals in 8 Minutes', swapTo: 'Minimum 20 Chews Per Bite with Fork Resting', culinaryNote: 'Salivary amylase breaks down starch before hitting the stomach.' },
-      { insteadOf: 'Post-Meal Slouch on Sofa', swapTo: 'Upright Chest Opening & 10-Min Slow Stroll', culinaryNote: 'Relieves mechanical pressure on the vagal cardiac branch.' },
+      { insteadOf: 'Post-Meal Slouch on Sofa', swapTo: 'Upright Chest Opening & 10-Min Slow Stroll', culinaryNote: 'Relieves mechanical tension in the diaphragm area.' },
     ],
     dailyChecklist: [
-      { id: 'pre_meal_breath', label: '5-Minute Vagal Breathing Before Meals', sublabel: '4-7-8 parasympathetic activation sequence' },
+      { id: 'pre_meal_breath', label: '5-Minute Mindful Breathing Before Meals', sublabel: '4-7-8 calming rhythm' },
       { id: 'screen_free_meal', label: '100% Screen-Free Mealtime', sublabel: 'Zero phone or laptop use while eating lunch & dinner' },
       { id: 'chew_pacing', label: 'Fork Resting Between Every Bite', sublabel: 'Paced total meal duration to 20+ minutes' },
-      { id: 'hrv_reset', label: 'Evening Vagal Reset Routine', sublabel: 'Completed 60s heart-rate variability reset' },
+      { id: 'hrv_reset', label: 'Evening Calming Routine', sublabel: 'Completed 60s heart-rate variability reset' },
     ],
     symptomDrop: {
       metric: 'Visceral Gut Cramping Index',
@@ -377,7 +377,7 @@ ${activeProtocol.forbiddenFoods.map((f) => `• [${f.category}] ${f.food} — ${
 4. ACTIVE SAFE CULINARY SUBSTITUTIONS:
 ${activeProtocol.safeSwaps.map((s) => `• ${s.insteadOf} ⇢ ${s.swapTo} (${s.culinaryNote})`).join('\n')}
 
-Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
+Generated via HealthChain Clinical Elimination Protocol.`;
 
     navigator.clipboard.writeText(dossierText);
     setCopiedSummary(true);
@@ -475,7 +475,7 @@ Generated via HealthChain360 Clinical Elimination & Symptom Hunt Suite.`;
               }}
             >
               <span>🎯</span>
-              <span>{isMobile ? 'Goal Hub' : 'Personalized Journey Hub'}</span>
+              <span>{isMobile ? 'Goals' : 'Goal Settings'}</span>
             </button>
 
             <button

@@ -110,7 +110,7 @@ export default function UpdatePassword() {
               </div>
               <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>Password Updated</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.5', marginBottom: '24px' }}>
-                Your password has been successfully reset. You can now access your dashboard.
+                Password reset successfully. The dashboard is now accessible.
               </p>
               <button onClick={() => navigate('/app')} className="btn btn-primary" style={{ width: '100%' }}>
                 Go to Dashboard
@@ -122,7 +122,7 @@ export default function UpdatePassword() {
                 Set New Password
               </h1>
               <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '15px' }}>
-                Please enter your new password below.
+                Enter a new password below.
               </p>
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

@@ -135,7 +135,7 @@ AI-generated preparation material. Verify against original records.`;
               const isJarvis = review.type === 'jarvis';
               const isLab = review.type === 'lab_report';
               const Icon = isJarvis ? BrainCircuit : isLab ? FileText : isParallel ? GitMerge : Network;
-              const label = isJarvis ? 'Clinical Data Engine Analysis' : isLab ? 'Lab Report' : isParallel ? 'Quick Consult' : 'Deep Collab Correlation';
+              const label = isJarvis ? 'Clinical Review' : isLab ? 'Lab Report' : isParallel ? 'Quick Consult' : 'Deep Collab Correlation';
               const summary = review.report?.executiveSummary || 'Review saved to case.';
               const isSelected = activeReviewId === review.id;
 
@@ -204,7 +204,7 @@ AI-generated preparation material. Verify against original records.`;
                 <div>
                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <h2 style={{ margin: 0, fontSize: isMobile ? 20 : 24 }}>
-                        {activeReview.type === 'jarvis' ? 'Clinical Data Engine Analysis Report' : activeReview.type === 'parallel' ? 'Parallel Review Report' : 'Clinical Consensus Report'}
+                        {activeReview.type === 'jarvis' ? 'Clinical Review Report' : activeReview.type === 'parallel' ? 'Parallel Review Report' : 'Clinical Consensus Report'}
                       </h2>
                       {activeReview.id === reviews[reviews.length - 1].id && (
                          <span className="badge badge-teal">Latest</span>

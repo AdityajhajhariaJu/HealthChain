@@ -115,7 +115,7 @@ export default function CaseDetail() {
     triggerHapticSuccess();
     setActiveCase(caseItem.id);
     setActiveCaseIdState(caseItem.id);
-    toast.success('Workspace Set to Active', `"${caseItem.title}" is now your active clinical context across HealthChain.`);
+    toast.success('Workspace Set to Active', `"${caseItem.title}" is now the active clinical context across HealthChain.`);
   };
 
   if (!caseItem) {
@@ -134,7 +134,7 @@ export default function CaseDetail() {
             onClick={() => navigate('/app/my-cases')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, margin: '0 auto' }}
           >
-            <ArrowLeft size={16} /> Return to My Cases
+            <ArrowLeft size={16} /> Return to Cases
           </button>
         </div>
       </div>
@@ -170,7 +170,7 @@ export default function CaseDetail() {
             padding: '6px 0'
           }}
         >
-          <ArrowLeft size={16} /> Back to My Cases
+          <ArrowLeft size={16} /> Back to Cases
         </button>
       </div>
 
@@ -218,7 +218,7 @@ export default function CaseDetail() {
                   border: '0.8px solid #0284C7',
                   display: 'inline-block',
                 }} />
-                {(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? 'Clinical Data Engine' : 'Clinical Consultation'}
+                {(caseItem.mode === 'jarvis' || caseItem.mode === 'mdt') ? 'Clinical Review' : 'Clinical Consultation'}
               </span>
               <span className="badge badge-teal" style={{ textTransform: 'capitalize' }}>
                 Stage: {caseItem.currentStage.replace(/_/g, ' ')}
@@ -502,7 +502,7 @@ export default function CaseDetail() {
                       <div>
                         <div style={{ fontWeight: 700, color: '#0F172A', fontSize: 15 }}>{record.filename}</div>
                         <div style={{ fontSize: 13, color: '#64748B', marginTop: 2 }}>
-                          {record.findings || 'Report findings processed by HealthChain Engine.'}
+                          {record.findings || 'Report findings processed by HealthChain.'}
                         </div>
                       </div>
                     </div>

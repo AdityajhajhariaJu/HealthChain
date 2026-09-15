@@ -217,7 +217,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   {
     name: 'Omega-3 Fish Oil',
     dosage: '1000mg EPA/DHA with meal',
-    benefit: 'Cardiovascular & Neural Membrane Health',
+    benefit: 'Heart & Brain Health',
     rationale: 'Fat-soluble; best taken with dietary lipids during lunch for 3x absorption.',
     timeSlot: 'Midday',
     defaultTime: '13:00',
@@ -255,7 +255,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   {
     name: 'Vitamin D3 & K2',
     dosage: '2000 IU + 100mcg MK-7',
-    benefit: 'Immune Defense & Bone Mineral Matrix',
+    benefit: 'Immune Defense & Bone Health',
     rationale: 'Fat-soluble; supports morning cortisol rhythm. Avoid at night (may disrupt melatonin).',
     timeSlot: 'Morning',
     defaultTime: '09:00',
@@ -279,7 +279,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   {
     name: 'Vitamin B-Complex',
     dosage: '1 active co-enzymated capsule',
-    benefit: 'Mitochondrial Cellular Energy & Neurotransmitters',
+    benefit: 'Energy & Nerve Function',
     rationale: 'Energizing; best taken early morning to prevent nocturnal stimulation.',
     timeSlot: 'Morning',
     defaultTime: '08:00',
@@ -303,7 +303,7 @@ export const CLINICAL_CATALOG: EnrichedPillMetadata[] = [
   {
     name: 'CoQ10 Ubiquinol',
     dosage: '100mg with meal',
-    benefit: 'Cellular ATP Synthesis & Myocardial Support',
+    benefit: 'Energy & Heart Support',
     rationale: 'Crucial for cellular energy and statin-induced depletion prevention.',
     timeSlot: 'Midday',
     defaultTime: '12:30',

@@ -695,7 +695,7 @@ export function OnboardingWizard({
               What would you like the example to support?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Your choice changes the editable estimates. Review weight-change goals with a qualified professional, especially if you have a medical condition or history of disordered eating.
+              This choice adjusts the editable estimates. Review weight-change goals with a qualified professional, especially if you have a medical condition or history of disordered eating.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
@@ -792,10 +792,10 @@ export function OnboardingWizard({
         {step === 3 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-              How active is your daily routine?
+              Daily activity level
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Physical activity sets your Total Daily Energy Expenditure (TDEE) multiplier.
+              Physical activity sets the Total Daily Energy Expenditure (TDEE) multiplier.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
@@ -844,7 +844,7 @@ export function OnboardingWizard({
               Any dietary preferences or restrictions?
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Select all that apply. Your 7-day meal plans and grocery lists will adapt strictly.
+              Select all that apply. Meal plans and grocery lists will adapt.
             </p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
@@ -989,7 +989,7 @@ export function OnboardingWizard({
         {step === 6 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <h2 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 800, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-              What is your culinary style?
+              Culinary style
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
               Recipes will prioritize authentic native spices, ingredients, and realistic prep methods.
@@ -1037,7 +1037,7 @@ export function OnboardingWizard({
               Daily Meal Timing & Schedule
             </h2>
             <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '22px' }}>
-              Choose a structure that matches your work rhythm and digestion windows.
+              Choose a structure that matches daily schedule and digestion windows.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
@@ -1106,7 +1106,7 @@ export function OnboardingWizard({
             </div>
 
             <h2 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 900, color: '#0F172A', marginBottom: '8px', letterSpacing: '-0.8px' }}>
-              Your editable planning estimates are ready
+              Editable planning estimates ready
             </h2>
             <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', lineHeight: 1.5 }}>
               These estimates and preferences can now prefill food-planning examples across HealthChain. Review and edit them whenever your needs change.

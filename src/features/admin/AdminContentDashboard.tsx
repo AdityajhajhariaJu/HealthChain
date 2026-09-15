@@ -449,7 +449,7 @@ export const AdminContentDashboard: React.FC = () => {
                 <div className="w-[10%]">
                   {content.is_active ? (
                     <span className="inline-flex items-center gap-2 text-emerald-600 text-sm font-bold bg-emerald-50 px-3 py-1.5 rounded-full">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-2 text-slate-500 text-sm font-bold bg-slate-100 px-3 py-1.5 rounded-full">

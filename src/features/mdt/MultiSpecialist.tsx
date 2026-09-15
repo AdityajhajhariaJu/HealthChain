@@ -286,7 +286,7 @@ export default function MultiSpecialist() {
       return;
     }
     if (symptomInput.trim().length < 5) {
-      toast.error('Input Required', 'Please enter at least 5 characters for your symptoms.');
+      toast.error('Input Required', 'Please enter at least 5 characters for symptoms.');
       return;
     }
     let activeSelected = [...selected];
@@ -464,7 +464,7 @@ export default function MultiSpecialist() {
                 letterSpacing: '1px',
               }}
             >
-              AI Medical Engine
+              Clinical Perspectives
             </span>
           </div>
           <h1
@@ -488,8 +488,8 @@ export default function MultiSpecialist() {
               fontWeight: 500,
             }}
           >
-            Describe your symptoms. We will spin up multiple AI specialists to investigate
-            simultaneously and cross-correlate their findings.
+            Describe symptoms. Multiple AI specialists will review independently
+            and cross-correlate their findings.
           </p>
         </div>
 
@@ -581,7 +581,7 @@ export default function MultiSpecialist() {
                     <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0F766E', fontWeight: 800 }}>AI Specialist Recommendation</h4>
                     {isSuggesting ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0F766E', fontSize: 14 }}>
-                        <Loader2 size={16} className="spin" /> Analyzing your medical profile...
+                        <Loader2 size={16} className="spin" /> Analyzing medical profile...
                       </div>
                     ) : (
                       <>
@@ -1116,21 +1116,21 @@ function ParallelSideStory({ side }) {
             icon: GitMerge,
             label: 'HOW IT WORKS',
             title: 'Multiple perspectives. One starting point.',
-            text: 'Choose the specialist perspectives that match your story. Each investigates independently.',
+            text: 'Choose specialist perspectives that match the case. Each investigates independently.',
             stat: 'UP TO 5 AI SPECIALISTS',
           },
           {
             icon: Activity,
             label: 'LIVE CASE MAP',
-            title: 'Your evidence stays connected.',
-            text: 'Symptoms, records, questions and findings are kept together as your case develops.',
+            title: 'Case evidence stays connected.',
+            text: 'Symptoms, records, questions and findings are kept together as the case develops.',
             stat: 'ONE EVOLVING CASE FILE',
           },
           {
             icon: CheckCircle2,
             label: 'NEXT STEP',
             title: 'Move forward with clarity.',
-            text: 'Receive the questions, evidence gaps and next actions to discuss with your real clinician.',
+            text: 'Receive questions, evidence gaps and next actions to discuss with a clinician.',
             stat: 'DOCTOR-READY BRIEF',
           },
         ]
@@ -1146,8 +1146,8 @@ function ParallelSideStory({ side }) {
             icon: Layers,
             label: 'THEN COLLABORATE',
             title: 'Use the Board for deeper correlation.',
-            text: 'When evidence grows, take your parallel findings into a board consensus review.',
-            stat: 'YOUR NEXT PREMIUM STEP',
+            text: 'When evidence grows, take parallel findings into a board consensus review.',
+            stat: 'RECOMMENDED NEXT STEP',
           },
           {
             icon: FileText,

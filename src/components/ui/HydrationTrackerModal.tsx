@@ -265,7 +265,7 @@ export const HydrationTrackerModal: React.FC<HydrationTrackerModalProps> = ({
                   marginBottom: '8px'
                 }}>
                   <Sparkles size={11} />
-                  {percentage >= 100 ? 'Target Achieved' : 'Cellular Hydration'}
+                  {percentage >= 100 ? 'Target Achieved' : 'Hydration'}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>

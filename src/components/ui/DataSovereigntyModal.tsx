@@ -125,10 +125,10 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0F172A' }}>
-                  User-Controlled Workspace Sovereignty
+                  Data Privacy & Storage
                 </h3>
                 <div style={{ fontSize: '12px', color: '#64748B' }}>
-                  Promise 8 • Strict Boundary: Local Device Vault vs. Ephemeral AI
+                  How data stays on this device
                 </div>
               </div>
             </div>
@@ -247,7 +247,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
                     <Lock size={16} /> Device-Local Client Storage
                   </div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#047857', lineHeight: 1.55 }}>
-                    Your health timeline, blood work results, meal diary, and clinical case drafts live inside your browser’s IndexedDB sandbox. They are never transmitted to third-party ad networks or sold.
+                    Health records, blood work, meal logs, and case drafts live in local storage. They are never transmitted to third-party ad networks or sold.
                   </p>
                 </div>
 
@@ -271,7 +271,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
                 </div>
 
                 <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.5, background: '#F1F5F9', padding: '12px 14px', borderRadius: '10px' }}>
-                  ℹ️ <strong>Ownership Guarantee:</strong> You retain complete cryptographic ownership over your health record database. Clearing browser data or using private mode resets the local store.
+                  ℹ️ <strong>Ownership Guarantee:</strong> Full ownership is retained over the local health record. Clearing browser data or using private mode resets the local store.
                 </div>
               </div>
             )}
@@ -292,7 +292,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
                     <div style={{ color: '#059669', fontWeight: 800, fontSize: '16px' }}>✓</div>
                     <div>
                       <strong style={{ fontSize: '13px', color: '#0F172A' }}>No Foundation Model Training</strong>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Your lab values and symptom notes are never fed into public LLM training datasets.</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>Lab values and symptom notes are never used for model training.</p>
                     </div>
                   </div>
 

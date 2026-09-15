@@ -99,7 +99,7 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
       {/* Top Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>
-          Journey
+          Goals
         </h2>
         {showBackAction && onBack && (
           <button
@@ -276,7 +276,7 @@ export const PersonalizedJourneyGoalSelector: React.FC<PersonalizedJourneyGoalSe
           }}
         >
           <Check size={16} />
-          <span>Confirm & Focus This Journey</span>
+          <span>Confirm & Set Focus</span>
         </motion.button>
       </div>
 

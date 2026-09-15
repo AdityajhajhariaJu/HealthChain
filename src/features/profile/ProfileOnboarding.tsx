@@ -38,7 +38,7 @@ type AllergySeverity = 'mild' | 'moderate' | 'severe';
 const AGE_BRACKETS = [
   { label: '18–25 Gen Z', min: 18, max: 25, defaultAge: 22, hint: 'Metabolic Velocity' },
   { label: '26–35 Prime', min: 26, max: 35, defaultAge: 30, hint: 'Hormonal Baseline' },
-  { label: '36–49 Mid-Vital', min: 36, max: 49, defaultAge: 42, hint: 'Cellular Recovery' },
+  { label: '36–49 Mid-Vital', min: 36, max: 49, defaultAge: 42, hint: 'Recovery & Rest' },
   { label: '50–64 Mature', min: 50, max: 64, defaultAge: 56, hint: 'Vascular & Joint Focus' },
   { label: '65+ Senior', min: 65, max: 100, defaultAge: 70, hint: 'Longevity Protection' },
 ];
@@ -424,8 +424,8 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Your full name"
-                      aria-label="Your full name"
+                      placeholder="Full name"
+                      aria-label="Full name"
                       style={inputStyle}
                     />
                   </div>
@@ -544,7 +544,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                   {/* Blood Group: 4x2 Grid */}
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#0F172A', marginBottom: 8 }}>
-                      Blood Group Antigen Matrix
+                      Blood Group
                     </label>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {BLOOD_GROUPS.map((bg) => {
@@ -1104,10 +1104,10 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                 >
                   <div>
                     <h2 style={{ margin: '0 0 6px', fontSize: 18, color: '#0F172A', fontWeight: 800 }}>
-                      What is your primary clinical focus?
+                      What is the primary health focus?
                     </h2>
                     <p style={{ margin: 0, fontSize: 13.5, color: '#64748B', lineHeight: 1.5 }}>
-                      This guides Dr. Ava and the Connection Detective Engine to prioritize relevant cascades.
+                      This helps prioritize relevant connections.
                     </p>
                   </div>
 
@@ -1158,7 +1158,7 @@ export default function ProfileOnboarding({ onComplete }: { onComplete?: () => v
                       lineHeight: 1.5,
                     }}
                   >
-                    <strong>What happens next:</strong> Your Whole-Body Medical Profile will be calibrated. From there, Dr. Ava and the multi-specialist panel cross-correlate every symptom, meal, and kinetic check-in.
+                    <strong>What happens next:</strong> The Medical Profile will be saved for cross-referencing symptoms, meals, and check-ins.
                   </div>
                 </motion.div>
               )}

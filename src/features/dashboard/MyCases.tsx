@@ -203,7 +203,7 @@ export default function MyCases() {
         <h1 style={{ fontSize: isMobile ? 26 : 32, margin: '0 0 4px', letterSpacing: '-1.2px' }}>My Cases</h1>
           
         <p style={{ color: '#64748b', fontSize: 15, margin: 0 }}>
-          Manage your ongoing medical cases and multi-specialist discussions.
+          Manage ongoing medical cases and specialist discussions.
         </p>
       </header>
 
@@ -229,7 +229,7 @@ export default function MyCases() {
           
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: '#F1F5F9', padding: '4px', borderRadius: '12px', width: 'fit-content' }}>
             <button onClick={() => setViewMode('list')} style={{ background: viewMode === 'list' ? '#FFFFFF' : 'transparent', color: viewMode === 'list' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'list' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>List View</button>
-            <button onClick={() => setViewMode('canvas')} style={{ background: viewMode === 'canvas' ? '#FFFFFF' : 'transparent', color: viewMode === 'canvas' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'canvas' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>Journey Canvas</button>
+            <button onClick={() => setViewMode('canvas')} style={{ background: viewMode === 'canvas' ? '#FFFFFF' : 'transparent', color: viewMode === 'canvas' ? '#0F172A' : '#64748B', border: 'none', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, boxShadow: viewMode === 'canvas' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', cursor: 'pointer' }}>Case Canvas</button>
           </div>
 
           {viewMode === 'canvas' && (
@@ -303,7 +303,7 @@ export default function MyCases() {
               badgeBg = '#FFF7ED';
               badgeColor = '#C2410C';
               badgeBorder = '#FED7AA';
-              badgeLabel = 'Clinical Data Engine';
+              badgeLabel = 'Clinical Review';
               iconBg = '#FFF7ED';
               iconColor = '#EA580C';
               IconComponent = BrainCircuit;

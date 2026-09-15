@@ -72,8 +72,8 @@ export function GuestStickyBanner() {
     window.dispatchEvent(
       new CustomEvent('hc_require_auth', {
         detail: {
-          title: 'Save Your Health Record',
-          message: 'Sign in to securely back up your 16-specialist assessments, lab analyses, and chat history across all your devices.'
+          title: 'Save Health Data',
+          message: 'Sign in to back up specialist assessments, lab analyses, and chat history across devices.'
         }
       })
     );

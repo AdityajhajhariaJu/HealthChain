@@ -66,7 +66,7 @@ const TRIVIA_BANK: TriviaQuestion[] = [
       'Total cholesterol levels in the bloodstream',
     ],
     correct: 0,
-    explanation: 'Higher HRV reflects robust parasympathetic (vagal) tone and adaptability to physical and psychological stressors.',
+    explanation: 'Higher HRV reflects adaptability to physical and psychological stressors.',
   },
   {
     id: 5,
@@ -122,7 +122,7 @@ const TRIVIA_BANK: TriviaQuestion[] = [
   },
   {
     id: 9,
-    category: 'Cellular Health',
+    category: 'General Health',
     question: 'What physiological process is activated during prolonged fasting or vigorous exercise that cleans out damaged intracellular debris?',
     options: [
       'Autophagy',

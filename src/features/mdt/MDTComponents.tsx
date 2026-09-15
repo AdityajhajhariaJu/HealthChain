@@ -165,7 +165,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             Correlate, don't start over.
           </h2>
           <p style={{ margin: '10px 0 0', color: '#64748B', fontSize: '14px', lineHeight: 1.6 }}>
-            The collaborative board will use your Parallel Specialists findings and saved evidence as one case file. It
+            The collaborative board will use existing Parallel Specialist findings and saved evidence as one case file. It
             will focus on agreements, disagreements, evidence gaps, and the clearest next clinical
             questions.
           </p>
@@ -182,7 +182,7 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
         }}
       >
         <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '18px' }}>
-          {activeCase?.title || 'Your active health case'}
+          {activeCase?.title || 'Active health case'}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '16px' }}>
           {[
@@ -245,13 +245,13 @@ export function CaseCorrelationLaunch({ activeCase, onBegin, onAddEvidence, onSt
             <Network size={19} /> Recommended: create board consensus
           </div>
           <p style={{ margin: '11px 0', color: '#475569', fontSize: 14, lineHeight: 1.55 }}>
-            Uses this same case. It compares your specialist views and evidence to show what agrees,
+            Uses this same case. It compares specialist views and evidence to show what agrees,
             what conflicts, and what is still missing.
           </p>
           <div style={{ display: 'grid', gap: 7, color: '#334155', fontSize: 13, fontWeight: 650 }}>
             <span>• shared signals across perspectives</span>
             <span>• disagreements and evidence gaps</span>
-            <span>• clearer questions for your clinician</span>
+            <span>• clearer questions for a clinician</span>
           </div>
           <button
             onClick={onBegin}
@@ -467,7 +467,7 @@ New Information / Changes in Symptoms since last evaluation:
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: '#0F172A', margin: '0 0 8px 0', letterSpacing: '-.5px' }}>Start a deep investigation.</h2>
-            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Write your symptoms, attach your reports — our multiple AI agents will connect everything.</p>
+            <p style={{ color: '#64748B', fontSize: '15px', margin: '0 0 10px 0', fontWeight: 500, maxWidth: '70%' }}>Enter symptoms and attach reports to correlate clinical findings across specialties.</p>
             <p style={{ color: '#0F8B7E', fontSize: '13px', margin: 0, fontWeight: 600, opacity: 0.85 }}>Don't leave any symptom out — every detail matters.</p>
             </div>
           </div>
@@ -535,8 +535,8 @@ New Information / Changes in Symptoms since last evaluation:
               <textarea maxLength={3000}
                 value={complaint}
                 onChange={(e) => setComplaint(e.target.value)}
-                placeholder={"Describe your symptoms, health history, or questions in detail...\n\n(Optional: You can also attach lab reports, scans, or past records below)."}
-                aria-label="Describe your symptoms, health history, or questions in detail"
+                placeholder={"Describe symptoms, health history, or questions in detail...\n\n(Optional: You can also attach lab reports, scans, or past records below)."}
+                aria-label="Describe symptoms, health history, or questions in detail"
                 style={{
                   width: '100%',
                   minHeight: '160px',
@@ -656,7 +656,7 @@ New Information / Changes in Symptoms since last evaluation:
                   boxShadow: complaint.trim() && !isPreparing ? '0 4px 14px rgba(15, 23, 42, 0.2)' : 'none',
                 }}
               >
-                {isPreparing ? 'Preparing...' : 'Deploy AI Agents'} <ArrowRight size={16} />
+                {isPreparing ? 'Preparing...' : 'Start Review'} <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -1114,7 +1114,7 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
               <div style={{ fontSize: '11px', color: specialist.color, fontWeight: 700 }}>
                 {status === 'idle' && <span style={{ color: '#64748B' }}>Preparing case review</span>}
-                {status === 'thinking' && 'Reviewing your answer'}
+                {status === 'thinking' && 'Reviewing response'}
                 {status === 'questioning' && `Question ${Math.min(questionCount, 8)} of 8`}
                 {status === 'done' && 'Assessment complete'}
               </div>
@@ -1230,15 +1230,12 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
                       }}
                     >
                       <div style={{ lineHeight: 1.5, letterSpacing: '0.2px', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <motion.div
-                          animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.2, 0.9] }}
-                          transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                        <div
                           style={{
                             width: '8px',
                             height: '8px',
                             borderRadius: '50%',
                             background: specialist.color,
-                            boxShadow: `0 0 10px ${specialist.color}`,
                             flexShrink: 0
                           }}
                         />
@@ -1322,8 +1319,8 @@ export const MDTSpecialistPanel = React.memo(function MDTSpecialistPanel({ speci
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Your answer..."
-              aria-label="Your response to clinical question"
+              placeholder="Type response..."
+              aria-label="Response to clinical question"
               style={{
                 flex: 1,
                 padding: '14px 20px',
@@ -1758,7 +1755,7 @@ export function MDTConferencePanel({
                 type="text"
                 value={answers[i] || ''}
                 onChange={(e) => setAnswers({ ...answers, [i]: e.target.value })}
-                placeholder="Your answer..."
+                placeholder="Type response..."
                 aria-label={`Answer for question: ${q}`}
                 style={{
                   width: '100%',
@@ -1816,7 +1813,7 @@ export function MDTReportPanel({
   onCaseSaved,
   onCorrelateInMDT,
   title = 'Collaboration Case Brief',
-  subtitle = 'AI-assisted synthesis of your information and specialist perspectives',
+  subtitle = 'AI-assisted synthesis of reported information and specialist perspectives',
 }: any) {
   const isMobile = useIsMobile();
   const [report, setReport] = useState(initialReport || null);
@@ -1856,7 +1853,7 @@ export function MDTReportPanel({
       console.error(err);
       setReport({
         executiveSummary:
-          'Based on the multi-perspective review of your symptoms and recent discussion, the board has identified discussion pathways to review with a qualified clinician.',
+          'Based on the multi-perspective review of reported symptoms and recent discussion, the board has identified discussion pathways to review with a qualified clinician.',
         topDiagnoses: [
           {
             condition: 'Pending Further Review',
@@ -2125,7 +2122,7 @@ export function MDTReportPanel({
               <Network size={20} color="#38BDF8" /> Clinical Correlation Constellation
             </h3>
             <p style={{ color: '#94A3B8', fontSize: '14px', marginBottom: '24px' }}>
-              Advanced semantic mapping of overlapping symptoms and cross-specialty correlations.
+              Systematic mapping of overlapping symptoms and cross-specialty correlations.
             </p>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <CaseConnectionMap data={connectionMap} isMobile={isMobile} />
@@ -2300,7 +2297,7 @@ export function MDTReportPanel({
             <strong style={{ display: 'block', fontSize: '14px', marginBottom: '4px' }}>
               Important Disclaimer
             </strong>
-            This is an AI-generated synthesis based on your provided information. It is not a formal
+            This is an AI-generated synthesis based on provided information. It is not a formal
             medical diagnosis. Always consult with a qualified healthcare professional before taking
             medical action.
           </div>

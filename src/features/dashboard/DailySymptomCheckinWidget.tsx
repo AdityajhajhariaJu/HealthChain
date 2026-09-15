@@ -322,8 +322,8 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
       {/* Main Question Title */}
       <h3 style={{ margin: '0 0 10px', fontSize: isMobile ? '16px' : '17.5px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.2px' }}>
         {selectedSymptom === 'Overall Energy'
-          ? 'How is your energy today?'
-          : `How is your ${selectedSymptom} today?`}
+          ? 'How is energy today?'
+          : `How is ${selectedSymptom} today?`}
       </h3>
 
       {/* Symptom Focus Pills: Horizontal scroll with zero truncation */}
@@ -531,7 +531,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={14} color="#D97706" />
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                LIVE TRIGGER CORRELATION DETECTED
+                POTENTIAL FOOD PATTERN
               </span>
             </div>
             {confirmedTriggerFood === detectedMealTrigger.food ? (
@@ -545,7 +545,7 @@ export default function DailySymptomCheckinWidget({ onCheckinComplete, hideAlert
             You logged <span style={{ textDecoration: 'underline' }}>{detectedMealTrigger.food}</span> earlier today.
           </div>
           <div style={{ fontSize: '11.5px', color: '#B45309', marginTop: '3px', lineHeight: 1.4 }}>
-            Clinical Mechanism: {detectedMealTrigger.mechanism}.
+            Possible connection: {detectedMealTrigger.mechanism}.
           </div>
 
           {confirmedTriggerFood !== detectedMealTrigger.food ? (

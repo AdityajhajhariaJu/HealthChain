@@ -69,7 +69,7 @@ export const EliminationTrialsView: React.FC = () => {
         </div>
         <div>
           <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#059669', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            4-WEEK CLINICAL ROOT-CAUSE HUNTS
+            4-WEEK ELIMINATION PROTOCOLS
           </div>
           <div style={{ fontSize: '15.5px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
             Diagnostic Elimination Protocols

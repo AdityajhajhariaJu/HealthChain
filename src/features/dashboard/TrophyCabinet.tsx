@@ -12,8 +12,8 @@ import { useToast } from '../../components/ui/ToastProvider';
 
 // Static Badge Dictionary for rich metadata
 const BADGE_DICTIONARY = [
-  { slug: 'first_checkin', title: 'First Health Check-in', desc: 'Recorded your first health check-in.', icon: '📝', color: '#D97706', category: 'Check-in' },
-  { slug: '3_day_streak', title: 'Three Check-ins Recorded', desc: 'Recorded check-ins on three consecutive days. Missing a day never erases your history.', icon: '📅', color: '#DF7045', category: 'Continuity' },
+  { slug: 'first_checkin', title: 'First Health Check-in', desc: 'First health check-in recorded.', icon: '📝', color: '#D97706', category: 'Check-in' },
+  { slug: '3_day_streak', title: 'Three Check-ins Recorded', desc: 'Recorded check-ins on three consecutive days. Missing a day never erases history.', icon: '📅', color: '#DF7045', category: 'Continuity' },
   { slug: 'clinical_scholar', title: 'Research Reviewed', desc: 'Opened clinical research and explored its relevance.', icon: '🧬', color: '#059669', category: 'Research' },
   { slug: 'mindful_master', title: 'Calm Session Recorded', desc: 'Completed five minutes of a calming exercise.', icon: '🧘', color: '#7C3AED', category: 'Zen Mode' },
   { slug: 'early_bird', title: 'Morning Vitals Recorded', desc: 'Added a morning vital reading before 9 AM.', icon: '🌅', color: '#2563EB', category: 'Record' },
@@ -88,7 +88,7 @@ export const TrophyCabinet: React.FC = () => {
         <h1 style={{ margin: 0, fontSize: isMobile ? '32px' : '42px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '-0.5px' }}>
           Milestones <Trophy size={32} color="#DF7045" />
         </h1>
-        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>A calm record of useful actions—not a measure of your health or worth.</p>
+        <p style={{ margin: '8px 0 0', color: '#64748B', fontSize: '16px' }}>A calm record of useful actions — not a measure of health or worth.</p>
       </div>
 
       <div style={{ padding: isMobile ? '0 24px 24px' : '0 40px 40px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -111,7 +111,7 @@ export const TrophyCabinet: React.FC = () => {
 
         {/* Badges Grid */}
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Your recorded milestones</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Recorded milestones</h2>
           <p style={{ color: '#64748B', fontSize: '13px', margin: '0 0 24px' }}>They mark completed actions only. There are no random rewards, penalties, or lost progress.</p>
           <div style={{ 
             display: 'grid', 

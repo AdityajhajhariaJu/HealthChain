@@ -18,8 +18,8 @@ const TOPUPS = {
   ava_replies: { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '10 Replies' },
   quick_consult: { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '1 Session' },
   deep_collab: { id: 'topup_deep_collab', name: 'Specialist Consensus', price: 149, qty: '1 Session' },
-  jarvis: { id: 'topup_jarvis', name: 'Clinical Data Engine', price: 169, qty: '1 Session' },
-  pharmacy_hub: { id: 'topup_pharmacy_hub', name: 'Pharmacy Hub', price: 99, qty: '30 Sessions' },
+  jarvis: { id: 'topup_jarvis', name: 'Clinical Review', price: 169, qty: '1 Session' },
+  pharmacy_hub: { id: 'topup_pharmacy_hub', name: 'Pharmacy', price: 99, qty: '30 Sessions' },
   lab_report: { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '2 Sessions' },
 };
 
@@ -137,7 +137,7 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         className="card" 
         role="dialog"
         aria-modal="true"
-        aria-label="Unlock Feature Top-Up"
+        aria-label="Feature Top-Up"
         style={{ width: '100%', maxWidth: 400, padding: 24, margin: 16, position: 'relative' }}
       >
         <button 
@@ -156,10 +156,10 @@ export default function TopUpModal({ feature, onClose, onSuccess }: TopUpModalPr
         </div>
 
         <h3 style={{ textAlign: 'center', fontSize: 24, fontWeight: 700, marginBottom: 8, color: 'var(--text-main)' }}>
-          Unlock {plan.name}
+          Add {plan.name}
         </h3>
         <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-muted)', marginBottom: 24 }}>
-          You've reached your limit. Buy a top-up now to get <strong>{plan.qty}</strong> instantly. Expires with your active subscription.
+          Quota limit reached. Add a top-up for <strong>{plan.qty}</strong>. Expires with the active subscription.
         </p>
 
         <div style={{ background: 'var(--surface)', padding: 16, borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>

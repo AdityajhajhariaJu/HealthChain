@@ -13,11 +13,11 @@ const TOUR_STEPS = [
     content: 'Let\'s take a quick tour to show you how we listen, understand, and help you find answers.',
   },
   {
-    title: 'Your Dashboard',
-    content: 'Start here to get an overview of your active cases, open action items, and recent updates.',
+    title: 'Health Dashboard',
+    content: 'Start here for an overview of active cases, open action items, and recent updates.',
   },
   {
-    title: 'Clinical Data Engine',
+    title: 'Clinical Review',
     content: 'Bring records, symptoms, dates, and open questions together while keeping facts separate from AI-generated possibilities.',
   },
   {
@@ -26,7 +26,7 @@ const TOUR_STEPS = [
   },
   {
     title: 'Privacy First',
-    content: 'Your data is securely stored on your device and encrypted. We do not sell your health data.',
+    content: 'Data is securely stored on-device and encrypted. Health data is never sold.',
   }
 ];
 

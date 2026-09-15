@@ -187,7 +187,7 @@ export default function UpgradeToProCard({ isPro = false, compact = false, onNav
             </span>
           </div>
           <p style={{ margin: 0, fontSize: compact ? '11px' : '12px', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.3 }}>
-            {compact ? 'Unlock Deep MDT, Specialists & Memory Vaults' : 'Unlock Deep MDT Consensus, Parallel Multi-Specialists & Unlimited Health Memory Vaults'}
+            {compact ? 'Specialist reviews & health records' : 'Multi-specialist reviews and unlimited health records'}
           </p>
         </div>
       </div>

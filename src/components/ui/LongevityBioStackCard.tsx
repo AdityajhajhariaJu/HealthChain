@@ -335,13 +335,13 @@ export default function LongevityBioStackCard() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '11px', fontWeight: 800, color: '#38BDF8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                Longevity Bio-Stack
+                Daily Wellness
               </span>
               <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#38BDF8' }} />
-              <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>Cellular Optimization</span>
+              <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>Daily Habits</span>
             </div>
             <h3 style={{ margin: '2px 0 0', fontSize: isMobile ? '16px' : '18px', fontWeight: 700, letterSpacing: '-0.2px' }}>
-              Daily Metabolic & Cellular Defense
+              Daily Nutrition & Hydration
             </h3>
           </div>
         </div>
@@ -410,7 +410,7 @@ export default function LongevityBioStackCard() {
             }}
           >
             <Droplets size={14} />
-            <span>Hydration Matrix</span>
+            <span>Hydration</span>
           </button>
 
           <button
@@ -474,10 +474,10 @@ export default function LongevityBioStackCard() {
               >
                 <div>
                   <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#F1F5F9' }}>
-                    Phytonutrient Cellular Shield
+                    Rainbow Diet
                   </h4>
                   <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#94A3B8' }}>
-                    Tap the bioactive plant pigment colors you consumed today. Log 3+ for <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
+                    Tap each food color eaten today. Log 3+ for <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
                   </p>
                 </div>
 
@@ -587,7 +587,7 @@ export default function LongevityBioStackCard() {
                 <Info size={15} color="#38BDF8" />
                 <span style={{ color: '#E2E8F0' }}>
                   {selectedColors.length >= 3 ? (
-                    <strong style={{ color: '#34D399' }}>✓ Cellular Shield Activated! +2 Vitality PTS Claimed Today.</strong>
+                    <strong style={{ color: '#34D399' }}>✓ Rainbow diet logged! +2 Vitality PTS Claimed Today.</strong>
                   ) : (
                     <span>Select at least 3 distinct plant colors to activate daily polyphenol defense.</span>
                   )}
@@ -628,7 +628,7 @@ export default function LongevityBioStackCard() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#F1F5F9' }}>
-                      Cellular Osmosis & Fluid Target
+                      Water Intake Target
                     </h4>
                     <span
                       style={{
@@ -767,7 +767,7 @@ export default function LongevityBioStackCard() {
               }}
             >
               <span>
-                💡 <strong style={{ color: '#E2E8F0' }}>Cellular Mineral Tip:</strong> Add a pinch of Himalayan salt or lemon to optimize sodium-potassium ATP pumps. Reaching 2000 ml awards <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
+                💡 <strong style={{ color: '#E2E8F0' }}>Hydration Tip:</strong> A pinch of salt or squeeze of lemon can support electrolyte balance. Reaching 2000 ml awards <strong style={{ color: '#38BDF8' }}>+2 PTS</strong>.
               </span>
               {waterMl >= 2000 && <span style={{ color: '#34D399', fontWeight: 800 }}>✓ Rewarded</span>}
             </div>
