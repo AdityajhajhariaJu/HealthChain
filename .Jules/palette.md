@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing Aria Labels on Action Modals
+**Learning:** Common UI modals and action sheets across the application (like `DataSovereigntyModal`, `WholeHealthRiverModal`, `TrialFeaturesModal`, and `KineticBiomechanicsView`) frequently missed `aria-label`s on standard icon-only buttons (like `X`, `Play`/`Pause`, `RotateCcw`), which creates significant accessibility barriers for screen-reader users navigating these critical interaction points.
+**Action:** Always ensure that icon-only `button` elements have a descriptive `aria-label` attribute when creating or updating custom UI components, rather than relying on visual context alone.
