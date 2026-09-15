@@ -210,11 +210,7 @@ export const WholeHealthRiverModal: React.FC<WholeHealthRiverModalProps> = ({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              width: '44px',
+          <button aria-label="Close modal" type="button" onClick={onClose} style={{ width: '44px',
               height: '44px',
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.2)',
