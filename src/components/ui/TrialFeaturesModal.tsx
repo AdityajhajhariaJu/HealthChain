@@ -123,7 +123,7 @@ export function TrialFeaturesModal({
         >
           {/* Close Button */}
           <button
-            onClick={handleClose}
+            onClick={handleClose} aria-label="Close modal"
             aria-label="Close modal"
             style={{
               position: 'absolute',

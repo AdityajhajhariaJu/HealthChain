@@ -135,7 +135,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={onClose} aria-label="Close modal"
               style={{
                 background: '#FFFFFF',
                 border: '1px solid #CBD5E1',
@@ -368,7 +368,7 @@ export const DataSovereigntyModal: React.FC<DataSovereigntyModalProps> = ({
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={onClose} aria-label="Close modal"
               style={{
                 padding: '8px 18px',
                 borderRadius: '10px',

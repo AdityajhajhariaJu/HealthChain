@@ -385,7 +385,7 @@ export const KineticBiomechanicsView: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={handleToggleTimer}
+                onClick={handleToggleTimer} aria-label={isTimerActive ? "Pause timer" : "Start timer"}
                 style={{
                   width: '38px',
                   height: '38px',
@@ -402,11 +402,7 @@ export const KineticBiomechanicsView: React.FC = () => {
               >
                 {isTimerActive ? <Pause size={18} /> : <Play size={18} style={{ marginLeft: '2px' }} />}
               </button>
-              <button
-                type="button"
-                onClick={handleResetTimer}
-                style={{
-                  width: '32px',
+              <button aria-label="Reset timer" type="button" onClick={handleResetTimer} style={{ width: '32px',
                   height: '32px',
                   borderRadius: '50%',
                   background: 'rgba(255, 255, 255, 0.15)',
