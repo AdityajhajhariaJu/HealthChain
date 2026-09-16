@@ -1,0 +1,4 @@
+## 2024-10-24 - Missing Authorization Check in Admin API Route
+**Vulnerability:** The `api/admin-content.js` serverless function authenticated the user's JWT but failed to perform any authorization check to verify if the user had admin privileges before allowing them to insert, update, or delete fitness content. A TODO comment existed but wasn't implemented.
+**Learning:** Checking that a user is authenticated (`!authError && user`) is not the same as checking they are authorized for a specific action or route. Missing authorization checks on sensitive administrative routes lead to critical privilege escalation vulnerabilities.
+**Prevention:** Always implement role-based access control (RBAC) or specific privilege checks (like checking against `ADMIN_USER_ID`) for administrative or privileged operations, immediately after authentication is confirmed. Don't rely on security by obscurity (e.g. "it's an internal route").
