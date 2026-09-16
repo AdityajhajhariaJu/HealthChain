@@ -1,0 +1,4 @@
+## 2024-10-27 - Missing Authorization in Admin Content API
+**Vulnerability:** Missing authorization check on `api/admin-content.js`, an endpoint that allows inserting, updating, and soft-deleting `fitness_content`. Authentication was present, but any valid user could perform admin actions.
+**Learning:** A commented-out TODO indicated an intent to add an authorization check but it was forgotten, leading to a critical authorization bypass.
+**Prevention:** Implement strict role-based access control (RBAC) or specific ID checks for all administrative endpoints. Ensure that TODOs related to security checks are resolved before code is pushed to production.
