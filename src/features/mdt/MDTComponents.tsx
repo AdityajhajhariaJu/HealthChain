@@ -602,7 +602,7 @@ New Information / Changes in Symptoms since last evaluation:
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F0FDF4', padding: '5px 12px', borderRadius: '8px', border: '1px solid #BBF7D0', fontSize: '13px', color: '#166534' }}>
                     <FileText size={14} color="#16a34a" />
                     <span style={{ maxWidth: isMobile ? '160px' : '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>{f.name}</span>
-                    <button onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#16a34a', marginLeft: '4px' }}><X size={14} /></button>
+                    <button onClick={() => removeFile(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#16a34a', marginLeft: '4px' }} aria-label="Remove file"><X size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -756,7 +756,7 @@ New Information / Changes in Symptoms since last evaluation:
                 <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <GitMerge size={22} color="#0F8B7E" /> Import Existing Case
                 </h3>
-                <button onClick={() => setShowImportModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}>
+                <button onClick={() => setShowImportModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }} aria-label="Close Import Modal">
                   <X size={24} color="#94A3B8" />
                 </button>
               </div>
