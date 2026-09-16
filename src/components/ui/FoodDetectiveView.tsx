@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, AlertTriangle, CheckCircle2, ChevronRight, RefreshCw, Filter, ShieldCheck, ArrowRight, Zap, Plus, Info } from 'lucide-react';
 import { FOOD_DATABASE, CLINICAL_SENSITIVITIES, FoodItem } from '../../services/TriggerEngine';
@@ -20,14 +20,17 @@ export const FoodDetectiveView: React.FC<FoodDetectiveViewProps> = ({ onSelectSu
 
   const categories = ['All', 'Beverage', 'Dairy', 'Protein', 'Grain', 'Vegetable', 'Fruit', 'Snack'];
 
-  const filteredFoods = FOOD_DATABASE.filter((food) => {
-    const matchesSearch = food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      food.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      food.sensitivityFlags.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'All' || food.category === selectedCategory;
-    const matchesSensitivity = selectedSensitivity === 'all' || food.sensitivityFlags.includes(selectedSensitivity);
-    return matchesSearch && matchesCategory && matchesSensitivity;
-  });
+  // ⚡ Bolt Optimization: Memoize the filtered foods to prevent unnecessary re-filtering on every render.
+  const filteredFoods = useMemo(() => {
+    return FOOD_DATABASE.filter((food) => {
+      const matchesSearch = food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        food.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        food.sensitivityFlags.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCategory = selectedCategory === 'All' || food.category === selectedCategory;
+      const matchesSensitivity = selectedSensitivity === 'all' || food.sensitivityFlags.includes(selectedSensitivity);
+      return matchesSearch && matchesCategory && matchesSensitivity;
+    });
+  }, [searchQuery, selectedCategory, selectedSensitivity]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
