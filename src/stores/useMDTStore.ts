@@ -3,8 +3,9 @@ import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
 import { get, set, del } from 'idb-keyval';
 import { getItemSync, setItemSync, removeItemSync } from '../services/storage';
 import { getAccountScope } from '../services/RunContext';
+import { getActiveProfileScope } from '../services/profileScope';
 
-const scopedKey = (name: string) => `${name}_${getAccountScope()}`;
+const scopedKey = (name: string) => `${name}_${getAccountScope()}_${getActiveProfileScope()}`;
 
 const idbStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {

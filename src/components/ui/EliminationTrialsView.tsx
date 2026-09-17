@@ -4,19 +4,27 @@ import { ShieldAlert, CheckCircle2, Play, Activity, Sparkles, Calendar, Award, C
 import {
   ELIMINATION_PROTOCOLS,
   getActiveTrial,
+  getTrialHistory,
   startTrial,
+  stopActiveTrial,
   logTrialDay,
   ActiveTrialState,
   EliminationTrialProtocol,
+  ArchivedTrialState,
 } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
 export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null }> = ({ initialProtocolId }) => {
   const [activeTrialState, setActiveTrialState] = useState<ActiveTrialState | null>(getActiveTrial());
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(() =>
+    ELIMINATION_PROTOCOLS.some((protocol) => protocol.id === initialProtocolId) ? initialProtocolId || null : null
+  );
   const [isCheckinOpen, setIsCheckinOpen] = useState(false);
-  const [checkinScore, setCheckinScore] = useState(3);
-  const [checkinAdhered, setCheckinAdhered] = useState(true);
+  const [checkinScore, setCheckinScore] = useState<number | null>(null);
+  const [checkinAdhered, setCheckinAdhered] = useState<boolean | null>(null);
   const [selectedPhaseIdx, setSelectedPhaseIdx] = useState(0);
+  const [trialHistory, setTrialHistory] = useState<ArchivedTrialState[]>(getTrialHistory());
+  const [showEndConfirmation, setShowEndConfirmation] = useState(false);
 
   const activeProtocol = ELIMINATION_PROTOCOLS.find((p) => p.id === activeTrialState?.trialId) || ELIMINATION_PROTOCOLS[0];
 
@@ -24,24 +32,32 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
     triggerHapticLight();
     const updated = startTrial(protocolId);
     setActiveTrialState(updated);
+    setTrialHistory(getTrialHistory());
+    setSelectedProtocolId(null);
   };
 
   React.useEffect(() => {
-    if (initialProtocolId && activeTrialState?.trialId !== initialProtocolId) {
-      handleStartTrial(initialProtocolId);
+    if (initialProtocolId && ELIMINATION_PROTOCOLS.some((protocol) => protocol.id === initialProtocolId)) {
+      setSelectedProtocolId(initialProtocolId);
     }
   }, [initialProtocolId]);
 
   const handleSaveCheckin = () => {
+    if (checkinScore === null || checkinAdhered === null) return;
     triggerHapticLight();
     const updated = logTrialDay(checkinScore, checkinAdhered);
     setActiveTrialState(updated);
     setIsCheckinOpen(false);
+    setCheckinScore(null);
+    setCheckinAdhered(null);
   };
 
   // Determine current active phase based on current day
   const currentDay = activeTrialState?.currentDay || 1;
-  const currentPhaseIndex = currentDay <= 7 ? 0 : currentDay <= 14 ? 1 : currentDay <= 21 ? 2 : 3;
+  const currentPhaseIndex = Math.max(0, activeProtocol.phases?.findIndex((phase) => {
+    const bounds = phase.daysRange.match(/(\d+)\D+(\d+)/);
+    return bounds ? currentDay >= Number(bounds[1]) && currentDay <= Number(bounds[2]) : false;
+  }) ?? 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -143,6 +159,19 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
             <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
               {activeProtocol.description}
             </p>
+            {!showEndConfirmation ? (
+              <button type="button" onClick={() => setShowEndConfirmation(true)} style={{ marginTop: '8px', padding: 0, border: 0, background: 'transparent', color: '#64748B', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                End and archive protocol
+              </button>
+            ) : (
+              <div style={{ marginTop: '9px', padding: '9px 11px', border: '1px solid #FED7AA', borderRadius: '10px', background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ color: '#9A3412', fontSize: '11.5px' }}>Archive this protocol and keep its check-ins?</span>
+                <span style={{ display: 'flex', gap: '7px' }}>
+                  <button type="button" onClick={() => setShowEndConfirmation(false)} style={{ border: '1px solid #CBD5E1', borderRadius: '7px', background: '#FFFFFF', color: '#475569', padding: '5px 9px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                  <button type="button" onClick={() => { stopActiveTrial(); setActiveTrialState(null); setTrialHistory(getTrialHistory()); setShowEndConfirmation(false); }} style={{ border: 0, borderRadius: '7px', background: '#C2410C', color: '#FFFFFF', padding: '5px 9px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>Archive</button>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Progress Bar */}
@@ -324,9 +353,9 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                     flex: 1,
                     padding: '8px',
                     borderRadius: '10px',
-                    border: checkinAdhered ? '1.5px solid #10B981' : '1px solid #E2E8F0',
-                    background: checkinAdhered ? '#ECFDF5' : '#FFFFFF',
-                    color: checkinAdhered ? '#065F46' : '#64748B',
+                    border: checkinAdhered === true ? '1.5px solid #10B981' : '1px solid #E2E8F0',
+                    background: checkinAdhered === true ? '#ECFDF5' : '#FFFFFF',
+                    color: checkinAdhered === true ? '#065F46' : '#64748B',
                     fontWeight: 700,
                     fontSize: '12px',
                     cursor: 'pointer',
@@ -341,9 +370,9 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                     flex: 1,
                     padding: '8px',
                     borderRadius: '10px',
-                    border: !checkinAdhered ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
-                    background: !checkinAdhered ? '#FEF2F2' : '#FFFFFF',
-                    color: !checkinAdhered ? '#DC2626' : '#64748B',
+                    border: checkinAdhered === false ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
+                    background: checkinAdhered === false ? '#FEF2F2' : '#FFFFFF',
+                    color: checkinAdhered === false ? '#DC2626' : '#64748B',
                     fontWeight: 700,
                     fontSize: '12px',
                     cursor: 'pointer',
@@ -360,15 +389,15 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                 <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
                   Today's Symptom Severity:
                 </label>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: checkinScore > 5 ? '#E11D48' : '#10B981' }}>
-                  {checkinScore} / 10 ({checkinScore <= 2 ? 'Calm' : checkinScore <= 5 ? 'Mild' : 'Severe'})
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: checkinScore === null ? '#64748B' : checkinScore > 5 ? '#E11D48' : '#10B981' }}>
+                  {checkinScore === null ? 'Not recorded' : `${checkinScore} / 10 (${checkinScore <= 2 ? 'Calm' : checkinScore <= 5 ? 'Mild' : 'Severe'})`}
                 </span>
               </div>
               <input
                 type="range"
                 min="0"
                 max="10"
-                value={checkinScore}
+                value={checkinScore ?? 0}
                 onChange={(e) => setCheckinScore(Number(e.target.value))}
                 style={{ width: '100%', accentColor: '#10B981' }}
               />
@@ -377,6 +406,7 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
             <button
               type="button"
               onClick={handleSaveCheckin}
+              disabled={checkinScore === null || checkinAdhered === null}
               style={{
                 background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                 color: '#FFFFFF',
@@ -385,7 +415,8 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                 padding: '10px',
                 fontSize: '13px',
                 fontWeight: 800,
-                cursor: 'pointer',
+                cursor: checkinScore === null || checkinAdhered === null ? 'not-allowed' : 'pointer',
+                opacity: checkinScore === null || checkinAdhered === null ? 0.55 : 1,
                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
               }}
             >
@@ -403,6 +434,7 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
 
         {ELIMINATION_PROTOCOLS.map((proto) => {
           const isCurrent = activeTrialState?.trialId === proto.id;
+          const isSelected = selectedProtocolId === proto.id;
 
           return (
             <div
@@ -411,7 +443,7 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                 background: '#FFFFFF',
                 borderRadius: '18px',
                 padding: '16px',
-                border: isCurrent ? '1.5px solid #10B981' : '1.5px solid #F1F5F9',
+                border: isCurrent ? '1.5px solid #10B981' : isSelected ? '1.5px solid #7C3AED' : '1.5px solid #F1F5F9',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -443,7 +475,10 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                 {!isCurrent ? (
                   <button
                     type="button"
-                    onClick={() => handleStartTrial(proto.id)}
+                    onClick={() => {
+                      if (isSelected) handleStartTrial(proto.id);
+                      else setSelectedProtocolId(proto.id);
+                    }}
                     style={{
                       background: '#F0FDF4',
                       border: '1px solid #BBF7D0',
@@ -458,7 +493,7 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
                       gap: '4px',
                     }}
                   >
-                    <Play size={13} fill="#15803D" /> Start Hunt
+                    <Play size={13} fill="#15803D" /> {isSelected ? 'Start Protocol' : 'Review Protocol'}
                   </button>
                 ) : (
                   <span
@@ -479,10 +514,33 @@ export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null
               <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', lineHeight: 1.4 }}>
                 {proto.expectedBiomarkerImpact}
               </p>
+              {isSelected && !isCurrent && (
+                <p style={{ margin: 0, padding: '9px 11px', borderRadius: '10px', background: '#F5F3FF', color: '#5B21B6', fontSize: '11.5px', lineHeight: 1.45 }}>
+                  Review the restrictions, duration, and reintroduction steps above. Starting this protocol will archive the current protocol and make this one active.
+                </p>
+              )}
             </div>
           );
         })}
       </div>
+      {trialHistory.length > 0 && (
+        <details style={{ borderTop: '1px solid #E2E8F0', paddingTop: '10px' }}>
+          <summary style={{ cursor: 'pointer', color: '#475569', fontSize: '12px', fontWeight: 700 }}>
+            Past protocols ({trialHistory.length})
+          </summary>
+          <div style={{ display: 'grid', gap: '7px', marginTop: '9px' }}>
+            {trialHistory.map((trial) => {
+              const protocol = ELIMINATION_PROTOCOLS.find((item) => item.id === trial.trialId);
+              return (
+                <div key={`${trial.trialId}-${trial.endedAt}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', padding: '9px 11px', borderRadius: '10px', background: '#F8FAFC', border: '1px solid #E2E8F0', fontSize: '11.5px' }}>
+                  <span style={{ color: '#334155', fontWeight: 700 }}>{protocol?.name || trial.trialId}</span>
+                  <span style={{ color: '#64748B' }}>{trial.completedDays} check-ins · ended {new Date(trial.endedAt).toLocaleDateString()}</span>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
     </div>
   );
 };

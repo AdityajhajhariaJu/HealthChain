@@ -43,31 +43,37 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
 
   // Compute dynamic counts & states
   const totalBiomarkersCount = profile?.biomarkers?.length || biomarkers.length;
-  const flaggedBiomarkers = biomarkers.filter((b) => b.status !== 'optimal');
+  const comparableBiomarkers = biomarkers.filter((b) => b.isComparable !== false);
+  const flaggedBiomarkers = comparableBiomarkers.filter((b) => b.status !== 'optimal');
+  const reviewNeededCount = biomarkers.filter((b) => b.isComparable === false).length;
 
   // Top Flagged Lab (Priority to Ferritin if not optimal, or the most abnormal marker)
   const topFlaggedMarker =
-    biomarkers.find((b) => b.id === 'ferritin' && b.status !== 'optimal') ||
-    biomarkers.find((b) => b.status === 'critical_low' || b.status === 'critical_high') ||
-    biomarkers.find((b) => b.status.startsWith('suboptimal')) ||
-    biomarkers[0];
+    comparableBiomarkers.find((b) => b.id === 'ferritin' && b.status !== 'optimal') ||
+    comparableBiomarkers.find((b) => b.status === 'critical_low' || b.status === 'critical_high') ||
+    comparableBiomarkers.find((b) => b.status.startsWith('suboptimal')) ||
+    comparableBiomarkers[0] || biomarkers[0];
 
   const labDisplayName = topFlaggedMarker ? topFlaggedMarker.name.split('(')[0].trim() : 'Biomarker Status';
-  const labDisplayVal = topFlaggedMarker ? `${topFlaggedMarker.userValue} ${topFlaggedMarker.userUnit}` : '--';
+  const labDisplayVal = topFlaggedMarker ? (topFlaggedMarker.originalValue || `${topFlaggedMarker.userValue} ${topFlaggedMarker.userUnit}`) : '--';
   const labStatusLabel =
-    !topFlaggedMarker || topFlaggedMarker.status === 'optimal'
-      ? 'Optimal longevity'
+    !topFlaggedMarker
+      ? 'No extracted result'
+      : topFlaggedMarker.isComparable === false
+      ? 'Needs source review'
+      : topFlaggedMarker.status === 'optimal'
+      ? 'Within printed range'
       : topFlaggedMarker.status === 'critical_low'
-      ? 'Pathology deficit'
+      ? 'Below printed range'
       : topFlaggedMarker.status === 'suboptimal_low'
-      ? 'Suboptimal baseline'
+      ? 'Below comparison range'
       : topFlaggedMarker.status === 'critical_high'
-      ? 'Pathology excess'
-      : 'Subclinical surge';
+      ? 'Above printed range'
+      : 'Above comparison range';
 
   // Clinic Notes Conduit
   const topMiss = report.clinicalMisses?.[0];
-  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} Notes` : 'Clinical Synthesis';
+  const notesTitle = topMiss?.overlookedBy ? `${topMiss.overlookedBy.split(' ')[0]} Notes` : 'Case Notes';
   const rawNotesSub = topMiss?.hiddenConnection ? topMiss.hiddenConnection.split('—')[0].trim() : 'Cross-discipline correlation';
   const notesSubtitle = rawNotesSub.toLowerCase().includes('without anemia')
     ? 'Iron deficiency w/o anemia'
@@ -88,17 +94,13 @@ export const ConnectionTriggerHeroCard: React.FC<ConnectionTriggerHeroCardProps>
 
   // Diet Sensitivity Conduit
   const topFood = suspectFoods?.[0];
-  const dietTitle = topFood ? `${topFood.name} (+${topFood.correlationPercent}%)` : 'No food triggers';
+  const dietTitle = topFood ? topFood.name : 'No food patterns recorded';
   const dietSubtitle = topFood?.primarySensitivity || 'Awaiting meal logs';
 
   // Narrative Synthesis
-  const narrative = flaggedBiomarkers.length > 0
-    ? `Cross-analyzing your blood labs, cardiology notes, orthostatic vitals, and dietary sensitivities uncovered ${
-        topFlaggedMarker?.id === 'ferritin'
-          ? 'subclinical ferritin depletion'
-          : `${labDisplayName.toLowerCase()} imbalance`
-      } impacting ${report.primaryHypothesis ? report.primaryHypothesis.toLowerCase() : 'autonomic equilibrium'}.`
-    : 'Log vitals, meals, and symptoms to discover cross-system physiological connections.';
+  const narrative = biomarkers.length > 0 || vitalsItem || topFood
+    ? `${biomarkers.length} extracted lab ${biomarkers.length === 1 ? 'value' : 'values'}, ${vitalsItem ? 'a recorded vitals observation' : 'no connected vitals observation'}, and ${topFood ? 'a repeated food observation' : 'no repeated food observation'} are available for review.${reviewNeededCount > 0 ? ` ${reviewNeededCount} lab ${reviewNeededCount === 1 ? 'value needs' : 'values need'} source review.` : ''}`
+    : 'Add dated labs, vitals, meals, and symptoms to compare documented observations across the active case.';
 
   return (
     <motion.div

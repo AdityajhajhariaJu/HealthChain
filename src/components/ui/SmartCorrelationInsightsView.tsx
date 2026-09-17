@@ -38,7 +38,12 @@ export interface SmartInsightItem {
   matchingDays: number;
   totalDays: number;
   correlationPercent: number;
+  nonExposureMatchingDays?: number;
+  nonExposureTotalDays?: number;
+  nonExposurePercent?: number;
+  hasComparativeIncrease?: boolean;
   isUserVerified?: boolean;
+  hasReferenceExplanation?: boolean;
   incubationWindow: string;
   biochemicalMechanism: string;
   clinicalCompound: string;
@@ -218,6 +223,19 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
   const [selectedCategory, setSelectedCategory] = useState<InsightCategory>('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [addedFoodIds, setAddedFoodIds] = useState<Record<string, boolean>>({});
+  const [dataRevision, setDataRevision] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setDataRevision((value) => value + 1);
+    window.addEventListener('hc_profile_updated', refresh);
+    window.addEventListener('hc_triggers_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('hc_profile_updated', refresh);
+      window.removeEventListener('hc_triggers_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
 
   // Real-time empirical match computation from user logs
   const dynamicInsights = useMemo(() => {
@@ -254,36 +272,73 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       }
     });
 
-    // Benchmarks provide vocabulary and explanatory copy only. Cards become
-    // personal insights only after at least two dated user exposures.
-    return BENCHMARK_INSIGHTS.flatMap((item) => {
+    const observedDates = Object.keys(digestionLogs);
+    const symptomMatches = (item: Pick<SmartInsightItem, 'category'>, dateStr: string) => {
+      const symptom = symptomDays[dateStr];
+      if (!symptom) return false;
+      if (item.category === 'Bloating') return symptom.bloating;
+      if (item.category === 'Stomach') return symptom.stomach;
+      if (item.category === 'Bowel') return symptom.bowel;
+      return false;
+    };
+    const buildObserved = (item: SmartInsightItem, foodMatcher: (food: string) => boolean): SmartInsightItem[] => {
       const foodWords = item.foodName.toLowerCase().split(/[\s/]+/);
+      const isExposure = (food: string) => foodMatcher(food) || foodWords.some((word) => word.length > 3 && food.includes(word));
       let userExposures = 0;
       let userMatches = 0;
 
-      Object.entries(mealsByDate).forEach(([dateStr, foods]) => {
-        const ateFood = foods.some((f) => foodWords.some((w) => w.length > 3 && f.includes(w)));
+      // Only days with an actual symptom/digestion check-in belong in either
+      // denominator. A meal-only day is unknown, not a symptom-free day.
+      observedDates.forEach((dateStr) => {
+        const foods = mealsByDate[dateStr] || [];
+        const ateFood = foods.some(isExposure);
         if (ateFood) {
           userExposures++;
-          const symp = symptomDays[dateStr];
-          if (symp) {
-            if (item.category === 'Bloating' && symp.bloating) userMatches++;
-            else if (item.category === 'Stomach' && symp.stomach) userMatches++;
-            else if (item.category === 'Bowel' && symp.bowel) userMatches++;
-          }
+          if (symptomMatches(item, dateStr)) userMatches++;
         }
       });
 
       if (userExposures < 2) return [];
+      const nonExposureDates = observedDates.filter((dateStr) => !(mealsByDate[dateStr] || []).some(isExposure));
+      const nonExposureMatches = nonExposureDates.filter((dateStr) => symptomMatches(item, dateStr)).length;
+      const exposurePercent = Math.round((userMatches / userExposures) * 100);
+      const nonExposurePercent = nonExposureDates.length > 0 ? Math.round((nonExposureMatches / nonExposureDates.length) * 100) : undefined;
       return [{
         ...item,
         matchingDays: userMatches,
         totalDays: userExposures,
-        correlationPercent: Math.round((userMatches / userExposures) * 100),
+        correlationPercent: exposurePercent,
+        nonExposureMatchingDays: nonExposureMatches,
+        nonExposureTotalDays: nonExposureDates.length,
+        nonExposurePercent,
+        hasComparativeIncrease: nonExposurePercent !== undefined ? exposurePercent > nonExposurePercent : undefined,
         isUserVerified: true,
       }];
+    };
+
+    const loggedFoods = Array.from(new Set(Object.values(mealsByDate).flat().map((food) => food.trim()).filter(Boolean)));
+    const observedResults = loggedFoods.flatMap((foodName, foodIndex) => {
+      return (['Bloating', 'Stomach', 'Bowel'] as const).flatMap((category, categoryIndex) => {
+        const generic: SmartInsightItem = {
+          id: `observed_${foodIndex}_${categoryIndex}_${foodName.replace(/[^a-z0-9]+/g, '_')}`,
+          foodName,
+          symptomName: category === 'Stomach' ? 'Stomach discomfort' : category,
+          category,
+          iconType: category === 'Bloating' ? 'wind' : category === 'Bowel' ? 'bowel' : 'flame',
+          matchingDays: 0,
+          totalDays: 0,
+          correlationPercent: 0,
+          incubationWindow: 'Timing not established',
+          biochemicalMechanism: '',
+          clinicalCompound: 'Recorded food',
+          safeSwap: { insteadOf: foodName, swapTo: 'No substitute suggested', culinaryNote: '' },
+          hasReferenceExplanation: false,
+        };
+        return buildObserved(generic, (food) => food === foodName).filter((result) => result.matchingDays > 0);
+      });
     });
-  }, []);
+    return observedResults;
+  }, [dataRevision]);
 
   // Filter insights based on category and search
   const filteredInsights = useMemo(() => {
@@ -308,7 +363,12 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
     triggerHapticSelection();
 
     const currentProtocols = getEliminationProtocolState();
-    const activeId = currentProtocols.activeProtocolId || 'bloating_hunt';
+    const activeId = currentProtocols.activeProtocolId;
+    if (!activeId) {
+      toast?.info?.('Choose a protocol first', 'Review and start an elimination protocol before adding a food observation.');
+      onOpenElimination?.();
+      return;
+    }
     const activeData = currentProtocols.protocols?.[activeId] || {};
 
     const customForbidden = activeData.customForbiddenFoods || [];
@@ -609,8 +669,13 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                         marginBottom: '6px',
                       }}
                     >
-                      {item.symptomName} appears more often on days with{' '}
-                      <strong style={{ color: '#0F172A', fontWeight: 800 }}>{item.foodName}</strong>.
+                      {item.hasComparativeIncrease === true
+                        ? `${item.symptomName} was recorded more often on logged days with `
+                        : typeof item.hasComparativeIncrease === 'boolean'
+                          ? `${item.symptomName} was not recorded more often on logged days with `
+                          : `${item.symptomName} was recorded on ${item.matchingDays} of ${item.totalDays} logged days with `}
+                      <strong style={{ color: '#0F172A', fontWeight: 800 }}>{item.foodName}</strong>
+                      {typeof item.hasComparativeIncrease === 'boolean' ? '.' : '; more comparison days are needed.'}
                     </div>
 
                     {/* Day Match Ratio Badge */}
@@ -629,6 +694,11 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           >
                             <span>📊</span> {item.matchingDays}/{item.totalDays} day match ({item.correlationPercent}%)
                           </span>
+                          {typeof item.nonExposurePercent === 'number' && (
+                            <span style={{ fontSize: '11px', color: '#64748B' }}>
+                              compared with {item.nonExposureMatchingDays}/{item.nonExposureTotalDays} other logged days ({item.nonExposurePercent}%)
+                            </span>
+                          )}
                           <span
                             style={{
                               fontSize: '10.5px',
@@ -722,7 +792,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           <ShieldAlert size={12} />
-                          <span>Food component: {item.clinicalCompound}</span>
+                          <span>{item.hasReferenceExplanation ? `Food component: ${item.clinicalCompound}` : 'Pattern: recorded food and symptom dates'}</span>
                         </div>
                         <div
                           style={{
@@ -739,12 +809,12 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           <Clock size={12} />
-                          <span>Reference window: {item.incubationWindow}</span>
+                          <span>{item.hasReferenceExplanation ? 'Reference window' : 'Timing'}: {item.incubationWindow}</span>
                         </div>
                       </div>
 
-                      {/* Pathophysiological Mechanism */}
-                      <div
+                      {/* Educational explanation, never presented as a personal mechanism */}
+                      {item.hasReferenceExplanation && <div
                         style={{
                           fontSize: '12.5px',
                           color: '#334155',
@@ -759,10 +829,10 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           Possible explanation to discuss:
                         </strong>
                         {item.biochemicalMechanism}
-                      </div>
+                      </div>}
 
-                      {/* Clinical Safe Swap Recommendation */}
-                      <div
+                      {/* Optional food substitution */}
+                      {item.hasReferenceExplanation && <div
                         style={{
                           fontSize: '12px',
                           color: '#065F46',
@@ -780,7 +850,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                         <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
                           {item.safeSwap.culinaryNote}
                         </div>
-                      </div>
+                      </div>}
 
                       {/* Action Buttons Row */}
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>

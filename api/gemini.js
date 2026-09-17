@@ -165,10 +165,40 @@ export default async function handler(req, res) {
 
     if (featureCode) {
       try {
-        const { data: quotaResult, error: featureQuotaError } = await adminClient.rpc('consume_feature_quota', {
+        let { data: quotaResult, error: featureQuotaError } = await adminClient.rpc('consume_feature_quota_for_request', {
           p_user_id: userId,
-          p_feature_name: featureCode
+          p_feature_name: featureCode,
+          p_request_id: String(requestId),
         });
+        // Deploy-safe compatibility while the additive migration reaches an
+        // existing environment. Once installed, the request-bound path above
+        // provides exact-once release on provider failure.
+        const usingLegacyQuotaFunction = featureQuotaError && (featureQuotaError.code === 'PGRST202' || /consume_feature_quota_for_request/i.test(featureQuotaError.message || ''));
+        if (usingLegacyQuotaFunction) {
+          const legacy = await adminClient.rpc('consume_feature_quota', {
+            p_user_id: userId,
+            p_feature_name: featureCode,
+          });
+          quotaResult = legacy.data;
+          featureQuotaError = legacy.error;
+          if (!featureQuotaError && featureCode === 'quick_consult' && quotaResult?.reason === 'upgrade_required') {
+            const grant = await adminClient.rpc('provision_topup', {
+              p_user_id: userId,
+              p_feature_name: 'quick_consult',
+              p_amount: 1,
+            });
+            if (!grant.error) {
+              const retry = await adminClient.rpc('consume_feature_quota', {
+                p_user_id: userId,
+                p_feature_name: featureCode,
+              });
+              quotaResult = retry.data;
+              featureQuotaError = retry.error;
+            } else {
+              featureQuotaError = grant.error;
+            }
+          }
+        }
         if (featureQuotaError) {
           await adminClient.from('ai_requests').update({ status: 'failed', error_code: 'feature_quota_unavailable', finished_at: new Date().toISOString() }).eq('request_id', String(requestId));
           return res.status(503).json({ error: 'Feature quota service is unavailable.' });
@@ -185,6 +215,18 @@ export default async function handler(req, res) {
       }
     }
   }
+
+  const releaseReservedFeatureQuota = async () => {
+    if (!adminClient || !userId) return;
+    try {
+      await adminClient.rpc('release_feature_quota_for_request', {
+        p_user_id: userId,
+        p_request_id: String(requestId),
+      });
+    } catch (releaseError) {
+      console.error('Feature quota release failed:', releaseError);
+    }
+  };
 
   // Use the verified gemini-2.5-flash endpoint
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
@@ -249,6 +291,7 @@ export default async function handler(req, res) {
       const errorData = response ? await response.text() : 'No response from AI provider';
       console.error('Gemini API returned an error:', response?.status, errorData.slice(0, 1000));
       if (adminClient && userId) {
+        await releaseReservedFeatureQuota();
         await adminClient.from('ai_requests').update({
           status: 'failed',
           error_code: `provider_${response?.status || 500}`,
@@ -275,6 +318,7 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
   } catch (error) {
     if (adminClient && userId) {
+      await releaseReservedFeatureQuota();
       await adminClient.from('ai_requests').update({
         status: 'failed',
         error_code: error?.code || error?.name || 'provider_error',

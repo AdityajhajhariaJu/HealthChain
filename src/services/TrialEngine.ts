@@ -35,9 +35,11 @@ export function getTrialStatus(): TrialStatus {
   if (isPro) {
     return {
       isPro: true,
-      quickConsult: { used: 0, total: 999, remaining: 999, isAvailable: true },
-      ava: { used: 0, total: 999, remaining: 999, isAvailable: true },
-      dietician: { used: 0, total: 999, remaining: 999, isAvailable: true },
+      // Paid AI allowances are authoritative in user_quotas on the server.
+      // Do not manufacture a local "999" balance that can disagree with it.
+      quickConsult: { used: 0, total: 0, remaining: 0, isAvailable: true },
+      ava: { used: 0, total: 0, remaining: 0, isAvailable: true },
+      dietician: { used: 0, total: 0, remaining: 0, isAvailable: true },
     };
   }
 

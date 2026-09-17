@@ -127,6 +127,15 @@ begin
   if to_regclass('public.analytics_events') is not null then
     execute 'delete from public.analytics_events where user_id = $1' using p_user_id;
   end if;
+  if to_regclass('public.user_quotas') is not null then
+    execute 'delete from public.user_quotas where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.case_tombstones') is not null then
+    execute 'delete from public.case_tombstones where user_id = $1' using p_user_id;
+  end if;
+  if to_regclass('public.payment_refunds') is not null and to_regclass('public.payments') is not null then
+    execute 'delete from public.payment_refunds r using public.payments p where r.razorpay_payment_id = p.razorpay_payment_id and p.user_id = $1' using p_user_id;
+  end if;
   if to_regclass('public.payments') is not null then
     execute 'delete from public.payments where user_id = $1' using p_user_id;
   end if;
@@ -135,6 +144,11 @@ begin
   end if;
   if to_regclass('public.ai_usage_daily') is not null then
     execute 'delete from public.ai_usage_daily where user_id = $1' using p_user_id;
+  end if;
+
+  -- Ensure sensitive medical files are not orphaned in Supabase Storage
+  if to_regclass('storage.objects') is not null then
+    execute 'delete from storage.objects where owner = $1' using p_user_id;
   end if;
 end;
 $$;
@@ -486,9 +500,342 @@ grant select on public.healthchain_user_overview,
   public.healthchain_memory_overview
   to service_role;
 
+-- ===== 20260822_metered_quotas.sql =====
+create table if not exists public.user_quotas (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  feature_name text not null,
+  allocated integer not null default 0,
+  used integer not null default 0,
+  expires_at timestamptz,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, feature_name)
+);
 
+alter table public.user_quotas enable row level security;
+drop policy if exists "Users can read own quotas" on public.user_quotas;
+create policy "Users can read own quotas" on public.user_quotas
+  for select to authenticated
+  using (auth.uid() = user_id);
 
+-- Grants
+revoke all on table public.user_quotas from anon, authenticated;
+grant select on table public.user_quotas to authenticated;
+grant all on table public.user_quotas to service_role;
 
+-- Function to provision base subscription quotas
+create or replace function public.provision_base_quota(
+  p_user_id uuid,
+  p_plan_id text,
+  p_expires_at timestamptz
+) returns void
+language plpgsql security definer
+as $$
+begin
+  -- Wipe existing quotas so top-ups from an old subscription don't roll over
+  delete from public.user_quotas where user_id = p_user_id;
+
+  if p_plan_id = 'pro_30_days' then
+    insert into public.user_quotas (user_id, feature_name, allocated, expires_at) values
+      (p_user_id, 'ava_replies', 30, p_expires_at),
+      (p_user_id, 'quick_consult', 3, p_expires_at),
+      (p_user_id, 'deep_collab', 2, p_expires_at),
+      (p_user_id, 'jarvis', 1, p_expires_at),
+      (p_user_id, 'pharmacy_hub', 60, p_expires_at),
+      (p_user_id, 'lab_report', 10, p_expires_at);
+  elsif p_plan_id = 'pro_90_days' then
+    insert into public.user_quotas (user_id, feature_name, allocated, expires_at) values
+      (p_user_id, 'ava_replies', 120, p_expires_at),
+      (p_user_id, 'quick_consult', 10, p_expires_at),
+      (p_user_id, 'deep_collab', 8, p_expires_at),
+      (p_user_id, 'jarvis', 5, p_expires_at),
+      (p_user_id, 'pharmacy_hub', 120, p_expires_at),
+      (p_user_id, 'lab_report', 30, p_expires_at);
+  end if;
+end;
+$$;
+
+-- Function to provision micro-transaction top-ups
+create or replace function public.provision_topup(
+  p_user_id uuid,
+  p_feature_name text,
+  p_amount integer
+) returns void
+language plpgsql security definer
+as $$
+begin
+  -- Upsert so that if a free user buys a top-up for a feature they don't have, the row is created!
+  insert into public.user_quotas (user_id, feature_name, allocated)
+  values (p_user_id, p_feature_name, p_amount)
+  on conflict (user_id, feature_name)
+  do update set
+    allocated = user_quotas.allocated + excluded.allocated,
+    updated_at = now();
+end;
+$$;
+
+-- Function to atomically consume a feature token
+create or replace function public.consume_feature_quota(
+  p_user_id uuid,
+  p_feature_name text
+) returns jsonb
+language plpgsql security definer
+as $$
+declare
+  v_allocated integer;
+  v_used integer;
+  v_expires_at timestamptz;
+begin
+  -- Wipe expired quotas first
+  delete from public.user_quotas where user_id = p_user_id and expires_at < now();
+
+  -- Lock the row for atomic usage increment
+  select allocated, used, expires_at into v_allocated, v_used, v_expires_at
+  from public.user_quotas
+  where user_id = p_user_id and feature_name = p_feature_name
+  for update;
+
+  if not found then
+    -- Handle Free Tier fallback
+    if p_feature_name = 'ava_replies' then
+      v_allocated := 10;
+    elsif p_feature_name = 'pharmacy_hub' then
+      v_allocated := 5;
+    else
+      -- Feature not available on free tier
+      return jsonb_build_object('allowed', false, 'reason', 'upgrade_required');
+    end if;
+
+    -- Insert the free tier row (no expiry)
+    insert into public.user_quotas (user_id, feature_name, allocated, used)
+    values (p_user_id, p_feature_name, v_allocated, 1)
+    on conflict (user_id, feature_name) do nothing;
+
+    if found then
+      return jsonb_build_object('allowed', true, 'remaining', v_allocated - 1);
+    end if;
+
+    -- If we didn't insert it, a concurrent transaction did! Re-lock and fall through.
+    select allocated, used, expires_at into v_allocated, v_used, v_expires_at
+    from public.user_quotas
+    where user_id = p_user_id and feature_name = p_feature_name
+    for update;
+  end if;
+
+  if v_used >= v_allocated then
+    return jsonb_build_object('allowed', false, 'reason', 'quota_exceeded');
+  end if;
+
+  update public.user_quotas
+  set used = used + 1, updated_at = now()
+  where user_id = p_user_id and feature_name = p_feature_name;
+
+  return jsonb_build_object('allowed', true, 'remaining', v_allocated - v_used - 1);
+end;
+$$;
+
+-- ===== 20260822_payment_entitlement_stacking.sql =====
+create or replace function public.activate_payment_entitlement(
+  p_user_id uuid,
+  p_order_id text,
+  p_payment_id text,
+  p_amount integer,
+  p_expires_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $body
+declare
+  existing_user uuid;
+  effective_expiry timestamptz;
+  current_profile_expiry timestamptz;
+begin
+  select user_id, entitlement_expires_at
+    into existing_user, effective_expiry
+    from public.payments
+    where razorpay_payment_id = p_payment_id
+    for update;
+
+  if existing_user is not null and existing_user <> p_user_id then
+    raise exception 'payment belongs to another account';
+  end if;
+
+  if existing_user is null then
+    select pro_expires_at into current_profile_expiry from public.profiles where id = p_user_id;
+    if current_profile_expiry is not null and current_profile_expiry > now() then
+      effective_expiry := current_profile_expiry + interval '30 days';
+    else
+      effective_expiry := p_expires_at;
+    end if;
+
+    insert into public.payments (
+      user_id, razorpay_order_id, razorpay_payment_id, amount, status, entitlement_expires_at
+    ) values (
+      p_user_id, p_order_id, p_payment_id, p_amount, 'paid', effective_expiry
+    );
+  end if;
+
+  update public.profiles
+    set is_pro = true,
+        pro_expires_at = effective_expiry,
+        updated_at = now()
+    where id = p_user_id;
+
+  if not found then
+    raise exception 'profile not found for payment account';
+  end if;
+  return true;
+end;
+$body;
+
+-- ===== 20260822_payment_race_condition.sql =====
+create or replace function public.activate_payment_entitlement(
+  p_user_id uuid,
+  p_order_id text,
+  p_payment_id text,
+  p_amount integer,
+  p_expires_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $body
+declare
+  existing_user uuid;
+  effective_expiry timestamptz;
+  current_profile_expiry timestamptz;
+begin
+  -- First, pre-insert the payment to natively lock it via the unique constraint.
+  -- This prevents concurrent webhook/API calls from bypassing the table lock.
+  insert into public.payments (
+    user_id, razorpay_order_id, razorpay_payment_id, amount, status, entitlement_expires_at
+  ) values (
+    p_user_id, p_order_id, p_payment_id, p_amount, 'paid', null
+  ) on conflict (razorpay_payment_id) do nothing;
+
+  -- Lock the newly inserted or already existing row
+  select user_id, entitlement_expires_at
+    into existing_user, effective_expiry
+    from public.payments
+    where razorpay_payment_id = p_payment_id
+    for update;
+
+  if existing_user is not null and existing_user <> p_user_id then
+    raise exception 'payment belongs to another account';
+  end if;
+
+  -- If entitlement is already calculated, it was processed by another thread
+  if effective_expiry is not null then
+    return true;
+  end if;
+
+  -- New payment: calculate stacking entitlement
+  select pro_expires_at into current_profile_expiry from public.profiles where id = p_user_id;
+  if current_profile_expiry is not null and current_profile_expiry > now() then
+    effective_expiry := current_profile_expiry + interval '30 days';
+  else
+    effective_expiry := p_expires_at;
+  end if;
+
+  -- Update payment with expiry
+  update public.payments
+    set entitlement_expires_at = effective_expiry
+    where razorpay_payment_id = p_payment_id;
+
+  -- Provision the user profile
+  update public.profiles
+    set is_pro = true,
+        pro_expires_at = effective_expiry,
+        updated_at = now()
+    where id = p_user_id;
+
+  if not found then
+    raise exception 'profile not found for payment account';
+  end if;
+  return true;
+end;
+$body;
+
+-- ===== 20260822_protect_entitlements.sql =====
+-- Prevent authenticated clients from manually elevating their privileges
+-- by updating the is_pro and pro_expires_at columns via the public API.
+create or replace function public.protect_entitlement_columns()
+returns trigger
+language plpgsql
+as $body$
+begin
+  -- If the update is coming from the client (authenticated user)
+  if auth.role() = 'authenticated' then
+    -- Force the entitlement columns to remain unchanged
+    new.is_pro = old.is_pro;
+    new.pro_expires_at = old.pro_expires_at;
+  end if;
+  return new;
+end;
+$body$;
+
+drop trigger if exists protect_entitlement_columns_trigger on public.profiles;
+create trigger protect_entitlement_columns_trigger
+before update on public.profiles
+for each row
+execute function public.protect_entitlement_columns();
+
+-- ===== 20260822_restore_lost_entitlements.sql =====
+-- Restore lost entitlements caused by the PostgREST upsert bug.
+-- This script safely reapplies the is_pro status to any user who
+-- has a valid, unexpired payment in the secure payments ledger.
+update public.profiles
+set is_pro = true,
+    pro_expires_at = payments.entitlement_expires_at
+from public.payments
+where public.profiles.id = public.payments.user_id
+  and public.payments.status = 'paid'
+  and public.payments.entitlement_expires_at > now()
+  and public.profiles.is_pro = false;
+
+-- ===== 20260822_storage_security.sql =====
+-- Enforce strict security on the medical_records storage bucket.
+-- Prevents malware hosting, arbitrary file execution, and storage bloat.
+
+-- Enable RLS on storage.objects if not already enabled
+alter table if exists storage.objects enable row level security;
+
+-- Policy: Users can only view their own uploaded files
+create policy "Users can view their own medical records"
+  on storage.objects for select
+  using ( bucket_id = 'medical_records' and auth.uid() = owner );
+
+-- Policy: Users can only upload safe file types under 5MB to their own folder
+create policy "Users can upload safe medical records under 5MB"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'medical_records'
+    and auth.uid() = owner
+    and (
+      -- Strictly whitelist safe medical record formats
+      lower(storage.extension(name)) = 'pdf' or
+      lower(storage.extension(name)) = 'jpg' or
+      lower(storage.extension(name)) = 'jpeg' or
+      lower(storage.extension(name)) = 'png'
+    )
+    -- 5MB size limit (5 * 1024 * 1024 bytes)
+    -- Note: Supabase checks size via 'length' or via native bucket settings.
+    -- If 'length' isn't available, rely on bucket settings.
+  );
+
+-- Policy: Users can update their own files
+create policy "Users can update their own medical records"
+  on storage.objects for update
+  using ( bucket_id = 'medical_records' and auth.uid() = owner );
+
+-- Policy: Users can delete their own files
+create policy "Users can delete their own medical records"
+  on storage.objects for delete
+  using ( bucket_id = 'medical_records' and auth.uid() = owner );
+
+-- ===== 20260829_fitness_platform.sql =====
 -- ===== 20260829_fitness_platform.sql =====
 -- Cinematic Fitness & Wellness Overhaul
 -- Creates 18 tables, RLS policies, storage buckets, and RPCs for the fitness platform.
@@ -881,8 +1228,402 @@ REVOKE ALL ON public.fitness_daily_activity FROM public, anon, authenticated;
 GRANT SELECT ON public.fitness_content_analytics TO service_role;
 GRANT SELECT ON public.fitness_daily_activity TO service_role;
 
+-- ===== 20260831_health_device_metrics.sql =====
+CREATE TABLE IF NOT EXISTS public.user_health_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    metric_type TEXT NOT NULL,
+    value NUMERIC NOT NULL,
+    unit TEXT,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    source_device TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, metric_type, start_time, end_time)
+);
+CREATE INDEX IF NOT EXISTS idx_user_health_metrics_type_time ON public.user_health_metrics(user_id, metric_type, start_time DESC);
+
+ALTER TABLE public.user_health_metrics ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own health metrics"
+    ON public.user_health_metrics FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own health metrics"
+    ON public.user_health_metrics FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own health metrics"
+    ON public.user_health_metrics FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own health metrics"
+    ON public.user_health_metrics FOR DELETE
+    USING (auth.uid() = user_id);
+
+-- ===== 20260911_atomic_sync_and_entitlements.sql =====
+-- ============================================================================
+-- Migration: 20260911_atomic_sync_and_entitlements.sql
+-- HealthChain Atomic Synchronization, Durable Deletions & Payment Entitlements
+--
+-- 1. Revision-conditional atomic case sync to prevent concurrent overwrites.
+-- 2. Atomic case deletion with guaranteed durable tombstone insertion.
+-- 3. Fulfillment state tracking on payments table ('pending', 'fulfilled', 'failed').
+-- 4. Atomic subscription activation and quota allocation (single transaction lock).
+-- 5. Atomic top-up activation and quota allocation with safe idempotent retry.
+-- ============================================================================
+
+-- 1. Ensure fulfillment tracking columns exist on public.payments
+do $$
+begin
+  if to_regclass('public.payments') is not null then
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'payments' and column_name = 'fulfillment_status'
+    ) then
+      alter table public.payments add column fulfillment_status text not null default 'pending';
+    end if;
+
+    if not exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'payments' and column_name = 'fulfillment_error'
+    ) then
+      alter table public.payments add column fulfillment_error text;
+    end if;
+  end if;
+end $$;
+
+-- 2. Atomic revision-conditional case sync RPC
+create or replace function public.sync_case_with_revision_check(
+  p_user_id uuid,
+  p_case_id text,
+  p_expected_revision bigint,
+  p_payload jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_curr_rev bigint;
+  v_curr_deleted_at timestamptz;
+  v_curr_data jsonb;
+  v_next_rev bigint;
+begin
+  if auth.uid() is null or auth.uid() <> p_user_id then
+    raise exception 'Unauthorized case sync operation';
+  end if;
+
+  if exists (select 1 from public.cases where id = p_case_id and user_id <> p_user_id) then
+    raise exception 'Case identifier belongs to another account';
+  end if;
+
+  if exists (select 1 from public.case_tombstones where id = p_case_id and user_id = p_user_id) then
+    return jsonb_build_object('success', false, 'conflict', true, 'deleted', true);
+  end if;
+
+  -- Lock the target case row for update
+  select revision, deleted_at, data
+    into v_curr_rev, v_curr_deleted_at, v_curr_data
+    from public.cases
+    where id = p_case_id and user_id = p_user_id
+    for update;
+
+  -- If case is marked deleted on server, report deletion conflict
+  if v_curr_deleted_at is not null then
+    return jsonb_build_object(
+      'success', false,
+      'conflict', true,
+      'deleted', true,
+      'deleted_at', v_curr_deleted_at
+    );
+  end if;
+
+  -- If revision diverged from client expectation, reject write and return current server state
+  if v_curr_rev is not null and p_expected_revision is not null and v_curr_rev <> p_expected_revision then
+    return jsonb_build_object(
+      'success', false,
+      'conflict', true,
+      'deleted', false,
+      'current_revision', v_curr_rev,
+      'current_data', v_curr_data
+    );
+  end if;
+
+  -- Calculate next revision atomically
+  v_next_rev := coalesce(v_curr_rev, 0) + 1;
+  if p_payload ? 'revision' then
+    v_next_rev := greatest(v_next_rev, (p_payload->>'revision')::bigint);
+  end if;
+
+  -- Insert or update case atomically
+  insert into public.cases (
+    id, user_id, title, status, mode, revision, data, updated_at, created_at
+  ) values (
+    p_case_id,
+    p_user_id,
+    coalesce(p_payload->>'title', 'Untitled health case'),
+    coalesce(p_payload->>'status', 'active'),
+    coalesce(p_payload->>'mode', 'multi'),
+    v_next_rev,
+    p_payload->'data',
+    now(),
+    coalesce((p_payload->>'created_at')::timestamptz, now())
+  ) on conflict (id) do update
+    set title = excluded.title,
+        status = excluded.status,
+        mode = excluded.mode,
+        revision = v_next_rev,
+        data = excluded.data,
+        updated_at = now()
+    where public.cases.user_id = p_user_id;
+
+  return jsonb_build_object(
+    'success', true,
+    'conflict', false,
+    'new_revision', v_next_rev
+  );
+end;
+$$;
+
+-- 3. Atomic case deletion with guaranteed durable tombstone RPC
+create or replace function public.delete_case_with_tombstone(
+  p_user_id uuid,
+  p_case_id text,
+  p_profile_id text,
+  p_deleted_at timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null and auth.uid() <> p_user_id then
+    raise exception 'Unauthorized case deletion operation';
+  end if;
+
+  -- 1. Insert tombstone atomically
+  insert into public.case_tombstones (id, user_id, profile_id, deleted_at, created_at)
+  values (p_case_id, p_user_id, coalesce(p_profile_id, 'profile_1'), coalesce(p_deleted_at, now()), now())
+  on conflict (user_id, profile_id, id) do update
+    set deleted_at = greatest(case_tombstones.deleted_at, excluded.deleted_at);
+
+  -- 2. Delete case row in same transaction
+  delete from public.cases
+  where id = p_case_id and user_id = p_user_id;
+
+  return true;
+end;
+$$;
+
+-- 4. Atomic subscription activation and quota allocation
+create or replace function public.activate_and_provision_subscription(
+  p_user_id uuid,
+  p_order_id text,
+  p_payment_id text,
+  p_amount integer,
+  p_plan_id text,
+  p_expires_at timestamptz
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  existing_user uuid;
+  existing_fulfillment text;
+  effective_expiry timestamptz;
+  current_profile_expiry timestamptz;
+  plan_duration interval;
+  v_ava integer;
+  v_qc integer;
+  v_collab integer;
+  v_jarvis integer;
+  v_pharmacy integer;
+  v_lab integer;
+begin
+  -- 1. Pre-insert payment to lock row via unique razorpay_payment_id
+  insert into public.payments (
+    user_id, razorpay_order_id, razorpay_payment_id, amount, status, fulfillment_status
+  ) values (
+    p_user_id, p_order_id, p_payment_id, p_amount, 'paid', 'pending'
+  ) on conflict (razorpay_payment_id) do nothing;
+
+  -- 2. Lock payment row
+  select user_id, fulfillment_status, entitlement_expires_at
+    into existing_user, existing_fulfillment, effective_expiry
+    from public.payments
+    where razorpay_payment_id = p_payment_id
+    for update;
+
+  if existing_user is not null and existing_user <> p_user_id then
+    raise exception 'payment belongs to another account';
+  end if;
+
+  -- 3. If already fulfilled, return idempotently
+  if existing_fulfillment = 'fulfilled' and effective_expiry is not null then
+    return jsonb_build_object(
+      'success', true,
+      'already_processed', true,
+      'expires_at', effective_expiry
+    );
+  end if;
+
+  -- 4. Lock user profile row to serialize concurrent stacking payments
+  select pro_expires_at into current_profile_expiry
+    from public.profiles
+    where id = p_user_id
+    for update;
+
+  -- 5. Determine plan duration
+  if p_plan_id = 'pro_90_days' or p_amount >= 80000 then
+    plan_duration := interval '90 days';
+  else
+    plan_duration := interval '30 days';
+  end if;
+
+  if current_profile_expiry is not null and current_profile_expiry > now() then
+    effective_expiry := current_profile_expiry + plan_duration;
+  else
+    effective_expiry := coalesce(p_expires_at, now() + plan_duration);
+  end if;
+
+  -- 6. Calculate quotas
+  if p_plan_id = 'pro_90_days' then
+    v_ava := 120; v_qc := 10; v_collab := 8; v_jarvis := 5; v_pharmacy := 120; v_lab := 30;
+  else
+    v_ava := 30; v_qc := 3; v_collab := 2; v_jarvis := 1; v_pharmacy := 60; v_lab := 10;
+  end if;
+
+  -- 7. Provision base quotas
+  insert into public.user_quotas (user_id, feature_name, allocated, used, expires_at, updated_at)
+  values
+    (p_user_id, 'ava_replies', v_ava, 0, effective_expiry, now()),
+    (p_user_id, 'quick_consult', v_qc, 0, effective_expiry, now()),
+    (p_user_id, 'deep_collab', v_collab, 0, effective_expiry, now()),
+    (p_user_id, 'jarvis', v_jarvis, 0, effective_expiry, now()),
+    (p_user_id, 'pharmacy_hub', v_pharmacy, 0, effective_expiry, now()),
+    (p_user_id, 'lab_report', v_lab, 0, effective_expiry, now())
+  on conflict (user_id, feature_name) do update
+    set allocated = user_quotas.allocated + excluded.allocated,
+        expires_at = greatest(coalesce(user_quotas.expires_at, now()), excluded.expires_at),
+        updated_at = now();
+
+  -- 8. Update profile pro status
+  update public.profiles
+    set is_pro = true,
+        pro_expires_at = effective_expiry,
+        updated_at = now()
+    where id = p_user_id;
+
+  -- 9. Mark payment fulfilled
+  update public.payments
+    set entitlement_expires_at = effective_expiry,
+        status = 'paid',
+        fulfillment_status = 'fulfilled',
+        fulfillment_error = null,
+        updated_at = now()
+    where razorpay_payment_id = p_payment_id;
+
+  return jsonb_build_object(
+    'success', true,
+    'already_processed', false,
+    'expires_at', effective_expiry
+  );
+end;
+$$;
+
+-- 5. Atomic top-up activation and quota allocation
+create or replace function public.activate_and_provision_topup(
+  p_user_id uuid,
+  p_order_id text,
+  p_payment_id text,
+  p_amount integer,
+  p_feature text,
+  p_quantity integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  existing_user uuid;
+  existing_fulfillment text;
+begin
+  -- 1. Insert payment row
+  insert into public.payments (
+    user_id, razorpay_order_id, razorpay_payment_id, amount, status, fulfillment_status
+  ) values (
+    p_user_id, p_order_id, p_payment_id, p_amount, 'paid', 'pending'
+  ) on conflict (razorpay_payment_id) do nothing;
+
+  -- 2. Lock payment row
+  select user_id, fulfillment_status
+    into existing_user, existing_fulfillment
+    from public.payments
+    where razorpay_payment_id = p_payment_id
+    for update;
+
+  if existing_user is not null and existing_user <> p_user_id then
+    raise exception 'payment belongs to another account';
+  end if;
+
+  if existing_fulfillment = 'fulfilled' then
+    return jsonb_build_object(
+      'success', true,
+      'already_processed', true
+    );
+  end if;
+
+  -- 3. Provision feature quota atomically
+  insert into public.user_quotas (user_id, feature_name, allocated, used, expires_at, updated_at)
+  values (
+    p_user_id,
+    p_feature,
+    p_quantity,
+    0,
+    null,
+    now()
+  ) on conflict (user_id, feature_name) do update
+    set allocated = user_quotas.allocated + excluded.allocated,
+        updated_at = now();
+
+  -- 4. Mark payment fulfilled
+  update public.payments
+    set status = 'paid',
+        fulfillment_status = 'fulfilled',
+        fulfillment_error = null,
+        updated_at = now()
+    where razorpay_payment_id = p_payment_id;
+
+  return jsonb_build_object(
+    'success', true,
+    'already_processed', false
+  );
+end;
+$$;
+
+-- Security grants
+revoke all on function public.sync_case_with_revision_check(uuid, text, bigint, jsonb) from public, anon;
+grant execute on function public.sync_case_with_revision_check(uuid, text, bigint, jsonb) to authenticated, service_role;
+
+revoke all on function public.delete_case_with_tombstone(uuid, text, text, timestamptz) from public, anon;
+grant execute on function public.delete_case_with_tombstone(uuid, text, text, timestamptz) to authenticated, service_role;
+
+revoke all on function public.activate_and_provision_subscription(uuid, text, text, integer, text, timestamptz) from public, anon;
+grant execute on function public.activate_and_provision_subscription(uuid, text, text, integer, text, timestamptz) to service_role;
+
+revoke all on function public.activate_and_provision_topup(uuid, text, text, integer, text, integer) from public, anon;
+grant execute on function public.activate_and_provision_topup(uuid, text, text, integer, text, integer) to service_role;
+
 -- ===== 20260911_conflict_safe_sync.sql =====
 -- Conflict-safe synchronization: revision tracking, soft-deletion timestamps, and durable case tombstones.
+-- Additive migration that protects against silent overwrite, clock-skew loss, and resurrection races.
 
 -- 1. Add revision and deleted_at columns to public.cases
 do $$
@@ -938,12 +1679,11 @@ create policy "Users manage own case tombstones"
 comment on table public.case_tombstones is
   'Immutable tombstones for deleted cases to prevent offline devices from resurrecting purged cases.';
 
-
 -- ===== 20260911_payment_lifecycle_resilience.sql =====
 -- ============================================================================
 -- Migration: 20260911_payment_lifecycle_resilience.sql
 -- HealthChain Payment Lifecycle & Entitlement Resilience (Package 10)
--- 
+--
 -- Fixes:
 -- 1. Accurate duration stacking for variable plans (pro_30_days, pro_90_days).
 -- 2. Concurrency lock on profile during entitlement stacking.
@@ -1093,4 +1833,304 @@ revoke all on function public.provision_base_quota(uuid, text, timestamptz)
   from public, anon, authenticated;
 grant execute on function public.provision_base_quota(uuid, text, timestamptz)
   to service_role;
+
+-- ===== 20260916_payment_refund_reconciliation.sql =====
+-- Idempotent refund ledger and quota/entitlement reconciliation.
+alter table public.payments
+  add column if not exists plan_id text,
+  add column if not exists product_type text,
+  add column if not exists feature_name text,
+  add column if not exists quantity integer,
+  add column if not exists refunded_amount integer not null default 0;
+
+alter table public.payments drop constraint if exists payments_status_check;
+alter table public.payments add constraint payments_status_check
+  check (status in ('paid', 'partially_refunded', 'refunded', 'failed'));
+
+create table if not exists public.payment_refunds (
+  refund_id text primary key,
+  razorpay_payment_id text not null,
+  amount integer not null check (amount > 0),
+  processed_at timestamptz not null default now()
+);
+
+alter table public.payment_refunds enable row level security;
+revoke all on public.payment_refunds from public, anon, authenticated;
+grant all on public.payment_refunds to service_role;
+
+create or replace function public.process_payment_refund(
+  p_refund_id text,
+  p_payment_id text,
+  p_refund_amount integer
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_payment public.payments%rowtype;
+  v_previous integer;
+  v_total integer;
+  v_units_before integer := 0;
+  v_units_after integer := 0;
+  v_units_to_reverse integer := 0;
+  v_expiry timestamptz;
+begin
+  if p_refund_id is null or p_payment_id is null or p_refund_amount <= 0 then
+    raise exception 'invalid refund payload';
+  end if;
+
+  if exists (select 1 from public.payment_refunds where refund_id = p_refund_id) then
+    return jsonb_build_object('success', true, 'already_processed', true);
+  end if;
+
+  select * into v_payment from public.payments
+   where razorpay_payment_id = p_payment_id for update;
+  if not found then raise exception 'payment not found'; end if;
+
+  v_previous := coalesce(v_payment.refunded_amount, 0);
+  v_total := v_previous + p_refund_amount;
+  if v_total > v_payment.amount then raise exception 'refund exceeds captured amount'; end if;
+
+  insert into public.payment_refunds(refund_id, razorpay_payment_id, amount)
+  values (p_refund_id, p_payment_id, p_refund_amount);
+
+  if v_payment.product_type = 'topup' and coalesce(v_payment.quantity, 0) > 0 then
+    v_units_before := floor((v_previous::numeric / v_payment.amount) * v_payment.quantity);
+    v_units_after := floor((v_total::numeric / v_payment.amount) * v_payment.quantity);
+    v_units_to_reverse := greatest(0, v_units_after - v_units_before);
+    if v_units_to_reverse > 0 and v_payment.feature_name is not null then
+      update public.user_quotas
+         set allocated = greatest(used, allocated - v_units_to_reverse), updated_at = now()
+       where user_id = v_payment.user_id and feature_name = v_payment.feature_name;
+    end if;
+  end if;
+
+  update public.payments
+     set refunded_amount = v_total,
+         status = case when v_total = amount then 'refunded' else 'partially_refunded' end,
+         entitlement_expires_at = case when v_total = amount then null else entitlement_expires_at end,
+         updated_at = now()
+   where razorpay_payment_id = p_payment_id;
+
+  if v_payment.product_type = 'subscription' and v_total = v_payment.amount then
+    select max(entitlement_expires_at) into v_expiry
+      from public.payments
+     where user_id = v_payment.user_id
+       and razorpay_payment_id <> p_payment_id
+       and status in ('paid', 'partially_refunded')
+       and entitlement_expires_at > now();
+
+    update public.profiles
+       set is_pro = v_expiry is not null,
+           pro_expires_at = v_expiry,
+           updated_at = now()
+     where id = v_payment.user_id;
+  end if;
+
+  return jsonb_build_object(
+    'success', true,
+    'already_processed', false,
+    'refunded_amount', v_total,
+    'fully_refunded', v_total = v_payment.amount
+  );
+end;
+$$;
+
+revoke all on function public.process_payment_refund(text, text, integer)
+  from public, anon, authenticated;
+grant execute on function public.process_payment_refund(text, text, integer)
+  to service_role;
+
+-- ===== 20260916_production_hardening.sql =====
+-- Production hardening for ownership, deletion, and quota RPC boundaries.
+-- Safe to apply after all 20260911 migrations.
+
+create or replace function public.enforce_case_write_integrity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'UPDATE' and old.user_id <> new.user_id then
+    raise exception 'Case ownership cannot be changed';
+  end if;
+
+  if auth.uid() is not null and new.user_id <> auth.uid() then
+    raise exception 'Unauthorized case write';
+  end if;
+
+  if exists (
+    select 1
+    from public.case_tombstones tombstone
+    where tombstone.id = new.id
+      and tombstone.user_id = new.user_id
+  ) then
+    raise exception 'Deleted case cannot be recreated';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_case_write_integrity_trigger on public.cases;
+create trigger enforce_case_write_integrity_trigger
+before insert or update on public.cases
+for each row execute function public.enforce_case_write_integrity();
+
+revoke all on function public.enforce_case_write_integrity() from public, anon, authenticated;
+
+-- These functions are invoked by trusted server code with the service role.
+-- Browser clients must never grant credits or consume another account's quota.
+revoke all on function public.provision_topup(uuid, text, integer) from public, anon, authenticated;
+grant execute on function public.provision_topup(uuid, text, integer) to service_role;
+
+revoke all on function public.consume_feature_quota(uuid, text) from public, anon, authenticated;
+grant execute on function public.consume_feature_quota(uuid, text) to service_role;
+
+-- ===== 20260917_ai_quota_reservations.sql =====
+-- Tie paid feature usage to the request ledger so a failed provider call can
+-- safely return the reserved credit exactly once.
+alter table public.ai_requests
+  add column if not exists feature_code text,
+  add column if not exists feature_quota_consumed boolean not null default false,
+  add column if not exists feature_quota_released boolean not null default false;
+
+-- Keep the public free-plan promise enforceable on the server. The client-side
+-- counter is only a convenience; this database function remains authoritative.
+create or replace function public.consume_feature_quota(
+  p_user_id uuid,
+  p_feature_name text
+) returns jsonb
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_allocated integer;
+  v_used integer;
+  v_expires_at timestamptz;
+begin
+  delete from public.user_quotas where user_id = p_user_id and expires_at < now();
+
+  select allocated, used, expires_at into v_allocated, v_used, v_expires_at
+  from public.user_quotas
+  where user_id = p_user_id and feature_name = p_feature_name
+  for update;
+
+  if not found then
+    if p_feature_name = 'ava_replies' then
+      v_allocated := 10;
+    elsif p_feature_name = 'pharmacy_hub' then
+      v_allocated := 5;
+    elsif p_feature_name = 'quick_consult' then
+      v_allocated := 1;
+    else
+      return jsonb_build_object('allowed', false, 'reason', 'upgrade_required');
+    end if;
+
+    insert into public.user_quotas (user_id, feature_name, allocated, used)
+    values (p_user_id, p_feature_name, v_allocated, 1)
+    on conflict (user_id, feature_name) do nothing;
+
+    if found then
+      return jsonb_build_object('allowed', true, 'remaining', v_allocated - 1);
+    end if;
+
+    select allocated, used, expires_at into v_allocated, v_used, v_expires_at
+    from public.user_quotas
+    where user_id = p_user_id and feature_name = p_feature_name
+    for update;
+  end if;
+
+  if v_used >= v_allocated then
+    return jsonb_build_object('allowed', false, 'reason', 'quota_exceeded');
+  end if;
+
+  update public.user_quotas
+  set used = used + 1, updated_at = now()
+  where user_id = p_user_id and feature_name = p_feature_name;
+
+  return jsonb_build_object('allowed', true, 'remaining', v_allocated - v_used - 1);
+end;
+$$;
+
+create or replace function public.consume_feature_quota_for_request(
+  p_user_id uuid,
+  p_feature_name text,
+  p_request_id text
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_request public.ai_requests%rowtype;
+  v_result jsonb;
+begin
+  select * into v_request
+  from public.ai_requests
+  where request_id = p_request_id and user_id = p_user_id
+  for update;
+
+  if not found then
+    return jsonb_build_object('allowed', false, 'reason', 'request_not_found');
+  end if;
+
+  if v_request.feature_quota_consumed and not v_request.feature_quota_released then
+    return jsonb_build_object('allowed', true, 'reason', 'already_reserved');
+  end if;
+
+  v_result := public.consume_feature_quota(p_user_id, p_feature_name);
+  if coalesce((v_result ->> 'allowed')::boolean, false) then
+    update public.ai_requests
+    set feature_code = p_feature_name,
+        feature_quota_consumed = true,
+        feature_quota_released = false
+    where request_id = p_request_id and user_id = p_user_id;
+  end if;
+
+  return v_result;
+end;
+$$;
+
+create or replace function public.release_feature_quota_for_request(
+  p_user_id uuid,
+  p_request_id text
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_request public.ai_requests%rowtype;
+begin
+  select * into v_request
+  from public.ai_requests
+  where request_id = p_request_id and user_id = p_user_id
+  for update;
+
+  if not found
+     or not v_request.feature_quota_consumed
+     or v_request.feature_quota_released
+     or v_request.feature_code is null then
+    return false;
+  end if;
+
+  update public.user_quotas
+  set used = greatest(used - 1, 0), updated_at = now()
+  where user_id = p_user_id and feature_name = v_request.feature_code;
+
+  update public.ai_requests
+  set feature_quota_released = true
+  where request_id = p_request_id and user_id = p_user_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.consume_feature_quota_for_request(uuid, text, text) from public, anon, authenticated;
+revoke all on function public.release_feature_quota_for_request(uuid, text) from public, anon, authenticated;
+grant execute on function public.consume_feature_quota_for_request(uuid, text, text) to service_role;
+grant execute on function public.release_feature_quota_for_request(uuid, text) to service_role;
 

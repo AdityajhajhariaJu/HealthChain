@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { PRODUCT_CATALOG } from '../shared/productCatalog.js';
 
 export const config = {
   api: {
@@ -78,17 +79,7 @@ export default async function handler(req, res) {
       }
 
       let resolvedPlanId = planId || 'pro_30_days';
-      // Basic plan map (mirrored from create-order.js)
-      const ALLOWED_PLANS = {
-        pro_30_days: { amount: 49900, days: 30, type: 'subscription' },
-        pro_90_days: { amount: 89900, days: 90, type: 'subscription' },
-        topup_ava: { amount: 9900, type: 'topup', feature: 'ava_replies', quantity: 10 },
-        topup_quick_consult: { amount: 12900, type: 'topup', feature: 'quick_consult', quantity: 1 },
-        topup_deep_collab: { amount: 14900, type: 'topup', feature: 'deep_collab', quantity: 1 },
-        topup_jarvis: { amount: 16900, type: 'topup', feature: 'jarvis', quantity: 1 },
-        topup_pharmacy_hub: { amount: 9900, type: 'topup', feature: 'pharmacy_hub', quantity: 30 },
-        topup_lab_report: { amount: 9900, type: 'topup', feature: 'lab_report', quantity: 2 }
-      };
+      const ALLOWED_PLANS = PRODUCT_CATALOG;
       
       const targetPlan = ALLOWED_PLANS[resolvedPlanId] || ALLOWED_PLANS.pro_30_days;
       if (!ALLOWED_PLANS[resolvedPlanId] || amount !== targetPlan.amount) {

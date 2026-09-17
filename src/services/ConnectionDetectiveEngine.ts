@@ -259,6 +259,11 @@ export interface FunctionalBiomarker {
   whyDoctorsMissIt: string;
   actionableDietaryCofactors: string[];
   retestTimeline: string;
+  originalValue?: string;
+  originalRange?: string;
+  comparator?: '<' | '<=' | '>' | '>=' | '=';
+  isComparable?: boolean;
+  extractionState?: 'parsed' | 'needs_review';
 }
 
 export const BASE_FUNCTIONAL_BIOMARKERS: FunctionalBiomarker[] = [
@@ -704,17 +709,41 @@ export function computeBiomarkerStatus(b: FunctionalBiomarker, val: number): Fun
 export function getFunctionalBiomarkers():FunctionalBiomarker[] {
   const saved=getUnifiedCaseScope().caseItem?.reviews?.[0]?.report as any;
   if(saved?.groundingVersion!==1)return [];
-  return (saved.functionalBiomarkers || []).flatMap((b:any)=>{
-    const valueMatch=String(b.value || '').match(/^(-?\d+(?:\.\d+)?)\s+(.+)$/);
-    const rangeMatch=String(b.standardRange || '').match(/^(-?\d+(?:\.\d+)?)\s*[-–]\s*(-?\d+(?:\.\d+)?)/);
-    if(!valueMatch || !rangeMatch)return [];
-    const value=Number(valueMatch[1]),min=Number(rangeMatch[1]),max=Number(rangeMatch[2]),unit=valueMatch[2];
-    const range={min,max,unit,label:b.standardRange};
-    return [{id:b.factId,name:b.biomarker,category:'metabolic',categoryLabel:'Recorded laboratory value',categoryIcon:'🧪',
+  return (saved.functionalBiomarkers || []).map((b:any, index:number)=>{
+    const rawValue=String(b.value ?? '').trim();
+    const suppliedRange=b.standardRange ?? b.referenceRange ?? '';
+    const rawRange=typeof suppliedRange==='object' && suppliedRange!==null
+      ? `${suppliedRange.min ?? ''}${suppliedRange.min != null && suppliedRange.max != null ? ' - ' : ''}${suppliedRange.max ?? ''}${suppliedRange.unit ? ` ${suppliedRange.unit}` : ''}`.trim()
+      :String(suppliedRange).trim();
+    const valueMatch=rawValue.match(/^\s*(<=|>=|<|>|=)?\s*(-?\d+(?:\.\d+)?)\s*(.*)$/);
+    const interval=rawRange.match(/(-?\d+(?:\.\d+)?)\s*[-–]\s*(-?\d+(?:\.\d+)?)/);
+    const upper=rawRange.match(/^\s*(?:<=|<)\s*(-?\d+(?:\.\d+)?)/);
+    const lower=rawRange.match(/^\s*(?:>=|>)\s*(-?\d+(?:\.\d+)?)/);
+    const value=valueMatch ? Number(valueMatch[2]) : 0;
+    const unit=String(valueMatch?.[3] || b.unit || '').trim();
+    let min=Number.NEGATIVE_INFINITY;
+    let max=Number.POSITIVE_INFINITY;
+    if(interval){min=Number(interval[1]);max=Number(interval[2]);}
+    else if(upper){max=Number(upper[1]);}
+    else if(lower){min=Number(lower[1]);}
+    const hasExactValue=!valueMatch?.[1] || valueMatch[1]==='=';
+    const isComparable=Boolean(valueMatch && hasExactValue && (interval || upper || lower));
+    const normalizedMin=Number.isFinite(min) ? min : Math.min(0, value);
+    const normalizedMax=Number.isFinite(max) ? max : Math.max(value * 1.25, value + 1, 1);
+    const markerName=String(b.biomarker || b.name || 'Laboratory value');
+    const nameKey=markerName.toLowerCase();
+    const category:FunctionalBiomarker['category']=/thyroid|tsh|cortisol|hormone/.test(nameKey)?'endocrine'
+      :/crp|immune|antibody|vitamin d/.test(nameKey)?'immune'
+      :/dao|histamine|amine/.test(nameKey)?'enteric'
+      :/magnesium|b12|neuromuscular/.test(nameKey)?'neuromuscular':'metabolic';
+    const range={min:normalizedMin,max:normalizedMax,unit,label:rawRange || 'No printed range extracted'};
+    return {id:b.factId || `lab_${index}`,name:markerName,category,categoryLabel:'Recorded laboratory value',categoryIcon:'🧪',
       userValue:value,userUnit:unit,standardRange:range,optimalRange:{...range,label:'No separate optimal range established'},
-      status:value<min?'suboptimal_low':value>max?'suboptimal_high':'optimal',
-      clinicalSummary:'Provisional extraction. Compare with the original report and its printed interval.',
-      whyDoctorsMissIt:'No inference about previous care is made.',actionableDietaryCofactors:[],retestTimeline:'Discuss follow-up if appropriate.'}];
+      status:!isComparable?'optimal':value<min?'suboptimal_low':value>max?'suboptimal_high':'optimal',
+      clinicalSummary:isComparable?'Provisional extraction. Compare with the original report and its printed interval.':'This result was preserved, but its value or printed range needs review before comparison.',
+      whyDoctorsMissIt:'No inference about previous care is made.',actionableDietaryCofactors:[],retestTimeline:'Discuss follow-up if appropriate.',
+      originalValue:rawValue || 'Value not extracted',originalRange:rawRange || 'Range not extracted',
+      comparator:(valueMatch?.[1] || '=') as FunctionalBiomarker['comparator'],isComparable,extractionState:isComparable?'parsed':'needs_review'};
   });
 }
 

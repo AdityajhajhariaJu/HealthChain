@@ -181,8 +181,8 @@ export default function CasePrep() {
     setSavingOutcomeId(questionId);
 
     const status = outcomeStatuses[questionId] || 'discussed';
-    const note = outcomeNotes[questionId] || 'Discussed with clinician during consultation.';
-    const doctorAction = outcomeDoctorActions[questionId] || undefined;
+    const note = (outcomeNotes[questionId] || '').trim();
+    const doctorAction = (outcomeDoctorActions[questionId] || '').trim() || undefined;
 
     let targetId = questionId;
     if (questionId.startsWith('brief_q_')) {

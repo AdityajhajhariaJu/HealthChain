@@ -23,6 +23,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
   ];
 
   const getComputedStatus = (b: FunctionalBiomarker, val: number) => {
+    if (b.isComparable === false) return { key: 'review', label: 'Needs source review', color: '#D97706', bg: '#FFFBEB' };
     if (val < b.standardRange.min) return { key: 'below', label: 'Below printed range', color: '#DC2626', bg: '#FEF2F2' };
     if (val > b.standardRange.max) return { key: 'above', label: 'Above printed range', color: '#DC2626', bg: '#FEF2F2' };
     return { key: 'within', label: 'Within printed range', color: '#059669', bg: '#ECFDF5' };
@@ -211,7 +212,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       {b.name}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                      Printed range: {b.standardRange.label}
+                      Printed range: {b.originalRange || b.standardRange.label}
                     </div>
                   </div>
                 </div>
@@ -219,7 +220,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '15px', fontWeight: 900, color: status.color }}>
-                      {currentValue} {b.userUnit}
+                      {b.isComparable === false ? (b.originalValue || 'Review') : `${b.comparator && b.comparator !== '=' ? b.comparator : ''}${currentValue} ${b.userUnit}`}
                     </div>
                     <div style={{ fontSize: '10.5px', fontWeight: 700, color: status.color }}>
                       {status.label}
@@ -272,8 +273,8 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       <span>{status.label}</span>
                     </div>
 
-                    {/* Dual-Band Range Visualization Bar */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {/* Source range visualization */}
+                    {b.isComparable !== false && <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>
                         <span>Printed range: {b.standardRange.label}</span>
                         <span>Extracted value: {currentValue} {b.userUnit}</span>
@@ -337,7 +338,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                         <span style={{ color: '#059669', fontWeight: 700 }}>Printed interval</span>
                         <span>Above range</span>
                       </div>
-                    </div>
+                    </div>}
 
                     {/* Clinical Summary */}
                     <div style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.5, background: '#FFFFFF', padding: '12px 14px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>

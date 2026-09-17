@@ -39,6 +39,11 @@ import {
 import { PaymentRecoveryBanner } from '../../components/ui/PaymentRecoveryBanner';
 import { triggerHapticLight } from '../../services/haptics';
 import { motion } from 'framer-motion';
+import { PRODUCT_CATALOG } from '../../../shared/productCatalog.js';
+
+const PRO_30_PLAN = PRODUCT_CATALOG.pro_30_days;
+const PRO_90_PLAN = PRODUCT_CATALOG.pro_90_days;
+const rupees = (amount: number) => amount / 100;
 
 interface FeatureItem {
   name: string;
@@ -50,7 +55,7 @@ interface FeatureItem {
 }
 
 const BASIC_FEATURES: FeatureItem[] = [
-  { name: '1 Record Review (Trial)', desc: 'Source-separated case review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
+  { name: '1 Quick Consult', desc: 'One source-separated case review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
   { name: 'Ava Health Buddy (10 Replies)', desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Food & Symptom Tools (1 Plan Trial)', desc: 'Editable meal planning and observation logging', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
   { name: 'Clinical Research (Unlimited)', desc: 'Live registry and literature search by case topic', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
@@ -60,38 +65,38 @@ const BASIC_FEATURES: FeatureItem[] = [
 ];
 
 const PRO_30_FEATURES: FeatureItem[] = [
-  { name: '3 Quick Consult Sessions', desc: 'Instant single-specialist reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
-  { name: '2 Multi-Perspective Reviews', desc: 'Cross-specialty AI perspectives with visible uncertainty', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '1 Clinical Review Session', desc: 'Connected record and symptom review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
-  { name: 'Ava Health Buddy (30 Replies)', desc: 'AI Chief of Staff assistance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
+  { name: `${PRO_30_PLAN.quotas.quick_consult} Quick Consult Sessions`, desc: 'Focused single-perspective case reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
+  { name: `${PRO_30_PLAN.quotas.deep_collab} Multi-Perspective Reviews`, desc: 'Cross-specialty AI perspectives with visible uncertainty', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
+  { name: `${PRO_30_PLAN.quotas.jarvis} Clinical Review Session`, desc: 'Connected record and symptom review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
+  { name: `Ava Health Buddy (${PRO_30_PLAN.quotas.ava_replies} Replies)`, desc: 'Case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Doctor visit briefs & trial matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Food & Symptom Tools (Unlimited)', desc: 'Editable meal plans and observation tracking', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Medication Information', desc: 'Educational interaction questions to verify with a pharmacist', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Lab Report PDF Analyzer (Full)', desc: 'Value extraction and multi-report trends', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: `Medication Information (${PRO_30_PLAN.quotas.pharmacy_hub} Sessions)`, desc: 'Educational interaction questions to verify with a pharmacist', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { name: `Lab Report PDF Analyzer (${PRO_30_PLAN.quotas.lab_report} Reports)`, desc: 'Value extraction and multi-report trends', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health history', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const PRO_90_FEATURES: FeatureItem[] = [
-  { name: '10 Quick Consult Sessions', desc: 'Continuous specialist evaluation', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
-  { name: '8 Deep Collab Specialist Boards', desc: 'Complex multi-system case reviews', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
-  { name: '3 Clinical Review Sessions', desc: 'Deep systemic pattern discovery', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
-  { name: 'Ava Health Buddy (120 Replies)', desc: 'Extended longitudinal health guidance', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
+  { name: `${PRO_90_PLAN.quotas.quick_consult} Quick Consult Sessions`, desc: 'Focused single-perspective case reviews', icon: Stethoscope, color: '#059669', bg: '#ECFDF5', highlight: true },
+  { name: `${PRO_90_PLAN.quotas.deep_collab} Deep Collab Specialist Boards`, desc: 'Complex multi-system case reviews', icon: Network, color: '#2563EB', bg: '#EFF6FF', highlight: true },
+  { name: `${PRO_90_PLAN.quotas.jarvis} Clinical Review Sessions`, desc: 'Connected record and symptom reviews', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED', highlight: true },
+  { name: `Ava Health Buddy (${PRO_90_PLAN.quotas.ava_replies} Replies)`, desc: 'Extended case-aware health information and visit preparation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
   { name: 'Case Prep & Clinical Trials (Unlimited)', desc: 'Printable visit briefs & active study matches', icon: FlaskConical, color: '#0284C7', bg: '#F0F9FF' },
   { name: 'Food Planner (Unlimited)', desc: 'Culturally relevant example meals and grocery planning', icon: Apple, color: '#16A34A', bg: '#F0FDF4' },
-  { name: 'Pharmacy & Interactions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { name: 'Lab Report PDF Analyzer (Full)', desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { name: `Pharmacy & Interactions (${PRO_90_PLAN.quotas.pharmacy_hub} Sessions)`, desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { name: `Lab Report PDF Analyzer (${PRO_90_PLAN.quotas.lab_report} Reports)`, desc: 'Multi-report historical comparison', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
   { name: 'Medical Profile & Private Workspace', desc: 'Connected personal health memory', icon: FolderHeart, color: '#0D9488', bg: '#F0FDFA' },
   { name: 'Vitality Progress', desc: 'Optional habit feedback and consistency milestones', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7' },
 ];
 
 const TOPUP_PLANS = [
-  { id: 'topup_ava', name: 'Ava Health Buddy', price: 99, qty: '+10 Replies', desc: 'Instant AI Chief of Staff consultation', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
-  { id: 'topup_quick_consult', name: 'Quick Consult', price: 129, qty: '+1 Session', desc: 'Single-specialist acute review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
-  { id: 'topup_deep_collab', name: 'Clinical Perspectives', price: 149, qty: '+1 Session', desc: 'Multiple AI review perspectives', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
-  { id: 'topup_jarvis', name: 'Clinical Review', price: 169, qty: '+1 Session', desc: 'Connected health record review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
-  { id: 'topup_pharmacy_hub', name: 'Pharmacy', price: 99, qty: '+30 Sessions', desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
-  { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: 99, qty: '+2 Reports', desc: 'Deep biomarker & scan extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
+  { id: 'topup_ava', name: 'Ava Health Buddy', price: rupees(PRODUCT_CATALOG.topup_ava.amount), qty: `+${PRODUCT_CATALOG.topup_ava.quantity} Replies`, desc: 'Additional case-aware replies', icon: Heart, color: '#E11D48', bg: '#FFF1F2' },
+  { id: 'topup_quick_consult', name: 'Quick Consult', price: rupees(PRODUCT_CATALOG.topup_quick_consult.amount), qty: `+${PRODUCT_CATALOG.topup_quick_consult.quantity} Session`, desc: 'Focused single-perspective review', icon: Stethoscope, color: '#059669', bg: '#ECFDF5' },
+  { id: 'topup_deep_collab', name: 'Clinical Perspectives', price: rupees(PRODUCT_CATALOG.topup_deep_collab.amount), qty: `+${PRODUCT_CATALOG.topup_deep_collab.quantity} Session`, desc: 'Multiple AI review perspectives', icon: Brain, color: '#2563EB', bg: '#EFF6FF' },
+  { id: 'topup_jarvis', name: 'Clinical Review', price: rupees(PRODUCT_CATALOG.topup_jarvis.amount), qty: `+${PRODUCT_CATALOG.topup_jarvis.quantity} Session`, desc: 'Connected health record review', icon: BrainCircuit, color: '#EA580C', bg: '#FFF7ED' },
+  { id: 'topup_pharmacy_hub', name: 'Pharmacy', price: rupees(PRODUCT_CATALOG.topup_pharmacy_hub.amount), qty: `+${PRODUCT_CATALOG.topup_pharmacy_hub.quantity} Sessions`, desc: 'Medication interaction discussion support', icon: Pill, color: '#0D9488', bg: '#F0FDFA' },
+  { id: 'topup_lab_report', name: 'Lab Report Interpreter', price: rupees(PRODUCT_CATALOG.topup_lab_report.amount), qty: `+${PRODUCT_CATALOG.topup_lab_report.quantity} Reports`, desc: 'Biomarker and report extraction', icon: FileText, color: '#6366F1', bg: '#EEF2FF' },
 ];
 
 const FAQS = [
@@ -101,7 +106,7 @@ const FAQS = [
   },
   {
     q: 'What happens if I finish my consult quotas early?',
-    a: 'You retain full access to all historical reports, dossiers, and profiles. You can continue using unlimited tools (Dietician, Pharmacy, Case Prep) or purchase flexible single top-ups whenever needed.',
+    a: 'You retain access to historical reports, dossiers, and profiles. Clinical Research, Case Prep, and eligible food-planning tools remain available; metered AI tools show their exact allowance and can be topped up when offered.',
   },
   {
     q: 'Is my personal health data encrypted and private?',
@@ -138,7 +143,7 @@ export default function Pricing() {
         ? TOPUP_PLANS.find((t) => t.id === planId)?.name || 'Feature Top-Up'
         : `Upgrade to Pro (${planId === 'pro_30_days' ? '30' : '90'} Days)`;
 
-      trackCheckoutInitiated(planId === 'pro_90_days' ? 899 : (planId === 'pro_30_days' ? 499 : 99), planId);
+      trackCheckoutInitiated(rupees(PRODUCT_CATALOG[planId as keyof typeof PRODUCT_CATALOG]?.amount || 0), planId);
 
       const result = await initiateRazorpayCheckout(
         planId as PaymentPlanId,
@@ -160,7 +165,7 @@ export default function Pricing() {
       );
 
       if (result.success) {
-        trackPurchase(planId === 'pro_90_days' ? 899 : (planId === 'pro_30_days' ? 499 : 99), planId);
+        trackPurchase(rupees(PRODUCT_CATALOG[planId as keyof typeof PRODUCT_CATALOG]?.amount || 0), planId);
         if (isTopup) {
           toast.success('Top-Up Activated!', 'Feature credit has been added to the account.');
         } else {
@@ -306,7 +311,7 @@ export default function Pricing() {
               whiteSpace: 'nowrap',
             }}
           >
-            <Star size={13} fill="#FFFFFF" /> ACUTE CASE RESOLUTION
+            <Star size={13} fill="#FFFFFF" /> 30-DAY CASE WORKSPACE
           </div>
 
           <div style={{ marginBottom: '16px' }}>
@@ -315,17 +320,17 @@ export default function Pricing() {
             </span>
             <h3 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '4px 0' }}>Pro 30-Days</h3>
             <p style={{ color: '#64748B', fontSize: '13px', margin: 0, minHeight: '36px', lineHeight: 1.4 }}>
-              Ideal for thoroughly investigating and preparing a single acute medical condition.
+              A focused month to organize one active case, prepare questions, and review what changes.
             </p>
           </div>
 
           <div style={{ margin: '14px 0 20px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹499</span>
+              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹{rupees(PRO_30_PLAN.amount)}</span>
               <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>/ 30 Days</span>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#DCFCE7', color: '#166534', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, marginTop: '6px' }}>
-              ⚡ Just ₹16.6 / day · Complete acute coverage
+              ₹{(rupees(PRO_30_PLAN.amount) / PRO_30_PLAN.days).toFixed(1)} / day · Exact allowances shown below
             </div>
           </div>
 
@@ -419,18 +424,18 @@ export default function Pricing() {
             </span>
             <h3 style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', margin: '4px 0' }}>Pro 90-Days</h3>
             <p style={{ color: '#64748B', fontSize: '13px', margin: 0, minHeight: '36px', lineHeight: 1.4 }}>
-              Complete ongoing multi-specialist care for chronic, systemic, or undifferentiated conditions.
+              More time and larger allowances for an ongoing or multi-system case workspace.
             </p>
           </div>
 
           <div style={{ margin: '14px 0 20px' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '20px', fontWeight: 700, color: '#94A3B8', textDecoration: 'line-through', textDecorationColor: '#EF4444', textDecorationThickness: '2px' }}>₹1,499</span>
-              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹899</span>
+              <span style={{ fontSize: '42px', fontWeight: 900, color: '#065F46', letterSpacing: '-1px' }}>₹{rupees(PRO_90_PLAN.amount)}</span>
               <span style={{ fontSize: '15px', color: '#64748B', fontWeight: 600 }}>/ 90 Days</span>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#DCFCE7', color: '#166534', padding: '3px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 800, marginTop: '6px' }}>
-              🔥 Just ₹9.9 / day · 40% Monthly Savings
+              ₹{(rupees(PRO_90_PLAN.amount) / PRO_90_PLAN.days).toFixed(1)} / day · 40% less than three 30-day plans
             </div>
           </div>
 

@@ -16,10 +16,11 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
 import {
   awardPhytoPoints,
-  awardHydrationPoints,
   awardMicroMovementPoints
 } from '../../services/VitalityPointsEngine';
 import { getItemSync, setItemSync } from '../../services/storage';
+import { adjustWaterAmount, getHydrationData } from '../../services/HydrationService';
+import { getScopedStorageKey } from '../../services/profileScope';
 
 interface PhytoColor {
   id: string;
@@ -130,9 +131,8 @@ export default function LongevityBioStackCard() {
   const isoStr = new Date().toISOString().split('T')[0];
 
   // Storage Keys
-  const phytoKey = `hc_phyto_${todayStr}`;
-  const hydrationKey = `hc_hydration_${todayStr}`;
-  const movementKey = `hc_movement_${todayStr}`;
+  const phytoKey = getScopedStorageKey(`hc_phyto_${todayStr}`);
+  const movementKey = getScopedStorageKey(`hc_movement_${todayStr}`);
 
   // State: Rainbow Tracker
   const [selectedColors, setSelectedColors] = useState<string[]>(() => {
@@ -153,22 +153,9 @@ export default function LongevityBioStackCard() {
 
   // State: Hydration Matrix
   const [waterMl, setWaterMl] = useState<number>(() => {
-    try {
-      const saved = getItemSync(hydrationKey);
-      const parsed = saved ? parseInt(saved, 10) : 0;
-      return Number.isFinite(parsed) ? parsed : 0;
-    } catch {
-      return 0;
-    }
+    return getHydrationData(todayStr).currentMl;
   });
-  const [hydrationRewardClaimed, setHydrationRewardClaimed] = useState<boolean>(() => {
-    try {
-      return getItemSync(`${hydrationKey}_claimed`) === 'true';
-    } catch {
-      return false;
-    }
-  });
-
+  const [targetMl, setTargetMl] = useState<number>(() => getHydrationData(todayStr).targetMl);
   // State: Movement Timer
   const [movementStepIndex, setMovementStepIndex] = useState(0);
   const [movementTimeLeft, setMovementTimeLeft] = useState(30);
@@ -204,23 +191,32 @@ export default function LongevityBioStackCard() {
   // Hydration adder
   const handleAddWater = (amount: number) => {
     triggerHapticMedium();
-    const newTotal = Math.min(4000, waterMl + amount);
+    const next = adjustWaterAmount(amount, 'water', todayStr);
+    const newTotal = next.currentMl;
     setWaterMl(newTotal);
-    setItemSync(hydrationKey, newTotal.toString());
+    setTargetMl(next.targetMl);
 
-    if (newTotal >= 2000 && !hydrationRewardClaimed) {
-      setHydrationRewardClaimed(true);
-      setItemSync(`${hydrationKey}_claimed`, 'true');
-      awardHydrationPoints();
-      triggerHapticSuccess();
-    }
   };
 
   const handleResetWater = () => {
     triggerHapticLight();
-    setWaterMl(0);
-    setItemSync(hydrationKey, '0');
+    const next = adjustWaterAmount(-waterMl, 'water', todayStr);
+    setWaterMl(next.currentMl);
   };
+
+  useEffect(() => {
+    const refreshHydration = () => {
+      const shared = getHydrationData(todayStr);
+      setWaterMl(shared.currentMl);
+      setTargetMl(shared.targetMl);
+    };
+    window.addEventListener('hc_hydration_updated', refreshHydration);
+    window.addEventListener('hc_profile_updated', refreshHydration);
+    return () => {
+      window.removeEventListener('hc_hydration_updated', refreshHydration);
+      window.removeEventListener('hc_profile_updated', refreshHydration);
+    };
+  }, [todayStr]);
 
   // Movement timer interval
   useEffect(() => {
@@ -273,7 +269,6 @@ export default function LongevityBioStackCard() {
     setMovementTimeLeft(MOVEMENT_STEPS[0].duration);
   };
 
-  const targetMl = 2500;
   const hydrationPercent = Math.min(100, Math.round((waterMl / targetMl) * 100));
 
   return (

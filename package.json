@@ -11,6 +11,7 @@
     "e2e": "playwright test",
     "lint": "eslint .",
     "verify:migrations": "node scripts/verify-supabase-migrations.mjs",
+    "build:migrations": "node scripts/build-migration-bundle.mjs",
     "smoke:supabase": "node scripts/smoke-supabase.mjs",
     "eval:model": "tsx scripts/eval-live-model.ts",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,md}\"",

@@ -88,11 +88,18 @@ export function generateDeterministicBrief(
     const userEvents = caseItem.events.filter(e => {
       const lower = (e.label || '').toLowerCase();
       return !systemKeywords.some(kw => lower.includes(kw));
+    }).sort((a, b) => {
+      const aTime = a.date ? new Date(a.date).getTime() : Number.NaN;
+      const bTime = b.date ? new Date(b.date).getTime() : Number.NaN;
+      if (Number.isNaN(aTime) && Number.isNaN(bTime)) return 0;
+      if (Number.isNaN(aTime)) return 1;
+      if (Number.isNaN(bTime)) return -1;
+      return aTime - bTime;
     });
     
-    userEvents.slice(0, 5).forEach(e => {
-      const d = new Date(e?.date || Date.now());
-      const dateStr = isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString();
+    userEvents.slice(-8).forEach(e => {
+      const d = e?.date ? new Date(e.date) : null;
+      const dateStr = !d || isNaN(d.getTime()) ? 'Date not recorded' : d.toLocaleDateString();
       const eventText = e.note ? `${e.label || 'Health event'}: ${e.note}` : (e.label || 'Health event');
       timeline.push({ date: dateStr, event: eventText.slice(0, 500), sourceIds: [e.id || 'event'] });
     });
@@ -116,8 +123,8 @@ export function generateDeterministicBrief(
   }
   if (caseItem.medicalRecords) {
     caseItem.medicalRecords.forEach(r => {
-      const recDate = new Date(r?.addedAt || Date.now());
-      const recDateStr = isNaN(recDate.getTime()) ? 'Recent' : recDate.toLocaleDateString();
+      const recDate = r?.addedAt ? new Date(r.addedAt) : null;
+      const recDateStr = !recDate || isNaN(recDate.getTime()) ? 'Date not recorded' : recDate.toLocaleDateString();
       knownFacts.push({ text: `Record attached: ${(r?.type || 'Record').toUpperCase()} (${recDateStr})`, sourceIds: [r.id || 'record'] });
     });
   }
@@ -286,7 +293,7 @@ export function generateDeterministicBrief(
         changesSinceLastVisit.push({
           type: 'record_added',
           description: `New clinical record attached: ${r.filename || r.type || 'Lab Record'}`,
-          date: r.addedAt ? new Date(r.addedAt).toLocaleDateString() : 'Recent',
+          date: r.addedAt && !Number.isNaN(new Date(r.addedAt).getTime()) ? new Date(r.addedAt).toLocaleDateString() : 'Date not recorded',
         });
       }
     });
@@ -298,7 +305,7 @@ export function generateDeterministicBrief(
         changesSinceLastVisit.push({
           type: 'symptom_update',
           description: e.note ? `${e.label}: ${e.note}` : e.label,
-          date: e.date ? new Date(e.date).toLocaleDateString() : 'Recent',
+          date: e.date && !Number.isNaN(new Date(e.date).getTime()) ? new Date(e.date).toLocaleDateString() : 'Date not recorded',
         });
       }
     });

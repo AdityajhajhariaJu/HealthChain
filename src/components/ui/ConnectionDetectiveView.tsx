@@ -376,6 +376,17 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
   const semanticGraph = useMemo(() => {
     return deriveSemanticEvidenceGraphFromEngineReview(activeReview?.report, activeCase);
   }, [activeReview, activeCase, report]);
+  const movementObservations = useMemo(() => {
+    const movementTerms = /\b(posture|postural|movement|walking|walk|standing|stand|sitting|sit|bending|lifting|exercise|neck|shoulder|back|spine|hip|knee|ankle|joint|muscle|muscular|mobility|balance|gait|position|positional|range of motion|physio|physical therapy)\b/i;
+    return (activeCase?.events || [])
+      .filter((event) => movementTerms.test(`${event.label || ''} ${event.note || ''}`))
+      .sort((a, b) => {
+        const aTime = a.date ? new Date(a.date).getTime() : 0;
+        const bTime = b.date ? new Date(b.date).getTime() : 0;
+        return bTime - aTime;
+      })
+      .slice(0, 8);
+  }, [activeCase]);
 
   useEffect(() => {
     setReport(getConnectionDetectiveReport(activeReview?.report, activeCase));
@@ -921,24 +932,50 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
                   {/* STATION 07: KINETIC BIOMECHANICS */}
                   {station.id === 'kinetic' && (
-                    <div style={{ padding: '28px 20px', textAlign: 'center', border: '1px dashed #CBD5E1', borderRadius: '18px', background: '#F8FAFC' }}>
-                      <Activity size={24} color="#0D9488" style={{ marginBottom: '8px' }} />
-                      <h4 style={{ margin: '0 0 5px', color: '#0F172A', fontSize: '15px' }}>No movement observations connected yet</h4>
-                      <p style={{ margin: '0 auto 14px', color: '#64748B', fontSize: '12.5px', maxWidth: '460px', lineHeight: 1.5 }}>
-                        Add posture, movement, pain-location, and timing notes to the active case. HealthChain will not invent a biomechanical cause from symptoms alone.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          triggerHapticLight();
-                          if (onOpenConsult) onOpenConsult();
-                          else window.location.href = '/app/consult';
-                        }}
-                        style={{ border: 0, borderRadius: '10px', background: '#0F766E', color: '#FFFFFF', padding: '9px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-                      >
-                        Add an observation
-                      </button>
-                    </div>
+                    movementObservations.length > 0 ? (
+                      <div style={{ display: 'grid', gap: '9px' }}>
+                        <div style={{ color: '#64748B', fontSize: '12.5px', lineHeight: 1.5 }}>
+                          Movement-related notes from this case. These are observations, not a biomechanical diagnosis.
+                        </div>
+                        {movementObservations.map((observation) => {
+                          const observedAt = observation.date && !Number.isNaN(new Date(observation.date).getTime())
+                            ? new Date(observation.date).toLocaleDateString()
+                            : 'Date not recorded';
+                          return (
+                            <div key={observation.id} style={{ padding: '12px 14px', border: '1px solid #BAE6FD', borderRadius: '12px', background: '#F8FAFC', textAlign: 'left' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                                <strong style={{ color: '#0F172A', fontSize: '13px' }}>{observation.label || 'Movement observation'}</strong>
+                                <span style={{ color: '#64748B', fontSize: '11px', whiteSpace: 'nowrap' }}>{observedAt}</span>
+                              </div>
+                              {observation.note && <div style={{ marginTop: '4px', color: '#475569', fontSize: '12px', lineHeight: 1.45 }}>{observation.note}</div>}
+                              <div style={{ marginTop: '7px', color: '#0369A1', fontSize: '10.5px', fontWeight: 700 }}>Source: case observation</div>
+                            </div>
+                          );
+                        })}
+                        <button type="button" onClick={() => onOpenConsult ? onOpenConsult() : (window.location.href = '/app/consult')} style={{ justifySelf: 'start', border: '1px solid #99F6E4', borderRadius: '9px', background: '#F0FDFA', color: '#0F766E', padding: '7px 11px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                          Add another observation
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '28px 20px', textAlign: 'center', border: '1px dashed #CBD5E1', borderRadius: '18px', background: '#F8FAFC' }}>
+                        <Activity size={24} color="#0D9488" style={{ marginBottom: '8px' }} />
+                        <h4 style={{ margin: '0 0 5px', color: '#0F172A', fontSize: '15px' }}>No movement observations connected yet</h4>
+                        <p style={{ margin: '0 auto 14px', color: '#64748B', fontSize: '12.5px', maxWidth: '460px', lineHeight: 1.5 }}>
+                          Add posture, movement, pain-location, and timing notes to the active case. HealthChain will not invent a biomechanical cause from symptoms alone.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerHapticLight();
+                            if (onOpenConsult) onOpenConsult();
+                            else window.location.href = '/app/consult';
+                          }}
+                          style={{ border: 0, borderRadius: '10px', background: '#0F766E', color: '#FFFFFF', padding: '9px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Add an observation
+                        </button>
+                      </div>
+                    )
                   )}
 
 

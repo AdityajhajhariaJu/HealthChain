@@ -173,7 +173,7 @@ export function TrialFeaturesModal({
               }}
             >
               <Sparkles size={14} color="#059669" />
-              <span>Free Trial Pack</span>
+              <span>{trialStatus.isPro ? 'Pro access active' : 'Free Trial Pack'}</span>
             </div>
 
             <h2
@@ -185,7 +185,7 @@ export function TrialFeaturesModal({
                 letterSpacing: '-0.02em',
               }}
             >
-              Experience HealthChain for Free
+              {trialStatus.isPro ? 'Your HealthChain Tools' : 'Experience HealthChain for Free'}
             </h2>
             <p
               style={{
@@ -198,7 +198,9 @@ export function TrialFeaturesModal({
                 marginRight: 'auto',
               }}
             >
-              Get a taste of our medical intelligence before upgrading. Try any of our complimentary clinical trial experiences below:
+              {trialStatus.isPro
+                ? 'Open the tool you need. Metered AI allowances are checked securely when a request is submitted.'
+                : 'Try the included starter experiences below. Each card shows what remains on this device; the server verifies AI allowances.'}
             </p>
           </div>
 
@@ -274,7 +276,7 @@ export function TrialFeaturesModal({
                       border: `1px solid ${trialStatus.quickConsult.isAvailable ? '#A7F3D0' : '#E2E8F0'}`,
                     }}
                   >
-                    {trialStatus.quickConsult.isAvailable ? '1 Free Trial Session' : 'Trial Used'}
+                    {trialStatus.isPro ? 'Available with Pro' : trialStatus.quickConsult.isAvailable ? '1 Free Trial Session' : 'Trial Used'}
                   </span>
                 </div>
 
@@ -307,7 +309,7 @@ export function TrialFeaturesModal({
                   boxShadow: trialStatus.quickConsult.isAvailable ? '0 4px 12px rgba(13, 148, 136, 0.2)' : 'none',
                 }}
               >
-                <span>{trialStatus.quickConsult.isAvailable ? 'Start Free Trial' : 'Open Quick Consult'}</span>
+                <span>{trialStatus.isPro ? 'Open Quick Consult' : trialStatus.quickConsult.isAvailable ? 'Start Free Trial' : 'Open Quick Consult'}</span>
                 <ArrowRight size={14} />
               </button>
             </div>
@@ -352,7 +354,7 @@ export function TrialFeaturesModal({
                       border: `1px solid ${trialStatus.ava.isAvailable ? '#FECDD3' : '#E2E8F0'}`,
                     }}
                   >
-                    {trialStatus.ava.isAvailable ? `${trialStatus.ava.remaining} Free Trial Replies` : 'Trial Used'}
+                    {trialStatus.isPro ? 'Allowance checked on send' : trialStatus.ava.isAvailable ? `${trialStatus.ava.remaining} Free Trial Replies` : 'Trial Used'}
                   </span>
                 </div>
 
@@ -430,7 +432,7 @@ export function TrialFeaturesModal({
                       border: `1px solid ${trialStatus.dietician.isAvailable ? '#BBF7D0' : '#E2E8F0'}`,
                     }}
                   >
-                    {trialStatus.dietician.isAvailable ? '1 Free Trial Plan' : 'Trial Used'}
+                    {trialStatus.isPro ? 'Available with Pro' : trialStatus.dietician.isAvailable ? '1 Free Trial Plan' : 'Trial Used'}
                   </span>
                 </div>
 

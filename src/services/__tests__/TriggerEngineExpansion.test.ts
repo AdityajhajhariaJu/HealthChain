@@ -5,6 +5,10 @@ import {
   ELIMINATION_PROTOCOLS,
   recordConfirmedTrigger,
   getConfirmedTriggers,
+  getActiveTrial,
+  getTrialHistory,
+  logTrialDay,
+  startTrial,
 } from '../TriggerEngine';
 
 describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
@@ -62,5 +66,22 @@ describe('TriggerEngine Expansion (Empirical Matches & 4-Week Hunts)', () => {
     const potsHunt = hunts.find((h) => h.id === 'hunt_pots_splanchnic');
     expect(potsHunt).toBeDefined();
     expect(potsHunt?.huntTitle).toContain('POTS');
+  });
+
+  it('requires an explicit valid protocol before accepting a check-in', () => {
+    expect(() => startTrial('not-a-real-protocol')).toThrow(/Unknown elimination protocol/);
+    expect(getActiveTrial()).toBeNull();
+    expect(() => logTrialDay(4, true)).toThrow(/Start an elimination protocol/);
+  });
+
+  it('archives the prior protocol when the user switches protocols', () => {
+    startTrial('hunt_bloat');
+    logTrialDay(6, true);
+    startTrial('hunt_histamine');
+
+    expect(getActiveTrial()?.trialId).toBe('hunt_histamine');
+    expect(getTrialHistory()[0]?.trialId).toBe('hunt_bloat');
+    expect(getTrialHistory()[0]?.endReason).toBe('replaced');
+    expect(getTrialHistory()[0]?.symptomScores).toHaveLength(1);
   });
 });

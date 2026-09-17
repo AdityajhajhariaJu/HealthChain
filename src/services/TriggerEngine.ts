@@ -110,6 +110,11 @@ export interface ActiveTrialState {
   exposures?: { date: string; day: number; trigger: string; note?: string }[];
 }
 
+export interface ArchivedTrialState extends ActiveTrialState {
+  endedAt: string;
+  endReason: 'replaced' | 'stopped' | 'completed';
+}
+
 export interface GardenState {
   level: number;
   vitalityScore: number; // 0 - 100
@@ -1214,7 +1219,9 @@ export function getEmpiricalFrequencyMatches(): EmpiricalMatchInsight[] {
 
 
 const TRIAL_STORAGE_KEY = 'hc_active_elimination_trial';
+const TRIAL_HISTORY_STORAGE_KEY = 'hc_elimination_trial_history';
 const trialStorageKey = () => `${TRIAL_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
+const trialHistoryStorageKey = () => `${TRIAL_HISTORY_STORAGE_KEY}:${getProfileKey()}:${getProfileEngineState()?.activeId || 'profile_1'}`;
 const localDateString = () => new Date().toLocaleDateString('en-CA');
 
 export function getActiveTrial(): ActiveTrialState | null {
@@ -1240,8 +1247,26 @@ export function getActiveTrial(): ActiveTrialState | null {
   }
 }
 
+export function getTrialHistory(): ArchivedTrialState[] {
+  try {
+    const parsed = JSON.parse(getItemSync(trialHistoryStorageKey()) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function archiveTrial(state: ActiveTrialState, endReason: ArchivedTrialState['endReason']): void {
+  const history = getTrialHistory();
+  const archived: ArchivedTrialState = { ...state, endedAt: new Date().toISOString(), endReason };
+  setItemSync(trialHistoryStorageKey(), JSON.stringify([archived, ...history].slice(0, 20)));
+}
+
 export function startTrial(trialId: string, initialSeverity?: number): ActiveTrialState {
-  const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === trialId) || ELIMINATION_PROTOCOLS[0];
+  const protocol = ELIMINATION_PROTOCOLS.find((p) => p.id === trialId);
+  if (!protocol) throw new Error(`Unknown elimination protocol: ${trialId}`);
+  const current = getActiveTrial();
+  if (current && current.trialId !== trialId) archiveTrial(current, 'replaced');
   const baseline = typeof initialSeverity === 'number' ? initialSeverity : null;
   const newState: ActiveTrialState = {
     trialId: protocol.id,
@@ -1261,9 +1286,18 @@ export function startTrial(trialId: string, initialSeverity?: number): ActiveTri
   return newState;
 }
 
+export function stopActiveTrial(): ArchivedTrialState | null {
+  const current = getActiveTrial();
+  if (!current) return null;
+  archiveTrial(current, current.completedDays >= current.totalDays ? 'completed' : 'stopped');
+  removeItemSync(trialStorageKey());
+  window.dispatchEvent(new Event('hc_trial_updated'));
+  return getTrialHistory()[0] || null;
+}
+
 export function logTrialDay(severityScore: number, adhered: boolean, note?: string): ActiveTrialState {
-  let state = getActiveTrial();
-  if (!state) state = startTrial('low_histamine');
+  const state = getActiveTrial();
+  if (!state) throw new Error('Start an elimination protocol before recording a daily check-in.');
 
   const today = localDateString();
   const elapsedDay = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
@@ -1291,12 +1325,13 @@ export function logTrialDay(severityScore: number, adhered: boolean, note?: stri
   };
 
   setItemSync(trialStorageKey(), JSON.stringify(updatedState));
+  window.dispatchEvent(new Event('hc_trial_updated'));
   return updatedState;
 }
 
 export function logTrialExposure(trigger: string, note?: string): ActiveTrialState {
-  let state = getActiveTrial();
-  if (!state) state = startTrial('low_histamine');
+  const state = getActiveTrial();
+  if (!state) throw new Error('Start an elimination protocol before recording an exposure.');
   const date = localDateString();
   const day = Math.min(state.totalDays, Math.max(1, Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000) + 1));
   const withoutTodayDuplicate = (state.exposures || []).filter((entry) => !(entry.date === date && entry.trigger === trigger));
@@ -1306,6 +1341,7 @@ export function logTrialExposure(trigger: string, note?: string): ActiveTrialSta
     exposures: [...withoutTodayDuplicate, { date, day, trigger, note }],
   };
   setItemSync(trialStorageKey(), JSON.stringify(updatedState));
+  window.dispatchEvent(new Event('hc_trial_updated'));
   return updatedState;
 }
 

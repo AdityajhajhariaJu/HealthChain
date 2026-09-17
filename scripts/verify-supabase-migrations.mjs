@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { PRODUCT_CATALOG } from '../shared/productCatalog.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const migrationsDir = join(root, 'supabase', 'migrations');
@@ -20,6 +21,7 @@ const requiredFiles = [
   '20260822_caregiver_profiles.sql',
   '20260911_conflict_safe_sync.sql',
   '20260911_payment_lifecycle_resilience.sql',
+  '20260917_ai_quota_reservations.sql',
 ];
 
 const requiredVerifierTokens = [
@@ -43,7 +45,7 @@ if (missingFiles.length) {
 
 const verifier = await readFile(verifierPath, 'utf8');
 const bundle = await readFile(bundlePath, 'utf8');
-const missingBundleFiles = requiredFiles.filter((file) => !bundle.includes(`===== ${file} =====`));
+const missingBundleFiles = files.filter((file) => !bundle.includes(`===== ${file} =====`));
 if (missingBundleFiles.length) {
   throw new Error(`Unified Supabase bundle is missing migrations: ${missingBundleFiles.join(', ')}`);
 }
@@ -77,6 +79,29 @@ const requiredSchemaTokens = [
 const missingSchemaTokens = requiredSchemaTokens.filter((token) => !allSql.includes(token));
 if (missingSchemaTokens.length) {
   throw new Error(`Migration chain is missing required schema references: ${missingSchemaTokens.join(', ')}`);
+}
+
+const quotaMigration = await readFile(join(migrationsDir, '20260911_payment_lifecycle_resilience.sql'), 'utf8');
+const quotaFunction = quotaMigration.split('create or replace function public.provision_base_quota')[1] || '';
+const quotaBranches = quotaFunction.split("if p_plan_id = 'pro_90_days' then")[1] || '';
+for (const planId of ['pro_30_days', 'pro_90_days']) {
+  const plan = PRODUCT_CATALOG[planId];
+  const planSection = planId === 'pro_90_days'
+    ? quotaBranches.split('else')[0] || ''
+    : quotaBranches.split('else')[1]?.split('end if')[0] || '';
+  const expected = {
+    v_ava: plan.quotas.ava_replies,
+    v_qc: plan.quotas.quick_consult,
+    v_collab: plan.quotas.deep_collab,
+    v_jarvis: plan.quotas.jarvis,
+    v_pharmacy: plan.quotas.pharmacy_hub,
+    v_lab: plan.quotas.lab_report,
+  };
+  for (const [variable, value] of Object.entries(expected)) {
+    if (!planSection.includes(`${variable} := ${value};`)) {
+      throw new Error(`Product catalog drift: ${planId} ${variable} does not match database quota ${value}.`);
+    }
+  }
 }
 
 console.log(`Supabase migration contract passed: ${files.length} SQL files, ${requiredSchemaTokens.length} schema checks.`);
