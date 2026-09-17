@@ -5,19 +5,25 @@ import { Flame, Trophy, Sparkles, Gift, ChevronRight, Check } from 'lucide-react
 import {
   getVitalityState,
   getDailyStreak,
-  awardMysteryDrop,
+  awardGardenBloom,
   DailyStreakInfo,
   VitalityState,
 } from '../../services/VitalityPointsEngine';
 import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getItemSync } from '../../services/storage';
+import { getHabitStorageKey } from '../../services/profileScope';
 
 interface VitalityStreakBannerProps {
   completedHabits?: Record<string, boolean>;
+  variant?: 'today' | 'garden';
+  gardenTendedToday?: boolean;
 }
 
 export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
-  completedHabits = {},
+  completedHabits,
+  variant = 'today',
+  gardenTendedToday = false,
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -25,6 +31,17 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
   const [streak, setStreak] = useState<DailyStreakInfo>(() => getDailyStreak());
   const [vitality, setVitality] = useState<VitalityState>(() => getVitalityState());
   const [claimedJustNow, setClaimedJustNow] = useState(false);
+  const [storedHabits, setStoredHabits] = useState<Record<string, boolean>>({});
+
+  const loadStoredHabits = () => {
+    const today = new Date().toLocaleDateString('en-CA');
+    try {
+      const raw = getItemSync(getHabitStorageKey(today));
+      setStoredHabits(raw ? JSON.parse(raw) : {});
+    } catch {
+      setStoredHabits({});
+    }
+  };
 
   const refreshData = () => {
     setStreak(getDailyStreak());
@@ -33,13 +50,22 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
 
   useEffect(() => {
     refreshData();
+    loadStoredHabits();
     window.addEventListener('hc_points_updated', refreshData);
     window.addEventListener('hc_profile_updated', refreshData);
     window.addEventListener('hc_daily_checkin_completed', refreshData);
+    window.addEventListener('hc_garden_updated', refreshData);
+    window.addEventListener('hc_hydration_updated', loadStoredHabits);
+    window.addEventListener('hc_vitamins_updated', loadStoredHabits);
+    window.addEventListener('storage', loadStoredHabits);
     return () => {
       window.removeEventListener('hc_points_updated', refreshData);
       window.removeEventListener('hc_profile_updated', refreshData);
       window.removeEventListener('hc_daily_checkin_completed', refreshData);
+      window.removeEventListener('hc_garden_updated', refreshData);
+      window.removeEventListener('hc_hydration_updated', loadStoredHabits);
+      window.removeEventListener('hc_vitamins_updated', loadStoredHabits);
+      window.removeEventListener('storage', loadStoredHabits);
     };
   }, []);
 
@@ -47,16 +73,19 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
     refreshData();
   }, [completedHabits]);
 
-  const totalHabits = 2;
-  const doneHabitsCount = ['hydration', 'vitamins'].filter((k) => completedHabits[k]).length;
+  const effectiveHabits = completedHabits ?? storedHabits;
+  const totalHabits = variant === 'garden' ? 3 : 2;
+  const doneHabitsCount =
+    ['hydration', 'vitamins'].filter((k) => effectiveHabits[k]).length +
+    (variant === 'garden' && gardenTendedToday ? 1 : 0);
   const habitPercent = Math.round((doneHabitsCount / totalHabits) * 100);
 
-  const handleClaimMystery = (e: React.MouseEvent) => {
+  const handleClaimReward = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (streak.isMysteryClaimedToday) return;
+    if (streak.isDailyRewardClaimedToday || (variant === 'garden' && !streak.todayCompleted)) return;
 
     triggerHapticSuccess();
-    const success = awardMysteryDrop(3);
+    const success = awardGardenBloom(3);
     if (success) {
       setClaimedJustNow(true);
       refreshData();
@@ -67,6 +96,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
   const radius = 16;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (habitPercent / 100) * circumference;
+  const rewardLocked = streak.isDailyRewardClaimedToday || (variant === 'garden' && !streak.todayCompleted);
 
   return (
     <div
@@ -224,7 +254,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                     border: '1px solid rgba(219, 39, 119, 0.3)',
                   }}
                 >
-                  <Check size={10} strokeWidth={3} /> Protected
+                  <Check size={10} strokeWidth={3} /> {variant === 'garden' ? 'Care recorded' : 'Protected'}
                 </span>
               ) : (
                 <span
@@ -238,7 +268,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                     border: '1px solid rgba(225, 29, 72, 0.3)',
                   }}
                 >
-                  ✨ Active Today
+                  ✨ {variant === 'garden' ? 'Ready Today' : 'Active Today'}
                 </span>
               )}
             </div>
@@ -253,8 +283,12 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               }}
             >
               {streak.todayCompleted
-                ? 'Great rhythm! Habit completed for today.'
-                : 'Complete 1 habit below to protect & ignite!'}
+                ? variant === 'garden'
+                  ? 'Today’s care is recorded. Your rhythm continues.'
+                  : 'Great rhythm! Habit completed for today.'
+                : variant === 'garden'
+                  ? 'Tend the garden or complete one daily-care action.'
+                  : 'Complete 1 habit below to protect & ignite!'}
             </p>
           </div>
         </div>
@@ -273,12 +307,14 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
             role="button"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleClaimMystery}
-            disabled={streak.isMysteryClaimedToday && !claimedJustNow}
+            onClick={handleClaimReward}
+            disabled={rewardLocked && !claimedJustNow}
             aria-label={
-              streak.isMysteryClaimedToday
-                ? 'Daily Mystery Drop already claimed'
-                : 'Claim Daily Mystery Drop sparks'
+              streak.isDailyRewardClaimedToday
+                ? 'Daily Garden Bloom already collected'
+                : streak.todayCompleted
+                  ? 'Collect today’s Garden Bloom'
+                  : 'Complete one care action to unlock today’s Garden Bloom'
             }
             style={{
               display: 'inline-flex',
@@ -288,22 +324,22 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
               borderRadius: '999px',
               fontSize: '11px',
               fontWeight: 700,
-              cursor: streak.isMysteryClaimedToday ? 'default' : 'pointer',
-              background: streak.isMysteryClaimedToday
+              cursor: rewardLocked ? 'default' : 'pointer',
+              background: rewardLocked
                 ? 'rgba(255, 241, 242, 0.95)'
                 : 'linear-gradient(135deg, #FB7185 0%, #E11D48 100%)',
-              color: streak.isMysteryClaimedToday ? '#BE123C' : '#FFFFFF',
-              border: streak.isMysteryClaimedToday
+              color: rewardLocked ? '#BE123C' : '#FFFFFF',
+              border: rewardLocked
                 ? '1px solid rgba(225, 29, 72, 0.3)'
                 : '1px solid rgba(190, 18, 60, 0.35)',
-              boxShadow: streak.isMysteryClaimedToday
+              boxShadow: rewardLocked
                 ? 'none'
                 : '0 4px 14px rgba(225, 29, 72, 0.28), inset 0 1px 0 rgba(255,255,255,0.45)',
               transition: 'all 0.2s ease',
               whiteSpace: 'nowrap',
             }}
           >
-            {streak.isMysteryClaimedToday || claimedJustNow ? (
+            {streak.isDailyRewardClaimedToday || claimedJustNow ? (
               <>
                 <Sparkles size={12} color="#BE123C" />
                 <span>+3 PTS Claimed</span>
@@ -311,7 +347,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
             ) : (
               <>
                 <Gift size={12} color="#FFF" />
-                <span>Daily Drop</span>
+                <span>{streak.todayCompleted ? 'Daily Bloom' : 'Bloom Locked'}</span>
               </>
             )}
           </motion.button>
@@ -477,7 +513,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
             <div
               style={{ fontSize: '10px', fontWeight: 800, color: '#4C0519', whiteSpace: 'nowrap' }}
             >
-              Daily Quest
+              {variant === 'garden' ? 'Daily Care' : 'Daily Quest'}
             </div>
             <div
               style={{
@@ -523,7 +559,7 @@ export const VitalityStreakBanner: React.FC<VitalityStreakBannerProps> = ({
                 +3 Vitality Points Claimed! ✨
               </div>
               <div style={{ fontSize: '10.5px', color: '#FECDD3' }}>
-                Daily Drop added to your Trophy Vault
+                Daily Bloom added to your Trophy Vault
               </div>
             </div>
           </motion.div>

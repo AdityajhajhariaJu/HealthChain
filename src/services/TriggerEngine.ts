@@ -1365,9 +1365,17 @@ export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal'
   if (action === 'water') {
     const today = new Date().toLocaleDateString('en-CA');
     if (updated.lastWateredDate !== today) {
+      const previousWateredDate = updated.lastWateredDate;
+      const dayGap = previousWateredDate
+        ? Math.round(
+            (new Date(`${today}T12:00:00`).getTime() - new Date(`${previousWateredDate}T12:00:00`).getTime()) /
+              86400000,
+          )
+        : 0;
       updated.waterCount += 1;
       updated.vitalityScore = Math.min(100, updated.vitalityScore + 4);
       updated.bloomCount += 1;
+      updated.streakDays = dayGap === 1 ? Math.max(1, updated.streakDays) + 1 : 1;
       updated.lastWateredDate = today;
     }
   } else if (action === 'breathwork') {
@@ -1397,6 +1405,9 @@ export function recordGardenAction(action: 'water' | 'breathwork' | 'clean_meal'
   }
 
   setItemSync(gardenStorageKey(), JSON.stringify(updated));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('hc_garden_updated', { detail: updated }));
+  }
   return updated;
 }
 

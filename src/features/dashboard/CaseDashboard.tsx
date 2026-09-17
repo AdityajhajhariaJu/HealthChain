@@ -61,7 +61,6 @@ import { getProfile } from '../../services/ProfileEngine';
 import { CLINICAL_ARTICLES, MedicalArticle } from '../../data/ClinicalArticles';
 export { CLINICAL_ARTICLES } from '../../data/ClinicalArticles';
 export type { MedicalArticle } from '../../data/ClinicalArticles';
-import { VitalityStreakBanner } from './VitalityStreakBanner';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
@@ -223,8 +222,6 @@ export default function CaseDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
             <h2 className="serif-heading" style={{ fontSize: '28px', fontWeight: 700, margin: 0, color: '#2D3748', letterSpacing: '-0.5px' }}>Dashboard</h2>
           </div>
-
-          <VitalityStreakBanner completedHabits={completedHabits} />
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: isMobile ? '10px' : '14px' }}>
             

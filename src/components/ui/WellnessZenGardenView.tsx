@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Droplet, Info, Sparkles } from 'lucide-react';
 import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
 import { triggerHapticLight } from '../../services/haptics';
+import { VitalityStreakBanner } from '../../features/dashboard/VitalityStreakBanner';
 
 interface WellnessZenGardenViewProps { onOpenMindfulness?: () => void; }
 
@@ -10,6 +11,8 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
   const [garden, setGarden] = useState<GardenState>(getGardenState());
   const [isWatering, setIsWatering] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const today = new Date().toLocaleDateString('en-CA');
+  const gardenTendedToday = garden.lastWateredDate === today;
 
   const handleWater = () => {
     triggerHapticLight();
@@ -63,6 +66,8 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
           </div>
         </div>
       </div>
+
+      <VitalityStreakBanner variant="garden" gardenTendedToday={gardenTendedToday} />
 
       {/* Floating Garden Island Container */}
       <div
@@ -237,7 +242,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
           <button
             type="button"
             onClick={handleWater}
-            disabled={isWatering}
+            disabled={isWatering || gardenTendedToday}
             style={{
               flex: 1,
               display: 'flex',
@@ -251,11 +256,12 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
               border: '1.5px solid #BAE6FD',
               fontSize: '13px',
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: gardenTendedToday ? 'default' : 'pointer',
+              opacity: gardenTendedToday ? 0.72 : 1,
               boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)',
             }}
           >
-            <Droplet size={16} fill="#0284C7" /> Water Garden
+            <Droplet size={16} fill="#0284C7" /> {gardenTendedToday ? 'Garden Tended Today' : 'Water Garden'}
           </button>
 
           <button
@@ -332,7 +338,7 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
         </div>
 
         {/* Garden milestones only reflect interactions recorded here. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
           <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
             <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Blooms</div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
@@ -344,6 +350,13 @@ export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () =>
             <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Days Tended</div>
             <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
               💧 {garden.waterCount}
+            </div>
+          </div>
+
+          <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
+            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Garden Streak</div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#D97706', marginTop: '2px' }}>
+              🔥 {garden.streakDays}
             </div>
           </div>
         </div>

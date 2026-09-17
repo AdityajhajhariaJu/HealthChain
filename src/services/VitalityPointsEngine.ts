@@ -2,6 +2,14 @@ import { getProfile, saveProfile } from './ProfileEngine';
 import { triggerHapticSuccess } from './haptics';
 import { getItemSync } from './storage';
 import { getHabitStorageKey } from './profileScope';
+import { getGardenState } from './TriggerEngine';
+
+function getLocalDateString(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export interface PointsTransaction {
   id: string;
@@ -197,8 +205,13 @@ export function awardTriviaPoints(): boolean {
 }
 
 export function awardMysteryDrop(amount: number = 3): boolean {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
   return awardPoints(amount, `✨ Daily Mystery Drop (+${amount} PTS)`, 'mystery', `mystery_${todayStr}`);
+}
+
+export function awardGardenBloom(amount: number = 3): boolean {
+  const todayStr = getLocalDateString();
+  return awardPoints(amount, '🌸 Daily Garden Bloom', 'mindful', `garden_bloom_${todayStr}`);
 }
 
 export function awardMythBusterPoints(): boolean {
@@ -224,7 +237,7 @@ export function awardMicroMovementPoints(): boolean {
 export interface DailyStreakInfo {
   currentStreak: number;
   todayCompleted: boolean;
-  isMysteryClaimedToday: boolean;
+  isDailyRewardClaimedToday: boolean;
   weekActivity: {
     dayLabel: string;
     dateStr: string;
@@ -237,7 +250,8 @@ export function getDailyStreak(): DailyStreakInfo {
   ensureWelcomeGrant();
   const profile = getProfile();
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = getLocalDateString(now);
+  const garden = getGardenState();
 
   const checkDayActive = (dateStr: string): boolean => {
     const hasCheckin = (profile?.dailyCheckins || []).some((c: any) => c?.date && c.date.startsWith(dateStr));
@@ -248,6 +262,8 @@ export function getDailyStreak(): DailyStreakInfo {
       (h.category === 'checkin' || h.category === 'lifestyle' || h.category === 'mindful' || h.category === 'streak' || h.category === 'mystery')
     );
     if (hasPoints) return true;
+
+    if (garden.lastWateredDate === dateStr) return true;
 
     try {
       const stored = getItemSync(getHabitStorageKey(dateStr));
@@ -261,7 +277,9 @@ export function getDailyStreak(): DailyStreakInfo {
   };
 
   const todayCompleted = checkDayActive(todayStr);
-  const isMysteryClaimedToday = (profile?.pointsHistory || []).some((h: any) => h?.dedupeKey === `mystery_${todayStr}`);
+  const isDailyRewardClaimedToday = (profile?.pointsHistory || []).some(
+    (h: any) => h?.dedupeKey === `mystery_${todayStr}` || h?.dedupeKey === `garden_bloom_${todayStr}`,
+  );
 
   let streak = 0;
   const startOffset = todayCompleted ? 0 : 1;
@@ -269,7 +287,7 @@ export function getDailyStreak(): DailyStreakInfo {
   for (let i = startOffset; i < 60; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = getLocalDateString(d);
     if (checkDayActive(dateStr)) {
       streak++;
     } else {
@@ -283,7 +301,7 @@ export function getDailyStreak(): DailyStreakInfo {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = getLocalDateString(d);
     const isToday = i === 0;
     const isCompleted = checkDayActive(dateStr);
     weekActivity.push({
@@ -297,7 +315,7 @@ export function getDailyStreak(): DailyStreakInfo {
   return {
     currentStreak: streak,
     todayCompleted,
-    isMysteryClaimedToday,
+    isDailyRewardClaimedToday,
     weekActivity,
   };
 }
