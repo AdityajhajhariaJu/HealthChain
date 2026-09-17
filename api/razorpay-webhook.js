@@ -154,12 +154,12 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: error.message || 'Webhook subscription activation failed',
             }).eq('razorpay_payment_id', paymentId);
-          } catch {}
+          } catch (e) { console.error("Ignored:", e); }
           return res.status(500).json({ error: 'Failed to activate entitlement' });
         }
       } else if (targetPlan.type === 'topup') {
         // Unified atomic top-up activation and quota allocation
-        const { data: rpcResult, error: topupError } = await supabase.rpc('activate_and_provision_topup', {
+                const { data: rpcResult, error: topupError } = await supabase.rpc('activate_and_provision_topup', {
           p_user_id: userId,
           p_order_id: orderId,
           p_payment_id: paymentId,
@@ -200,7 +200,7 @@ export default async function handler(req, res) {
               fulfillment_status: 'failed',
               fulfillment_error: topupError.message || 'Webhook top-up activation failed',
             }).eq('razorpay_payment_id', paymentId);
-          } catch {}
+          } catch (e) { console.error("Ignored:", e); }
           return res.status(500).json({ error: 'Failed to record topup' });
         }
       }
