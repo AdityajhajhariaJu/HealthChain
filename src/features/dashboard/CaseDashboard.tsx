@@ -64,6 +64,7 @@ export type { MedicalArticle } from '../../data/ClinicalArticles';
 import { TherapeuticOutcomeCard } from '../../components/ui/TherapeuticOutcomeCard';
 import { ConnectionDetectiveModal } from '../../components/ui/ConnectionDetectiveModal';
 import { TriggerSensitivityModal } from '../../components/ui/TriggerSensitivityModal';
+import { ClinicalArticleSection } from './ClinicalArticleSection';
 
 const HABIT_RATIONALES: Record<string, { summary: string; detail: string; biomarker: string }> = {
   hydration: {
@@ -980,7 +981,11 @@ export default function CaseDashboard() {
         )}
         {showARLens && <ARGroceryLens onClose={() => setShowARLens(false)} />}
 
-        <div ref={calmSpaceRef} id="calm-space" aria-hidden="true" style={{ display: 'none' }}>
+        <div
+          ref={calmSpaceRef}
+          id="calm-space"
+          style={{ position: 'relative', margin: '0 0 16px 0', scrollMarginTop: '24px' }}
+        >
           {/* Small, distinct patches of color perfectly matched to the thumbnails directly above them */}
           {/* Top Left: Full Meditation (Zen Turquoise) */}
           <div style={{ position: 'absolute', top: '10%', left: '20%', width: '110px', height: '110px', background: 'rgba(45, 212, 191, 0.4)', borderRadius: '50%', filter: 'blur(35px)', zIndex: 0 }} />
@@ -1282,6 +1287,8 @@ export default function CaseDashboard() {
           </section>
         </div>
       </div>
+
+      <ClinicalArticleSection />
 
       <CompleteProfileModal
         isOpen={showCompleteProfileModal}

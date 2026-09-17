@@ -38,6 +38,8 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.getByText(/days streak/i)).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Open Zen Garden' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Calm Space' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Clinical Articles' })).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-today-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'Open Zen Garden' }).click();
   const garden = page.getByRole('dialog', { name: 'Zen Garden' });
@@ -49,6 +51,9 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await page.getByRole('link', { name: 'Ava', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Ask Ava Health Buddy a question' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Send message', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Log your day/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Guided Calm/i })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Connection Detective/i })).toHaveCount(0);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
   expect(overflow).toBe(false);
   await page.screenshot({ path: 'test-results/connected-ava-mobile.png', fullPage: true });

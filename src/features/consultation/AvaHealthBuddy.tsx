@@ -34,12 +34,12 @@ const QUICK_ACTION_PILLS = [
   },
   {
     id: 'log_day',
-    label: 'Daily Check-in',
+    label: 'Log your day',
     icon: '⚡',
     bg: '#CCFBF1',
     color: '#0F766E',
     border: '#99F6E4',
-    prompt: 'Help me log my day: sleep, meals, energy levels, and any symptoms.',
+    action: 'log_day',
   },
   {
     id: 'kinetic_chains',
@@ -68,15 +68,6 @@ const QUICK_ACTION_PILLS = [
     border: '#DDD6FE',
     prompt: 'Could any of my active medications be interacting with meals or symptoms?',
   },
-  {
-    id: 'mindfulness',
-    label: 'Guided Calm',
-    icon: '🍃',
-    bg: '#DCFCE7',
-    color: '#15803D',
-    border: '#BBF7D0',
-    action: 'mindfulness',
-  },
 ];
 
 const SUGGESTIONS = [
@@ -100,7 +91,6 @@ const TOOL_PURPOSES: Record<string, string> = {
   food_triggers: 'Investigate food reactions and symptoms',
   food_mood: 'Log daily energy, food, and sleep',
   medication: 'Review medication notes and questions',
-  mindfulness: 'Start a guided relaxation session',
 };
 
 const CASE_RECHECK_SUGGESTIONS = [
@@ -2876,7 +2866,7 @@ export default function AvaHealthBuddy() {
             </div>
           )}
 
-          {/* Primary Dual-Action Capsule Dock (Reference media_1788642371467.png) */}
+          {/* One compact row of Ava quick tools */}
           <div
             style={{
               width: '100%',
@@ -2884,83 +2874,6 @@ export default function AvaHealthBuddy() {
               display: 'flex',
               gap: '8px',
               marginTop: '10px',
-              marginBottom: '2px',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                if (input.trim()) {
-                  toast.info('Your draft is ready', 'Send or save your current draft before starting a daily check-in.');
-                } else {
-                  setInput('Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.');
-                }
-                textareaRef.current?.focus();
-              }}
-              style={{
-                flex: 1,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '999px',
-                background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
-                border: '1.5px solid #6EE7B7',
-                color: '#065F46',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)',
-                transition: 'transform 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
-            >
-              <span>⚡</span>
-              <span>Log your day</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                triggerHapticLight();
-                setDetectiveTab('map');
-                setIsDetectiveOpen(true);
-              }}
-              style={{
-                flex: 1,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '999px',
-                background: 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
-                border: '1.5px solid #5EEAD4',
-                color: '#0F766E',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(13, 148, 136, 0.12)',
-                transition: 'transform 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-1px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
-            >
-              <span>🌐</span>
-              <span>Connection Detective</span>
-            </button>
-          </div>
-
-          {/* Complete Ava Quick Tools - Always Visible */}
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '720px',
-              display: 'flex',
-              gap: '8px',
-              marginTop: '8px',
               overflowX: 'auto',
               paddingBottom: '4px',
               scrollbarWidth: 'none',
@@ -2977,8 +2890,13 @@ export default function AvaHealthBuddy() {
                   triggerHapticLight();
                   if (pill.action === 'meal') {
                     setIsQuickMealOpen(true);
-                  } else if (pill.action === 'mindfulness') {
-                    setActiveMeditation(DEFAULT_CALM_TRACK);
+                  } else if (pill.action === 'log_day') {
+                    if (input.trim()) {
+                      toast.info('Your draft is ready', 'Send or save your current draft before starting a daily check-in.');
+                    } else {
+                      setInput('Help me log my day. Ask me about my sleep, meals, energy, and any symptoms one question at a time.');
+                    }
+                    textareaRef.current?.focus();
                   } else if (pill.action === 'river') {
                     setIsRiverOpen(true);
                   } else if (pill.action?.startsWith('tab:')) {
