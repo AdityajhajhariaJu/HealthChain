@@ -32,6 +32,11 @@ export default function AuthCallback() {
       if (handled.current || !isMounted) return;
       handled.current = true;
       console.warn('[AuthCallback] Auth failed:', reason);
+      try {
+        sessionStorage.setItem('hc_auth_error', reason || 'Google sign-in could not be completed.');
+      } catch {
+        // The login page still remains available when storage is blocked.
+      }
       navigate('/login', { replace: true });
     };
 

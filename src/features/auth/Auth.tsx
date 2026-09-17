@@ -25,6 +25,16 @@ export default function Auth() {
 
   useEffect(() => {
     let isMounted = true;
+    try {
+      const oauthError = sessionStorage.getItem('hc_auth_error');
+      if (oauthError) {
+        sessionStorage.removeItem('hc_auth_error');
+        setError(oauthError);
+        toastError('Google sign-in failed', oauthError);
+      }
+    } catch {
+      // Session storage may be unavailable in private browsing.
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (isMounted && session) {
         navigate('/app', { replace: true });
@@ -38,15 +48,24 @@ export default function Auth() {
   const handleOAuth = async (provider: 'google' | 'apple') => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      setError('');
+      const callbackOrigin = window.location.hostname === 'www.healthchain360.com'
+        ? 'https://healthchain360.com'
+        : window.location.origin;
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${callbackOrigin}/auth/callback`,
+          skipBrowserRedirect: true,
         }
       });
       if (error) throw error;
+      if (!data?.url) throw new Error('The secure Google sign-in URL could not be created. Please try again.');
+      window.location.assign(data.url);
     } catch (err: any) {
-      toastError('OAuth Error', err.message);
+      const message = err?.message || 'Google sign-in could not be started. Please try again.';
+      setError(message);
+      toastError('OAuth Error', message);
       setLoading(false);
     }
   };

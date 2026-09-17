@@ -633,14 +633,6 @@ export default function Dietician() {
     toast.success('Preferences updated', 'Your food-planning preferences were refreshed.');
   };
 
-  if (!profile) {
-    return <OnboardingWizard onComplete={handleSaveProfile} />;
-  }
-
-
-
-  const waterGlasses = hydration[currentDate] || 0;
-
   useEffect(() => {
     const refreshHydration = () => {
       const shared = getHydrationData(currentDate);
@@ -650,6 +642,12 @@ export default function Dietician() {
     window.addEventListener('hc_hydration_updated', refreshHydration);
     return () => window.removeEventListener('hc_hydration_updated', refreshHydration);
   }, [currentDate]);
+
+  if (!profile) {
+    return <OnboardingWizard onComplete={handleSaveProfile} />;
+  }
+
+  const waterGlasses = hydration[currentDate] || 0;
 
   const syncToUnifiedNutritionLogs = (mealItem: any) => {
     try {
