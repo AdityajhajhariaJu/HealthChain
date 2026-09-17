@@ -1792,7 +1792,7 @@ export default function AvaHealthBuddy() {
   };
 
   const handleSend = async (text: string) => {
-    if ((!text.trim() && attachments.length === 0) || sendingRef.current || isTyping || isStreaming || attachmentBusyRef.current || (selectedCaseId && (!selectedCase || selectedCase.intakeData?.scenarioId))) return;
+    if ((!text.trim() && attachments.length === 0) || sendingRef.current || isTyping || isStreaming || attachmentBusyRef.current) return;
     const triage = evaluateEmergencyTriage(text);
     if (triage.isEmergency) {
       setEmergencyTriage(triage);

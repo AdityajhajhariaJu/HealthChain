@@ -1,366 +1,134 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Droplet, Info, Sparkles } from 'lucide-react';
-import { getGardenState, recordGardenAction, GardenState } from '../../services/TriggerEngine';
-import { triggerHapticLight } from '../../services/haptics';
-import { VitalityStreakBanner } from '../../features/dashboard/VitalityStreakBanner';
+import { useEffect, useState } from 'react';
+import { Check, Droplet, Flower2 } from 'lucide-react';
+import { getGardenState, recordGardenAction, type GardenState } from '../../services/TriggerEngine';
+import { awardGardenBloom, getDailyStreak, getVitalityState } from '../../services/VitalityPointsEngine';
+import { triggerHapticLight, triggerHapticSuccess } from '../../services/haptics';
 
 interface WellnessZenGardenViewProps { onOpenMindfulness?: () => void; }
 
-export const WellnessZenGardenView: React.FC<WellnessZenGardenViewProps> = () => {
-  const [garden, setGarden] = useState<GardenState>(getGardenState());
-  const [isWatering, setIsWatering] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
+export const WellnessZenGardenView = (_props: WellnessZenGardenViewProps) => {
+  const [garden, setGarden] = useState<GardenState>(() => getGardenState());
+  const [streak, setStreak] = useState(() => getDailyStreak());
+  const [points, setPoints] = useState(() => getVitalityState().points);
   const today = new Date().toLocaleDateString('en-CA');
-  const gardenTendedToday = garden.lastWateredDate === today;
+  const tendedToday = garden.lastWateredDate === today;
+  const bloomReady = streak.todayCompleted && !streak.isDailyRewardClaimedToday;
 
-  const handleWater = () => {
-    triggerHapticLight();
-    setIsWatering(true);
-    const updated = recordGardenAction('water');
-    setGarden(updated);
-    setTimeout(() => setIsWatering(false), 1200);
+  const refresh = () => {
+    setGarden(getGardenState());
+    setStreak(getDailyStreak());
+    setPoints(getVitalityState().points);
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      
+  useEffect(() => {
+    window.addEventListener('hc_garden_updated', refresh);
+    window.addEventListener('hc_points_updated', refresh);
+    window.addEventListener('hc_profile_updated', refresh);
+    return () => {
+      window.removeEventListener('hc_garden_updated', refresh);
+      window.removeEventListener('hc_points_updated', refresh);
+      window.removeEventListener('hc_profile_updated', refresh);
+    };
+  }, []);
 
-      {/* Top Banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)',
-          borderRadius: '20px',
-          padding: '16px 18px',
-          border: '1.5px solid #A7F3D0',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-        }}
-      >
+  const handlePrimaryAction = () => {
+    triggerHapticLight();
+    if (!tendedToday) {
+      setGarden(recordGardenAction('water'));
+      refresh();
+      return;
+    }
+    if (bloomReady && awardGardenBloom(3)) {
+      triggerHapticSuccess();
+      refresh();
+    }
+  };
+
+  const actionComplete = tendedToday && !bloomReady;
+
+  return (
+    <section
+      aria-label="Zen Garden"
+      style={{
+        position: 'relative',
+        minHeight: '310px',
+        borderRadius: '28px',
+        overflow: 'hidden',
+        backgroundImage: 'linear-gradient(180deg, rgba(236,253,245,0.08) 0%, rgba(236,253,245,0.2) 38%, rgba(240,253,244,0.96) 76%, #F0FDF4 100%), url(/images/zen-garden-dashboard.webp)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        border: '1px solid rgba(167,243,208,0.9)',
+        boxShadow: '0 18px 42px rgba(13,148,136,0.14)',
+        display: 'flex',
+        alignItems: 'flex-end',
+      }}
+    >
+      <div style={{ width: '100%', padding: '22px' }}>
         <div
           style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-            flexShrink: 0,
+            width: 'fit-content',
+            padding: '5px 10px',
+            borderRadius: '999px',
+            color: '#047857',
+            background: 'rgba(255,255,255,0.88)',
+            border: '1px solid rgba(167,243,208,0.9)',
+            fontSize: '10px',
+            fontWeight: 800,
+            letterSpacing: '0.7px',
           }}
         >
-          <Sparkles size={20} />
+          ZEN GARDEN
         </div>
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#047857', letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-            YOUR ZEN GARDEN
-          </div>
-          <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917', lineHeight: 1.2 }}>
-            A quiet record of consistency
-          </div>
-          <div style={{ fontSize: '12.5px', color: '#065F46', marginTop: '2px' }}>
-            Tend it once each day. The garden is a gentle visual ritual—not a health score.
-          </div>
+
+        <h2 style={{ margin: '9px 0 3px', color: '#064E3B', fontSize: '24px', letterSpacing: '-0.7px' }}>
+          {tendedToday ? 'Quietly growing.' : 'Tend today’s garden.'}
+        </h2>
+        <p style={{ margin: 0, color: '#47665D', fontSize: '13px' }}>One small daily ritual. No pressure.</p>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '15px' }}>
+          <span style={metricStyle}><Flower2 size={14} /> {garden.bloomCount} blooms</span>
+          <span style={metricStyle}>🌿 {streak.currentStreak} day rhythm</span>
+          <span style={metricStyle}>{points} pts</span>
         </div>
-      </div>
 
-      <VitalityStreakBanner variant="garden" gardenTendedToday={gardenTendedToday} />
-
-      {/* Floating Garden Island Container */}
-      <div
-        style={{
-          position: 'relative',
-          background: 'radial-gradient(ellipse at top, #F0FDF4 0%, #DCFCE7 60%, #CCFBF1 100%)',
-          borderRadius: '28px',
-          padding: '24px 20px',
-          border: '2px solid rgba(255, 255, 255, 0.8)',
-          boxShadow: '0 16px 40px rgba(13, 148, 136, 0.12)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          overflow: 'hidden',
-          minHeight: '260px',
-        }}
-      >
-        {/* Sun Glow in background */}
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
-          transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+        <button
+          type="button"
+          onClick={handlePrimaryAction}
+          disabled={actionComplete}
           style={{
-            position: 'absolute',
-            top: '-20px',
-            right: '20px',
-            width: '90px',
-            height: '90px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, #FDE047 0%, rgba(251, 146, 60, 0) 70%)',
-            pointerEvents: 'none',
+            marginTop: '14px',
+            minHeight: '42px',
+            padding: '9px 16px',
+            borderRadius: '14px',
+            border: actionComplete ? '1px solid #A7F3D0' : 'none',
+            background: actionComplete ? 'rgba(255,255,255,0.8)' : 'linear-gradient(135deg, #059669, #0D9488)',
+            color: actionComplete ? '#047857' : '#FFFFFF',
+            fontSize: '13px',
+            fontWeight: 800,
+            cursor: actionComplete ? 'default' : 'pointer',
+            boxShadow: actionComplete ? 'none' : '0 8px 18px rgba(5,150,105,0.22)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '7px',
           }}
-        />
-
-        {/* Floating Sparkles */}
-        <motion.div
-          animate={{ y: [-5, -20, -5], opacity: [0.4, 0.9, 0.4] }}
-          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-          style={{ position: 'absolute', top: '40px', left: '30px', fontSize: '18px' }}
         >
-          ✨
-        </motion.div>
-        <motion.div
-          animate={{ y: [0, -15, 0], opacity: [0.3, 0.8, 0.3] }}
-          transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut', delay: 1 }}
-          style={{ position: 'absolute', top: '70px', right: '50px', fontSize: '16px' }}
-        >
-          🌸
-        </motion.div>
-
-        {/* Garden Island Graphic / Mascot */}
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {/* Animated Mascot Ava in Zen Meditation */}
-          <motion.div
-            animate={
-              { y: [0, -6, 0] }
-            }
-            transition={{
-              repeat: Infinity,
-              duration: 3,
-              ease: 'easeInOut',
-            }}
-            style={{
-              position: 'relative',
-              width: '90px',
-              height: '90px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #FFFFFF 0%, #FFF1F2 100%)',
-              border: '3px solid #FECDD3',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(225, 29, 72, 0.25)',
-              zIndex: 2,
-            }}
-          >
-            {/* Meditating Ava Face */}
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '42px', display: 'block' }}>🧘</span>
-            </div>
-
-            {/* Pink Headband Badge */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '-4px',
-                background: '#E11D48',
-                color: '#FFFFFF',
-                fontSize: '9px',
-                fontWeight: 800,
-                padding: '2px 8px',
-                borderRadius: '999px',
-                letterSpacing: '0.4px',
-                textTransform: 'uppercase',
-                boxShadow: '0 2px 6px rgba(225, 29, 72, 0.3)',
-              }}
-            >
-              ZEN AVA
-            </div>
-          </motion.div>
-
-          {/* Lush Island Pedestal */}
-          <div
-            style={{
-              marginTop: '-18px',
-              width: '210px',
-              height: '56px',
-              borderRadius: '50%',
-              background: 'linear-gradient(180deg, #86EFAC 0%, #4ADE80 50%, #22C55E 100%)',
-              border: '2.5px solid #BBF7D0',
-              boxShadow: '0 12px 28px rgba(34, 197, 94, 0.35)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              zIndex: 1,
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>🌸</span>
-            <span style={{ fontSize: '18px' }}>🌱</span>
-            <span style={{ fontSize: '20px' }}>🌺</span>
-            <span style={{ fontSize: '16px' }}>💧</span>
-            <span style={{ fontSize: '20px' }}>🌷</span>
-          </div>
-
-          {/* Water Splash Animation */}
-          <AnimatePresence>
-            {isWatering && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                animate={{ opacity: 1, scale: 1.2, y: 0 }}
-                exit={{ opacity: 0, scale: 1.4 }}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  color: '#0284C7',
-                  fontSize: '28px',
-                  zIndex: 10,
-                }}
-              >
-                💦 💧 ✨
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Purpose is available on demand, keeping the garden visually quiet. */}
-        {showGuide && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              marginTop: '16px',
-              background: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: '16px',
-              padding: '8px 18px',
-              border: '1px solid #A7F3D0',
-              textAlign: 'center',
-              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.1)',
-            }}
-          >
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#E11D48', textTransform: 'uppercase' }}>
-              How this garden works
-            </div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#1C1917' }}>
-              One daily tending action grows one bloom. It does not judge symptoms, meals, or rest days.
-            </div>
-          </motion.div>
-        )}
-
-        {/* Garden Controls */}
-        <div style={{ display: 'flex', gap: '10px', marginTop: '18px', width: '100%', maxWidth: '320px' }}>
-          <button
-            type="button"
-            onClick={handleWater}
-            disabled={isWatering || gardenTendedToday}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '10px 14px',
-              borderRadius: '14px',
-              background: '#FFFFFF',
-              color: '#0284C7',
-              border: '1.5px solid #BAE6FD',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: gardenTendedToday ? 'default' : 'pointer',
-              opacity: gardenTendedToday ? 0.72 : 1,
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)',
-            }}
-          >
-            <Droplet size={16} fill="#0284C7" /> {gardenTendedToday ? 'Garden Tended Today' : 'Water Garden'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowGuide((value) => !value)}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '10px 14px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #059669 0%, #0D9488 100%)',
-              color: '#FFFFFF',
-              border: 'none',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
-            }}
-          >
-            <Info size={16} /> {showGuide ? 'Hide Guide' : 'How It Grows'}
-          </button>
-        </div>
+          {actionComplete ? <Check size={16} /> : tendedToday ? <Flower2 size={16} /> : <Droplet size={16} />}
+          {actionComplete ? 'Complete for today' : tendedToday ? 'Collect bloom · +3 pts' : 'Tend garden'}
+        </button>
       </div>
-
-      {/* Garden Vitality & Stats Card */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '22px',
-          padding: '18px 20px',
-          border: '1.5px solid #F1F5F9',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.04)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#8E9AAF', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-              SANCTUARY METRICS
-            </span>
-            <div style={{ fontSize: '17px', fontWeight: 800, color: '#1C1917', marginTop: '2px' }}>
-              Garden Vitality: <strong style={{ color: '#10B981' }}>{garden.vitalityScore}%</strong>
-            </div>
-          </div>
-
-          <span
-            style={{
-              fontSize: '12px',
-              fontWeight: 800,
-              color: '#E11D48',
-              background: '#FFF1F2',
-              padding: '4px 12px',
-              borderRadius: '999px',
-              border: '1px solid #FECDD3',
-            }}
-          >
-            Level {garden.level} • {garden.gardenStage.replace('_', ' ').toUpperCase()}
-          </span>
-        </div>
-
-        {/* Vitality Bar */}
-        <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${garden.vitalityScore}%` }}
-            transition={{ duration: 0.6 }}
-            style={{ height: '100%', background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)', borderRadius: '999px' }}
-          />
-        </div>
-
-        {/* Garden milestones only reflect interactions recorded here. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-          <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Blooms</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
-              🌸 {garden.bloomCount}
-            </div>
-          </div>
-
-          <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Days Tended</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669', marginTop: '2px' }}>
-              💧 {garden.waterCount}
-            </div>
-          </div>
-
-          <div style={{ background: '#F8FAFC', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Garden Streak</div>
-            <div style={{ fontSize: '15px', fontWeight: 800, color: '#D97706', marginTop: '2px' }}>
-              🔥 {garden.streakDays}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 };
+
+const metricStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '5px',
+  padding: '6px 9px',
+  borderRadius: '999px',
+  background: 'rgba(255,255,255,0.84)',
+  border: '1px solid rgba(167,243,208,0.9)',
+  color: '#065F46',
+  fontSize: '11px',
+  fontWeight: 750,
+} as const;
