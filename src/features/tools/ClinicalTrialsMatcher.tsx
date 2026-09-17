@@ -955,10 +955,10 @@ export default function ClinicalTrialsMatcher() {
                 <div style={{ padding: '28px 20px', background: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                   <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
                   <h3 style={{ fontSize: '16px', color: '#0F172A', margin: '0 0 6px 0', fontWeight: 700 }}>
-                    No direct registry records found for "{effectiveTerms.join(', ')}"
+                    {effectiveTerms.length > 0 ? `No direct registry records found for “${effectiveTerms.join(', ')}”` : 'Choose a case topic or enter a search term'}
                   </h3>
                   <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '480px', margin: '0 auto 16px auto', lineHeight: 1.5 }}>
-                    Try a broader condition or symptom.
+                    {effectiveTerms.length > 0 ? 'Try a broader condition or symptom.' : 'Research results will appear here after you choose what to search.'}
                   </p>
                   {caseDifferentials.length > 0 && (
                     <div style={{ marginBottom: '16px' }}>

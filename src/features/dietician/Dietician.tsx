@@ -1448,7 +1448,7 @@ export default function Dietician() {
                 </button>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setIsLoggingFood(true)}
                   style={{
@@ -1576,7 +1576,7 @@ export default function Dietician() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {mealPlan && (
                   <button
                     onClick={handlePrintDossier}
@@ -1626,9 +1626,16 @@ export default function Dietician() {
                     type="button"
                     onClick={() => {
                       triggerHapticLight();
-                      navigate('/app/ava', {
+                      const planDays = mealPlan.days?.length ? mealPlan.days : (mealPlan.plan || []);
+                      const planSummary = planDays.map((day) => {
+                        const meals = (day.meals || []).map((meal) => `${meal.type || 'Meal'}: ${meal.name}${meal.portion ? ` (${meal.portion})` : ''}`).join('; ');
+                        return `Day ${day.day || day.dayNumber}: ${meals}`;
+                      }).join('\n');
+                      const caseQuery = activeCaseScope.caseId ? `?caseId=${encodeURIComponent(activeCaseScope.caseId)}` : '';
+                      navigate(`/app/ava${caseQuery}`, {
                         state: {
-                          initialPrompt: `I generated an editable 7-day meal example with an estimated daily target of ${profile?.targetCalories || 2000} kcal. Please review it as a planning aid, identify assumptions and missing information, and list questions for a clinician or registered dietitian. Do not describe it as a prescription.`
+                          caseId: activeCaseScope.caseId || undefined,
+                          initialPrompt: `Review this editable meal-plan example as a planning aid. Identify assumptions, conflicts with my documented profile, missing information, and questions for a clinician or registered dietitian. Do not describe it as a prescription.\n\nTarget: about ${mealPlan.targetCalories || profile?.targetCalories || 2000} kcal/day\nGoal: ${mealPlan.goal || profile?.goal || 'Not specified'}\nCuisine: ${mealPlan.cuisine || profile?.cuisine || 'Not specified'}\n\n${planSummary}`
                         }
                       });
                     }}
@@ -1649,7 +1656,7 @@ export default function Dietician() {
                     <MessageCircle size={15} /> Discuss with Ava
                   </button>
                 )}
-                <button
+                {mealPlan && <button
                   onClick={handleGeneratePlan}
                   disabled={isGeneratingPlan}
                   style={{
@@ -1676,7 +1683,7 @@ export default function Dietician() {
                       <Sparkles size={16} /> {mealPlan ? 'Regenerate Example' : 'Create 7-Day Example'}
                     </>
                   )}
-                </button>
+                </button>}
               </div>
             </div>
 

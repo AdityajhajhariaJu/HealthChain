@@ -18,7 +18,6 @@ import {
   Info,
 } from 'lucide-react';
 import { triggerHapticLight, triggerHapticSelection, triggerHapticSuccess } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
 import {
   getProfile,
   getDigestionLogs,
@@ -317,17 +316,16 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
       customForbidden.push({
         food: item.foodName,
         category: item.clinicalCompound,
-        why: `Correlated ${item.matchingDays}/${item.totalDays} days with ${item.symptomName}`,
-        dangerLevel: 'high',
+        why: `Co-recorded with ${item.symptomName} on ${item.matchingDays} of ${item.totalDays} logged exposure days; causation is not established`,
+        dangerLevel: 'medium',
       });
 
       saveEliminationProtocolState(activeId, {
         customForbiddenFoods: customForbidden,
       });
 
-      awardPoints(15, `Added ${item.foodName} to Elimination Protocol`, 'lifestyle', `elim_add_${item.id}`);
       triggerHapticSuccess();
-      toast?.success?.('Culprit Food Added', `${item.foodName} added to active Elimination forbidden list (+15 VP)!`);
+      toast?.success?.('Added to trial list', `${item.foodName} is ready to review in the active elimination trial.`);
       setAddedFoodIds((prev) => ({ ...prev, [item.id]: true }));
     } else {
       toast?.info?.('Already Tracked', `${item.foodName} is already on your active elimination list.`);
@@ -382,7 +380,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
             </button>
           )}
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.3px' }}>
-            All featured insights
+            Recorded patterns
           </h2>
         </div>
 
@@ -397,7 +395,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
             border: '1px solid #E9D5FF',
           }}
         >
-          {filteredInsights.length} correlations
+          {filteredInsights.length} recorded patterns
         </span>
       </div>
 
@@ -542,8 +540,12 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
         {filteredInsights.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '36px 16px', color: '#94A3B8' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔍</div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#475569' }}>No insights match your filter</div>
-            <p style={{ fontSize: '12.5px', margin: '4px 0 0 0' }}>Try searching for a different food or reset category to "All".</p>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#475569' }}>
+              {dynamicInsights.length === 0 ? 'No repeated patterns yet' : 'No patterns match this filter'}
+            </div>
+            <p style={{ fontSize: '12.5px', margin: '4px 0 0 0' }}>
+              {dynamicInsights.length === 0 ? 'Log a food on at least two dated days before HealthChain compares it with symptom entries.' : 'Try a different search or choose “All”.'}
+            </p>
           </div>
         ) : (
           filteredInsights.map((item) => {
@@ -720,7 +722,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           <ShieldAlert size={12} />
-                          <span>Trigger: {item.clinicalCompound}</span>
+                          <span>Food component: {item.clinicalCompound}</span>
                         </div>
                         <div
                           style={{
@@ -737,7 +739,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           <Clock size={12} />
-                          <span>Peak: {item.incubationWindow}</span>
+                          <span>Reference window: {item.incubationWindow}</span>
                         </div>
                       </div>
 
@@ -754,7 +756,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                         }}
                       >
                         <strong style={{ color: '#0F172A', display: 'block', marginBottom: '2px' }}>
-                          Biological Mechanism:
+                          Possible explanation to discuss:
                         </strong>
                         {item.biochemicalMechanism}
                       </div>
@@ -772,7 +774,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                         }}
                       >
                         <strong style={{ color: '#047857', display: 'block', marginBottom: '2px' }}>
-                          🌱 Clinical Safe Alternative:
+                          🌱 Optional substitute idea:
                         </strong>
                         Replace with <strong>{item.safeSwap.swapTo}</strong>.
                         <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>
@@ -805,7 +807,7 @@ export const SmartCorrelationInsightsView: React.FC<SmartCorrelationInsightsView
                           }}
                         >
                           {isAdded ? <Check size={14} /> : <ShieldAlert size={14} />}
-                          <span>{isAdded ? 'Added to Forbidden List' : `Add ${item.foodName} to Hunt`}</span>
+                          <span>{isAdded ? 'Added to trial list' : `Add ${item.foodName} to trial`}</span>
                         </button>
 
                         {onOpenHeatmap && (

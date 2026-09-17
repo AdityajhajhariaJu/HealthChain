@@ -67,6 +67,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
         transition={{ type: 'spring', damping: 26, stiffness: 280 }}
         onClick={handleOpenModal}
         onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             handleOpenModal(e as any);
@@ -281,27 +282,7 @@ export const TherapeuticOutcomeCard: React.FC<TherapeuticOutcomeCardProps> = ({ 
                   </button>
                 </div>
               )
-            ) : (
-              <button
-                type="button"
-                onClick={handleOpenModal}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(109, 40, 217, 0.1) 100%)',
-                  border: '1px solid rgba(124, 58, 237, 0.3)',
-                  borderRadius: '6px',
-                  padding: '3px 9px',
-                  fontSize: '10.5px',
-                  fontWeight: 700,
-                  color: '#6D28D9',
-                  cursor: 'pointer'
-                }}
-              >
-                + Choose Protocol
-              </button>
-            )}
+            ) : null}
 
             <button
               type="button"

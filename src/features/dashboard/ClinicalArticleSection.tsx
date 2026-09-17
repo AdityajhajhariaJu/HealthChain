@@ -13,6 +13,10 @@ const DASHBOARD_ARTICLES = CLINICAL_ARTICLES.slice(0, 3).map((article, index) =>
 export function ClinicalArticleSection() {
   const isMobile = useIsMobile();
   const [selectedArticle, setSelectedArticle] = useState<MedicalArticle | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const visibleArticles = showAll
+    ? CLINICAL_ARTICLES.map((article) => ({ article, shortTitle: article.title }))
+    : DASHBOARD_ARTICLES;
 
   return (
     <>
@@ -23,7 +27,7 @@ export function ClinicalArticleSection() {
         </div>
 
         <div style={{ display: 'grid', gap: '10px' }}>
-          {DASHBOARD_ARTICLES.map(({ article, shortTitle }) => (
+          {visibleArticles.map(({ article, shortTitle }) => (
             <button
               key={article.id}
               type="button"
@@ -58,6 +62,13 @@ export function ClinicalArticleSection() {
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setShowAll((value) => !value)}
+          style={{ marginTop: '10px', padding: '8px 4px', border: 0, background: 'transparent', color: '#0D9488', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+        >
+          {showAll ? 'Show recommended' : `View all ${CLINICAL_ARTICLES.length} articles`}
+        </button>
       </section>
 
       <BottomSheetOverlay isOpen={Boolean(selectedArticle)} onClose={() => setSelectedArticle(null)} theme="light" title={selectedArticle?.title || 'Article'}>

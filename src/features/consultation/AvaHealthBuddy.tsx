@@ -138,7 +138,7 @@ const INITIAL_MSG = {
     "Hi, I'm Ava. I can help you reflect on your day, understand your records, and prepare questions for your clinician. Connect a case to keep our conversation focused. What would you like help with?",
 };
 
-type AvaRequest = { messages: any[]; caseId: string; context: string; scope: string };
+type AvaRequest = { messages: any[]; caseId: string; context: string; scope: string; requestId: string };
 
 function getSavedMessages() {
   const profile = getProfile();
@@ -1491,6 +1491,11 @@ export default function AvaHealthBuddy() {
       } catch (e) {}
     }
     setSelectedCaseId(newCaseId);
+    activeRequestIdRef.current = '';
+    sendingRef.current = false;
+    setIsTyping(false);
+    setIsStreaming(false);
+    setSendError(false);
     let nextDraft = '';
     try {
       nextDraft = localStorage.getItem(getDraftStorageKey(scope, newCaseId)) || '';
@@ -1564,6 +1569,7 @@ export default function AvaHealthBuddy() {
   const [sendError, setSendError] = useState(false);
   const lastRequestRef = useRef<AvaRequest | null>(null);
   const sendingRef = useRef(false);
+  const activeRequestIdRef = useRef('');
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const explicitId = params.get('caseId') || params.get('importCase') || location.state?.caseId;
@@ -1677,8 +1683,9 @@ export default function AvaHealthBuddy() {
     onMutate: () => { setIsTyping(true); setSendError(false); },
     // We handle setIsTyping manually in onSuccess to transition from thinking to typing
     onSuccess: async (response: any, request: AvaRequest) => {
-        if (!isMounted.current || request.scope !== getAvaVaultKey() || (request.caseId && request.caseId !== selectedCaseIdRef.current)) return;
+        if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey() || request.caseId !== selectedCaseIdRef.current) return;
         const newMessages = request.messages;
+        lastFailedDraftRef.current = null;
         setIsTyping(false);
         const hasWidget = response && response.includes('[WIDGET:');
         setIsStreaming(!hasWidget);
@@ -1713,7 +1720,7 @@ export default function AvaHealthBuddy() {
         recordTrialUsage('ava');
       },
     onError: (_error, request) => {
-      if (!isMounted.current || request.scope !== getAvaVaultKey() || (request.caseId && request.caseId !== selectedCaseIdRef.current)) return;
+      if (!isMounted.current || request.requestId !== activeRequestIdRef.current || request.scope !== getAvaVaultKey() || request.caseId !== selectedCaseIdRef.current) return;
       setIsTyping(false);
       setIsStreaming(false);
       setSendError(true);
@@ -1721,7 +1728,9 @@ export default function AvaHealthBuddy() {
         setFailedDraft(lastFailedDraftRef.current);
       }
     },
-    onSettled: () => { sendingRef.current = false; },
+    onSettled: (_data, _error, request) => {
+      if (request.requestId === activeRequestIdRef.current) sendingRef.current = false;
+    },
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1835,6 +1844,7 @@ export default function AvaHealthBuddy() {
       }).join('\n\n');
       finalContent = finalContent ? `${finalContent}\n\n${attachStr}` : attachStr;
     }
+    lastFailedDraftRef.current = finalContent;
 
     const newMessages = [...messages, { role: 'user', content: finalContent, caseId: selectedCaseId, attachments: attachments.map((a: any) => a.name) }];
     sendingRef.current = true;
@@ -1859,7 +1869,14 @@ export default function AvaHealthBuddy() {
       : '';
     const finalContext = `${baseCaseContext}${documentedSnippet}${studySnippet}${memorySnippet}`.trim();
 
-    const request = { messages: newMessages, caseId: selectedCaseId, context: finalContext, scope: messageScope };
+    const request = {
+      messages: newMessages,
+      caseId: selectedCaseId,
+      context: finalContext,
+      scope: messageScope,
+      requestId: crypto.randomUUID?.() || `ava_${Date.now()}`,
+    };
+    activeRequestIdRef.current = request.requestId;
     lastRequestRef.current = request;
     setMessages(newMessages);
     setInput('');
@@ -2798,7 +2815,7 @@ export default function AvaHealthBuddy() {
               <button
                 aria-label="Send message"
                 type="submit"
-                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming || isProcessingAttachment || Boolean(selectedCaseId && (!selectedCase || selectedCase.intakeData?.scenarioId))}
+                disabled={(!input.trim() && attachments.length === 0) || isTyping || isStreaming || isProcessingAttachment}
                 style={{
                   width: isMobile ? '34px' : '36px',
                   height: isMobile ? '34px' : '36px',
@@ -2848,6 +2865,7 @@ export default function AvaHealthBuddy() {
                       onClick={() => {
                         if (lastRequestRef.current && !sendingRef.current) {
                           sendingRef.current = true;
+                          activeRequestIdRef.current = lastRequestRef.current.requestId;
                           chatMutation.mutate(lastRequestRef.current);
                         }
                       }}

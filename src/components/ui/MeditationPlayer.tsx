@@ -23,7 +23,7 @@ import {
   Flame
 } from 'lucide-react';
 import { triggerHapticLight, triggerHapticMedium, triggerHapticSuccess } from '../../services/haptics';
-import { awardPoints } from '../../services/VitalityPointsEngine';
+import { awardPoints, getVitalityState } from '../../services/VitalityPointsEngine';
 import { FitnessContent, FitnessService } from '../../services/FitnessService';
 import { supabase } from '../../services/supabaseClient';
 import { useActionIslandStore } from '../../store/actionIslandStore';
@@ -42,6 +42,22 @@ export type AtmosphereTheme = 'meditation' | 'sleep' | 'focus' | 'energy' | 'rai
 
 // Dual-Layer Ambient Soundscape Mixer
 export type AmbientLayerKey = 'off' | 'rain' | 'forest' | 'frequency';
+
+function getMindfulStreakDays(): number {
+  const activeDates = new Set(
+    getVitalityState().history
+      .filter((entry) => entry.category === 'mindful' && entry.date)
+      .map((entry) => new Date(entry.date).toLocaleDateString('en-CA')),
+  );
+  const cursor = new Date();
+  if (!activeDates.has(cursor.toLocaleDateString('en-CA'))) cursor.setDate(cursor.getDate() - 1);
+  let streak = 0;
+  while (activeDates.has(cursor.toLocaleDateString('en-CA'))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
 
 export const AMBIENT_LAYERS: Record<AmbientLayerKey, { label: string; icon: string; url: string }> = {
   off: { label: 'None', icon: 'Off', url: '' },
@@ -439,8 +455,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
   const [showConfetti, setShowConfetti] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     minutesLogged: 5,
-    pointsAwarded: 5,
-    mindfulStreak: 3
+    pointsAwarded: 0,
+    mindfulStreak: getMindfulStreakDays()
   });
 
   // Point 5: Dismiss Island on Player active open
@@ -680,16 +696,14 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
     setShowConfetti(true);
 
     const minutesLogged = Math.max(1, Math.round((totalDuration - timeRemaining) / 60) || 5);
-    const pointsAwarded = 5;
+    const pointsAwarded = awardPoints(5, 'Completed Mindful Meditation Session', 'mindful') ? 5 : 0;
 
     setSessionStats({
       minutesLogged,
       pointsAwarded,
-      mindfulStreak: 3
+      mindfulStreak: getMindfulStreakDays()
     });
     setShowSummaryModal(true);
-
-    awardPoints(pointsAwarded, 'Completed Mindful Meditation Session', 'mindful');
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user && content) {
@@ -714,8 +728,8 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
       useActionIslandStore.getState().triggerIsland(
         'calm',
         `${trackTitle}`,
-        `${playlistTitle} • Active`,
-        'Expand',
+        `${playlistTitle} • Paused`,
+        'Restart',
         () => {
           window.dispatchEvent(new CustomEvent('hc_reopen_meditation'));
         }
@@ -2217,7 +2231,7 @@ export const MeditationPlayer: React.FC<MeditationPlayerProps> = ({ content, onC
                       }}>
                         <Sparkles size={14} color="#F59E0B" />
                         <span style={{ color: '#FCD34D', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px' }}>
-                          +{sessionStats.pointsAwarded} VITALITY POINTS EARNED
+                          {sessionStats.pointsAwarded > 0 ? `+${sessionStats.pointsAwarded} VITALITY POINTS EARNED` : 'SESSION ALREADY RECORDED TODAY'}
                         </span>
                       </div>
 

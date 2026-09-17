@@ -239,6 +239,7 @@ export default function CaseDashboard() {
                   setShowZenGardenModal(true);
                 }}
                 onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     triggerHapticSelection();
@@ -424,7 +425,7 @@ export default function CaseDashboard() {
               <motion.div 
                 role="button"
                 tabIndex={0}
-                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Completed' : 'Tap to manage intake or mark done'}`}
+                aria-label={`Daily Hydration - ${completedHabits['hydration'] ? 'Completed' : 'Open intake tracker'}`}
                 whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 280 }}
@@ -433,6 +434,7 @@ export default function CaseDashboard() {
                   setShowHydrationModal(true);
                 }}
                 onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     setShowHydrationModal(true);
@@ -457,21 +459,7 @@ export default function CaseDashboard() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div 
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Toggle hydration habit"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleHabit('hydration', 'Morning Hydration (500ml)');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        toggleHabit('hydration', 'Morning Hydration (500ml)');
-                      }
-                    }}
+                  <div aria-hidden="true"
                     style={{ 
                       width: isMobile ? '38px' : '44px', 
                       height: isMobile ? '38px' : '44px', 
@@ -488,7 +476,7 @@ export default function CaseDashboard() {
                       alignItems: 'center', 
                       justifyContent: 'center',
                       transition: 'all 0.3s ease',
-                      cursor: 'pointer'
+                      cursor: 'default'
                     }}
                   >
                     {completedHabits['hydration'] ? (
@@ -576,37 +564,6 @@ export default function CaseDashboard() {
                     <button
                       type="button"
                       data-compact="true"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerHapticLight();
-                        setShowHydrationModal(true);
-                      }}
-                      aria-label="Open Hydration Tracker"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        background: 'rgba(14, 165, 233, 0.1)',
-                        border: '1px solid rgba(14, 165, 233, 0.25)',
-                        borderRadius: '6px',
-                        padding: '2px 7px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        color: '#0369A1',
-                        cursor: 'pointer',
-                        minWidth: 'unset',
-                        minHeight: 'unset',
-                        height: 'auto',
-                        width: 'fit-content',
-                      }}
-                    >
-                      <Droplets size={10} />
-                      <span>Track</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      data-compact="true"
                       onClick={(e) => toggleRationale('hydration', e)}
                       aria-label="Toggle clinical rationale for hydration"
                       style={{
@@ -688,6 +645,7 @@ export default function CaseDashboard() {
                   setShowVitaminModal(true);
                 }}
                 onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     setShowVitaminModal(true);
@@ -721,6 +679,7 @@ export default function CaseDashboard() {
                       toggleHabit('vitamins', 'Daily Micronutrient / Rx');
                     }}
                     onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return;
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.stopPropagation();
                         e.preventDefault();
@@ -779,37 +738,6 @@ export default function CaseDashboard() {
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      data-compact="true"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerHapticLight();
-                        setShowVitaminModal(true);
-                      }}
-                      aria-label="Open Vitamin & Pill Schedule"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        background: 'rgba(245, 158, 11, 0.12)',
-                        border: '1px solid rgba(217, 119, 6, 0.3)',
-                        borderRadius: '6px',
-                        padding: '2px 7px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        color: '#B45309',
-                        cursor: 'pointer',
-                        minWidth: 'unset',
-                        minHeight: 'unset',
-                        height: 'auto',
-                        width: 'fit-content',
-                      }}
-                    >
-                      <Pill size={10} />
-                      <span>Schedule</span>
-                    </button>
-
                     <button
                       type="button"
                       data-compact="true"
@@ -1079,6 +1007,7 @@ export default function CaseDashboard() {
                     tabIndex={0}
                     aria-label={`Play ${item.title}`}
                     onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return;
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         handleSelectMeditation();

@@ -11,7 +11,7 @@ import {
 } from '../../services/TriggerEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
-export const EliminationTrialsView: React.FC = () => {
+export const EliminationTrialsView: React.FC<{ initialProtocolId?: string | null }> = ({ initialProtocolId }) => {
   const [activeTrialState, setActiveTrialState] = useState<ActiveTrialState | null>(getActiveTrial());
   const [isCheckinOpen, setIsCheckinOpen] = useState(false);
   const [checkinScore, setCheckinScore] = useState(3);
@@ -25,6 +25,12 @@ export const EliminationTrialsView: React.FC = () => {
     const updated = startTrial(protocolId);
     setActiveTrialState(updated);
   };
+
+  React.useEffect(() => {
+    if (initialProtocolId && activeTrialState?.trialId !== initialProtocolId) {
+      handleStartTrial(initialProtocolId);
+    }
+  }, [initialProtocolId]);
 
   const handleSaveCheckin = () => {
     triggerHapticLight();

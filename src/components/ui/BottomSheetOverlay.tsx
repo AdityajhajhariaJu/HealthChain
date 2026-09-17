@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { triggerHapticLight } from '../../services/haptics';
+import FocusTrap from './FocusTrap';
 
 interface BottomSheetOverlayProps {
   isOpen: boolean;
@@ -47,18 +48,6 @@ export function BottomSheetOverlay({
       if (main) main.style.overflow = '';
     };
   }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   const isLight = theme === 'light';
   const resolvedBg = backgroundColor || (isLight ? '#FFFFFF' : '#0F0F11');
@@ -113,6 +102,7 @@ export function BottomSheetOverlay({
               borderTop: resolvedBorder
             }}
           >
+            <FocusTrap isActive={isOpen} onEscape={onClose} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
             <div 
               role="button"
               tabIndex={0}
@@ -206,6 +196,7 @@ export function BottomSheetOverlay({
                {!bgImage && !noPadding && <div style={{ marginTop: '32px' }} />}
                {children}
             </div>
+            </FocusTrap>
           </motion.div>
         </>
       )}

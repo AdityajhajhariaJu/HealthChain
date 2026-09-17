@@ -3,6 +3,7 @@ import { getProfileKey, getProfileEngineState } from './ProfileEngine';
 import { getCases } from './CaseEngine';
 import { getTodayCheckin } from './ProfileEngine';
 import { getVitaminSchedule, getTodayDateString } from './VitaminScheduleService';
+import { adjustWaterAmount, getHydrationData } from './HydrationService';
 
 export type NotificationCategory =
   | 'clinical_alert'
@@ -93,6 +94,9 @@ export function getNotificationStorageScope(profileId?: string): string {
  */
 export function getWaterGlassesForDate(dateStr: string, profileId?: string): number {
   const pId = profileId || getActiveProfileId();
+  if (pId === getActiveProfileId()) {
+    return Math.floor(getHydrationData(dateStr).currentMl / 250);
+  }
   const scopedKey = `hc_water_${dateStr}_${pId}`;
   const scopedVal = getItemSync(scopedKey);
   if (scopedVal !== null) {
@@ -108,6 +112,16 @@ export function getWaterGlassesForDate(dateStr: string, profileId?: string): num
 
 export function setWaterGlassesForDate(dateStr: string, count: number, profileId?: string): void {
   const pId = profileId || getActiveProfileId();
+  if (pId === getActiveProfileId()) {
+    const currentGlasses = Math.floor(getHydrationData(dateStr).currentMl / 250);
+    const nextGlasses = Math.max(0, count);
+    if (nextGlasses !== currentGlasses) adjustWaterAmount((nextGlasses - currentGlasses) * 250, 'water', dateStr);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('hc_water_updated'));
+      window.dispatchEvent(new Event('hc_notifications_updated'));
+    }
+    return;
+  }
   const scopedKey = `hc_water_${dateStr}_${pId}`;
   setItemSync(scopedKey, Math.max(0, count).toString());
   if (typeof window !== 'undefined') {

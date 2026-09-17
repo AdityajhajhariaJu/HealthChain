@@ -47,6 +47,7 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
   standaloneTab = false,
 }) => {
   const [activeTab, setActiveTab] = useState<WholeHealthTab>(initialTab);
+  const [selectedTrialProtocolId, setSelectedTrialProtocolId] = useState<string | null>(null);
   const [historyMode, setHistoryMode] = useState<'month' | '7day'>('month');
   const weeklySeverity = getWeeklySymptomSeverity();
   const exposureTrends = getExposureTrends();
@@ -690,13 +691,14 @@ export const TriggerSensitivityModal: React.FC<TriggerSensitivityModalProps> = (
               {activeTab === 'suspects' && (
                 <SuspectFoodsView
                   onStartTrial={(protocolId) => {
+                    setSelectedTrialProtocolId(protocolId);
                     setActiveTab('trials');
                   }}
                 />
               )}
 
               {/* TAB 4: ELIMINATION TRIALS */}
-              {activeTab === 'trials' && <EliminationTrialsView />}
+              {activeTab === 'trials' && <EliminationTrialsView initialProtocolId={selectedTrialProtocolId} />}
 
               {/* TAB 5: ZEN GARDEN */}
               {activeTab === 'garden' && (

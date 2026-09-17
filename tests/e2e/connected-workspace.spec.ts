@@ -50,6 +50,13 @@ test('mobile Today and Ava keep their main actions inside the viewport', async (
   await expect(page.getByRole('heading', { name: 'Calm Space' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Soundscapes' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Articles', exact: true })).toBeVisible();
+  const quickWater = page.getByRole('button', { name: 'Quick log 250ml water' });
+  await quickWater.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText(/250 \/ 2,000 ml/)).toBeVisible();
+  await expect(page.getByRole('dialog', { name: /Hydration/i })).toHaveCount(0);
+  await page.getByRole('button', { name: 'View all 10 articles' }).click();
+  await expect(page.getByRole('button', { name: 'Show recommended' })).toBeVisible();
   await page.screenshot({ path: 'test-results/connected-today-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'Open Zen Garden' }).click();
   const garden = page.getByRole('dialog', { name: 'Zen Garden' });

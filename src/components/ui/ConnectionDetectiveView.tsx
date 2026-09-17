@@ -50,7 +50,6 @@ import { triggerHapticLight, triggerHapticSelection } from '../../services/hapti
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { SemanticEvidenceGraphView } from './SemanticEvidenceGraphView';
 import { FunctionalBiomarkersView } from './FunctionalBiomarkersView';
-import { KineticBiomechanicsView } from './KineticBiomechanicsView';
 import { PostMealReactionTimeline } from './PostMealReactionTimeline';
 import { DigestionCalendarHeatmap } from './DigestionCalendarHeatmap';
 import { EliminationProtocolSuite } from './EliminationProtocolSuite';
@@ -692,10 +691,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                             <span style={{ fontSize: '20px' }}>🔬</span>
                             <div>
                               <strong style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>
-                                Suspected Dietary Triggers
+                                Recorded food observations
                               </strong>
                               <span style={{ fontSize: '12px', color: '#64748B' }}>
-                                Flare correlations identified from documented meal events.
+                                Review foods captured in this case. Timing alone does not establish a trigger.
                               </span>
                             </div>
                           </div>
@@ -764,7 +763,7 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                                     borderRadius: '6px',
                                   }}
                                 >
-                                  +{culprit.correlationPercent}% flare
+                                  {culprit.correlationPercent > 0 ? `${culprit.correlationPercent}% co-recorded` : 'Reported'}
                                 </span>
                               </div>
 
@@ -780,8 +779,10 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                                   onClick={() => openSourcePassage(
                                     culprit.evidenceRef || 'Clinical Evidence Baseline',
                                     undefined,
-                                    `Flare correlation tracked for ${culprit.name}: +${culprit.correlationPercent}% flare rate across active observation windows.`,
-                                    `Dietary trigger verification for ${culprit.name}`
+                                    culprit.correlationPercent > 0
+                                      ? `A symptom entry was also recorded on ${culprit.correlationPercent}% of dates when ${culprit.name} was logged. This is an association, not proof of causation.`
+                                      : `${culprit.name} was reported in the case history. No repeated association has been calculated.`,
+                                    `Recorded food observation for ${culprit.name}`
                                   )}
                                 />
                               </div>
@@ -915,39 +916,28 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
                   {/* STATION 06: FUNCTIONAL LABS */}
                   {station.id === 'biomarkers' && (
-                    <div>
-                      <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <SourceEvidenceBadge
-                          source="Functional Medicine Laboratory Cutoffs"
-                          citation="IFM Protocol"
-                          onClick={() => openSourcePassage(
-                            "Functional Medicine Laboratory Cutoffs",
-                            "IFM Protocol",
-                            "Standard hospital lab reference intervals reflect 95% population distributions of diseased cohorts. Functional integrative target ranges isolate optimal cellular respiration and physiological homeostasis.",
-                            "Optimal vs Conventional Biomarker Range Analysis"
-                          )}
-                        />
-                      </div>
-                      <FunctionalBiomarkersView />
-                    </div>
+                    <FunctionalBiomarkersView />
                   )}
 
                   {/* STATION 07: KINETIC BIOMECHANICS */}
                   {station.id === 'kinetic' && (
-                    <div>
-                      <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <SourceEvidenceBadge
-                          source="Upper Cervical & Vagus Axis Analysis"
-                          citation="Autonomic Neuro-Biomechanics"
-                          onClick={() => openSourcePassage(
-                            "Upper Cervical & Vagus Axis Analysis",
-                            "Autonomic Neuro-Biomechanics",
-                            "Upper cervical postural strain alters autonomic signaling, impacting heart rate responsiveness and digestive motility.",
-                            "Craniocervical alignment and autonomic signaling"
-                          )}
-                        />
-                      </div>
-                      <KineticBiomechanicsView />
+                    <div style={{ padding: '28px 20px', textAlign: 'center', border: '1px dashed #CBD5E1', borderRadius: '18px', background: '#F8FAFC' }}>
+                      <Activity size={24} color="#0D9488" style={{ marginBottom: '8px' }} />
+                      <h4 style={{ margin: '0 0 5px', color: '#0F172A', fontSize: '15px' }}>No movement observations connected yet</h4>
+                      <p style={{ margin: '0 auto 14px', color: '#64748B', fontSize: '12.5px', maxWidth: '460px', lineHeight: 1.5 }}>
+                        Add posture, movement, pain-location, and timing notes to the active case. HealthChain will not invent a biomechanical cause from symptoms alone.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerHapticLight();
+                          if (onOpenConsult) onOpenConsult();
+                          else window.location.href = '/app/consult';
+                        }}
+                        style={{ border: 0, borderRadius: '10px', background: '#0F766E', color: '#FFFFFF', padding: '9px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        Add an observation
+                      </button>
                     </div>
                   )}
 
@@ -957,33 +947,6 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
 
                 </div>
               </section>
-
-              {/* CONNECTIVE BRIDGES BETWEEN CLINICAL PILLARS */}
-              {!focusedStationId && station.id === 'insights' && (
-                <div
-                  style={{
-                    background: '#F8FAFC',
-                    borderRadius: '12px',
-                    padding: '10px 14px',
-                    border: '1px solid #E2E8F0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '12px',
-                    color: '#0F766E',
-                  }}
-                >
-                  <span style={{ fontSize: '16px' }}>🔗</span>
-                  <div>
-                    <strong style={{ display: 'block', color: '#0F766E', fontSize: '12px' }}>
-                      Clinical Correlation: Gut Barrier & Biomarkers
-                    </strong>
-                    <span style={{ color: '#64748B', fontSize: '11.5px' }}>
-                      Mucosal permeability patterns link directly to downstream functional lab trends.
-                    </span>
-                  </div>
-                </div>
-              )}
 
               {!focusedStationId && station.id === 'kinetic' && (
                 <div
@@ -1077,6 +1040,15 @@ export const ConnectionDetectiveView: React.FC<ConnectionDetectiveViewProps> = (
                     triggerHapticSelection();
                     setOpenedPillarId(pillar.id);
                     trackButtonClick('clinical_parent_pillar_open', pillar.id);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open ${pillar.title}`}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleSelectPillar(pillar.id);
+                    }
                   }}
                   style={{
                     background: '#FFFFFF',

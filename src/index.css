@@ -1010,6 +1010,14 @@ html.dark-theme body {
     min-width: 44px; 
   }
 
+  /* Compact controls stay visually small while remaining easy to tap. */
+  button[data-compact="true"],
+  a[data-compact="true"],
+  [role="button"][data-compact="true"],
+  .btn-compact {
+    min-height: 36px;
+  }
+
   .app-shell {
       display: flex;
       flex-direction: column;

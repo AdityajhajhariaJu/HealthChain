@@ -30,6 +30,8 @@ vi.mock('../ProfileEngine', () => ({
   getProfileKey: vi.fn(() => 'hc_unified_profile'),
   getProfileEngineState: vi.fn(() => mockProfileState),
   getTodayCheckin: vi.fn(() => mockCheckin),
+  getProfile: vi.fn(() => ({ points: 5, pointsHistory: [] })),
+  saveProfile: vi.fn(),
 }));
 
 vi.mock('../CaseEngine', () => ({

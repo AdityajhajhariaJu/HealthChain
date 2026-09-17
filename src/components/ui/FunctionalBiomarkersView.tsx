@@ -1,47 +1,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Sparkles,
-  HelpCircle,
-  ChevronRight,
-  Activity,
-  ShieldCheck,
-  AlertTriangle,
-  Clock,
-  Pill,
-  ArrowRight,
-  Stethoscope,
-  Sliders,
-  RotateCcw,
-} from 'lucide-react';
+import { ChevronRight, Activity, AlertTriangle, FileUp } from 'lucide-react';
 import {
   getFunctionalBiomarkers,
   FunctionalBiomarker,
-  getClinicalProfilePresets,
-  ClinicalProfilePreset,
-  saveFunctionalBiomarkers,
-  resetFunctionalBiomarkers,
 } from '../../services/ConnectionDetectiveEngine';
 import { triggerHapticLight, triggerHapticSelection } from '../../services/haptics';
 
 export const FunctionalBiomarkersView: React.FC = () => {
   const initialBiomarkers = getFunctionalBiomarkers();
-  const presets = getClinicalProfilePresets();
-
-  const [activePresetId, setActivePresetId] = useState<string>('profile_baseline');
-  const [customValues, setCustomValues] = useState<Record<string, number>>(() => {
-    const map: Record<string, number> = {};
-    initialBiomarkers.forEach((b) => {
-      map[b.id] = b.userValue;
-    });
-    return map;
-  });
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(initialBiomarkers[0]?.id || null);
 
   const categories = [
-    { id: 'all', label: 'All 20 Biomarkers', icon: '🧪' },
+    { id: 'all', label: `All ${initialBiomarkers.length} values`, icon: '🧪' },
     { id: 'metabolic', label: 'Energy & Iron', icon: '⚡' },
     { id: 'endocrine', label: 'Thyroid Axis & Adrenals', icon: '🦋' },
     { id: 'immune', label: 'Immune & Mucosal Barrier', icon: '🛡️' },
@@ -49,48 +22,10 @@ export const FunctionalBiomarkersView: React.FC = () => {
     { id: 'neuromuscular', label: 'Neuromuscular', icon: '🧠' },
   ];
 
-  const handleSelectPreset = (preset: ClinicalProfilePreset) => {
-    triggerHapticSelection();
-    setActivePresetId(preset.id);
-    setCustomValues((prev) => {
-      const next = {
-        ...prev,
-        ...preset.biomarkerValues,
-      };
-      saveFunctionalBiomarkers(next);
-      return next;
-    });
-  };
-
-  const handleValueChange = (biomarkerId: string, val: number) => {
-    setCustomValues((prev) => {
-      const next = {
-        ...prev,
-        [biomarkerId]: val,
-      };
-      saveFunctionalBiomarkers(next);
-      return next;
-    });
-  };
-
-  const handleReset = () => {
-    triggerHapticLight();
-    resetFunctionalBiomarkers();
-    setActivePresetId('profile_baseline');
-    const fresh = getFunctionalBiomarkers();
-    const map: Record<string, number> = {};
-    fresh.forEach((b) => {
-      map[b.id] = b.userValue;
-    });
-    setCustomValues(map);
-  };
-
   const getComputedStatus = (b: FunctionalBiomarker, val: number) => {
-    if (val < b.standardRange.min) return { key: 'critical_low', label: 'Below Standard Range', color: '#EF4444', bg: '#FEF2F2' };
-    if (val < b.optimalRange.min) return { key: 'suboptimal_low', label: 'Suboptimal (Below Functional Target)', color: '#D97706', bg: '#FFFBEB' };
-    if (val > b.standardRange.max) return { key: 'critical_high', label: 'Above Standard Range', color: '#DC2626', bg: '#FEF2F2' };
-    if (val > b.optimalRange.max) return { key: 'suboptimal_high', label: 'Suboptimal (Above Functional Target)', color: '#D97706', bg: '#FFFBEB' };
-    return { key: 'optimal', label: 'Optimal Target Range', color: '#059669', bg: '#ECFDF5' };
+    if (val < b.standardRange.min) return { key: 'below', label: 'Below printed range', color: '#DC2626', bg: '#FEF2F2' };
+    if (val > b.standardRange.max) return { key: 'above', label: 'Above printed range', color: '#DC2626', bg: '#FEF2F2' };
+    return { key: 'within', label: 'Within printed range', color: '#059669', bg: '#ECFDF5' };
   };
 
   const filtered = initialBiomarkers.filter((b) => selectedCategory === 'all' || b.category === selectedCategory);
@@ -131,80 +66,16 @@ export const FunctionalBiomarkersView: React.FC = () => {
             LAB MARKER COMPARISON
           </div>
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#1E293B', lineHeight: 1.2 }}>
-            Functional Target vs. Standard Range
+            Extracted values and report ranges
           </div>
           <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-            Standard cutoffs identify clinical pathology. Functional targets highlight early trends.
+            Compare each extracted value with the interval printed on its source report.
           </div>
-        </div>
-      </div>
-
-      {/* Preset Profiles Selector Ribbon */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', letterSpacing: '0.3px', textTransform: 'uppercase' }}>
-            Reference Baselines:
-          </div>
-          <button
-            type="button"
-            onClick={handleReset}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'none',
-              border: 'none',
-              color: '#0F766E',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: '6px',
-            }}
-            title="Reset to Baseline"
-          >
-            <RotateCcw size={12} />
-            <span>Reset Baseline</span>
-          </button>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '2px' }}>
-          {presets.map((p) => {
-            const isSelected = activePresetId === p.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => handleSelectPreset(p)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 12px',
-                  borderRadius: '12px',
-                  border: isSelected ? '1.5px solid #0F766E' : '1px solid #E2E8F0',
-                  background: isSelected ? '#F0FDFA' : '#FFFFFF',
-                  color: isSelected ? '#0F766E' : '#64748B',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  boxShadow: isSelected ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none',
-                }}
-              >
-                <span>{isSelected ? '✓' : '•'}</span>
-                <span>{p.name}</span>
-                <span style={{ fontSize: '10px', background: isSelected ? '#CCFBF1' : '#F1F5F9', padding: '2px 6px', borderRadius: '6px' }}>
-                  {p.badge}
-                </span>
-              </button>
-            );
-          })}
         </div>
       </div>
 
       {/* Category Filter Pills */}
-      <div
+      {initialBiomarkers.length > 0 && <div
         style={{
           display: 'flex',
           gap: '6px',
@@ -214,7 +85,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
           paddingBottom: '2px',
         }}
       >
-        {categories.map((c) => {
+        {categories.filter((c) => c.id === 'all' || initialBiomarkers.some((item) => item.category === c.id)).map((c) => {
           const isCurrent = selectedCategory === c.id;
           return (
             <button
@@ -247,13 +118,26 @@ export const FunctionalBiomarkersView: React.FC = () => {
             </button>
           );
         })}
-      </div>
+      </div>}
+
+      {initialBiomarkers.length === 0 && (
+        <div style={{ padding: '28px 20px', textAlign: 'center', border: '1px dashed #CBD5E1', borderRadius: '18px', background: '#F8FAFC' }}>
+          <FileUp size={24} color="#0D9488" style={{ marginBottom: '8px' }} />
+          <h4 style={{ margin: '0 0 5px', color: '#0F172A', fontSize: '15px' }}>No report values connected yet</h4>
+          <p style={{ margin: '0 auto 14px', color: '#64748B', fontSize: '12.5px', maxWidth: '430px', lineHeight: 1.5 }}>
+            Add a lab report in the Clinical Data Engine. Only extracted values with their printed ranges will appear here.
+          </p>
+          <button type="button" onClick={() => { window.location.href = '/app/consult'; }} style={{ border: 0, borderRadius: '10px', background: '#0F766E', color: '#FFFFFF', padding: '9px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+            Open Clinical Data Engine
+          </button>
+        </div>
+      )}
 
       {/* Biomarkers List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {filtered.map((b) => {
           const isExpanded = expandedId === b.id;
-          const currentValue = customValues[b.id] ?? b.userValue;
+          const currentValue = b.userValue;
           const status = getComputedStatus(b, currentValue);
 
           // Range bar calculation
@@ -290,6 +174,12 @@ export const FunctionalBiomarkersView: React.FC = () => {
                   triggerHapticLight();
                   setExpandedId(isExpanded ? null : b.id);
                 }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    setExpandedId(isExpanded ? null : b.id);
+                  }
+                }}
                 style={{
                   padding: '14px 16px',
                   display: 'flex',
@@ -321,7 +211,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       {b.name}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                      Optimal: <span style={{ color: '#059669', fontWeight: 700 }}>{b.optimalRange.label}</span> • Standard: {b.standardRange.label}
+                      Printed range: {b.standardRange.label}
                     </div>
                   </div>
                 </div>
@@ -332,7 +222,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       {currentValue} {b.userUnit}
                     </div>
                     <div style={{ fontSize: '10.5px', fontWeight: 700, color: status.color }}>
-                      {status.key === 'optimal' ? 'Optimal 🟢' : status.key.includes('suboptimal') ? 'Subclinical 🟡' : 'Pathology 🔴'}
+                      {status.label}
                     </div>
                   </div>
                   <ChevronRight
@@ -385,8 +275,8 @@ export const FunctionalBiomarkersView: React.FC = () => {
                     {/* Dual-Band Range Visualization Bar */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B', fontWeight: 600 }}>
-                        <span>Standard Range: {b.standardRange.label}</span>
-                        <span style={{ color: '#059669', fontWeight: 700 }}>Optimal Functional: {b.optimalRange.label}</span>
+                        <span>Printed range: {b.standardRange.label}</span>
+                        <span>Extracted value: {currentValue} {b.userUnit}</span>
                       </div>
 
                       {/* Visual Spectrum Bar */}
@@ -412,7 +302,7 @@ export const FunctionalBiomarkersView: React.FC = () => {
                           }}
                         />
 
-                        {/* Optimal functional window */}
+                        {/* Range printed on the source report */}
                         <div
                           style={{
                             position: 'absolute',
@@ -443,42 +333,9 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94A3B8' }}>
-                        <span>Lower Pathology</span>
-                        <span>Normal Lab Margin</span>
-                        <span style={{ color: '#059669', fontWeight: 700 }}>Optimal Range</span>
-                        <span>Upper Pathology</span>
-                      </div>
-                    </div>
-
-                    {/* Interactive Value Slider Adjuster */}
-                    <div
-                      style={{
-                        background: '#F1F5F9',
-                        borderRadius: '12px',
-                        padding: '10px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '12px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: 700, color: '#334155' }}>
-                        <Sliders size={15} color="#0D9488" />
-                        <span>Adjust Test Value:</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '240px' }}>
-                        <input
-                          type="range"
-                          min={b.standardRange.min * 0.7}
-                          max={b.standardRange.max * 1.3}
-                          step={(b.standardRange.max - b.standardRange.min) / 100 || 0.1}
-                          value={currentValue}
-                          onChange={(e) => handleValueChange(b.id, parseFloat(e.target.value))}
-                          style={{ width: '100%', accentColor: '#0D9488', cursor: 'pointer' }}
-                        />
-                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', minWidth: '45px', textAlign: 'right' }}>
-                          {Number(currentValue).toFixed(1)}
-                        </span>
+                        <span>Below range</span>
+                        <span style={{ color: '#059669', fontWeight: 700 }}>Printed interval</span>
+                        <span>Above range</span>
                       </div>
                     </div>
 
@@ -487,47 +344,6 @@ export const FunctionalBiomarkersView: React.FC = () => {
                       {b.clinicalSummary}
                     </div>
 
-                    {/* Why 15-Minute Doctors Missed It */}
-                    <div
-                      style={{
-                        background: '#FFFBEB',
-                        borderRadius: '12px',
-                        padding: '12px 14px',
-                        border: '1px solid #FDE68A',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B45309', fontSize: '11.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                        <AlertTriangle size={14} />
-                        <span>Why 15-Minute Doctors Missed This</span>
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#78350F', lineHeight: 1.45 }}>
-                        {b.whyDoctorsMissIt}
-                      </div>
-                    </div>
-
-                    {/* Actionable Dietary & Synergistic Cofactors */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#0F766E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        Actionable Cofactors & Indian Dietary Sources:
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {b.actionableDietaryCofactors.map((cofactor, idx) => (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '12px', color: '#334155' }}>
-                            <span style={{ color: '#0D9488', fontWeight: 700 }}>•</span>
-                            <span>{cofactor}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Retest Guidance */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                      <Clock size={13} />
-                      <span>{b.retestTimeline}</span>
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

@@ -448,7 +448,7 @@ export default function CaseDetail() {
                 <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px', color: '#0F172A' }}>Attached Case Records</h2>
                 <p style={{ margin: 0, color: '#64748B', fontSize: 14 }}>Clinical lab tests, imaging, and external documents attached to this case.</p>
               </div>
-              <button
+              {recordsCount > 0 && <button
                 className="btn btn-outline"
                 style={{ padding: '8px 14px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 onClick={() => {
@@ -457,7 +457,7 @@ export default function CaseDetail() {
                 }}
               >
                 <FileText size={15} /> Interpret New Report
-              </button>
+              </button>}
             </div>
 
             {recordsCount === 0 ? (
