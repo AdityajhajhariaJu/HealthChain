@@ -1,0 +1,3 @@
+## 2024-03-24 - React useMemo array filter optimization
+**Learning:** Found a missing `useMemo` wrapper around an expensive array `.filter` operation in `MyCases.tsx` component that evaluates string matching (`caseMatchesSearch`) over potentially large data sets during render cycles. Without memoization, this filter blocks the main thread during simple text inputs or state changes on each re-render.
+**Action:** Applied `useMemo` to cache the results of list filtering unless source data or search terms actually change. Will look for similar expensive array traversals inside functional components that can be memoized in the future.

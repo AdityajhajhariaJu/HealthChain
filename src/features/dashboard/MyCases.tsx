@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, CalendarClock, GitMerge, CheckCircle2, ChevronRight, Archive, Trash2, Sparkles, Users, AlertTriangle, BrainCircuit } from 'lucide-react';
@@ -71,7 +71,11 @@ export default function MyCases() {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [caseToDelete]);
 
-  const filteredCases = cases.filter(c => (statusFilter === 'all' || c.status === statusFilter) && caseMatchesSearch(c, searchTerm));
+  // Performance optimization: Memoize case filtering to prevent O(n) recalculations on every render
+  // Measurement: Reduces main thread blocking during re-renders when list of cases is large
+  const filteredCases = useMemo(() => {
+    return cases.filter(c => (statusFilter === 'all' || c.status === statusFilter) && caseMatchesSearch(c, searchTerm));
+  }, [cases, statusFilter, searchTerm]);
   const totalPages = Math.max(1, Math.ceil(filteredCases.length / itemsPerPage));
   const visiblePage = Math.min(currentPage, totalPages);
   const paginatedCases = filteredCases.slice((visiblePage - 1) * itemsPerPage, visiblePage * itemsPerPage);
